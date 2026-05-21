@@ -3,7 +3,6 @@ import {
   AccordionDetails,
   AccordionSummary,
   Alert,
-  Box,
   MenuItem,
   Stack,
   TextField,
@@ -109,22 +108,23 @@ export const MountConfigAiSettingsForm = ({
 
           <OutlineAccordion elevation={0} disableGutters>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography fontSize="0.875rem">
+              <Typography variant="body1">
                 {t('integration.ai.systemPrompt', 'System Prompt')}
               </Typography>
             </AccordionSummary>
             <AccordionDetails>
-              <Box
+              <Typography
+                variant="caption"
+                component="div"
                 sx={{
                   bgcolor: 'action.hover',
                   p: 1,
                   borderRadius: 1,
                   fontFamily: 'monospace',
-                  fontSize: '0.75rem',
                 }}
               >
                 {EXTRACT_TITLE_SYSTEM_PROMPT}
-              </Box>
+              </Typography>
             </AccordionDetails>
           </OutlineAccordion>
         </>

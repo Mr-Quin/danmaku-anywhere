@@ -155,324 +155,333 @@ const severityKeys: readonly SeverityKey[] = [
   'error',
 ] as const
 
-const sakuraComponents: ThemeOptions['components'] = {
-  MuiButton: {
-    defaultProps: { size: 'small', disableElevation: true },
-    styleOverrides: {
-      root: { borderRadius: 8, fontWeight: 600, paddingInline: 10 },
-      sizeSmall: { minHeight: 28, paddingInline: 10 },
-      sizeMedium: { minHeight: 32 },
-    },
-    variants: [
-      {
-        props: { variant: 'soft', color: 'primary' },
-        style: ({ theme }) => ({
-          backgroundColor: theme.palette.primary.light,
-          color: theme.palette.primaryInk,
-          '&:hover': {
-            backgroundColor: alpha(theme.palette.primary.main, 0.22),
-          },
-        }),
+function buildSakuraComponents(
+  pxToRem: (px: number) => string
+): ThemeOptions['components'] {
+  return {
+    MuiButton: {
+      defaultProps: { size: 'small', disableElevation: true },
+      styleOverrides: {
+        root: { borderRadius: 8, fontWeight: 600, paddingInline: 10 },
+        sizeSmall: { minHeight: 28, paddingInline: 10 },
+        sizeMedium: { minHeight: 32 },
       },
-      {
-        props: { variant: 'soft', color: 'secondary' },
-        style: ({ theme }) => ({
-          backgroundColor: theme.palette.secondary.light,
-          color: theme.palette.secondaryInk,
-          '&:hover': {
-            backgroundColor: alpha(theme.palette.secondary.main, 0.22),
-          },
-        }),
-      },
-      ...severityKeys.map((sev) => ({
-        props: { variant: 'soft' as const, color: sev },
-        style: ({ theme }: { theme: Theme }) => ({
-          backgroundColor: theme.palette[sev].light,
-          color: theme.palette.severityInk[sev],
-          '&:hover': {
-            backgroundColor: alpha(theme.palette[sev].main, 0.22),
-          },
-        }),
-      })),
-    ],
-  },
-  MuiTextField: { defaultProps: { size: 'small', fullWidth: true } },
-  MuiSelect: { defaultProps: { size: 'small' } },
-  MuiIconButton: {
-    defaultProps: { size: 'small' },
-    styleOverrides: {
-      root: { borderRadius: 7 },
-    },
-  },
-  MuiTable: { defaultProps: { size: 'small' } },
-  MuiList: { defaultProps: { dense: true } },
-
-  MuiSvgIcon: {
-    styleOverrides: {
-      root: { fontSize: '1.125rem' },
-      fontSizeSmall: { fontSize: '1rem' },
-      fontSizeLarge: { fontSize: '1.5rem' },
-    },
-  },
-
-  MuiPaper: {
-    defaultProps: { elevation: 0 },
-    styleOverrides: {
-      root: { backgroundImage: 'none' },
-    },
-  },
-  MuiCard: {
-    styleOverrides: {
-      root: ({ theme }) => ({
-        borderRadius: 12,
-        border: `1px solid ${theme.palette.divider}`,
-        boxShadow: 'none',
-      }),
-    },
-  },
-
-  MuiChip: {
-    defaultProps: { size: 'small' },
-    styleOverrides: {
-      root: { fontWeight: 600, letterSpacing: 0.1 },
-      sizeSmall: { height: 22, fontSize: '0.6875rem' },
-      filled: ({ theme, ownerState }) => {
-        const c = ownerState.color
-        if (!c || c === 'default') {
-          return {
-            backgroundColor: theme.palette.paperAlt,
-            color: theme.palette.text.primary,
-          }
-        }
-        if (c === 'primary') {
-          return {
+      variants: [
+        {
+          props: { variant: 'soft', color: 'primary' },
+          style: ({ theme }) => ({
             backgroundColor: theme.palette.primary.light,
             color: theme.palette.primaryInk,
-          }
-        }
-        if (c === 'secondary') {
-          return {
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.primary.main, 0.22),
+            },
+          }),
+        },
+        {
+          props: { variant: 'soft', color: 'secondary' },
+          style: ({ theme }) => ({
             backgroundColor: theme.palette.secondary.light,
             color: theme.palette.secondaryInk,
-          }
-        }
-        if ((severityKeys as readonly string[]).includes(c)) {
-          const sev = c as SeverityKey
-          return {
+            '&:hover': {
+              backgroundColor: alpha(theme.palette.secondary.main, 0.22),
+            },
+          }),
+        },
+        ...severityKeys.map((sev) => ({
+          props: { variant: 'soft' as const, color: sev },
+          style: ({ theme }: { theme: Theme }) => ({
             backgroundColor: theme.palette[sev].light,
             color: theme.palette.severityInk[sev],
-          }
-        }
-        return {}
-      },
-      outlined: ({ theme, ownerState }) => {
-        const c = ownerState.color
-        if (!c || c === 'default') {
-          return {
-            borderColor: theme.palette.divider,
-            color: theme.palette.text.secondary,
-            backgroundColor: 'transparent',
-          }
-        }
-        if (c === 'primary') {
-          return {
-            borderColor: theme.palette.primary.main,
-            color: theme.palette.primaryInk,
-            backgroundColor: 'transparent',
-          }
-        }
-        if (c === 'secondary') {
-          return {
-            borderColor: theme.palette.secondary.main,
-            color: theme.palette.secondaryInk,
-            backgroundColor: 'transparent',
-          }
-        }
-        if ((severityKeys as readonly string[]).includes(c)) {
-          const sev = c as SeverityKey
-          return {
-            borderColor: theme.palette[sev].main,
-            color: theme.palette.severityInk[sev],
-            backgroundColor: 'transparent',
-          }
-        }
-        return {}
+            '&:hover': {
+              backgroundColor: alpha(theme.palette[sev].main, 0.22),
+            },
+          }),
+        })),
+      ],
+    },
+    MuiTextField: { defaultProps: { size: 'small', fullWidth: true } },
+    MuiSelect: { defaultProps: { size: 'small' } },
+    MuiIconButton: {
+      defaultProps: { size: 'small' },
+      styleOverrides: {
+        root: { borderRadius: 7 },
       },
     },
-  },
+    MuiTable: { defaultProps: { size: 'small' } },
+    MuiList: { defaultProps: { dense: true } },
 
-  MuiAutocomplete: {
-    styleOverrides: {
-      tag: { margin: 2 },
-    },
-  },
-
-  MuiOutlinedInput: {
-    styleOverrides: {
-      root: ({ theme }) => ({
-        borderRadius: 8,
-        backgroundColor: theme.palette.paperAlt,
-      }),
-      input: { padding: '7px 10px' },
-      notchedOutline: ({ theme }) => ({ borderColor: theme.palette.divider }),
-    },
-  },
-  MuiInputLabel: {
-    styleOverrides: { root: { fontSize: '0.8125rem' } },
-  },
-
-  MuiListItemButton: {
-    styleOverrides: {
-      root: ({ theme }) => ({
-        borderRadius: 8,
-        padding: '6px 8px',
-        '&.Mui-selected': {
-          backgroundColor: theme.palette.action.selected,
-          '&:hover': { backgroundColor: theme.palette.action.selected },
-        },
-      }),
-    },
-  },
-  MuiListItemText: {
-    styleOverrides: {
-      primary: { fontWeight: 500 },
-      secondary: ({ theme }) => ({
-        fontSize: '0.75rem',
-        color: theme.palette.text.secondary,
-      }),
-    },
-  },
-  MuiListItemIcon: {
-    styleOverrides: { root: { minWidth: 28 } },
-  },
-
-  MuiTabs: {
-    styleOverrides: {
-      root: { minHeight: 36 },
-      indicator: { height: 2 },
-    },
-  },
-  MuiTab: {
-    styleOverrides: {
-      root: {
-        textTransform: 'none',
-        minHeight: 36,
-        padding: '8px 10px',
-        fontSize: '0.8125rem',
-        fontWeight: 600,
+    MuiSvgIcon: {
+      styleOverrides: {
+        root: { fontSize: pxToRem(18) },
+        fontSizeSmall: { fontSize: pxToRem(16) },
+        fontSizeLarge: { fontSize: pxToRem(24) },
       },
     },
-  },
 
-  MuiTypography: {
-    defaultProps: {
-      variantMapping: {
-        meta: 'span',
+    MuiPaper: {
+      defaultProps: { elevation: 0 },
+      styleOverrides: {
+        root: { backgroundImage: 'none' },
       },
     },
-  },
+    MuiCard: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          borderRadius: 12,
+          border: `1px solid ${theme.palette.divider}`,
+          boxShadow: 'none',
+        }),
+      },
+    },
 
-  MuiAlert: {
-    styleOverrides: {
-      root: { borderRadius: 8, padding: '6px 10px', fontSize: '0.8125rem' },
-      standardSuccess: ({ theme }) => ({
-        backgroundColor: theme.palette.success.light,
-        color: theme.palette.severityInk.success,
-      }),
-      standardInfo: ({ theme }) => ({
-        backgroundColor: theme.palette.info.light,
-        color: theme.palette.severityInk.info,
-      }),
-      standardWarning: ({ theme }) => ({
-        backgroundColor: theme.palette.warning.light,
-        color: theme.palette.severityInk.warning,
-      }),
-      standardError: ({ theme }) => ({
-        backgroundColor: theme.palette.error.light,
-        color: theme.palette.severityInk.error,
-      }),
-      icon: ({ ownerState, theme }) => {
-        const sev = ownerState.severity
-        if (!sev) {
+    MuiChip: {
+      defaultProps: { size: 'small' },
+      styleOverrides: {
+        root: { fontWeight: 600, letterSpacing: 0.1 },
+        sizeSmall: { height: 22, fontSize: pxToRem(11) },
+        filled: ({ theme, ownerState }) => {
+          const c = ownerState.color
+          if (!c || c === 'default') {
+            return {
+              backgroundColor: theme.palette.paperAlt,
+              color: theme.palette.text.primary,
+            }
+          }
+          if (c === 'primary') {
+            return {
+              backgroundColor: theme.palette.primary.light,
+              color: theme.palette.primaryInk,
+            }
+          }
+          if (c === 'secondary') {
+            return {
+              backgroundColor: theme.palette.secondary.light,
+              color: theme.palette.secondaryInk,
+            }
+          }
+          if ((severityKeys as readonly string[]).includes(c)) {
+            const sev = c as SeverityKey
+            return {
+              backgroundColor: theme.palette[sev].light,
+              color: theme.palette.severityInk[sev],
+            }
+          }
           return {}
-        }
-        return { color: theme.palette.severityInk[sev] }
+        },
+        outlined: ({ theme, ownerState }) => {
+          const c = ownerState.color
+          if (!c || c === 'default') {
+            return {
+              borderColor: theme.palette.divider,
+              color: theme.palette.text.secondary,
+              backgroundColor: 'transparent',
+            }
+          }
+          if (c === 'primary') {
+            return {
+              borderColor: theme.palette.primary.main,
+              color: theme.palette.primaryInk,
+              backgroundColor: 'transparent',
+            }
+          }
+          if (c === 'secondary') {
+            return {
+              borderColor: theme.palette.secondary.main,
+              color: theme.palette.secondaryInk,
+              backgroundColor: 'transparent',
+            }
+          }
+          if ((severityKeys as readonly string[]).includes(c)) {
+            const sev = c as SeverityKey
+            return {
+              borderColor: theme.palette[sev].main,
+              color: theme.palette.severityInk[sev],
+              backgroundColor: 'transparent',
+            }
+          }
+          return {}
+        },
       },
     },
-  },
 
-  MuiSwitch: {
-    defaultProps: { size: 'small' },
-    styleOverrides: {
-      root: { padding: 6 },
+    MuiAutocomplete: {
+      styleOverrides: {
+        tag: { margin: 2 },
+      },
     },
-  },
-  MuiSlider: {
-    defaultProps: { size: 'small' },
-    styleOverrides: {
-      markLabel: { fontSize: '0.625rem', lineHeight: 1.3 },
-      valueLabel: { fontSize: '0.625rem' },
-    },
-  },
 
-  MuiDivider: {
-    styleOverrides: {
-      root: ({ theme }) => ({ borderColor: theme.palette.divider }),
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          borderRadius: 8,
+          backgroundColor: theme.palette.paperAlt,
+        }),
+        input: { padding: '7px 10px' },
+        notchedOutline: ({ theme }) => ({ borderColor: theme.palette.divider }),
+      },
     },
-  },
+    MuiInputLabel: {
+      styleOverrides: { root: { fontSize: pxToRem(13) } },
+    },
 
-  MuiAppBar: {
-    defaultProps: { elevation: 0, position: 'static' },
-    styleOverrides: {
-      root: ({ theme }) => ({
-        backgroundColor: theme.palette.primary.main,
-        color: theme.palette.primary.contrastText,
-      }),
+    MuiListItemButton: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          borderRadius: 8,
+          padding: '6px 8px',
+          '&.Mui-selected': {
+            backgroundColor: theme.palette.action.selected,
+            '&:hover': { backgroundColor: theme.palette.action.selected },
+          },
+        }),
+      },
     },
-  },
+    MuiListItemText: {
+      styleOverrides: {
+        primary: { fontWeight: 500 },
+        secondary: ({ theme }) => ({
+          fontSize: pxToRem(12),
+          color: theme.palette.text.secondary,
+        }),
+      },
+    },
+    MuiListItemIcon: {
+      styleOverrides: { root: { minWidth: 28 } },
+    },
 
-  MuiTooltip: {
-    styleOverrides: {
-      tooltip: ({ theme }) => ({
-        fontSize: '0.6875rem',
-        backgroundColor: theme.palette.mode === 'dark' ? '#3A2E3A' : '#2A1B24',
-        color: '#FFFFFF',
-        borderRadius: 6,
-        padding: '4px 8px',
-      }),
+    MuiTabs: {
+      styleOverrides: {
+        root: { minHeight: 36 },
+        indicator: { height: 2 },
+      },
     },
-  },
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          minHeight: 36,
+          padding: '8px 10px',
+          fontSize: pxToRem(13),
+          fontWeight: 600,
+        },
+      },
+    },
+
+    MuiTypography: {
+      defaultProps: {
+        variantMapping: {
+          meta: 'span',
+        },
+      },
+    },
+
+    MuiAlert: {
+      styleOverrides: {
+        root: { borderRadius: 8, padding: '6px 10px', fontSize: pxToRem(13) },
+        standardSuccess: ({ theme }) => ({
+          backgroundColor: theme.palette.success.light,
+          color: theme.palette.severityInk.success,
+        }),
+        standardInfo: ({ theme }) => ({
+          backgroundColor: theme.palette.info.light,
+          color: theme.palette.severityInk.info,
+        }),
+        standardWarning: ({ theme }) => ({
+          backgroundColor: theme.palette.warning.light,
+          color: theme.palette.severityInk.warning,
+        }),
+        standardError: ({ theme }) => ({
+          backgroundColor: theme.palette.error.light,
+          color: theme.palette.severityInk.error,
+        }),
+        icon: ({ ownerState, theme }) => {
+          const sev = ownerState.severity
+          if (!sev) {
+            return {}
+          }
+          return { color: theme.palette.severityInk[sev] }
+        },
+      },
+    },
+
+    MuiSwitch: {
+      defaultProps: { size: 'small' },
+      styleOverrides: {
+        root: { padding: 6 },
+      },
+    },
+    MuiSlider: {
+      defaultProps: { size: 'small' },
+      styleOverrides: {
+        markLabel: { fontSize: pxToRem(10), lineHeight: 1.3 },
+        valueLabel: { fontSize: pxToRem(10) },
+      },
+    },
+
+    MuiDivider: {
+      styleOverrides: {
+        root: ({ theme }) => ({ borderColor: theme.palette.divider }),
+      },
+    },
+
+    MuiAppBar: {
+      defaultProps: { elevation: 0, position: 'static' },
+      styleOverrides: {
+        root: ({ theme }) => ({
+          backgroundColor: theme.palette.primary.main,
+          color: theme.palette.primary.contrastText,
+        }),
+      },
+    },
+
+    MuiTooltip: {
+      styleOverrides: {
+        tooltip: ({ theme }) => ({
+          fontSize: pxToRem(11),
+          backgroundColor:
+            theme.palette.mode === 'dark' ? '#3A2E3A' : '#2A1B24',
+          color: '#FFFFFF',
+          borderRadius: 6,
+          padding: '4px 8px',
+        }),
+      },
+    },
+  }
 }
 
-const sakuraTypography: ThemeOptions['typography'] = {
-  fontFamily: `'Plus Jakarta Sans', 'Noto Sans SC', system-ui, sans-serif`,
-  h1: { fontWeight: 700, fontSize: '1.375rem', lineHeight: 1.3 },
-  h2: { fontWeight: 700, fontSize: '1.125rem', lineHeight: 1.3 },
-  h3: { fontWeight: 700, fontSize: '1rem', lineHeight: 1.3 },
-  h4: { fontWeight: 700, fontSize: '0.9375rem', lineHeight: 1.3 },
-  h5: { fontWeight: 700, fontSize: '0.875rem', lineHeight: 1.3 },
-  h6: { fontWeight: 700, fontSize: '0.8125rem', lineHeight: 1.3 },
-  body1: { fontSize: '0.875rem', lineHeight: 1.45 },
-  body2: { fontSize: '0.8125rem', lineHeight: 1.4 },
-  caption: { fontSize: '0.75rem', lineHeight: 1.35, letterSpacing: 0.1 },
-  overline: {
-    fontSize: '0.6875rem',
-    lineHeight: 1.4,
-    fontWeight: 700,
-    letterSpacing: 0.6,
-    textTransform: 'uppercase',
-  },
-  meta: {
-    fontSize: '0.625rem',
-    lineHeight: 1.3,
-    letterSpacing: 0.1,
-  },
-  button: {
-    fontSize: '0.75rem',
-    fontWeight: 600,
-    textTransform: 'none',
-    letterSpacing: 0.1,
-  },
+function buildSakuraTypography(
+  pxToRem: (px: number) => string
+): ThemeOptions['typography'] {
+  return {
+    fontFamily: `'Plus Jakarta Sans', 'Noto Sans SC', system-ui, sans-serif`,
+    h1: { fontWeight: 700, fontSize: pxToRem(22), lineHeight: 1.3 },
+    h2: { fontWeight: 700, fontSize: pxToRem(18), lineHeight: 1.3 },
+    h3: { fontWeight: 700, fontSize: pxToRem(16), lineHeight: 1.3 },
+    h4: { fontWeight: 700, fontSize: pxToRem(15), lineHeight: 1.3 },
+    h5: { fontWeight: 700, fontSize: pxToRem(14), lineHeight: 1.3 },
+    h6: { fontWeight: 700, fontSize: pxToRem(13), lineHeight: 1.3 },
+    body1: { fontSize: pxToRem(14), lineHeight: 1.45 },
+    body2: { fontSize: pxToRem(13), lineHeight: 1.4 },
+    caption: { fontSize: pxToRem(12), lineHeight: 1.35, letterSpacing: 0.1 },
+    overline: {
+      fontSize: pxToRem(11),
+      lineHeight: 1.4,
+      fontWeight: 700,
+      letterSpacing: 0.6,
+      textTransform: 'uppercase',
+    },
+    meta: {
+      fontSize: pxToRem(10),
+      lineHeight: 1.3,
+      letterSpacing: 0.1,
+    },
+    button: {
+      fontSize: pxToRem(12),
+      fontWeight: 600,
+      textTransform: 'none',
+      letterSpacing: 0.1,
+    },
+  }
 }
 
 export function createSakuraTheme(
@@ -481,14 +490,31 @@ export function createSakuraTheme(
   locale?: object
 ): Theme {
   const palette = mode === 'dark' ? SAKURA_DARK : SAKURA_LIGHT
+  // htmlFontSize must go in the first createTheme arg so MUI's pxToRem
+  // closure binds to it. Merging from `extra` afterwards updates the data
+  // but leaves pxToRem bound to the default 16.
+  const htmlFontSize = extractHtmlFontSize(extra)
+  const base = createTheme({ typography: { htmlFontSize } })
+  const pxToRem = base.typography.pxToRem
   return createTheme(
     {
       palette,
       shape: { borderRadius: 8 },
-      typography: sakuraTypography,
-      components: sakuraComponents,
+      typography: {
+        htmlFontSize,
+        ...buildSakuraTypography(pxToRem),
+      },
+      components: buildSakuraComponents(pxToRem),
     },
     extra ?? {},
     locale ?? {}
   )
+}
+
+function extractHtmlFontSize(extra?: ThemeOptions): number | undefined {
+  const typography = extra?.typography
+  if (!typography || typeof typography === 'function') {
+    return undefined
+  }
+  return typography.htmlFontSize
 }

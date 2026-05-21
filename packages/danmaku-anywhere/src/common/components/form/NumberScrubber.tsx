@@ -11,6 +11,7 @@ import {
   OutlinedInput,
   Stack,
   Tooltip,
+  Typography,
   useEventCallback,
 } from '@mui/material'
 import { styled } from '@mui/material/styles'
@@ -47,7 +48,7 @@ const StyledOutlinedInput = styled(OutlinedInput, {
       userSelect: 'none',
       touchAction: 'none',
       fontFamily: 'monospace',
-      fontSize: '0.875rem',
+      fontSize: theme.typography.body1.fontSize,
       transition: 'background-color 0.2s',
       backgroundImage: `
       linear-gradient(90deg, transparent 39px, ${major} 39px, ${major} 40px),
@@ -371,11 +372,13 @@ export const NumberScrubber = ({
               sx={{ position: 'absolute', right: 8 }}
             >
               {unit && (
-                <span
-                  style={{ fontSize: '0.875rem', marginRight: 4, opacity: 0.7 }}
+                <Typography
+                  component="span"
+                  variant="body1"
+                  sx={{ mr: 0.5, opacity: 0.7 }}
                 >
                   {unit}
-                </span>
+                </Typography>
               )}
               <IconButton
                 size="small"
@@ -387,13 +390,15 @@ export const NumberScrubber = ({
               </IconButton>
             </InputAdornment>
           }
-          sx={{
-            width: '100%',
-            bgcolor: 'background.paper',
-            fontFamily: 'monospace',
-            fontSize: '0.875rem',
-            ...sx, // consume sx here if any specific text styles were passed in
-          }}
+          sx={[
+            (theme) => ({
+              width: '100%',
+              bgcolor: 'background.paper',
+              fontFamily: 'monospace',
+              fontSize: theme.typography.body1.fontSize,
+            }),
+            ...(Array.isArray(sx) ? sx : [sx]),
+          ]}
           inputProps={{
             style: {
               textAlign: 'center',
@@ -441,7 +446,10 @@ export const NumberScrubber = ({
                   onPointerDown={(e) => e.stopPropagation()}
                   sx={{ width: 24, height: 24 }}
                 >
-                  <RestartAltIcon sx={{ fontSize: '1.25rem' }} color="action" />
+                  <RestartAltIcon
+                    sx={(theme) => ({ fontSize: theme.typography.pxToRem(20) })}
+                    color="action"
+                  />
                 </IconButton>
               </Tooltip>
             </InputAdornment>

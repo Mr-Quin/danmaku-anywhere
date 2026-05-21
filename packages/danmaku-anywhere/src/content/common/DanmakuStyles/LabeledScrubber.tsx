@@ -91,8 +91,8 @@ export const LabeledScrubber = ({
             placement="top"
           >
             <InfoIcon
-              fontSize="inherit"
-              sx={{ ml: 0.5, fontSize: '1rem', verticalAlign: 'text-bottom' }}
+              fontSize="small"
+              sx={{ ml: 0.5, verticalAlign: 'text-bottom' }}
             />
           </Tooltip>
         </Typography>
