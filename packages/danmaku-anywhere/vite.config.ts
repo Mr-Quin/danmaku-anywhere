@@ -63,6 +63,9 @@ export default defineConfig({
     'import.meta.env.VERSION': JSON.stringify(appVersion),
     'import.meta.env.VITE_STANDALONE': JSON.stringify(false),
     'import.meta.env.VITE_DA_ENV': JSON.stringify(daEnv),
+    'import.meta.env.VITE_DEV_SERVER_URL': JSON.stringify(
+      `http://localhost:${port}`
+    ),
   },
   build: {
     emptyOutDir: true,
