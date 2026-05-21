@@ -7,12 +7,11 @@ import {
 } from '../../setup/integration'
 
 /**
- * Bundled variable fonts must load inside the controller's content-script
- * shadow DOM on host-origin pages — the exact context where DA-523 broke.
- * Asserts the injected <link>s use chrome-extension:// hrefs, their CSS
- * loads (link.sheet populated), and no inline <style> inside the shadow
- * contains a /assets/*.woff fallback path (regression guard against
- * re-introducing the bundled @fontsource CSS imports).
+ * Mounts the controller on a host-origin page and asserts each injected
+ * <link> uses a chrome-extension:// href, its stylesheet parses, and no
+ * inline <style> inside the shadow contains a /assets/*.woff fallback.
+ * DA-523 regression guard: bundled @fontsource CSS would re-introduce
+ * host-origin-relative woff2 paths that 404 inside the shadow.
  */
 
 const HOST_ORIGIN = 'https://da-test.invalid'
