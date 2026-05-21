@@ -134,6 +134,11 @@ async function startDev(): Promise<void> {
   const { createServer } = await import('vite')
 
   const port = await resolvePort()
+  // vite.config.ts derives `define` constants from process.env.VITE_PORT, so
+  // bake the resolved port back in before loading the config — otherwise the
+  // bundle pins the default 23333 while the server actually runs on a
+  // randomly-chosen free port.
+  process.env.VITE_PORT = port.toString()
   console.log(`Starting Vite dev server on port ${port}...`)
 
   const server = await createServer({
