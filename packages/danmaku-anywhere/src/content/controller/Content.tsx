@@ -1,6 +1,5 @@
 import { Suspense } from 'react'
 
-import { DevWatermark } from '@/common/components/DevWatermark'
 import { GlobalDialog } from '@/common/components/Dialog/GlobalDialog'
 import { Toast } from '@/common/components/Toast/Toast'
 import { SwitchLanguage } from '@/content/controller/common/components/SwitchLanguage'
@@ -31,7 +30,6 @@ export const Content = () => {
       <Toast stackable disableCloseOnClickAway />
       <GlobalDialog />
       <SwitchLanguage />
-      <DevWatermark variant="content" />
       <div
         id={HIGHLIGHTER_PORTAL_ID}
         ref={setHighlighterPortal}

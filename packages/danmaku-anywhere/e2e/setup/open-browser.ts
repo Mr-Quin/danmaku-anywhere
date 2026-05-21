@@ -64,7 +64,7 @@ async function waitForFile(filePath: string, timeoutMs: number): Promise<void> {
   return promise
 }
 
-// Mirrors Chrome's Extension::GenerateIdForPath: SHA-1 of the absolute
+// Mirrors Chrome's Extension::GenerateIdForPath: SHA-256 of the absolute
 // extension path (UTF-16LE on Windows, UTF-8 elsewhere), first 16 bytes
 // converted from hex (0-f) to letters (a-p).
 function computeExtensionIdFromPath(extensionPath: string): string {
@@ -73,7 +73,11 @@ function computeExtensionIdFromPath(extensionPath: string): string {
     process.platform === 'win32'
       ? Buffer.from(absPath, 'utf16le')
       : Buffer.from(absPath, 'utf8')
-  const hex = crypto.createHash('sha1').update(bytes).digest('hex').slice(0, 32)
+  const hex = crypto
+    .createHash('sha256')
+    .update(bytes)
+    .digest('hex')
+    .slice(0, 32)
   const aCode = 'a'.charCodeAt(0)
   let id = ''
   for (const c of hex) {

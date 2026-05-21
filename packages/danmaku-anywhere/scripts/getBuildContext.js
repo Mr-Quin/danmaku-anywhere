@@ -8,9 +8,6 @@ const IS_CHROME = BROWSER === 'chrome'
 const IS_FIREFOX = BROWSER === 'firefox'
 
 function detectGitBranch() {
-  if (!dev) {
-    return ''
-  }
   try {
     return execSync('git rev-parse --abbrev-ref HEAD', {
       stdio: ['ignore', 'pipe', 'ignore'],

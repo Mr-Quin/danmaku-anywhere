@@ -30,7 +30,7 @@ export const PopupLayout = ({ children }: PropsWithChildren<{}>) => {
         }}
       >
         {children}
-        <DevWatermark variant="popup" />
+        <DevWatermark />
       </Box>
     </Container>
   )
