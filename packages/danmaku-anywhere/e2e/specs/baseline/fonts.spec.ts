@@ -17,6 +17,7 @@ import {
 const HOST_ORIGIN = 'https://da-test.invalid'
 const HOST_URL = `${HOST_ORIGIN}/fonts/`
 const MOUNT_PATTERN = `${HOST_ORIGIN}/*`
+const EXPECTED_FONT_LINK_COUNT = 4
 
 test('content-script controller loads fonts from extension origin', async ({
   context,
@@ -34,6 +35,7 @@ test('content-script controller loads fonts from extension origin', async ({
   await integrationPage.open(HOST_URL, 'native-video.html')
   await page.bringToFront()
 
+  // One-off selector — controller mount root id, not used by other specs.
   await expect(page.locator('#danmaku-anywhere-controller')).toBeAttached({
     timeout: 15_000,
   })
@@ -75,7 +77,10 @@ test('content-script controller loads fonts from extension origin', async ({
     }
   })
 
-  expect(result.hrefs.length).toBeGreaterThan(0)
+  expect(
+    result.hrefs.length,
+    `expected ${EXPECTED_FONT_LINK_COUNT} font links, got: ${result.hrefs.join(', ')}`
+  ).toBe(EXPECTED_FONT_LINK_COUNT)
   for (const href of result.hrefs) {
     expect(href, `font link href: ${href}`).toMatch(/^chrome-extension:\/\//)
   }
