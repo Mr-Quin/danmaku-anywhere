@@ -4,6 +4,7 @@ import type { ThemeOptions } from '@mui/material'
 import { QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { injectFonts } from '@/common/fonts'
 import { Logger } from '@/common/Logger'
 import { queryClient } from '@/common/queries/queryClient'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -31,9 +32,12 @@ const { data: frameId } = await chromeRpcClient.getFrameId()
 
 Logger.debug(`Controller script loaded in frame ${frameId}`)
 
-const { shadowRoot, shadowStyle } = await createPopoverRoot({
+const { shadowRoot, shadowStyle, shadowContainer } = await createPopoverRoot({
   id: CONTROLLER_ROOT_ID,
 })
+
+injectFonts(shadowContainer)
+
 // try to get the html font size for rem unit
 // if it fails, use 16 as default
 const htmlFontSize =
