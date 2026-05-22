@@ -6,7 +6,6 @@ nodeLinker: isolated
 allowBuilds:
   '@parcel/watcher': false
   '@swc/core': false
-  core-js: false
   esbuild: false
   lefthook: false
   lmdb: false
