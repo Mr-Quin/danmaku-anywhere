@@ -23,8 +23,9 @@ function formatDuration(ms) {
   if (totalSeconds < 60) {
     return `${totalSeconds.toFixed(1)}s`
   }
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = Math.round(totalSeconds - minutes * 60)
+  const rounded = Math.round(totalSeconds)
+  const minutes = Math.floor(rounded / 60)
+  const seconds = rounded % 60
   return `${minutes}m ${seconds}s`
 }
 
@@ -97,7 +98,6 @@ function summarize(report) {
     }
     if (spec.status === 'flaky') {
       counts.flaky += 1
-      counts.passed += 1
       continue
     }
     if (spec.ok) {
