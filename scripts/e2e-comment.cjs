@@ -11,6 +11,9 @@ const STATUS_EMOJI = {
   flaky: '⚠️',
 }
 const MAX_FAILURES_LISTED = 25
+const ERROR_EXCERPT_MAX = 200
+// biome-ignore lint/suspicious/noControlCharactersInRegex: stripping ANSI escapes from Playwright error output
+const ANSI_PATTERN = /\[[0-9;]*m/g
 
 function formatDuration(ms) {
   if (!Number.isFinite(ms) || ms < 0) {
@@ -44,6 +47,24 @@ function readReport(reportPath) {
   }
 }
 
+function extractErrorMessage(result) {
+  const raw =
+    result?.errors?.[0]?.message ??
+    result?.error?.message ??
+    result?.errors?.[0]?.stack ??
+    result?.error?.stack ??
+    ''
+  if (!raw) {
+    return ''
+  }
+  const cleaned = raw.replace(ANSI_PATTERN, '').trim()
+  const firstLine = cleaned.split(/\r?\n/)[0] ?? ''
+  if (firstLine.length <= ERROR_EXCERPT_MAX) {
+    return firstLine
+  }
+  return `${firstLine.slice(0, ERROR_EXCERPT_MAX - 1).trimEnd()}…`
+}
+
 function collectSpecs(report) {
   const specs = []
   function walk(suite, ancestry) {
@@ -69,6 +90,7 @@ function collectSpecs(report) {
         ok: spec.ok !== false,
         status,
         duration: result?.duration ?? 0,
+        errorExcerpt: extractErrorMessage(result),
       })
     }
     for (const child of suite.suites ?? []) {
@@ -112,7 +134,7 @@ function summarize(report) {
   return { counts, failures, duration }
 }
 
-function buildBody({ summary, runUrl, runNumber, reportUrl, sha }) {
+function buildBody({ summary, runUrl, runNumber, reportUrl, jobUrl, sha }) {
   const { counts, failures, duration } = summary
   const passed = counts.failed === 0 && counts.total > 0
   const heading = passed
@@ -149,18 +171,22 @@ function buildBody({ summary, runUrl, runNumber, reportUrl, sha }) {
   const lines = [MARKER, heading, '', statLine, metaParts.join(' · ')]
 
   if (failures.length > 0) {
-    lines.push('', '<details open>', '<summary>Failing tests</summary>', '')
-    lines.push('| | Test | Duration |')
-    lines.push('| --- | --- | --- |')
+    const summaryLabel = jobUrl
+      ? `Failing tests · <a href="${jobUrl}">view job logs</a>`
+      : 'Failing tests'
+    lines.push('', '<details open>', `<summary>${summaryLabel}</summary>`, '')
     const shown = failures.slice(0, MAX_FAILURES_LISTED)
     for (const failure of shown) {
       const emoji = STATUS_EMOJI[failure.status] ?? '❌'
-      const safeTitle = failure.title
-        .replace(/\|/g, '\\|')
-        .replace(/\r?\n/g, ' ')
+      const cleanTitle = failure.title.replace(/\r?\n/g, ' ')
       lines.push(
-        `| ${emoji} | ${safeTitle} | ${formatDuration(failure.duration)} |`
+        `- ${emoji} \`${cleanTitle}\` (${formatDuration(failure.duration)})`
       )
+      if (failure.errorExcerpt) {
+        lines.push('  \`\`\`')
+        lines.push(`  ${failure.errorExcerpt}`)
+        lines.push('  \`\`\`')
+      }
     }
     if (failures.length > shown.length) {
       lines.push(
@@ -172,6 +198,25 @@ function buildBody({ summary, runUrl, runNumber, reportUrl, sha }) {
   }
 
   return lines.join('\n')
+}
+
+async function findE2eJobUrl({ github, owner, repo, runId }) {
+  try {
+    const { data } = await github.rest.actions.listJobsForWorkflowRun({
+      owner,
+      repo,
+      run_id: runId,
+      per_page: 30,
+    })
+    // The workflow defines a single job (the matrix `e2e` job) so a name
+    // prefix match is enough; fall back to the first job if naming changes.
+    const job =
+      data.jobs.find((j) => j.name.startsWith('e2e')) ?? data.jobs[0] ?? null
+    return job?.html_url ?? ''
+  } catch (error) {
+    console.warn(`Could not fetch jobs for run: ${error.message}`)
+    return ''
+  }
 }
 
 function isBotAuthor(comment) {
@@ -241,11 +286,17 @@ module.exports = async ({
         duration: 0,
       }
 
+  const jobUrl =
+    summary.failures.length > 0
+      ? await findE2eJobUrl({ github, owner, repo, runId: context.runId })
+      : ''
+
   const body = buildBody({
     summary,
     runUrl,
     runNumber,
     reportUrl: reportUrl || '',
+    jobUrl,
     sha: sha || context.payload.pull_request?.head?.sha || context.sha,
   })
 
