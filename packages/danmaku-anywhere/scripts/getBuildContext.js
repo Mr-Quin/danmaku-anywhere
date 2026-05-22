@@ -9,11 +9,13 @@ const IS_FIREFOX = BROWSER === 'firefox'
 
 function detectGitBranch() {
   try {
-    return execSync('git rev-parse --abbrev-ref HEAD', {
+    const branch = execSync('git rev-parse --abbrev-ref HEAD', {
       stdio: ['ignore', 'pipe', 'ignore'],
     })
       .toString()
       .trim()
+    // Detached HEAD (common on CI clones) returns the literal string 'HEAD'.
+    return branch === 'HEAD' ? '' : branch
   } catch {
     return ''
   }

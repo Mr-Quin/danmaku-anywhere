@@ -1,0 +1,347 @@
+{
+  "data": {
+    "repository": {
+      "pullRequest": {
+        "reviews": {
+          "nodes": [
+            {
+              "author": { "login": "gemini-code-assist" },
+              "state": "COMMENTED",
+              "submittedAt": "2026-05-21T06:23:06Z",
+              "body": "## Code Review\n\nThis pull request enhances the development workflow by introducing a naming convention for git worktrees and adding a visual 'DEV' watermark to the extension UI that displays the current branch name. Documentation has been significantly updated to detail the project structure, multi-worktree setup, and common scripts. Furthermore, the E2E setup now programmatically updates Chrome preferences to automatically enable developer mode and pin the extension upon launch. Feedback was provided to improve the debuggability of the generated Chrome preferences file by using indentation in the JSON output."
+            },
+            {
+              "author": { "login": "copilot-pull-request-reviewer" },
+              "state": "COMMENTED",
+              "submittedAt": "2026-05-21T06:25:09Z",
+              "body": "## Pull request overview\n\nThis PR improves the extension’s development workflow by (1) making `pnpm dev:browser` launch Chromium with developer mode enabled and the extension pinned, and (2) adding a visible dev-only watermark that includes the current git branch to disambiguate concurrent worktrees. It also refreshes developer documentation and updates the `/da-dev` workflow instructions to adopt a branch/worktree “hint” convention.\n\n**Changes:**\n- Inject `VITE_DA_BRANCH` from `getBuildContext()` into Vite dev builds and render a `DEV · <branch>` watermark in both the popup and content controller UI (dev-only).\n- Update the Playwright dev-browser launcher to pre-write Chrome `Preferences` (enable developer mode + pin extension), including extension-id prediction with a post-launch fallback.\n- Refresh development docs and `.claude/commands/da-dev.md` to reflect `dev:browser`, monorepo layout, and worktree naming conventions.\n\n### Reviewed changes\n\nCopilot reviewed 9 out of 10 changed files in this pull request and generated 2 comments.\n\n<details>\n<summary>Show a summary per file</summary>\n\n| File | Description |\r\n| ---- | ----------- |\r\n| packages/danmaku-anywhere/vite.config.ts | Defines `import.meta.env.VITE_DA_BRANCH` for builds. |\r\n| packages/danmaku-anywhere/src/vite-env.d.ts | Adds TS typing for `VITE_DA_BRANCH`. |\r\n| packages/danmaku-anywhere/src/popup/layout/PopupLayout.tsx | Renders the dev watermark in the popup layout. |\r\n| packages/danmaku-anywhere/src/content/controller/Content.tsx | Renders the dev watermark overlay in the controller UI. |\r\n| packages/danmaku-anywhere/src/common/constants.ts | Exposes `DEV_BRANCH` derived from `import.meta.env.VITE_DA_BRANCH`. |\r\n| packages/danmaku-anywhere/src/common/components/DevWatermark.tsx | Implements the dev-only watermark component. |\r\n| packages/danmaku-anywhere/scripts/getBuildContext.js | Detects current git branch (dev only) and exposes it to Vite config. |\r\n| packages/danmaku-anywhere/e2e/setup/open-browser.ts | Writes Chrome Preferences pre-launch (developer mode + pin) and repins if ID prediction mismatches. |\r\n| docs/src/content/docs/development/structure.mdx | Updates development/environment and script documentation. |\r\n| .claude/commands/da-dev.md | Updates `/da-dev` instructions for hint-based branch/worktree naming. |\n</details>\n\n\n\n\n\n\n\n---\n\n💡 <a href=\"/Mr-Quin/danmaku-anywhere/new/master?filename=.github/instructions/*.instructions.md\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Add Copilot custom instructions</a> for smarter, more guided reviews. <a href=\"https://docs.github.com/en/copilot/customizing-copilot/adding-repository-custom-instructions-for-github-copilot\" class=\"Link--inTextBlock\" target=\"_blank\" rel=\"noopener noreferrer\">Learn how to get started</a>."
+            },
+            {
+              "author": { "login": "gemini-code-assist" },
+              "state": "COMMENTED",
+              "submittedAt": "2026-05-21T06:28:48Z",
+              "body": "## Code Review\n\nThis pull request enhances the development workflow by introducing a \"hint\" convention for branch and worktree names and adding a visual watermark to the extension that displays the current Git branch. It also updates the project documentation and automates the configuration of Chrome preferences to enable developer mode and pin the extension during E2E testing. The review feedback highlights a technical error in the extension ID calculation logic and suggests improving the readability of generated configuration files."
+            },
+            {
+              "author": { "login": "gemini-code-assist" },
+              "state": "COMMENTED",
+              "submittedAt": "2026-05-21T06:31:36Z",
+              "body": "## Code Review\n\nThis pull request improves the development experience by adding a visual watermark to the extension UI that displays the current Git branch, facilitating multi-worktree development. It also updates the project documentation and enhances the E2E browser setup to automatically pin the extension and enable developer mode. Review feedback identified that the extension ID prediction logic should use SHA-256 to match Chromium's implementation and cautioned that modifying Chrome preferences while the browser is running may be ineffective."
+            },
+            {
+              "author": { "login": "gemini-code-assist" },
+              "state": "COMMENTED",
+              "submittedAt": "2026-05-21T06:57:31Z",
+              "body": "## Code Review\n\nThis pull request improves the developer experience by introducing a \"hint\" naming convention for branches and worktrees, and adding a visual watermark to the extension UI that displays the current Git branch during development. It also automates the configuration of Chrome preferences to enable developer mode and pin the extension when using the `dev:browser` script. Feedback was provided regarding the E2E browser setup, specifically noting that updating Chrome preferences while the browser is running is likely ineffective due to file locking, and suggesting improvements for monitoring browser events."
+            },
+            {
+              "author": { "login": "gemini-code-assist" },
+              "state": "COMMENTED",
+              "submittedAt": "2026-05-22T00:31:22Z",
+              "body": "## Code Review\n\nThis pull request introduces several enhancements to the development workflow, including a new `browser-verify` skill for agentic verification and a `DevWatermark` component to distinguish between different worktree builds. The documentation has been updated to reflect the project structure and the recommended use of `pnpm dev:browser`. Feedback focuses on improving the `lint` script to prevent accidental file emission and addressing a potential race condition when updating Chrome preferences while the browser is active."
+            },
+            {
+              "author": { "login": "gemini-code-assist" },
+              "state": "COMMENTED",
+              "submittedAt": "2026-05-22T01:47:58Z",
+              "body": "## Code Review\n\nThis pull request overhauls the development workflow by introducing automated worktree bootstrapping, agentic browser verification via a new MCP skill, and a visual development watermark for the extension UI. It also includes updates to documentation, project structure, and utility scripts for PR monitoring. Review feedback identifies several areas for improvement, including making repository and branch detection more robust for different environments (like CI), handling existing local branches during setup, and optimizing the browser automation logic to reduce redundant tab interactions."
+            },
+            {
+              "author": { "login": "gemini-code-assist" },
+              "state": "COMMENTED",
+              "submittedAt": "2026-05-22T02:16:44Z",
+              "body": "## Code Review\n\nThis pull request refactors the development workflow by introducing automated worktree bootstrapping via `da-bootstrap.mjs` and agentic browser verification using the `browser-verify` skill. A `DevWatermark` component was added to the extension UI to display environment and branch information, supported by new build-time branch detection. Documentation and scripts for PR status monitoring and cleanup were also updated. Review feedback identifies a potential risk in manually modifying Chrome's `developer_mode` preference and notes a naming inconsistency between the bootstrap script and the documentation regarding branch hints."
+            },
+            {
+              "author": { "login": "gemini-code-assist" },
+              "state": "COMMENTED",
+              "submittedAt": "2026-05-22T02:18:41Z",
+              "body": "## Code Review\n\nThis pull request overhauls the development workflow by introducing `da-bootstrap.mjs` for automated worktree setup and a `browser-verify` skill for agentic browser testing. It also adds a `DevWatermark` component to the extension UI to display environment and branch information, alongside updates to documentation and scripts like `pr-status.sh`. A review comment identifies a naming inconsistency between the bootstrap script's branch generation and the documentation's suggested kebab-case format."
+            },
+            {
+              "author": { "login": "gemini-code-assist" },
+              "state": "COMMENTED",
+              "submittedAt": "2026-05-22T02:31:54Z",
+              "body": "## Code Review\n\nThis pull request significantly refines the development workflow by automating worktree management and enhancing verification tools. A new da-bootstrap.mjs script replaces manual setup steps, and a browser-verify skill is introduced for agentic browser testing via MCP. The UI now includes a DevWatermark component in non-production environments to display the current mode, version, and branch. Additionally, the PR updates documentation, reorganizes package scripts, and adds a GraphQL-based PR status script. Feedback was provided regarding the run function in the bootstrap script, suggesting the use of spawnSync's array argument form to avoid potential issues with spaces in command arguments."
+            }
+          ]
+        },
+        "reviewThreads": {
+          "nodes": [
+            {
+              "id": "PRRT_kwDOJW-LrM6DtGEK",
+              "isResolved": false,
+              "path": "packages/danmaku-anywhere/e2e/setup/open-browser.ts",
+              "line": 158,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nWhen writing to the Chrome Preferences file, it is better to use indentation in JSON.stringify. This makes the file human-readable for debugging purposes if a developer needs to inspect the profile manually. Chrome itself also typically maintains this file in a pretty-printed format.\n\n```typescript\nfs.writeFileSync(prefsPath, JSON.stringify(prefs, null, 2))\n```"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6DtHz-",
+              "isResolved": false,
+              "path": "packages/danmaku-anywhere/e2e/setup/open-browser.ts",
+              "line": 101,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "copilot-pull-request-reviewer" },
+                    "body": "`readPreferences` returns `{}` on JSON parse failure, and `configureChromePreferences` will then overwrite the existing Chrome `Preferences` file with only the minimal keys you set. If the profile’s Preferences ever become temporarily/partially corrupted (e.g. previous crash mid-write), this can wipe unrelated user settings for the dev profile. Consider (a) not writing anything when parsing fails (log a warning), or (b) making a backup (e.g. `Preferences.bak`) and then attempting a safe reset explicitly.\n"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6DtH0d",
+              "isResolved": false,
+              "path": "packages/danmaku-anywhere/src/common/components/DevWatermark.tsx",
+              "line": null,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "copilot-pull-request-reviewer" },
+                    "body": "The watermark chip applies `textTransform: 'uppercase'`, which will also uppercase the branch name (e.g. `DA-524_dev_workflow` → `DA-524_DEV_WORKFLOW`). If the intent is to surface the exact current branch/worktree identifier, consider removing the uppercase transform (or applying it only to the `DEV` prefix) so the on-screen branch matches `git rev-parse --abbrev-ref HEAD` exactly.\n"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6DtKqW",
+              "isResolved": false,
+              "path": "packages/danmaku-anywhere/e2e/setup/open-browser.ts",
+              "line": 87,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nChromium's Extension::GenerateIdForPath algorithm uses SHA-256 (not SHA-1) and always hashes the UTF-8 representation of the absolute path, even on Windows. Using SHA-1 and UTF-16LE will result in an incorrect extension ID prediction, causing the pinning logic to fail on the first launch.\n\n```typescript\nfunction computeExtensionIdFromPath(extensionPath: string): string {\n  const absPath = path.resolve(extensionPath)\n  const bytes = Buffer.from(absPath, 'utf8')\n  const hex = crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 32)\n  const aCode = 'a'.charCodeAt(0)\n  let id = ''\n  for (const c of hex) {\n    id += String.fromCharCode(aCode + Number.parseInt(c, 16))\n  }\n  return id\n}\n```"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6DtKqh",
+              "isResolved": false,
+              "path": "packages/danmaku-anywhere/e2e/setup/open-browser.ts",
+              "line": 158,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nFormatting the Preferences JSON with indentation makes it significantly easier to debug and inspect the generated profile during development.\n\n```typescript\nfs.writeFileSync(prefsPath, JSON.stringify(prefs, null, 2))\n```"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6DtM8x",
+              "isResolved": false,
+              "path": "packages/danmaku-anywhere/e2e/setup/open-browser.ts",
+              "line": 87,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nThe prediction logic for the extension ID currently uses SHA-1 and platform-specific encoding (UTF-16LE on Windows). However, Chromium's `Extension::GenerateIdForPath` algorithm uses SHA-256 and consistently hashes the UTF-8 representation of the absolute path, even on Windows. Using SHA-1 will lead to incorrect predictions, causing the fallback logic to trigger on every launch.\n\n```typescript\nfunction computeExtensionIdFromPath(extensionPath: string): string {\n  const absPath = path.resolve(extensionPath)\n  const bytes = Buffer.from(absPath, 'utf8')\n  const hex = crypto.createHash('sha256').update(bytes).digest('hex').slice(0, 32)\n  const aCode = 'a'.charCodeAt(0)\n  let id = ''\n  for (const c of hex) {\n    id += String.fromCharCode(aCode + Number.parseInt(c, 16))\n  }\n  return id\n}\n```"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6DtM87",
+              "isResolved": false,
+              "path": "packages/danmaku-anywhere/e2e/setup/open-browser.ts",
+              "line": 251,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nThe fallback logic attempts to update the Chrome `Preferences` file while the browser is already running. Chrome typically loads this file into memory at startup and overwrites it when closing, which means any manual modifications made during the session will likely be lost. Improving the accuracy of the initial prediction (as suggested in `computeExtensionIdFromPath`) is a more reliable way to ensure the extension is pinned. Additionally, ensure that console watchers are attached immediately after `launchPersistentContext` returns to capture any early boot-time errors.\n\n<details>\n<summary>References</summary>\n\n1. In Playwright extension tests, attach console watchers immediately after launchPersistentContext returns to capture early boot-time errors.\n</details>"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6Dti_L",
+              "isResolved": false,
+              "path": "packages/danmaku-anywhere/e2e/setup/open-browser.ts",
+              "line": 251,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nThe fallback logic for repinning the extension when the predicted ID diverges is likely ineffective because Chrome locks the Preferences file while chromium.launchPersistentContext is active. This operation should be performed after the browser has fully closed. Additionally, ensure console watchers are attached immediately after launchPersistentContext returns to capture early boot-time errors, and use a WeakSet when monitoring pages to avoid race conditions.\n\n```typescript\n  if (extensionId !== expectedExtensionId) {\n    console.warn(\n      'Extension ID mismatch — predicted ' + expectedExtensionId + ', got ' + extensionId + '. Repinning on next launch...'\n    )\n    // Move this call to after await waitForClose at the end of the function\n  }\n```\n\n<details>\n<summary>References</summary>\n\n1. In Playwright extension tests, attach console watchers immediately after launchPersistentContext returns to capture early boot-time errors.\n2. When monitoring pages and service workers in a Playwright BrowserContext, attach event listeners before iterating over existing items and use a WeakSet to dedupe registrations and avoid race conditions.\n</details>"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6D-ABY",
+              "isResolved": false,
+              "path": "packages/danmaku-anywhere/package.json",
+              "line": 21,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nThe `lint` script currently runs `tsc` without the `--noEmit` flag. Unless `noEmit: true` is set in your `tsconfig.json`, this will cause TypeScript to generate `.js` and `.d.ts` files throughout your source directory during linting. To maintain a clean workspace and ensure consistency with how build artifacts are handled, it's safer to include `--noEmit` here to avoid polluting the source tree with artifacts that should only be generated during a formal build step.\n\n```suggestion\n    \"lint\": \"tsc --noEmit && biome check --fix\",\n```\n\n<details>\n<summary>References</summary>\n\n1. In monorepos where packages are consumed via TypeScript-aware bundlers, the 'main' and 'types' fields in 'package.json' should point to emitted build artifacts rather than source files to maintain consistency across the workspace.\n</details>"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6D-ABg",
+              "isResolved": false,
+              "path": "packages/danmaku-anywhere/e2e/setup/open-browser.ts",
+              "line": 251,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nThe fallback logic for an extension ID mismatch is likely ineffective. Writing to the `Preferences` file while Chrome is running (launched at line 220) is unreliable as Chrome typically keeps preferences in memory and overwrites the file on exit. Furthermore, ensure that console watchers are attached immediately after `launchPersistentContext` returns to capture early boot-time errors. If updating supported options in this script, ensure both documentation and runtime feedback are updated to maintain consistency.\n\n<details>\n<summary>References</summary>\n\n1. In Playwright extension tests, attach console watchers immediately after launchPersistentContext returns to capture early boot-time errors.\n2. When adding or updating supported options in a script, ensure that both the script's documentation (e.g., header comments) and the runtime feedback (e.g., help or error messages) are updated to maintain consistency.\n</details>"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6D-mdr",
+              "isResolved": false,
+              "path": "scripts/pr-status.sh",
+              "line": 10,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![high](https://www.gstatic.com/codereviewagent/high-priority.svg)\n\nThe regex used to extract the repository slug from the remote URL is brittle. It fails if the repository name contains dots (e.g., danmaku.anywhere.git) because ([^/.]+) stops at the first dot. Using the GitHub CLI to get the name is much more reliable.\n\n```suggestion\nSLUG=\"$(gh repo view --json nameWithOwner -q .nameWithOwner)\"\n```"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6D-mdt",
+              "isResolved": false,
+              "path": "scripts/da-bootstrap.mjs",
+              "line": 110,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nThe branch name 'origin/master' is hardcoded. While many legacy repositories use master, modern standards often default to main. It would be more robust to detect the default branch of the remote or allow it to be configurable.\n\n```suggestion\nconst defaultBranch = execSync(\"git symbolic-ref refs/remotes/origin/HEAD\", { encoding: \"utf8\" }).trim().replace(\"refs/remotes/origin/\", \"\") || \"master\";\nrun('git', ['worktree', 'add', worktreeDir, '-b', branch, \"origin/\" + defaultBranch])\n```"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6D-mdu",
+              "isResolved": false,
+              "path": "scripts/da-bootstrap.mjs",
+              "line": 110,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nIf the branch name already exists locally, git worktree add ... -b branch will fail. You should check if the branch exists first and either use it or alert the user."
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6D-mdw",
+              "isResolved": false,
+              "path": "packages/danmaku-anywhere/scripts/getBuildContext.js",
+              "line": 16,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nIn CI environments like GitHub Actions, git rev-parse --abbrev-ref HEAD often returns HEAD rather than the actual branch name. It's better to check for common CI environment variables first to ensure the watermark displays the correct branch.\n\n```javascript\nreturn process.env.GITHUB_REF_NAME || execSync('git rev-parse --abbrev-ref HEAD', {\n      stdio: ['ignore', 'pipe', 'ignore'],\n    })\n      .toString()\n      .trim()\n```"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6D-md0",
+              "isResolved": false,
+              "path": "packages/danmaku-anywhere/e2e/setup/open-browser.ts",
+              "line": 212,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nThe enableExtensionDeveloperMode function opens a new tab to chrome://extensions/ on every launch of dev:browser. Since the profile is persistent in .playwright-profile, this only needs to happen once. You can check the current configuration before attempting to update it to avoid unnecessary tab flickers. Additionally, ensure that console watchers are attached to the context immediately after launchPersistentContext returns to capture early boot-time errors.\n\n```typescript\nasync function enableExtensionDeveloperMode(\n  context: Awaited<ReturnType<typeof chromium.launchPersistentContext>>\n): Promise<void> {\n  const page = await context.newPage()\n  try {\n    await page.goto('chrome://extensions/')\n    await page.evaluate(\n      () =>\n        new Promise<void>((resolve, reject) => {\n          const api = (globalThis as any).chrome?.developerPrivate\n          if (!api) {\n            reject(new Error('chrome.developerPrivate not available'))\n            return\n          }\n          api.getProfileConfiguration((config: any) => {\n            if (config.inDeveloperMode) {\n              resolve()\n            } else {\n              api.updateProfileConfiguration({ inDeveloperMode: true }, () => {\n                const err = (globalThis as any).chrome.runtime?.lastError\n                if (err) reject(new Error(err.message))\n                else resolve()\n              })\n            }\n          })\n        })\n    )\n  } catch (err) {\n    console.warn('Could not enable extension developer mode:', err instanceof Error ? err.message : err)\n  } finally {\n    await page.close().catch(() => undefined)\n  }\n}\n```\n\n<details>\n<summary>References</summary>\n\n1. In Playwright extension tests, attach console watchers immediately after launchPersistentContext returns to capture early boot-time errors.\n</details>"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6D-3ZA",
+              "isResolved": false,
+              "path": "packages/danmaku-anywhere/e2e/setup/open-browser.ts",
+              "line": 145,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nSetting developer_mode directly in the Preferences file is likely to be ignored or cause a Settings reset warning in Chrome, as this preference is typically protected by an HMAC in Secure Preferences. Since you are already calling enableExtensionDeveloperMode via the chrome.developerPrivate API at line 253 (which is the correct way to handle this), you should remove this manual write to avoid potential profile corruption. Additionally, ensure that console watchers are attached immediately after launchPersistentContext returns to capture early boot-time errors.\n\n<details>\n<summary>References</summary>\n\n1. In Playwright extension tests, attach console watchers immediately after launchPersistentContext returns to capture early boot-time errors.\n</details>"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6D-3ZE",
+              "isResolved": false,
+              "path": "scripts/da-bootstrap.mjs",
+              "line": 96,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nThere is an inconsistency between the branch naming in this script and the documentation. The docs in .claude/commands/da-dev.md define a hint as kebab-case (e.g., dev-workflow) and suggest branch names like DA-XXX_<hint>. However, this script replaces hyphens with underscores, resulting in DA-XXX_dev_workflow. It is better to keep the naming consistent with the kebab-case hint or update the docs to reflect the underscore preference.\n\n```suggestion\nconst branch = task + \"_\" + hint\n```"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6D-4nU",
+              "isResolved": false,
+              "path": "scripts/da-bootstrap.mjs",
+              "line": 96,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nThe branch name generation logic replaces hyphens with underscores, resulting in names like `DA-XXX_dev_workflow`. However, the documentation in `.claude/commands/da-dev.md` (e.g., lines 22, 33, 111) consistently uses and suggests kebab-case (e.g., `DA-XXX_<hint>` with `dev-workflow`). This inconsistency can lead to confusion when developers perform manual git operations or search for branches. It is recommended to maintain a consistent naming convention (preferably kebab-case as it is more common for git branches) across the script and documentation."
+                  }
+                ]
+              }
+            },
+            {
+              "id": "PRRT_kwDOJW-LrM6D-_aK",
+              "isResolved": false,
+              "path": "scripts/da-bootstrap.mjs",
+              "line": 69,
+              "comments": {
+                "nodes": [
+                  {
+                    "author": { "login": "gemini-code-assist" },
+                    "body": "![medium](https://www.gstatic.com/codereviewagent/medium-priority.svg)\n\nThe `run` function manually joins the command and arguments into a single string when `shell: true` is used. This is fragile because it does not account for arguments that might contain spaces (e.g., if `worktreeDir` or a task hint contains a space). \n\nNode's `spawnSync` correctly handles an array of arguments even when `shell: true` is enabled. It will perform the necessary escaping and joining for the underlying shell (e.g., `cmd.exe` on Windows). Using the array form is safer and more robust than manual string concatenation. Additionally, the `DEP0190` warning mentioned in the comments specifically applies to `execFile` and certain `spawn` patterns where the command string is ambiguous; passing an explicit arguments array with `shell: true` is the recommended and safe way to execute commands like `.cmd` files on Windows.\n\n```javascript\nfunction run(cmd, args, opts = {}) {\n  const r = spawnSync(cmd, args, { stdio: 'inherit', ...opts })\n  if (r.status !== 0) {\n    die(`command failed: ${cmd} ${args.join(' ')}`)\n  }\n}\n```"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "commits": {
+          "nodes": [
+            { "commit": { "statusCheckRollup": { "state": "SUCCESS" } } }
+          ]
+        }
+      }
+    }
+  }
+}

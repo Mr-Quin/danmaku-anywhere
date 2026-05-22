@@ -90,15 +90,15 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function readPreferences(prefsPath: string): Record<string, unknown> {
+function readPreferences(prefsPath: string): Record<string, unknown> | null {
   if (!fs.existsSync(prefsPath)) {
     return {}
   }
   try {
     const parsed: unknown = JSON.parse(fs.readFileSync(prefsPath, 'utf8'))
-    return isPlainObject(parsed) ? parsed : {}
+    return isPlainObject(parsed) ? parsed : null
   } catch {
-    return {}
+    return null
   }
 }
 
@@ -142,6 +142,14 @@ function configureChromePreferences(
   const prefsPath = path.join(defaultDir, 'Preferences')
 
   const prefs = readPreferences(prefsPath)
+  if (prefs === null) {
+    // Existing file is unreadable — leave it alone rather than overwriting
+    // with our minimal version. Chrome resets corrupt prefs on launch anyway.
+    console.warn(
+      `Preferences at ${prefsPath} is unreadable; skipping pre-launch config.`
+    )
+    return
+  }
   setNested(prefs, ['extensions', 'ui', 'developer_mode'], true)
 
   const pinned = getNested(prefs, ['extensions', 'pinned_extensions'])

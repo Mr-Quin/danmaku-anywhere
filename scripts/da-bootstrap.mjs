@@ -103,11 +103,36 @@ if (fs.existsSync(worktreeDir)) {
   die(`worktree dir already exists: ${worktreeDir}`)
 }
 
-step('fetching origin/master')
-run('git', ['fetch', 'origin', 'master'])
+// Reject before touching disk so we don't half-create state.
+const branchProbe = spawnSync('git', [
+  'rev-parse',
+  '--verify',
+  '--quiet',
+  `refs/heads/${branch}`,
+])
+if (branchProbe.status === 0) {
+  die(`branch already exists locally: ${branch} (delete it or pick a new hint)`)
+}
+
+// Detect the upstream default branch (main vs master) rather than hardcoding.
+const defaultRemoteBranch = (() => {
+  try {
+    return execSync('git symbolic-ref refs/remotes/origin/HEAD', {
+      encoding: 'utf8',
+    })
+      .trim()
+      .replace(/^refs\/remotes\//, '')
+  } catch {
+    return 'origin/master'
+  }
+})()
+const defaultBranchName = defaultRemoteBranch.replace(/^origin\//, '')
+
+step(`fetching ${defaultRemoteBranch}`)
+run('git', ['fetch', 'origin', defaultBranchName])
 
 step(`creating worktree at ${worktreeDir} on branch ${branch}`)
-run('git', ['worktree', 'add', worktreeDir, '-b', branch, 'origin/master'])
+run('git', ['worktree', 'add', worktreeDir, '-b', branch, defaultRemoteBranch])
 
 step('copying env files')
 for (const rel of ENV_FILES) {
