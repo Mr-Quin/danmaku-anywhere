@@ -68,7 +68,7 @@ describe('builtin:ddp-compat manifest', () => {
     const result = await runner.runSearch({
       q: 'show',
       baseUrl: BASE,
-      authHeaders: [],
+      auth: { enabled: false },
     })
 
     expect(result).toEqual([
@@ -102,7 +102,7 @@ describe('builtin:ddp-compat manifest', () => {
     await runner.runSearch({
       q: 'show',
       baseUrl: `${BASE}/`,
-      authHeaders: [],
+      auth: { enabled: false },
     })
 
     expect(calls).toHaveLength(1)
@@ -122,10 +122,13 @@ describe('builtin:ddp-compat manifest', () => {
     await runner.runSearch({
       q: 'show',
       baseUrl: BASE,
-      authHeaders: [
-        { key: 'X-Token', value: 'abc123' },
-        { key: 'X-Tenant', value: 'team42' },
-      ],
+      auth: {
+        enabled: true,
+        headers: [
+          { key: 'X-Token', value: 'abc123' },
+          { key: 'X-Tenant', value: 'team42' },
+        ],
+      },
     })
 
     const init = calls[0].init as { headers?: Record<string, string> }
@@ -148,7 +151,7 @@ describe('builtin:ddp-compat manifest', () => {
     const result = await runner.runEpisodes({
       bangumiId: 'compat-991',
       baseUrl: BASE,
-      authHeaders: [],
+      auth: { enabled: false },
     })
 
     expect(result).toEqual([
@@ -188,7 +191,7 @@ describe('builtin:ddp-compat manifest', () => {
     const result = await runner.runDanmaku({
       episodeId: 9910001,
       baseUrl: BASE,
-      authHeaders: [],
+      auth: { enabled: false },
     })
 
     expect(result).toEqual([

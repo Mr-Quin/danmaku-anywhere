@@ -47,7 +47,7 @@
     }
   },
   "search": {
-    "inputs": ["q", "baseUrl", "authHeaders"],
+    "inputs": ["q", "baseUrl", "auth"],
     "steps": [
       {
         "type": "http",
@@ -56,14 +56,14 @@
           "method": "GET",
           "url": "$replace(baseUrl, /\\/$/, '') & '/v2/search/anime'",
           "query": "{ 'keyword': q }",
-          "headers": "$merge(authHeaders.{ key: value })"
+          "headers": "$merge((auth.enabled and auth.headers ? auth.headers : []).{ key: value })"
         }
       }
     ],
     "output": "[search.animes.{ 'providerIds': { 'animeId': animeId, 'bangumiId': bangumiId }, 'indexedId': $string(animeId), 'title': animeTitle, 'type': type, 'typeDescription': typeDescription, 'imageUrl': imageUrl, 'episodeCount': episodeCount, 'year': $number($substringBefore(startDate, '-')) }]"
   },
   "episodes": {
-    "inputs": ["bangumiId", "baseUrl", "authHeaders"],
+    "inputs": ["bangumiId", "baseUrl", "auth"],
     "steps": [
       {
         "type": "http",
@@ -71,14 +71,14 @@
         "request": {
           "method": "GET",
           "url": "$replace(baseUrl, /\\/$/, '') & '/v2/bangumi/' & $string(bangumiId)",
-          "headers": "$merge(authHeaders.{ key: value })"
+          "headers": "$merge((auth.enabled and auth.headers ? auth.headers : []).{ key: value })"
         }
       }
     ],
     "output": "[bangumi.bangumi.episodes.{ 'providerIds': { 'episodeId': episodeId, 'animeId': %.animeId, 'bangumiId': %.bangumiId }, 'indexedId': $string(episodeId), 'title': episodeTitle, 'episodeNumber': episodeNumber }]"
   },
   "danmaku": {
-    "inputs": ["episodeId", "baseUrl", "authHeaders"],
+    "inputs": ["episodeId", "baseUrl", "auth"],
     "steps": [
       {
         "type": "http",
@@ -87,7 +87,7 @@
           "method": "GET",
           "url": "$replace(baseUrl, /\\/$/, '') & '/v2/comment/' & $string(episodeId)",
           "query": "{ 'withRelated': 'true', 'chConvert': chConvert ? $string(chConvert) : undefined }",
-          "headers": "$merge(authHeaders.{ key: value })"
+          "headers": "$merge((auth.enabled and auth.headers ? auth.headers : []).{ key: value })"
         }
       }
     ],

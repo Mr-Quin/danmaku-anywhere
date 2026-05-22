@@ -134,16 +134,21 @@ describe('ProviderFactory dispatch', () => {
     expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' })
   })
 
-  it('routes DDP-Compat with baseUrl to ddp-compat manifest with baseUrl + auth injected', async () => {
+  it('routes DDP-Compat with baseUrl to ddp-compat manifest with configValues threaded through', async () => {
     const factory = await buildFactory()
-    const service = factory(ddpCompat({ baseUrl: 'https://my-ddp.example' }))
+    const service = factory(
+      ddpCompat({
+        baseUrl: 'https://my-ddp.example',
+        auth: { enabled: true, headers: [{ key: 'X-A', value: '1' }] },
+      })
+    )
 
     expect(service.forProvider).toBe(DanmakuSourceType.DanDanPlay)
     await service.search({ keyword: 'x' })
     expect(mockRunner.runSearch).toHaveBeenCalledWith({
       q: 'x',
       baseUrl: 'https://my-ddp.example',
-      authHeaders: [],
+      auth: { enabled: true, headers: [{ key: 'X-A', value: '1' }] },
     })
   })
 
@@ -153,10 +158,12 @@ describe('ProviderFactory dispatch', () => {
 
     expect(service.forProvider).toBe(DanmakuSourceType.DanDanPlay)
     await service.search({ keyword: 'x' })
-    expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' })
+    // configValues still threads through; the DDP manifest ignores the
+    // baseUrl/auth keys it doesn't declare as inputs.
+    expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x', baseUrl: '' })
   })
 
-  it('drops authHeaders silently when DDP-Compat falls back, but logs a warning', async () => {
+  it('logs a warning when DDP-Compat falls back with auth headers configured', async () => {
     const warn = vi.fn()
     const noisyLogger = {
       debug: () => {},
@@ -176,7 +183,6 @@ describe('ProviderFactory dispatch', () => {
     )
 
     await service.search({ keyword: 'x' })
-    expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' })
     expect(warn).toHaveBeenCalledWith(
       expect.stringMatching(/authHeaders.*baseUrl|authHeaders ignored/i)
     )

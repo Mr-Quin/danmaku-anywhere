@@ -18,44 +18,22 @@ export type IDanmakuProviderFactory = (
 
 export const DanmakuProviderFactory = Symbol.for('DanmakuProviderFactory')
 
-interface DdpConfig {
-  chConvert?: number
-}
-
 interface DdpCompatConfig {
   baseUrl?: string
   auth?: { enabled?: boolean; headers?: { key: string; value: string }[] }
-  chConvert?: number
 }
 
-interface BuiltinDispatch {
-  provider: DanmakuSourceType
-  // Pass user values straight through; defaults come from configSchema.
-  extraInputs?: (config: ProviderConfig) => Record<string, unknown>
-}
-
-const builtinDispatch: Record<string, BuiltinDispatch> = {
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]]: {
-    provider: DanmakuSourceType.DanDanPlay,
-    extraInputs: (config) => {
-      const values = config.configValues as DdpConfig
-      return { chConvert: values.chConvert }
-    },
-  },
-  [DDP_COMPAT_MANIFEST_ID]: {
-    provider: DanmakuSourceType.DanDanPlay,
-    // extraInputs supplied per-call below (closes over baseUrl/authHeaders).
-  },
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]]: {
-    provider: DanmakuSourceType.Bilibili,
-    extraInputs: (config) => {
-      const values = config.configValues as { danmakuFormat?: string }
-      return { danmakuFormat: values.danmakuFormat }
-    },
-  },
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]]: {
-    provider: DanmakuSourceType.Tencent,
-  },
+// Per-manifest dispatch metadata. The map only carries the canonical
+// `DanmakuSourceType` for each builtin; pipeline inputs flow through the
+// generic configValues path on ManifestProviderService.
+const builtinProvider: Record<string, DanmakuSourceType> = {
+  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]]:
+    DanmakuSourceType.DanDanPlay,
+  [DDP_COMPAT_MANIFEST_ID]: DanmakuSourceType.DanDanPlay,
+  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]]:
+    DanmakuSourceType.Bilibili,
+  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]]:
+    DanmakuSourceType.Tencent,
 }
 
 function createDanmakuProvider(
@@ -68,12 +46,11 @@ function createDanmakuProvider(
     return new MacCmsProviderService(config, logger)
   }
   // DDP-Compat with no baseUrl: fall back to the proxy DDP manifest.
+  // (A manifest-id rewrite, not an input transform — keeps living in code.)
   let effectiveManifestId = config.manifestId
-  let compatExtras: BuiltinDispatch['extraInputs']
   if (config.manifestId === DDP_COMPAT_MANIFEST_ID) {
     const values = config.configValues as DdpCompatConfig
-    const baseUrl = values.baseUrl?.trim()
-    if (!baseUrl) {
+    if (!values.baseUrl?.trim()) {
       effectiveManifestId = PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]
       const hasAuth =
         values.auth?.enabled && (values.auth.headers?.length ?? 0) > 0
@@ -84,24 +61,18 @@ function createDanmakuProvider(
             `DDP-Compat config ${config.id} has authHeaders but empty baseUrl — falling back to proxy-backed DanDanPlay; authHeaders ignored.`
           )
       }
-    } else {
-      const authHeaders =
-        values.auth?.enabled && values.auth.headers ? values.auth.headers : []
-      const chConvert = values.chConvert
-      compatExtras = () => ({ baseUrl, authHeaders, chConvert })
     }
   }
-  const entry = builtinDispatch[effectiveManifestId]
-  if (entry === undefined) {
+  const provider = builtinProvider[effectiveManifestId]
+  if (provider === undefined) {
     throw new Error(`Unknown manifestId: ${config.manifestId}`)
   }
-  const extras = compatExtras ?? entry.extraInputs
   return new ManifestProviderService(
     {
       manifestId: effectiveManifestId,
-      provider: entry.provider,
+      provider,
       providerConfigId: config.id,
-      extraInputs: extras ? () => extras(config) : undefined,
+      configValues: config.configValues,
     },
     registry,
     logger

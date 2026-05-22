@@ -20,6 +20,14 @@ import type {
 } from './IDanmakuProvider'
 import type { ManifestRegistry } from './ManifestRegistry'
 
+function stripUndefined(o: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(o)) {
+    if (v !== undefined) out[k] = v
+  }
+  return out
+}
+
 // Manifest output shapes — the canonical fields a search/episodes/danmaku
 // pipeline must emit. The host adds `provider` / `providerConfigId` /
 // `schemaVersion` and runs `stripHtml` on titles.
@@ -57,6 +65,9 @@ export interface ManifestProviderConfig {
   manifestId: string
   provider: DanmakuSourceType
   providerConfigId: string
+  configValues?: Record<string, unknown>
+  // Per-source last-resort override; should be rare. Most fields belong in
+  // configSchema and flow through `configValues` automatically.
   extraInputs?: () => Record<string, unknown>
 }
 
@@ -71,21 +82,18 @@ export class ManifestProviderService implements IDanmakuProvider {
     this.forProvider = config.provider
   }
 
-  // Precedence (low → high): defaults, inputs, extras. Undefined extras
-  // are dropped so they don't shadow defaults.
+  // Precedence (low → high): configSchema defaults, user-configured values,
+  // per-call inputs (providerIds / meta.params), per-source extras override.
+  // Undefined values are dropped so they don't shadow lower layers.
   private resolveInputs(
     inputs: Record<string, unknown>
   ): Record<string, unknown> {
     const runner = this.registry.getRunner(this.config.manifestId)
     const defaults = runner.configDefaults()
+    const configValues = stripUndefined(this.config.configValues ?? {})
     const rawExtras = this.config.extraInputs ? this.config.extraInputs() : {}
-    const extras: Record<string, unknown> = {}
-    for (const [k, v] of Object.entries(rawExtras)) {
-      if (v !== undefined) {
-        extras[k] = v
-      }
-    }
-    return { ...defaults, ...inputs, ...extras }
+    const extras = stripUndefined(rawExtras)
+    return { ...defaults, ...configValues, ...inputs, ...extras }
   }
 
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
