@@ -9,7 +9,10 @@ export default defineConfig({
   reporter: isCI
     ? [
         ['list'],
-        ['json', { outputFile: 'playwright-report/report.json' }],
+        // JSON lives outside playwright-report/ because the HTML reporter
+        // wipes its outputFolder before writing, which would clobber a
+        // sibling JSON file.
+        ['json', { outputFile: 'test-results/report.json' }],
         ['html', { open: 'never' }],
       ]
     : 'list',

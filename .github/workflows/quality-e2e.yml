@@ -131,7 +131,7 @@ jobs:
             await post({
               github,
               context,
-              reportPath: 'packages/danmaku-anywhere/playwright-report/report.json',
+              reportPath: 'packages/danmaku-anywhere/test-results/report.json',
               reportUrl: '${{ steps.upload-report.outputs.artifact-url }}',
               prNumber: '${{ github.event.pull_request.number }}',
               sha: '${{ github.event.pull_request.head.sha }}',
