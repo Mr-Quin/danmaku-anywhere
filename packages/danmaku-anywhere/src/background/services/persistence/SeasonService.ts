@@ -1,8 +1,6 @@
 import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
 import type { SeasonGetAllRequest, SeasonQueryFilter } from '@/common/anime/dto'
-import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
-import { isProvider } from '@/common/danmaku/utils'
 import { DanmakuAnywhereDb } from '@/common/db/db'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import type { DbEntity } from '@/common/types/dbEntity'
@@ -69,21 +67,6 @@ export class SeasonService {
 
   async getById(id: number): Promise<Season | undefined> {
     return this.db.season.get(id)
-  }
-
-  async getByType<T extends RemoteDanmakuSourceType>(
-    id: number,
-    expectedType: T
-  ): Promise<Extract<Season, { provider: T }>> {
-    const season = await this.mustGetById(id)
-
-    if (!isProvider(season, expectedType)) {
-      throw new Error(
-        `Type mismatch getting season: Expected ${expectedType}, got ${season.provider}`
-      )
-    }
-
-    return season as Extract<Season, { provider: T }>
   }
 
   async getAll(options: SeasonGetAllRequest) {

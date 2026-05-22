@@ -285,6 +285,12 @@ importers:
       '@ai-sdk/openai-compatible':
         specifier: ^2.0.1
         version: 2.0.35(zod@4.3.6)
+      '@danmaku-anywhere/dango':
+        specifier: workspace:*
+        version: link:../dango
+      '@danmaku-anywhere/dango-manifests':
+        specifier: workspace:*
+        version: link:../dango-manifests
       '@danmaku-anywhere/danmaku-converter':
         specifier: workspace:*
         version: link:../danmaku-converter

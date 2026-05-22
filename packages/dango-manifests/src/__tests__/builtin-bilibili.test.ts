@@ -118,7 +118,7 @@ describe('builtin:bilibili manifest', () => {
 
     expect(result).toEqual([
       {
-        providerIds: { seasonId: '41410', mediaId: '28219412' },
+        providerIds: { seasonId: 41410, mediaId: 28219412 },
         indexedId: '41410',
         title: '葬送的芙莉莲',
         type: '番剧',
@@ -128,7 +128,7 @@ describe('builtin:bilibili manifest', () => {
         year: 2023,
       },
       {
-        providerIds: { seasonId: '91234', mediaId: '91234' },
+        providerIds: { seasonId: 91234, mediaId: 91234 },
         indexedId: '91234',
         title: 'Demon Slayer Movie',
         type: '电影',
@@ -155,27 +155,29 @@ describe('builtin:bilibili manifest', () => {
     expect(result).toEqual([
       {
         providerIds: {
-          cid: '1300001',
-          aid: '100001',
+          cid: 1300001,
+          aid: 100001,
           bvid: 'BV1aaaaaaaa',
-          epId: '700001',
-          seasonId: '41410',
+          epid: 700001,
         },
         indexedId: '1300001',
         title: '旅途的终点',
-        episodeNumber: '1',
+        episodeNumber: 1,
+        imageUrl: 'https://i0.hdslb.com/bfs/bangumi/ep1.jpg',
+        alternativeTitle: ['葬送的芙莉莲 第1话'],
       },
       {
         providerIds: {
-          cid: '1300002',
-          aid: '100002',
+          cid: 1300002,
+          aid: 100002,
           bvid: 'BV1bbbbbbbb',
-          epId: '700002',
-          seasonId: '41410',
+          epid: 700002,
         },
         indexedId: '1300002',
         title: '不杀人的魔法',
-        episodeNumber: '2',
+        episodeNumber: 2,
+        imageUrl: 'https://i0.hdslb.com/bfs/bangumi/ep2.jpg',
+        alternativeTitle: ['葬送的芙莉莲 第2话'],
       },
     ])
   })
@@ -203,9 +205,7 @@ describe('builtin:bilibili manifest', () => {
     expect(calls).toHaveLength(1)
   })
 
-  it('protobuf variant paginates over segments and emits canonical comments', {
-    timeout: 15000,
-  }, async () => {
+  it('protobuf variant paginates and stops after 3 consecutive empties', async () => {
     const seg1 = encodeSegment([
       {
         progress: 12340,
@@ -245,25 +245,39 @@ describe('builtin:bilibili manifest', () => {
       fetcher,
     })
 
-    const result = await runner.runDanmaku({
+    const result = (await runner.runDanmaku({
       cid: 1300001,
       danmakuFormat: 'protobuf',
-    })
+    })) as Array<{
+      progress: number
+      mode: number
+      color: number
+      midHash: string
+      content: string
+    }>
 
-    expect(result).toEqual([
-      { p: '12.34,1,16777215,h1', m: 'proto 1' },
-      { p: '23.45,4,16711680,h2', m: 'proto 底部' },
-      { p: '365,5,255,h3', m: 'proto 顶部' },
-    ])
-    // 30 segments fetched (in concurrency batches) — past-the-end return empty.
-    expect(calls.length).toBe(30)
+    expect(result).toHaveLength(3)
+    expect(result[0]).toMatchObject({
+      progress: 12340,
+      mode: 1,
+      color: 16777215,
+      midHash: 'h1',
+      content: 'proto 1',
+    })
+    expect(result[2]).toMatchObject({
+      progress: 365000,
+      mode: 5,
+      color: 255,
+      midHash: 'h3',
+      content: 'proto 顶部',
+    })
+    // segs 1,2 have content; 3,4,5 empty (3 in a row) → stop.
+    expect(calls.length).toBe(5)
   })
 
-  it('protobuf variant is the default when danmakuFormat omitted', {
-    timeout: 15000,
-  }, async () => {
+  it('protobuf variant is the default when danmakuFormat omitted', async () => {
     const emptySeg = encodeSegment([])
-    const { fetcher } = mockFetcher({
+    const { fetcher, calls } = mockFetcher({
       'https://api.bilibili.com/x/v2/dm/web/seg.so': { body: emptySeg },
     })
     const runner = new ManifestRunner(zManifest.parse(builtinBilibili), {
@@ -272,11 +286,10 @@ describe('builtin:bilibili manifest', () => {
     // No danmakuFormat input — should pick the no-`when` (default) variant.
     const result = await runner.runDanmaku({ cid: 1300001 })
     expect(result).toEqual([])
+    expect(calls.length).toBe(3)
   })
 
-  it('protobuf variant decodes 304-with-empty-body as no-more-segments', {
-    timeout: 15000,
-  }, async () => {
+  it('protobuf variant decodes 304-with-empty-body as no-more-segments', async () => {
     // Bilibili abuses 304 as "no danmaku for this segment". The manifest
     // opts in via acceptStatus: [304], and the engine decodes the empty
     // body as an empty proto message (zero elems contributed).
@@ -302,17 +315,45 @@ describe('builtin:bilibili manifest', () => {
       fetcher,
     })
 
-    const result = await runner.runDanmaku({
+    const result = (await runner.runDanmaku({
       cid: 1300001,
       danmakuFormat: 'protobuf',
-    })
+    })) as Array<{ progress: number; content: string }>
 
-    expect(result).toEqual([{ p: '1,1,16777215,a', m: 'only one' }])
+    expect(result).toHaveLength(1)
+    expect(result[0]).toMatchObject({ progress: 1000, content: 'only one' })
   })
 
-  it('protobuf variant collapses bilibili modes 2/3 to scroll-right (1)', {
-    timeout: 15000,
-  }, async () => {
+  it('protobuf variant survives a single transient empty mid-stream', async () => {
+    const segWith = (progress: number, content: string) =>
+      encodeSegment([
+        { progress, mode: 1, color: 16777215, content, midHash: 'x' },
+      ])
+    const emptySeg = encodeSegment([])
+    const { fetcher, calls } = mockFetcher({
+      'https://api.bilibili.com/x/v2/dm/web/seg.so': (url) => {
+        const segIdx = Number(new URL(url).searchParams.get('segment_index'))
+        if (segIdx === 1) return { body: segWith(1000, 'a') }
+        if (segIdx === 2) return { body: segWith(2000, 'b') }
+        if (segIdx === 3) return { body: emptySeg }
+        if (segIdx === 4) return { body: segWith(4000, 'c') }
+        return { body: emptySeg }
+      },
+    })
+    const runner = new ManifestRunner(zManifest.parse(builtinBilibili), {
+      fetcher,
+    })
+    const result = (await runner.runDanmaku({
+      cid: 1300001,
+      danmakuFormat: 'protobuf',
+    })) as Array<{ progress: number; content: string }>
+
+    expect(result).toHaveLength(3)
+    expect(result.map((r) => r.content)).toEqual(['a', 'b', 'c'])
+    expect(calls.length).toBe(7)
+  })
+
+  it('protobuf variant emits raw decoded elems (mode mapping done by host)', async () => {
     const seg1 = encodeSegment([
       {
         progress: 10000,
@@ -343,8 +384,8 @@ describe('builtin:bilibili manifest', () => {
     const result = (await runner.runDanmaku({
       cid: 1300001,
       danmakuFormat: 'protobuf',
-    })) as Array<{ p: string; m: string }>
+    })) as Array<{ mode: number }>
 
-    expect(result.map((c) => c.p.split(',')[1])).toEqual(['1', '1'])
+    expect(result.map((c) => c.mode)).toEqual([2, 3])
   })
 })

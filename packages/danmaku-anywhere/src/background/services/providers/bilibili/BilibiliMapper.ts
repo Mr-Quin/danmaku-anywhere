@@ -1,14 +1,11 @@
 import {
-  type BilibiliOf,
+  type CommentEntity,
   type EpisodeMeta,
   PROVIDER_TO_BUILTIN_ID,
   type SeasonInsert,
   stripHtml,
 } from '@danmaku-anywhere/danmaku-converter'
-import type {
-  BilibiliBangumiInfo,
-  BilibiliMedia,
-} from '@danmaku-anywhere/danmaku-provider/bilibili'
+import type { BilibiliBangumiInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { OmitSeasonId } from '../IDanmakuProvider'
 
@@ -17,7 +14,7 @@ const BARE_NUMERIC_TITLE_RE = /^\d+$/
 export class BilibiliMapper {
   static toEpisode(
     data: BilibiliBangumiInfo['episodes'][number]
-  ): OmitSeasonId<BilibiliOf<EpisodeMeta>> {
+  ): OmitSeasonId<EpisodeMeta> {
     const title = stripHtml(data.show_title).trim()
     // if title is a bare number, treat it as episode number
     const episodeNumber = BARE_NUMERIC_TITLE_RE.test(title)
@@ -41,29 +38,9 @@ export class BilibiliMapper {
     }
   }
 
-  static toSeasonInsert(data: BilibiliMedia): BilibiliOf<SeasonInsert> {
-    return {
-      provider: DanmakuSourceType.Bilibili,
-      providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
-      title: stripHtml(data.title),
-      type: data.season_type_name,
-      imageUrl: data.cover,
-      providerIds: {
-        seasonId: data.season_id,
-      },
-      year:
-        data.pubtime > 0
-          ? new Date(data.pubtime * 1000).getFullYear()
-          : undefined,
-      episodeCount: data.ep_size,
-      indexedId: data.season_id.toString(),
-      schemaVersion: 1,
-    }
-  }
-
   static bangumiInfoToSeasonInsert(
     seasonInfo: BilibiliBangumiInfo
-  ): BilibiliOf<SeasonInsert> {
+  ): SeasonInsert {
     return {
       provider: DanmakuSourceType.Bilibili,
       providerConfigId: PROVIDER_TO_BUILTIN_ID.Bilibili,
@@ -78,4 +55,24 @@ export class BilibiliMapper {
       schemaVersion: 1,
     }
   }
+
+  static manifestSegmentsToComments(
+    items: ManifestBilibiliDanmakuElem[]
+  ): CommentEntity[] {
+    return items.map((item) => {
+      const mode = item.mode === 2 || item.mode === 3 ? 1 : item.mode
+      return {
+        p: `${item.progress / 1000},${mode},${item.color},${item.midHash ?? ''}`,
+        m: item.content,
+      }
+    })
+  }
+}
+
+interface ManifestBilibiliDanmakuElem {
+  progress: number
+  mode: number
+  color: number
+  midHash?: string
+  content: string
 }

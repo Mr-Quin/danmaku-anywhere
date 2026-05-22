@@ -1,6 +1,8 @@
 import type {
   CommentEntity,
+  Episode,
   GenericEpisode,
+  WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { useEventCallback } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
@@ -138,12 +140,15 @@ export const useLoadDanmaku = () => {
   const refreshComments = useEventCallback(async () => {
     if (!canRefresh) return
     const episode = episodes[0]
-    // check again to narrow the type
     if (!isProvider(episode, DanmakuSourceType.DanDanPlay)) return
 
     toast.info(t('danmaku.alert.refreshingDanmaku', 'Refreshing danmaku'))
     loadMutation.mutate(
-      { type: 'by-meta', meta: episode, options: { forceUpdate: true } },
+      {
+        type: 'by-meta',
+        meta: episode as WithSeason<Episode>,
+        options: { forceUpdate: true },
+      },
       {
         onSuccess: (result) => {
           toast.success(

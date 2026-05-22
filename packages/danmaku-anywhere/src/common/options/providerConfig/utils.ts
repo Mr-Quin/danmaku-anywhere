@@ -1,29 +1,16 @@
 import type { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
-import type { ProviderConfig, ProviderConfigType } from './schema'
+import type { ProviderConfig } from './schema'
 
-export function assertProviderConfigImpl<T extends DanmakuSourceType>(
+// Defensive runtime check. Does NOT narrow `configValues` — that field is
+// opaque at the type level. Use local cast helpers in the consumer when
+// reading typed fields.
+export function assertProviderConfigImpl(
   config: ProviderConfig,
-  type: T
-): asserts config is Extract<
-  ProviderConfig,
-  {
-    impl: T
-  }
-> {
-  if (config.impl !== type) {
+  impl: DanmakuSourceType
+): void {
+  if (config.impl !== impl) {
     throw new Error(
-      `Provider type mismatch: expected ${type}, got ${config.type}`
-    )
-  }
-}
-
-export function assertProviderConfigType<T extends ProviderConfigType>(
-  config: ProviderConfig,
-  type: T
-): asserts config is Extract<ProviderConfig, { type: T }> {
-  if (config.type !== type) {
-    throw new Error(
-      `Provider type mismatch: expected ${type}, got ${config.type}`
+      `Provider type mismatch: expected ${impl}, got ${config.impl}`
     )
   }
 }

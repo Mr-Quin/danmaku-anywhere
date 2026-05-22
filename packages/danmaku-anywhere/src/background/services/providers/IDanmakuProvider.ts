@@ -37,12 +37,16 @@ export interface IDanmakuProvider {
 
   preloadNextEpisode?(request: DanmakuFetchByMeta): Promise<void>
 
-  canParse?(url: string): boolean
-
-  parseUrl?(url: string): Promise<ParseUrlResult | null>
-
   findEpisode?(
     season: Season,
     episodeNumber: number
   ): Promise<WithSeason<EpisodeMeta> | null>
+}
+
+// URL detection is a separate interface from the main fetch path because
+// it's owned by per-source legacy services until Phase 2 lands a parseUrl
+// pipeline kind in dango.
+export interface IUrlParser {
+  canParse(url: string): boolean
+  parseUrl(url: string): Promise<ParseUrlResult | null>
 }

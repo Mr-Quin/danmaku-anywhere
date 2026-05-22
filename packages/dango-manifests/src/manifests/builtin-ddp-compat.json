@@ -51,11 +51,11 @@
         "request": {
           "method": "GET",
           "url": "$replace(baseUrl, /\\/$/, '') & '/v2/comment/' & $string(episodeId)",
-          "query": "{ 'withRelated': 'false' }",
+          "query": "{ 'withRelated': 'true', 'chConvert': chConvert ? $string(chConvert) : undefined }",
           "headers": "$merge(authHeaders.{ key: value })"
         }
       }
     ],
-    "output": "[comments.comments.{ 'cid': cid, 'p': p, 'm': m }]"
+    "output": "[comments.comments]"
   }
 }

@@ -137,10 +137,9 @@ describe('builtin:dandanplay manifest', () => {
 
   it('runs the danmaku pipeline through the proxy and emits {cid, p, m} entries', async () => {
     const { fetcher, calls } = mockFetcher({
-      [`${PROXY_BASE}?path=%2Fv2%2Fcomment%2F183980001%3FwithRelated%3Dfalse`]:
-        {
-          body: JSON.stringify(commentsFixture),
-        },
+      [`${PROXY_BASE}?path=%2Fv2%2Fcomment%2F183980001%3FwithRelated%3Dtrue`]: {
+        body: JSON.stringify(commentsFixture),
+      },
     })
     const runner = new ManifestRunner(zManifest.parse(builtinDandanplay), {
       fetcher,

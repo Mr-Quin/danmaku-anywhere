@@ -44,18 +44,41 @@ export class JsonataEvaluator {
   }
 }
 
-// JSONata projections sometimes attach a `sequence: true` property to the
-// result array. Strip it so structural equality (test toEqual) is stable.
+// JSONata projections attach a `sequence: true` property to result arrays.
+// Strip it so structural equality is stable. Copy-on-write: only allocate
+// when a marker is present somewhere in the tree.
 function normalize(v: unknown): unknown {
   if (Array.isArray(v)) {
-    return v.map(normalize)
+    const arr = v as unknown[] & { sequence?: unknown }
+    // slice() drops the non-indexed `sequence` marker from the copy.
+    const hasSequenceMarker = arr.sequence !== undefined
+    let cloned: unknown[] | null = hasSequenceMarker ? arr.slice() : null
+    for (let i = 0; i < arr.length; i++) {
+      const inner = arr[i]
+      const next = normalize(inner)
+      if (next !== inner) {
+        if (cloned === null) {
+          cloned = arr.slice()
+        }
+        cloned[i] = next
+      }
+    }
+    return cloned ?? v
   }
   if (v && typeof v === 'object') {
-    const out: Record<string, unknown> = {}
-    for (const k of Object.keys(v as object)) {
-      out[k] = normalize((v as Record<string, unknown>)[k])
+    const obj = v as Record<string, unknown>
+    let cloned: Record<string, unknown> | null = null
+    for (const k of Object.keys(obj)) {
+      const inner = obj[k]
+      const next = normalize(inner)
+      if (next !== inner) {
+        if (cloned === null) {
+          cloned = { ...obj }
+        }
+        cloned[k] = next
+      }
     }
-    return out
+    return cloned ?? v
   }
   return v
 }

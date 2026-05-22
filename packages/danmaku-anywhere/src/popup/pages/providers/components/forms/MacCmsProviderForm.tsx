@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Autocomplete,
   Checkbox,
@@ -11,20 +10,33 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import type { CustomMacCmsProvider } from '@/common/options/providerConfig/schema'
-import { zMacCmsProviderConfig } from '@/common/options/providerConfig/schema'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { configQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { FormActions } from './FormActions'
 import type { ProviderFormProps } from './types'
+
+interface FormValues {
+  name: string
+  danmakuBaseUrl: string
+  danmuicuBaseUrl: string
+  stripColor: boolean
+}
+
+interface MacCmsConfigValues {
+  danmakuBaseUrl?: string
+  danmuicuBaseUrl?: string
+  stripColor?: boolean
+}
 
 export const MacCmsProviderForm = ({
   provider,
   onSubmit,
   onReset,
   isEdit,
-}: ProviderFormProps<CustomMacCmsProvider>) => {
+}: ProviderFormProps) => {
   const { t } = useTranslation()
+  const values = provider.configValues as MacCmsConfigValues
 
   const {
     handleSubmit,
@@ -32,9 +44,13 @@ export const MacCmsProviderForm = ({
     register,
     reset,
     formState: { errors, isSubmitting, isDirty },
-  } = useForm<CustomMacCmsProvider>({
-    resolver: zodResolver(zMacCmsProviderConfig),
-    defaultValues: provider,
+  } = useForm<FormValues>({
+    defaultValues: {
+      name: provider.name,
+      danmakuBaseUrl: values.danmakuBaseUrl ?? '',
+      danmuicuBaseUrl: values.danmuicuBaseUrl ?? '',
+      stripColor: values.stripColor ?? false,
+    },
   })
 
   const { data: maccmsData } = useQuery({
@@ -49,9 +65,18 @@ export const MacCmsProviderForm = ({
     select: (res) => res.data,
   })
 
-  const handleFormSubmit = async (data: CustomMacCmsProvider) => {
-    await onSubmit(data)
-  }
+  const handleFormSubmit = handleSubmit(async (data) => {
+    const next: ProviderConfig = {
+      ...provider,
+      name: data.name,
+      configValues: {
+        danmakuBaseUrl: data.danmakuBaseUrl,
+        danmuicuBaseUrl: data.danmuicuBaseUrl,
+        stripColor: data.stripColor,
+      },
+    }
+    await onSubmit(next)
+  })
 
   const handleReset = () => {
     reset()
@@ -61,7 +86,7 @@ export const MacCmsProviderForm = ({
   return (
     <Stack
       component="form"
-      onSubmit={handleSubmit(handleFormSubmit)}
+      onSubmit={handleFormSubmit}
       direction="column"
       spacing={2}
       sx={{
@@ -73,13 +98,14 @@ export const MacCmsProviderForm = ({
         size="small"
         error={!!errors.name}
         helperText={errors.name?.message}
-        {...register('name')}
+        {...register('name', { required: true })}
         fullWidth
         required
       />
       <Controller
-        name="options.danmakuBaseUrl"
+        name="danmakuBaseUrl"
         control={control}
+        rules={{ required: true }}
         render={({ field: { ref, onChange, ...field } }) => (
           <Autocomplete
             {...field}
@@ -97,9 +123,9 @@ export const MacCmsProviderForm = ({
                   'Mac CMS API Base URL'
                 )}
                 size="small"
-                error={!!errors.options?.danmakuBaseUrl}
+                error={!!errors.danmakuBaseUrl}
                 helperText={
-                  errors.options?.danmakuBaseUrl?.message ||
+                  errors.danmakuBaseUrl?.message ||
                   t(
                     'optionsPage.danmakuSource.macCms.baseUrlHelper',
                     'The options in the list may stop working at any time. You can also enter the URL manually.'
@@ -112,8 +138,9 @@ export const MacCmsProviderForm = ({
         )}
       />
       <Controller
-        name="options.danmuicuBaseUrl"
+        name="danmuicuBaseUrl"
         control={control}
+        rules={{ required: true }}
         render={({ field: { ref, onChange, ...field } }) => (
           <Autocomplete
             {...field}
@@ -131,8 +158,8 @@ export const MacCmsProviderForm = ({
                   'Danmaku API Base URL'
                 )}
                 size="small"
-                error={!!errors.options?.danmuicuBaseUrl}
-                helperText={errors.options?.danmuicuBaseUrl?.message}
+                error={!!errors.danmuicuBaseUrl}
+                helperText={errors.danmuicuBaseUrl?.message}
                 required
               />
             )}
@@ -143,7 +170,7 @@ export const MacCmsProviderForm = ({
         <FormControlLabel
           control={
             <Controller
-              name="options.stripColor"
+              name="stripColor"
               control={control}
               render={({ field: { value, ref, ...field } }) => (
                 <Checkbox
