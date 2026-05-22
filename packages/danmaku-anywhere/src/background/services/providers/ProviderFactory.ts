@@ -10,7 +10,6 @@ import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { DDP_COMPAT_MANIFEST_ID } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { BilibiliMapper } from './bilibili/BilibiliMapper'
-import { DanDanPlayMapper } from './dandanplay/DanDanPlayMapper'
 import { MacCmsProviderService } from './MacCmsProviderService'
 import { ManifestProviderService } from './ManifestProviderService'
 import { ManifestRegistry } from './ManifestRegistry'
@@ -49,10 +48,15 @@ interface BuiltinDispatch {
   extraInputs?: (config: ProviderConfig) => Record<string, unknown>
 }
 
+// DDP and DDP-Compat manifests emit CommentEntity-shaped rows directly;
+// no per-row reshape needed.
+const identityCommentMapper = (raw: unknown): CommentEntity[] =>
+  raw as CommentEntity[]
+
 const builtinDispatch: Record<string, BuiltinDispatch> = {
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]]: {
     provider: DanmakuSourceType.DanDanPlay,
-    commentMapper: withMapper(DanDanPlayMapper.manifestCommentsToComments),
+    commentMapper: identityCommentMapper,
     extraInputs: (config) => {
       const values = config.configValues as DdpConfig
       return { chConvert: values.chConvert }
@@ -60,7 +64,7 @@ const builtinDispatch: Record<string, BuiltinDispatch> = {
   },
   [DDP_COMPAT_MANIFEST_ID]: {
     provider: DanmakuSourceType.DanDanPlay,
-    commentMapper: withMapper(DanDanPlayMapper.manifestCommentsToComments),
+    commentMapper: identityCommentMapper,
     // extraInputs supplied per-call below (closes over baseUrl/authHeaders).
   },
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]]: {
