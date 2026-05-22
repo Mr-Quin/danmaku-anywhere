@@ -83,12 +83,14 @@ export const IntegrationPage = () => {
         )}
       </TabToolbar>
       <ScrollBox
-        p={2}
-        flexGrow={1}
-        display="flex"
-        flexDirection="column"
-        gap={2}
-        sx={{ overflowX: 'hidden' }}
+        sx={{
+          p: 2,
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2,
+          overflowX: 'hidden',
+        }}
       >
         <Stack
           direction="row"

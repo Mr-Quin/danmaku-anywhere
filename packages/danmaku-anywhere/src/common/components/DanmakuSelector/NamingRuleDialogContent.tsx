@@ -316,10 +316,11 @@ export const NamingRuleDialogContent = ({
                           </Box>
                         )
                       }
-                      primaryTypographyProps={{
-                        variant: 'caption',
-                        fontFamily: 'monospace',
-                        lineHeight: 1.5,
+                      slotProps={{
+                        primary: {
+                          variant: 'caption',
+                          sx: { fontFamily: 'monospace', lineHeight: 1.5 },
+                        },
                       }}
                       sx={{ my: 0 }}
                     />

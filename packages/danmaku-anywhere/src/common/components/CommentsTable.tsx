@@ -260,7 +260,11 @@ export const CommentsTable = ({
       }}
     >
       {renderToolbar()}
-      <TableContainer component={ScrollBox} flex={1} overflow="auto" ref={ref}>
+      <TableContainer
+        component={ScrollBox}
+        sx={{ flex: 1, overflow: 'auto' }}
+        ref={ref}
+      >
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>

@@ -51,7 +51,7 @@ function SettingRow({ title, hint, control, disabled }: SettingRowProps) {
         {
           alignItems: 'center',
         },
-        disabled ? { opacity: 0.6 } : undefined,
+        disabled ? { opacity: 0.6 } : false,
       ]}
     >
       <Box sx={{ flex: 1 }}>

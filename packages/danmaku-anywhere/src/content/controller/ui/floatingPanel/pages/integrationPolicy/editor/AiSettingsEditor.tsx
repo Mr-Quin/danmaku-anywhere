@@ -58,7 +58,7 @@ export const AiSettingsEditor = (): ReactElement => {
 
   return (
     <OverlayLayout>
-      <TabLayout height="100%">
+      <TabLayout sx={{ height: '100%' }}>
         <Stack
           spacing={0}
           sx={{
@@ -85,7 +85,7 @@ export const AiSettingsEditor = (): ReactElement => {
             </div>
           </TabToolbar>
 
-          <ScrollBox flexGrow={1} overflow="auto" minHeight={0}>
+          <ScrollBox sx={{ flexGrow: 1, overflow: 'auto', minHeight: 0 }}>
             <Box
               sx={{
                 px: 2,
