@@ -32,7 +32,7 @@
     "standalone:serve": "vite preview --config vite.standalone.config.ts",
     "start:firefox": "web-ext run --source-dir ./build --devtools -p ./extention-profile --profile-create-if-missing --keep-profile-changes --pref extensions.dnr.feedback=true",
     "start:firefox-android": "pnpm run start:firefox -t firefox-android --firefox-apk org.mozilla.firefox_beta --pref extensions.dnr.feedback=true",
-    "test": "vitest",
+    "test": "vitest run",
     "test:e2e": "playwright test",
     "tsc": "tsc",
     "type-check": "tsc --noEmit",

@@ -10,7 +10,7 @@
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "scripts": {
-    "test": "vitest",
+    "test": "vitest run",
     "build": "tsgo",
     "lint": "tsgo && biome check --fix",
     "lint:ci": "biome ci",

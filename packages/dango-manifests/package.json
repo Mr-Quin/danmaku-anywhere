@@ -10,7 +10,7 @@
     "./manifests/*.json": "./src/manifests/*.json"
   },
   "scripts": {
-    "test": "vitest",
+    "test": "vitest run",
     "smoke": "pnpx tsx scripts/smoke-test.ts",
     "build": "tsgo",
     "lint": "tsgo && biome check --fix",

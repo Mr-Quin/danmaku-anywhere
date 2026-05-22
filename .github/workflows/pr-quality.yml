@@ -60,4 +60,4 @@ jobs:
           commit_message: "(chore) apply lint autofix"
 
       - name: Test (changed packages only)
-        run: pnpm --filter '...[${{ github.event.pull_request.base.sha }}]' test run
+        run: pnpm --filter '...[${{ github.event.pull_request.base.sha }}]' test
