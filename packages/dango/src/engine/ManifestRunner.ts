@@ -118,6 +118,18 @@ export class ManifestRunner {
     return this.run<T>('season', this.manifest.season, inputs, opts)
   }
 
+  hasLoginProbe(): boolean {
+    return this.manifest.loginProbe !== undefined
+  }
+
+  async runLoginProbe<T = unknown>(
+    inputs: ManifestInputs = {},
+    opts?: RunOptions
+  ): Promise<T | null> {
+    if (this.manifest.loginProbe === undefined) return null
+    return this.run<T>('loginProbe', this.manifest.loginProbe, inputs, opts)
+  }
+
   /**
    * Match a URL against the manifest's `urlMatch` patterns; if any match, run
    * the `parseUrl` pipeline with the named capture groups + any additional

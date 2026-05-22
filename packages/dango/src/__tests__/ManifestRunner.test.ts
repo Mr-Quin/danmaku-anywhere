@@ -203,6 +203,102 @@ describe('ManifestRunner.canParse', () => {
   })
 })
 
+/**
+ * Covers ManifestRunner.runLoginProbe: the no-pipeline returns-null path and
+ * a normal HTTP probe whose output the host inspects to decide login state.
+ * Output shape is source-specific; the engine just runs the pipeline.
+ */
+describe('ManifestRunner.runLoginProbe', () => {
+  it('returns null when the manifest declares no loginProbe pipeline', async () => {
+    const runner = new ManifestRunner(
+      zManifest.parse({
+        apiVersion: 1,
+        id: 'no-probe',
+        name: 'NoProbe',
+        version: '0.1.0',
+        hosts: ['api.example.com'],
+      })
+    )
+    expect(runner.hasLoginProbe()).toBe(false)
+    expect(await runner.runLoginProbe()).toBeNull()
+  })
+
+  it('runs the probe pipeline and returns its output', async () => {
+    const probeManifest = {
+      apiVersion: 1,
+      id: 'probe-demo',
+      name: 'ProbeDemo',
+      version: '0.1.0',
+      hosts: ['api.example.com'],
+      loginProbe: {
+        inputs: [],
+        steps: [
+          {
+            type: 'http',
+            id: 'nav',
+            request: {
+              method: 'GET',
+              url: "'https://api.example.com/me'",
+              credentials: 'include',
+            },
+          },
+        ],
+        output:
+          "nav.code = 0 ? { 'loggedIn': true, 'name': nav.data.name } : { 'loggedIn': false }",
+      },
+    }
+    const { fetcher, calls } = mockFetcher({
+      'https://api.example.com/me': {
+        body: JSON.stringify({ code: 0, data: { name: 'alice' } }),
+      },
+    })
+    const runner = new ManifestRunner(zManifest.parse(probeManifest), {
+      fetcher,
+    })
+
+    expect(runner.hasLoginProbe()).toBe(true)
+    const result = await runner.runLoginProbe()
+    expect(result).toEqual({ loggedIn: true, name: 'alice' })
+    expect(calls).toHaveLength(1)
+    expect((calls[0].init as { credentials?: string }).credentials).toBe(
+      'include'
+    )
+  })
+
+  it('threads per-call inputs into the probe pipeline', async () => {
+    const probeManifest = {
+      apiVersion: 1,
+      id: 'probe-inputs',
+      name: 'ProbeInputs',
+      version: '0.1.0',
+      hosts: ['api.example.com'],
+      loginProbe: {
+        inputs: ['accountId'],
+        steps: [
+          {
+            type: 'http',
+            id: 'probe',
+            request: {
+              method: 'GET',
+              url: "'https://api.example.com/u/' & accountId",
+            },
+          },
+        ],
+        output: 'probe.ok',
+      },
+    }
+    const { fetcher, calls } = mockFetcher({
+      'https://api.example.com/u/42': { body: JSON.stringify({ ok: true }) },
+    })
+    const runner = new ManifestRunner(zManifest.parse(probeManifest), {
+      fetcher,
+    })
+
+    expect(await runner.runLoginProbe({ accountId: '42' })).toBe(true)
+    expect(calls[0].url).toBe('https://api.example.com/u/42')
+  })
+})
+
 describe('JsonataEvaluator', () => {
   it('caches compiled expressions across calls', async () => {
     const ev = new JsonataEvaluator({ maxCacheSize: 10 })

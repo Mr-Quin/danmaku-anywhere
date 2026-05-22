@@ -241,5 +241,11 @@ export const zManifest = z.object({
    * pipeline context).
    */
   parseUrl: zPipelineField.optional(),
+  /**
+   * Probe whether the user's stored session/cookies grant a valid session
+   * at this source. Output shape is source-specific (user-info object,
+   * boolean, etc.); the host inspects it per provider.
+   */
+  loginProbe: zPipelineField.optional(),
 })
 export type Manifest = z.infer<typeof zManifest>
