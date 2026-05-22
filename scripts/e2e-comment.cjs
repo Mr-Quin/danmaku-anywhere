@@ -2,23 +2,9 @@ const fs = require('node:fs')
 const path = require('node:path')
 
 const MARKER = '<!-- danmaku-anywhere:e2e-comment -->'
-const STATUS_EMOJI = {
-  passed: '✅',
-  failed: '❌',
-  timedOut: '⏱️',
-  interrupted: '⛔',
-  skipped: '⏭️',
-  flaky: '⚠️',
-}
-const MAX_FAILURES_LISTED = 25
-const ERROR_EXCERPT_MAX = 200
-// biome-ignore lint/suspicious/noControlCharactersInRegex: stripping ANSI escapes from Playwright error output
-const ANSI_PATTERN = /\[[0-9;]*m/g
+const ANSI_PATTERN = /\[[0-9;]*m/g
 
 function formatDuration(ms) {
-  if (!Number.isFinite(ms) || ms < 0) {
-    return '-'
-  }
   if (ms < 1000) {
     return `${Math.round(ms)}ms`
   }
@@ -27,9 +13,7 @@ function formatDuration(ms) {
     return `${totalSeconds.toFixed(1)}s`
   }
   const rounded = Math.round(totalSeconds)
-  const minutes = Math.floor(rounded / 60)
-  const seconds = rounded % 60
-  return `${minutes}m ${seconds}s`
+  return `${Math.floor(rounded / 60)}m ${rounded % 60}s`
 }
 
 function readReport(reportPath) {
@@ -37,8 +21,7 @@ function readReport(reportPath) {
     return null
   }
   try {
-    const raw = fs.readFileSync(reportPath, 'utf8')
-    return JSON.parse(raw)
+    return JSON.parse(fs.readFileSync(reportPath, 'utf8'))
   } catch (error) {
     console.warn(
       `Failed to parse e2e report at ${reportPath}: ${error.message}`
@@ -48,45 +31,34 @@ function readReport(reportPath) {
 }
 
 function extractErrorMessage(result) {
-  const raw =
-    result?.errors?.[0]?.message ??
-    result?.error?.message ??
-    result?.errors?.[0]?.stack ??
-    result?.error?.stack ??
-    ''
+  const raw = result?.errors?.[0]?.message ?? ''
   if (!raw) {
     return ''
   }
-  const cleaned = raw.replace(ANSI_PATTERN, '').trim()
-  const firstLine = cleaned.split(/\r?\n/)[0] ?? ''
-  if (firstLine.length <= ERROR_EXCERPT_MAX) {
-    return firstLine
-  }
-  return `${firstLine.slice(0, ERROR_EXCERPT_MAX - 1).trimEnd()}…`
+  const firstLine = raw.replace(ANSI_PATTERN, '').trim().split(/\r?\n/)[0]
+  return firstLine.length <= 200
+    ? firstLine
+    : `${firstLine.slice(0, 199).trimEnd()}…`
 }
 
 function collectSpecs(report) {
   const specs = []
   function walk(suite, ancestry) {
-    const fileLabel = suite.file ? path.basename(suite.file) : suite.title
-    const trail = ancestry.length === 0 ? [fileLabel] : ancestry
+    const trail =
+      ancestry.length === 0
+        ? [suite.file ? path.basename(suite.file) : suite.title]
+        : ancestry
     for (const spec of suite.specs ?? []) {
-      const title = [...trail, spec.title].join(' › ')
       const test = spec.tests?.[0]
       const result = test?.results?.[test.results.length - 1]
-      // Playwright aggregates per-test status as 'expected' | 'unexpected' |
-      // 'skipped' | 'flaky' on the test object; results[].status is the raw
-      // attempt outcome. Trust test.status for skipped/flaky so we don't
-      // miscount tests where results[] is empty (e.g. test.skip()).
-      const aggregated = test?.status
-      const lastResultStatus = result?.status
+      // Trust test.status for skipped/flaky: when test.skip() runs there are
+      // no results[] entries, so falling back to result.status would miscount.
       const status =
-        aggregated === 'skipped' || aggregated === 'flaky'
-          ? aggregated
-          : (lastResultStatus ?? (spec.ok ? 'passed' : 'failed'))
+        test?.status === 'skipped' || test?.status === 'flaky'
+          ? test.status
+          : (result?.status ?? (spec.ok ? 'passed' : 'failed'))
       specs.push({
-        title,
-        file: spec.file ?? suite.file ?? '',
+        title: [...trail, spec.title].join(' › '),
         ok: spec.ok !== false,
         status,
         duration: result?.duration ?? 0,
@@ -116,32 +88,26 @@ function summarize(report) {
   for (const spec of specs) {
     if (spec.status === 'skipped') {
       counts.skipped += 1
-      continue
-    }
-    if (spec.status === 'flaky') {
+    } else if (spec.status === 'flaky') {
       counts.flaky += 1
-      continue
-    }
-    if (spec.ok) {
+    } else if (spec.ok) {
       counts.passed += 1
-      continue
+    } else {
+      counts.failed += 1
+      failures.push(spec)
     }
-    counts.failed += 1
-    failures.push(spec)
   }
-  const stats = report.stats ?? {}
-  const duration = Number.isFinite(stats.duration) ? stats.duration : 0
-  return { counts, failures, duration }
+  return { counts, failures, duration: report.stats?.duration ?? 0 }
 }
 
 function buildBody({ summary, runUrl, runNumber, reportUrl, jobUrl, sha }) {
   const { counts, failures, duration } = summary
-  const passed = counts.failed === 0 && counts.total > 0
-  const heading = passed
-    ? '### ✅ E2E tests passed'
-    : counts.total === 0
+  const heading =
+    counts.total === 0
       ? '### ⚠️ E2E tests did not produce a report'
-      : `### ❌ E2E tests failed (${counts.failed})`
+      : counts.failed === 0
+        ? '### ✅ E2E tests passed'
+        : `### ❌ E2E tests failed (${counts.failed})`
 
   const statLine =
     counts.total === 0
@@ -175,24 +141,12 @@ function buildBody({ summary, runUrl, runNumber, reportUrl, jobUrl, sha }) {
       ? `Failing tests · <a href="${jobUrl}">view job logs</a>`
       : 'Failing tests'
     lines.push('', '<details open>', `<summary>${summaryLabel}</summary>`, '')
-    const shown = failures.slice(0, MAX_FAILURES_LISTED)
-    for (const failure of shown) {
-      const emoji = STATUS_EMOJI[failure.status] ?? '❌'
-      const cleanTitle = failure.title.replace(/\r?\n/g, ' ')
-      lines.push(
-        `- ${emoji} \`${cleanTitle}\` (${formatDuration(failure.duration)})`
-      )
+    for (const failure of failures) {
+      const title = failure.title.replace(/\r?\n/g, ' ')
+      lines.push(`- ❌ \`${title}\` (${formatDuration(failure.duration)})`)
       if (failure.errorExcerpt) {
-        lines.push('  \`\`\`')
-        lines.push(`  ${failure.errorExcerpt}`)
-        lines.push('  \`\`\`')
+        lines.push('  ```', `  ${failure.errorExcerpt}`, '  ```')
       }
-    }
-    if (failures.length > shown.length) {
-      lines.push(
-        '',
-        `_…and ${failures.length - shown.length} more. See the Playwright report for details._`
-      )
     }
     lines.push('', '</details>')
   }
@@ -208,8 +162,6 @@ async function findE2eJobUrl({ github, owner, repo, runId }) {
       run_id: runId,
       per_page: 30,
     })
-    // The workflow defines a single job (the matrix `e2e` job) so a name
-    // prefix match is enough; fall back to the first job if naming changes.
     const job =
       data.jobs.find((j) => j.name.startsWith('e2e')) ?? data.jobs[0] ?? null
     return job?.html_url ?? ''
@@ -219,14 +171,6 @@ async function findE2eJobUrl({ github, owner, repo, runId }) {
   }
 }
 
-function isBotAuthor(comment) {
-  const user = comment.user
-  if (!user) {
-    return false
-  }
-  return user.type === 'Bot' || user.login === 'github-actions[bot]'
-}
-
 async function upsertComment({ github, owner, repo, issueNumber, body }) {
   let existing = null
   for await (const { data: comments } of github.paginate.iterator(
@@ -234,7 +178,9 @@ async function upsertComment({ github, owner, repo, issueNumber, body }) {
     { owner, repo, issue_number: issueNumber, per_page: 100 }
   )) {
     existing = comments.find(
-      (c) => c.body && c.body.includes(MARKER) && isBotAuthor(c)
+      (c) =>
+        c.body?.includes(MARKER) &&
+        (c.user?.type === 'Bot' || c.user?.login === 'github-actions[bot]')
     )
     if (existing) {
       break
@@ -269,14 +215,8 @@ module.exports = async ({
 }) => {
   const owner = context.repo.owner
   const repo = context.repo.repo
-  const issueNumber = Number(prNumber || context.payload.pull_request?.number)
-  if (!Number.isFinite(issueNumber)) {
-    console.warn('No PR number resolved; skipping comment.')
-    return
-  }
+  const issueNumber = Number(prNumber)
 
-  const runUrl = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`
-  const runNumber = context.runNumber ?? process.env.GITHUB_RUN_NUMBER ?? ''
   const report = readReport(reportPath)
   const summary = report
     ? summarize(report)
@@ -293,11 +233,11 @@ module.exports = async ({
 
   const body = buildBody({
     summary,
-    runUrl,
-    runNumber,
+    runUrl: `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`,
+    runNumber: context.runNumber,
     reportUrl: reportUrl || '',
     jobUrl,
-    sha: sha || context.payload.pull_request?.head?.sha || context.sha,
+    sha,
   })
 
   await upsertComment({ github, owner, repo, issueNumber, body })
