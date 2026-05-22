@@ -67,14 +67,10 @@ test('mount tree: delete season removes it + cascades episodes', async ({
   await popup.mount.openItemMenu(seasonItem, 'delete')
   await popup.dialog.confirm()
 
-  await expect(seasonItem).toBeHidden({ timeout: 10_000 })
+  await expect(seasonItem).toBeHidden()
 
-  await expect
-    .poll(() => da.season.get(season.id), { timeout: 10_000 })
-    .toBeUndefined()
-  await expect
-    .poll(() => da.episode.get(ep.id), { timeout: 10_000 })
-    .toBeUndefined()
+  await expect.poll(() => da.season.get(season.id)).toBeUndefined()
+  await expect.poll(() => da.episode.get(ep.id)).toBeUndefined()
 })
 
 test('mount tree: delete single episode keeps season + siblings', async ({
@@ -96,16 +92,14 @@ test('mount tree: delete single episode keeps season + siblings', async ({
   await popup.mount.expandSeason(season.id)
 
   const ep1Item = popup.mount.episodeItem(ep1.id)
-  await expect(ep1Item).toBeVisible({ timeout: 10_000 })
+  await expect(ep1Item).toBeVisible()
 
   await popup.mount.openItemMenu(ep1Item, 'delete')
   await popup.dialog.confirm()
 
-  await expect(ep1Item).toBeHidden({ timeout: 10_000 })
+  await expect(ep1Item).toBeHidden()
 
-  await expect
-    .poll(() => da.episode.get(ep1.id), { timeout: 10_000 })
-    .toBeUndefined()
+  await expect.poll(() => da.episode.get(ep1.id)).toBeUndefined()
 
   // Sibling + parent intact — checked in both UI and DB so a wider-than-
   // intended delete (or one that updates only one layer) is caught.

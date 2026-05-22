@@ -49,7 +49,7 @@ test('mount toolbar: import from URL fetches a mocked xml and stages a custom ep
     page.locator('[role="alert"]').filter({
       hasText: /Successfully imported|成功导入/,
     })
-  ).toBeVisible({ timeout: 10_000 })
+  ).toBeVisible()
 
   const customs = await da.episode.listCustom()
   expect(customs).toHaveLength(1)

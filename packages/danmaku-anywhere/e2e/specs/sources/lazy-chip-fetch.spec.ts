@@ -53,9 +53,7 @@ test('search chips: only active provider fetches; clicking inactive chip dispatc
   const popup = await Popup.open(page, extensionId)
   await popup.search.submit('frieren')
 
-  await expect(popup.search.seasonCard('DanDanPlay')).toBeVisible({
-    timeout: 15_000,
-  })
+  await expect(popup.search.seasonCard('DanDanPlay')).toBeVisible()
 
   expect(
     bilibiliSearchUrls,
@@ -64,8 +62,6 @@ test('search chips: only active provider fetches; clicking inactive chip dispatc
 
   await popup.search.sourceChip('Bilibili').click()
 
-  await expect(popup.search.seasonCard('Bilibili')).toBeVisible({
-    timeout: 15_000,
-  })
+  await expect(popup.search.seasonCard('Bilibili')).toBeVisible()
   expect(bilibiliSearchUrls.length).toBeGreaterThanOrEqual(1)
 })
