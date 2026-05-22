@@ -2,3 +2,16 @@ packages:
   - 'packages/**'
   - 'backend/**'
   - 'app/**'
+nodeLinker: isolated
+allowBuilds:
+  '@parcel/watcher': false
+  '@swc/core': false
+  core-js: false
+  esbuild: false
+  lefthook: false
+  lmdb: false
+  msgpackr-extract: false
+  protobufjs: false
+  sharp: false
+  spawn-sync: false
+  workerd: false
