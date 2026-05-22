@@ -1,0 +1,113 @@
+{
+  "apiVersion": 1,
+  "id": "builtin:mango",
+  "name": "Mango TV",
+  "version": "1.0.0",
+  "hosts": [
+    "mobileso.bz.mgtv.com",
+    "pcweb.api.mgtv.com",
+    "galaxy.bz.mgtv.com",
+    "*.mgtv.com"
+  ],
+  "search": {
+    "inputs": ["q"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "search",
+        "request": {
+          "method": "GET",
+          "url": "'https://mobileso.bz.mgtv.com/msite/search/v2'",
+          "query": "{ 'q': q, 'pc': '30', 'pn': '1', 'sort': '-99', 'ty': '0', 'du': '0', 'pt': '0', 'corr': '1', 'abroad': '0', '_support': '10000000000000000' }",
+          "rewriteHeaders": { "Referer": "'https://www.mgtv.com/'" }
+        }
+      }
+    ],
+    "output": "[search.data.contents[type='media'].data[source='imgo'].($cid := $regexExtract(url, '/b/(\\\\d+)'); { 'providerIds': { 'collectionId': $cid }, 'indexedId': $cid, 'title': $replace(title, /<[^>]+>/, ''), 'type': $substringBefore(desc[0], '/') ~> $replace('类型:', '') ~> $trim, 'year': $number($regexExtract(desc[0], '([12][890][0-9][0-9])')), 'imageUrl': img, 'episodeCount': videoCount })[providerIds.collectionId]]"
+  },
+  "episodes": {
+    "inputs": ["collectionId"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "bootstrap",
+        "request": {
+          "method": "GET",
+          "url": "'https://pcweb.api.mgtv.com/variety/showlist'",
+          "query": "{ 'allowedRC': '1', 'collection_id': collectionId, 'month': '', 'page': '1', '_support': '10000000' }",
+          "rewriteHeaders": { "Referer": "'https://www.mgtv.com/'" }
+        },
+        "extract": {
+          "months": "data.tab_m.m"
+        }
+      },
+      {
+        "type": "forEach",
+        "id": "pages",
+        "in": "bootstrap.months",
+        "as": "month",
+        "request": {
+          "method": "GET",
+          "url": "'https://pcweb.api.mgtv.com/variety/showlist'",
+          "query": "{ 'allowedRC': '1', 'collection_id': collectionId, 'month': month, 'page': '1', '_support': '10000000' }",
+          "rewriteHeaders": { "Referer": "'https://www.mgtv.com/'" }
+        },
+        "extract": {
+          "items": "data.list"
+        },
+        "collect": "items",
+        "throttleMs": 100
+      }
+    ],
+    "output": "[$filter(pages, function($p) { $p.src_clip_id = collectionId }).{ 'providerIds': { 'vid': video_id, 'cid': $string($$.collectionId) }, 'indexedId': $string(video_id), 'title': $trim(t1 & ' ' & t2), 'episodeNumber': $number($regexExtract(t1 & t2, '第(\\\\d+)集')) }]"
+  },
+  "danmaku": {
+    "inputs": ["cid", "vid"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "info",
+        "request": {
+          "method": "GET",
+          "url": "'https://pcweb.api.mgtv.com/video/info'",
+          "query": "{ 'cid': cid, 'vid': vid }",
+          "rewriteHeaders": { "Referer": "'https://www.mgtv.com/'" }
+        },
+        "extract": {
+          "durationSec": "$timeToSeconds(data.info.time)"
+        }
+      },
+      {
+        "type": "http",
+        "id": "ctl",
+        "request": {
+          "method": "GET",
+          "url": "'https://galaxy.bz.mgtv.com/getctlbarrage'",
+          "query": "{ 'version': '8.1.39', 'abroad': '0', 'uuid': '', 'os': '10.15.7', 'platform': '0', 'mac': '', 'vid': vid, 'pid': '', 'cid': cid, 'ticket': '' }",
+          "rewriteHeaders": { "Referer": "'https://www.mgtv.com/'" }
+        },
+        "extract": {
+          "cdn": "$substringBefore(data.cdn_list, ',')",
+          "version": "data.cdn_version"
+        }
+      },
+      {
+        "type": "forEach",
+        "id": "segments",
+        "in": "$range(0, $ceil(info.durationSec / 60))",
+        "as": "i",
+        "request": {
+          "method": "GET",
+          "url": "'https://' & ctl.cdn & '/' & ctl.version & '/' & $string(i) & '.json'"
+        },
+        "extract": {
+          "items": "data.items"
+        },
+        "collect": "items",
+        "throttleMs": 50,
+        "concurrency": 4
+      }
+    ],
+    "output": "[segments.{ 'p': $string($number(type) / 1000) & ',1,16777215,' & $string(uid), 'm': content }]"
+  }
+}

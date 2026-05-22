@@ -12,7 +12,13 @@ import builtinDandanplay from '@danmaku-anywhere/dango-manifests/manifests/built
 import builtinDdpCompat from '@danmaku-anywhere/dango-manifests/manifests/builtin-ddp-compat.json' with {
   type: 'json',
 }
+import builtinMango from '@danmaku-anywhere/dango-manifests/manifests/builtin-mango.json' with {
+  type: 'json',
+}
 import builtinTencent from '@danmaku-anywhere/dango-manifests/manifests/builtin-tencent.json' with {
+  type: 'json',
+}
+import builtinYouku from '@danmaku-anywhere/dango-manifests/manifests/builtin-youku.json' with {
   type: 'json',
 }
 import { bilibili as bilibiliProto } from '@danmaku-anywhere/danmaku-provider/bilibili-proto'
@@ -40,6 +46,8 @@ const builtinSpecs: ManifestSpec[] = [
   { manifest: builtinDdpCompat },
   { manifest: builtinBilibili, protoTypes: bilibiliProtoTypes },
   { manifest: builtinTencent },
+  { manifest: builtinYouku },
+  { manifest: builtinMango },
 ]
 
 @injectable('Singleton')

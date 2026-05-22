@@ -42,10 +42,32 @@ export const builtInTencentProvider: ProviderConfig = {
   configValues: {},
 }
 
+export const builtInYoukuProvider: ProviderConfig = {
+  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Youku],
+  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Youku],
+  name: 'Youku',
+  impl: DanmakuSourceType.Youku,
+  enabled: true,
+  isBuiltIn: true,
+  configValues: {},
+}
+
+export const builtInMangoProvider: ProviderConfig = {
+  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Mango],
+  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Mango],
+  name: 'Mango TV',
+  impl: DanmakuSourceType.Mango,
+  enabled: true,
+  isBuiltIn: true,
+  configValues: {},
+}
+
 export const defaultProviderConfigs: ProviderConfig[] = [
   builtInDanDanPlayProvider,
   builtInBilibiliProvider,
   builtInTencentProvider,
+  builtInYoukuProvider,
+  builtInMangoProvider,
 ]
 
 export function createCustomDanDanPlayProvider(

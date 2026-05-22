@@ -34,6 +34,8 @@ const builtinProvider: Record<string, DanmakuSourceType> = {
     DanmakuSourceType.Bilibili,
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]]:
     DanmakuSourceType.Tencent,
+  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Youku]]: DanmakuSourceType.Youku,
+  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Mango]]: DanmakuSourceType.Mango,
 }
 
 function createDanmakuProvider(
