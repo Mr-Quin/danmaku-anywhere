@@ -58,10 +58,11 @@ type BuildInfo =
 const BRANCH_TAG_PREFIX = 'preview-branch-'
 
 function deriveFeatureNameFromName(name: string): string {
-  return name
+  const stripped = name
     .replace(/\s*·\s*Branch Preview\s*\(\d+\)\s*$/i, '')
     .replace(/\s*\(\d+\)\s*$/, '')
     .trim()
+  return stripped === name.trim() ? '' : stripped
 }
 
 function humanizeSlug(slug: string): string {

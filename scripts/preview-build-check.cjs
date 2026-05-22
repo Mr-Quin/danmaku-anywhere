@@ -15,8 +15,11 @@ function deriveFeatureName(title) {
     return ''
   }
   return String(title)
+    .replace(/[\r\n]+/g, ' ')
     .replace(/^\s*\([^)]*\)\s*/, '')
     .replace(/\s*\[[A-Z]+-\d+\]\s*$/, '')
+    .trim()
+    .slice(0, 200)
     .trim()
 }
 
