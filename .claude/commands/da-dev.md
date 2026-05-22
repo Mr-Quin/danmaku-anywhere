@@ -25,7 +25,13 @@ Pick a `hint` — 2-4 kebab-case words describing the task (e.g. `dev-workflow`,
 node scripts/da-bootstrap.mjs --task DA-XXX --hint <hint> --type <extension|app|proxy|chore|docs>
 ```
 
-That handles `git fetch`, `git worktree add`, env copy, `pnpm install`, `pnpm build:packages`, and writes task notes to `~/.claude/da-tasks/DA-XXX.md` (outside the repo, survives `/da-cleanup`). It prints the `wt new-tab` invocation for a fresh Claude session — run it, then **stop here**. The new session handles steps 3–7.
+That handles `git fetch`, `git worktree add`, env copy, `pnpm install`, `pnpm build:packages`, and writes task notes to `~/.claude/da-tasks/DA-XXX.md` (outside the repo, survives `/da-cleanup`). On success it prints a trailing `READY` block with `worktree=...`, `branch=...`, `task_file=...`, `title=...`. Parse those and launch a new Claude session in the worktree:
+
+```bash
+wt new-tab --title '<title>' -d '<worktree>' -- powershell -NoExit -Command "claude --permission-mode acceptEdits --add-dir . -- 'Read <task_file> and follow the instructions'"
+```
+
+(On non-Windows hosts, open a terminal in `<worktree>` and run the `claude ...` portion directly.) The new session reads `<task_file>` and starts from step 3. **Stop the current session here.**
 
 For trivial changes (CLAUDE.md / docs / config-only): branch directly without a worktree:
 

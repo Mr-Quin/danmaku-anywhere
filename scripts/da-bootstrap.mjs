@@ -151,41 +151,13 @@ Steps 1–2 are already complete.
 `
 )
 
-const claudeCmd = `claude --permission-mode acceptEdits --add-dir . -- "Read ${taskFile} and follow the instructions"`
-
+// Emit a machine-readable trailer so the calling agent can grab the values
+// without re-deriving them. The agent owns spawning the new Claude session;
+// cross-shell quoting through wt → powershell → claude is too brittle to do
+// here.
 console.log()
-console.log(`✓ Worktree:   ${worktreeDir}`)
-console.log(`✓ Branch:     ${branch}`)
-console.log(`✓ Task notes: ${taskFile}`)
-console.log()
-console.log('Open a new Claude session in the worktree:')
-console.log()
-console.log(`  cd "${worktreeDir}"`)
-console.log(`  ${claudeCmd}`)
-console.log()
-
-if (process.platform === 'win32') {
-  const wtArgs = [
-    'new-tab',
-    '--title',
-    `${task}: ${hint}`,
-    '-d',
-    worktreeDir,
-    '--',
-    'powershell',
-    '-NoExit',
-    '-Command',
-    claudeCmd,
-  ]
-  console.log('Opening a Windows Terminal tab with the Claude session...')
-  const r = spawnSync('wt', wtArgs, { stdio: 'inherit' })
-  if (r.status !== 0 || r.error) {
-    console.log()
-    console.log('Could not launch Windows Terminal; run this manually instead:')
-    console.log()
-    console.log(
-      '  wt ' + wtArgs.map((a) => (a.includes(' ') ? `'${a}'` : a)).join(' ')
-    )
-    console.log()
-  }
-}
+console.log('READY')
+console.log(`worktree=${worktreeDir}`)
+console.log(`branch=${branch}`)
+console.log(`task_file=${taskFile}`)
+console.log(`title=${task}: ${hint}`)
