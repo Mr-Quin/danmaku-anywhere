@@ -35,4 +35,4 @@ patch-*
 test-results/
 playwright-report/
 .specs/
-docs/superpowers/
+docs/superpowers/pr*.json
