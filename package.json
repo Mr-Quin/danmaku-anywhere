@@ -34,9 +34,6 @@
     "typescript": "^5.9.3"
   },
   "pnpm": {
-    "patchedDependencies": {
-      "@mui/system": "patches/@mui__system.patch"
-    },
     "ignoredBuiltDependencies": [
       "workerd"
     ]
