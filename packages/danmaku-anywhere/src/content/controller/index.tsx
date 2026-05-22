@@ -32,11 +32,13 @@ const { data: frameId } = await chromeRpcClient.getFrameId()
 
 Logger.debug(`Controller script loaded in frame ${frameId}`)
 
-const { shadowRoot, shadowStyle, shadowContainer } = await createPopoverRoot({
+const { shadowRoot, shadowStyle } = await createPopoverRoot({
   id: CONTROLLER_ROOT_ID,
 })
 
-injectFonts(shadowContainer)
+// Chromium doesn't activate @font-face from stylesheets inside a shadow DOM.
+// Register at the host document scope; shadow trees inherit document fonts.
+injectFonts(document.head)
 
 // try to get the html font size for rem unit
 // if it fails, use 16 as default
