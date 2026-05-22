@@ -133,7 +133,10 @@ function getNested(
   return cursor
 }
 
-function configureChromePreferences(extensionId: string): void {
+function configureChromePreferences(
+  extensionId: string,
+  stalePredictedId?: string
+): void {
   const defaultDir = path.join(USER_DATA_DIR, 'Default')
   fs.mkdirSync(defaultDir, { recursive: true })
   const prefsPath = path.join(defaultDir, 'Preferences')
@@ -143,10 +146,14 @@ function configureChromePreferences(extensionId: string): void {
 
   const pinned = getNested(prefs, ['extensions', 'pinned_extensions'])
   const pinnedArr = Array.isArray(pinned) ? (pinned as string[]) : []
-  if (!pinnedArr.includes(extensionId)) {
-    pinnedArr.push(extensionId)
+  const cleaned =
+    stalePredictedId !== undefined && stalePredictedId !== extensionId
+      ? pinnedArr.filter((id) => id !== stalePredictedId)
+      : pinnedArr
+  if (!cleaned.includes(extensionId)) {
+    cleaned.push(extensionId)
   }
-  setNested(prefs, ['extensions', 'pinned_extensions'], pinnedArr)
+  setNested(prefs, ['extensions', 'pinned_extensions'], cleaned)
 
   fs.writeFileSync(prefsPath, JSON.stringify(prefs))
 }
@@ -240,7 +247,7 @@ async function openBrowser(
     console.warn(
       `Extension ID mismatch — predicted ${expectedExtensionId}, got ${extensionId}. Repinning on next launch...`
     )
-    configureChromePreferences(extensionId)
+    configureChromePreferences(extensionId, expectedExtensionId)
   }
 
   await enableExtensionDeveloperMode(context)

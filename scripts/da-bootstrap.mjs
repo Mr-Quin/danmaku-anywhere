@@ -77,16 +77,20 @@ if (!type || !VALID_TYPES.has(type)) {
   die(`missing or invalid --type (one of: ${[...VALID_TYPES].join(', ')})`)
 }
 
-const repoRoot = execSync('git rev-parse --show-toplevel', {
-  encoding: 'utf8',
-}).trim()
-process.chdir(repoRoot)
+// Locate the *main* worktree, not the current one — if we run from a linked
+// worktree, --show-toplevel would point at that worktree and new worktrees
+// would land scattered next to it. --git-common-dir returns the shared .git
+// directory; its parent is the main worktree.
+const gitCommonDir = path.resolve(
+  execSync('git rev-parse --git-common-dir', { encoding: 'utf8' }).trim()
+)
+const mainRepoRoot = path.dirname(gitCommonDir)
+process.chdir(mainRepoRoot)
 
 const branch = `${task}_${hint.replace(/-/g, '_')}`
-const worktreeDir = path.resolve(
-  repoRoot,
-  '..',
-  `danmaku-anywhere-${task}-${hint}`
+const worktreeDir = path.join(
+  path.dirname(mainRepoRoot),
+  `${path.basename(mainRepoRoot)}-${task}-${hint}`
 )
 
 if (fs.existsSync(worktreeDir)) {
@@ -101,7 +105,7 @@ run('git', ['worktree', 'add', worktreeDir, '-b', branch, 'origin/master'])
 
 step('copying env files')
 for (const rel of ENV_FILES) {
-  const src = path.join(repoRoot, rel)
+  const src = path.join(mainRepoRoot, rel)
   if (fs.existsSync(src)) {
     const dst = path.join(worktreeDir, rel)
     fs.mkdirSync(path.dirname(dst), { recursive: true })
@@ -141,28 +145,36 @@ Steps 1–2 are already complete.
 `
 )
 
-const wtArgs = [
-  '-w',
-  '0',
-  'new-tab',
-  '--title',
-  `${task}: ${hint}`,
-  '-d',
-  worktreeDir,
-  '--',
-  'powershell',
-  '-NoExit',
-  '-Command',
-  `claude --permission-mode acceptEdits --add-dir . "Read ${taskFile} and follow the instructions"`,
-]
+const claudeCmd = `claude --permission-mode acceptEdits --add-dir . "Read ${taskFile} and follow the instructions"`
 
 console.log()
-console.log(`✓ Worktree ready: ${worktreeDir}`)
-console.log(`✓ Branch:        ${branch}`)
+console.log(`✓ Worktree:   ${worktreeDir}`)
+console.log(`✓ Branch:     ${branch}`)
+console.log(`✓ Task notes: ${taskFile}`)
 console.log()
-console.log('Open a new Claude session in the worktree with:')
+console.log('Open a new Claude session in the worktree:')
 console.log()
-console.log(
-  '  wt ' + wtArgs.map((a) => (a.includes(' ') ? `'${a}'` : a)).join(' ')
-)
+console.log(`  cd "${worktreeDir}"`)
+console.log(`  ${claudeCmd}`)
 console.log()
+
+if (process.platform === 'win32') {
+  const wtArgs = [
+    'new-tab',
+    '--title',
+    `${task}: ${hint}`,
+    '-d',
+    worktreeDir,
+    '--',
+    'powershell',
+    '-NoExit',
+    '-Command',
+    claudeCmd,
+  ]
+  console.log('Windows Terminal one-liner:')
+  console.log()
+  console.log(
+    '  wt ' + wtArgs.map((a) => (a.includes(' ') ? `'${a}'` : a)).join(' ')
+  )
+  console.log()
+}

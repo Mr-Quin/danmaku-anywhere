@@ -58,10 +58,10 @@ Run e2e (`pnpm --filter @mr-quin/danmaku-anywhere test:e2e`) only when changes t
 For extension changes, launch the human's dev browser with HMR at the start of implementation:
 
 ```bash
-wt -w 0 new-tab --title 'DA-XXX: dev browser' -d '<worktree-path>/packages/danmaku-anywhere' -- powershell -NoExit -Command "pnpm dev:browser"
+cd <worktree-path>/packages/danmaku-anywhere && pnpm dev:browser
 ```
 
-It opens Chromium with developer mode on and the extension pre-pinned. The bottom-left of the popup and the floating panel both carry a coloured `DEV`/`PREVIEW` chip and a branch-name chip — useful to tell worktrees apart at a glance.
+Run it in a new terminal so the Vite server keeps streaming. It opens Chromium with developer mode on and the extension pre-pinned. In non-prod builds the popup and floating panel display the current env + branch so multi-worktree sessions are unambiguous.
 
 Skip for trivial changes (config-only, types, docs).
 

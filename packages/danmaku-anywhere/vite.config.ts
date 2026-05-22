@@ -70,7 +70,9 @@ export default defineConfig({
     'import.meta.env.VITE_DEV_SERVER_URL': JSON.stringify(
       `http://localhost:${port}`
     ),
-    'import.meta.env.VITE_DA_BRANCH': JSON.stringify(gitBranch),
+    'import.meta.env.VITE_DA_BRANCH': JSON.stringify(
+      daEnv === 'prod' ? '' : gitBranch
+    ),
   },
   build: {
     emptyOutDir: true,

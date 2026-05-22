@@ -19,11 +19,12 @@ git worktree list
 
 3. **Check each task's status** in ClickUp via `clickup_get_task`. If the task status is "complete" or "closed", the worktree is eligible for cleanup.
 
-4. **For each completed task**, remove the worktree and local branch:
+4. **For each completed task**, remove the worktree, the local branch, and the task notes file:
 
 ```bash
-git worktree remove ../danmaku-anywhere-DA-XXX
-git branch -d DA-XXX_description
+git worktree remove <worktree-path>
+git branch -d DA-XXX_<hint>
+rm -f ~/.claude/da-tasks/DA-XXX.md
 ```
 
 Remote branches are auto-deleted by GitHub's "delete branch after merge" setting.

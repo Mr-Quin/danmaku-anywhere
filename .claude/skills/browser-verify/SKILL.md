@@ -77,6 +77,18 @@ Same MCP browser, fresh artifact. For shadow-root introspection use `VITE_DA_ENV
 | Console errors | `list_console_messages({ types: ['error', 'warn'] })` |
 | Network requests | `list_network_requests({ resourceTypes: [...] })` |
 
+## 4. Tear down when done
+
+Always close the MCP browser at the end of a verification pass — otherwise a Chromium instance lingers, holding the Vite HMR socket and a `dev/chrome` filesystem lock until the Claude session exits.
+
+```
+uninstall_extension(<id>)
+list_pages()  // close any chrome-extension://<id>/... tabs left open
+close_page(...)  // for each non-blank page
+```
+
+When switching dev → build verify, also close any open `chrome-extension://<dev id>/...` tabs *before* the uninstall — those navigations become dead URLs once the extension is gone.
+
 ---
 
 ## Notes (read when relevant)
