@@ -1,11 +1,11 @@
 ---
 name: browser-verify
-description: Use when an extension change needs agentic verification in a real browser — content scripts, popup UI, network calls, fonts, console errors. Complements (does not replace) human eyeball verification via `pnpm dev:browser`.
+description: Use when an extension change needs agentic verification in a real browser — content scripts, popup UI, network calls, fonts, console errors. Spawns the agent's own Chrome via the chrome-devtools-ext MCP. Complements (does not replace) human-eye verification via `pnpm dev:browser`.
 ---
 
 # browser-verify — agentic browser verification
 
-Drives Chrome via the `chrome-devtools-ext` MCP. Faster than Playwright e2e, gives the agent a real navigate → inspect → adjust loop. **Not a substitute for `pnpm dev:browser`** — that one is for human eyes. This one is for the agent to self-check changes without bothering the human.
+The agent gets its **own** Chrome (spawned by the MCP, isolated profile) so it can navigate, inspect, screenshot, and reload without interfering with the human's `dev:browser` session. Both browsers load from the **same** `packages/danmaku-anywhere/dev/chrome/` build dir, so Vite's HMR feeds both at once.
 
 ## 0. Setup check
 
@@ -24,41 +24,48 @@ If `claude mcp add` errors on the flag, paste under `mcpServers` in `~/.claude.j
 }
 ```
 
-Then `/mcp reload` (or restart Claude). Wait for the user to confirm before continuing.
+Then `/mcp reload` (or restart Claude). Wait for confirmation before continuing.
 
-## 1. Choose the build to verify
+## 1. Dev loop (default during implementation)
 
-| Goal | Build |
-|---|---|
-| Quick iteration during implementation | `dev/chrome` (already populated by `pnpm dev:browser`) |
-| Final verification before committing | `build/` from a fresh `pnpm build` |
-| Anything needing shadow-root access | `VITE_DA_ENV=e2e pnpm build` (controller's shadow opens) |
+Prereq: `pnpm dev:browser` is running. Vite is writing to `packages/danmaku-anywhere/dev/chrome/`.
+
+```
+install_extension(<absolute path to packages/danmaku-anywhere/dev/chrome>)
+navigate_page(<test URL>)
+```
+
+The agent's Chrome now runs the same source the human is looking at. When code changes, Vite rewrites the bundle and both browsers pick it up. If the SW gets stale (manifest change, major refactor, lost message channel) call `reload_extension(<id>)` to nudge it.
+
+If the controller needs a mount profile to activate, seed before navigating — `self.__da` is only present in `VITE_DA_ENV=e2e` builds, so write to `chrome.storage` directly via `evaluate_script` (pass `serviceWorkerId` to run in the SW):
+
+```js
+await chrome.storage.local.set({
+  xpathPolicy: { data: [INTEGRATION], version: LATEST_INTEGRATION_POLICY_VERSION },
+})
+await chrome.storage.sync.set({
+  mountConfig: { data: [CONFIG], version: LATEST_MOUNT_CONFIG_VERSION },
+})
+```
+
+Poll `chrome.scripting.getRegisteredContentScripts` before navigating to confirm registration.
+
+## 2. Build verify (final pass before /review)
+
+For runtime behavior that depends on prod-mode behavior (minified bundle, prod-only paths, no HMR client):
 
 ```bash
 cd packages/danmaku-anywhere && pnpm build
 ```
 
-## 2. Install + navigate
+Then:
 
 ```
-mcp__chrome-devtools-ext__install_extension(<absolute path to build dir>)
-mcp__chrome-devtools-ext__navigate_page(<test URL>)
+uninstall_extension(<dev id>)
+install_extension(<absolute path to packages/danmaku-anywhere/build>)
 ```
 
-If the controller needs a mount profile to activate, seed before navigating:
-
-```js
-mcp__chrome-devtools-ext__evaluate_script(`
-  await chrome.storage.local.set({
-    xpathPolicy: { data: [INTEGRATION], version: LATEST_INTEGRATION_POLICY_VERSION },
-  })
-  await chrome.storage.sync.set({
-    mountConfig: { data: [CONFIG], version: LATEST_MOUNT_CONFIG_VERSION },
-  })
-`)
-```
-
-The dev-API hatch `self.__da` is only present in `VITE_DA_ENV=e2e` builds — for prod/dev builds, write to `chrome.storage` directly as above. Poll `chrome.scripting.getRegisteredContentScripts` before navigating to confirm the script registered.
+Same MCP browser, fresh artifact. For shadow-root introspection use `VITE_DA_ENV=e2e pnpm build` — the controller's shadow root opens in e2e builds only.
 
 ## 3. Inspect
 
@@ -67,30 +74,16 @@ The dev-API hatch `self.__da` is only present in `VITE_DA_ENV=e2e` builds — fo
 | Visual confirm | `take_screenshot({ filePath })` |
 | DOM / a11y tree | `take_snapshot()` |
 | Run JS in page or SW | `evaluate_script({ ..., serviceWorkerId })` |
-| Console errors (CORS, CSP, MV3) | `list_console_messages({ types: ['error', 'warn'] })` |
-| Network (fonts, fetches, status) | `list_network_requests({ resourceTypes: [...] })` |
-
-## 4. After HMR / rebuild
-
-`dev/chrome` bakes the Vite port in at build time. If `dev:browser` restarted with a new port, the extension in the MCP browser is stale:
-
-```
-mcp__chrome-devtools-ext__uninstall_extension(<id>)
-mcp__chrome-devtools-ext__install_extension(<path>)
-```
-
-For a fresh `pnpm build`, `reload_extension(<id>)` is enough.
+| Console errors | `list_console_messages({ types: ['error', 'warn'] })` |
+| Network requests | `list_network_requests({ resourceTypes: [...] })` |
 
 ---
 
-## Notes (only read when relevant)
+## Notes (read when relevant)
 
-### Shadow DOM access
+### Shadow DOM access on prod/dev builds
 
-The controller's shadow root is `open` only in `VITE_DA_ENV=e2e` builds; prod and dev use `closed`. To inspect a closed shadow root:
-
-- Build with `VITE_DA_ENV=e2e pnpm build`, OR
-- Use CDP `Runtime.evaluate` via `evaluate_script` — the page's V8 context can reach a closed `shadowRoot` reference directly:
+The controller's shadow root is `closed` outside `VITE_DA_ENV=e2e`. To inspect a closed shadow root, use `evaluate_script` — the page's V8 context can dereference the shadowRoot directly:
 
 ```js
 document.getElementById('danmaku-anywhere-controller').shadowRoot.querySelector('...')
@@ -98,17 +91,16 @@ document.getElementById('danmaku-anywhere-controller').shadowRoot.querySelector(
 
 ### Ground-truth font verification
 
-`document.fonts.load(...)` only proves the woff2 reached the FontFaceSet, not that the browser painted with it. For "what font actually rendered," use CDP `CSS.getPlatformFontsForNode` (same source as DevTools' "Rendered Fonts" panel):
+`document.fonts.load(...)` only proves the font reached the FontFaceSet, not that the browser actually painted with it. For what *rendered*, use CDP `CSS.getPlatformFontsForNode` (same source as DevTools' "Rendered Fonts" panel) via `evaluate_script`:
 
 ```js
 const cdp = await page.context().newCDPSession(page)
 await cdp.send('DOM.enable')
 await cdp.send('CSS.enable')
-await cdp.send('DOM.getDocument', { depth: -1, pierce: true })
-const { result } = await cdp.send('Runtime.evaluate', { expression: '/* css selector */' })
+const { result } = await cdp.send('Runtime.evaluate', { expression: '/* selector */' })
 const { nodeId } = await cdp.send('DOM.requestNode', { objectId: result.objectId })
 const { fonts } = await cdp.send('CSS.getPlatformFontsForNode', { nodeId })
 // fonts: Array<{ familyName, glyphCount, isCustomFont }>
 ```
 
-The target element must have a layout box — push off-screen with `position:fixed; top:-9999px;` instead of `visibility:hidden`.
+The target element needs a layout box — push off-screen with `position:fixed; top:-9999px;` rather than `visibility:hidden`.

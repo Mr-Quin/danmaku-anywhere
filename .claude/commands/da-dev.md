@@ -17,71 +17,23 @@ Look up ClickUp workspace IDs (list ID, Type field ID, option IDs) from memory; 
 
 Explore for an existing match: `clickup_search` with nouns from the request, scoped to the Extension Tasks list. Scan recent activity if the search is too narrow. Multiple plausible hits → list and ask. None → create one and pick the Type based on the scope of the change. Grab the custom ID (`DA-XXX`).
 
-### 2. Branch
+### 2. Branch & worktree
 
-Pick a `hint` — 2-4 kebab-case words describing the task (e.g. `dev-workflow`, `bilibili-cookie-fix`, `theme-redesign`). The same hint goes in both the branch name and the worktree directory so concurrent worktrees are recognisable at a glance — both in `git worktree list` and on disk.
-
-```bash
-git fetch origin master
-# For features/fixes — use a worktree:
-git worktree add ../danmaku-anywhere-DA-XXX-<hint> -b DA-XXX_<hint> origin/master
-# For trivial changes — branch directly:
-git checkout -b DA-XXX_<hint> origin/master
-```
-
-The `hint` is underscore-separated inside the branch (`DA-524_dev_workflow`) and dash-separated inside the worktree dir (`danmaku-anywhere-DA-524-dev-workflow`). When `pnpm dev:browser` is running, the extension UI surfaces the branch name so you can tell which worktree's build is loaded.
-
-Reuse an existing worktree if its previous work is already done.
-
-### 2a. Worktree Setup
-
-After creating a worktree, perform these setup steps:
-
-**Copy environment files** — gitignored files are not shared between worktrees:
+Pick a `hint` — 2-4 kebab-case words describing the task (e.g. `dev-workflow`, `bilibili-cookie-fix`, `theme-redesign`). For features/fixes, run:
 
 ```bash
-for f in packages/danmaku-anywhere/.env packages/danmaku-anywhere/.env.local; do
-  if [ -f "$f" ]; then
-    cp "$f" "../danmaku-anywhere-DA-XXX-<hint>/$f"
-  fi
-done
+node scripts/da-bootstrap.mjs --task DA-XXX --hint <hint> --type <extension|app|proxy|chore|docs>
 ```
 
-**Install dependencies** — `node_modules/` is not shared between worktrees, so type-check/lint/tests will fail until deps are installed. Build packages too so downstream type-checks can find `dist/`:
+That handles `git fetch`, `git worktree add`, env copy, `pnpm install`, `pnpm build:packages`, and writes `.claude-task.md`. It prints the `wt new-tab` invocation for a fresh Claude session — run it, then **stop here**. The new session handles steps 3–7.
+
+For trivial changes (CLAUDE.md / docs / config-only): branch directly without a worktree:
 
 ```bash
-cd ../danmaku-anywhere-DA-XXX-<hint> && pnpm install && pnpm build:packages
+git fetch origin master && git checkout -b DA-XXX_<hint> origin/master
 ```
 
-**Register worktree for permissions** — add the worktree root path to `additionalDirectories` in the user's Claude Code settings (use the `update-config` skill) so the new session has file access without re-prompting.
-
-### 2b. Worktree Handoff
-
-**If a worktree was created**, hand off to a new Claude session running in it:
-
-1. Write `.claude-task.md` in the worktree root with the task context:
-
-```markdown
-# Task: <task description>
-- **ClickUp ID**: DA-XXX
-- **Type**: <extension|app|proxy|chore|docs>
-- **Branch**: DA-XXX_<hint>
-
-## Instructions
-Execute the da-dev workflow starting from step 3 (Implement).
-Read `.claude/commands/da-dev.md` for the full workflow.
-Steps 1–2 are already complete.
-```
-
-2. Open Claude in a new tab:
-
-```bash
-wt -w 0 new-tab --title 'DA-XXX: <short description>' -d '<worktree-path>' -- powershell -NoExit -Command "claude --permission-mode acceptEdits 'Read .claude-task.md and follow the instructions'"
-```
-
-3. **Stop here.** The current session is done. The new Claude session handles steps 3–8.
-
-**If no worktree** (trivial change on a local branch), continue with steps 3–8 below.
+Reuse an existing worktree if its previous work is done.
 
 ### 3. Implement
 
@@ -101,27 +53,27 @@ Make the changes. Follow CLAUDE.md conventions.
 
 Run e2e (`pnpm --filter @mr-quin/danmaku-anywhere test:e2e`) only when changes touch content scripts, mount profiles, integration policies, dango manifests, or popup flows covered by an existing spec — it's slow and opt-in.
 
-#### Extension: open dev browser
+#### Extension: open dev browser (for the human)
 
-For extension changes, launch a dev browser with HMR **at the start of implementation**. Always run `pnpm install` first — fresh worktrees have no `node_modules`, and stale worktrees may be out of date with the lockfile:
+For extension changes, launch the human's dev browser with HMR at the start of implementation:
 
 ```bash
-wt -w 0 new-tab --title 'DA-XXX: dev browser' -d '<worktree-path>/packages/danmaku-anywhere' -- powershell -NoExit -Command "pnpm install; pnpm dev:browser"
+wt -w 0 new-tab --title 'DA-XXX: dev browser' -d '<worktree-path>/packages/danmaku-anywhere' -- powershell -NoExit -Command "pnpm dev:browser"
 ```
 
-`dev:browser` launches Chromium with developer mode enabled and the extension pre-pinned to the toolbar. The bottom-left of the popup and the floating panel both carry a coloured `DEV`/`PREVIEW` chip and a branch-name chip — handy for telling worktrees apart at a glance.
+It opens Chromium with developer mode on and the extension pre-pinned. The bottom-left of the popup and the floating panel both carry a coloured `DEV`/`PREVIEW` chip and a branch-name chip — useful to tell worktrees apart at a glance.
 
-Human verifies behavior live. Skip for trivial changes (config-only, types, docs).
+Skip for trivial changes (config-only, types, docs).
 
-#### Extension: agentic verification
+#### Extension: agentic verification (for the agent)
 
-For substantive UI / runtime changes, also self-verify via the `browser-verify` skill before alerting the human — drives a separate MCP-controlled Chrome to install the build, navigate, screenshot, and inspect. Workflow:
+While `dev:browser` is running, agentic self-verification goes through the `browser-verify` skill — it drives its own MCP-controlled Chrome that loads the same `dev/chrome/` build, so HMR feeds both browsers without the agent stealing the human's window:
 
 ```
 Skill(browser-verify)
 ```
 
-Skip when the change is non-visual (types, docs, config, internal refactors).
+Use for substantive UI / runtime changes. Skip when the change is non-visual.
 
 #### Extension: i18n extraction
 
@@ -179,12 +131,10 @@ EOF
 **Each iteration reports status:**
 
 ```bash
-gh api repos/Mr-Quin/danmaku-anywhere/pulls/N/reviews --jq '[.[] | {author: .user.login, state: .state}]'
-gh api repos/Mr-Quin/danmaku-anywhere/issues/N/reactions --jq '[.[] | {user: .user.login, reaction: .content}]'
-gh api repos/Mr-Quin/danmaku-anywhere/pulls/N --jq '{requested_reviewers: [.requested_reviewers[]? | .login]}'
-gh api repos/Mr-Quin/danmaku-anywhere/pulls/N/comments
-gh pr checks N
+scripts/pr-status.sh <N>
 ```
+
+One GraphQL call returns reviews, pending reviewers, open threads, reactions, and check states.
 
 **When review comments are found:**
 
