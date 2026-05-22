@@ -1,4 +1,4 @@
-import { InfoOutline } from '@mui/icons-material'
+import { InfoOutlined } from '@mui/icons-material'
 import { styled, Tooltip } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { docsLink } from '../utils/utils'
@@ -26,7 +26,7 @@ export const DocIcon = ({ path, label }: DocIconProps) => {
         rel="noopener noreferrer"
         title={label}
       >
-        <InfoOutline fontSize="small" />
+        <InfoOutlined fontSize="small" />
       </StyledAnchor>
     </Tooltip>
   )

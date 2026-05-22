@@ -1,5 +1,5 @@
 import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
-import { ChatBubbleOutline, InsertDriveFile } from '@mui/icons-material'
+import { ChatBubbleOutlined, InsertDriveFile } from '@mui/icons-material'
 import { Stack, styled, Typography } from '@mui/material'
 import type { ReactElement } from 'react'
 import { isNotCustom } from '@/common/danmaku/utils'
@@ -9,7 +9,7 @@ interface EpisodeTreeItemProps {
   label: string
 }
 
-const CommentCountIcon = styled(ChatBubbleOutline)(({ theme }) => {
+const CommentCountIcon = styled(ChatBubbleOutlined)(({ theme }) => {
   return {
     fontSize: theme.typography.caption.fontSize,
     fill: theme.palette.text.secondary,

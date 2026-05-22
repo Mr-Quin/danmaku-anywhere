@@ -106,9 +106,11 @@ export const Toast = (props: ToastProps) => {
             if (reason === 'clickaway' && props.disableCloseOnClickAway) return
             close(key)
           }}
-          TransitionProps={{
-            onExited: () => {
-              dequeue(key)
+          slotProps={{
+            transition: {
+              onExited: () => {
+                dequeue(key)
+              },
             },
           }}
           disableWindowBlurListener

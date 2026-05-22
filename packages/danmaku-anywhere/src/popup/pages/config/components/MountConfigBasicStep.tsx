@@ -1,7 +1,7 @@
 import {
-  AddCircleOutline,
+  AddCircleOutlined,
   ExpandMore,
-  RemoveCircleOutline,
+  RemoveCircleOutlined,
 } from '@mui/icons-material'
 import {
   AccordionDetails,
@@ -109,7 +109,7 @@ export const MountConfigBasicStep = ({
           {arr.length > 1 ? (
             <Box>
               <IconButton onClick={() => removePatternField(index)}>
-                <RemoveCircleOutline />
+                <RemoveCircleOutlined />
               </IconButton>
             </Box>
           ) : (
@@ -119,7 +119,7 @@ export const MountConfigBasicStep = ({
       ))}
       <Button
         onClick={addPatternField}
-        startIcon={<AddCircleOutline />}
+        startIcon={<AddCircleOutlined />}
         size="small"
       >
         {t('configPage.editor.addPattern', 'Add Pattern')}

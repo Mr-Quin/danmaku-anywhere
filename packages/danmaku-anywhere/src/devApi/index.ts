@@ -57,8 +57,6 @@ export interface DaApi {
 }
 
 declare global {
-  // biome-ignore lint/correctness/noUnusedVariables: ambient global
-  // biome-ignore lint/style/useConst: var required for ambient declaration
   var __da: DaApi
 }
 

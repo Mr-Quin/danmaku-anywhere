@@ -24,7 +24,7 @@ export const QuickCheckbox = <T extends FieldValues>({
           render={({ field: { value, ref, ...field } }) => (
             <Checkbox
               {...field}
-              inputRef={ref}
+              ref={ref}
               checked={value}
               color="primary"
               size="small"

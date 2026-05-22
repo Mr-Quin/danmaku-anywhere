@@ -376,29 +376,44 @@ function buildSakuraComponents(
 
     MuiAlert: {
       styleOverrides: {
-        root: { borderRadius: 8, padding: '6px 10px', fontSize: pxToRem(13) },
-        standardSuccess: ({ theme }) => ({
-          backgroundColor: theme.palette.success.light,
-          color: theme.palette.severityInk.success,
-        }),
-        standardInfo: ({ theme }) => ({
-          backgroundColor: theme.palette.info.light,
-          color: theme.palette.severityInk.info,
-        }),
-        standardWarning: ({ theme }) => ({
-          backgroundColor: theme.palette.warning.light,
-          color: theme.palette.severityInk.warning,
-        }),
-        standardError: ({ theme }) => ({
-          backgroundColor: theme.palette.error.light,
-          color: theme.palette.severityInk.error,
-        }),
-        icon: ({ ownerState, theme }) => {
+        root: ({ ownerState, theme }: { ownerState: any; theme: any }) => {
+          const severity = ownerState.severity || 'error'
+          const severityColors: Record<string, any> = {
+            success: {
+              backgroundColor: theme.palette.success.light,
+              color:
+                theme.palette.severityInk?.success ||
+                theme.palette.success.dark,
+            },
+            info: {
+              backgroundColor: theme.palette.info.light,
+              color: theme.palette.severityInk?.info || theme.palette.info.dark,
+            },
+            warning: {
+              backgroundColor: theme.palette.warning.light,
+              color:
+                theme.palette.severityInk?.warning ||
+                theme.palette.warning.dark,
+            },
+            error: {
+              backgroundColor: theme.palette.error.light,
+              color:
+                theme.palette.severityInk?.error || theme.palette.error.dark,
+            },
+          }
+          return {
+            borderRadius: 8,
+            padding: '6px 10px',
+            fontSize: pxToRem(13),
+            ...(severityColors[severity] || {}),
+          }
+        },
+        icon: ({ ownerState, theme }: { ownerState: any; theme: any }) => {
           const sev = ownerState.severity
           if (!sev) {
             return {}
           }
-          return { color: theme.palette.severityInk[sev] }
+          return { color: theme.palette.severityInk?.[sev] || 'currentColor' }
         },
       },
     },

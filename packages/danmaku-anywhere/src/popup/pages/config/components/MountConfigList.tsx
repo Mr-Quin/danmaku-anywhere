@@ -1,4 +1,4 @@
-import { Delete, ErrorOutline, Share } from '@mui/icons-material'
+import { Delete, ErrorOutlined, Share } from '@mui/icons-material'
 import { Chip } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
@@ -43,7 +43,7 @@ const ConfigBadge = ({ config }: { config: MountConfig }) => {
             )}
             color="warning"
             variant="filled"
-            icon={<ErrorOutline />}
+            icon={<ErrorOutlined />}
           />
         )
       }
@@ -151,7 +151,7 @@ export const MountConfigList = ({ onEdit, onAdd }: MountConfigListProps) => {
           <>
             <ConfigToggleSwitch config={config} />
             <DrilldownMenu
-              BoxProps={{ display: 'inline' }}
+              BoxProps={{ sx: { display: 'inline' } }}
               ButtonProps={{ edge: 'end', size: 'small' }}
               dense
               items={menuItems}

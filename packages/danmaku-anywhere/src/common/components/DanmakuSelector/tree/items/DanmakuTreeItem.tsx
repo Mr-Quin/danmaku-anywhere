@@ -167,6 +167,7 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
         data-testid={`tree-item-${itemId}`}
       >
         <StyledTreeContent
+          status={status}
           {...getContentProps({
             ...bindLongPress(),
             onClick: handleContentClick,

@@ -39,9 +39,9 @@ export const LabeledSwitch = ({
             {
               fontWeight: 600,
             },
-            ...(Array.isArray(typographyProps.sx)
+            ...(Array.isArray(typographyProps?.sx)
               ? typographyProps.sx
-              : [typographyProps.sx]),
+              : [typographyProps?.sx]),
           ]}
         >
           {label}

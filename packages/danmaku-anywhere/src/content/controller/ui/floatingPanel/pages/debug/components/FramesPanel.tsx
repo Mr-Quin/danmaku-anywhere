@@ -3,7 +3,7 @@ import {
   Extension as ExtensionIcon,
   KeyboardArrowDown,
   KeyboardArrowRight,
-  PlayCircleOutline as PlayIcon,
+  PlayCircleOutlined as PlayIcon,
   Videocam as VideocamIcon,
 } from '@mui/icons-material'
 import {

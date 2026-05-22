@@ -52,7 +52,7 @@ export const IntegrationPolicyList = ({
             secondaryAction={
               <>
                 <DrilldownMenu
-                  BoxProps={{ display: 'inline' }}
+                  BoxProps={{ sx: { display: 'inline' } }}
                   ButtonProps={{ edge: 'end' }}
                 >
                   <MenuItem onClick={() => handleDelete(policy)}>

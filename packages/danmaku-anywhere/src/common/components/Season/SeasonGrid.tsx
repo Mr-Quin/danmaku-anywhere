@@ -162,13 +162,17 @@ export const SeasonGrid = ({
 
   return (
     <ScrollBox
-      height="100%"
-      overflow="auto"
-      position="relative"
+      sx={{
+        height: '100%',
+        overflow: 'auto',
+        position: 'relative',
+      }}
       ref={mergedRefs}
       {...boxProps}
     >
-      <SeasonGridLayout height={virtualizer.getTotalSize()} position="relative">
+      <SeasonGridLayout
+        sx={{ height: virtualizer.getTotalSize(), position: 'relative' }}
+      >
         {virtualizer.getVirtualItems().map((virtualItem) => {
           const season = data[virtualItem.index]
           return (
