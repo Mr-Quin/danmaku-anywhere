@@ -20,6 +20,7 @@ import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { OmitSeasonId } from './IDanmakuProvider'
+import { ManifestRegistry } from './ManifestRegistry'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
@@ -48,6 +49,8 @@ export class ProviderService {
     private providerConfigService: ProviderConfigService,
     @inject(DanmakuProviderFactory)
     private danmakuProviderFactory: IDanmakuProviderFactory,
+    @inject(ManifestRegistry)
+    private manifestRegistry: ManifestRegistry,
     @inject(LoggerSymbol) logger: ILogger
   ) {
     invariant(
@@ -233,5 +236,12 @@ export class ProviderService {
     }
 
     throw new Error('No provider found capable of parsing URL')
+  }
+
+  // Probe whether the user's stored cookies grant a valid session at the
+  // source. Output shape is manifest-defined; the caller (popup hook /
+  // RpcManager) inspects it per source.
+  async probeLogin<T = unknown>(manifestId: string): Promise<T | null> {
+    return this.manifestRegistry.getRunner(manifestId).runLoginProbe<T>()
   }
 }
