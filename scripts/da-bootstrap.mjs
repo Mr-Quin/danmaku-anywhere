@@ -9,7 +9,7 @@
 //   2. git worktree add ../danmaku-anywhere-<task>-<hint> -b <task>_<hint> origin/master
 //   3. copy packages/danmaku-anywhere/.env{,.local} into the worktree
 //   4. pnpm install + pnpm build:packages inside the worktree
-//   5. write .claude-task.md at the worktree root with task/type/branch frontmatter
+//   5. write task notes to ~/.claude/da-tasks/<task>.md (centralized, not in repo)
 //   6. print the `wt new-tab` invocation for a fresh Claude session
 //
 // The ClickUp task itself is NOT created here — create it via the ClickUp MCP
@@ -17,6 +17,7 @@
 
 import { execSync, spawnSync } from 'node:child_process'
 import fs from 'node:fs'
+import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
 
@@ -121,14 +122,17 @@ run('pnpm', ['build:packages'], {
   shell: process.platform === 'win32',
 })
 
-step('writing .claude-task.md')
-const taskFile = path.join(worktreeDir, '.claude-task.md')
+const tasksDir = path.join(os.homedir(), '.claude', 'da-tasks')
+fs.mkdirSync(tasksDir, { recursive: true })
+const taskFile = path.join(tasksDir, `${task}.md`)
+step(`writing ${taskFile}`)
 fs.writeFileSync(
   taskFile,
   `---
 task: ${task}
 type: ${type}
 branch: ${branch}
+worktree: ${worktreeDir}
 ---
 
 Execute the da-dev workflow starting from step 3 (Implement).
@@ -149,7 +153,7 @@ const wtArgs = [
   'powershell',
   '-NoExit',
   '-Command',
-  'claude --permission-mode acceptEdits --add-dir . "Read .claude-task.md and follow the instructions"',
+  `claude --permission-mode acceptEdits --add-dir . "Read ${taskFile} and follow the instructions"`,
 ]
 
 console.log()

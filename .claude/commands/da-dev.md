@@ -25,7 +25,7 @@ Pick a `hint` — 2-4 kebab-case words describing the task (e.g. `dev-workflow`,
 node scripts/da-bootstrap.mjs --task DA-XXX --hint <hint> --type <extension|app|proxy|chore|docs>
 ```
 
-That handles `git fetch`, `git worktree add`, env copy, `pnpm install`, `pnpm build:packages`, and writes `.claude-task.md`. It prints the `wt new-tab` invocation for a fresh Claude session — run it, then **stop here**. The new session handles steps 3–7.
+That handles `git fetch`, `git worktree add`, env copy, `pnpm install`, `pnpm build:packages`, and writes task notes to `~/.claude/da-tasks/DA-XXX.md` (outside the repo, survives `/da-cleanup`). It prints the `wt new-tab` invocation for a fresh Claude session — run it, then **stop here**. The new session handles steps 3–7.
 
 For trivial changes (CLAUDE.md / docs / config-only): branch directly without a worktree:
 
@@ -166,5 +166,5 @@ After the PR is merged, run `/da-cleanup` to remove completed worktrees. This al
 
 - **Lint / type-check fails mid-way:** fix and commit on top. Don't amend.
 - **i18n keys touched but extraction not run:** `cd packages/danmaku-anywhere && pnpm i18n extract`, then stage the regenerated JSON.
-- **New Claude tab closed:** the worktree is still valid. `cd <worktree> && claude --add-dir .` to resume; `.claude-task.md` carries state.
+- **New Claude tab closed:** the worktree is still valid. `cd <worktree> && claude --add-dir . "Read ~/.claude/da-tasks/DA-XXX.md and continue"` to resume.
 - **CI flake (unrelated failure):** retry the workflow once via `gh run rerun <id>`. If it fails again, comment on the PR and stop the loop.
