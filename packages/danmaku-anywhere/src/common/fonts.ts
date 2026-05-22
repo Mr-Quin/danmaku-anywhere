@@ -25,14 +25,20 @@ function toFontUrl(url: string): string {
   return chrome.runtime.getURL(url.slice(1))
 }
 
+const FONT_LINK_MARKER = 'data-da-font'
+
 export function injectFonts(target: ParentNode): void {
   // Fonts are non-essential — never let an unexpected DOM state crash
   // the popup bootstrap or the controller mount.
   try {
+    if (target.querySelector(`link[${FONT_LINK_MARKER}]`)) {
+      return
+    }
     for (const url of FONT_CSS_URLS) {
       const link = document.createElement('link')
       link.rel = 'stylesheet'
       link.href = toFontUrl(url)
+      link.setAttribute(FONT_LINK_MARKER, '')
       target.append(link)
     }
   } catch (error) {
