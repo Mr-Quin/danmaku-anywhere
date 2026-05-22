@@ -2,7 +2,8 @@ const fs = require('node:fs')
 const path = require('node:path')
 
 const MARKER = '<!-- danmaku-anywhere:e2e-comment -->'
-const ANSI_PATTERN = /\[[0-9;]*m/g
+// biome-ignore lint/suspicious/noControlCharactersInRegex: matches ANSI escape sequences in Playwright error output
+const ANSI_PATTERN = /\u001b\[[0-9;]*m/g
 
 function formatDuration(ms) {
   if (ms < 1000) {
