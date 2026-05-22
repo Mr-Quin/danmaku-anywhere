@@ -30,6 +30,8 @@ The `/loop` skill creates a session-only cron (`*/5 * * * *`) and runs the first
 
 ## 2. Per-iteration loop
 
+GraphQL snippets below use `<OWNER>/<REPO>` placeholders — resolve from `gh repo view --json owner,name -q '.owner.login + "/" + .name'` (or substitute literally from the current repo) before running.
+
 ### 2a. Fetch status
 
 ```bash
@@ -62,7 +64,7 @@ For replies, be brief and specific. Examples that read well:
 Then resolve via GraphQL:
 
 ```bash
-gh api graphql -f query='{ repository(owner: "Mr-Quin", name: "danmaku-anywhere") { pullRequest(number: N) { reviewThreads(first: 50) { nodes { id isResolved } } } } }'
+gh api graphql -f query='{ repository(owner: "<OWNER>", name: "<REPO>") { pullRequest(number: N) { reviewThreads(first: 50) { nodes { id isResolved } } } } }'
 gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREAD_ID"}) { thread { isResolved } } }'
 ```
 
@@ -107,7 +109,7 @@ Then send one message: PR URL, what was addressed, what was skipped (with one-li
 | Action | Command |
 |---|---|
 | One-shot status | `scripts/pr-status.sh <N>` |
-| List threads + IDs | `gh api graphql -f query='{ repository(owner: "Mr-Quin", name: "danmaku-anywhere") { pullRequest(number: N) { reviewThreads(first: 50) { nodes { id isResolved comments(first: 5) { nodes { author { login } body } } } } } } }'` |
+| List threads + IDs | `gh api graphql -f query='{ repository(owner: "<OWNER>", name: "<REPO>") { pullRequest(number: N) { reviewThreads(first: 50) { nodes { id isResolved comments(first: 5) { nodes { author { login } body } } } } } } }'` |
 | Reply on thread | `gh api graphql -f query='mutation { addPullRequestReviewThreadReply(input: {pullRequestReviewThreadId: "ID", body: "..."}) { comment { id } } }'` |
 | Resolve thread | `gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "ID"}) { thread { isResolved } } }'` |
 | Stop loop | `CronDelete <jobId>` |

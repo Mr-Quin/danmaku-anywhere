@@ -1,8 +1,8 @@
 const LONG_LIVED_LABEL = 'preview branch'
 const PREVIEW_LABEL = 'preview release'
 
-function sanitizeBranchSlug(ref) {
-  return String(ref)
+function sanitizeBranchSlug(branchRef) {
+  return String(branchRef)
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '')
