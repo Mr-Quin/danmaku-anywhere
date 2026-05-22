@@ -50,7 +50,11 @@ export const ProviderWarningIcon = ({
 
   return (
     <Tooltip title={getTooltipContent()} placement="top">
-      <Warning fontSize="small" color="warning" />
+      <Warning
+        fontSize="small"
+        color="warning"
+        data-testid={`provider-warning-${warningType}`}
+      />
     </Tooltip>
   )
 }
