@@ -9,7 +9,6 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { DDP_COMPAT_MANIFEST_ID } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
-import { BilibiliMapper } from './bilibili/BilibiliMapper'
 import { MacCmsProviderService } from './MacCmsProviderService'
 import { ManifestProviderService } from './ManifestProviderService'
 import { ManifestRegistry } from './ManifestRegistry'
@@ -69,7 +68,7 @@ const builtinDispatch: Record<string, BuiltinDispatch> = {
   },
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]]: {
     provider: DanmakuSourceType.Bilibili,
-    commentMapper: withMapper(BilibiliMapper.manifestSegmentsToComments),
+    commentMapper: identityCommentMapper,
     extraInputs: (config) => {
       const values = config.configValues as { danmakuFormat?: string }
       return { danmakuFormat: values.danmakuFormat }

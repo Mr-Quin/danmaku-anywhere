@@ -182,7 +182,7 @@ describe('builtin:bilibili manifest', () => {
     ])
   })
 
-  it('xml variant parses bilibili XML danmaku', async () => {
+  it('xml variant emits {p, m} CommentEntity rows with mode 2/3 collapsed to 1', async () => {
     const { fetcher, calls } = mockFetcher({
       'https://api.bilibili.com/x/v1/dm/list.so?oid=1300001': {
         body: XML_FIXTURE,
@@ -197,28 +197,13 @@ describe('builtin:bilibili manifest', () => {
       danmakuFormat: 'xml',
     })
 
+    // p is `${seconds},${mode},${color},${midHash}`; mode 2/3 collapse to 1
+    // because the danmaku engine only renders modes 1, 4, 5.
     expect(result).toEqual([
-      {
-        progress: 12340,
-        mode: 1,
-        color: 16777215,
-        midHash: 'abcd1234',
-        content: '第一条',
-      },
-      {
-        progress: 23450,
-        mode: 4,
-        color: 16711680,
-        midHash: 'efgh5678',
-        content: '底部弹幕',
-      },
-      {
-        progress: 34560,
-        mode: 5,
-        color: 255,
-        midHash: 'ijkl9012',
-        content: '顶部蓝色',
-      },
+      { p: '12.34,1,16777215,abcd1234', m: '第一条' },
+      { p: '23.45,4,16711680,efgh5678', m: '底部弹幕' },
+      { p: '34.56,5,255,ijkl9012', m: '顶部蓝色' },
+      { p: '45.67,1,16777215,mnop3456', m: '反向弹幕' },
     ])
     expect(calls).toHaveLength(1)
   })
@@ -266,29 +251,11 @@ describe('builtin:bilibili manifest', () => {
     const result = (await runner.runDanmaku({
       cid: 1300001,
       danmakuFormat: 'protobuf',
-    })) as Array<{
-      progress: number
-      mode: number
-      color: number
-      midHash: string
-      content: string
-    }>
+    })) as Array<{ p: string; m: string }>
 
     expect(result).toHaveLength(3)
-    expect(result[0]).toMatchObject({
-      progress: 12340,
-      mode: 1,
-      color: 16777215,
-      midHash: 'h1',
-      content: 'proto 1',
-    })
-    expect(result[2]).toMatchObject({
-      progress: 365000,
-      mode: 5,
-      color: 255,
-      midHash: 'h3',
-      content: 'proto 顶部',
-    })
+    expect(result[0]).toEqual({ p: '12.34,1,16777215,h1', m: 'proto 1' })
+    expect(result[2]).toEqual({ p: '365,5,255,h3', m: 'proto 顶部' })
     // segs 1,2 have content; 3,4,5 empty (3 in a row) → stop.
     expect(calls.length).toBe(5)
   })
@@ -336,10 +303,10 @@ describe('builtin:bilibili manifest', () => {
     const result = (await runner.runDanmaku({
       cid: 1300001,
       danmakuFormat: 'protobuf',
-    })) as Array<{ progress: number; content: string }>
+    })) as Array<{ p: string; m: string }>
 
     expect(result).toHaveLength(1)
-    expect(result[0]).toMatchObject({ progress: 1000, content: 'only one' })
+    expect(result[0]).toEqual({ p: '1,1,16777215,a', m: 'only one' })
   })
 
   it('protobuf variant survives a single transient empty mid-stream', async () => {
@@ -364,14 +331,14 @@ describe('builtin:bilibili manifest', () => {
     const result = (await runner.runDanmaku({
       cid: 1300001,
       danmakuFormat: 'protobuf',
-    })) as Array<{ progress: number; content: string }>
+    })) as Array<{ p: string; m: string }>
 
     expect(result).toHaveLength(3)
-    expect(result.map((r) => r.content)).toEqual(['a', 'b', 'c'])
+    expect(result.map((r) => r.m)).toEqual(['a', 'b', 'c'])
     expect(calls.length).toBe(7)
   })
 
-  it('protobuf variant emits raw decoded elems (mode mapping done by host)', async () => {
+  it('protobuf variant collapses mode 2 and 3 into mode 1 in p', async () => {
     const seg1 = encodeSegment([
       {
         progress: 10000,
@@ -402,9 +369,12 @@ describe('builtin:bilibili manifest', () => {
     const result = (await runner.runDanmaku({
       cid: 1300001,
       danmakuFormat: 'protobuf',
-    })) as Array<{ mode: number }>
+    })) as Array<{ p: string; m: string }>
 
-    expect(result.map((c) => c.mode)).toEqual([2, 3])
+    expect(result).toEqual([
+      { p: '10,1,16777215,a', m: 'mode 2' },
+      { p: '20,1,16777215,b', m: 'mode 3' },
+    ])
   })
 
   it('parseUrl resolves /bangumi/play/ss<id> via season_id query', async () => {
