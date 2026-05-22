@@ -91,6 +91,24 @@ describe('builtin:mango manifest', () => {
     ])
   })
 
+  it('returns no danmaku rows when getctlbarrage yields an empty cdn_list', async () => {
+    // Some Mango videos (older / unlicensed) have no danmaku CDN configured.
+    // The pipeline must short-circuit cleanly instead of fetching `https:////`.
+    const { fetcher } = mockFetcher({
+      'https://pcweb.api.mgtv.com/video/info': {
+        body: JSON.stringify({ data: { info: { time: '00:00:59' } } }),
+      },
+      'https://galaxy.bz.mgtv.com/getctlbarrage': {
+        body: JSON.stringify({ data: { cdn_list: '', cdn_version: '' } }),
+      },
+    })
+    const runner = new ManifestRunner(zManifest.parse(builtinMango), {
+      fetcher,
+    })
+    const result = await runner.runDanmaku({ cid: 'x', vid: 'y' })
+    expect(result).toEqual([])
+  })
+
   it('emits canonical danmaku rows in {p, m} shape', async () => {
     const cid = '444555'
     const vid = '666'

@@ -95,7 +95,7 @@
       {
         "type": "forEach",
         "id": "segments",
-        "in": "$range(0, $ceil(info.durationSec / 60))",
+        "in": "(ctl.cdn and ctl.version) ? $range(0, $ceil(info.durationSec / 60)) : []",
         "as": "i",
         "request": {
           "method": "GET",
