@@ -7,17 +7,15 @@ description: Use when implementing features, fixing bugs, or making any code/con
 
 Task: $ARGUMENTS
 
-Orchestrates: ClickUp task → branch → implement → verify → self-review → human gate → PR → review monitoring → human handoff.
+Orchestrates: ClickUp task → branch → implement → verify → self-review → PR → review monitoring → human handoff.
 
 ## Step Details
 
 ### 1. ClickUp Task
 
-Search the dev tasks list for an existing task matching the work. If none, create one.
+Look up ClickUp workspace IDs (list ID, Type field ID, option IDs) from memory; ask the user if absent.
 
-Look up ClickUp workspace IDs (list ID, Type field ID, option IDs) from memory. If not in memory, ask the user.
-
-Pick the Type based on the scope of the change. Get the custom ID (DA-XXX) from the created/found task.
+Explore for an existing match: `clickup_search` with nouns from the request, scoped to the Extension Tasks list. Scan recent activity if the search is too narrow. Multiple plausible hits → list and ask. None → create one and pick the Type based on the scope of the change. Grab the custom ID (`DA-XXX`).
 
 ### 2. Branch
 
@@ -31,7 +29,7 @@ git worktree add ../danmaku-anywhere-DA-XXX-<hint> -b DA-XXX_<hint> origin/maste
 git checkout -b DA-XXX_<hint> origin/master
 ```
 
-The `hint` underscore-separated inside the branch (`DA-524_dev_workflow`) and dash-separated inside the worktree dir (`danmaku-anywhere-DA-524-dev-workflow`) matches established convention. The dev mode watermark surfaces the branch name in the popup and content UI so you can tell which worktree's build is currently loaded.
+The `hint` is underscore-separated inside the branch (`DA-524_dev_workflow`) and dash-separated inside the worktree dir (`danmaku-anywhere-DA-524-dev-workflow`). When `pnpm dev:browser` is running, the extension UI surfaces the branch name so you can tell which worktree's build is loaded.
 
 Reuse an existing worktree if its previous work is already done.
 
@@ -91,15 +89,17 @@ Make the changes. Follow CLAUDE.md conventions.
 
 ### 4. Verify
 
-Always run lint and type-check. For tests and build, follow the relevant area's process:
+`pnpm lint` already runs `tsc`, so it covers type-check + biome. For tests, default to changed-package scope:
 
-| Area          | Verify command                              | Manual verification                               |
-| ------------- | ------------------------------------------- | ------------------------------------------------- |
-| Extension     | See `packages/danmaku-anywhere/AGENTS.md`   | **Open dev browser** at start of work (see below) |
-| Web app       | See `app/web/AGENTS.md`                     | **CF preview URL** from PR deploy comment         |
-| Backend       | See `backend/proxy/AGENTS.md`               | N/A                                               |
-| Packages      | `pnpm test --filter <package>`              | N/A                                               |
-| Cross-cutting | `pnpm type-check && pnpm lint && pnpm test` | Depends on areas touched                          |
+| Area          | Verify command                                     | Manual verification                               |
+| ------------- | -------------------------------------------------- | ------------------------------------------------- |
+| Extension     | See `packages/danmaku-anywhere/AGENTS.md`          | **Open dev browser** at start of work (see below) |
+| Web app       | See `app/web/AGENTS.md`                            | **CF preview URL** from PR deploy comment         |
+| Backend       | See `backend/proxy/AGENTS.md`                      | N/A                                               |
+| Packages      | `pnpm --filter <package> test`                     | N/A                                               |
+| Cross-cutting | `pnpm lint && pnpm --filter '...[origin/master]' test` | Depends on areas touched                          |
+
+Run e2e (`pnpm --filter @mr-quin/danmaku-anywhere test:e2e`) only when changes touch content scripts, mount profiles, integration policies, dango manifests, or popup flows covered by an existing spec — it's slow and opt-in.
 
 #### Extension: open dev browser
 
@@ -109,9 +109,19 @@ For extension changes, launch a dev browser with HMR **at the start of implement
 wt -w 0 new-tab --title 'DA-XXX: dev browser' -d '<worktree-path>/packages/danmaku-anywhere' -- powershell -NoExit -Command "pnpm install; pnpm dev:browser"
 ```
 
-`dev:browser` launches Chromium with developer mode enabled and the extension pre-pinned to the toolbar. The dev mode watermark (top-right of popup + content overlay) shows the current branch name so multi-worktree sessions are unambiguous.
+`dev:browser` launches Chromium with developer mode enabled and the extension pre-pinned to the toolbar. The bottom-left of the popup and the floating panel both carry a coloured `DEV`/`PREVIEW` chip and a branch-name chip — handy for telling worktrees apart at a glance.
 
 Human verifies behavior live. Skip for trivial changes (config-only, types, docs).
+
+#### Extension: agentic verification
+
+For substantive UI / runtime changes, also self-verify via the `browser-verify` skill before alerting the human — drives a separate MCP-controlled Chrome to install the build, navigate, screenshot, and inspect. Workflow:
+
+```
+Skill(browser-verify)
+```
+
+Skip when the change is non-visual (types, docs, config, internal refactors).
 
 #### Extension: i18n extraction
 
@@ -141,13 +151,9 @@ Before pushing, run reviews using **clean subagents** (no prior context):
 
 Fix any issues found, then add a commit. Never include Co-Authored-By or AI attribution.
 
-### 6. Human Gate
+### 6. Push and Create PR
 
-- **Simple** (docs, config, skills, formatting): proceed directly to PR
-- **Substantive** (bug fix, feature, refactor): alert human with summary + review results, **wait for explicit go**
-- **When in doubt**: alert the human
-
-### 7. Push and Create PR
+The PR itself is the human gate — push and open it without waiting.
 
 ```bash
 git push -u origin DA-XXX_<hint>
@@ -162,8 +168,9 @@ EOF
 - **type must match** the ClickUp task's Type field
 - **DA-XXX must match** the branch name
 - Do NOT include ClickUp links in the PR body — they are posted automatically
+- The `ai-rereview` label is required: `.github/workflows/ai-rereview.yml` watches it and re-requests AI reviewers on every push
 
-### 8. Review Monitoring
+### 7. Review Monitoring
 
 ```
 /loop 5m check PR #N for review comments, report status, address comments, push fixes
@@ -201,6 +208,13 @@ gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREA
 
 On stop: alert human. **NEVER merge PRs** — merging is always a human action.
 
-### 9. Worktree Cleanup
+### 8. Worktree Cleanup
 
 After the PR is merged, run `/da-cleanup` to remove completed worktrees. This also cleans up stale `additionalDirectories` and `Read(...)` allow rules from `~/.claude/settings.json`.
+
+## Recovery
+
+- **Lint / type-check fails mid-way:** fix and commit on top. Don't amend.
+- **i18n keys touched but extraction not run:** `cd packages/danmaku-anywhere && pnpm i18n extract`, then stage the regenerated JSON.
+- **New Claude tab closed:** the worktree is still valid. `cd <worktree> && claude --add-dir .` to resume; `.claude-task.md` carries state.
+- **CI flake (unrelated failure):** retry the workflow once via `gh run rerun <id>`. If it fails again, comment on the PR and stop the loop.

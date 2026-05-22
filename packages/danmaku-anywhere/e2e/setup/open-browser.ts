@@ -151,6 +151,59 @@ function configureChromePreferences(extensionId: string): void {
   fs.writeFileSync(prefsPath, JSON.stringify(prefs))
 }
 
+// extensions.ui.developer_mode is a "tracked" pref — Chrome verifies an HMAC
+// in Secure Preferences and discards unsigned writes. The only way to set it
+// without the per-profile signing key is to ask chrome://extensions to do it
+// for us via the chrome.developerPrivate API, which Chrome signs itself.
+async function enableExtensionDeveloperMode(
+  context: Awaited<ReturnType<typeof chromium.launchPersistentContext>>
+): Promise<void> {
+  const page = await context.newPage()
+  try {
+    await page.goto('chrome://extensions/')
+    await page.evaluate(
+      () =>
+        new Promise<void>((resolve, reject) => {
+          const api = (
+            globalThis as {
+              chrome?: {
+                developerPrivate?: {
+                  updateProfileConfiguration: (
+                    update: { inDeveloperMode: boolean },
+                    cb: () => void
+                  ) => void
+                }
+                runtime?: { lastError?: { message?: string } }
+              }
+            }
+          ).chrome
+          if (!api?.developerPrivate) {
+            reject(new Error('chrome.developerPrivate not available'))
+            return
+          }
+          api.developerPrivate.updateProfileConfiguration(
+            { inDeveloperMode: true },
+            () => {
+              const err = api.runtime?.lastError
+              if (err) {
+                reject(new Error(err.message ?? 'unknown error'))
+              } else {
+                resolve()
+              }
+            }
+          )
+        })
+    )
+  } catch (err) {
+    console.warn(
+      'Could not enable extension developer mode:',
+      err instanceof Error ? err.message : err
+    )
+  } finally {
+    await page.close().catch(() => undefined)
+  }
+}
+
 async function openBrowser(
   extensionPath: string,
   cleanup?: () => Promise<void>
@@ -189,6 +242,8 @@ async function openBrowser(
     )
     configureChromePreferences(extensionId)
   }
+
+  await enableExtensionDeveloperMode(context)
 
   const page = await context.newPage()
   await page.goto(WEB_APP_URL)
