@@ -43,15 +43,53 @@ type BuildInfo =
       prNumber: string
     }
   | {
+      label: 'Branch'
+      color: string
+      buildNumber?: string
+      branchSlug: string
+      featureName: string
+    }
+  | {
       label: 'Pre'
       color: string
       buildNumber?: string
     }
 
+const BRANCH_TAG_PREFIX = 'preview-branch-'
+
+function deriveFeatureNameFromName(name: string): string {
+  const stripped = name
+    .replace(/\s*·\s*Branch Preview\s*\(\d+\)\s*$/i, '')
+    .replace(/\s*\(\d+\)\s*$/, '')
+    .trim()
+  return stripped === name.trim() ? '' : stripped
+}
+
+function humanizeSlug(slug: string): string {
+  const cleaned = slug.replace(/-/g, ' ').trim()
+  if (!cleaned) {
+    return cleaned
+  }
+  return cleaned.charAt(0).toUpperCase() + cleaned.slice(1)
+}
+
 const getBuildInfo = (name: string, tag: string): BuildInfo => {
   const buildNumber = /\((\d+)\)/.exec(name)?.[1]
 
-  if (tag.includes('nightly')) {
+  if (tag.startsWith(BRANCH_TAG_PREFIX)) {
+    const branchSlug = tag.slice(BRANCH_TAG_PREFIX.length)
+    const derived = deriveFeatureNameFromName(name)
+    const featureName = derived || humanizeSlug(branchSlug)
+    return {
+      label: 'Branch',
+      color: 'daisy-badge-warning',
+      buildNumber,
+      branchSlug,
+      featureName,
+    }
+  }
+
+  if (tag.startsWith('nightly-')) {
     return {
       label: 'Nightly',
       color: 'daisy-badge-secondary',
@@ -59,8 +97,8 @@ const getBuildInfo = (name: string, tag: string): BuildInfo => {
     }
   }
 
-  if (tag.includes('pr')) {
-    const prNumber = /(\d+)/.exec(tag)?.[1]
+  if (tag.startsWith('preview-pr-')) {
+    const prNumber = /^preview-pr-(\d+)/.exec(tag)?.[1]
     return {
       label: 'PR',
       color: 'daisy-badge-accent',
@@ -118,6 +156,16 @@ const ReleaseBadge = ({ buildInfo }: { buildInfo: BuildInfo }) => {
       >
         PR {buildInfo.prNumber}
       </a>
+    )
+  }
+  if (buildInfo.label === 'Branch') {
+    return (
+      <span
+        className={`daisy-badge daisy-badge-xs ${buildInfo.color} font-semibold`}
+        title={`长期预览分支: ${buildInfo.branchSlug}`}
+      >
+        🚧 {buildInfo.featureName}
+      </span>
     )
   }
   return (
