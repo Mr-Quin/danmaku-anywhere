@@ -1,14 +1,13 @@
 import type {
   CustomSeason,
   EpisodeLite,
-  EpisodeMeta,
   Season,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { MacCmsParsedPlayUrl } from '@danmaku-anywhere/danmaku-provider/maccms'
-import { List, ListItem, ListItemText, Skeleton } from '@mui/material'
+import { Box, Skeleton, Stack } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
-import { Suspense, useMemo } from 'react'
+import { Fragment, Suspense, useMemo } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import type {
   RenderCustomEpisode,
@@ -23,71 +22,56 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
 interface NormalSeasonListItemProps {
   season: Season
   renderEpisode: RenderEpisode
+  filter?: string
 }
 
 interface CustomSeasonListItemProps {
   season: CustomSeason
   renderEpisode: RenderCustomEpisode
+  filter?: string
 }
 
 interface SeasonListItemProps {
   season: Season | CustomSeason
   renderEpisode: RenderEpisode
   renderCustomEpisode: RenderCustomEpisode
+  filter?: string
 }
 
-const EpisodeSkeleton = () => {
+function EpisodeSkeleton() {
   return (
-    <ListItem>
-      <Skeleton variant="text" width="100%" height={40} animation="wave" />
-    </ListItem>
-  )
-}
-
-const FallbackEpisodeList = () => {
-  return (
-    <List dense disablePadding>
-      {Array.from({ length: 10 }).map((_, i) => {
-        return <EpisodeSkeleton key={i} />
-      })}
-    </List>
-  )
-}
-
-interface EpisodeRowProps {
-  episode: WithSeason<EpisodeMeta>
-  danmaku: WithSeason<EpisodeLite> | null
-  isLoading: boolean
-  renderEpisode: RenderEpisode
-}
-
-const EpisodeRow = ({
-  episode,
-  danmaku,
-  isLoading,
-  renderEpisode,
-}: EpisodeRowProps) => {
-  return (
-    <ErrorBoundary
-      fallback={
-        <ListItem>
-          <ListItemText primary="An error occurred" />
-        </ListItem>
-      }
+    <Box
+      sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.25, py: 0.5 }}
     >
-      {renderEpisode({
-        episode,
-        danmaku,
-        isLoading,
-      })}
-    </ErrorBoundary>
+      <Skeleton variant="text" width={20} height={12} />
+      <Skeleton variant="rounded" width={24} height={24} />
+      <Skeleton variant="text" sx={{ flex: 1 }} height={14} />
+    </Box>
   )
 }
 
-const EpisodeListInner = ({
+function FallbackEpisodeList() {
+  return (
+    <Stack spacing={0.25} sx={{ py: 0.5 }}>
+      {Array.from({ length: 8 }, (_, i) => (
+        <EpisodeSkeleton key={`skeleton-${i}`} />
+      ))}
+    </Stack>
+  )
+}
+
+function matchesFilter(title: string, filter?: string): boolean {
+  if (!filter) {
+    return true
+  }
+  return title.toLowerCase().includes(filter.toLowerCase())
+}
+
+function EpisodeListInner({
   season,
   renderEpisode,
-}: NormalSeasonListItemProps) => {
+  filter,
+}: NormalSeasonListItemProps) {
   const { data: episodes } = useSearchEpisode(season.id)
 
   const danmakuQuery = useQuery({
@@ -112,59 +96,57 @@ const EpisodeListInner = ({
   }, [danmakuQuery.data])
 
   return (
-    <List dense disablePadding>
-      {episodes.map((episode) => {
+    <Stack spacing={0.25}>
+      {episodes.map((episode, index) => {
+        if (!matchesFilter(episode.title, filter)) {
+          return null
+        }
         return (
-          <EpisodeRow
-            key={episode.indexedId}
-            episode={episode}
-            danmaku={danmakuByIndexedId.get(episode.indexedId) ?? null}
-            isLoading={danmakuQuery.isLoading}
-            renderEpisode={renderEpisode}
-          />
+          <Fragment key={episode.indexedId}>
+            {renderEpisode({
+              episode,
+              index,
+              danmaku: danmakuByIndexedId.get(episode.indexedId) ?? null,
+              isLoading: danmakuQuery.isLoading,
+            })}
+          </Fragment>
         )
       })}
-    </List>
+    </Stack>
   )
 }
 
-const CustomEpisodeListInner = ({
+function CustomEpisodeListInner({
   season,
   renderEpisode,
-}: CustomSeasonListItemProps) => {
+  filter,
+}: CustomSeasonListItemProps) {
   // TODO: Add MacCms as a provider type
   // biome-ignore lint/suspicious/noExplicitAny: temporary
   const episodes = (season as any).episodes as MacCmsParsedPlayUrl[]
 
   return (
-    <List dense disablePadding>
-      {episodes.map((episode, i) => {
+    <Stack spacing={0.25}>
+      {episodes.map((episode, index) => {
+        if (!matchesFilter(episode.title, filter)) {
+          return null
+        }
         return (
-          <ErrorBoundary
-            fallback={
-              <ListItem>
-                <ListItemText primary="An error occurred" />
-              </ListItem>
-            }
-            key={episode.url}
-          >
-            <Suspense fallback={<EpisodeSkeleton />}>
-              {renderEpisode({
-                episode,
-              })}
-            </Suspense>
-          </ErrorBoundary>
+          <Suspense key={episode.url} fallback={<EpisodeSkeleton />}>
+            {renderEpisode({ episode, index })}
+          </Suspense>
         )
       })}
-    </List>
+    </Stack>
   )
 }
 
-export const EpisodeSearchList = ({
+export function EpisodeSearchList({
   season,
   renderEpisode,
   renderCustomEpisode,
-}: SeasonListItemProps) => {
+  filter,
+}: SeasonListItemProps) {
   return (
     <ErrorBoundary
       fallbackRender={({ error }) => (
@@ -173,11 +155,16 @@ export const EpisodeSearchList = ({
     >
       <Suspense fallback={<FallbackEpisodeList />}>
         {isNotCustom(season) ? (
-          <EpisodeListInner season={season} renderEpisode={renderEpisode} />
+          <EpisodeListInner
+            season={season}
+            renderEpisode={renderEpisode}
+            filter={filter}
+          />
         ) : (
           <CustomEpisodeListInner
             season={season}
             renderEpisode={renderCustomEpisode}
+            filter={filter}
           />
         )}
       </Suspense>

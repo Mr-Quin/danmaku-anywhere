@@ -10,10 +10,12 @@ type RenderEpisodeData = {
   episode: WithSeason<EpisodeMeta>
   danmaku: WithSeason<EpisodeLite> | null
   isLoading: boolean
+  index: number
 }
 
 type RenderCustomEpisodeData = {
   episode: MacCmsParsedPlayUrl
+  index: number
 }
 
 export type RenderEpisode = (data: RenderEpisodeData) => ReactNode

@@ -1,18 +1,36 @@
 import type { PopoverVirtualElement } from '@mui/material'
 import { ClickAwayListener } from '@mui/material'
 import { Suspense, useRef, useState } from 'react'
+import { useHotkeys } from 'react-hotkeys-hook'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
-import { usePopup } from '@/content/controller/store/popupStore'
+import { useHotkeyOptions } from '@/common/options/extensionOptions/useHotkeyOptions'
+import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 import { ControllerWindow } from '@/content/controller/ui/floatingPanel/ControllerWindow'
 import { CONTROLLER_ROOT_ID } from '../common/constants/rootId'
 import { useStore } from '../store/store'
 import { FloatingButton } from './floatingButton/FloatingButton'
 
 export const PopupUi = () => {
-  const { isOpen, toggleOpen, lock } = usePopup()
+  const { isOpen, toggleOpen, lock, open, triggerSearchFocus } = usePopup()
   const isPicking = useStore((state) => state.integrationForm.isPicking)
   const { data: options } = useExtensionOptions()
   const { showFloatingButton } = options
+  const { getKeyCombo } = useHotkeyOptions()
+  const openSearchCombo = getKeyCombo('openSearchPanel')
+
+  useHotkeys(
+    openSearchCombo,
+    () => {
+      open({ tab: PopupTab.Search })
+      triggerSearchFocus()
+    },
+    {
+      enabled: !!openSearchCombo,
+      preventDefault: true,
+      enableOnContentEditable: true,
+      enableOnFormTags: true,
+    }
+  )
 
   const fallbackAnchorEl = useRef<HTMLButtonElement | null>(null)
 
@@ -33,11 +51,8 @@ export const PopupUi = () => {
     <ClickAwayListener
       onClickAway={(e) => {
         if (!rootRef.current) {
-          // try to find the root element again
           rootRef.current = document.getElementById(CONTROLLER_ROOT_ID)
         }
-        // clicking on a dialog within the controller is detected as a click away,
-        // so we need to check if the target is within the controller root
         if (rootRef.current && rootRef.current.contains(e.target as Node)) {
           return
         }

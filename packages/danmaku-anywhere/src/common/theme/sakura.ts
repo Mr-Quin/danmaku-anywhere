@@ -16,6 +16,8 @@ declare module '@mui/material/styles' {
     secondaryInk: string
     severityInk: Record<SeverityKey, string>
     actionActive: string
+    tooltipBg: string
+    tooltipFg: string
   }
   interface PaletteOptions {
     paperAlt?: string
@@ -23,6 +25,8 @@ declare module '@mui/material/styles' {
     secondaryInk?: string
     severityInk?: Record<SeverityKey, string>
     actionActive?: string
+    tooltipBg?: string
+    tooltipFg?: string
   }
 }
 
@@ -87,6 +91,8 @@ const SAKURA_LIGHT: PaletteOptions = {
     error: '#991B1B',
   },
   actionActive: 'rgba(232,106,142,0.08)',
+  tooltipBg: '#2A1B24',
+  tooltipFg: '#FFFFFF',
 }
 
 const SAKURA_DARK: PaletteOptions = {
@@ -137,6 +143,8 @@ const SAKURA_DARK: PaletteOptions = {
     error: '#FCA5A5',
   },
   actionActive: 'rgba(244,143,177,0.10)',
+  tooltipBg: '#3A2E3A',
+  tooltipFg: '#F6E8EE',
 }
 
 const severityKeys: readonly SeverityKey[] = [
@@ -428,12 +436,17 @@ function buildSakuraComponents(
     MuiTooltip: {
       styleOverrides: {
         tooltip: ({ theme }) => ({
-          fontSize: pxToRem(11),
-          backgroundColor:
-            theme.palette.mode === 'dark' ? '#3A2E3A' : '#2A1B24',
-          color: '#FFFFFF',
-          borderRadius: 6,
-          padding: '4px 8px',
+          ...theme.typography.caption,
+          fontWeight: 500,
+          backgroundColor: theme.palette.tooltipBg,
+          color: theme.palette.tooltipFg,
+          borderRadius: 8,
+          padding: '8px 10px',
+          boxShadow: '0 10px 24px -10px rgba(0,0,0,0.4)',
+          maxWidth: 260,
+        }),
+        arrow: ({ theme }) => ({
+          color: theme.palette.tooltipBg,
         }),
       },
     },
@@ -490,7 +503,7 @@ export function createSakuraTheme(
   return createTheme(
     {
       palette,
-      shape: { borderRadius: 8 },
+      shape: { borderRadius: 12 },
       typography: {
         htmlFontSize,
         ...buildSakuraTypography(pxToRem),

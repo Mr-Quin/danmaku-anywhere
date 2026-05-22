@@ -41,6 +41,9 @@ interface PopupStoreState {
 
   highlighterPortal: HTMLElement | null
   setHighlighterPortal: (portal: HTMLElement | null) => void
+
+  searchFocusToken: number
+  triggerSearchFocus: () => void
 }
 
 const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
@@ -57,9 +60,17 @@ const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
   toggleLock: (lock) => {
     set({ lock: lock ?? !get().lock })
   },
-  open: ({ animes = [], tab } = {}) => {
-    set({ isOpen: true, animes: animes })
-    if (tab) set({ tab })
+  open: ({ animes, tab } = {}) => {
+    const state = get()
+    if (!state.isOpen) {
+      set({ isOpen: true })
+    }
+    if (animes !== undefined && state.animes !== animes) {
+      set({ animes })
+    }
+    if (tab && state.tab !== tab) {
+      set({ tab })
+    }
   },
 
   animes: [],
@@ -84,6 +95,11 @@ const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
   highlighterPortal: null,
   setHighlighterPortal: (portal) => {
     set({ highlighterPortal: portal })
+  },
+
+  searchFocusToken: 0,
+  triggerSearchFocus: () => {
+    set({ searchFocusToken: get().searchFocusToken + 1 })
   },
 }))
 

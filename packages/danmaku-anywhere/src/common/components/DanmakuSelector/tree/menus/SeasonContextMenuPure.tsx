@@ -1,9 +1,9 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import {
-  Bookmark,
-  BookmarkBorder,
   Delete,
   Download,
+  Favorite,
+  FavoriteBorder,
   Sync,
 } from '@mui/icons-material'
 import type { ReactElement } from 'react'
@@ -97,8 +97,8 @@ export const SeasonContextMenuPure = ({
         {
           kind: 'item',
           id: 'bookmarkRemove',
-          label: t('bookmark.remove', 'Remove Bookmark'),
-          icon: <Bookmark fontSize="small" />,
+          label: t('bookmark.remove', 'Following'),
+          icon: <Favorite fontSize="small" />,
           onClick: onBookmarkToggle,
           loading: isBookmarkLoading,
         }
@@ -107,8 +107,8 @@ export const SeasonContextMenuPure = ({
       items.unshift({
         kind: 'item',
         id: 'bookmarkAdd',
-        label: t('bookmark.add', 'Bookmark'),
-        icon: <BookmarkBorder fontSize="small" />,
+        label: t('bookmark.add', 'Follow'),
+        icon: <FavoriteBorder fontSize="small" />,
         onClick: onBookmarkToggle,
         loading: isBookmarkLoading,
       })
