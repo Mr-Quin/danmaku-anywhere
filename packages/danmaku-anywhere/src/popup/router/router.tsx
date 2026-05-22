@@ -1,4 +1,4 @@
-import { createHashRouter, Navigate } from 'react-router'
+import { createHashRouter, Navigate, type RouteObject } from 'react-router'
 import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfigPage'
 import { FilterPage } from '@/popup/pages/filterPage/FilterPage'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
@@ -22,7 +22,7 @@ import { ProvidersPage } from '../pages/providers/pages/ProvidersPage'
 import { SearchPage } from '../pages/search/SearchPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
-export const router: ReturnType<typeof createHashRouter> = createHashRouter([
+export const routes: RouteObject[] = [
   {
     path: '/',
     Component: Home,
@@ -126,4 +126,8 @@ export const router: ReturnType<typeof createHashRouter> = createHashRouter([
       },
     ],
   },
-])
+]
+
+export function createPopupRouter(): ReturnType<typeof createHashRouter> {
+  return createHashRouter(routes)
+}
