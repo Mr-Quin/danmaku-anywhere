@@ -5,17 +5,15 @@ description: 项目结构
 
 import { FileTree, Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components'
 
-欢迎各路诸侯来贡献代码
-
 ## 仓库地址
 
 https://github.com/Mr-Quin/danmaku-anywhere
 
 ## 开发环境
 
-- `Node.js` >= 22
+- `Node.js` >= 24
 - `pnpm` >= 10（请使用 `pnpm`，不要使用 `npm` 或 `yarn`）
-- Chromium / Chrome（开发浏览器扩展时由 `dev:browser` 自动启动）
+- Chrome（开发浏览器扩展时由 `dev:browser` 自动启动）
 
 ## 项目结构
 
@@ -27,9 +25,9 @@ https://github.com/Mr-Quin/danmaku-anywhere
 - app/
   - **web/** - Web应用，基于 Kazumi 规则的看番网站 (Angular)
 - backend/
-  - proxy/ - Cloudflare Worker，与弹弹play API交互、AI 服务、用户认证
+  - proxy/ - Cloudflare Worker，与弹弹play API交互、AI 服务
 - packages/
-  - **danmaku-anywhere/** - 扩展主体 (React + Vite + @crxjs/vite-plugin)
+  - **danmaku-anywhere/** - 扩展主体
     - src/
       - background/ - 后台脚本（Service Worker）
       - content/ - 内容脚本
@@ -64,10 +62,6 @@ https://github.com/Mr-Quin/danmaku-anywhere
    ```
 </Steps>
 
-<Aside type="tip">
-跨 worktree 开发时，每个 worktree 都需要单独的 `node_modules/`，请在每个 worktree 中执行 `pnpm install && pnpm build:packages`。
-</Aside>
-
 ## 开发
 
 ### 浏览器扩展
@@ -77,17 +71,13 @@ https://github.com/Mr-Quin/danmaku-anywhere
 <Tabs>
   <TabItem label="Chrome">
 
-    推荐使用 `dev:browser`，会自动启动一个独立的 Chromium 实例，预先加载扩展、启用扩展开发者模式、并将扩展固定在工具栏上：
+    推荐使用 `dev:browser`，会自动启动一个独立的 Chrome 实例，并加载扩展：
 
     ```bash
     pnpm dev:browser
     ```
 
-    HMR 已启用，源码改动会自动刷新。用户配置保存在 `packages/danmaku-anywhere/.playwright-profile`，关闭浏览器即结束开发会话。
-
-    构建产物位于 `packages/danmaku-anywhere/dev/chrome`。
-
-    若需手动加载：先运行 `pnpm dev`，然后在 `chrome://extensions` 启用开发者模式并加载已解压的扩展（指向 `dev/chrome`）。
+    支持HMR，改动源码会自动刷新。用户配置保存在 `packages/danmaku-anywhere/.playwright-profile`，可重复使用。
 
   </TabItem>
   <TabItem label="Firefox">
@@ -145,20 +135,3 @@ pnpm start
 cd backend/proxy
 pnpm dev
 ```
-
-## 常用脚本
-
-仓库根目录提供整套 monorepo 级脚本，优先使用而不是 ad-hoc 命令：
-
-| 任务 | 命令 |
-|---|---|
-| 安装依赖 | `pnpm install` |
-| 构建所有 | `pnpm build` |
-| 只构建包 | `pnpm build:packages` |
-| Lint + 自动修复 | `pnpm lint` |
-| 类型检查 | `pnpm type-check` |
-| 所有测试 | `pnpm test` |
-| 格式化 | `pnpm format` |
-| 提取 i18n key | `cd packages/danmaku-anywhere && pnpm i18n extract` |
-
-Lefthook 会在 `git commit` 前对暂存文件执行 Biome 检查并自动修复格式。如果提交失败，先查看 Biome 输出。
