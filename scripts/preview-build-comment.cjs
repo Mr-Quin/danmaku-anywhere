@@ -1,18 +1,37 @@
-module.exports = async ({ github, context, prNumber, ref, runNumber }) => {
+module.exports = async ({
+  github,
+  context,
+  prNumber,
+  ref,
+  runNumber,
+  isLongLived = false,
+  branchSlug = '',
+  featureName = '',
+}) => {
   const MARKER = '<!-- danmaku-anywhere:preview-build-comment -->'
   const owner = context.repo.owner
   const repo = context.repo.repo
 
-  const tag = `preview-pr-${prNumber}`
+  const tag = isLongLived
+    ? `preview-branch-${branchSlug}`
+    : `preview-pr-${prNumber}`
   const releaseUrl = `https://github.com/${owner}/${repo}/releases/tag/${tag}`
   const runUrl = `https://github.com/${owner}/${repo}/actions/runs/${context.runId}`
   const shortSha = String(ref).substring(0, 7)
 
+  const heading = isLongLived
+    ? `### 🚀 Branch preview updated${featureName ? `: ${featureName}` : ''}`
+    : '### 🚀 Preview build ready'
+
+  const channelLine = isLongLived
+    ? `Rolling channel \`${tag}\` updated from \`${shortSha}\` (run #${runNumber}).`
+    : `Built from \`${shortSha}\` (run #${runNumber}).`
+
   const body = [
     MARKER,
-    '### 🚀 Preview build ready',
+    heading,
     '',
-    `Built from \`${shortSha}\` (run #${runNumber}).`,
+    channelLine,
     '',
     `📦 [Download from the release page](${releaseUrl}) · [Workflow run](${runUrl})`,
   ].join('\n')
@@ -53,6 +72,11 @@ module.exports = async ({ github, context, prNumber, ref, runNumber }) => {
   }
 
   await upsertComment(Number(prNumber))
+
+  if (isLongLived) {
+    console.log('Long-lived preview: skipping linked-issue comments.')
+    return
+  }
 
   let issueNumbers = []
   try {

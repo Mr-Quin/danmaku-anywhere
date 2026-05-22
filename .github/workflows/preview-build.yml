@@ -19,6 +19,9 @@ jobs:
       is_nightly: ${{ steps.check.outputs.is_nightly }}
       is_pr: ${{ steps.check.outputs.is_pr }}
       pr_number: ${{ steps.check.outputs.pr_number }}
+      is_long_lived: ${{ steps.check.outputs.is_long_lived }}
+      branch_slug: ${{ steps.check.outputs.branch_slug }}
+      feature_name: ${{ steps.check.outputs.feature_name }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -55,17 +58,37 @@ jobs:
 
       - name: Determine Tag Name
         id: tag
+        env:
+          IS_PR: ${{ needs.check-changes.outputs.is_pr }}
+          IS_NIGHTLY: ${{ needs.check-changes.outputs.is_nightly }}
+          IS_LONG_LIVED: ${{ needs.check-changes.outputs.is_long_lived }}
+          PR_NUMBER: ${{ needs.check-changes.outputs.pr_number }}
+          BRANCH_SLUG: ${{ needs.check-changes.outputs.branch_slug }}
+          FEATURE_NAME: ${{ needs.check-changes.outputs.feature_name }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_NUMBER: ${{ github.run_number }}
         run: |
-          if [[ "${{ needs.check-changes.outputs.is_pr }}" == "true" ]]; then
-            echo "tag_name=preview-pr-${{ needs.check-changes.outputs.pr_number }}" >> $GITHUB_OUTPUT
-            echo "allow_updates=true" >> $GITHUB_OUTPUT
-          elif [[ "${{ needs.check-changes.outputs.is_nightly }}" == "true" ]]; then
-            echo "tag_name=nightly-${{ github.run_id }}" >> $GITHUB_OUTPUT
-            echo "allow_updates=false" >> $GITHUB_OUTPUT
+          if [[ "$IS_LONG_LIVED" == "true" ]]; then
+            tag="preview-branch-${BRANCH_SLUG}"
+            name="${FEATURE_NAME:-$BRANCH_SLUG} · Branch Preview (${RUN_NUMBER})"
+            echo "tag_name=${tag}" >> "$GITHUB_OUTPUT"
+            echo "allow_updates=true" >> "$GITHUB_OUTPUT"
+            echo "release_name=${name}" >> "$GITHUB_OUTPUT"
+          elif [[ "$IS_PR" == "true" ]]; then
+            tag="preview-pr-${PR_NUMBER}"
+            echo "tag_name=${tag}" >> "$GITHUB_OUTPUT"
+            echo "allow_updates=true" >> "$GITHUB_OUTPUT"
+            echo "release_name=Preview Build ${tag} (${RUN_NUMBER})" >> "$GITHUB_OUTPUT"
+          elif [[ "$IS_NIGHTLY" == "true" ]]; then
+            tag="nightly-${RUN_ID}"
+            echo "tag_name=${tag}" >> "$GITHUB_OUTPUT"
+            echo "allow_updates=false" >> "$GITHUB_OUTPUT"
+            echo "release_name=Preview Build ${tag} (${RUN_NUMBER})" >> "$GITHUB_OUTPUT"
           else
-             # Manual trigger or fallback - uses unique run_number so no updates needed
-             echo "tag_name=preview-manual-${{ github.run_number }}" >> $GITHUB_OUTPUT
-             echo "allow_updates=false" >> $GITHUB_OUTPUT
+            tag="preview-manual-${RUN_NUMBER}"
+            echo "tag_name=${tag}" >> "$GITHUB_OUTPUT"
+            echo "allow_updates=false" >> "$GITHUB_OUTPUT"
+            echo "release_name=Preview Build ${tag} (${RUN_NUMBER})" >> "$GITHUB_OUTPUT"
           fi
         shell: bash
 
@@ -79,7 +102,7 @@ jobs:
           prerelease: true
           removeArtifacts: true
           tag: ${{ steps.tag.outputs.tag_name }}
-          name: "Preview Build ${{ steps.tag.outputs.tag_name }} (${{ github.run_number }})"
+          name: ${{ steps.tag.outputs.release_name }}
           body: "Preview build generated from run ${{ github.run_number }}"
 
   update-nightly-tag:
@@ -118,4 +141,7 @@ jobs:
               prNumber: '${{ needs.check-changes.outputs.pr_number }}',
               ref: '${{ needs.check-changes.outputs.ref }}',
               runNumber: '${{ github.run_number }}',
+              isLongLived: ${{ needs.check-changes.outputs.is_long_lived }},
+              branchSlug: '${{ needs.check-changes.outputs.branch_slug }}',
+              featureName: ${{ toJSON(needs.check-changes.outputs.feature_name) }},
             });
