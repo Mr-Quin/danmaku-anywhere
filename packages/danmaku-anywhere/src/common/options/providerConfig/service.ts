@@ -11,7 +11,10 @@ import type { OptionsService } from '@/common/options/OptionsService/OptionsServ
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { isServiceWorker } from '@/common/utils/utils'
 import { defaultProviderConfigs } from './constant'
-import { migrateProviderConfigsToFlat } from './migration'
+import {
+  migrateProviderConfigsToFlat,
+  seedNewBuiltinProviders,
+} from './migration'
 import type { ProviderConfig } from './schema'
 import { providerConfigSchema } from './schema'
 
@@ -36,6 +39,9 @@ export class ProviderConfigService implements IStoreService {
       })
       .version(2, {
         upgrade: (data) => migrateProviderConfigsToFlat(data),
+      })
+      .version(3, {
+        upgrade: (data) => seedNewBuiltinProviders(data),
       })
   }
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {

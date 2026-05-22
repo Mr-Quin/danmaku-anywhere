@@ -7,7 +7,9 @@ import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import {
   builtInBilibiliProvider,
   builtInDanDanPlayProvider,
+  builtInMangoProvider,
   builtInTencentProvider,
+  builtInYoukuProvider,
   DDP_COMPAT_MANIFEST_ID,
   defaultProviderConfigs,
 } from './constant'
@@ -283,4 +285,19 @@ function inferTypeFromImpl(
     default:
       return undefined
   }
+}
+
+// Append any builtin whose id isn't already in the user's stored list.
+// New builtins ship via this path so existing users see them on upgrade.
+export function seedNewBuiltinProviders(
+  data: ProviderConfig[]
+): ProviderConfig[] {
+  const have = new Set(data.map((c) => c.id))
+  const additions: ProviderConfig[] = []
+  for (const builtin of [builtInYoukuProvider, builtInMangoProvider]) {
+    if (!have.has(builtin.id)) {
+      additions.push(builtin)
+    }
+  }
+  return additions.length > 0 ? [...data, ...additions] : data
 }
