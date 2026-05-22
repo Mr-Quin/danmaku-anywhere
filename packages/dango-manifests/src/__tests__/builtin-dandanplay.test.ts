@@ -156,4 +156,18 @@ describe('builtin:dandanplay manifest', () => {
 
     expect(calls).toHaveLength(1)
   })
+
+  it('threads chConvert into the danmaku query when provided', async () => {
+    const { fetcher, calls } = mockFetcher({
+      [`${PROXY_BASE}?path=%2Fv2%2Fcomment%2F183980001%3FchConvert%3D1%26withRelated%3Dtrue`]:
+        { body: JSON.stringify(commentsFixture) },
+    })
+    const runner = new ManifestRunner(zManifest.parse(builtinDandanplay), {
+      fetcher,
+    })
+
+    await runner.runDanmaku({ episodeId: 183980001, chConvert: 1 })
+
+    expect(calls[0].url).toContain('chConvert%3D1')
+  })
 })

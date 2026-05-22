@@ -198,9 +198,27 @@ describe('builtin:bilibili manifest', () => {
     })
 
     expect(result).toEqual([
-      { p: '12.34,1,16777215,abcd1234', m: '第一条' },
-      { p: '23.45,4,16711680,efgh5678', m: '底部弹幕' },
-      { p: '34.56,5,255,ijkl9012', m: '顶部蓝色' },
+      {
+        progress: 12340,
+        mode: 1,
+        color: 16777215,
+        midHash: 'abcd1234',
+        content: '第一条',
+      },
+      {
+        progress: 23450,
+        mode: 4,
+        color: 16711680,
+        midHash: 'efgh5678',
+        content: '底部弹幕',
+      },
+      {
+        progress: 34560,
+        mode: 5,
+        color: 255,
+        midHash: 'ijkl9012',
+        content: '顶部蓝色',
+      },
     ])
     expect(calls).toHaveLength(1)
   })
@@ -387,5 +405,91 @@ describe('builtin:bilibili manifest', () => {
     })) as Array<{ mode: number }>
 
     expect(result.map((c) => c.mode)).toEqual([2, 3])
+  })
+
+  it('parseUrl resolves /bangumi/play/ss<id> via season_id query', async () => {
+    const { fetcher, calls } = mockFetcher({
+      'https://api.bilibili.com/pgc/view/web/season': {
+        body: JSON.stringify(seasonFixture),
+      },
+    })
+    const runner = new ManifestRunner(zManifest.parse(builtinBilibili), {
+      fetcher,
+    })
+
+    const result = (await runner.runParseUrl(
+      'https://www.bilibili.com/bangumi/play/ss41410'
+    )) as {
+      seasonInsert: { providerIds: { seasonId: number } }
+      episodeMeta: {
+        providerIds: { cid: number; epid: number }
+        episodeNumber: number | string
+      }
+    } | null
+
+    expect(calls).toHaveLength(1)
+    expect(calls[0].url).toContain('season_id=41410')
+    expect(calls[0].url).not.toContain('ep_id=')
+    // seasonId comes from the fixture response, not the URL.
+    expect(result?.seasonInsert.providerIds.seasonId).toBe(41410)
+    // First episode is picked when only ssid is in the URL.
+    expect(result?.episodeMeta.providerIds.cid).toBe(1300001)
+    expect(result?.episodeMeta.providerIds.epid).toBe(700001)
+    expect(result?.episodeMeta.episodeNumber).toBe(1)
+  })
+
+  it('parseUrl resolves /bangumi/play/ep<id> via ep_id query and picks the matching episode', async () => {
+    const { fetcher, calls } = mockFetcher({
+      'https://api.bilibili.com/pgc/view/web/season': {
+        body: JSON.stringify(seasonFixture),
+      },
+    })
+    const runner = new ManifestRunner(zManifest.parse(builtinBilibili), {
+      fetcher,
+    })
+
+    const result = (await runner.runParseUrl(
+      'https://www.bilibili.com/bangumi/play/ep700002'
+    )) as {
+      episodeMeta: {
+        providerIds: { cid: number; epid: number }
+        episodeNumber: number | string
+      }
+    } | null
+
+    expect(calls[0].url).toContain('ep_id=700002')
+    expect(calls[0].url).not.toContain('season_id=')
+    expect(result?.episodeMeta.providerIds.epid).toBe(700002)
+    expect(result?.episodeMeta.providerIds.cid).toBe(1300002)
+    expect(result?.episodeMeta.episodeNumber).toBe(2)
+  })
+
+  it('parseUrl returns null when the URL host does not match', async () => {
+    const { fetcher } = mockFetcher({})
+    const runner = new ManifestRunner(zManifest.parse(builtinBilibili), {
+      fetcher,
+    })
+    expect(await runner.runParseUrl('https://example.com/whatever')).toBeNull()
+  })
+
+  it('parseUrl emits episodeMeta=undefined when no episode matches the epid', async () => {
+    const { fetcher } = mockFetcher({
+      'https://api.bilibili.com/pgc/view/web/season': {
+        body: JSON.stringify(seasonFixture),
+      },
+    })
+    const runner = new ManifestRunner(zManifest.parse(builtinBilibili), {
+      fetcher,
+    })
+
+    const result = (await runner.runParseUrl(
+      'https://www.bilibili.com/bangumi/play/ep999999'
+    )) as {
+      seasonInsert: { indexedId: string }
+      episodeMeta: unknown
+    } | null
+
+    expect(result?.seasonInsert.indexedId).toBe('41410')
+    expect(result?.episodeMeta).toBeUndefined()
   })
 })

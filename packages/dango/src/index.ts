@@ -11,7 +11,13 @@ export {
   type RunOptions,
   runPipeline,
 } from './engine/runner.js'
-export { findManifestForUrl, urlMatches } from './engine/url-match.js'
+export {
+  findManifestForUrl,
+  findManifestMatchForUrl,
+  matchUrl,
+  type UrlMatchResult,
+  urlMatches,
+} from './engine/url-match.js'
 export { helpers } from './helpers/registry.js'
 export type {
   ConfigItem,

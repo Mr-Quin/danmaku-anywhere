@@ -19,13 +19,11 @@ import { isProvider } from '@/common/danmaku/utils'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
-import { BilibiliService } from './bilibili/BilibiliService'
-import type { IUrlParser, OmitSeasonId } from './IDanmakuProvider'
+import type { OmitSeasonId } from './IDanmakuProvider'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from './ProviderFactory'
-import { TencentService } from './tencent/TencentService'
 
 function enrichEpisode(
   episode: OmitSeasonId<EpisodeMeta>,
@@ -41,9 +39,6 @@ function enrichEpisode(
 @injectable('Singleton')
 export class ProviderService {
   private readonly logger: ILogger
-  // URL parsing stays on per-source services until DA-483 lands a parseUrl
-  // pipeline kind in the manifest engine.
-  private readonly parsers: IUrlParser[]
 
   constructor(
     @inject(DanmakuService)
@@ -60,10 +55,6 @@ export class ProviderService {
       'ProviderService is only available in service worker'
     )
     this.logger = logger.sub('[ProviderService]')
-    this.parsers = [
-      new BilibiliService(this.logger),
-      new TencentService(this.logger),
-    ]
   }
 
   async searchSeason(
@@ -221,14 +212,23 @@ export class ProviderService {
   }
 
   async parseUrl(url: string): Promise<WithSeason<EpisodeMeta>> {
-    for (const parser of this.parsers) {
-      if (parser.canParse(url)) {
-        const result = await parser.parseUrl(url)
-        if (result) {
-          const { episodeMeta, seasonInsert } = result
-          const season = await this.seasonService.upsert(seasonInsert)
-          return enrichEpisode(episodeMeta, season)
-        }
+    const configs = await this.providerConfigService.getAll()
+    for (const config of configs) {
+      if (!config.enabled) {
+        continue
+      }
+      const service = this.danmakuProviderFactory(config)
+      if (!service.canParse?.(url)) {
+        continue
+      }
+      if (!service.parseUrl) {
+        continue
+      }
+      const result = await service.parseUrl(url)
+      if (result) {
+        const { episodeMeta, seasonInsert } = result
+        const season = await this.seasonService.upsert(seasonInsert)
+        return enrichEpisode(episodeMeta, season)
       }
     }
 

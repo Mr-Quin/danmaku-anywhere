@@ -2,6 +2,7 @@ import type { Manifest, VariantPipeline } from '../manifest/schema.js'
 import type { FetchLike } from './http.js'
 import { ProtoRegistry, type ProtoTypeOverrides } from './proto.js'
 import { type RunOptions, runPipeline } from './runner.js'
+import { matchUrl } from './url-match.js'
 
 /** Bound at construction; per-call overrides via the `opts` arg on each method. */
 export interface ManifestRunnerOptions {
@@ -56,6 +57,23 @@ export class ManifestRunner {
     return this.manifest.danmaku !== undefined
   }
 
+  hasParseUrl(): boolean {
+    return this.manifest.parseUrl !== undefined
+  }
+
+  /**
+   * Returns true if any `urlMatch` entry matches the URL. Cheap pattern
+   * check — does not run the pipeline.
+   */
+  canParse(url: string): boolean {
+    for (const entry of this.manifest.urlMatch) {
+      if (matchUrl(url, entry) !== null) {
+        return true
+      }
+    }
+    return false
+  }
+
   /** Defaults extracted from `configSchema`; merge under user values. */
   configDefaults(): Record<string, unknown> {
     const out: Record<string, unknown> = {}
@@ -98,6 +116,35 @@ export class ManifestRunner {
   ): Promise<T | null> {
     if (this.manifest.season === undefined) return null
     return this.run<T>('season', this.manifest.season, inputs, opts)
+  }
+
+  /**
+   * Match a URL against the manifest's `urlMatch` patterns; if any match, run
+   * the `parseUrl` pipeline with the named capture groups + any additional
+   * `extraInputs` (e.g. user-configured baseUrl) as inputs. Returns null when
+   * no URL pattern matches or no parseUrl pipeline is declared.
+   */
+  async runParseUrl<T = unknown>(
+    url: string,
+    extraInputs: ManifestInputs = {},
+    opts?: RunOptions
+  ): Promise<T | null> {
+    if (this.manifest.parseUrl === undefined) {
+      return null
+    }
+    for (const entry of this.manifest.urlMatch) {
+      const matched = matchUrl(url, entry)
+      if (matched === null) {
+        continue
+      }
+      return this.run<T>(
+        'parseUrl',
+        this.manifest.parseUrl,
+        { ...matched.groups, ...extraInputs, url },
+        opts
+      )
+    }
+    return null
   }
 
   private async run<T>(
