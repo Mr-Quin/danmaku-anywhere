@@ -1,4 +1,10 @@
-import { createHashRouter, Navigate, type RouteObject } from 'react-router'
+import {
+  createHashRouter,
+  matchRoutes,
+  type RouteObject,
+  redirect,
+} from 'react-router'
+import { getStorageArea } from '@/common/storage/getStorageArea'
 import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfigPage'
 import { FilterPage } from '@/popup/pages/filterPage/FilterPage'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
@@ -22,6 +28,22 @@ import { ProvidersPage } from '../pages/providers/pages/ProvidersPage'
 import { SearchPage } from '../pages/search/SearchPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
+export const POPUP_ROUTE_STORAGE_KEY = 'popup:lastRoute'
+
+async function restoreRoute() {
+  const storage = getStorageArea('session')
+  const data = await storage.get(POPUP_ROUTE_STORAGE_KEY).catch(() => null)
+  const persisted = data?.[POPUP_ROUTE_STORAGE_KEY]
+  if (typeof persisted !== 'string' || persisted === '' || persisted === '/') {
+    return redirect('/mount')
+  }
+  if (!matchRoutes(routes, persisted)) {
+    void storage.remove(POPUP_ROUTE_STORAGE_KEY).catch(() => undefined)
+    return redirect('/mount')
+  }
+  return redirect(persisted)
+}
+
 export const routes: RouteObject[] = [
   {
     path: '/',
@@ -29,7 +51,7 @@ export const routes: RouteObject[] = [
     children: [
       {
         index: true,
-        element: <Navigate to="mount" />,
+        loader: restoreRoute,
       },
       {
         path: 'mount',
@@ -128,6 +150,5 @@ export const routes: RouteObject[] = [
   },
 ]
 
-export function createPopupRouter(): ReturnType<typeof createHashRouter> {
-  return createHashRouter(routes)
-}
+export const router: ReturnType<typeof createHashRouter> =
+  createHashRouter(routes)

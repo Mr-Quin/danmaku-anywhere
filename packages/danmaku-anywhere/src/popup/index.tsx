@@ -11,12 +11,9 @@ import { Theme } from '@/common/theme/Theme'
 import { App } from './App'
 import '@/common/localization/i18n'
 import { EnvironmentContext } from '@/common/environment/context'
-import { hydratePopupHash } from './router/persistRoute'
-import { routes } from './router/router'
 
 const bootstrap = async () => {
   await ensureStandaloneReady()
-  await hydratePopupHash(routes)
 
   injectFonts(document.head)
 
