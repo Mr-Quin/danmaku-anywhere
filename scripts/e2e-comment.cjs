@@ -155,7 +155,9 @@ function buildBody({ summary, runUrl, runNumber, reportUrl, sha }) {
     const shown = failures.slice(0, MAX_FAILURES_LISTED)
     for (const failure of shown) {
       const emoji = STATUS_EMOJI[failure.status] ?? '❌'
-      const safeTitle = failure.title.replace(/\|/g, '\\|')
+      const safeTitle = failure.title
+        .replace(/\|/g, '\\|')
+        .replace(/\r?\n/g, ' ')
       lines.push(
         `| ${emoji} | ${safeTitle} | ${formatDuration(failure.duration)} |`
       )
