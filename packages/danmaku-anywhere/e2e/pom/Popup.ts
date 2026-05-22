@@ -34,7 +34,7 @@ export class Popup {
     await page.goto(
       `chrome-extension://${extensionId}/pages/popup.html#${hashRoute}`
     )
-    await page.locator('#root').waitFor({ state: 'visible', timeout: 10_000 })
+    await page.locator('#root').waitFor({ state: 'visible' })
     return new Popup(page)
   }
 }

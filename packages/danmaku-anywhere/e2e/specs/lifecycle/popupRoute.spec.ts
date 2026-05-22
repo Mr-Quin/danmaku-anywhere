@@ -11,7 +11,7 @@ import { expect, test } from '../../setup/fixtures'
 
 async function openPopup(page: import('@playwright/test').Page, id: string) {
   await page.goto(`chrome-extension://${id}/pages/popup.html`)
-  await page.locator('#root').waitFor({ state: 'visible', timeout: 10_000 })
+  await page.locator('#root').waitFor({ state: 'visible' })
 }
 
 test('reopened popup lands on the last-visited route within the session', async ({

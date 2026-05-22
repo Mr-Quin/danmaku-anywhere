@@ -72,18 +72,14 @@ test('mount tree: bookmark adds stubs, remove clears them', async ({
 
   await popup.mount.openItemMenu(seasonItem, 'bookmarkAdd')
 
-  await expect(seasonItem).toContainText(/\+1/, { timeout: 10_000 })
+  await expect(seasonItem).toContainText(/\+1/)
 
-  await expect
-    .poll(() => da.bookmark.bySeason(season.id), { timeout: 10_000 })
-    .toBeTruthy()
+  await expect.poll(() => da.bookmark.bySeason(season.id)).toBeTruthy()
   const bookmark = await da.bookmark.bySeason(season.id)
   expect(bookmark?.episodes.length).toBe(2)
 
   await popup.mount.openItemMenu(seasonItem, 'bookmarkRemove')
 
   await expect(seasonItem).not.toContainText(/\+\d+/)
-  await expect
-    .poll(() => da.bookmark.bySeason(season.id), { timeout: 10_000 })
-    .toBeUndefined()
+  await expect.poll(() => da.bookmark.bySeason(season.id)).toBeUndefined()
 })

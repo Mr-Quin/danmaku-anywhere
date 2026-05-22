@@ -41,8 +41,8 @@ test('bilibili url paste: detect URL → parse → download danmaku', async ({
   const downloadDanmaku = page.getByRole('button', {
     name: /download danmaku|获取弹幕/i,
   })
-  await expect(downloadDanmaku).toBeVisible({ timeout: 10_000 })
+  await expect(downloadDanmaku).toBeVisible()
 
   await downloadDanmaku.click()
-  await popup.toast.expectSuccess(/import|导入/i, { timeout: 10_000 })
+  await popup.toast.expectSuccess(/import|导入/i)
 })

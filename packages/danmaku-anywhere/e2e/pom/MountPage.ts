@@ -36,9 +36,9 @@ export class MountPage {
     return this.page.locator(SELECTORS.treeItemPrefix(`stub-${seasonId}-`))
   }
 
-  async waitForSeason(seasonId: number, timeout = 10_000): Promise<Locator> {
+  async waitForSeason(seasonId: number): Promise<Locator> {
     const item = this.seasonItem(seasonId)
-    await expect(item).toBeVisible({ timeout })
+    await expect(item).toBeVisible()
     return item
   }
 
@@ -50,14 +50,14 @@ export class MountPage {
     await item.click({ button: 'right' })
     const menuItem = this.page.locator(SELECTORS.menuItem(actionId))
     await menuItem.click()
-    await expect(menuItem).toBeHidden({ timeout: 15_000 })
+    await expect(menuItem).toBeHidden()
   }
 
   async openToolbarMenu(actionId: string): Promise<void> {
     await this.page.locator(SELECTORS.drilldownButton).click()
     const menuItem = this.page.locator(SELECTORS.menuItem(actionId))
     await menuItem.click()
-    await expect(menuItem).toBeHidden({ timeout: 15_000 })
+    await expect(menuItem).toBeHidden()
   }
 
   async expandSeason(seasonId: number): Promise<void> {

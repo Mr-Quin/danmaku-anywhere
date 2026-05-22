@@ -30,7 +30,7 @@ test('search: noProviders error renders when all sources are disabled', async ({
   await popup.search.submit('frieren')
 
   const guard = page.locator('[data-testid="search-no-providers"]')
-  await expect(guard).toBeVisible({ timeout: 5_000 })
+  await expect(guard).toBeVisible()
   await expect(guard).toContainText(
     /No danmaku sources enabled|没有启用的弹幕来源/i
   )

@@ -13,10 +13,10 @@ test('extension service worker loads successfully', async ({ extensionId }) => {
 
 test('popup page renders', async ({ page, extensionId }) => {
   await page.goto(`chrome-extension://${extensionId}/pages/popup.html`)
-  await expect(page.locator('#root')).toBeVisible({ timeout: 10_000 })
+  await expect(page.locator('#root')).toBeVisible()
 })
 
 test('dashboard page renders', async ({ page, extensionId }) => {
   await page.goto(`chrome-extension://${extensionId}/pages/dashboard.html`)
-  await expect(page.locator('#root')).toBeVisible({ timeout: 10_000 })
+  await expect(page.locator('#root')).toBeVisible()
 })

@@ -42,14 +42,10 @@ test('mount tree: custom episodes with shared path render under a folder node', 
   await popup.mount.expandItem('season-custom')
 
   const folder = popup.mount.folderItem(FOLDER)
-  await expect(folder).toBeVisible({ timeout: 10_000 })
+  await expect(folder).toBeVisible()
 
   await popup.mount.expandItem(`folder-${FOLDER}`)
 
-  await expect(popup.mount.customEpisodeItem(ep1.id)).toBeVisible({
-    timeout: 10_000,
-  })
-  await expect(popup.mount.customEpisodeItem(ep2.id)).toBeVisible({
-    timeout: 10_000,
-  })
+  await expect(popup.mount.customEpisodeItem(ep1.id)).toBeVisible()
+  await expect(popup.mount.customEpisodeItem(ep2.id)).toBeVisible()
 })

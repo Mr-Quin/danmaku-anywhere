@@ -75,9 +75,7 @@ test('mount tree: refresh metadata replaces stale season info', async ({
   await popup.mount.openItemMenu(seasonItem, 'refresh')
 
   await expect
-    .poll(async () => (await da.season.get(seeded.id))?.version, {
-      timeout: 10_000,
-    })
+    .poll(async () => (await da.season.get(seeded.id))?.version)
     .toBeGreaterThan(1)
 
   const refreshed = await da.season.get(seeded.id)

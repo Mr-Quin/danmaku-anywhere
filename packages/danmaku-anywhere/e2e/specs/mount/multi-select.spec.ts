@@ -70,9 +70,7 @@ test('mount tree: multi-select bulk delete removes every selected episode', asyn
 
   // Episodes must be rendered before selectAll — it walks the visible tree.
   for (const ep of seeded) {
-    await expect(popup.mount.episodeItem(ep.id)).toBeVisible({
-      timeout: 10_000,
-    })
+    await expect(popup.mount.episodeItem(ep.id)).toBeVisible()
   }
 
   await popup.mount.enterMultiSelect()
@@ -81,11 +79,7 @@ test('mount tree: multi-select bulk delete removes every selected episode', asyn
   await popup.dialog.confirm()
 
   for (const ep of seeded) {
-    await expect(popup.mount.episodeItem(ep.id)).toBeHidden({
-      timeout: 10_000,
-    })
-    await expect
-      .poll(() => da.episode.get(ep.id), { timeout: 10_000 })
-      .toBeUndefined()
+    await expect(popup.mount.episodeItem(ep.id)).toBeHidden()
+    await expect.poll(() => da.episode.get(ep.id)).toBeUndefined()
   }
 })
