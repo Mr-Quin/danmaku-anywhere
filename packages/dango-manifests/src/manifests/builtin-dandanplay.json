@@ -4,6 +4,18 @@
   "name": "DanDanPlay",
   "version": "1.0.0",
   "hosts": ["api.danmaku.weeblify.app"],
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "chConvert": {
+        "type": "integer",
+        "enum": [0, 1, 2],
+        "default": 0,
+        "title": "Chinese conversion",
+        "description": "0 = no conversion, 1 = convert to simplified, 2 = convert to traditional"
+      }
+    }
+  },
   "search": {
     "inputs": ["q"],
     "steps": [

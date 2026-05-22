@@ -74,12 +74,13 @@ export class ManifestRunner {
     return false
   }
 
-  /** Defaults extracted from `configSchema`; merge under user values. */
+  /** Defaults extracted from `configSchema.properties`; merge under user values. */
   configDefaults(): Record<string, unknown> {
+    const props = this.manifest.configSchema?.properties ?? {}
     const out: Record<string, unknown> = {}
-    for (const [key, item] of Object.entries(this.manifest.configSchema)) {
-      if ('default' in item && item.default !== undefined) {
-        out[key] = item.default
+    for (const [key, schema] of Object.entries(props)) {
+      if (schema.default !== undefined) {
+        out[key] = schema.default
       }
     }
     return out

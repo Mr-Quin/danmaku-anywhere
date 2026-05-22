@@ -15,12 +15,15 @@
     }
   ],
   "configSchema": {
-    "danmakuFormat": {
-      "type": "enum",
-      "values": ["xml", "protobuf"],
-      "default": "protobuf",
-      "label": "Danmaku format",
-      "description": "xml is the legacy endpoint capped at ~3000 comments; protobuf paginates and returns everything"
+    "type": "object",
+    "properties": {
+      "danmakuFormat": {
+        "type": "string",
+        "enum": ["xml", "protobuf"],
+        "default": "protobuf",
+        "title": "Danmaku format",
+        "description": "xml is the legacy endpoint capped at ~3000 comments; protobuf paginates and returns everything"
+      }
     }
   },
   "protoSchemas": {

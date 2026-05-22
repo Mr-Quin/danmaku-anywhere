@@ -164,37 +164,55 @@ const zPipelineField = z
 // (helper removal, step-type semantics). Additive changes don't bump.
 export const SUPPORTED_API_VERSIONS = new Set<number>([1])
 
-const zConfigItem = z.discriminatedUnion('type', [
-  z.object({
-    type: z.literal('string'),
-    default: z.string().optional(),
-    label: z.string().optional(),
-    description: z.string().optional(),
-    sensitive: z.boolean().default(false),
-    required: z.boolean().default(false),
-  }),
-  z.object({
-    type: z.literal('number'),
-    default: z.number().optional(),
-    label: z.string().optional(),
-    description: z.string().optional(),
-    required: z.boolean().default(false),
-  }),
-  z.object({
-    type: z.literal('boolean'),
-    default: z.boolean().optional(),
-    label: z.string().optional(),
-    description: z.string().optional(),
-  }),
-  z.object({
-    type: z.literal('enum'),
-    values: z.array(z.string()).min(1),
-    default: z.string().optional(),
-    label: z.string().optional(),
-    description: z.string().optional(),
-  }),
-])
-export type ConfigItem = z.infer<typeof zConfigItem>
+// `configSchema` follows JSON Schema (draft 2020-12 subset). The engine
+// validates structural fields it consumes — type, properties, default,
+// required — and passes the rest through for downstream consumers (form
+// renderers using rjsf, AJV validators, IDE tooling).
+type JsonSchemaShape = {
+  type?:
+    | 'object'
+    | 'string'
+    | 'number'
+    | 'integer'
+    | 'boolean'
+    | 'array'
+    | 'null'
+  title?: string
+  description?: string
+  default?: unknown
+  format?: string
+  enum?: unknown[]
+  properties?: Record<string, JsonSchemaShape>
+  items?: JsonSchemaShape
+  required?: string[]
+  [k: string]: unknown
+}
+export const zConfigSchema: z.ZodType<JsonSchemaShape> = z.lazy(() =>
+  z
+    .object({
+      type: z
+        .enum([
+          'object',
+          'string',
+          'number',
+          'integer',
+          'boolean',
+          'array',
+          'null',
+        ])
+        .optional(),
+      title: z.string().optional(),
+      description: z.string().optional(),
+      default: z.unknown().optional(),
+      format: z.string().optional(),
+      enum: z.array(z.unknown()).optional(),
+      properties: z.record(z.string(), zConfigSchema).optional(),
+      items: zConfigSchema.optional(),
+      required: z.array(z.string()).optional(),
+    })
+    .passthrough()
+)
+export type ConfigSchema = z.infer<typeof zConfigSchema>
 
 export const zManifest = z.object({
   /** Engine API version; load fails if not in SUPPORTED_API_VERSIONS. */
@@ -217,7 +235,7 @@ export const zManifest = z.object({
    */
   hosts: z.array(z.string()).min(1),
   /** Per-installation options the user sets; merged into pipeline context at run time. */
-  configSchema: z.record(z.string(), zConfigItem).default({}),
+  configSchema: zConfigSchema.optional(),
   /**
    * Patterns for the host's "which source handles this URL" resolver.
    * Each entry: URL host matches `host` (exact / `*.domain`) AND pathname

@@ -5,10 +5,45 @@
   "version": "1.0.0",
   "hosts": ["*"],
   "configSchema": {
-    "baseUrl": {
-      "type": "string",
-      "label": "Base URL",
-      "description": "Root of the DanDanPlay-compatible API (e.g. https://my-server.com)"
+    "type": "object",
+    "required": ["baseUrl"],
+    "properties": {
+      "baseUrl": {
+        "type": "string",
+        "title": "Base URL",
+        "description": "Root of the DanDanPlay-compatible API (e.g. https://my-server.com)"
+      },
+      "chConvert": {
+        "type": "integer",
+        "enum": [0, 1, 2],
+        "default": 0,
+        "title": "Chinese conversion",
+        "description": "0 = no conversion, 1 = convert to simplified, 2 = convert to traditional"
+      },
+      "auth": {
+        "type": "object",
+        "title": "Authentication",
+        "description": "Custom request headers (e.g. Authorization) sent on every request",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "default": false,
+            "title": "Enable auth headers"
+          },
+          "headers": {
+            "type": "array",
+            "title": "Headers",
+            "items": {
+              "type": "object",
+              "required": ["key", "value"],
+              "properties": {
+                "key": { "type": "string", "title": "Header name" },
+                "value": { "type": "string", "title": "Value" }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "search": {

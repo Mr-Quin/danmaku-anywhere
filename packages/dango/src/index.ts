@@ -20,7 +20,7 @@ export {
 } from './engine/url-match.js'
 export { helpers } from './helpers/registry.js'
 export type {
-  ConfigItem,
+  ConfigSchema,
   Manifest,
   Pipeline,
   RequestSpec,
