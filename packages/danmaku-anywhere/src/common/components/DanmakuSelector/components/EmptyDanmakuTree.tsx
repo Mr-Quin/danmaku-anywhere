@@ -17,9 +17,25 @@ export const EmptyDanmakuTree = ({
   const { t } = useTranslation()
 
   return (
-    <Box height={1} position="relative">
-      <Stack p={4} alignItems="center" zIndex={2} position="relative">
-        <Typography mb={2}>
+    <Box
+      sx={{
+        height: 1,
+        position: 'relative',
+      }}
+    >
+      <Stack
+        sx={{
+          p: 4,
+          alignItems: 'center',
+          zIndex: 2,
+          position: 'relative',
+        }}
+      >
+        <Typography
+          sx={{
+            mb: 2,
+          }}
+        >
           {t('mountPage.libraryEmpty', 'The Library is empty...')}
         </Typography>
         <Button
@@ -29,7 +45,13 @@ export const EmptyDanmakuTree = ({
         >
           {t('mountPage.goSearch', 'Go search')}
         </Button>
-        <Typography variant="body2" fontSize="small" color="textSecondary">
+        <Typography
+          variant="body2"
+          color="textSecondary"
+          sx={{
+            fontSize: 'small',
+          }}
+        >
           {t('mountPage.or', 'or')}
         </Typography>
         <Button

@@ -41,8 +41,10 @@ export const ReleaseNotes = () => {
       <DialogTitle>
         <Stack
           direction="row"
-          alignItems="center"
-          justifyContent="space-between"
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
         >
           {query.data.name}
           <ExternalLink

@@ -105,7 +105,7 @@ export const IntegrationEditor = (): ReactElement => {
 
   return (
     <OverlayLayout>
-      <TabLayout height="100%">
+      <TabLayout sx={{ height: '100%' }}>
         <form
           onSubmit={handleSubmit((data) => {
             saveForm(data)
@@ -135,9 +135,13 @@ export const IntegrationEditor = (): ReactElement => {
 
           <IntegrationPreview control={form.control} />
 
-          <ScrollBox flexGrow={1} overflow="auto" minHeight={0}>
+          <ScrollBox sx={{ flexGrow: 1, overflow: 'auto', minHeight: 0 }}>
             <FormProvider {...form}>
-              <Box p={2}>
+              <Box
+                sx={{
+                  p: 2,
+                }}
+              >
                 <Stack spacing={2}>
                   <IntegrationSection
                     name="policy.title"
@@ -203,7 +207,6 @@ export const IntegrationEditor = (): ReactElement => {
           </Box>
         </form>
       </TabLayout>
-
       <ElementSelector
         enable={showSelector}
         onExit={() => setShowSelector(false)}

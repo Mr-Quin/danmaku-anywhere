@@ -146,7 +146,13 @@ export const TitleMappingPageCore = ({
       {activeMapping ? (
         <TitleMappingDetails map={activeMapping} />
       ) : mappings.length === 0 ? (
-        <Typography variant="body1" color="text.secondary" align="center">
+        <Typography
+          variant="body1"
+          align="center"
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {t('titleMapping.empty', 'No title mappings found.')}
         </Typography>
       ) : (

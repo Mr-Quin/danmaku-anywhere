@@ -9,10 +9,21 @@ export function SectionHeader({
 }) {
   return (
     <Box sx={{ mb: 2 }}>
-      <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 0.5 }}>
+      <Typography
+        variant="subtitle1"
+        sx={{
+          fontWeight: 600,
+          mb: 0.5,
+        }}
+      >
         {title}
       </Typography>
-      <Typography variant="body2" color="text.secondary">
+      <Typography
+        variant="body2"
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         {description}
       </Typography>
     </Box>

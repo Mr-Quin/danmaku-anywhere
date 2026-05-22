@@ -32,7 +32,14 @@ export const AppToolBar = () => {
     <AppBar position="static">
       <Toolbar variant="dense">
         <Fade in={isAnyLoading} unmountOnExit>
-          <Box position="absolute" top={0} left={0} width={1}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: 1,
+            }}
+          >
             <LinearProgress sx={{ height: '1px' }} />
           </Box>
         </Fade>

@@ -55,7 +55,7 @@ export const ProviderConfigList = ({
           />
           {!config.isBuiltIn && (
             <DrilldownMenu
-              BoxProps={{ display: 'inline' }}
+              BoxProps={{ sx: { display: 'inline' } }}
               ButtonProps={{ edge: 'end', size: 'small' }}
               dense
               items={[

@@ -40,7 +40,9 @@ export const TencentProviderForm = ({
       onSubmit={handleSubmit(handleFormSubmit)}
       direction="column"
       spacing={2}
-      alignItems="flex-start"
+      sx={{
+        alignItems: 'flex-start',
+      }}
     >
       <TextField
         label={t('providers.editor.name', 'Name')}
@@ -53,7 +55,6 @@ export const TencentProviderForm = ({
           'Built-in provider names cannot be changed'
         )}
       />
-
       <FormActions
         isEdit={isEdit}
         isSubmitting={isSubmitting}

@@ -11,14 +11,22 @@ export const ListItemPrimaryStack = ({
   children,
 }: ListItemPrimaryStackProps) => {
   return (
-    <Stack direction="row" alignItems="center" gap={1}>
+    <Stack
+      direction="row"
+      sx={{
+        alignItems: 'center',
+        gap: 1,
+      }}
+    >
       <Typography
         component="span"
         variant="body2"
         noWrap
-        flexShrink={1}
-        minWidth={0}
         title={text}
+        sx={{
+          flexShrink: 1,
+          minWidth: 0,
+        }}
       >
         {text}
       </Typography>

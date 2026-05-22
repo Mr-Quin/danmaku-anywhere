@@ -31,10 +31,18 @@ const OptionsListItem = ({
           primary={
             <Stack
               direction="row"
-              alignItems="center"
-              justifyContent="space-between"
+              sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
             >
-              <Stack direction="row" gap={1} alignItems="center">
+              <Stack
+                direction="row"
+                sx={{
+                  gap: 1,
+                  alignItems: 'center',
+                }}
+              >
                 {icon && <Icon>{icon}</Icon>}
                 {title}
               </Stack>

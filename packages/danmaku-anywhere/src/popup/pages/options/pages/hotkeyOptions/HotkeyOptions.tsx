@@ -18,7 +18,11 @@ export const HotkeyOptions = () => {
   return (
     <OptionsPageLayout>
       <OptionsPageToolBar title={t('optionsPage.pages.hotkeys', 'Hotkeys')} />
-      <Box px={2}>
+      <Box
+        sx={{
+          px: 2,
+        }}
+      >
         <List>
           {ALL_HOTKEYS.map((label) => {
             return (
@@ -27,8 +31,10 @@ export const HotkeyOptions = () => {
                   primary={
                     <Stack
                       direction="row"
-                      alignItems="center"
-                      justifyContent="space-between"
+                      sx={{
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
                     >
                       <>{HOTKEY_LABELS[label]()}</>
                       <HotkeyInput

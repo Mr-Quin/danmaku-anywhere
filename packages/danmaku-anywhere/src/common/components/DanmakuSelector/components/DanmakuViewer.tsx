@@ -49,7 +49,12 @@ const CommentsLoader = ({
 
   if (!episode) {
     return (
-      <Box p={2} flexGrow={1}>
+      <Box
+        sx={{
+          p: 2,
+          flexGrow: 1,
+        }}
+      >
         <NothingHere />
       </Box>
     )
@@ -70,14 +75,22 @@ export const DanmakuViewer = ({
   episode,
 }: DanmakuViewerProps): ReactElement => {
   return (
-    <Box display="flex" flexDirection="column" height="100%">
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+      }}
+    >
       <Stack
         direction="row"
-        alignItems="center"
-        gap={1}
-        p={1}
-        borderBottom={1}
-        borderColor="divider"
+        sx={{
+          alignItems: 'center',
+          gap: 1,
+          p: 1,
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
       >
         <IconButton onClick={onClose}>
           <ArrowBack />
@@ -86,7 +99,14 @@ export const DanmakuViewer = ({
           {episode.title}
         </Typography>
       </Stack>
-      <Box flexGrow={1} overflow="hidden" display="flex" flexDirection="column">
+      <Box
+        sx={{
+          flexGrow: 1,
+          overflow: 'hidden',
+          display: 'flex',
+          flexDirection: 'column',
+        }}
+      >
         <Suspense fallback={<FullPageSpinner />}>
           <CommentsLoader episodeLite={episode} />
         </Suspense>

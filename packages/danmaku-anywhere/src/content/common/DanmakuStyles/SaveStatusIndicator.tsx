@@ -39,10 +39,11 @@ export const SaveStatusIndicator = ({ status }: SaveStatusIndicatorProps) => {
 
   return (
     <Box
-      display="flex"
-      alignItems="center"
-      gap={0.5}
       sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0.5,
+
         '& .MuiSvgIcon-root': {
           '@keyframes spin': {
             '0%': { transform: 'rotate(0deg)' },

@@ -70,13 +70,15 @@ export const FieldTable = ({ children }: { children: ReactNode }) => (
 export const SectionHeader = ({ children }: { children: ReactNode }) => (
   <Typography
     variant="overline"
-    fontSize={10}
-    color="text.secondary"
-    px={1}
-    pt={1.5}
-    pb={0.5}
-    display="block"
-    letterSpacing={1.5}
+    sx={{
+      fontSize: 10,
+      color: 'text.secondary',
+      px: 1,
+      pt: 1.5,
+      pb: 0.5,
+      display: 'block',
+      letterSpacing: 1.5,
+    }}
   >
     {children}
   </Typography>

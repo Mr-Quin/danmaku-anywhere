@@ -29,12 +29,14 @@ export const SearchMascot = () => {
 
   return (
     <Box
-      overflow="hidden"
-      position="absolute"
-      maxWidth="100%"
-      maxHeight="100%"
-      bottom={0}
-      right={0}
+      sx={{
+        overflow: 'hidden',
+        position: 'absolute',
+        maxWidth: '100%',
+        maxHeight: '100%',
+        bottom: 0,
+        right: 0,
+      }}
     >
       <SuspenseImage
         src={image.src}

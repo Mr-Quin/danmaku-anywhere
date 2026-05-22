@@ -27,7 +27,13 @@ export const RegexRuleItem = ({
   return (
     <RuleItemBox>
       <RuleItemHeader index={index} onDelete={() => remove(index)} />
-      <Stack direction="row" alignItems="center" spacing={1}>
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          alignItems: 'center',
+        }}
+      >
         <Controller
           name={`${name}.regex.${index}.value`}
           control={control}

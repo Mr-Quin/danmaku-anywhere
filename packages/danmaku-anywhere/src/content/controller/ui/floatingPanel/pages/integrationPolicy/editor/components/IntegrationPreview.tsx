@@ -48,7 +48,12 @@ export const IntegrationPreview = ({ control }: IntegrationPreviewProps) => {
   return (
     <Alert severity="success">
       <Stack spacing={1} direction="row">
-        <Typography variant="subtitle2" fontWeight="bold">
+        <Typography
+          variant="subtitle2"
+          sx={{
+            fontWeight: 'bold',
+          }}
+        >
           {t('integrationPolicyPage.editor.matchResult', 'Match Result')}
         </Typography>
         <Typography variant="body2">{mediaInfo.toString()}</Typography>

@@ -83,7 +83,14 @@ export const MatchingSteps = () => {
           )
         }
         return (
-          <Stack direction="row" alignItems="center" spacing={1} mt={1}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{
+              alignItems: 'center',
+              mt: 1,
+            }}
+          >
             <Button
               variant="contained"
               size="small"
@@ -91,7 +98,13 @@ export const MatchingSteps = () => {
             >
               {t('integration.createConfig', 'Create Integration')}
             </Button>
-            <Typography variant="body2" fontSize="small" color="textSecondary">
+            <Typography
+              variant="body2"
+              color="textSecondary"
+              sx={{
+                fontSize: 'small',
+              }}
+            >
               {t('mountPage.or', 'or')}
             </Typography>
             <Button
@@ -269,7 +282,12 @@ export const MatchingSteps = () => {
               {step.label}
             </StepLabel>
             <StepContent>
-              <Typography variant="body2" color="text.secondary">
+              <Typography
+                variant="body2"
+                sx={{
+                  color: 'text.secondary',
+                }}
+              >
                 {step.description}
               </Typography>
               {step.renderContent?.()}

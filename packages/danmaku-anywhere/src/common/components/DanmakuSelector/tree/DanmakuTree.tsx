@@ -6,7 +6,7 @@ import type {
   Season,
 } from '@danmaku-anywhere/danmaku-converter'
 import { useEventCallback } from '@mui/material'
-import { useTreeViewApiRef } from '@mui/x-tree-view/hooks'
+import { useRichTreeViewApiRef } from '@mui/x-tree-view/hooks'
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView'
 import {
   type Ref,
@@ -150,7 +150,7 @@ export const DanmakuTree = ({
     typeFilter
   )
 
-  const apiRef = useTreeViewApiRef()
+  const apiRef = useRichTreeViewApiRef()
   const bookmarkRefresh = useBookmarkRefresh({ silent: true })
   const refreshedRef = useRef(new Set<number>())
   const { expandedItems, handleExpandedItemsChange: persistExpandedItems } =

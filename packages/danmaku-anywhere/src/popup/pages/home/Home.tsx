@@ -27,12 +27,25 @@ export const Home = () => {
   const { t } = useTranslation()
 
   return (
-    <Stack direction="column" spacing={0} height={1}>
+    <Stack
+      direction="column"
+      spacing={0}
+      sx={{
+        height: 1,
+      }}
+    >
       <AppToolBar />
       <Suspense fallback={null}>
         <MountAvailabilityBanner />
       </Suspense>
-      <Box display="flex" flexGrow={1} height={1} minHeight={0}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexGrow: 1,
+          height: 1,
+          minHeight: 0,
+        }}
+      >
         <SidebarTabs value={currentTab === '/' ? '/mount' : currentTab}>
           <Tab
             icon={<SubscriptionsOutlinedIcon />}

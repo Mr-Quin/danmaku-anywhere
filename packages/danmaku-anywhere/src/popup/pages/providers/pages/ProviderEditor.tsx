@@ -123,7 +123,13 @@ export const ProviderEditor = ({
   return (
     <OptionsPageLayout>
       <OptionsPageToolBar title={getTitle()} onGoBack={onClose} />
-      <Box p={2}>{renderForm()}</Box>
+      <Box
+        sx={{
+          p: 2,
+        }}
+      >
+        {renderForm()}
+      </Box>
     </OptionsPageLayout>
   )
 }

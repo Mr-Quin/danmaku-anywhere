@@ -5,14 +5,24 @@ export const OptionsPanel = () => {
   const { data: options } = useExtensionOptions()
 
   return (
-    <Box p={1}>
-      <Box mb={2}>
+    <Box
+      sx={{
+        p: 1,
+      }}
+    >
+      <Box
+        sx={{
+          mb: 2,
+        }}
+      >
         <Typography
           variant="overline"
           color="primary"
-          fontWeight="bold"
-          letterSpacing={1}
-          pl={0.5}
+          sx={{
+            fontWeight: 'bold',
+            letterSpacing: 1,
+            pl: 0.5,
+          }}
         >
           Extension Options
         </Typography>

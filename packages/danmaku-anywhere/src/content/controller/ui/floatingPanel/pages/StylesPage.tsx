@@ -20,7 +20,7 @@ export const StylesPage = () => {
         <SaveStatusIndicator status={saveStatus} />
       </TabToolbar>
       <Divider />
-      <ScrollBox px={3} pb={2} flexGrow={1} sx={{ overflowX: 'hidden' }}>
+      <ScrollBox sx={{ px: 3, pb: 2, flexGrow: 1, overflowX: 'hidden' }}>
         <DanmakuStylesForm onSaveStatusChange={setSaveStatus} />
       </ScrollBox>
     </TabLayout>

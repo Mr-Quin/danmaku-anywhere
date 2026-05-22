@@ -55,13 +55,29 @@ const AutomationCard = ({
             sx={{ visibility: 'hidden', position: 'absolute' }}
           />
           <Box>
-            <Stack direction="row" spacing={1} alignItems="center">
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
               <data.icon />
-              <Typography variant="subtitle1" fontWeight="bold">
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: 'bold',
+                }}
+              >
                 {data.label()}
               </Typography>
             </Stack>
-            <Typography variant="body2" color="text.secondary">
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {data.description()}
             </Typography>
           </Box>

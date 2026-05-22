@@ -269,7 +269,12 @@ export const DanmakuStylesForm = ({
 
   return (
     <>
-      <Stack spacing={1} mt={2}>
+      <Stack
+        spacing={1}
+        sx={{
+          mt: 2,
+        }}
+      >
         <Typography variant="h5" component="div">
           {t('stylePage.style', 'Style')}
         </Typography>
@@ -332,8 +337,10 @@ export const DanmakuStylesForm = ({
                 <Stack
                   component="span"
                   direction="row"
-                  alignItems="center"
-                  gap={1}
+                  sx={{
+                    alignItems: 'center',
+                    gap: 1,
+                  }}
                 >
                   {t('stylePage.useCustomCss', 'Use Custom CSS')}
                   <DocIcon path="docs/custom-css" />
@@ -379,8 +386,12 @@ export const DanmakuStylesForm = ({
           />
         </Collapse>
       </Stack>
-
-      <Stack spacing={1} mt={2}>
+      <Stack
+        spacing={1}
+        sx={{
+          mt: 2,
+        }}
+      >
         <Typography variant="h5" component="div">
           {t('stylePage.speedSettings', 'Speed Settings')}
         </Typography>
@@ -450,8 +461,12 @@ export const DanmakuStylesForm = ({
           )}
         />
       </Stack>
-
-      <Stack spacing={1} mt={2}>
+      <Stack
+        spacing={1}
+        sx={{
+          mt: 2,
+        }}
+      >
         <Typography variant="h5" component="div">
           {t('stylePage.safeZones', 'Display Area')}
         </Typography>
@@ -567,14 +582,27 @@ export const DanmakuStylesForm = ({
             <Stack
               spacing={1}
               direction="row"
-              alignItems="center"
-              justifyContent="space-between"
+              sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
             >
               <div>
-                <Typography gutterBottom variant="body2" fontWeight={600}>
+                <Typography
+                  gutterBottom
+                  variant="body2"
+                  sx={{
+                    fontWeight: 600,
+                  }}
+                >
                   {t('stylePage.distribution', 'Distribution')}
                 </Typography>
-                <Typography variant="caption" color="text.secondary">
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {t(
                     'stylePage.tooltip.distribution',
                     'Random: danmaku will be distributed uniformly. Order: danmaku will fill the screen from top to bottom.'
@@ -606,8 +634,12 @@ export const DanmakuStylesForm = ({
           )}
         />
       </Stack>
-
-      <Stack spacing={1} mt={2}>
+      <Stack
+        spacing={1}
+        sx={{
+          mt: 2,
+        }}
+      >
         <Typography variant="h5" component="div">
           {t('stylePage.specialDanmaku', 'Special Danmaku')}
         </Typography>

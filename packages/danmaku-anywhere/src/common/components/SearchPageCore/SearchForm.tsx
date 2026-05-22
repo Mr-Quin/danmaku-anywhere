@@ -230,7 +230,13 @@ export function SearchForm({
           flexShrink: 0,
         }}
       >
-        <Stack direction="row" spacing={0.75} alignItems="stretch">
+        <Stack
+          direction="row"
+          spacing={0.75}
+          sx={{
+            alignItems: 'stretch',
+          }}
+        >
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <SearchInput
               value={searchTerm}
@@ -277,8 +283,11 @@ export function SearchForm({
         {!isUrl && committedSearchTerm && (
           <Typography
             variant="overline"
-            color="text.secondary"
-            sx={{ minHeight: 16, lineHeight: '16px' }}
+            sx={{
+              color: 'text.secondary',
+              minHeight: 16,
+              lineHeight: '16px',
+            }}
           >
             {typeof activeCount === 'number'
               ? t('searchPage.resultsCount', '{{count}} results', {
@@ -288,7 +297,6 @@ export function SearchForm({
           </Typography>
         )}
       </Stack>
-
       <ScrollBox
         sx={{
           flex: 1,

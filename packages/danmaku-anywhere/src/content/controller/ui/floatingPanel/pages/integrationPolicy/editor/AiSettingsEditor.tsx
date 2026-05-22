@@ -58,8 +58,15 @@ export const AiSettingsEditor = (): ReactElement => {
 
   return (
     <OverlayLayout>
-      <TabLayout height="100%">
-        <Stack height="100%" display="flex" flexDirection="column" spacing={0}>
+      <TabLayout sx={{ height: '100%' }}>
+        <Stack
+          spacing={0}
+          sx={{
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+          }}
+        >
           <TabToolbar
             title={t('ai.settings', 'AI Settings')}
             showBackButton
@@ -78,8 +85,13 @@ export const AiSettingsEditor = (): ReactElement => {
             </div>
           </TabToolbar>
 
-          <ScrollBox flexGrow={1} overflow="auto" minHeight={0}>
-            <Box px={2} py={1}>
+          <ScrollBox sx={{ flexGrow: 1, overflow: 'auto', minHeight: 0 }}>
+            <Box
+              sx={{
+                px: 2,
+                py: 1,
+              }}
+            >
               <Suspense fallback={<FullPageSpinner />}>
                 <MountConfigAiSettingsForm config={value} onChange={setValue} />
               </Suspense>

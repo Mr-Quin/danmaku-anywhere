@@ -154,7 +154,9 @@ export const MountPageContent = ({
         value={filter}
         disabled={isFilterOpen || isMobile}
         autoFocus
-        boxProps={{ display: 'flex', flexDirection: 'column', height: '100%' }}
+        boxProps={{
+          sx: { display: 'flex', flexDirection: 'column', height: '100%' },
+        }}
       >
         <MountPageToolbar
           filter={filter}
@@ -173,7 +175,7 @@ export const MountPageContent = ({
           selectionCount={selectionCount}
         />
 
-        <ScrollBox flexGrow={1} overflow="auto">
+        <ScrollBox sx={{ flexGrow: 1, overflow: 'auto' }}>
           <DanmakuTree
             ref={danmakuTreeRef}
             filter={filter}

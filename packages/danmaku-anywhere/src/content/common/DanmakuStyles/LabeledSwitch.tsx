@@ -23,17 +23,35 @@ export const LabeledSwitch = ({
   const id = useId()
 
   return (
-    <Stack direction="row" alignItems="center" justifyContent="space-between">
+    <Stack
+      direction="row"
+      sx={{
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}
+    >
       <div>
         <Typography
           variant="body2"
-          fontWeight={600}
           id={id}
           {...typographyProps}
+          sx={[
+            {
+              fontWeight: 600,
+            },
+            ...(Array.isArray(typographyProps?.sx)
+              ? typographyProps.sx
+              : [typographyProps?.sx]),
+          ]}
         >
           {label}
         </Typography>
-        <Typography variant="caption" color="text.secondary">
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {tooltip}
         </Typography>
       </div>

@@ -18,7 +18,7 @@ export const StylesPage = () => {
       <TabToolbar title={t('stylePage.name', 'Danmaku Settings')}>
         <SaveStatusIndicator status={saveStatus} />
       </TabToolbar>
-      <ScrollBox px={3} pb={2} maxWidth="100%" sx={{ overflowX: 'hidden' }}>
+      <ScrollBox sx={{ px: 3, pb: 2, maxWidth: '100%', overflowX: 'hidden' }}>
         <DanmakuStylesForm onSaveStatusChange={setSaveStatus} />
       </ScrollBox>
     </TabLayout>

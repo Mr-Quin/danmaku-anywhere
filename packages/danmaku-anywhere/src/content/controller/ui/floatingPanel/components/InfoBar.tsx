@@ -57,7 +57,12 @@ export const InfoBar = () => {
             justifyContent: 'space-between',
           }}
         >
-          <Box display="flex" minWidth={0}>
+          <Box
+            sx={{
+              display: 'flex',
+              minWidth: 0,
+            }}
+          >
             <Tooltip title={titles}>
               <Typography noWrap>{title}</Typography>
             </Tooltip>
@@ -67,7 +72,11 @@ export const InfoBar = () => {
               ({comments.length})
             </Typography>
           </Box>
-          <Box flexShrink={0}>
+          <Box
+            sx={{
+              flexShrink: 0,
+            }}
+          >
             {canRefresh && (
               <Tooltip title={t('danmaku.refresh', 'Refresh Danmaku')}>
                 <IconButton

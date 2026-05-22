@@ -59,13 +59,13 @@ export abstract class MediaObserver {
       if (!this.subscriptions.has(event as IntegrationEventKey)) {
         this.subscriptions.set(event as IntegrationEventKey, new Set())
       }
-      this.subscriptions.get(event as IntegrationEventKey)!.add(eventHandler)
+      this.subscriptions.get(event as IntegrationEventKey)?.add(eventHandler)
     })
   }
 
   off(event: IntegrationEventKey, listener: Fn) {
     if (!this.subscriptions.has(event)) return
-    this.subscriptions.get(event)!.delete(listener)
+    this.subscriptions.get(event)?.delete(listener)
   }
 
   emit<T extends IntegrationEventKey>(

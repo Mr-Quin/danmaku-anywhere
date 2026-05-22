@@ -44,16 +44,22 @@ export const ControllerWindow = ({
     >
       <InfoBar />
       <Box
-        display="flex"
-        position="relative"
-        height={CONTROLLER_WINDOW_CONTENT_HEIGHT}
-        minHeight={CONTROLLER_WINDOW_CONTENT_HEIGHT}
+        sx={{
+          display: 'flex',
+          position: 'relative',
+          height: CONTROLLER_WINDOW_CONTENT_HEIGHT,
+          minHeight: CONTROLLER_WINDOW_CONTENT_HEIGHT,
+        }}
       >
         <PanelTabs />
         <WindowPaper ref={setContainer}>
           <Suspense
             fallback={
-              <Box flexGrow={1}>
+              <Box
+                sx={{
+                  flexGrow: 1,
+                }}
+              >
                 <FullPageSpinner />
               </Box>
             }

@@ -15,7 +15,13 @@ export const ExternalLink = ({
 }: ExternalLinkProps) => {
   return (
     <Link {...props}>
-      <Box component="span" display="inline-flex" alignItems="center">
+      <Box
+        component="span"
+        sx={{
+          display: 'inline-flex',
+          alignItems: 'center',
+        }}
+      >
         <Typography component="span" variant="inherit" color="primary">
           {children}
         </Typography>

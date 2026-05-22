@@ -43,13 +43,24 @@ export function InlineTester({ filters }: InlineTesterProps) {
         borderColor: alpha(theme.palette.primary.main, 0.2),
       }}
     >
-      <Stack direction="row" spacing={1} alignItems="center">
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          alignItems: 'center',
+        }}
+      >
         <FilterAltOutlined color="primary" fontSize="small" />
-        <Typography variant="body2" fontWeight={600} color="text.primary">
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: 600,
+            color: 'text.primary',
+          }}
+        >
           {t('danmakuFilter.testFilterPatterns', 'Test Filter Patterns')}
         </Typography>
       </Stack>
-
       <FilterTextField
         placeholder={t('danmakuFilter.enterTestText', 'Enter test text')}
         fullWidth
@@ -57,15 +68,16 @@ export function InlineTester({ filters }: InlineTesterProps) {
         onChange={(e) => setInput(e.target.value)}
         sx={{ bgcolor: 'background.paper', mt: 1, mb: 2 }}
       />
-
       {hasInput && (
         <Alert severity={match ? 'error' : 'success'}>
           {match ? (
             <Stack
               direction="row"
               spacing={1}
-              alignItems="center"
-              flexWrap="wrap"
+              sx={{
+                alignItems: 'center',
+                flexWrap: 'wrap',
+              }}
             >
               <span>
                 {t(

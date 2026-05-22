@@ -35,7 +35,12 @@ export const SearchSettings = ({ dragOverlayPortal }: SearchSettingsProps) => {
           <Typography variant="body2" sx={{ fontWeight: 600 }}>
             {t('optionsPage.searchUsingSimplified', 'Use Simplified Chinese')}
           </Typography>
-          <Typography variant="caption" color="text.secondary">
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {t(
               'searchPage.settings.simplifiedHelper',
               'Convert search terms to Simplified Chinese before sending.'
@@ -50,12 +55,14 @@ export const SearchSettings = ({ dragOverlayPortal }: SearchSettingsProps) => {
           }
         />
       </Box>
-
       <Box>
         <Typography
           variant="overline"
-          color="text.secondary"
-          sx={{ px: 0.25, display: 'block' }}
+          sx={{
+            color: 'text.secondary',
+            px: 0.25,
+            display: 'block',
+          }}
         >
           {t('searchPage.settings.sources', 'Sources')}
         </Typography>
@@ -88,7 +95,13 @@ export const SearchSettings = ({ dragOverlayPortal }: SearchSettingsProps) => {
               })
             }
             renderPrimary={(config) => (
-              <Stack direction="row" alignItems="center" spacing={1}>
+              <Stack
+                direction="row"
+                spacing={1}
+                sx={{
+                  alignItems: 'center',
+                }}
+              >
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
                   {config.isBuiltIn
                     ? localizedDanmakuSourceType(config.impl)

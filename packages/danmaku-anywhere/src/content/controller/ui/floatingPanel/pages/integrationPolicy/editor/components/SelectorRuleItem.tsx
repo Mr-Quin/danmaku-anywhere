@@ -85,7 +85,13 @@ export const SelectorRuleItem = ({
           <Colorize fontSize="small" />
         </IconButton>
       </RuleItemHeader>
-      <Stack direction="row" alignItems="center" spacing={1}>
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          alignItems: 'center',
+        }}
+      >
         <Controller
           name={`${name}.selector.${index}.value`}
           control={control}
@@ -110,11 +116,19 @@ export const SelectorRuleItem = ({
       {matchText?.isMatch ? (
         matchText.text ? (
           <DenseAlert icon={false} severity="success">
-            <Stack direction="row" alignItems="center" spacing={1}>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
               <Typography
                 variant="subtitle2"
-                fontWeight="bold"
-                color="success.main"
+                sx={{
+                  fontWeight: 'bold',
+                  color: 'success.main',
+                }}
               >
                 {t('integration.editor.selectorRuleItem.matched', 'Matched')}
               </Typography>

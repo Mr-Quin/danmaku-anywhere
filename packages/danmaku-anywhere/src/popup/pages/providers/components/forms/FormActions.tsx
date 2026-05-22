@@ -17,7 +17,14 @@ export const FormActions = ({
   const { t } = useTranslation()
 
   return (
-    <Stack direction="row" spacing={2} width={1} justifyContent="flex-end">
+    <Stack
+      direction="row"
+      spacing={2}
+      sx={{
+        width: 1,
+        justifyContent: 'flex-end',
+      }}
+    >
       {isEdit && (
         <Button
           variant="outlined"

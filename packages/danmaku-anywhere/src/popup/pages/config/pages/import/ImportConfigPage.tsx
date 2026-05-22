@@ -83,7 +83,12 @@ export const ImportConfigPage = () => {
           <>
             {result.succeeded.length > 0 && (
               <>
-                <Typography color="success.main" variant="subtitle1">
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    color: 'success.main',
+                  }}
+                >
                   {t('importPage.importSuccess', {
                     count: result.succeeded.length,
                   })}
@@ -119,7 +124,12 @@ export const ImportConfigPage = () => {
       case 'error': {
         return (
           <>
-            <Typography color="error.main" variant="subtitle1">
+            <Typography
+              variant="subtitle1"
+              sx={{
+                color: 'error.main',
+              }}
+            >
               {t('error.unknown', 'Something went wrong.')}
             </Typography>
             <PreFormat>{error?.message}</PreFormat>
@@ -154,7 +164,11 @@ export const ImportConfigPage = () => {
       </Tabs>
       <Divider />
       {tabValue === 'upload' && (
-        <Box p={2}>
+        <Box
+          sx={{
+            p: 2,
+          }}
+        >
           <FileUpload
             onFilesSelected={handleSelectFiles}
             accept=".json"

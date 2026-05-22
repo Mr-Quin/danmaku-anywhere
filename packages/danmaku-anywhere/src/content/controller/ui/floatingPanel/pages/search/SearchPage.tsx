@@ -80,7 +80,11 @@ export const SearchPage = (): React.ReactElement | null => {
 
   if (!enabledProviders.length) {
     return (
-      <Box flexGrow={1}>
+      <Box
+        sx={{
+          flexGrow: 1,
+        }}
+      >
         <Center>
           <Typography>
             {t(

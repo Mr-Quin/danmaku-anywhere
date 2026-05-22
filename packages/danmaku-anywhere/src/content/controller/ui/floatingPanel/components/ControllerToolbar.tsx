@@ -55,7 +55,14 @@ export const ControllerToolbar = () => {
     >
       <>
         <Fade in={isAnyLoading} unmountOnExit>
-          <Box position="absolute" top={0} left={0} width={1}>
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: 1,
+            }}
+          >
             <LinearProgress sx={{ height: '1px' }} />
           </Box>
         </Fade>
@@ -68,9 +75,11 @@ export const ControllerToolbar = () => {
         ) : (
           <>
             <Typography
-              overflow="hidden"
-              textOverflow="ellipsis"
               title={activeConfig.name}
+              sx={{
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
             >
               {activeConfig.name}
             </Typography>

@@ -5,13 +5,19 @@ import { useStore } from '@/content/controller/store/store'
 
 // biome-ignore lint/suspicious/noExplicitAny: debug serialization
 const JsonBlock = ({ title, data }: { title: string; data: any }) => (
-  <Box mb={2}>
+  <Box
+    sx={{
+      mb: 2,
+    }}
+  >
     <Typography
       variant="overline"
       color="primary"
-      fontWeight="bold"
-      letterSpacing={1}
-      pl={0.5}
+      sx={{
+        fontWeight: 'bold',
+        letterSpacing: 1,
+        pl: 0.5,
+      }}
     >
       {title}
     </Typography>
@@ -65,7 +71,11 @@ export const StatePanel = () => {
   }
 
   return (
-    <Box p={1}>
+    <Box
+      sx={{
+        p: 1,
+      }}
+    >
       <JsonBlock title="General" data={generalState} />
       <JsonBlock title="Danmaku" data={cleanDanmakuState} />
       <JsonBlock title="Integration" data={integration} />

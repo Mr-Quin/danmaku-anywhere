@@ -331,7 +331,7 @@ export function DraggableList<T extends DraggableItem>({
         items={orderedItems.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        <ScrollBox overflow="auto">
+        <ScrollBox sx={{ overflow: 'auto' }}>
           <List dense disablePadding>
             {orderedItems.map((item) => (
               <SortableItem

@@ -1,7 +1,7 @@
 import {
-  AddCircleOutline,
+  AddCircleOutlined,
   ExpandMore,
-  RemoveCircleOutline,
+  RemoveCircleOutlined,
 } from '@mui/icons-material'
 import {
   AccordionDetails,
@@ -51,7 +51,12 @@ export const MountConfigBasicStep = ({
   }
 
   return (
-    <Stack spacing={2} alignItems="flex-start">
+    <Stack
+      spacing={2}
+      sx={{
+        alignItems: 'flex-start',
+      }}
+    >
       <Collapse in={isPermissive} sx={{ width: 1 }}>
         <Alert severity="warning">
           {t(
@@ -83,9 +88,11 @@ export const MountConfigBasicStep = ({
         <Stack
           direction="row"
           spacing={2}
-          alignItems="center"
           key={field.id}
-          sx={{ alignSelf: 'stretch' }}
+          sx={{
+            alignItems: 'center',
+            alignSelf: 'stretch',
+          }}
         >
           <TextField
             label={`${t('configPage.editor.pattern')} ${index + 1}`}
@@ -102,7 +109,7 @@ export const MountConfigBasicStep = ({
           {arr.length > 1 ? (
             <Box>
               <IconButton onClick={() => removePatternField(index)}>
-                <RemoveCircleOutline />
+                <RemoveCircleOutlined />
               </IconButton>
             </Box>
           ) : (
@@ -112,7 +119,7 @@ export const MountConfigBasicStep = ({
       ))}
       <Button
         onClick={addPatternField}
-        startIcon={<AddCircleOutline />}
+        startIcon={<AddCircleOutlined />}
         size="small"
       >
         {t('configPage.editor.addPattern', 'Add Pattern')}

@@ -1,5 +1,5 @@
 import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
-import { ChatBubbleOutline, InsertDriveFile } from '@mui/icons-material'
+import { ChatBubbleOutlined, InsertDriveFile } from '@mui/icons-material'
 import { Stack, styled, Typography } from '@mui/material'
 import type { ReactElement } from 'react'
 import { isNotCustom } from '@/common/danmaku/utils'
@@ -9,7 +9,7 @@ interface EpisodeTreeItemProps {
   label: string
 }
 
-const CommentCountIcon = styled(ChatBubbleOutline)(({ theme }) => {
+const CommentCountIcon = styled(ChatBubbleOutlined)(({ theme }) => {
   return {
     fontSize: theme.typography.caption.fontSize,
     fill: theme.palette.text.secondary,
@@ -18,9 +18,20 @@ const CommentCountIcon = styled(ChatBubbleOutline)(({ theme }) => {
 
 const CommentCount = ({ count }: { count: number }) => {
   return (
-    <Stack direction="row" alignItems="center" gap={0.5}>
+    <Stack
+      direction="row"
+      sx={{
+        alignItems: 'center',
+        gap: 0.5,
+      }}
+    >
       <CommentCountIcon />
-      <Typography variant="caption" color="text.secondary">
+      <Typography
+        variant="caption"
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         {count}
       </Typography>
     </Stack>
@@ -37,12 +48,14 @@ export const EpisodeTreeItem = ({
     <>
       <Stack
         direction="row"
-        alignItems="center"
-        width="100%"
-        gap={1}
-        py={0.5}
-        overflow="hidden"
-        pr={1}
+        sx={{
+          alignItems: 'center',
+          width: '100%',
+          gap: 1,
+          py: 0.5,
+          overflow: 'hidden',
+          pr: 1,
+        }}
       >
         {isCustom && <InsertDriveFile fontSize="small" />}
         <Typography noWrap variant="body2">

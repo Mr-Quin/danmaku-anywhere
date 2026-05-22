@@ -54,10 +54,22 @@ export function RulesList({
   return (
     <Box>
       {(title || onResetDefaults) && (
-        <Stack direction="row" alignItems="center" spacing={1} mb={0.5}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{
+            alignItems: 'center',
+            mb: 0.5,
+          }}
+        >
           {title && (
             <>
-              <Typography variant="body2" fontWeight={600}>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: 600,
+                }}
+              >
                 {title}
               </Typography>
               <Chip
@@ -68,7 +80,11 @@ export function RulesList({
               />
             </>
           )}
-          <Box flex={1} />
+          <Box
+            sx={{
+              flex: 1,
+            }}
+          />
           {onResetDefaults && (
             <Button
               variant="text"
@@ -88,7 +104,15 @@ export function RulesList({
           )}
         </Stack>
       )}
-      {composer && <Box mb={1}>{composer}</Box>}
+      {composer && (
+        <Box
+          sx={{
+            mb: 1,
+          }}
+        >
+          {composer}
+        </Box>
+      )}
       <Paper variant="outlined">
         <List dense disablePadding>
           {rules.map((rule, i) => (
@@ -117,8 +141,10 @@ export function RulesList({
             <ListItem>
               <Typography
                 variant="body2"
-                color="text.secondary"
-                fontStyle="italic"
+                sx={{
+                  color: 'text.secondary',
+                  fontStyle: 'italic',
+                }}
               >
                 {emptyText}
               </Typography>
@@ -153,16 +179,19 @@ function DisplayRow({ rule, canEdit, onEdit, onDelete }: DisplayRowProps) {
       <Stack
         direction="row"
         spacing={1}
-        alignItems="center"
-        sx={{ width: '100%', minWidth: 0 }}
+        sx={{
+          alignItems: 'center',
+          width: '100%',
+          minWidth: 0,
+        }}
       >
         <Typography
           variant="body2"
           component="span"
-          fontFamily="monospace"
           noWrap
           title={display}
           sx={{
+            fontFamily: 'monospace',
             flex: 1,
             minWidth: 0,
             overflow: 'hidden',
@@ -249,8 +278,10 @@ function EditRow({ rule, existing, onCancel, onSave }: EditRowProps) {
       <Stack
         direction="row"
         spacing={1}
-        alignItems="center"
-        sx={{ width: '100%' }}
+        sx={{
+          alignItems: 'center',
+          width: '100%',
+        }}
       >
         <FilterTextField
           fullWidth

@@ -99,7 +99,9 @@ export const RecordEditor = ({
           key={field.id}
           direction="row"
           spacing={1}
-          alignItems="flex-start"
+          sx={{
+            alignItems: 'flex-start',
+          }}
         >
           <IconButton onClick={() => remove(index)} size="small" tabIndex={-1}>
             <Remove />
@@ -152,7 +154,6 @@ export const RecordEditor = ({
           />
         </Stack>
       ))}
-
       <Button
         variant="outlined"
         size="small"

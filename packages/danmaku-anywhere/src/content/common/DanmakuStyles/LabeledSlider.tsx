@@ -67,7 +67,14 @@ export const LabeledSlider = ({
 
   return (
     <Box>
-      <Stack direction="row" alignItems="center" spacing={1} mb={0.5}>
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          alignItems: 'center',
+          mb: 0.5,
+        }}
+      >
         <Typography
           id={id}
           sx={{ flex: 1, fontWeight: 600 }}
@@ -86,7 +93,12 @@ export const LabeledSlider = ({
         )}
       </Stack>
       {tooltip && (
-        <Typography variant="caption" color="text.secondary">
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {tooltip}
         </Typography>
       )}
