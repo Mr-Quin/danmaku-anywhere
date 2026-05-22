@@ -151,7 +151,7 @@ Steps 1–2 are already complete.
 `
 )
 
-const claudeCmd = `claude --permission-mode acceptEdits --add-dir . "Read ${taskFile} and follow the instructions"`
+const claudeCmd = `claude --permission-mode acceptEdits --add-dir . -- "Read ${taskFile} and follow the instructions"`
 
 console.log()
 console.log(`✓ Worktree:   ${worktreeDir}`)
@@ -177,10 +177,15 @@ if (process.platform === 'win32') {
     '-Command',
     claudeCmd,
   ]
-  console.log('Windows Terminal one-liner:')
-  console.log()
-  console.log(
-    '  wt ' + wtArgs.map((a) => (a.includes(' ') ? `'${a}'` : a)).join(' ')
-  )
-  console.log()
+  console.log('Opening a Windows Terminal tab with the Claude session...')
+  const r = spawnSync('wt', wtArgs, { stdio: 'inherit' })
+  if (r.status !== 0 || r.error) {
+    console.log()
+    console.log('Could not launch Windows Terminal; run this manually instead:')
+    console.log()
+    console.log(
+      '  wt ' + wtArgs.map((a) => (a.includes(' ') ? `'${a}'` : a)).join(' ')
+    )
+    console.log()
+  }
 }
