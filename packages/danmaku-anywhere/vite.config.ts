@@ -57,6 +57,9 @@ export default defineConfig({
       clientPort: port,
     },
     open: false,
+    // Content scripts on host pages fetch font CSS/woff2 cross-origin from
+    // localhost — Vite 7 defaults to no CORS, blocking those font requests.
+    cors: { origin: '*' },
   },
   define: {
     'import.meta.env.VITE_TARGET_BROWSER': JSON.stringify(browser.name),
