@@ -53,9 +53,8 @@ describe('builtin:youku manifest', () => {
               commonData: {
                 isYouku: 1,
                 showId: 'ya0123abc',
-                titleDTO: { displayName: '<em>Frieren</em>【独家】' },
-                cats: '动漫',
-                feature: '日本/动漫/2023/24集',
+                titleDTO: { displayName: '<em>Frieren</em>' },
+                feature: '2023 · 动漫 · 日本',
                 posterDTO: { vThumbUrl: 'https://example.com/p.jpg' },
                 episodeTotal: 28,
               },

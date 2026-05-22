@@ -18,6 +18,6 @@
         }
       }
     ],
-    "output": "[search.pageComponentList[commonData.isYouku=1 or commonData.hasYouku=1].commonData.{ 'providerIds': { 'showId': showId }, 'indexedId': showId, 'title': $replace(titleDTO.displayName, /<[^>]+>/, '') ~> $replace(/【.+?】/, '') ~> $trim, 'type': cats, 'year': $number($regexExtract(feature, '([12][890][0-9][0-9])')), 'imageUrl': posterDTO.vThumbUrl, 'episodeCount': episodeTotal }[providerIds.showId]]"
+    "output": "[search.pageComponentList[commonData.isYouku=1 or commonData.hasYouku=1].commonData.($parts := $split(feature, ' · '); { 'providerIds': { 'showId': showId }, 'indexedId': showId, 'title': $replace(titleDTO.displayName, /<[^>]+>/, '') ~> $trim, 'type': $trim($parts[1]), 'year': $number($regexExtract(feature, '([12][890][0-9][0-9])')), 'imageUrl': posterDTO.vThumbUrl, 'episodeCount': episodeTotal })[providerIds.showId]]"
   }
 }
