@@ -1,11 +1,4 @@
 import { getVideoUrlFromResponse } from './cat-catch.js'
-// polyfill for firefox
-import 'core-js/es/disposable-stack'
-import 'core-js/es/async-disposable-stack'
-import 'core-js/es/iterator/dispose'
-import 'core-js/es/async-iterator/async-dispose'
-import 'core-js/es/symbol/async-dispose'
-import 'core-js/es/symbol/dispose'
 import type { HTTPHeader } from './types.js'
 import { createTab, Logger } from './utils.js'
 

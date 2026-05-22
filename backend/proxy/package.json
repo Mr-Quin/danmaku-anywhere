@@ -12,7 +12,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "dev:remote": "pnpm dev --remote",
-    "test": "vitest",
+    "test": "vitest run",
     "lint": "biome check --fix",
     "lint:ci": "biome ci",
     "type-check:local": "tsgo --noEmit",

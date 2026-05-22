@@ -13,7 +13,7 @@
     "build": "tsgo",
     "lint": "biome check --fix",
     "type-check": "tsgo --noEmit",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "dependencies": {},
   "peerDependencies": {
