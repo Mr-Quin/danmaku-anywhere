@@ -325,7 +325,7 @@ describe('builtin:tencent manifest', () => {
     expect(result).toHaveLength(100)
   })
 
-  it('runs the two-phase danmaku flow and emits raw barrage items', async () => {
+  it('runs the two-phase danmaku flow and emits {p, m} CommentEntity rows', async () => {
     const vid = 'vid_42'
     const { fetcher, calls } = mockFetcher({
       [`https://dm.video.qq.com/barrage/base/${vid}`]: {
@@ -343,29 +343,73 @@ describe('builtin:tencent manifest', () => {
     })
 
     const result = (await runner.runDanmaku({ vid })) as Array<{
-      id: string
-      content: string
-      time_offset: number
-      content_style: string
+      p: string
+      m: string
     }>
 
-    expect(result).toHaveLength(3)
-    expect(result[0]).toMatchObject({
-      id: '101',
-      content: 'hello tencent',
-      time_offset: 5000,
-    })
-    expect(result[1]).toMatchObject({
-      id: '102',
-      content: 'colored',
-      time_offset: 12345,
-    })
-    expect(result[2]).toMatchObject({
-      id: '201',
-      content: 'no style',
-      time_offset: 35000,
-      content_style: '',
-    })
+    // p is `${seconds},${rtl=1},${colorInt}`. Tencent has no userHash;
+    // color resolves via gradient_colors[0] (preferred) or color, default white.
+    expect(result).toEqual([
+      { p: '5,1,16777215', m: 'hello tencent' },
+      { p: '12.345,1,16711680', m: 'colored' },
+      { p: '35,1,16777215', m: 'no style' },
+    ])
     expect(calls).toHaveLength(3)
+  })
+
+  it('color resolution handles missing gradient_colors, leading #, and broken JSON', async () => {
+    const vid = 'vid_color'
+    const segment = {
+      barrage_list: [
+        // color-only (no gradient_colors)
+        {
+          id: '1',
+          content: 'green',
+          time_offset: 1000,
+          content_style: '{"color":"00FF00","position":0}',
+        },
+        // defensive: leading # in color hex
+        {
+          id: '2',
+          content: 'hashed',
+          time_offset: 2000,
+          content_style: '{"color":"#FFFFFF","position":0}',
+        },
+        // broken JSON falls through to white
+        {
+          id: '3',
+          content: 'broken',
+          time_offset: 3000,
+          content_style: 'not json',
+        },
+        // missing content_style entirely
+        { id: '4', content: 'absent', time_offset: 4000 },
+      ],
+    }
+    const { fetcher } = mockFetcher({
+      [`https://dm.video.qq.com/barrage/base/${vid}`]: {
+        body: JSON.stringify({
+          segment_index: { '0': { segment_start: 0, segment_name: '0' } },
+        }),
+      },
+      [`https://dm.video.qq.com/barrage/segment/${vid}/0`]: {
+        body: JSON.stringify(segment),
+      },
+    })
+    const runner = new ManifestRunner(zManifest.parse(builtinTencent), {
+      fetcher,
+    })
+
+    const result = (await runner.runDanmaku({ vid })) as Array<{
+      p: string
+      m: string
+    }>
+
+    expect(result).toEqual([
+      { p: '1,1,65280', m: 'green' },
+      { p: '2,1,16777215', m: 'hashed' },
+      { p: '3,1,16777215', m: 'broken' },
+      { p: '4,1,16777215', m: 'absent' },
+    ])
   })
 })

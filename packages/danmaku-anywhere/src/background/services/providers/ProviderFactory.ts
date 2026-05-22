@@ -12,23 +12,12 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { MacCmsProviderService } from './MacCmsProviderService'
 import { ManifestProviderService } from './ManifestProviderService'
 import { ManifestRegistry } from './ManifestRegistry'
-import { TencentMapper } from './tencent/TencentMapper'
 
 export type IDanmakuProviderFactory = (
   config: ProviderConfig
 ) => IDanmakuProvider
 
 export const DanmakuProviderFactory = Symbol.for('DanmakuProviderFactory')
-
-// Adapter: ManifestProviderService hands the mapper an `unknown` payload
-// (the raw output of the manifest's danmaku pipeline). Mappers are typed
-// to a specific shape they expect. Goes away when DA-477's per-row `map`
-// step kind moves the transform into the manifest.
-function withMapper<T>(
-  fn: (arg: T) => CommentEntity[]
-): (raw: unknown) => CommentEntity[] {
-  return (raw) => fn(raw as T)
-}
 
 interface DdpConfig {
   chConvert?: number
@@ -47,8 +36,7 @@ interface BuiltinDispatch {
   extraInputs?: (config: ProviderConfig) => Record<string, unknown>
 }
 
-// DDP and DDP-Compat manifests emit CommentEntity-shaped rows directly;
-// no per-row reshape needed.
+// All builtin manifests emit CommentEntity-shaped rows directly.
 const identityCommentMapper = (raw: unknown): CommentEntity[] =>
   raw as CommentEntity[]
 
@@ -76,7 +64,7 @@ const builtinDispatch: Record<string, BuiltinDispatch> = {
   },
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]]: {
     provider: DanmakuSourceType.Tencent,
-    commentMapper: withMapper(TencentMapper.manifestBarrageToComments),
+    commentMapper: identityCommentMapper,
   },
 }
 
