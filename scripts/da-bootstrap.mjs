@@ -56,7 +56,13 @@ function step(msg) {
 }
 
 function run(cmd, args, opts = {}) {
-  const r = spawnSync(cmd, args, { stdio: 'inherit', ...opts })
+  // Node 22 deprecates passing an args array together with shell:true
+  // (DEP0190). On Windows we need shell:true to find `pnpm.cmd`, so collapse
+  // to a single command string in that path.
+  const r =
+    opts.shell === true
+      ? spawnSync([cmd, ...args].join(' '), { stdio: 'inherit', ...opts })
+      : spawnSync(cmd, args, { stdio: 'inherit', ...opts })
   if (r.status !== 0) {
     die(`command failed: ${cmd} ${args.join(' ')}`)
   }
