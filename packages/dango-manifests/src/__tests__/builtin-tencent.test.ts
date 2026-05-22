@@ -357,6 +357,48 @@ describe('builtin:tencent manifest', () => {
     expect(calls).toHaveLength(3)
   })
 
+  it('loginProbe returns true when the details endpoint succeeds', async () => {
+    const { fetcher, calls } = mockFetcher({
+      'https://pbaccess.video.qq.com/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vversion_name=8.2.96&vversion_platform=2':
+        {
+          body: JSON.stringify({
+            ret: 0,
+            msg: '',
+            data: { module_list_datas: [] },
+          }),
+        },
+    })
+    const runner = new ManifestRunner(zManifest.parse(builtinTencent), {
+      fetcher,
+    })
+
+    expect(runner.hasLoginProbe()).toBe(true)
+    expect(await runner.runLoginProbe()).toBe(true)
+
+    expect(calls).toHaveLength(1)
+    const init = calls[0].init as {
+      method?: string
+      rewriteHeaders?: Record<string, string>
+    }
+    expect(init.method).toBe('POST')
+    expect(init.rewriteHeaders).toEqual({
+      Origin: 'https://v.qq.com',
+      Referer: 'https://v.qq.com/',
+    })
+  })
+
+  it('loginProbe returns false when the details endpoint reports ret != 0', async () => {
+    const { fetcher } = mockFetcher({
+      'https://pbaccess.video.qq.com/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vversion_name=8.2.96&vversion_platform=2':
+        { body: JSON.stringify({ ret: -1100001, msg: 'need login' }) },
+    })
+    const runner = new ManifestRunner(zManifest.parse(builtinTencent), {
+      fetcher,
+    })
+
+    expect(await runner.runLoginProbe()).toBe(false)
+  })
+
   it('color resolution handles missing gradient_colors, leading #, and broken JSON', async () => {
     const vid = 'vid_color'
     const segment = {

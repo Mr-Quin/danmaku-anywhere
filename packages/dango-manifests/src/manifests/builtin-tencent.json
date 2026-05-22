@@ -104,6 +104,26 @@
     ],
     "output": "[segments.{ 'p': $string($number(time_offset) / 1000) & ',1,' & $string(content_style and content_style != '' ? ($s := $jsonParse(content_style); $s ? ($g := $s.gradient_colors; $hex := ($g and $g[0] and $g[0] != '') ? $g[0] : $s.color; ($hex and $hex != '') ? $hexToInt($replace($hex, /^#/, '')) : $hexToInt('ffffff')) : $hexToInt('ffffff')) : $hexToInt('ffffff')), 'm': content }]"
   },
+  "loginProbe": {
+    "inputs": [],
+    "steps": [
+      {
+        "type": "http",
+        "id": "details",
+        "request": {
+          "method": "POST",
+          "url": "'https://pbaccess.video.qq.com/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vversion_name=8.2.96&vversion_platform=2'",
+          "headers": { "Content-Type": "'application/json'" },
+          "body": "{ 'has_cache': 1, 'pageParams': { 'cid': 'mzc00200xf3rir6', 'lid': '0', 'vid': 'i0046sewh4r', 'req_from': 'web_mobile', 'page_type': 'detail_operation', 'page_id': 'detail_page_introduction' } }",
+          "rewriteHeaders": {
+            "Origin": "'https://v.qq.com'",
+            "Referer": "'https://v.qq.com/'"
+          }
+        }
+      }
+    ],
+    "output": "details.ret = 0"
+  },
   "parseUrl": {
     "inputs": [],
     "steps": [

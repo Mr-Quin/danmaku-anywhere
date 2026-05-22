@@ -442,6 +442,53 @@ describe('builtin:bilibili manifest', () => {
     expect(await runner.runParseUrl('https://example.com/whatever')).toBeNull()
   })
 
+  it('loginProbe returns nav.data with isLogin flag', async () => {
+    const { fetcher, calls } = mockFetcher({
+      'https://api.bilibili.com/x/web-interface/nav': {
+        body: JSON.stringify({
+          code: 0,
+          message: '0',
+          ttl: 1,
+          data: { isLogin: true, uname: 'alice', mid: 12345 },
+        }),
+      },
+    })
+    const runner = new ManifestRunner(zManifest.parse(builtinBilibili), {
+      fetcher,
+    })
+
+    expect(runner.hasLoginProbe()).toBe(true)
+    const result = (await runner.runLoginProbe()) as {
+      isLogin: boolean
+      uname?: string
+    } | null
+
+    expect(result?.isLogin).toBe(true)
+    expect(calls).toHaveLength(1)
+    expect((calls[0].init as { credentials?: string }).credentials).toBe(
+      'include'
+    )
+  })
+
+  it('loginProbe surfaces logged-out state via nav.data.isLogin = false', async () => {
+    const { fetcher } = mockFetcher({
+      'https://api.bilibili.com/x/web-interface/nav': {
+        body: JSON.stringify({
+          code: -101,
+          message: '账号未登录',
+          ttl: 1,
+          data: { isLogin: false },
+        }),
+      },
+    })
+    const runner = new ManifestRunner(zManifest.parse(builtinBilibili), {
+      fetcher,
+    })
+
+    const result = (await runner.runLoginProbe()) as { isLogin: boolean } | null
+    expect(result?.isLogin).toBe(false)
+  })
+
   it('parseUrl emits episodeMeta=undefined when no episode matches the epid', async () => {
     const { fetcher } = mockFetcher({
       'https://api.bilibili.com/pgc/view/web/season': {
