@@ -98,7 +98,7 @@ const getBuildInfo = (name: string, tag: string): BuildInfo => {
   }
 
   if (tag.startsWith('preview-pr-')) {
-    const prNumber = /(\d+)/.exec(tag)?.[1]
+    const prNumber = /^preview-pr-(\d+)/.exec(tag)?.[1]
     return {
       label: 'PR',
       color: 'daisy-badge-accent',
