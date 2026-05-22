@@ -48,7 +48,7 @@ Make the changes. Apply these in order:
 - **CLAUDE.md conventions**: formatting, comment policy, no em dashes, function declarations, no syntax soup. Non-negotiable.
 - **KISS**: write the simplest thing that solves the *actual* task. No fallback chains for inputs that cannot happen (trust the caller, trust the type), no constants used in one place, no helpers used once, no abstractions for one call site. Three similar lines beat one clever generic. If you catch yourself writing `?? a ?? b ?? c`, stop and ask which of those branches can actually fire.
 - **YAGNI**: don't add a config knob, parameter, or branch unless *this* PR needs it. "In case someone later wants to…" is the smell. Future flexibility is cheaper to add when it's actually needed than to remove when it isn't.
-- **Best practices**: explicit over implicit, boring over clever, validate at boundaries not internal call sites, let the type system do work. Match the surrounding code's style and idioms instead of importing patterns from elsewhere.
+- **Library / framework idioms**: use each library's blessed patterns rather than inventing your own. Before writing a helper, check whether the framework already exposes the primitive (e.g. React hook, Hono middleware, Playwright fixture, octokit method, MUI component). For unfamiliar APIs or recent versions, fetch current docs via the `context7` MCP instead of trusting model memory. Match the project's existing usage of a library; if everywhere else uses pattern A and you're tempted to introduce pattern B, the burden of proof is on B.
 
 ### 4. Verify
 
