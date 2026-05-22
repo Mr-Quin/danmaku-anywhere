@@ -108,7 +108,7 @@ describe('persistRoute', () => {
 
       subscriber?.({
         navigation: { state: 'idle' },
-        location: { pathname: '/config/import', search: '' },
+        location: { pathname: '/config/import', search: '', hash: '' },
       })
 
       expect(mockChrome.storage.session.set).toHaveBeenCalledWith({
@@ -132,7 +132,7 @@ describe('persistRoute', () => {
       setupRoutePersistence(router)
       subscriber?.({
         navigation: { state: 'loading' },
-        location: { pathname: '/config/import', search: '' },
+        location: { pathname: '/config/import', search: '', hash: '' },
       })
 
       expect(mockChrome.storage.session.set).not.toHaveBeenCalled()
@@ -151,7 +151,7 @@ describe('persistRoute', () => {
       setupRoutePersistence(router)
       const idleAt = (pathname: string) => ({
         navigation: { state: 'idle' },
-        location: { pathname, search: '' },
+        location: { pathname, search: '', hash: '' },
       })
 
       subscriber?.(idleAt('/styles'))

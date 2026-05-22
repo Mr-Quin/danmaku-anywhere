@@ -56,8 +56,8 @@ export function setupRoutePersistence(router: PopupRouter): () => void {
     if (state.navigation.state !== 'idle') {
       return
     }
-    const { pathname, search } = state.location
-    const path = `${pathname}${search}`
+    const { pathname, search, hash } = state.location
+    const path = `${pathname}${search}${hash}`
     if (path === lastWritten) {
       return
     }
