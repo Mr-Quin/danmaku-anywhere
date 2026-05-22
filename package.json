@@ -27,11 +27,11 @@
     "prepare": "lefthook install"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.7",
-    "@typescript/native-preview": "7.0.0-dev.20251123.1",
-    "knip": "^6.3.0",
-    "lefthook": "^2.0.4",
-    "typescript": "^5.9.3"
+    "@biomejs/biome": "^2.4.15",
+    "@typescript/native-preview": "^7.0.0-dev.20260522.1",
+    "knip": "^6.14.2",
+    "lefthook": "^2.1.8",
+    "typescript": "^6.0.3"
   },
   "packageManager": "pnpm@11.2.2"
 }
