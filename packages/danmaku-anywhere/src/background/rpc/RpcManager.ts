@@ -1,5 +1,4 @@
 import { PROVIDER_TO_BUILTIN_ID } from '@danmaku-anywhere/danmaku-converter'
-import { setCookies as bilibiliSetCookies } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import {
   getDanmuicuConfig,
   getMaccmsConfig,
@@ -115,7 +114,9 @@ export class RpcManager {
         },
         bilibiliSetCookies: async () => {
           this.logger.debug('Setting bilibili cookies')
-          await bilibiliSetCookies()
+          await this.providerService.setCookies(
+            PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]
+          )
         },
         bilibiliGetLoginStatus: async () => {
           this.logger.debug('Get bilibili login status')

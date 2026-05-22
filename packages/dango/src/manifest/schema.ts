@@ -265,5 +265,17 @@ export const zManifest = z.object({
    * boolean, etc.); the host inspects it per provider.
    */
   loginProbe: zPipelineField.optional(),
+  /**
+   * Declarative login action: opening (or fetching) `url` is expected to
+   * persist session cookies for this source. The host renders a button
+   * surfaced when the user wants to authenticate; presence of this field
+   * is what makes that button appear.
+   */
+  cookieSet: z
+    .object({
+      url: z.url(),
+      title: z.string().optional(),
+    })
+    .optional(),
 })
 export type Manifest = z.infer<typeof zManifest>

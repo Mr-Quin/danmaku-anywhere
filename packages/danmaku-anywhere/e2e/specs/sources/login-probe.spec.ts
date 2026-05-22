@@ -55,6 +55,50 @@ test('login probes hide warnings when bilibili is logged in and tencent has cook
   )
 })
 
+test('bilibiliSetCookies fetches the URL declared by the manifest cookieSet field', async ({
+  context,
+  page,
+  extensionId,
+}) => {
+  let cookieSetCalls = 0
+  const da = await getDaClient(context)
+  await applyProfile(context, da, {
+    providers: {
+      bilibili: { enabled: true },
+    },
+    network: [
+      // Mock both the cookieSet URL and the loginProbe (which fires when the
+      // popup mounts /providers) so strict-mode network doesn't fail.
+      {
+        pattern: /^http:\/\/bilibili\.com\/?$/,
+        respond: (route) => {
+          cookieSetCalls++
+          return route.fulfill({ status: 200, body: 'ok' })
+        },
+      },
+      {
+        pattern: NAV_URL,
+        respond: (route) =>
+          route.fulfill({
+            json: { code: 0, message: '0', data: { isLogin: false } },
+          }),
+      },
+    ],
+  })
+
+  // Open the popup so the SW is reachable, then invoke the RPC from page
+  // context. Asserts the path manifest.cookieSet.url -> setCookies -> fetch.
+  await Popup.open(page, extensionId, '/providers')
+  const res = await page.evaluate(() =>
+    chrome.runtime.sendMessage({
+      method: 'bilibiliSetCookies',
+      input: undefined,
+    })
+  )
+  expect(res).toMatchObject({ state: 'success' })
+  expect(cookieSetCalls).toBe(1)
+})
+
 test('login probes surface warning icons when probes report logged-out / no cookies', async ({
   context,
   page,

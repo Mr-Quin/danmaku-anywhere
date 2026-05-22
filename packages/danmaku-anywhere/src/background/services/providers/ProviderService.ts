@@ -241,4 +241,12 @@ export class ProviderService {
   async probeLogin<T = unknown>(manifestId: string): Promise<T | null> {
     return this.manifestRegistry.getRunner(manifestId).runLoginProbe<T>()
   }
+
+  async setCookies(manifestId: string): Promise<void> {
+    const { cookieSet } = this.manifestRegistry.getRunner(manifestId).manifest
+    if (!cookieSet) {
+      throw new Error(`manifest "${manifestId}" has no cookieSet declaration`)
+    }
+    await fetch(cookieSet.url)
+  }
 }
