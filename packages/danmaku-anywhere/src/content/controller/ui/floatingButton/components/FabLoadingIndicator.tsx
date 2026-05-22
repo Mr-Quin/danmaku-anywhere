@@ -10,12 +10,12 @@ export const FabLoadingIndicator = ({
   return (
     <Fade in={isLoading}>
       <Box
-        position="absolute"
-        width={48}
-        height={48}
-        top={-4}
-        left={-4}
         sx={{
+          position: 'absolute',
+          width: 48,
+          height: 48,
+          top: -4,
+          left: -4,
           pointerEvents: 'none',
           display: 'flex',
           alignItems: 'center',

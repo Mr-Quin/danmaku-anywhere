@@ -64,7 +64,9 @@ export const MacCmsProviderForm = ({
       onSubmit={handleSubmit(handleFormSubmit)}
       direction="column"
       spacing={2}
-      alignItems="flex-start"
+      sx={{
+        alignItems: 'flex-start',
+      }}
     >
       <TextField
         label={t('providers.editor.name', 'Name')}
@@ -75,7 +77,6 @@ export const MacCmsProviderForm = ({
         fullWidth
         required
       />
-
       <Controller
         name="options.danmakuBaseUrl"
         control={control}
@@ -110,7 +111,6 @@ export const MacCmsProviderForm = ({
           />
         )}
       />
-
       <Controller
         name="options.danmuicuBaseUrl"
         control={control}
@@ -139,7 +139,6 @@ export const MacCmsProviderForm = ({
           />
         )}
       />
-
       <FormControl>
         <FormControlLabel
           control={
@@ -173,7 +172,6 @@ export const MacCmsProviderForm = ({
           )}
         </FormHelperText>
       </FormControl>
-
       <FormActions
         isEdit={isEdit}
         isSubmitting={isSubmitting}

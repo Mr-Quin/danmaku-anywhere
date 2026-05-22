@@ -113,7 +113,6 @@ export function CloudBackupSection({
           'Sync your settings to the cloud. Up to 3 revisions are kept.'
         )}
       />
-
       {!isSignedIn ? (
         <Alert severity="info" sx={{ mb: 2 }}>
           <Typography variant="body2">
@@ -159,7 +158,13 @@ export function CloudBackupSection({
               )}
             </Alert>
           ) : !backups || backups.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+                py: 1,
+              }}
+            >
               {t(
                 'optionsPage.backup.noCloudBackups',
                 'No cloud backups yet. Create one to get started.'

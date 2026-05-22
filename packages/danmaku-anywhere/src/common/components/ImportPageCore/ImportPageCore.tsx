@@ -31,7 +31,11 @@ export const ImportPageCore = () => {
   return (
     <TabLayout>
       <TabToolbar title={t('importPage.import', 'Import Danmaku')} />
-      <Box p={2}>
+      <Box
+        sx={{
+          p: 2,
+        }}
+      >
         <Typography variant="subtitle2" gutterBottom>
           {t(
             'importPage.importDesc',

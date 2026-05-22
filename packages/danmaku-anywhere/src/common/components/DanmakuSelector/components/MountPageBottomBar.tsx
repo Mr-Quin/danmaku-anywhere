@@ -64,20 +64,39 @@ export const MountPageBottomBar = ({
       >
         <Stack
           direction="row"
-          justifyContent="space-between"
-          alignItems="center"
+          sx={{
+            justifyContent: 'space-between',
+            alignItems: 'center',
+          }}
         >
-          <Stack direction="row" alignItems="center" gap={1}>
+          <Stack
+            direction="row"
+            sx={{
+              alignItems: 'center',
+              gap: 1,
+            }}
+          >
             <Button onClick={onCancel} size="small" sx={{ minWidth: 0, px: 1 }}>
               {t('common.cancel', 'Cancel')}
             </Button>
-            <Typography variant="caption" color="text.secondary" lineHeight={1}>
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+                lineHeight: 1,
+              }}
+            >
               {t('mountPage.selectedCount', '{{count}} selected', {
                 count: selectionCount,
               })}
             </Typography>
           </Stack>
-          <Stack direction="row" gap={1}>
+          <Stack
+            direction="row"
+            sx={{
+              gap: 1,
+            }}
+          >
             <Button
               variant="contained"
               onClick={onMount}

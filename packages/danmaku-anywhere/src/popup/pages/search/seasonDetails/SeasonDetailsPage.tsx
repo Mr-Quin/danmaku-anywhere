@@ -44,7 +44,6 @@ export const SeasonDetailsPage = () => {
       <TabToolbar title={season.title} showBackButton onGoBack={goBack}>
         <BookmarkToggleButton season={season} />
       </TabToolbar>
-
       <Stack spacing={0.75} sx={{ px: 1.25, pt: 1, pb: 0.5, flexShrink: 0 }}>
         <TextField
           value={filter}
@@ -70,14 +69,18 @@ export const SeasonDetailsPage = () => {
             },
           }}
         />
-        <Typography variant="caption" color="text.secondary">
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {t(
             'searchPage.episodesHint',
             'Tap an episode to download. Downloaded ones show in your library.'
           )}
         </Typography>
       </Stack>
-
       <ScrollBox
         sx={{ overflow: 'auto', flex: 1, minHeight: 0, px: 0.5, pb: 1 }}
       >

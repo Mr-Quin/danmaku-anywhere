@@ -37,9 +37,18 @@ export function BlockTab({
   }
 
   return (
-    <Box p={2}>
+    <Box
+      sx={{
+        p: 2,
+      }}
+    >
       <Stack spacing={3}>
-        <Typography variant="body1" color="text.secondary">
+        <Typography
+          variant="body1"
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {t(
             'danmakuFilter.description',
             'Hide matching comments. They never reach the screen.'

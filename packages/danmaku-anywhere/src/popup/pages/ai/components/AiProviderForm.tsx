@@ -229,7 +229,13 @@ export const AiProviderForm = ({
         )}
 
         {!isBuiltIn && (
-          <Box display="flex" justifyContent="flex-end" gap={1}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 1,
+            }}
+          >
             <Button
               variant="outlined"
               onClick={handleTestConnection}

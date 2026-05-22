@@ -96,7 +96,12 @@ export const MacCmsEpisodeListItem = ({
             {episode.title}
           </Typography>
           {danmaku && (
-            <Typography variant="caption" color="text.secondary">
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {t('danmaku.commentCounted', { count: danmaku.commentCount })}
             </Typography>
           )}

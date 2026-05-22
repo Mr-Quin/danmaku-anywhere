@@ -60,7 +60,9 @@ export const DanDanPlayCompatibleProviderForm = ({
       onSubmit={handleFormSubmit}
       direction="column"
       spacing={2}
-      alignItems="flex-start"
+      sx={{
+        alignItems: 'flex-start',
+      }}
     >
       <TextField
         label={t('providers.editor.name', 'Name')}
@@ -71,7 +73,6 @@ export const DanDanPlayCompatibleProviderForm = ({
         fullWidth
         required
       />
-
       <TextField
         label={t('optionsPage.danmakuSource.dandanplay.apiUrl', 'API URL')}
         size="small"
@@ -87,7 +88,6 @@ export const DanDanPlayCompatibleProviderForm = ({
         fullWidth
         required
       />
-
       <Box sx={{ width: '100%' }}>
         <FormControlLabel
           control={
@@ -100,7 +100,6 @@ export const DanDanPlayCompatibleProviderForm = ({
           sx={{ color: 'text.secondary' }}
         />
       </Box>
-
       {authEnabled && (
         <Box sx={{ width: '100%' }}>
           <Typography sx={{ mb: 1 }}>
@@ -119,7 +118,9 @@ export const DanDanPlayCompatibleProviderForm = ({
                 key={field.id}
                 direction="row"
                 spacing={1}
-                alignItems="flex-start"
+                sx={{
+                  alignItems: 'flex-start',
+                }}
               >
                 <IconButton onClick={() => remove(index)} size="small">
                   <Remove />
@@ -162,7 +163,6 @@ export const DanDanPlayCompatibleProviderForm = ({
           </Stack>
         </Box>
       )}
-
       <FormActions
         isEdit={isEdit}
         isSubmitting={isSubmitting}

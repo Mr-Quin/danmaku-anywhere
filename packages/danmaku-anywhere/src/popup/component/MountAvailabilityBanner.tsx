@@ -189,7 +189,13 @@ interface AlertActionsProps {
 
 function AlertActions({ t, onDismiss, cta }: AlertActionsProps) {
   return (
-    <Box display="flex" alignItems="center" gap={0.5}>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 0.5,
+      }}
+    >
       {cta && (
         <Button
           onClick={cta.onClick}

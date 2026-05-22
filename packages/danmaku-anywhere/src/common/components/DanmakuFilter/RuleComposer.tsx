@@ -38,11 +38,23 @@ export function RuleComposer({
       }}
     >
       {title && (
-        <Typography variant="body2" fontWeight={600} gutterBottom>
+        <Typography
+          variant="body2"
+          gutterBottom
+          sx={{
+            fontWeight: 600,
+          }}
+        >
           {title}
         </Typography>
       )}
-      <Stack direction="row" spacing={1} alignItems="flex-start">
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          alignItems: 'flex-start',
+        }}
+      >
         <FilterTextField
           placeholder={placeholder}
           fullWidth

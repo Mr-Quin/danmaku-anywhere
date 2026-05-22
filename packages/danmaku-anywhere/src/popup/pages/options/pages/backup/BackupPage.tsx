@@ -15,7 +15,11 @@ export function BackupPage() {
       <OptionsPageToolBar
         title={t('optionsPage.pages.backup', 'Backup & Restore')}
       />
-      <Box p={2}>
+      <Box
+        sx={{
+          p: 2,
+        }}
+      >
         <Stack spacing={2}>
           <LocalBackupSection isRestoringExt={isRestoringCloud} />
           <Divider />

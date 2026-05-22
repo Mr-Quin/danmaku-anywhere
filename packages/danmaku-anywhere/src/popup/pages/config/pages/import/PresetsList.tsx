@@ -114,7 +114,13 @@ export const PresetsList = () => {
       flex: 1,
       renderCell: (params) => {
         return params.value ? (
-          <Box display="flex" alignItems="center" height="100%">
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              height: '100%',
+            }}
+          >
             <CheckCircle color="success" />
           </Box>
         ) : null

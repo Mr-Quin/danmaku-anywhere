@@ -32,16 +32,24 @@ export const StubEpisodeTreeItem = ({
   return (
     <Stack
       direction="row"
-      alignItems="center"
-      width="100%"
-      gap={1}
-      py={0.5}
-      overflow="hidden"
-      pr={1}
       onClick={handleClick}
-      sx={{ cursor: 'pointer' }}
+      sx={{
+        alignItems: 'center',
+        width: '100%',
+        gap: 1,
+        py: 0.5,
+        overflow: 'hidden',
+        pr: 1,
+        cursor: 'pointer',
+      }}
     >
-      <Typography noWrap variant="body2" color="text.disabled">
+      <Typography
+        noWrap
+        variant="body2"
+        sx={{
+          color: 'text.disabled',
+        }}
+      >
         {label}
       </Typography>
       {fetchDanmaku.isPending ? (

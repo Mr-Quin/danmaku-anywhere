@@ -34,9 +34,9 @@ export function DevWatermark() {
     <Stack
       direction="row"
       spacing={0.5}
-      alignItems="center"
       aria-hidden="true"
       sx={{
+        alignItems: 'center',
         position: 'absolute',
         bottom: 6,
         left: 6,

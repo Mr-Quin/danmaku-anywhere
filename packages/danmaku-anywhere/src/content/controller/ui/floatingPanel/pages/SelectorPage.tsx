@@ -85,7 +85,11 @@ export const SelectorPage = () => {
 
   if (animes.length === 0) {
     return (
-      <Box p={2}>
+      <Box
+        sx={{
+          p: 2,
+        }}
+      >
         <Typography variant="h6">
           {t('selectorPage.noAnimeFound', 'Nothing to select from')}
         </Typography>
@@ -94,8 +98,16 @@ export const SelectorPage = () => {
   }
 
   return (
-    <Box flexGrow={1}>
-      <Box p={2}>
+    <Box
+      sx={{
+        flexGrow: 1,
+      }}
+    >
+      <Box
+        sx={{
+          p: 2,
+        }}
+      >
         <Typography variant="body1">
           {t(
             'selectorPage.selectAnime',
@@ -120,9 +132,20 @@ export const SelectorPage = () => {
         />
       </Box>
       <Divider />
-
-      <Box my={2} px={2} ref={selectorBoxRef}>
-        <Stack direction="column" alignItems="flex-start" spacing={2}>
+      <Box
+        ref={selectorBoxRef}
+        sx={{
+          my: 2,
+          px: 2,
+        }}
+      >
+        <Stack
+          direction="column"
+          spacing={2}
+          sx={{
+            alignItems: 'flex-start',
+          }}
+        >
           <Button
             type="submit"
             loading={loadMutation.isPending || matchEpisode.isPending}

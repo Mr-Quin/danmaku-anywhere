@@ -17,19 +17,33 @@ export const FolderTreeItem = ({
     <Stack
       direction="row"
       spacing={1}
-      alignItems="center"
-      justifyContent="space-between"
-      width="100%"
-      overflow="hidden"
-      pr={1}
+      sx={{
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        width: '100%',
+        overflow: 'hidden',
+        pr: 1,
+      }}
     >
-      <Stack direction="row" spacing={1} alignItems="center" overflow="hidden">
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          alignItems: 'center',
+          overflow: 'hidden',
+        }}
+      >
         <Folder fontSize="small" />
         <Typography noWrap variant="body2">
           {label}
         </Typography>
         {childrenCount !== undefined && (
-          <Typography variant="caption" color="text.secondary">
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             ({childrenCount})
           </Typography>
         )}

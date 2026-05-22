@@ -44,7 +44,13 @@ export function PatternComposer({
         handleSubmit()
       }}
     >
-      <Stack direction="row" spacing={1} alignItems="flex-start">
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          alignItems: 'flex-start',
+        }}
+      >
         <FilterTextField
           placeholder={t(
             'danmakuFilter.enterFilterPatternPlaceholder',

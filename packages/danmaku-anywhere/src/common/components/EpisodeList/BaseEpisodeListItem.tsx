@@ -181,7 +181,12 @@ export function BaseEpisodeListItem<
             {episode.title}
           </Typography>
           {isLite && (
-            <Typography variant="caption" color="text.secondary">
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {t('danmaku.commentCounted', {
                 count: (episode as WithSeason<EpisodeLite>).commentCount,
               })}

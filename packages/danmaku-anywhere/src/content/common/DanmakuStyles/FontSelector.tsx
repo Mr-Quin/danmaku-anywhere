@@ -31,13 +31,20 @@ export const FontSelector = ({
   return (
     <Stack
       direction="row"
-      alignItems="center"
-      justifyContent="space-between"
-      gap={2}
+      sx={{
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 2,
+      }}
     >
       <div>
         <Typography>{label}</Typography>
-        <Typography variant="caption" color="text.secondary">
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {tooltip}
         </Typography>
       </div>

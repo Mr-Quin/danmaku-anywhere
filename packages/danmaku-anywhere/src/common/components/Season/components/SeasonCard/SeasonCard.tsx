@@ -360,12 +360,12 @@ export const SeasonCard = ({
             color="inherit"
             variant="subtitle2"
             underline="hover"
-            display="block"
             noWrap
+            onClick={(e) => handleCardClick(e)}
             sx={{
+              display: 'block',
               cursor: 'pointer',
             }}
-            onClick={(e) => handleCardClick(e)}
           >
             {season.title}
           </Link>

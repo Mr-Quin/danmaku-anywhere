@@ -71,12 +71,24 @@ export const SeasonTreeItem = ({
         sx={{ whiteSpace: 'nowrap' }}
       >
         {hasFetched && (
-          <Typography variant="caption" component="span" color="text.secondary">
+          <Typography
+            variant="caption"
+            component="span"
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             ({fetchedCount})
           </Typography>
         )}
         {hasStubs && (
-          <Typography variant="caption" component="span" color="text.disabled">
+          <Typography
+            variant="caption"
+            component="span"
+            sx={{
+              color: 'text.disabled',
+            }}
+          >
             {` +${stubCount}`}
           </Typography>
         )}
@@ -89,17 +101,21 @@ export const SeasonTreeItem = ({
       <Stack
         direction="row"
         spacing={1}
-        alignItems="center"
-        justifyContent="space-between"
-        width="100%"
-        overflow="hidden"
-        pr={1}
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          width: '100%',
+          overflow: 'hidden',
+          pr: 1,
+        }}
       >
         <Stack
           direction="row"
           spacing={1}
-          alignItems="center"
-          overflow="hidden"
+          sx={{
+            alignItems: 'center',
+            overflow: 'hidden',
+          }}
         >
           {isCustom ? (
             <Folder fontSize="small" />

@@ -137,7 +137,11 @@ export const IntegrationEditor = (): ReactElement => {
 
           <ScrollBox flexGrow={1} overflow="auto" minHeight={0}>
             <FormProvider {...form}>
-              <Box p={2}>
+              <Box
+                sx={{
+                  p: 2,
+                }}
+              >
                 <Stack spacing={2}>
                   <IntegrationSection
                     name="policy.title"
@@ -203,7 +207,6 @@ export const IntegrationEditor = (): ReactElement => {
           </Box>
         </form>
       </TabLayout>
-
       <ElementSelector
         enable={showSelector}
         onExit={() => setShowSelector(false)}

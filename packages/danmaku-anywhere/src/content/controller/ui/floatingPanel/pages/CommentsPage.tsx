@@ -13,7 +13,12 @@ export const CommentsPage = () => {
   const { refreshComments, loadMutation, canRefresh } = useLoadDanmaku()
 
   return (
-    <Stack height="100%" flexGrow={1}>
+    <Stack
+      sx={{
+        height: '100%',
+        flexGrow: 1,
+      }}
+    >
       {episodes ? (
         <CommentsTable
           comments={comments}

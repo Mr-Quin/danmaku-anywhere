@@ -48,7 +48,9 @@ export const BilibiliProviderForm = ({
       onSubmit={handleFormSubmit}
       direction="column"
       spacing={2}
-      alignItems="flex-start"
+      sx={{
+        alignItems: 'flex-start',
+      }}
     >
       <TextField
         label={t('providers.editor.name', 'Name')}
@@ -61,7 +63,6 @@ export const BilibiliProviderForm = ({
           'Built-in provider names cannot be changed'
         )}
       />
-
       <FormControl fullWidth>
         <FormLabel>
           {t(
@@ -90,7 +91,6 @@ export const BilibiliProviderForm = ({
           )}
         </FormHelperText>
       </FormControl>
-
       <FormActions
         isEdit={isEdit}
         isSubmitting={isSubmitting}

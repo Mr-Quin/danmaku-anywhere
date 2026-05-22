@@ -81,8 +81,8 @@ export const TypeSelector = ({
           onSubmit={(e) => {
             e.preventDefault()
           }}
-          px={2}
           sx={{
+            px: 2,
             background: 'background.paper',
           }}
         >

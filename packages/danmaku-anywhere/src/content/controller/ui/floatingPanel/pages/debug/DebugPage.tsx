@@ -58,8 +58,14 @@ export const DebugPage = () => {
         </Tooltip>
       </TabToolbar>
       <Divider />
-
-      <Box display="flex" flexDirection="column" flexGrow={1} overflow="hidden">
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          flexGrow: 1,
+          overflow: 'hidden',
+        }}
+      >
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
@@ -81,15 +87,31 @@ export const DebugPage = () => {
           <Tab label="Options" />
         </Tabs>
 
-        <Box flexGrow={1} overflow="hidden">
+        <Box
+          sx={{
+            flexGrow: 1,
+            overflow: 'hidden',
+          }}
+        >
           {tab === DebugTab.Frames && <FramesPanel />}
           {tab === DebugTab.State && (
-            <Box overflow="auto" p={1} height="100%">
+            <Box
+              sx={{
+                overflow: 'auto',
+                p: 1,
+                height: '100%',
+              }}
+            >
               <StatePanel />
             </Box>
           )}
           {tab === DebugTab.Options && (
-            <Box overflow="auto" height="100%">
+            <Box
+              sx={{
+                overflow: 'auto',
+                height: '100%',
+              }}
+            >
               <OptionsPanel />
             </Box>
           )}

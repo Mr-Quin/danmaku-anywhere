@@ -42,7 +42,9 @@ export const DanDanPlayProviderForm = ({
       onSubmit={handleSubmit(handleFormSubmit)}
       direction="column"
       spacing={2}
-      alignItems="flex-start"
+      sx={{
+        alignItems: 'flex-start',
+      }}
     >
       <TextField
         label={t('providers.editor.name', 'Name')}
@@ -55,7 +57,6 @@ export const DanDanPlayProviderForm = ({
           'Built-in provider names cannot be changed'
         )}
       />
-
       <Controller
         name="options.chConvert"
         control={control}
@@ -83,7 +84,6 @@ export const DanDanPlayProviderForm = ({
           </TextField>
         )}
       />
-
       <FormActions
         isEdit={isEdit}
         isSubmitting={isSubmitting}

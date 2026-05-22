@@ -30,7 +30,12 @@ export const IntegrationPolicyEditor = () => {
     <OptionsPageLayout direction="left">
       <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
         <OptionsPageToolBar sticky title={config.name} />
-        <Box p={2} overflow="auto">
+        <Box
+          sx={{
+            p: 2,
+            overflow: 'auto',
+          }}
+        >
           <pre
             ref={preRef}
             style={{

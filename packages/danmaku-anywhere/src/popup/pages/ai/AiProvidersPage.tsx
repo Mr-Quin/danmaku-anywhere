@@ -96,7 +96,12 @@ export const AiProvidersPage = (): ReactElement => {
   if (mode && editingProvider) {
     return (
       <OptionsPageLayout>
-        <Stack direction="column" height={1}>
+        <Stack
+          direction="column"
+          sx={{
+            height: 1,
+          }}
+        >
           <OptionsPageToolBar
             title={
               mode === 'add'

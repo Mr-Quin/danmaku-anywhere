@@ -51,7 +51,12 @@ export const MountConfigBasicStep = ({
   }
 
   return (
-    <Stack spacing={2} alignItems="flex-start">
+    <Stack
+      spacing={2}
+      sx={{
+        alignItems: 'flex-start',
+      }}
+    >
       <Collapse in={isPermissive} sx={{ width: 1 }}>
         <Alert severity="warning">
           {t(
@@ -83,9 +88,11 @@ export const MountConfigBasicStep = ({
         <Stack
           direction="row"
           spacing={2}
-          alignItems="center"
           key={field.id}
-          sx={{ alignSelf: 'stretch' }}
+          sx={{
+            alignItems: 'center',
+            alignSelf: 'stretch',
+          }}
         >
           <TextField
             label={`${t('configPage.editor.pattern')} ${index + 1}`}

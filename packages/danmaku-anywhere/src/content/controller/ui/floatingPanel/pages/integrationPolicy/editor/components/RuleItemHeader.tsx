@@ -14,8 +14,19 @@ export const RuleItemHeader = ({
   children,
 }: RuleItemHeaderProps) => {
   return (
-    <Stack direction="row" alignItems="center" justifyContent="space-between">
-      <Typography variant="subtitle2" color="text.secondary">
+    <Stack
+      direction="row"
+      sx={{
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}
+    >
+      <Typography
+        variant="subtitle2"
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         #{index + 1}
       </Typography>
       <div>

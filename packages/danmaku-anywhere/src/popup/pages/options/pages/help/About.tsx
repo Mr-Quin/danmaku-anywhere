@@ -129,7 +129,13 @@ export const About = () => {
       <OptionsPageToolBar title={t('optionsPage.pages.help')} />
       <Container maxWidth="md" sx={{ mt: 4 }}>
         {/* Header */}
-        <Stack alignItems="center" spacing={2} mb={4}>
+        <Stack
+          spacing={2}
+          sx={{
+            alignItems: 'center',
+            mb: 4,
+          }}
+        >
           <SuspenseImage
             src={IMAGE_ASSETS.Logo}
             alt={t('common.danmakuAnywhere', 'Danmaku Anywhere')}
@@ -139,7 +145,13 @@ export const About = () => {
               borderRadius: 2,
             }}
           />
-          <Typography variant="h4" component="h1" fontWeight="bold">
+          <Typography
+            variant="h4"
+            component="h1"
+            sx={{
+              fontWeight: 'bold',
+            }}
+          >
             {i18n.t('common.danmakuAnywhere', 'Danmaku Anywhere')}
           </Typography>
           <Chip
@@ -151,14 +163,31 @@ export const About = () => {
         </Stack>
 
         {/* Resources */}
-        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+        <Typography
+          variant="subtitle2"
+          gutterBottom
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {i18n.t('aboutPage.resources', 'Resources')}
         </Typography>
-        <Stack spacing={1} mb={4}>
+        <Stack
+          spacing={1}
+          sx={{
+            mb: 4,
+          }}
+        >
           {resources.map((resource, index) => {
             const hasLink = resource.link !== undefined
             const cardInner = (
-              <Stack direction="row" alignItems="center" spacing={2}>
+              <Stack
+                direction="row"
+                spacing={2}
+                sx={{
+                  alignItems: 'center',
+                }}
+              >
                 <Box
                   sx={{
                     p: 1,
@@ -169,10 +198,20 @@ export const About = () => {
                   {resource.icon()}
                 </Box>
                 <Box sx={{ flexGrow: 1 }}>
-                  <Typography variant="subtitle1" fontWeight="medium">
+                  <Typography
+                    variant="subtitle1"
+                    sx={{
+                      fontWeight: 'medium',
+                    }}
+                  >
                     {resource.title()}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {resource.description()}
                   </Typography>
                 </Box>
@@ -203,12 +242,29 @@ export const About = () => {
         </Stack>
 
         {/* Credits */}
-        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+        <Typography
+          variant="subtitle2"
+          gutterBottom
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {i18n.t('aboutPage.imageIllustrator', 'Graphic Illustrator')}
         </Typography>
-        <Stack spacing={1} mb={4}>
+        <Stack
+          spacing={1}
+          sx={{
+            mb: 4,
+          }}
+        >
           <Card variant="outlined" sx={{ p: 2 }}>
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack
+              direction="row"
+              spacing={2}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
               <SuspenseImage
                 src={IMAGE_ASSETS.CarryBook}
                 sx={{ width: 60, height: 60, borderRadius: 1 }}
@@ -217,7 +273,13 @@ export const About = () => {
             </Stack>
           </Card>
           <Card variant="outlined" sx={{ p: 2 }}>
-            <Stack direction="row" spacing={2} alignItems="center">
+            <Stack
+              direction="row"
+              spacing={2}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
               <SuspenseImage
                 src={IMAGE_ASSETS.I404}
                 sx={{ width: 60, height: 60, borderRadius: 1 }}
@@ -251,7 +313,13 @@ export const About = () => {
           }}
         >
           <AccordionSummary expandIcon={<ExpandMore />}>
-            <Stack direction="row" spacing={1} alignItems="center">
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
               <InfoOutlined color="action" />
               <Typography variant="subtitle1">
                 {i18n.t('aboutPage.technicalInfo', 'Technical Information')}
@@ -264,8 +332,10 @@ export const About = () => {
                 <div>
                   <Typography
                     variant="body2"
-                    color="text.secondary"
                     gutterBottom
+                    sx={{
+                      color: 'text.secondary',
+                    }}
                   >
                     {t('aboutPage.clientId', 'Client ID')}
                   </Typography>
@@ -283,7 +353,12 @@ export const About = () => {
                       </IconButton>
                     </Tooltip>
                   </Stack>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
                     {t(
                       'aboutPage.clientIdDescription',
                       'Unique identifier for this installation. Include this when reporting issues.'
@@ -293,7 +368,13 @@ export const About = () => {
               )}
 
               <div>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
+                <Typography
+                  variant="body2"
+                  gutterBottom
+                  sx={{
+                    color: 'text.secondary',
+                  }}
+                >
                   {t('aboutPage.version', 'Version')}
                 </Typography>
                 <BorderTypography variant="body2" color="text.primary">
@@ -305,8 +386,19 @@ export const About = () => {
         </Accordion>
 
         {/* Footer */}
-        <Box mt={4} mb={2} textAlign="center">
-          <Typography variant="caption" color="text.secondary">
+        <Box
+          sx={{
+            mt: 4,
+            mb: 2,
+            textAlign: 'center',
+          }}
+        >
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             Copyright © 2023-2025 Mr-Quin. Licensed under AGPL-3.0.
           </Typography>
         </Box>

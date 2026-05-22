@@ -40,8 +40,13 @@ const SuspenseImageLoader = ({
       {...rest}
       src={data}
       alt={alt}
-      width={width}
-      height={height}
+      sx={[
+        {
+          width: width,
+          height: height,
+        },
+        ...(Array.isArray(rest.sx) ? rest.sx : [rest.sx]),
+      ]}
     />
   )
 }

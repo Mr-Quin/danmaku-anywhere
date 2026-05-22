@@ -124,9 +124,13 @@ export function UrlParseSection({
   if (query.isFetching) {
     return (
       <Stack
-        alignItems="center"
-        justifyContent="center"
-        sx={{ flex: 1, minHeight: 80, py: 4 }}
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'center',
+          flex: 1,
+          minHeight: 80,
+          py: 4,
+        }}
       >
         <CircularProgress size={20} />
       </Stack>
@@ -144,20 +148,36 @@ export function UrlParseSection({
         })}
       >
         <Stack spacing={1.25}>
-          <Stack direction="row" alignItems="center" spacing={0.75}>
+          <Stack
+            direction="row"
+            spacing={0.75}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
             <CheckCircle sx={{ fontSize: 14, color: 'success.main' }} />
             <Typography variant="body2" sx={{ fontWeight: 700 }}>
               {t('searchPage.parse.parsed', 'Parsed')}
             </Typography>
           </Stack>
           <Box>
-            <Typography variant="overline" color="text.secondary">
+            <Typography
+              variant="overline"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {t('anime.title', 'Title')}
             </Typography>
             <Typography variant="body2">{query.data.season.title}</Typography>
           </Box>
           <Box>
-            <Typography variant="overline" color="text.secondary">
+            <Typography
+              variant="overline"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               {t('anime.episodeTitle', 'Episode Title')}
             </Typography>
             <Typography variant="body2">{query.data.title}</Typography>

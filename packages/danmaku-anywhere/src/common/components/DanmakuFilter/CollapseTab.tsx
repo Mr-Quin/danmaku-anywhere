@@ -46,15 +46,29 @@ function SettingRow({ title, hint, control, disabled }: SettingRowProps) {
   return (
     <Stack
       direction="row"
-      alignItems="center"
       spacing={2}
-      sx={disabled ? { opacity: 0.6 } : undefined}
+      sx={[
+        {
+          alignItems: 'center',
+        },
+        disabled ? { opacity: 0.6 } : undefined,
+      ]}
     >
       <Box sx={{ flex: 1 }}>
-        <Typography variant="body2" fontWeight={600}>
+        <Typography
+          variant="body2"
+          sx={{
+            fontWeight: 600,
+          }}
+        >
           {title}
         </Typography>
-        <Typography variant="caption" color="text.secondary">
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {hint}
         </Typography>
       </Box>
@@ -90,8 +104,10 @@ function ClampedIntField({
         setText(String(n))
         onCommit(n)
       }}
-      inputProps={{ min, max, step: 1 }}
       sx={{ width: 72, '& .MuiInputBase-root': { height: 32 } }}
+      slotProps={{
+        htmlInput: { min, max, step: 1 },
+      }}
     />
   )
 }
@@ -166,7 +182,11 @@ export function CollapseTab({
   }
 
   return (
-    <Box p={2}>
+    <Box
+      sx={{
+        p: 2,
+      }}
+    >
       <Stack useFlexGap spacing={3}>
         <ModeBlock
           title={t('danmakuFilter.dedupeModeTitle', 'Dedupe')}
@@ -384,12 +404,19 @@ const blockSx = {
 function StaticBlock({ title, subtitle, children }: StaticBlockProps) {
   return (
     <Paper variant="outlined" sx={{ p: 2, ...blockSx }}>
-      <Box mb={1.5}>
+      <Box
+        sx={{
+          mb: 1.5,
+        }}
+      >
         <Typography variant="h5">{title}</Typography>
         <Typography
           variant="caption"
-          color="text.secondary"
-          sx={{ display: 'block', mt: 0.25 }}
+          sx={{
+            color: 'text.secondary',
+            display: 'block',
+            mt: 0.25,
+          }}
         >
           {subtitle}
         </Typography>
@@ -426,16 +453,21 @@ function ModeBlock({
       <AccordionSummary>
         <Stack
           direction="row"
-          alignItems="center"
           spacing={1}
-          sx={{ width: '100%' }}
+          sx={{
+            alignItems: 'center',
+            width: '100%',
+          }}
         >
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant="h5">{title}</Typography>
             <Typography
               variant="caption"
-              color="text.secondary"
-              sx={{ display: 'block', mt: 0.25 }}
+              sx={{
+                color: 'text.secondary',
+                display: 'block',
+                mt: 0.25,
+              }}
             >
               {subtitle}
             </Typography>

@@ -36,17 +36,33 @@ export const LabeledScrubber = ({
   const id = useId()
   return (
     <Box>
-      <Box mb={1}>
+      <Box
+        sx={{
+          mb: 1,
+        }}
+      >
         <Typography
           id={id}
           gutterBottom
           {...typographyProps}
           variant="body2"
-          fontWeight={600}
+          sx={[
+            {
+              fontWeight: 600,
+            },
+            ...(Array.isArray(typographyProps.sx)
+              ? typographyProps.sx
+              : [typographyProps.sx]),
+          ]}
         >
           {label}
         </Typography>
-        <Typography variant="caption" color="text.secondary">
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {tooltip}
           <Tooltip
             title={
@@ -97,7 +113,14 @@ export const LabeledScrubber = ({
           </Tooltip>
         </Typography>
       </Box>
-      <Grid container spacing={2} alignItems="center" flexWrap="nowrap">
+      <Grid
+        container
+        spacing={2}
+        sx={{
+          alignItems: 'center',
+          flexWrap: 'nowrap',
+        }}
+      >
         <Grid size={gridSize}>
           <NumberScrubber aria-labelledby={id} onReset={onReset} {...rest} />
         </Grid>

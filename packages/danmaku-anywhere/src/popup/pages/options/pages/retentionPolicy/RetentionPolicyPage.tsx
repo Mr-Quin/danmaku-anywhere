@@ -133,7 +133,11 @@ export const RetentionPolicyPage = () => {
       ),
       content: (
         <>
-          <Typography color="text.secondary">
+          <Typography
+            sx={{
+              color: 'text.secondary',
+            }}
+          >
             {t(
               'optionsPage.dataManagement.wipeData.confirm1',
               'Are you sure you want to wipe all danmaku, seasons, and mapping data? This action cannot be undone.'
@@ -196,15 +200,21 @@ export const RetentionPolicyPage = () => {
         <OptionsPageToolBar
           title={t('optionsPage.pages.dataManagement', 'Data Management')}
         />
-        <Box px={2}>
+        <Box
+          sx={{
+            px: 2,
+          }}
+        >
           <List>
             <ListItem disablePadding>
               <ListItemText
                 primary={
                   <Stack
                     direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
+                    sx={{
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
                   >
                     <>
                       {t(
@@ -229,8 +239,10 @@ export const RetentionPolicyPage = () => {
                 primary={
                   <Stack
                     direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
+                    sx={{
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
                   >
                     <>
                       {t(
@@ -312,7 +324,11 @@ export const RetentionPolicyPage = () => {
             </Button>
           </Stack>
 
-          <Box mt={4}>
+          <Box
+            sx={{
+              mt: 4,
+            }}
+          >
             <OutlineAccordion disableGutters elevation={0}>
               <AccordionSummary expandIcon={<ExpandMore />}>
                 <Typography>{t('common.advanced', 'Advanced')}</Typography>
@@ -320,8 +336,10 @@ export const RetentionPolicyPage = () => {
               <AccordionDetails>
                 <Stack
                   direction="row"
-                  alignItems="center"
-                  justifyContent="space-between"
+                  sx={{
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
                 >
                   <Typography variant="body1">
                     {t(

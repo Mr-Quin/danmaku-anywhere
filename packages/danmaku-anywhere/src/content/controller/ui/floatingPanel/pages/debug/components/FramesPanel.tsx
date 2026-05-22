@@ -47,9 +47,11 @@ const VideoInfoRow = ({
 }) => (
   <Typography
     variant="caption"
-    display="block"
-    color="text.secondary"
-    fontSize={10}
+    sx={{
+      display: 'block',
+      color: 'text.secondary',
+      fontSize: 10,
+    }}
   >
     <strong style={{ opacity: 0.7 }}>{label}:</strong> {children}
   </Typography>
@@ -73,11 +75,13 @@ const FrameItem = ({
       <Stack
         direction="row"
         spacing={1}
-        alignItems="center"
-        px={1}
-        py={0.75}
-        sx={{ cursor: 'pointer' }}
         onClick={() => setExpanded(!expanded)}
+        sx={{
+          alignItems: 'center',
+          px: 1,
+          py: 0.75,
+          cursor: 'pointer',
+        }}
       >
         <IconButton size="small" sx={{ p: 0.25, ml: -0.5 }}>
           {expanded ? (
@@ -89,10 +93,12 @@ const FrameItem = ({
         <StatusDot active={frame.hasVideo} />
         <Typography
           variant="body2"
-          fontWeight={isActive ? 600 : 400}
-          fontSize={12}
-          sx={{ flexGrow: 1 }}
           noWrap
+          sx={{
+            fontWeight: isActive ? 600 : 400,
+            fontSize: 12,
+            flexGrow: 1,
+          }}
         >
           Frame #{frame.frameId}
         </Typography>
@@ -118,25 +124,45 @@ const FrameItem = ({
           </Button>
         )}
       </Stack>
-
       {/* Expanded Content */}
       <Collapse in={expanded}>
-        <Box px={3.5} pb={1.5} pt={0}>
+        <Box
+          sx={{
+            px: 3.5,
+            pb: 1.5,
+            pt: 0,
+          }}
+        >
           <Typography
             variant="caption"
-            color="text.secondary"
             component="div"
             noWrap
             title={frame.url}
-            fontSize={11}
-            mb={1}
-            sx={{ userSelect: 'all' }}
+            sx={{
+              color: 'text.secondary',
+              fontSize: 11,
+              mb: 1,
+              userSelect: 'all',
+            }}
           >
             {frame.url}
           </Typography>
 
-          <Stack direction="row" spacing={1.5} mb={1.5} mt={0.5}>
-            <Stack direction="row" spacing={0.5} alignItems="center">
+          <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{
+              mb: 1.5,
+              mt: 0.5,
+            }}
+          >
+            <Stack
+              direction="row"
+              spacing={0.5}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
               <PlayIcon
                 sx={{
                   fontSize: 14,
@@ -145,13 +171,21 @@ const FrameItem = ({
               />
               <Typography
                 variant="caption"
-                fontSize={10}
                 color={frame.started ? 'text.primary' : 'text.secondary'}
+                sx={{
+                  fontSize: 10,
+                }}
               >
                 Started
               </Typography>
             </Stack>
-            <Stack direction="row" spacing={0.5} alignItems="center">
+            <Stack
+              direction="row"
+              spacing={0.5}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
               <ExtensionIcon
                 sx={{
                   fontSize: 14,
@@ -160,13 +194,21 @@ const FrameItem = ({
               />
               <Typography
                 variant="caption"
-                fontSize={10}
                 color={frame.mounted ? 'text.primary' : 'text.secondary'}
+                sx={{
+                  fontSize: 10,
+                }}
               >
                 Mounted
               </Typography>
             </Stack>
-            <Stack direction="row" spacing={0.5} alignItems="center">
+            <Stack
+              direction="row"
+              spacing={0.5}
+              sx={{
+                alignItems: 'center',
+              }}
+            >
               <VideocamIcon
                 sx={{
                   fontSize: 14,
@@ -175,8 +217,10 @@ const FrameItem = ({
               />
               <Typography
                 variant="caption"
-                fontSize={10}
                 color={frame.hasVideo ? 'text.primary' : 'text.secondary'}
+                sx={{
+                  fontSize: 10,
+                }}
               >
                 Has Video
               </Typography>
@@ -185,11 +229,13 @@ const FrameItem = ({
 
           {frame.videoInfo && (
             <Box
-              mb={1}
-              p={0.75}
-              bgcolor={(theme) => alpha(theme.palette.text.primary, 0.03)}
-              borderRadius={1}
-              border={(theme) => `1px solid ${theme.palette.divider}`}
+              sx={{
+                mb: 1,
+                p: 0.75,
+                bgcolor: (theme) => alpha(theme.palette.text.primary, 0.03),
+                borderRadius: 1,
+                border: (theme) => `1px solid ${theme.palette.divider}`,
+              }}
             >
               <VideoInfoRow label="src">
                 <span title={frame.videoInfo.src} style={{ userSelect: 'all' }}>
@@ -212,7 +258,13 @@ const FrameItem = ({
 
           {/* Frame Actions/Commands */}
           {frame.hasVideo && (
-            <Stack direction="row" spacing={1} mt={1}>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{
+                mt: 1,
+              }}
+            >
               <Button
                 variant="outlined"
                 color="secondary"
@@ -239,31 +291,48 @@ export const FramesPanel = () => {
   const frames = [...allFrames.values()]
 
   return (
-    <Box display="flex" flexDirection="column" height="100%">
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+      }}
+    >
       <Box
-        px={1}
-        py={0.5}
-        bgcolor={(theme) => alpha(theme.palette.primary.main, 0.05)}
-        borderBottom={(theme) => `1px solid ${theme.palette.divider}`}
+        sx={{
+          px: 1,
+          py: 0.5,
+          bgcolor: (theme) => alpha(theme.palette.primary.main, 0.05),
+          borderBottom: (theme) => `1px solid ${theme.palette.divider}`,
+        }}
       >
         <Typography
           variant="caption"
-          fontWeight="bold"
           color="primary"
-          letterSpacing={0.5}
-          textTransform="uppercase"
+          sx={{
+            fontWeight: 'bold',
+            letterSpacing: 0.5,
+            textTransform: 'uppercase',
+          }}
         >
           Detected Frames ({frames.length})
         </Typography>
       </Box>
-      <Box flex={1} overflow="auto">
+      <Box
+        sx={{
+          flex: 1,
+          overflow: 'auto',
+        }}
+      >
         {frames.length === 0 ? (
           <Typography
             variant="body2"
-            color="text.secondary"
-            p={2}
-            textAlign="center"
-            fontStyle="italic"
+            sx={{
+              color: 'text.secondary',
+              p: 2,
+              textAlign: 'center',
+              fontStyle: 'italic',
+            }}
           >
             No frames detected
           </Typography>

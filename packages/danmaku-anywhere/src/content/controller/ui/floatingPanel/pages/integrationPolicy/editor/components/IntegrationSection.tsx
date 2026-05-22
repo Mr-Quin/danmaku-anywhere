@@ -23,8 +23,20 @@ const NoRulesConfigured = () => {
   const { t } = useTranslation()
 
   return (
-    <Box display="flex" alignItems="center" justifyContent="center" py={2}>
-      <Typography variant="body2" color="text.secondary">
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        py: 2,
+      }}
+    >
+      <Typography
+        variant="body2"
+        sx={{
+          color: 'text.secondary',
+        }}
+      >
         {t(
           'integrationPolicyPage.editor.noRegexConfigured',
           'No regex patterns. Click "Add" to add a regex'
@@ -126,7 +138,12 @@ export const IntegrationSection = ({
     >
       <StyledAccordionSummary expandIcon={<ExpandMore />}>
         <Typography variant="subtitle1">{label}</Typography>
-        <Typography variant="caption" color="text.secondary">
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+          }}
+        >
           {t(
             'integrationPolicyPage.editor.selectorRuleCount',
             '{{count}} XPath',
@@ -135,7 +152,12 @@ export const IntegrationSection = ({
             }
           )}
           {regexFields.length > 0 && (
-            <Typography variant="caption" color="text.secondary">
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+              }}
+            >
               ,{' '}
               {t(
                 'integrationPolicyPage.editor.regexRuleCount',
@@ -153,9 +175,11 @@ export const IntegrationSection = ({
           {/* Selector Section */}
           <Stack
             direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            sx={{ mb: 1 }}
+            sx={{
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: 1,
+            }}
           >
             <Typography variant="subtitle2">
               {t(
@@ -206,9 +230,11 @@ export const IntegrationSection = ({
           {/* Regex Section */}
           <Stack
             direction="row"
-            alignItems="center"
-            justifyContent="space-between"
-            sx={{ mb: 1 }}
+            sx={{
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: 1,
+            }}
           >
             <Typography variant="subtitle2">
               {t('integrationPolicyPage.editor.regex', 'Regex (Optional)')}

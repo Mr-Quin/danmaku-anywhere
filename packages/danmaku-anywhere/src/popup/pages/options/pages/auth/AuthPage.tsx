@@ -39,8 +39,13 @@ export const AuthPage = () => {
           <Tab label={t('optionsPage.auth.signIn', 'Sign In')} value="signIn" />
           <Tab label={t('optionsPage.auth.signUp', 'Sign Up')} value="signUp" />
         </Tabs>
-
-        <Box px={2}>{mode === 'signIn' ? <SignInForm /> : <SignUpForm />}</Box>
+        <Box
+          sx={{
+            px: 2,
+          }}
+        >
+          {mode === 'signIn' ? <SignInForm /> : <SignUpForm />}
+        </Box>
       </>
     )
   }

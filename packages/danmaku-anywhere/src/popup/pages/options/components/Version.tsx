@@ -5,12 +5,24 @@ import { EXTENSION_REPO, EXTENSION_VERSION } from '@/common/constants'
 export const Version = () => {
   return (
     <Box
-      position="absolute"
-      bottom={(theme) => theme.spacing(1)}
-      left={(theme) => theme.spacing(1)}
+      sx={{
+        position: 'absolute',
+        bottom: (theme) => theme.spacing(1),
+        left: (theme) => theme.spacing(1),
+      }}
     >
-      <Stack direction="row" alignItems="flex-end">
-        <Typography variant="caption" color="text.disabled">
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-end',
+        }}
+      >
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.disabled',
+          }}
+        >
           v{EXTENSION_VERSION}
         </Typography>
         <IconButton

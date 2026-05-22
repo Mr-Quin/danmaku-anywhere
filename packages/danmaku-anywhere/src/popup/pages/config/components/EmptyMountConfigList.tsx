@@ -14,8 +14,20 @@ export const EmptyMountConfigList = ({
   const { t } = useTranslation()
   return (
     <Box>
-      <Stack p={2} pt={8} alignItems="center" zIndex={2} position="relative">
-        <Typography mb={2}>
+      <Stack
+        sx={{
+          p: 2,
+          pt: 8,
+          alignItems: 'center',
+          zIndex: 2,
+          position: 'relative',
+        }}
+      >
+        <Typography
+          sx={{
+            mb: 2,
+          }}
+        >
           {t('configPage.noConfigs', 'No configs configured...')}
         </Typography>
         <Button

@@ -251,7 +251,14 @@ export const CommentsTable = ({
   }
 
   return (
-    <Box flex={1} display="flex" flexDirection="column" overflow="hidden">
+    <Box
+      sx={{
+        flex: 1,
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
       {renderToolbar()}
       <TableContainer component={ScrollBox} flex={1} overflow="auto" ref={ref}>
         <Table size="small" stickyHeader>
@@ -344,16 +351,17 @@ export const CommentsTable = ({
                   >
                     <Typography
                       variant="body2"
+                      title={comment.m}
                       sx={{
+                        flexGrow: 1,
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         opacity: decision.kind === 'block' ? 0.5 : 1,
+
                         textDecoration:
                           decision.kind === 'block' ? 'line-through' : 'none',
                       }}
-                      title={comment.m}
-                      flexGrow={1}
                     >
                       {comment.m}
                     </Typography>

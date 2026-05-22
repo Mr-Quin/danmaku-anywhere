@@ -173,7 +173,11 @@ export const MountConfigEditor = ({
             : t('configPage.editor.title.create', 'Add Config')
         }
       />
-      <Box p={2}>
+      <Box
+        sx={{
+          p: 2,
+        }}
+      >
         <Stepper activeStep={activeStep}>
           <Step>
             <StepButton onClick={() => handleStep(0)}>

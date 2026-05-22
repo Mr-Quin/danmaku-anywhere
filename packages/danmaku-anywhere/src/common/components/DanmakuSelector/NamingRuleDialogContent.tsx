@@ -215,7 +215,13 @@ export const NamingRuleDialogContent = ({
         />
         {filesInFolder.length > 0 && (
           <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: 'text.secondary',
+                mb: 0.5,
+              }}
+            >
               {t('namingRule.filesInFolder', 'Files in folder')} (
               {template
                 ? t(
@@ -280,12 +286,16 @@ export const NamingRuleDialogContent = ({
                             </Box>
                             <Typography
                               component="span"
-                              color="success.main"
-                              sx={(theme) => ({
-                                fontSize: theme.typography.overline.fontSize,
-                                lineHeight: 'inherit',
-                                flexShrink: 0,
-                              })}
+                              sx={[
+                                {
+                                  color: 'success.main',
+                                },
+                                (theme) => ({
+                                  fontSize: theme.typography.overline.fontSize,
+                                  lineHeight: 'inherit',
+                                  flexShrink: 0,
+                                }),
+                              ]}
                             >
                               {t('namingRule.episodeLabel', 'Ep {{number}}', {
                                 number: file.episodeNumber,

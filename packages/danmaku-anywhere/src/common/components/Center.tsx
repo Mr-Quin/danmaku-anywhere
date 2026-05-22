@@ -4,10 +4,12 @@ import type { PropsWithChildren } from 'react'
 export const Center = ({ children }: PropsWithChildren) => {
   return (
     <Stack
-      height={1}
       direction="column"
-      justifyContent="center"
-      alignItems="center"
+      sx={{
+        height: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      }}
     >
       {children}
     </Stack>

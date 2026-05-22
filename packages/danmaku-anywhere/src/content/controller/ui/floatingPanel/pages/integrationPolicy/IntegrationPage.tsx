@@ -93,8 +93,10 @@ export const IntegrationPage = () => {
         <Stack
           direction="row"
           spacing={2}
-          alignItems="center"
-          justifyContent="space-between"
+          sx={{
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
         >
           <ToggleButtonGroup
             value={activeConfig.mode}

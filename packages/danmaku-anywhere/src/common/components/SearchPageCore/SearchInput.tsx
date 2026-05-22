@@ -200,8 +200,10 @@ export function SearchInput({
           inputRef={inputRef}
           autoComplete="off"
           slotProps={{
+            ...params.slotProps,
+
             htmlInput: {
-              ...params.inputProps,
+              ...params.slotProps.htmlInput,
               'data-testid': 'search-input',
               style: urlMode
                 ? {
@@ -211,8 +213,9 @@ export function SearchInput({
                   }
                 : undefined,
             },
+
             input: {
-              ...params.InputProps,
+              ...params.slotProps.input,
               startAdornment: urlMode ? (
                 <InputAdornment position="start" sx={{ mr: 0.5 }}>
                   {providerLabel ? (
@@ -257,7 +260,7 @@ export function SearchInput({
                     </Typography>
                   </InputAdornment>
                 ) : (
-                  params.InputProps.endAdornment
+                  params.slotProps.input.endAdornment
                 ),
             },
           }}

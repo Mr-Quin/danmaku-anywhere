@@ -15,13 +15,24 @@ export const MultiselectChip = ({ active, onToggle }: MultiselectChipProps) => {
       variant="outlined"
       data-testid="multiselect-toggle"
       label={
-        <Stack direction="row" alignItems="center" gap={0.5}>
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'center',
+            gap: 0.5,
+          }}
+        >
           {active ? (
             <CheckBox fontSize="small" />
           ) : (
             <CheckBoxOutlined fontSize="small" />
           )}
-          <Typography variant="body2" fontSize="small">
+          <Typography
+            variant="body2"
+            sx={{
+              fontSize: 'small',
+            }}
+          >
             {t('common.multiselect', 'Multiselect')}
           </Typography>
         </Stack>
