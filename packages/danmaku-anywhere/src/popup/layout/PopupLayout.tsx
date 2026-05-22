@@ -1,5 +1,6 @@
 import { Box, Container } from '@mui/material'
 import type { PropsWithChildren } from 'react'
+import { DevWatermark } from '@/common/components/DevWatermark'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 
 export const PopupLayout = ({ children }: PropsWithChildren<{}>) => {
@@ -29,6 +30,7 @@ export const PopupLayout = ({ children }: PropsWithChildren<{}>) => {
         }}
       >
         {children}
+        <DevWatermark />
       </Box>
     </Container>
   )

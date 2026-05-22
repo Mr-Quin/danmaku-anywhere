@@ -29,6 +29,8 @@ export function isDaEnv(...envs: DaEnv[]): boolean {
 
 export const EXTENSION_VERSION = import.meta.env.VERSION
 
+export const DEV_BRANCH = import.meta.env.VITE_DA_BRANCH
+
 export const EXTENSION_REPO = 'https://github.com/Mr-Quin/danmaku-anywhere'
 
 export const BUG_FORM =

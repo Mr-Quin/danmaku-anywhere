@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process'
 import packageJson from '../package.json' with { type: 'json' }
 
 const VERSION_SUFFIX = process.env.VERSION_SUFFIX
@@ -5,6 +6,21 @@ const BROWSER = process.env.VITE_TARGET_BROWSER ?? 'chrome'
 const dev = process.env.NODE_ENV === 'development'
 const IS_CHROME = BROWSER === 'chrome'
 const IS_FIREFOX = BROWSER === 'firefox'
+
+function detectGitBranch() {
+  try {
+    const branch = execSync('git rev-parse --abbrev-ref HEAD', {
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+      .toString()
+      .trim()
+    // Detached HEAD (common on CI clones) returns the literal string 'HEAD'.
+    return branch === 'HEAD' ? '' : branch
+  } catch {
+    return ''
+  }
+}
+const GIT_BRANCH = detectGitBranch()
 
 const VALID_DA_ENVS = ['dev', 'preview', 'prod', 'e2e']
 function resolveDaEnv() {
@@ -38,5 +54,6 @@ export function getBuildContext() {
     appVersion: getVersion(),
     isDev: dev,
     daEnv: DA_ENV,
+    gitBranch: GIT_BRANCH,
   }
 }

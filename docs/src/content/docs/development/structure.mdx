@@ -3,9 +3,7 @@ title: 项目结构
 description: 项目结构
 ---
 
-import { FileTree, Steps, Tabs, TabItem } from '@astrojs/starlight/components'
-
-欢迎各路诸侯来贡献代码
+import { FileTree, Steps, Tabs, TabItem, Aside } from '@astrojs/starlight/components'
 
 ## 仓库地址
 
@@ -13,31 +11,39 @@ https://github.com/Mr-Quin/danmaku-anywhere
 
 ## 开发环境
 
-- `Node.js` >= 22
-- `pnpm` >= 10
+- `Node.js` >= 24
+- `pnpm` >= 10（请使用 `pnpm`，不要使用 `npm` 或 `yarn`）
+- Chrome（开发浏览器扩展时由 `dev:browser` 自动启动）
 
 ## 项目结构
 
-本项目为`pnpm`多包管理项目。
+本项目为`pnpm`多包`workspace`。
 
 <FileTree>
 
-- docs/ - 文档（本站）
+- docs/ - 文档（本站，Astro / Starlight）
 - app/
   - **web/** - Web应用，基于 Kazumi 规则的看番网站 (Angular)
-- backend
-  - proxy/ - Cloudflare Worker，用于与弹弹play API交互，以及提供AI服务
+- backend/
+  - proxy/ - Cloudflare Worker，与弹弹play API交互、AI 服务
 - packages/
-  - **danmaku-anywhere/** - 扩展主体 (React)
+  - **danmaku-anywhere/** - 扩展主体
     - src/
-      - background/ - 后台脚本
+      - background/ - 后台脚本（Service Worker）
       - content/ - 内容脚本
         - controller/ - 控件
         - player/ - 弹幕播放器
       - popup/ - 弹出窗口
-  - danmaku-converter/ - 各弹幕来源的类型定义和验证
+    - e2e/ - Playwright e2e 测试与开发浏览器启动脚本
+  - danmaku-converter/ - 弹幕格式解析与归一化
   - danmaku-engine/ - 弹幕渲染器
-  - danmaku-provider/ - 和弹幕源API交互
+  - danmaku-provider/ - 与第三方弹幕源 API 交互
+  - dango/ - 声明式弹幕源 manifest 引擎
+  - dango-manifests/ - 内置 dango manifest（JSON）
+  - web-scraper/ - 网页/媒体元数据抓取
+  - bangumi-api/ - Bangumi API 类型与 schema
+  - result/ - `Result<T, E>` 类型工具
+  - integration-policy/ - 站点集成策略 schema
 - package.json
 
 </FileTree>
@@ -48,11 +54,11 @@ https://github.com/Mr-Quin/danmaku-anywhere
 
 1. 安装依赖
    ```bash
-   pnpm i
+   pnpm install
    ```
-2. 构建共享库
+2. 构建共享包（扩展、Web 应用、Worker 都依赖于已构建的 `packages/*`）
    ```bash
-   pnpm -r build
+   pnpm build:packages
    ```
 </Steps>
 
@@ -60,17 +66,18 @@ https://github.com/Mr-Quin/danmaku-anywhere
 
 ### 浏览器扩展
 
-扩展位于 `packages/danmaku-anywhere`
+扩展位于 `packages/danmaku-anywhere`。
 
 <Tabs>
   <TabItem label="Chrome">
 
-    ```bash
-    pnpm dev
-    ```
-    输出在 `packages/danmaku-anywhere/dev/chrome`
+    推荐使用 `dev:browser`，会自动启动一个独立的 Chrome 实例，并加载扩展：
 
-    `chrome://extensions`，启用开发者模式，加载已解压的扩展。
+    ```bash
+    pnpm dev:browser
+    ```
+
+    支持HMR，改动源码会自动刷新。用户配置保存在 `packages/danmaku-anywhere/.playwright-profile`，可重复使用。
 
   </TabItem>
   <TabItem label="Firefox">
@@ -113,8 +120,18 @@ https://github.com/Mr-Quin/danmaku-anywhere
 
 ### Web App
 
-Web应用位于 `app/web`
+Web 应用位于 `app/web`，依赖浏览器扩展才能完整工作。
 
 ```bash
+cd app/web
 pnpm start
+```
+
+### Backend (Cloudflare Worker)
+
+后端位于 `backend/proxy`。
+
+```bash
+cd backend/proxy
+pnpm dev
 ```

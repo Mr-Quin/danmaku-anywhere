@@ -7,6 +7,7 @@ interface ImportMetaEnv {
   readonly VITE_STANDALONE?: 'true' | 'false'
   readonly VITE_DA_ENV: 'dev' | 'preview' | 'prod' | 'e2e'
   readonly VITE_DEV_SERVER_URL: string
+  readonly VITE_DA_BRANCH: string
   readonly VERSION: string
 }
 

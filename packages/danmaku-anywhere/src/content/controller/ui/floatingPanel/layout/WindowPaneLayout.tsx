@@ -2,6 +2,7 @@ import type { PaperProps } from '@mui/material'
 import { Paper } from '@mui/material'
 import type { ReactNode, Ref } from 'react'
 
+import { DevWatermark } from '@/common/components/DevWatermark'
 import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallScreen'
 import {
   CONTROLLER_WINDOW_DEFAULT_WIDTH,
@@ -28,6 +29,7 @@ export const WindowPaneLayout = (props: WindowPaneLayoutProps) => {
     <Paper
       sx={{
         padding: 0,
+        position: 'relative',
         width: sm ? '100%' : width,
         maxWidth: sm ? '100%' : width,
         minHeight: height,
@@ -40,6 +42,7 @@ export const WindowPaneLayout = (props: WindowPaneLayoutProps) => {
       {...props.paperProps}
     >
       {props.children}
+      <DevWatermark />
     </Paper>
   )
 }

@@ -30,7 +30,9 @@ build
 patch-*
 
 .wrangler
-.claude-task.md
 .claude/scheduled_tasks.lock
+.claude/screenshots/
+test-results/
+playwright-report/
 .specs/
-docs/superpowers/
+docs/superpowers/pr*.json
