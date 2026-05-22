@@ -7,15 +7,6 @@ import {
 } from '@mui/material/styles'
 import type * as React from 'react'
 
-// Self-hosted — MV3 CSP blocks Google Fonts CDN.
-import '@fontsource/plus-jakarta-sans/latin-400.css'
-import '@fontsource/plus-jakarta-sans/latin-500.css'
-import '@fontsource/plus-jakarta-sans/latin-600.css'
-import '@fontsource/plus-jakarta-sans/latin-700.css'
-import '@fontsource/noto-sans-sc/chinese-simplified-400.css'
-import '@fontsource/noto-sans-sc/chinese-simplified-500.css'
-import '@fontsource/noto-sans-sc/chinese-simplified-700.css'
-
 type SeverityKey = 'success' | 'warning' | 'info' | 'error'
 
 declare module '@mui/material/styles' {
@@ -453,7 +444,7 @@ function buildSakuraTypography(
   pxToRem: (px: number) => string
 ): ThemeOptions['typography'] {
   return {
-    fontFamily: `'Plus Jakarta Sans', 'Noto Sans SC', system-ui, sans-serif`,
+    fontFamily: `'Plus Jakarta Sans Variable', 'Noto Sans SC Variable', 'Noto Sans TC Variable', 'Noto Sans JP Variable', system-ui, sans-serif`,
     h1: { fontWeight: 700, fontSize: pxToRem(22), lineHeight: 1.3 },
     h2: { fontWeight: 700, fontSize: pxToRem(18), lineHeight: 1.3 },
     h3: { fontWeight: 700, fontSize: pxToRem(16), lineHeight: 1.3 },

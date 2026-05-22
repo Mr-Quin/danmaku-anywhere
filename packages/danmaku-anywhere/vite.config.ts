@@ -30,6 +30,17 @@ console.log('Building for', {
 export default defineConfig({
   // @ts-ignore
   plugins: [react({}), crx({ manifest, browser: browser.name })],
+  // Don't pre-bundle the variable font packages: when crxjs serves dev assets,
+  // `?url` for pre-bundled CSS resolves to a `/vendor/...__url.js` shim instead
+  // of the real CSS path, which breaks <link rel=stylesheet> font loading.
+  optimizeDeps: {
+    exclude: [
+      '@fontsource-variable/noto-sans-jp',
+      '@fontsource-variable/noto-sans-sc',
+      '@fontsource-variable/noto-sans-tc',
+      '@fontsource-variable/plus-jakarta-sans',
+    ],
+  },
   resolve: {
     // Specific alias must precede the generic '@' prefix.
     alias: [
@@ -46,12 +57,18 @@ export default defineConfig({
       clientPort: port,
     },
     open: false,
+    // Content scripts on host pages fetch font CSS/woff2 cross-origin from
+    // localhost — Vite 7 defaults to no CORS, blocking those font requests.
+    cors: { origin: '*' },
   },
   define: {
     'import.meta.env.VITE_TARGET_BROWSER': JSON.stringify(browser.name),
     'import.meta.env.VERSION': JSON.stringify(appVersion),
     'import.meta.env.VITE_STANDALONE': JSON.stringify(false),
     'import.meta.env.VITE_DA_ENV': JSON.stringify(daEnv),
+    'import.meta.env.VITE_DEV_SERVER_URL': JSON.stringify(
+      `http://localhost:${port}`
+    ),
   },
   build: {
     emptyOutDir: true,

@@ -4,6 +4,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import './index.css'
 
+import { injectFonts } from '@/common/fonts'
 import { queryClient } from '@/common/queries/queryClient'
 import { ensureStandaloneReady } from '@/common/standalone/ensureStandaloneReady'
 import { Theme } from '@/common/theme/Theme'
@@ -13,6 +14,8 @@ import { EnvironmentContext } from '@/common/environment/context'
 
 const bootstrap = async () => {
   await ensureStandaloneReady()
+
+  injectFonts(document.head)
 
   ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>

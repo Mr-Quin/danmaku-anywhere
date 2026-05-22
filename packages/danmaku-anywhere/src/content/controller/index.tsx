@@ -4,6 +4,7 @@ import type { ThemeOptions } from '@mui/material'
 import { QueryClientProvider } from '@tanstack/react-query'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
+import { injectFonts } from '@/common/fonts'
 import { Logger } from '@/common/Logger'
 import { queryClient } from '@/common/queries/queryClient'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -34,6 +35,11 @@ Logger.debug(`Controller script loaded in frame ${frameId}`)
 const { shadowRoot, shadowStyle } = await createPopoverRoot({
   id: CONTROLLER_ROOT_ID,
 })
+
+// Chromium doesn't activate @font-face from stylesheets inside a shadow DOM.
+// Register at the host document scope; shadow trees inherit document fonts.
+injectFonts(document.head)
+
 // try to get the html font size for rem unit
 // if it fails, use 16 as default
 const htmlFontSize =

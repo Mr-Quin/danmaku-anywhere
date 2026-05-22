@@ -134,6 +134,9 @@ async function startDev(): Promise<void> {
   const { createServer } = await import('vite')
 
   const port = await resolvePort()
+  // vite.config.ts reads VITE_PORT for its define constants; bake the
+  // resolved port back in so the bundle matches the actual bound port.
+  process.env.VITE_PORT = port.toString()
   console.log(`Starting Vite dev server on port ${port}...`)
 
   const server = await createServer({
