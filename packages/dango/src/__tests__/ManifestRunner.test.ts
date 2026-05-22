@@ -204,6 +204,85 @@ describe('ManifestRunner.canParse', () => {
 })
 
 /**
+ * Covers extractHeaders on http steps: response headers (lower-cased names)
+ * are exposed alongside body extracts on context[step.id]. Required for
+ * sources that need to thread tokens from Set-Cookie / etag into later steps.
+ */
+describe('http step extractHeaders', () => {
+  it('extracts named values from response headers into context', async () => {
+    const manifest = zManifest.parse({
+      apiVersion: 1,
+      id: 'header-demo',
+      name: 'HeaderDemo',
+      version: '0.1.0',
+      hosts: ['api.example.com'],
+      search: {
+        inputs: ['q'],
+        steps: [
+          {
+            type: 'http',
+            id: 'probe',
+            request: {
+              method: 'GET',
+              url: "'https://api.example.com/probe'",
+            },
+            extractHeaders: {
+              token: "$regexExtract(`set-cookie`, '_m_h5_tk=([^;]+)')",
+              etag: '`etag`',
+            },
+          },
+        ],
+        output: 'probe',
+      },
+    })
+    const { fetcher } = mockFetcher({
+      'https://api.example.com/probe': {
+        body: JSON.stringify({}),
+        headers: {
+          'Set-Cookie': '_m_h5_tk=abc123; path=/',
+          ETag: '"deadbeef"',
+        },
+      },
+    })
+    const runner = new ManifestRunner(manifest, { fetcher })
+    const result = await runner.runSearch({ q: 'x' })
+    expect(result).toEqual({ token: 'abc123', etag: '"deadbeef"' })
+  })
+
+  it('mixes extract (body) and extractHeaders into a single bag', async () => {
+    const manifest = zManifest.parse({
+      apiVersion: 1,
+      id: 'mix',
+      name: 'Mix',
+      version: '0.1.0',
+      hosts: ['api.example.com'],
+      search: {
+        inputs: ['q'],
+        steps: [
+          {
+            type: 'http',
+            id: 'r',
+            request: { method: 'GET', url: "'https://api.example.com/x'" },
+            extract: { fromBody: 'data.value' },
+            extractHeaders: { fromHeader: '`x-trace-id`' },
+          },
+        ],
+        output: 'r',
+      },
+    })
+    const { fetcher } = mockFetcher({
+      'https://api.example.com/x': {
+        body: JSON.stringify({ data: { value: 'b' } }),
+        headers: { 'X-Trace-Id': 'h' },
+      },
+    })
+    const runner = new ManifestRunner(manifest, { fetcher })
+    const result = await runner.runSearch({ q: 'x' })
+    expect(result).toEqual({ fromBody: 'b', fromHeader: 'h' })
+  })
+})
+
+/**
  * Covers ManifestRunner.runLoginProbe: the no-pipeline returns-null path and
  * a normal HTTP probe whose output the host inspects to decide login state.
  * Output shape is source-specific; the engine just runs the pipeline.

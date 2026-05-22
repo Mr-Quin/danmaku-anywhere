@@ -77,16 +77,29 @@ const zStepId = z
 const zHttpStep = z
   .object({
     type: z.literal('http'),
-    /** Required when `extract` is set, since extracts are stored at context[id]. */
+    /** Required when `extract`/`extractHeaders` is set, since extracts are stored at context[id]. */
     id: zStepId.optional(),
     request: zRequestSpec,
     /** Per-field JSONata against the response body. */
     extract: z.record(z.string(), zExpr).optional(),
+    /**
+     * Per-field JSONata against the response headers. Header names are
+     * lower-cased before exposure (HTTP is case-insensitive). Access with
+     * bracket-quoted names for headers containing `-`:
+     * `` `set-cookie` ``.
+     */
+    extractHeaders: z.record(z.string(), zExpr).optional(),
   })
-  .refine((step) => step.extract === undefined || step.id !== undefined, {
-    message: 'http step requires `id` when `extract` is set',
-    path: ['id'],
-  })
+  .refine(
+    (step) =>
+      (step.extract === undefined && step.extractHeaders === undefined) ||
+      step.id !== undefined,
+    {
+      message:
+        'http step requires `id` when `extract` / `extractHeaders` is set',
+      path: ['id'],
+    }
+  )
 
 const zAssignStep = z.object({
   type: z.literal('assign'),
