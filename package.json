@@ -20,7 +20,7 @@
     "format": "pnpm -r -F \"./packages/**\" format",
     "lint": "pnpm -r -F \"./packages/**\" lint",
     "lint:ci": "pnpm -r lint:ci",
-    "test": "pnpm -r test run",
+    "test": "pnpm -r test",
     "type-check": "pnpm -r type-check",
     "sync-changelog": "node --experimental-strip-types scripts/sync-changelog.ts Mr-Quin/danmaku-anywhere docs/src/content/docs/change-log.mdx",
     "knip": "knip",
