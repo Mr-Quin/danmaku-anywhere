@@ -52,11 +52,21 @@ function collectSpecs(report) {
       const title = [...trail, spec.title].join(' › ')
       const test = spec.tests?.[0]
       const result = test?.results?.[test.results.length - 1]
+      // Playwright aggregates per-test status as 'expected' | 'unexpected' |
+      // 'skipped' | 'flaky' on the test object; results[].status is the raw
+      // attempt outcome. Trust test.status for skipped/flaky so we don't
+      // miscount tests where results[] is empty (e.g. test.skip()).
+      const aggregated = test?.status
+      const lastResultStatus = result?.status
+      const status =
+        aggregated === 'skipped' || aggregated === 'flaky'
+          ? aggregated
+          : (lastResultStatus ?? (spec.ok ? 'passed' : 'failed'))
       specs.push({
         title,
         file: spec.file ?? suite.file ?? '',
         ok: spec.ok !== false,
-        status: result?.status ?? (spec.ok ? 'passed' : 'failed'),
+        status,
         duration: result?.duration ?? 0,
       })
     }
@@ -85,6 +95,11 @@ function summarize(report) {
       counts.skipped += 1
       continue
     }
+    if (spec.status === 'flaky') {
+      counts.flaky += 1
+      counts.passed += 1
+      continue
+    }
     if (spec.ok) {
       counts.passed += 1
       continue
@@ -92,12 +107,8 @@ function summarize(report) {
     counts.failed += 1
     failures.push(spec)
   }
-  // Prefer reporter stats when available; fall back to walked counts.
   const stats = report.stats ?? {}
   const duration = Number.isFinite(stats.duration) ? stats.duration : 0
-  if (Number.isFinite(stats.flaky)) {
-    counts.flaky = stats.flaky
-  }
   return { counts, failures, duration }
 }
 
@@ -161,13 +172,23 @@ function buildBody({ summary, runUrl, runNumber, reportUrl, sha }) {
   return lines.join('\n')
 }
 
+function isBotAuthor(comment) {
+  const user = comment.user
+  if (!user) {
+    return false
+  }
+  return user.type === 'Bot' || user.login === 'github-actions[bot]'
+}
+
 async function upsertComment({ github, owner, repo, issueNumber, body }) {
   let existing = null
   for await (const { data: comments } of github.paginate.iterator(
     github.rest.issues.listComments,
     { owner, repo, issue_number: issueNumber, per_page: 100 }
   )) {
-    existing = comments.find((c) => c.body && c.body.includes(MARKER))
+    existing = comments.find(
+      (c) => c.body && c.body.includes(MARKER) && isBotAuthor(c)
+    )
     if (existing) {
       break
     }
