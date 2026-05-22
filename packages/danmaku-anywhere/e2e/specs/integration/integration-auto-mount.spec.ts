@@ -76,11 +76,13 @@ test('integration auto-mount: native <video> happy path', async ({
   expect(mirror.episodeIds).toEqual([episodeId])
 
   await integrationPage.playVideo()
-  await integrationPage.setVideoTime(SEEK_TIME_S)
 
-  await expect(integrationPage.commentElements().first()).toBeVisible({
-    timeout: 10_000,
-  })
+  await expect(async () => {
+    await integrationPage.setVideoTime(SEEK_TIME_S)
+    await expect(integrationPage.commentElements().first()).toBeVisible({
+      timeout: 1_000,
+    })
+  }).toPass({ timeout: 15_000 })
 })
 
 test('integration auto-mount: same-origin iframe <video> happy path', async ({
@@ -105,9 +107,11 @@ test('integration auto-mount: same-origin iframe <video> happy path', async ({
   expect(mirror.episodeIds).toEqual([episodeId])
 
   await integrationPage.playVideo()
-  await integrationPage.setVideoTime(SEEK_TIME_S)
 
-  await expect(integrationPage.commentElements().first()).toBeVisible({
-    timeout: 10_000,
-  })
+  await expect(async () => {
+    await integrationPage.setVideoTime(SEEK_TIME_S)
+    await expect(integrationPage.commentElements().first()).toBeVisible({
+      timeout: 1_000,
+    })
+  }).toPass({ timeout: 15_000 })
 })

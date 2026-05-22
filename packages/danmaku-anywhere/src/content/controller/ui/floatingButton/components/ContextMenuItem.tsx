@@ -7,8 +7,8 @@ import {
 } from '@mui/material'
 import type { ReactNode } from 'react'
 
-import { getKeySymbolMap } from '@/common/options/extensionOptions/hotkeys'
-import { getOS, properCase } from '@/common/utils/utils'
+import { formatHotkeyCombo } from '@/common/options/extensionOptions/hotkeys'
+import { getOS } from '@/common/utils/utils'
 
 export interface ContextMenuItemProps {
   action: () => void
@@ -30,7 +30,6 @@ export const ContextMenuItem = ({
   const isDisabled = disabled?.() ?? false
 
   const isMacOs = getOS() === 'MacOS'
-  const symbolMap = getKeySymbolMap({ isMacOs })
 
   return (
     <Tooltip title={tooltip?.()} placement="top">
@@ -45,13 +44,7 @@ export const ContextMenuItem = ({
                 sx={{ ml: 1 }}
                 size="small"
                 color={isDisabled ? 'default' : 'primary'}
-                label={hotkey
-                  .split('+')
-                  .map((key) => {
-                    if (key in symbolMap) return symbolMap[key]
-                    return properCase(key)
-                  })
-                  .join('+')}
+                label={formatHotkeyCombo(hotkey, { isMacOs })}
               />
             )}
           </ListItemText>

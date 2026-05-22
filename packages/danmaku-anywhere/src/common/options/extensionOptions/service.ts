@@ -261,6 +261,17 @@ export class ExtensionOptionsService implements IStoreService {
             draft.showFloatingButton = true
           }),
       })
+      .version(25, {
+        upgrade: (data) =>
+          produce<ExtensionOptions>(data, (draft) => {
+            draft.hotkeys = {
+              ...defaultKeymap,
+              ...draft.hotkeys,
+              openSearchPanel:
+                draft.hotkeys?.openSearchPanel ?? defaultKeymap.openSearchPanel,
+            }
+          }),
+      })
   }
 
   async get() {

@@ -13,9 +13,6 @@ export const useBookmarkAdd = () => {
     meta: {
       invalidates: [bookmarkQueryKeys.all()],
     },
-    onSuccess: () => {
-      toast.success(t('common.success', 'Success'))
-    },
     onError: () => {
       toast.error(t('common.failed', 'Failed'))
     },

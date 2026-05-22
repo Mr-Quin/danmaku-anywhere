@@ -68,8 +68,9 @@ export class IntegrationPage {
     return this.videoFrame ?? this.page
   }
 
-  // Synthesize seek events — an empty <video> won't fire them on its own.
+  // A bare <video> won't fire seek events on its own; synthesize them.
   async setVideoTime(seconds: number): Promise<void> {
+    await this.forceVisible()
     await this.target.evaluate((t) => {
       const v = document.querySelector(
         'video[data-testid="da-video"]'
@@ -83,8 +84,9 @@ export class IntegrationPage {
     }, seconds)
   }
 
-  // Synthesize play events — the bare <video> has no src so .play() is a no-op.
+  // .play() is a no-op on a src-less <video>; synthesize the events directly.
   async playVideo(): Promise<void> {
+    await this.forceVisible()
     await this.target.evaluate(() => {
       const v = document.querySelector(
         'video[data-testid="da-video"]'
@@ -94,6 +96,26 @@ export class IntegrationPage {
       }
       v.dispatchEvent(new Event('play'))
       v.dispatchEvent(new Event('playing'))
+    })
+  }
+
+  // danmaku-engine gates emit on `documentVisible`; headless CI can flip it
+  // false via a stray visibilitychange. Pin true before driving the video.
+  private async forceVisible(): Promise<void> {
+    await this.target.evaluate(() => {
+      try {
+        Object.defineProperty(document, 'visibilityState', {
+          configurable: true,
+          get: () => 'visible',
+        })
+        Object.defineProperty(document, 'hidden', {
+          configurable: true,
+          get: () => false,
+        })
+      } catch {
+        // Getter already pinned by an earlier call.
+      }
+      document.dispatchEvent(new Event('visibilitychange'))
     })
   }
 

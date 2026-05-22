@@ -1,6 +1,7 @@
 import { i18n } from '@/common/localization/i18n'
 import type { Hotkey } from '@/common/options/extensionOptions/schema'
 import { createLocalizationMap } from '@/common/utils/createLocalizationMap'
+import { properCase } from '@/common/utils/utils'
 
 export const createHotkey = (key: string, enabled = true) => {
   return {
@@ -14,6 +15,7 @@ export const ALL_HOTKEYS = [
   'togglePip',
   'refreshComments',
   'unmountComments',
+  'openSearchPanel',
 ] as const
 
 export type AllHotkeys = (typeof ALL_HOTKEYS)[number]
@@ -27,6 +29,8 @@ export const HOTKEY_LABELS = createLocalizationMap<AllHotkeys>({
     i18n.t('optionsPage.hotkeys.refreshComments', 'Refresh comments'),
   unmountComments: () =>
     i18n.t('optionsPage.hotkeys.unmountComments', 'Unmount comments'),
+  openSearchPanel: () =>
+    i18n.t('optionsPage.hotkeys.openSearchPanel', 'Open search panel'),
 })
 
 export type Keymap = Record<AllHotkeys, Hotkey>
@@ -36,6 +40,7 @@ export const defaultKeymap: Keymap = {
   refreshComments: createHotkey('shift+r'),
   unmountComments: createHotkey('shift+u'),
   togglePip: createHotkey('shift+p'),
+  openSearchPanel: createHotkey('alt+k'),
 } as const
 
 const macModifierSymbols: Record<string, string> = {
@@ -69,4 +74,23 @@ export const getKeySymbolMap = ({
     return { ...keySymbols, ...macModifierSymbols }
   }
   return keySymbols
+}
+
+interface FormatHotkeyComboOptions {
+  isMacOs?: boolean
+  separator?: string
+}
+
+export function formatHotkeyCombo(
+  combo: string,
+  { isMacOs = false, separator = '+' }: FormatHotkeyComboOptions = {}
+): string {
+  if (!combo) {
+    return ''
+  }
+  const symbolMap = getKeySymbolMap({ isMacOs })
+  return combo
+    .split('+')
+    .map((key) => (key in symbolMap ? symbolMap[key] : properCase(key)))
+    .join(separator)
 }

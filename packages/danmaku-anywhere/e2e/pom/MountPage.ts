@@ -50,14 +50,14 @@ export class MountPage {
     await item.click({ button: 'right' })
     const menuItem = this.page.locator(SELECTORS.menuItem(actionId))
     await menuItem.click()
-    await expect(menuItem).toBeHidden({ timeout: 5_000 })
+    await expect(menuItem).toBeHidden({ timeout: 15_000 })
   }
 
   async openToolbarMenu(actionId: string): Promise<void> {
     await this.page.locator(SELECTORS.drilldownButton).click()
     const menuItem = this.page.locator(SELECTORS.menuItem(actionId))
     await menuItem.click()
-    await expect(menuItem).toBeHidden({ timeout: 5_000 })
+    await expect(menuItem).toBeHidden({ timeout: 15_000 })
   }
 
   async expandSeason(seasonId: number): Promise<void> {

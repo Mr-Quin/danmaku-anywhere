@@ -4,8 +4,8 @@ import type { KeyboardEvent } from 'react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { getKeySymbolMap } from '@/common/options/extensionOptions/hotkeys'
-import { getOS, properCase } from '@/common/utils/utils'
+import { formatHotkeyCombo } from '@/common/options/extensionOptions/hotkeys'
+import { getOS } from '@/common/utils/utils'
 
 interface HotkeyInputProps {
   onKeyChange?: (key: string) => void
@@ -56,16 +56,7 @@ export const HotkeyInput = ({ onKeyChange, value }: HotkeyInputProps) => {
     }
   }
 
-  const isMacOs = getOS() === 'MacOS'
-  const symbolMap = getKeySymbolMap({ isMacOs })
-
-  const displayKey = key
-    .split('+')
-    .map((key) => {
-      if (key in symbolMap) return symbolMap[key]
-      return properCase(key)
-    })
-    .join('+')
+  const displayKey = formatHotkeyCombo(key, { isMacOs: getOS() === 'MacOS' })
 
   if (!editing && !key) {
     return (

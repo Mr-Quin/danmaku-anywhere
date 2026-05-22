@@ -69,7 +69,10 @@ Always prefer scripts defined in `package.json` over ad-hoc commands. Run `pnpm 
 - **No same-line if bodies**: always use a block `{ }` on the next line, even for early returns. `if (x) return` → `if (x) { return }`
 - **Prefer `function` declarations**: use `function` declarations over `const` arrow functions for named/exported functions. Arrow functions are fine for callbacks and inline expressions.
 - **No bodyless one-liner arrow functions**: use an explicit block with `return` when the function has a type annotation or is non-trivial. `(x) => x.foo` is fine for simple callbacks; named/typed functions should use `{ return ... }`
-- **No syntax soup**: avoid dense ternary chains, chained optional calls, or expressions that require more than one read to parse
+- **No syntax soup**: avoid dense ternary chains, chained optional calls, or expressions that require more than one read to parse. Banned patterns include:
+  - Spread + conditional spread in object literals (e.g. `{ ...base, ...(cond && { foo, bar }) }`) — use a ternary returning the whole object, or assign to a named variable first
+  - Inline boolean-and shortcuts as element children for non-trivial branches — use a ternary or extract a render function
+  - Nested ternaries beyond one level — flatten with early returns, a lookup, or an if/else cascade
 - **Decouple business logic**: keep logic decoupled from UI frameworks for testability — single source of truth over scattered state
 - **No sectional comments**: sectional comments in a class are a code smell — split the class instead
 - **Test header comment**: every test file has a 3-6 line JSDoc block immediately after imports describing what the test exercises and what it asserts. Goes before the first `test()`/`describe()` call
@@ -81,6 +84,8 @@ Always prefer scripts defined in `package.json` over ad-hoc commands. Run `pnpm 
 - **No conversation summaries.** Comments are not changelogs, review-response notes, or rationalizations for a decision someone questioned. Those belong in commit messages and PR descriptions.
 - **Don't reference invisible-from-code context.** No `// Added for DA-XXX`, `// Per Gemini review`, `// As discussed`, `// Phase 2 fix`, `// Previously…`. If a future reader can't see it in the tree, the comment is dead weight.
 - **No defensive comments.** If you're tempted to justify code that looks reasonable on its own, delete the comment. If the code looks unreasonable, fix the code.
+- **Terse, not essays.** Two or three lines is fine when the constraint genuinely needs them; a paragraph-long block comment is almost always wrong. If you find yourself writing one, ask whether the code itself should be restructured to make the constraint obvious instead.
+- **No em dashes (`—`, U+2014) anywhere new** — not in code, not in comments, not in commit messages, not in PR bodies, not in localization strings. Use a period, a comma, a colon, or parentheses instead. This applies to every locale: zh translations should not use `—` either. Existing em dashes in code/docs predate this rule; do not add new ones.
 
 ## TypeScript
 

@@ -18,8 +18,12 @@ export const TabToolbar = ({
   onGoBack,
 }: PageToolbarProps) => {
   const backButton = showBackButton && (
-    <IconButton edge="start" onClick={onGoBack}>
-      <ChevronLeft />
+    <IconButton
+      onClick={onGoBack}
+      size="small"
+      sx={{ ml: -0.5, mr: 0.25, flexShrink: 0 }}
+    >
+      <ChevronLeft fontSize="small" />
     </IconButton>
   )
 
@@ -29,7 +33,12 @@ export const TabToolbar = ({
     }
     if (typeof title === 'string') {
       return (
-        <Typography variant="h4" sx={{ flexGrow: 1 }} noWrap title={title}>
+        <Typography
+          variant="h5"
+          sx={{ flexGrow: 1, minWidth: 0 }}
+          noWrap
+          title={title}
+        >
           {title}
         </Typography>
       )
@@ -39,7 +48,15 @@ export const TabToolbar = ({
 
   return (
     <>
-      <Toolbar variant="dense" sx={{ flexShrink: 0 }}>
+      <Toolbar
+        variant="dense"
+        sx={{
+          flexShrink: 0,
+          minHeight: 40,
+          paddingInline: 1.25,
+          gap: 0.5,
+        }}
+      >
         {showBackButton && backButton}
         {leftElement}
         {renderTitle()}

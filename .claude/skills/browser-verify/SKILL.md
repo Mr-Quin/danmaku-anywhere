@@ -37,7 +37,17 @@ navigate_page(<test URL>)
 
 The agent's Chrome now runs the same source the human is looking at. When code changes, Vite rewrites the bundle and both browsers pick it up. If the SW gets stale (manifest change, major refactor, lost message channel) call `reload_extension(<id>)` to nudge it.
 
-If the controller needs a mount profile to activate, seed before navigating — `self.__da` is only present in `VITE_DA_ENV=e2e` builds, so write to `chrome.storage` directly via `evaluate_script` (pass `serviceWorkerId` to run in the SW):
+If the state machine needs seeded data (providers toggled, mount profile, custom episodes), prefer the **dev API** over raw `chrome.storage` writes. `globalThis.__da` is attached for every non-prod env — `dev`, `preview`, and `e2e` (`background/index.ts` calls `attachDevApi` when `!IS_DA_PROD`). It exposes 8 namespaces — `providerConfig`, `storage`, `extensionOptions`, `runtime`, `season`, `episode`, `bookmark`, `mount` — each going through the same write + invalidation pipeline the production code uses, so subscribers (React Query, Zustand) re-render correctly. Run from the SW context via `evaluate_script({ serviceWorkerId })`:
+
+```js
+await __da.providerConfig.toggle('builtin:dandanplay', false)
+await __da.providerConfig.toggle('builtin:bilibili', false)
+const list = await __da.providerConfig.list()  // verify
+```
+
+Discover methods with `__da.describe()` (returns `[{ name, methods: [{ name, ... }] }]`). Raw `chrome.storage.set` is a fallback for keys not exposed through the API; it works but skips the in-memory invalidation, so the UI may not pick up the change without a reload.
+
+For mount-policy seeding specifically:
 
 ```js
 await chrome.storage.local.set({

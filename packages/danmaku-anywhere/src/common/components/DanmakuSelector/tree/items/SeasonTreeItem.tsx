@@ -1,5 +1,5 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
-import { Bookmark, Folder } from '@mui/icons-material'
+import { Favorite, Folder } from '@mui/icons-material'
 import { Chip, Skeleton, Stack, styled, Typography } from '@mui/material'
 import { type ReactElement, Suspense } from 'react'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
@@ -124,7 +124,7 @@ export const SeasonTreeItem = ({
           {renderCounts()}
         </Stack>
         {bookmarked && (
-          <Bookmark fontSize="small" color="action" sx={{ flexShrink: 0 }} />
+          <Favorite fontSize="small" color="primary" sx={{ flexShrink: 0 }} />
         )}
       </Stack>
     </>
