@@ -43,7 +43,12 @@ Reuse an existing worktree if its previous work is done.
 
 ### 3. Implement
 
-Make the changes. Follow CLAUDE.md conventions.
+Make the changes. Apply these in order:
+
+- **CLAUDE.md conventions**: formatting, comment policy, no em dashes, function declarations, no syntax soup. Non-negotiable.
+- **KISS**: write the simplest thing that solves the *actual* task. No fallback chains for inputs that cannot happen (trust the caller, trust the type), no constants used in one place, no helpers used once, no abstractions for one call site. Three similar lines beat one clever generic. If you catch yourself writing `?? a ?? b ?? c`, stop and ask which of those branches can actually fire.
+- **YAGNI**: don't add a config knob, parameter, or branch unless *this* PR needs it. "In case someone later wants to…" is the smell. Future flexibility is cheaper to add when it's actually needed than to remove when it isn't.
+- **Best practices**: explicit over implicit, boring over clever, validate at boundaries not internal call sites, let the type system do work. Match the surrounding code's style and idioms instead of importing patterns from elsewhere.
 
 ### 4. Verify
 
@@ -102,9 +107,10 @@ git add <specific files>
 git commit -m "<descriptive message>"
 ```
 
-Before pushing, run reviews using **clean subagents** (no prior context):
+Before pushing, run reviews using **clean subagents** (no prior context). They have no sunk-cost bias toward the lines you just wrote, which matters most for the KISS pass:
 
 - Always run `/review`
+- Always run `/simplify` for a KISS / YAGNI pass, then re-read the diff yourself with the same lens. `/simplify` catches obvious dead code but routinely misses subtler bloat: fallback chains where only the first branch fires (`?? a ?? b`), constants/helpers used in one place, defensive guards for inputs the caller or type system already guarantees, conditional branches whose other side never executes, parameters that are always passed the same value. If you spot one, fix it even when `/simplify` was silent.
 - Run `/security-review` when the change touches user input, auth, APIs, or data storage
 
 Fix any issues found, then add a commit. Never include Co-Authored-By or AI attribution.
