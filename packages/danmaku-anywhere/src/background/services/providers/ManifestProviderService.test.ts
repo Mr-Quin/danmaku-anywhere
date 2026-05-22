@@ -14,8 +14,8 @@ import type { ManifestRegistry } from './ManifestRegistry'
 /**
  * Covers ManifestProviderService's host-side responsibilities:
  * threading `extraInputs` into every pipeline run, applying `stripHtml`
- * + canonical provider fields to search/episodes output, and routing
- * danmaku output through `commentMapper` (or identity passthrough).
+ * + canonical provider fields to search/episodes output, and forwarding
+ * danmaku pipeline output (already CommentEntity-shaped) to the caller.
  */
 
 function makeRunner(returns: Record<string, unknown>): ManifestRunner {
@@ -65,7 +65,6 @@ describe('ManifestProviderService.search', () => {
         manifestId: 'builtin:bilibili',
         provider: DanmakuSourceType.Bilibili,
         providerConfigId: 'builtin:bilibili',
-        commentMapper: (raw) => raw as CommentEntity[],
       },
       makeRegistry(runner),
       silentLogger
@@ -95,7 +94,6 @@ describe('ManifestProviderService.search', () => {
           baseUrl: 'https://compat.example',
           authHeaders: [],
         }),
-        commentMapper: (raw) => raw as CommentEntity[],
       },
       makeRegistry(runner),
       silentLogger
@@ -119,7 +117,6 @@ describe('ManifestProviderService.getSeason', () => {
         manifestId: 'builtin:tencent',
         provider: DanmakuSourceType.Tencent,
         providerConfigId: 'builtin:tencent',
-        commentMapper: (raw) => raw as CommentEntity[],
       },
       makeRegistry(runner),
       silentLogger
@@ -143,7 +140,6 @@ describe('ManifestProviderService.getSeason', () => {
         manifestId: 'builtin:bilibili',
         provider: DanmakuSourceType.Bilibili,
         providerConfigId: 'builtin:bilibili',
-        commentMapper: (raw) => raw as CommentEntity[],
       },
       makeRegistry(runner),
       silentLogger
@@ -166,7 +162,6 @@ describe('ManifestProviderService.getSeason', () => {
         manifestId: 'builtin:bilibili',
         provider: DanmakuSourceType.Bilibili,
         providerConfigId: 'builtin:bilibili',
-        commentMapper: (raw) => raw as CommentEntity[],
       },
       makeRegistry(runner),
       silentLogger
@@ -191,7 +186,6 @@ describe('ManifestProviderService.getEpisodes', () => {
         manifestId: 'builtin:bilibili',
         provider: DanmakuSourceType.Bilibili,
         providerConfigId: 'builtin:bilibili',
-        commentMapper: (raw) => raw as CommentEntity[],
       },
       makeRegistry(runner),
       silentLogger
@@ -230,7 +224,7 @@ describe('ManifestProviderService.getDanmaku', () => {
     }
   }
 
-  it('runs commentMapper as identity for sources whose pipeline already emits CommentEntity', async () => {
+  it('forwards the danmaku pipeline output verbatim', async () => {
     const raw: CommentEntity[] = [{ cid: 1, p: '1,1,16777215', m: 'hi' }]
     const runner = makeRunner({ danmaku: raw })
     const svc = new ManifestProviderService(
@@ -238,7 +232,6 @@ describe('ManifestProviderService.getDanmaku', () => {
         manifestId: 'builtin:dandanplay',
         provider: DanmakuSourceType.DanDanPlay,
         providerConfigId: 'builtin:dandanplay',
-        commentMapper: (input) => input as CommentEntity[],
       },
       makeRegistry(runner),
       silentLogger
@@ -248,32 +241,5 @@ describe('ManifestProviderService.getDanmaku', () => {
 
     expect(result).toBe(raw)
     expect(runner.runDanmaku).toHaveBeenCalledWith({ episodeId: 42 })
-  })
-
-  it('routes raw output through commentMapper when configured', async () => {
-    const runner = makeRunner({
-      danmaku: [{ progress: 1000, mode: 1, color: 16777215, content: 'hi' }],
-    })
-    const mapper = vi.fn((raw: unknown): CommentEntity[] =>
-      (raw as Array<{ content: string }>).map((r) => ({
-        p: '1,1,16777215',
-        m: r.content,
-      }))
-    )
-    const svc = new ManifestProviderService(
-      {
-        manifestId: 'builtin:bilibili',
-        provider: DanmakuSourceType.Bilibili,
-        providerConfigId: 'builtin:bilibili',
-        commentMapper: mapper,
-      },
-      makeRegistry(runner),
-      silentLogger
-    )
-
-    const result = await svc.getDanmaku(makeRequest({ cid: 555 }))
-
-    expect(mapper).toHaveBeenCalledTimes(1)
-    expect(result).toEqual([{ p: '1,1,16777215', m: 'hi' }])
   })
 })

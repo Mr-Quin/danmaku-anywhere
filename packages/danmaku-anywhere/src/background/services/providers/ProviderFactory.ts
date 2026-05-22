@@ -1,5 +1,4 @@
 import {
-  type CommentEntity,
   LEGACY_MACCMS_ID,
   PROVIDER_TO_BUILTIN_ID,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -31,19 +30,13 @@ interface DdpCompatConfig {
 
 interface BuiltinDispatch {
   provider: DanmakuSourceType
-  commentMapper: (raw: unknown) => CommentEntity[]
   // Pass user values straight through; defaults come from configSchema.
   extraInputs?: (config: ProviderConfig) => Record<string, unknown>
 }
 
-// All builtin manifests emit CommentEntity-shaped rows directly.
-const identityCommentMapper = (raw: unknown): CommentEntity[] =>
-  raw as CommentEntity[]
-
 const builtinDispatch: Record<string, BuiltinDispatch> = {
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]]: {
     provider: DanmakuSourceType.DanDanPlay,
-    commentMapper: identityCommentMapper,
     extraInputs: (config) => {
       const values = config.configValues as DdpConfig
       return { chConvert: values.chConvert }
@@ -51,12 +44,10 @@ const builtinDispatch: Record<string, BuiltinDispatch> = {
   },
   [DDP_COMPAT_MANIFEST_ID]: {
     provider: DanmakuSourceType.DanDanPlay,
-    commentMapper: identityCommentMapper,
     // extraInputs supplied per-call below (closes over baseUrl/authHeaders).
   },
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]]: {
     provider: DanmakuSourceType.Bilibili,
-    commentMapper: identityCommentMapper,
     extraInputs: (config) => {
       const values = config.configValues as { danmakuFormat?: string }
       return { danmakuFormat: values.danmakuFormat }
@@ -64,7 +55,6 @@ const builtinDispatch: Record<string, BuiltinDispatch> = {
   },
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]]: {
     provider: DanmakuSourceType.Tencent,
-    commentMapper: identityCommentMapper,
   },
 }
 
@@ -111,7 +101,6 @@ function createDanmakuProvider(
       manifestId: effectiveManifestId,
       provider: entry.provider,
       providerConfigId: config.id,
-      commentMapper: entry.commentMapper,
       extraInputs: extras ? () => extras(config) : undefined,
     },
     registry,

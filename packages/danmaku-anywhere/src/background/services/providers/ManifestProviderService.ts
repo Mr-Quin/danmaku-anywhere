@@ -58,8 +58,6 @@ export interface ManifestProviderConfig {
   provider: DanmakuSourceType
   providerConfigId: string
   extraInputs?: () => Record<string, unknown>
-  // Per-row transform; replaced by DA-477's per-row `map` step kind.
-  commentMapper: (raw: unknown) => CommentEntity[]
 }
 
 export class ManifestProviderService implements IDanmakuProvider {
@@ -162,8 +160,7 @@ export class ManifestProviderService implements IDanmakuProvider {
     // meta.params holds per-episode hints stashed at search/episodes time
     // (e.g. chConvert/withRelated). providerIds take precedence on key collision.
     const inputs = this.resolveInputs({ ...meta.params, ...meta.providerIds })
-    const raw = await runner.runDanmaku<unknown>(inputs)
-    return this.config.commentMapper(raw)
+    return runner.runDanmaku<CommentEntity[]>(inputs)
   }
 
   async findEpisode(

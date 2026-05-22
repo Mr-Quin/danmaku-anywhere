@@ -238,9 +238,6 @@ export class ProviderService {
     throw new Error('No provider found capable of parsing URL')
   }
 
-  // Probe whether the user's stored cookies grant a valid session at the
-  // source. Output shape is manifest-defined; the caller (popup hook /
-  // RpcManager) inspects it per source.
   async probeLogin<T = unknown>(manifestId: string): Promise<T | null> {
     return this.manifestRegistry.getRunner(manifestId).runLoginProbe<T>()
   }
