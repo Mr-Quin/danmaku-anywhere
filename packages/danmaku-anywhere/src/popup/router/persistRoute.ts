@@ -7,7 +7,7 @@ import { Logger } from '@/common/Logger'
 import { getStorageArea } from '@/common/storage/getStorageArea'
 import { tryCatch } from '@/common/utils/tryCatch'
 
-const STORAGE_KEY = 'popup:lastRoute'
+export const STORAGE_KEY = 'popup:lastRoute'
 
 type PopupRouter = ReturnType<typeof createHashRouter>
 
@@ -37,11 +37,15 @@ export async function hydratePopupHash(routes: RouteObject[]): Promise<void> {
   }
 
   if (!matchRoutes(routes, persisted)) {
-    void tryCatch(async () => storage.remove(STORAGE_KEY))
+    void tryCatch(async () => storage.remove(STORAGE_KEY)).then(([, err]) => {
+      if (err) {
+        Logger.error('Failed to clear stale popup route', err)
+      }
+    })
     return
   }
 
-  window.location.hash = persisted
+  history.replaceState(null, '', `#${persisted}`)
 }
 
 export function setupRoutePersistence(router: PopupRouter): () => void {

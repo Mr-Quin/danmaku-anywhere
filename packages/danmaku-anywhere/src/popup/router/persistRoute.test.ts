@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { mockChrome } from '@/tests/mockChromeApis'
-import { hydratePopupHash, setupRoutePersistence } from './persistRoute'
+import {
+  hydratePopupHash,
+  STORAGE_KEY,
+  setupRoutePersistence,
+} from './persistRoute'
 import { routes } from './router'
 
 /**
@@ -10,8 +14,6 @@ import { routes } from './router'
  * no longer match a known route. Also verifies the subscriber writes the
  * current pathname to session storage on idle navigations.
  */
-
-const STORAGE_KEY = 'popup:lastRoute'
 
 function setHash(hash: string) {
   window.location.hash = hash
