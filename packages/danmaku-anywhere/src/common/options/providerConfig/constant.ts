@@ -72,16 +72,12 @@ export const builtInIqiyiProvider: ProviderConfig = {
   configValues: {},
 }
 
-// Sohu's videolist endpoint (pl.hd.sohu.com) is currently returning empty
-// payloads for valid aids — keep the manifest plumbed so users can still
-// re-enable when upstream comes back, but ship disabled to avoid showing
-// broken results.
 export const builtInSohuProvider: ProviderConfig = {
   id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Sohu],
   manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Sohu],
   name: 'Sohu',
   impl: DanmakuSourceType.Sohu,
-  enabled: false,
+  enabled: true,
   isBuiltIn: true,
   configValues: {},
 }

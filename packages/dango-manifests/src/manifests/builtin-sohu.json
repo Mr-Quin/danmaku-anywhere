@@ -3,12 +3,7 @@
   "id": "builtin:sohu",
   "name": "Sohu",
   "version": "1.0.0",
-  "hosts": [
-    "m.so.tv.sohu.com",
-    "pl.hd.sohu.com",
-    "api.danmu.tv.sohu.com",
-    "tv.sohu.com"
-  ],
+  "hosts": ["m.so.tv.sohu.com", "api.tv.sohu.com", "api.danmu.tv.sohu.com"],
   "search": {
     "inputs": ["q"],
     "steps": [
@@ -26,24 +21,23 @@
         }
       }
     ],
-    "output": "[search.data.items[aid and album_name and (is_trailer ? is_trailer != 1 : true) and (corner_mark.text ? corner_mark.text != '预告' : true)].($metaTxt := [meta.txt][$contains($, '|')][0]; $type := $metaTxt ? $trim($split($metaTxt, '|')[0]) : 'Sohu'; { 'providerIds': { 'aid': $string(aid) }, 'indexedId': $string(aid), 'title': $replace(album_name, /<<<|>>>/, ''), 'type': $type, 'year': year ? $number(year) : undefined, 'imageUrl': ver_big_pic, 'episodeCount': total_video_count > 0 ? total_video_count : undefined })]"
+    "output": "[search.data.items[aid and album_name and site = 1 and (is_trailer ? is_trailer != 1 : true) and (corner_mark.text ? corner_mark.text != '预告' : true)].($metaTxt := [meta.txt][$contains($, '|')][0]; $type := $metaTxt ? $trim($split($metaTxt, '|')[0]) : 'Sohu'; { 'providerIds': { 'aid': $string(aid) }, 'indexedId': $string(aid), 'title': $replace(album_name, /<<<|>>>/, ''), 'type': $type, 'year': year ? $number(year) : undefined, 'imageUrl': ver_big_pic, 'episodeCount': total_video_count > 0 ? total_video_count : undefined })]"
   },
   "episodes": {
     "inputs": ["aid"],
     "steps": [
       {
         "type": "http",
-        "id": "playlist",
+        "id": "album",
         "request": {
           "method": "GET",
-          "url": "'https://pl.hd.sohu.com/videolist'",
-          "query": "{ 'playlistid': aid, 'api_key': 'f351515304020cad28c92f70f002261c' }",
-          "format": "jsonp",
+          "url": "'https://api.tv.sohu.com/v4/album/videos/' & aid & '.json'",
+          "query": "{ 'page': '1', 'page_size': '500' }",
           "rewriteHeaders": { "Referer": "'https://tv.sohu.com/'" }
         }
       }
     ],
-    "output": "[playlist.videos.($idx := $; { 'providerIds': { 'vid': $string(vid), 'aid': $string($$.aid), 'durationSec': playLength > 0 ? $number(playLength) : 0 }, 'indexedId': $string(vid), 'title': video_name ? video_name : ('第' & $string(order ? order : 1) & '集'), 'episodeNumber': order ? $number(order) : undefined })]"
+    "output": "[album.data.videos[$exists(vid)].{ 'providerIds': { 'vid': $string(vid), 'aid': $string(aid), 'durationSec': total_duration > 0 ? $number(total_duration) : 0 }, 'indexedId': $string(vid), 'title': video_name ? video_name : ('第' & $string(albumAbsoluteOrder ? albumAbsoluteOrder : 1) & '集'), 'episodeNumber': albumAbsoluteOrder ? $number(albumAbsoluteOrder) : undefined }]"
   },
   "danmaku": {
     "inputs": ["vid", "aid", "durationSec"],
