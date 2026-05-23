@@ -40,6 +40,7 @@ const builtinProvider: Record<string, DanmakuSourceType> = {
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Sohu]]: DanmakuSourceType.Sohu,
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Maiduidui]]:
     DanmakuSourceType.Maiduidui,
+  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Renren]]: DanmakuSourceType.Renren,
 }
 
 function createDanmakuProvider(

@@ -92,6 +92,16 @@ export const builtInMaiduiduiProvider: ProviderConfig = {
   configValues: {},
 }
 
+export const builtInRenrenProvider: ProviderConfig = {
+  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Renren],
+  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Renren],
+  name: 'Renren',
+  impl: DanmakuSourceType.Renren,
+  enabled: true,
+  isBuiltIn: true,
+  configValues: {},
+}
+
 export const defaultProviderConfigs: ProviderConfig[] = [
   builtInDanDanPlayProvider,
   builtInBilibiliProvider,
@@ -101,6 +111,7 @@ export const defaultProviderConfigs: ProviderConfig[] = [
   builtInIqiyiProvider,
   builtInSohuProvider,
   builtInMaiduiduiProvider,
+  builtInRenrenProvider,
 ]
 
 export function createCustomDanDanPlayProvider(

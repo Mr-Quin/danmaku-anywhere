@@ -106,6 +106,7 @@ export const ProviderEditor = ({
       case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Iqiyi]:
       case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Sohu]:
       case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Maiduidui]:
+      case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Renren]:
         return (
           <TencentProviderForm
             provider={provider}

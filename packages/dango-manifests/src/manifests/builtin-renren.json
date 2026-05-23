@@ -1,0 +1,122 @@
+{
+  "apiVersion": 1,
+  "id": "builtin:renren",
+  "name": "Renren",
+  "version": "1.0.0",
+  "hosts": ["api.gorafie.com", "static-dm.qwdjapp.com"],
+  "search": {
+    "inputs": ["q"],
+    "steps": [
+      {
+        "type": "assign",
+        "id": "sig",
+        "values": {
+          "ts": "$millis()",
+          "path": "'/qwtv/search'",
+          "params": "{ 'searchWord': q, 'num': 30, 'searchNext': '', 'well': 'match' }"
+        }
+      },
+      {
+        "type": "http",
+        "id": "search",
+        "request": {
+          "method": "GET",
+          "url": "'https://api.gorafie.com' & sig.path",
+          "query": "sig.params",
+          "headers": {
+            "clientVersion": "'1.2.2'",
+            "p": "'Android'",
+            "deviceid": "'tWEtIN7JG2DTDkBBigvj6A%3D%3D'",
+            "token": "''",
+            "aliid": "'aYN4D0XfSREDAJaw3UAjG33K'",
+            "umid": "''",
+            "clienttype": "'android_qwtv_RRSP'",
+            "pkt": "'rrmj'",
+            "t": "$string(sig.ts)",
+            "sign": "$md5(sig.path & 't' & $string(sig.ts) & 'num' & $string(sig.params.num) & 'searchNext' & sig.params.searchNext & 'searchWord' & sig.params.searchWord & 'well' & sig.params.well & 'cf65GPholnICgyw1xbrpA79XVkizOdMq')",
+            "isAgree": "'1'",
+            "et": "'2'"
+          },
+          "rewriteHeaders": { "User-Agent": "'okhttp/3.12.13'" }
+        }
+      }
+    ],
+    "output": "[search.data[id and title].{ 'providerIds': { 'seriesId': $string(id) }, 'indexedId': $string(id), 'title': title, 'type': classify ? classify : 'Renren', 'year': $exists(year) ? $number(year) : undefined, 'imageUrl': cover }]"
+  },
+  "episodes": {
+    "inputs": ["seriesId"],
+    "steps": [
+      {
+        "type": "assign",
+        "id": "sig",
+        "values": {
+          "ts": "$millis()",
+          "path": "'/qwtv/drama/details'",
+          "params": "{ 'isAgeLimit': 'false', 'seriesId': seriesId, 'episodeId': '', 'clarity': 'HD', 'caption': '0', 'hevcOpen': '1' }"
+        }
+      },
+      {
+        "type": "http",
+        "id": "detail",
+        "request": {
+          "method": "GET",
+          "url": "'https://api.gorafie.com' & sig.path",
+          "query": "sig.params",
+          "headers": {
+            "clientVersion": "'1.2.2'",
+            "p": "'Android'",
+            "deviceid": "'tWEtIN7JG2DTDkBBigvj6A%3D%3D'",
+            "token": "''",
+            "aliid": "'aYN4D0XfSREDAJaw3UAjG33K'",
+            "umid": "''",
+            "clienttype": "'android_qwtv_RRSP'",
+            "pkt": "'rrmj'",
+            "t": "$string(sig.ts)",
+            "sign": "$md5(sig.path & 't' & $string(sig.ts) & 'caption' & sig.params.caption & 'clarity' & sig.params.clarity & 'episodeId' & sig.params.episodeId & 'hevcOpen' & sig.params.hevcOpen & 'isAgeLimit' & sig.params.isAgeLimit & 'seriesId' & sig.params.seriesId & 'cf65GPholnICgyw1xbrpA79XVkizOdMq')",
+            "isAgree": "'1'",
+            "et": "'2'"
+          },
+          "rewriteHeaders": { "User-Agent": "'okhttp/3.12.13'" }
+        }
+      }
+    ],
+    "output": "[detail.data.episodeList[sid].{ 'providerIds': { 'sid': $string(sid) }, 'indexedId': $string(sid), 'title': title and $length(title) > 0 ? title : ('第' & $string(episodeNo ? episodeNo : 1) & '集'), 'episodeNumber': $exists(episodeNo) ? $number(episodeNo) : undefined }]"
+  },
+  "danmaku": {
+    "inputs": ["sid"],
+    "steps": [
+      {
+        "type": "assign",
+        "id": "sig",
+        "values": {
+          "ts": "$millis()",
+          "path": "'/v1/produce/danmu/EPISODE/' & sid"
+        }
+      },
+      {
+        "type": "http",
+        "id": "fetch",
+        "request": {
+          "method": "GET",
+          "url": "'https://static-dm.qwdjapp.com' & sig.path",
+          "headers": {
+            "clientVersion": "'1.2.2'",
+            "p": "'Android'",
+            "deviceid": "'tWEtIN7JG2DTDkBBigvj6A%3D%3D'",
+            "token": "''",
+            "aliid": "'aYN4D0XfSREDAJaw3UAjG33K'",
+            "umid": "''",
+            "clienttype": "'android_qwtv_RRSP'",
+            "pkt": "'rrmj'",
+            "t": "$string(sig.ts)",
+            "sign": "$md5(sig.path & 't' & $string(sig.ts) & 'cf65GPholnICgyw1xbrpA79XVkizOdMq')",
+            "isAgree": "'1'",
+            "et": "'2'"
+          },
+          "rewriteHeaders": { "User-Agent": "'okhttp/3.12.13'" }
+        }
+      }
+    ],
+    "output": "[(fetch.data ? fetch.data : fetch).($parts := $split(p, ','); { 'p': $parts[0] & ',1,' & $parts[3] & ',' & $parts[6], 'm': d })]"
+  }
+}
