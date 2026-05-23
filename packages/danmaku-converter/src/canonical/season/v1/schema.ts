@@ -1,10 +1,5 @@
 import { z } from 'zod'
-import {
-  type ByProvider,
-  DanmakuSourceType,
-  type DbEntity,
-  type RemoteDanmakuSourceType,
-} from '../../provider/provider.js'
+import { DanmakuSourceType, type DbEntity } from '../../provider/provider.js'
 
 export const zBaseSeasonV1 = z.object({
   title: z.string(),
@@ -20,46 +15,15 @@ export const zBaseSeasonV1 = z.object({
   schemaVersion: z.literal(1),
 })
 
-export const zDanDanPlaySeasonProviderIds = z.object({
-  animeId: z.number(),
-  bangumiId: z.string(),
-})
-
-export const zBilibiliSeasonProviderIds = z.object({
-  seasonId: z.number(),
-  mediaId: z.number().optional(),
-})
-
-export const zTencentSeasonProviderIds = z.object({
-  cid: z.string(),
-})
-
-export const zDanDanPlaySeasonV1 = zBaseSeasonV1.extend({
-  provider: z.literal(DanmakuSourceType.DanDanPlay),
-  providerIds: zDanDanPlaySeasonProviderIds,
+// `providerIds` is shape-validated by the manifest that produced it, not by
+// the storage schema. Stored as an opaque payload that the manifest's danmaku
+// pipeline knows how to consume on refetch.
+export const zSeasonInsertV1 = zBaseSeasonV1.extend({
+  provider: z.enum(DanmakuSourceType),
+  providerIds: z.record(z.string(), z.unknown()),
   providerConfigId: z.string(),
 })
-
-export const zBilibiliSeasonV1 = zBaseSeasonV1.extend({
-  provider: z.literal(DanmakuSourceType.Bilibili),
-  providerIds: zBilibiliSeasonProviderIds,
-  providerConfigId: z.string(),
-})
-
-export const zTencentSeasonV1 = zBaseSeasonV1.extend({
-  provider: z.literal(DanmakuSourceType.Tencent),
-  providerIds: zTencentSeasonProviderIds,
-  providerConfigId: z.string(),
-})
-
-export const zSeasonInsertV1 = z.discriminatedUnion('provider', [
-  zDanDanPlaySeasonV1,
-  zBilibiliSeasonV1,
-  zTencentSeasonV1,
-])
 
 export type SeasonInsertV1 = z.infer<typeof zSeasonInsertV1>
 
-export type SeasonV1 = {
-  [K in RemoteDanmakuSourceType]: DbEntity<ByProvider<SeasonInsertV1, K>>
-}[RemoteDanmakuSourceType]
+export type SeasonV1 = DbEntity<SeasonInsertV1>

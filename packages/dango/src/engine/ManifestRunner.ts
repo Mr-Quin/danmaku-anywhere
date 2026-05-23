@@ -1,12 +1,15 @@
 import type { Manifest, VariantPipeline } from '../manifest/schema.js'
 import type { FetchLike } from './http.js'
-import { ProtoRegistry } from './proto.js'
+import { ProtoRegistry, type ProtoTypeOverrides } from './proto.js'
 import { type RunOptions, runPipeline } from './runner.js'
+import { matchUrl } from './url-match.js'
 
 /** Bound at construction; per-call overrides via the `opts` arg on each method. */
 export interface ManifestRunnerOptions {
   fetcher?: FetchLike
   signal?: AbortSignal
+  /** See {@link ProtoTypeOverrides}. */
+  protoTypes?: ProtoTypeOverrides
 }
 
 /** Per-call inputs merged with the installation's config values by the caller. */
@@ -28,7 +31,10 @@ export class ManifestRunner {
     public readonly manifest: Manifest,
     private readonly options: ManifestRunnerOptions = {}
   ) {
-    this.protoRegistry = new ProtoRegistry(manifest.protoSchemas)
+    this.protoRegistry = new ProtoRegistry(
+      manifest.protoSchemas,
+      options.protoTypes
+    )
   }
 
   get id(): string {
@@ -51,30 +57,115 @@ export class ManifestRunner {
     return this.manifest.danmaku !== undefined
   }
 
-  async runSearch(inputs: ManifestInputs, opts?: RunOptions): Promise<unknown> {
-    return this.run('search', this.manifest.search, inputs, opts)
+  hasParseUrl(): boolean {
+    return this.manifest.parseUrl !== undefined
   }
 
-  async runEpisodes(
+  /**
+   * Returns true if any `urlMatch` entry matches the URL. Cheap pattern
+   * check — does not run the pipeline.
+   */
+  canParse(url: string): boolean {
+    for (const entry of this.manifest.urlMatch) {
+      if (matchUrl(url, entry) !== null) {
+        return true
+      }
+    }
+    return false
+  }
+
+  /** Defaults extracted from `configSchema.properties`; merge under user values. */
+  configDefaults(): Record<string, unknown> {
+    const props = this.manifest.configSchema?.properties ?? {}
+    const out: Record<string, unknown> = {}
+    for (const [key, schema] of Object.entries(props)) {
+      if (schema.default !== undefined) {
+        out[key] = schema.default
+      }
+    }
+    return out
+  }
+
+  async runSearch<T = unknown>(
     inputs: ManifestInputs,
     opts?: RunOptions
-  ): Promise<unknown> {
-    return this.run('episodes', this.manifest.episodes, inputs, opts)
+  ): Promise<T> {
+    return this.run<T>('search', this.manifest.search, inputs, opts)
   }
 
-  async runDanmaku(
+  async runEpisodes<T = unknown>(
     inputs: ManifestInputs,
     opts?: RunOptions
-  ): Promise<unknown> {
-    return this.run('danmaku', this.manifest.danmaku, inputs, opts)
+  ): Promise<T> {
+    return this.run<T>('episodes', this.manifest.episodes, inputs, opts)
   }
 
-  private async run(
+  async runDanmaku<T = unknown>(
+    inputs: ManifestInputs,
+    opts?: RunOptions
+  ): Promise<T> {
+    return this.run<T>('danmaku', this.manifest.danmaku, inputs, opts)
+  }
+
+  hasSeason(): boolean {
+    return this.manifest.season !== undefined
+  }
+
+  async runSeason<T = unknown>(
+    inputs: ManifestInputs,
+    opts?: RunOptions
+  ): Promise<T | null> {
+    if (this.manifest.season === undefined) return null
+    return this.run<T>('season', this.manifest.season, inputs, opts)
+  }
+
+  hasLoginProbe(): boolean {
+    return this.manifest.loginProbe !== undefined
+  }
+
+  async runLoginProbe<T = unknown>(
+    inputs: ManifestInputs = {},
+    opts?: RunOptions
+  ): Promise<T | null> {
+    if (this.manifest.loginProbe === undefined) return null
+    return this.run<T>('loginProbe', this.manifest.loginProbe, inputs, opts)
+  }
+
+  /**
+   * Match a URL against the manifest's `urlMatch` patterns; if any match, run
+   * the `parseUrl` pipeline with the named capture groups + any additional
+   * `extraInputs` (e.g. user-configured baseUrl) as inputs. Returns null when
+   * no URL pattern matches or no parseUrl pipeline is declared.
+   */
+  async runParseUrl<T = unknown>(
+    url: string,
+    extraInputs: ManifestInputs = {},
+    opts?: RunOptions
+  ): Promise<T | null> {
+    if (this.manifest.parseUrl === undefined) {
+      return null
+    }
+    for (const entry of this.manifest.urlMatch) {
+      const matched = matchUrl(url, entry)
+      if (matched === null) {
+        continue
+      }
+      return this.run<T>(
+        'parseUrl',
+        this.manifest.parseUrl,
+        { ...matched.groups, ...extraInputs, url },
+        opts
+      )
+    }
+    return null
+  }
+
+  private async run<T>(
     name: string,
     variants: VariantPipeline[] | undefined,
     inputs: ManifestInputs,
     opts?: RunOptions
-  ): Promise<unknown> {
+  ): Promise<T> {
     if (variants === undefined) {
       throw new Error(
         `manifest "${this.manifest.id}" does not declare a ${name} pipeline`
@@ -85,6 +176,6 @@ export class ManifestRunner {
       signal: opts?.signal ?? this.options.signal,
       protoRegistry: opts?.protoRegistry ?? this.protoRegistry,
     }
-    return runPipeline(this.manifest, variants, inputs, merged)
+    return runPipeline(this.manifest, variants, inputs, merged) as Promise<T>
   }
 }

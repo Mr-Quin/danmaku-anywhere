@@ -68,7 +68,7 @@ describe('builtin:ddp-compat manifest', () => {
     const result = await runner.runSearch({
       q: 'show',
       baseUrl: BASE,
-      authHeaders: [],
+      auth: { enabled: false },
     })
 
     expect(result).toEqual([
@@ -102,7 +102,7 @@ describe('builtin:ddp-compat manifest', () => {
     await runner.runSearch({
       q: 'show',
       baseUrl: `${BASE}/`,
-      authHeaders: [],
+      auth: { enabled: false },
     })
 
     expect(calls).toHaveLength(1)
@@ -122,10 +122,13 @@ describe('builtin:ddp-compat manifest', () => {
     await runner.runSearch({
       q: 'show',
       baseUrl: BASE,
-      authHeaders: [
-        { key: 'X-Token', value: 'abc123' },
-        { key: 'X-Tenant', value: 'team42' },
-      ],
+      auth: {
+        enabled: true,
+        headers: [
+          { key: 'X-Token', value: 'abc123' },
+          { key: 'X-Tenant', value: 'team42' },
+        ],
+      },
     })
 
     const init = calls[0].init as { headers?: Record<string, string> }
@@ -148,7 +151,7 @@ describe('builtin:ddp-compat manifest', () => {
     const result = await runner.runEpisodes({
       bangumiId: 'compat-991',
       baseUrl: BASE,
-      authHeaders: [],
+      auth: { enabled: false },
     })
 
     expect(result).toEqual([
@@ -177,7 +180,7 @@ describe('builtin:ddp-compat manifest', () => {
 
   it('runs the danmaku pipeline and emits {cid, p, m} entries', async () => {
     const { fetcher, calls } = mockFetcher({
-      [`${BASE}/v2/comment/9910001?withRelated=false`]: {
+      [`${BASE}/v2/comment/9910001?withRelated=true`]: {
         body: JSON.stringify(commentsFixture),
       },
     })
@@ -188,13 +191,13 @@ describe('builtin:ddp-compat manifest', () => {
     const result = await runner.runDanmaku({
       episodeId: 9910001,
       baseUrl: BASE,
-      authHeaders: [],
+      auth: { enabled: false },
     })
 
     expect(result).toEqual([
       { cid: 91000001, p: '10.50,1,16777215,abcdef01', m: 'self-host 1' },
       { cid: 91000002, p: '20.75,4,16711680,abcdef02', m: 'self-host 2' },
     ])
-    expect(calls[0].url).toBe(`${BASE}/v2/comment/9910001?withRelated=false`)
+    expect(calls[0].url).toBe(`${BASE}/v2/comment/9910001?withRelated=true`)
   })
 })

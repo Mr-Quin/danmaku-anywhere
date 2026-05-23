@@ -7,7 +7,7 @@ import { expect, test } from '../../setup/fixtures'
 
 /**
  * Fresh-install smoke. Asserts the SW registers, onInstalled seeds default
- * extensionOptions + the three built-in provider configs, no console errors.
+ * extensionOptions + the built-in provider configs, no console errors.
  *
  * A runtime.reload() variant was dropped — under --load-extension, the
  * extension does not respawn after reload, so the case isn't exercisable.
@@ -17,6 +17,14 @@ const BUILTIN_PROVIDER_IDS = [
   PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
   PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
   PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
+  PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Youku],
+  PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Mango],
+  PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Iqiyi],
+  PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Sohu],
+  PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Maiduidui],
+  PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Renren],
+  PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Aiyifan],
+  PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bahamut],
 ] as const
 
 test('fresh install: default options seeded, no console errors', async ({

@@ -1,0 +1,152 @@
+{
+  "apiVersion": 1,
+  "id": "builtin:aiyifan",
+  "name": "Aiyifan",
+  "version": "1.0.0",
+  "hosts": ["www.yfsp.tv", "rankv21.tripdata.app", "m10.yfsp.tv"],
+  "search": {
+    "inputs": ["q"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "config",
+        "request": {
+          "method": "GET",
+          "url": "'https://www.yfsp.tv/'",
+          "format": "text",
+          "rewriteHeaders": {
+            "User-Agent": "'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0 Safari/537.36'"
+          }
+        },
+        "extract": {
+          "pub": "$regexExtract($, '\"pConfig\"\\\\s*:\\\\s*\\\\{\\\\s*\"publicKey\"\\\\s*:\\\\s*\"([^\"]+)\"')",
+          "priv": "$regexExtract($, '\"privateKey\"\\\\s*:\\\\s*\\\\[\\\\s*\"([^\"]+)\"')"
+        }
+      },
+      {
+        "type": "assign",
+        "id": "qs",
+        "values": {
+          "canon": "'tags=' & q & '&orderby=4&page=1&size=10&desc=1&isserial=-1'"
+        }
+      },
+      {
+        "type": "http",
+        "id": "search",
+        "request": {
+          "method": "GET",
+          "url": "'https://rankv21.tripdata.app/v3/list/briefsearch'",
+          "query": "{ 'tags': q, 'orderby': '4', 'page': '1', 'size': '10', 'desc': '1', 'isserial': '-1', 'vv': $md5(config.pub & '&' & $lowercase(qs.canon) & '&' & config.priv), 'pub': config.pub }",
+          "rewriteHeaders": {
+            "User-Agent": "'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0 Safari/537.36'"
+          }
+        }
+      }
+    ],
+    "output": "[search.data.info.result[contxt and title].{ 'providerIds': { 'vid': contxt }, 'indexedId': contxt, 'title': title, 'type': atypeName ? atypeName : 'Aiyifan', 'year': postTime ? $number($substring(postTime, 0, 4)) : undefined, 'imageUrl': imgPath }]"
+  },
+  "episodes": {
+    "inputs": ["vid"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "config",
+        "request": {
+          "method": "GET",
+          "url": "'https://www.yfsp.tv/'",
+          "format": "text",
+          "rewriteHeaders": {
+            "User-Agent": "'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0 Safari/537.36'"
+          }
+        },
+        "extract": {
+          "pub": "$regexExtract($, '\"pConfig\"\\\\s*:\\\\s*\\\\{\\\\s*\"publicKey\"\\\\s*:\\\\s*\"([^\"]+)\"')",
+          "priv": "$regexExtract($, '\"privateKey\"\\\\s*:\\\\s*\\\\[\\\\s*\"([^\"]+)\"')"
+        }
+      },
+      {
+        "type": "assign",
+        "id": "qs",
+        "values": {
+          "canon": "'cinema=1&vid=' & vid & '&lsk=1&taxis=0&cid=0,1,4,152'"
+        }
+      },
+      {
+        "type": "http",
+        "id": "playlist",
+        "request": {
+          "method": "GET",
+          "url": "'https://m10.yfsp.tv/v3/video/languagesplaylist'",
+          "query": "{ 'cinema': '1', 'vid': vid, 'lsk': '1', 'taxis': '0', 'cid': '0,1,4,152', 'vv': $md5(config.pub & '&' & $lowercase(qs.canon) & '&' & config.priv), 'pub': config.pub }",
+          "rewriteHeaders": {
+            "User-Agent": "'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0 Safari/537.36'"
+          }
+        }
+      }
+    ],
+    "output": "[playlist.data.info.playList[key].{ 'providerIds': { 'epKey': key }, 'indexedId': key, 'title': name and $length(name) > 0 ? name : ('第' & $string($$.i + 1) & '集'), 'episodeNumber': $exists(id) ? $number(id) : undefined }]"
+  },
+  "danmaku": {
+    "inputs": ["epKey"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "config",
+        "request": {
+          "method": "GET",
+          "url": "'https://www.yfsp.tv/'",
+          "format": "text",
+          "rewriteHeaders": {
+            "User-Agent": "'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0 Safari/537.36'"
+          }
+        },
+        "extract": {
+          "pub": "$regexExtract($, '\"pConfig\"\\\\s*:\\\\s*\\\\{\\\\s*\"publicKey\"\\\\s*:\\\\s*\"([^\"]+)\"')",
+          "priv": "$regexExtract($, '\"privateKey\"\\\\s*:\\\\s*\\\\[\\\\s*\"([^\"]+)\"')"
+        }
+      },
+      {
+        "type": "assign",
+        "id": "qs1",
+        "values": {
+          "canon": "'cinema=1&id=' & epKey & '&a=0&lang=none&usersign=1&region=GL.&device=0&isMasterSupport=1'"
+        }
+      },
+      {
+        "type": "http",
+        "id": "video",
+        "request": {
+          "method": "GET",
+          "url": "'https://m10.yfsp.tv/v3/video/play'",
+          "query": "{ 'cinema': '1', 'id': epKey, 'a': '0', 'lang': 'none', 'usersign': '1', 'region': 'GL.', 'device': '0', 'isMasterSupport': '1', 'vv': $md5(config.pub & '&' & $lowercase(qs1.canon) & '&' & config.priv), 'pub': config.pub }",
+          "rewriteHeaders": {
+            "User-Agent": "'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0 Safari/537.36'"
+          }
+        },
+        "extract": {
+          "uniqueKey": "data.info[0].uniqueKey"
+        }
+      },
+      {
+        "type": "assign",
+        "id": "qs2",
+        "values": {
+          "canon": "'cinema=1&page=1&size=30000&uniqueKey=' & video.uniqueKey"
+        }
+      },
+      {
+        "type": "http",
+        "id": "bar",
+        "request": {
+          "method": "GET",
+          "url": "'https://m10.yfsp.tv/api/video/getBarrage'",
+          "query": "{ 'cinema': '1', 'page': '1', 'size': '30000', 'uniqueKey': video.uniqueKey, 'vv': $md5(config.pub & '&' & $lowercase(qs2.canon) & '&' & config.priv), 'pub': config.pub }",
+          "rewriteHeaders": {
+            "User-Agent": "'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0 Safari/537.36'"
+          }
+        }
+      }
+    ],
+    "output": "[bar.data.info[contxt or content].{ 'p': $string(second ? second : 0) & ',' & (position = 1 ? '5' : '1') & ',' & $string($hexToInt($replace(color ? color : '#FFFFFF', /^#/, ''))) & ',', 'm': contxt ? contxt : content }]"
+  }
+}

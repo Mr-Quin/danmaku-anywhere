@@ -1,0 +1,130 @@
+{
+  "apiVersion": 1,
+  "id": "builtin:iqiyi",
+  "name": "iQIYI",
+  "version": "1.0.0",
+  "hosts": [
+    "mesh.if.iqiyi.com",
+    "pcw-api.iq.com",
+    "pcw-api.iqiyi.com",
+    "www.iqiyi.com",
+    "cmts.iqiyi.com"
+  ],
+  "search": {
+    "inputs": ["q"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "search",
+        "request": {
+          "method": "GET",
+          "url": "'https://mesh.if.iqiyi.com/portal/lw/search/homePageV3'",
+          "query": "{ 'key': q, 'current_page': '1', 'mode': '1', 'source': 'input', 'pcv': '13.074.22699', 'version': '13.074.22699', 'pageNum': '1', 'pageSize': '25', 'u': 'f6440fc5d919dca1aea12b6aff56e1c7', 'scale': '200', 'userVip': '0', 'vipType': '-1', 'osShortName': 'win10' }",
+          "rewriteHeaders": {
+            "Origin": "'https://www.iqiyi.com'",
+            "Referer": "'https://www.iqiyi.com/'"
+          }
+        }
+      }
+    ],
+    "output": "[search.data.templates[template in [101,102,103]].albumInfo[pageUrl ~> /iqiyi\\.com\\/v_/].($linkId := $regexExtract(pageUrl, '/v_(\\\\w+?)\\\\.html'); $chan := channel ? channel : ''; $mediaType := $contains($chan, '电影') ? '电影' : ($contains($chan, '动漫') ? '动漫' : ($contains($chan, '综艺') ? '综艺' : ($contains($chan, '纪录片') ? '纪录片' : '电视剧'))); { 'providerIds': { 'linkId': $linkId }, 'indexedId': $linkId, 'title': $replace(title, /<[^>]+>/, ''), 'type': $mediaType, 'year': year.value ? $number(year.value) : undefined, 'imageUrl': img ? img : imgH, 'episodeCount': videos and $count(videos) > 0 ? $count(videos) : ($regexExtract(subscriptContent ? subscriptContent : '', '(\\\\d+)') ? $number($regexExtract(subscriptContent ? subscriptContent : '', '(\\\\d+)')) : undefined) })]"
+  },
+  "episodes": {
+    "inputs": ["linkId"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "decode",
+        "request": {
+          "method": "GET",
+          "url": "'https://pcw-api.iq.com/api/decode/' & linkId",
+          "query": "{ 'platformId': '3', 'modeCode': 'intl', 'langCode': 'sg' }"
+        },
+        "extract": { "tvid": "$string(data)" }
+      },
+      {
+        "type": "assign",
+        "id": "p",
+        "values": {
+          "params": "{ 'entity_id': decode.tvid, 'device_id': 'qd5fwuaj4hunxxdgzwkcqmefeb3ww5hx', 'auth_cookie': '', 'user_id': '0', 'vip_type': '-1', 'vip_status': '0', 'conduit_id': '', 'pcv': '13.082.22866', 'app_version': '13.082.22866', 'ext': '', 'app_mode': 'standard', 'scale': '100', 'timestamp': $string($millis()), 'src': 'pca_tvg', 'os': '', 'ad_ext': '{\"r\":\"2.2.0-ares6-pure\"}' }"
+        }
+      },
+      {
+        "type": "assign",
+        "id": "signed",
+        "values": {
+          "params": "$merge([p.params, { 'sign': $uppercase($md5($sortedRawString(p.params) & '&secret_key=howcuteitis')) }])"
+        }
+      },
+      {
+        "type": "http",
+        "id": "base",
+        "request": {
+          "method": "GET",
+          "url": "'https://www.iqiyi.com/prelw/tvg/v2/lw/base_info'",
+          "query": "signed.params",
+          "rewriteHeaders": { "Referer": "'https://www.iqiyi.com/'" }
+        },
+        "extract": {
+          "videoListEps": "[data.template.tabs[0].blocks[bk_type='video_list' and 'episodes' in tag].data.data.videos.data[content_type=1]]",
+          "albumGroups": "[data.template.tabs[0].blocks[bk_type='album_episodes' and 'episodes' in tag].data.data]"
+        }
+      },
+      {
+        "type": "forEach",
+        "id": "selectorPages",
+        "in": "[base.albumGroups[$type(videos) = 'string'].videos]",
+        "as": "selectorUrl",
+        "concurrency": 2,
+        "throttleMs": 0,
+        "request": {
+          "method": "GET",
+          "url": "selectorUrl",
+          "rewriteHeaders": { "Referer": "'https://www.iqiyi.com/'" }
+        },
+        "collect": "[data.videos.feature_paged.*[content_type=1]]"
+      }
+    ],
+    "output": "[[$append(base.videoListEps, $append(selectorPages, [base.albumGroups[$type(videos) = 'object'].videos.feature_paged.*[content_type=1]]))].($tvid := $regexExtract(play_url ? play_url : '', 'tvid=(\\\\d+)'); $tvid ? { 'providerIds': { 'tvid': $tvid }, 'indexedId': $tvid, 'title': $trim((short_display_name ? short_display_name : (title ? title : '')) & ' ' & (subtitle ? subtitle : '')), 'episodeNumber': album_order ? $number(album_order) : undefined } : undefined)]"
+  },
+  "danmaku": {
+    "inputs": ["tvid"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "info",
+        "request": {
+          "method": "GET",
+          "url": "'https://pcw-api.iqiyi.com/video/video/baseinfo/' & tvid",
+          "rewriteHeaders": { "Referer": "'https://www.iqiyi.com/'" }
+        },
+        "extract": {
+          "durationSec": "data.durationSec",
+          "albumId": "$string(data.albumId)",
+          "categoryId": "$string(data.channelId ? data.channelId : data.categoryId)"
+        }
+      },
+      {
+        "type": "forEach",
+        "id": "segments",
+        "in": "$range(1, $ceil(info.durationSec / 300) + 1)",
+        "as": "i",
+        "concurrency": 3,
+        "throttleMs": 100,
+        "request": {
+          "method": "GET",
+          "url": "'https://cmts.iqiyi.com/bullet/' & $substring(tvid, $length(tvid) - 4, 2) & '/' & $substring(tvid, $length(tvid) - 2, 2) & '/' & tvid & '_300_' & $string(i) & '.z'",
+          "query": "{ 'rn': '0.123456789', 'business': 'danmu', 'is_iqiyi': 'true', 'is_video_page': 'true', 'tvid': tvid, 'albumid': info.albumId, 'categoryid': info.categoryId, 'qypid': '010102101000000000' }",
+          "format": "xml",
+          "decompress": "deflate",
+          "rewriteHeaders": { "Referer": "'https://www.iqiyi.com/'" }
+        },
+        "extract": {
+          "items": "[danmu.data.entry.list.bulletInfo]"
+        },
+        "collect": "items"
+      }
+    ],
+    "output": "[segments.{ 'p': $string($number(showTime)) & ',1,' & $string(color ? $hexToInt(color) : 16777215) & ',' & (contentId ? $string(contentId) : ''), 'm': content }]"
+  }
+}

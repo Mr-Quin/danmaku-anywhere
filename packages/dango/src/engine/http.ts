@@ -4,6 +4,13 @@ import type { RequestSpec } from '../manifest/schema.js'
 import { evalExpr, evalString } from './jsonata-eval.js'
 import type { ProtoRegistry } from './proto.js'
 
+export interface HttpResponse {
+  status: number
+  text: () => Promise<string>
+  bytes: () => Promise<Uint8Array>
+  headers: Map<string, string>
+}
+
 export type FetchLike = (
   input: string,
   init?: {
@@ -15,12 +22,7 @@ export type FetchLike = (
     /** Wire-level overrides the host applies (e.g. via chrome DNR). */
     rewriteHeaders?: Record<string, string>
   }
-) => Promise<{
-  status: number
-  text: () => Promise<string>
-  bytes: () => Promise<Uint8Array>
-  headers: Map<string, string>
-}>
+) => Promise<HttpResponse>
 
 export interface HttpRunOptions {
   fetcher?: FetchLike
@@ -183,11 +185,18 @@ async function buildBody(
   return typeof v === 'string' ? v : JSON.stringify(v)
 }
 
+export interface HttpStepResult {
+  body: unknown
+  /** Lower-cased header names (HTTP is case-insensitive). */
+  headers: Record<string, string>
+  status: number
+}
+
 export async function executeRequest(
   spec: RequestSpec,
   context: unknown,
   options: HttpRunOptions
-): Promise<unknown> {
+): Promise<HttpStepResult> {
   const url = await buildUrl(spec, context)
   if (!hostMatches(url, options.allowedHosts)) {
     throw new Error(`URL host not in manifest.hosts allowlist: ${url}`)
@@ -209,6 +218,29 @@ export async function executeRequest(
   if (!isOk && !isAccepted) {
     throw new Error(`HTTP ${res.status} for ${url}`)
   }
+  const responseHeaders: Record<string, string> = {}
+  res.headers.forEach((v, k) => {
+    responseHeaders[k.toLowerCase()] = v
+  })
+  const parsedBody = await parseBody(spec, res, options)
+  return { body: parsedBody, headers: responseHeaders, status: res.status }
+}
+
+async function decompressBytes(
+  bytes: Uint8Array,
+  format: 'deflate' | 'deflate-raw' | 'gzip'
+): Promise<string> {
+  const blob = new Blob([bytes as BlobPart])
+  const stream = blob.stream()
+  const decoded = stream.pipeThrough(new DecompressionStream(format))
+  return new Response(decoded).text()
+}
+
+async function parseBody(
+  spec: RequestSpec,
+  res: HttpResponse,
+  options: HttpRunOptions
+): Promise<unknown> {
   if (spec.format === 'proto') {
     if (options.protoRegistry === undefined) {
       throw new Error(
@@ -225,6 +257,10 @@ export async function executeRequest(
       spec.protoMessage,
       await res.bytes()
     )
+  }
+  if (spec.decompress) {
+    const text = await decompressBytes(await res.bytes(), spec.decompress)
+    return parseTextBody(spec.format, text)
   }
   return parseTextBody(spec.format, await res.text())
 }

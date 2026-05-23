@@ -23,7 +23,9 @@ test('search chips: only active provider fetches; clicking inactive chip dispatc
   const bilibiliSearchUrls: string[] = []
   context.on('request', (request) => {
     if (
-      /api\.bilibili\.com\/x\/web-interface\/search\/type/.test(request.url())
+      /api\.bilibili\.com\/x\/web-interface\/wbi\/search\/type/.test(
+        request.url()
+      )
     ) {
       bilibiliSearchUrls.push(request.url())
     }

@@ -59,7 +59,7 @@ test('bilibili proto: same flow, danmaku via /seg.so protobuf', async ({
     providers: {
       bilibili: {
         enabled: true,
-        options: { danmakuTypePreference: 'protobuf' },
+        options: { danmakuFormat: 'protobuf' },
       },
     },
     network: mockBilibiliProto({

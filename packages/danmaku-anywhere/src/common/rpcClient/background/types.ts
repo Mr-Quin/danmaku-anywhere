@@ -11,7 +11,6 @@ import type {
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { BilibiliUserInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { ExtractTitleResponse } from '@danmaku-anywhere/danmaku-provider/genAi'
 import type {
   KazumiChapterPayload,
@@ -20,6 +19,7 @@ import type {
   KazumiSearchResult,
   SetHeaderRule,
 } from '@danmaku-anywhere/web-scraper'
+import type { ManifestSpec } from '@/background/services/providers/ProviderService'
 import type {
   GenericVodSearchData,
   MatchEpisodeInput,
@@ -131,9 +131,8 @@ export type BackgroundMethods = {
 
   seasonMapGetAll: RPCDef<void, SeasonMapSnapshot[]>
   danmakuPurgeCache: RPCDef<number, number>
-  bilibiliSetCookies: RPCDef<void, void>
-  bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
-  tencentTestCookies: RPCDef<void, boolean>
+  providerGetSpec: RPCDef<{ manifestId: string }, ManifestSpec>
+  providerProbeLogin: RPCDef<{ manifestId: string }, boolean | null>
   fetchImage: RPCDef<{ src: string }, string | null>
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>

@@ -1,4 +1,3 @@
-import { zodResolver } from '@hookform/resolvers/zod'
 import {
   FormControl,
   FormHelperText,
@@ -9,17 +8,21 @@ import {
 } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import type { BuiltInBilibiliProvider } from '@/common/options/providerConfig/schema'
-import { zBilibiliProviderConfig } from '@/common/options/providerConfig/schema'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { FormActions } from './FormActions'
 import type { ProviderFormProps } from './types'
+
+interface FormValues {
+  name: string
+  danmakuFormat: 'xml' | 'protobuf'
+}
 
 export const BilibiliProviderForm = ({
   provider,
   onSubmit,
   onReset,
   isEdit,
-}: ProviderFormProps<BuiltInBilibiliProvider>) => {
+}: ProviderFormProps) => {
   const { t } = useTranslation()
 
   const {
@@ -28,13 +31,26 @@ export const BilibiliProviderForm = ({
     register,
     reset,
     formState: { isSubmitting, isDirty },
-  } = useForm<BuiltInBilibiliProvider>({
-    resolver: zodResolver(zBilibiliProviderConfig),
-    defaultValues: provider,
+  } = useForm<FormValues>({
+    defaultValues: {
+      name: provider.name,
+      // Keep in sync with builtin-bilibili.json's configSchema default.
+      danmakuFormat:
+        (provider.configValues.danmakuFormat as 'xml' | 'protobuf') ??
+        'protobuf',
+    },
   })
 
   const handleFormSubmit = handleSubmit(async (data) => {
-    await onSubmit(data)
+    const next: ProviderConfig = {
+      ...provider,
+      name: data.name,
+      configValues: {
+        ...provider.configValues,
+        danmakuFormat: data.danmakuFormat,
+      },
+    }
+    await onSubmit(next)
   })
 
   const handleReset = () => {
@@ -71,7 +87,7 @@ export const BilibiliProviderForm = ({
           )}
         </FormLabel>
         <Controller
-          name="options.danmakuTypePreference"
+          name="danmakuFormat"
           control={control}
           render={({ field: { ref, ...field } }) => (
             <TextField {...field} size="small" select inputRef={ref} fullWidth>

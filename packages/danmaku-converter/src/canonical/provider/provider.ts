@@ -3,6 +3,14 @@ export enum DanmakuSourceType {
   DanDanPlay = 'DanDanPlay',
   Bilibili = 'Bilibili',
   Tencent = 'Tencent',
+  Youku = 'Youku',
+  Mango = 'Mango',
+  Iqiyi = 'Iqiyi',
+  Sohu = 'Sohu',
+  Maiduidui = 'Maiduidui',
+  Renren = 'Renren',
+  Aiyifan = 'Aiyifan',
+  Bahamut = 'Bahamut',
   Custom = 'Custom',
 }
 
@@ -12,6 +20,14 @@ export const PROVIDER_TO_BUILTIN_ID = {
   [DanmakuSourceType.DanDanPlay]: 'builtin:dandanplay',
   [DanmakuSourceType.Bilibili]: 'builtin:bilibili',
   [DanmakuSourceType.Tencent]: 'builtin:tencent',
+  [DanmakuSourceType.Youku]: 'builtin:youku',
+  [DanmakuSourceType.Mango]: 'builtin:mango',
+  [DanmakuSourceType.Iqiyi]: 'builtin:iqiyi',
+  [DanmakuSourceType.Sohu]: 'builtin:sohu',
+  [DanmakuSourceType.Maiduidui]: 'builtin:maiduidui',
+  [DanmakuSourceType.Renren]: 'builtin:renren',
+  [DanmakuSourceType.Aiyifan]: 'builtin:aiyifan',
+  [DanmakuSourceType.Bahamut]: 'builtin:bahamut',
   [DanmakuSourceType.MacCMS]: LEGACY_MACCMS_ID, // not built-in, but used for migrations to indicate this is a migrated option
 } as const satisfies Record<DanmakuSourceType, string>
 
@@ -19,16 +35,6 @@ export type RemoteDanmakuSourceType = Exclude<
   DanmakuSourceType,
   DanmakuSourceType.MacCMS
 >
-
-export type ByProvider<T, P extends DanmakuSourceType> = Extract<
-  T,
-  { provider: P }
->
-
-export type BilibiliOf<T> = ByProvider<T, DanmakuSourceType.Bilibili>
-export type DanDanPlayOf<T> = ByProvider<T, DanmakuSourceType.DanDanPlay>
-export type TencentOf<T> = ByProvider<T, DanmakuSourceType.Tencent>
-export type CustomOf<T> = ByProvider<T, DanmakuSourceType.MacCMS>
 
 type DbEntityBase = Readonly<{
   // How many times the entity has been updated

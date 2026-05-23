@@ -16,9 +16,7 @@ import { BookmarkService } from '@/background/services/persistence/BookmarkServi
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
-import { BilibiliService } from '@/background/services/providers/bilibili/BilibiliService'
 import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
-import { TencentService } from '@/background/services/providers/tencent/TencentService'
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import { AuthClientService } from '@/common/auth/AuthClientService'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
@@ -112,14 +110,18 @@ export class RpcManager {
         episodeMatch: async (data) => {
           return this.episodeMatchingService.findMatchingEpisodes(data)
         },
-        bilibiliSetCookies: async () => {
-          return BilibiliService.setCookies(this.logger)
+        providerGetSpec: async (input) => {
+          return this.providerService.getManifestSpec(input.manifestId)
         },
-        bilibiliGetLoginStatus: async () => {
-          return BilibiliService.getLoginStatus(this.logger)
-        },
-        tencentTestCookies: async () => {
-          return TencentService.testCookies(this.logger)
+        providerProbeLogin: async (input) => {
+          try {
+            return await this.providerService.probeLogin<boolean>(
+              input.manifestId
+            )
+          } catch (e) {
+            this.logger.error(`loginProbe failed for ${input.manifestId}`, e)
+            return false
+          }
         },
         iconSet: async (data, sender) => {
           if (sender.tab?.id === undefined) {

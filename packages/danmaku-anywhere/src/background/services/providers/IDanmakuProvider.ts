@@ -37,12 +37,12 @@ export interface IDanmakuProvider {
 
   preloadNextEpisode?(request: DanmakuFetchByMeta): Promise<void>
 
-  canParse?(url: string): boolean
-
-  parseUrl?(url: string): Promise<ParseUrlResult | null>
-
   findEpisode?(
     season: Season,
     episodeNumber: number
   ): Promise<WithSeason<EpisodeMeta> | null>
+
+  canParse?(url: string): boolean
+
+  parseUrl?(url: string): Promise<ParseUrlResult | null>
 }

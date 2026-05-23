@@ -23,9 +23,9 @@ export function useUpsertSeason() {
     ): Promise<Season | CustomSeason> => {
       // Custom seasons live in customEpisode, not the seasons table.
       if (isProvider(input, DanmakuSourceType.MacCMS)) {
-        return input
+        return input as CustomSeason
       }
-      const res = await chromeRpcClient.seasonUpsert(input)
+      const res = await chromeRpcClient.seasonUpsert(input as SeasonInsert)
       return res.data
     },
     meta: {

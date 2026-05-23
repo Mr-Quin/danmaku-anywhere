@@ -1,56 +1,56 @@
 import { Warning } from '@mui/icons-material'
-import { Tooltip, Typography } from '@mui/material'
-import { Trans } from 'react-i18next'
-import { ExternalLink } from '@/common/components/ExternalLink'
+import { IconButton, Tooltip, Typography } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 
 interface ProviderWarningIconProps {
-  warningType: 'bilibili' | 'tencent' | null
+  cookieSet?: { url: string; title?: string }
 }
 
-export const ProviderWarningIcon = ({
-  warningType,
-}: ProviderWarningIconProps) => {
-  if (!warningType) return null
+/**
+ * Shown next to a builtin provider row when its loginProbe pipeline reports
+ * not-logged-in / cookies-missing. The fix is always "visit the source's
+ * own login page so the browser sets cookies normally" — clicking opens
+ * cookieSet.url in a new tab. Tooltip text comes from the manifest
+ * (cookieSet.title) so the host stays generic.
+ */
+export function ProviderWarningIcon({ cookieSet }: ProviderWarningIconProps) {
+  const { t } = useTranslation()
 
-  const getTooltipContent = () => {
-    if (warningType === 'bilibili') {
-      return (
-        <Typography variant="subtitle2">
-          {/* @ts-ignore */}
-          <Trans i18nKey="danmakuSource.tooltip.bilibiliNotLoggedIn">
-            <ExternalLink
-              color="primary"
-              to="https://www.bilibili.com"
-              target="_blank"
-              rel="noreferrer"
-            />
-          </Trans>
-        </Typography>
-      )
+  const tooltipText =
+    cookieSet?.title ??
+    t('providers.warning.defaultTooltip', 'Authentication required')
+
+  const handleClick = () => {
+    if (!cookieSet?.url) {
+      return
     }
+    chrome.tabs.create({ url: cookieSet.url })
+  }
 
-    if (warningType === 'tencent') {
-      return (
-        <Typography variant="subtitle2">
-          {/* @ts-ignore */}
-          <Trans i18nKey="danmakuSource.tooltip.tencentCookieMissing">
-            <ExternalLink
-              color="primary"
-              to="https://v.qq.com"
-              target="_blank"
-              rel="noreferrer"
-            />
-          </Trans>
-        </Typography>
-      )
-    }
+  const icon = (
+    <Warning fontSize="small" color="warning" data-testid="provider-warning" />
+  )
 
-    return null
+  if (!cookieSet?.url) {
+    return (
+      <Tooltip
+        title={<Typography variant="subtitle2">{tooltipText}</Typography>}
+      >
+        {icon}
+      </Tooltip>
+    )
   }
 
   return (
-    <Tooltip title={getTooltipContent()} placement="top">
-      <Warning fontSize="small" color="warning" />
+    <Tooltip title={<Typography variant="subtitle2">{tooltipText}</Typography>}>
+      <IconButton
+        size="small"
+        onClick={handleClick}
+        sx={{ p: 0 }}
+        aria-label={tooltipText}
+      >
+        {icon}
+      </IconButton>
     </Tooltip>
   )
 }

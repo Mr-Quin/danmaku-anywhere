@@ -1,0 +1,96 @@
+{
+  "apiVersion": 1,
+  "id": "builtin:maiduidui",
+  "name": "Maiduidui",
+  "version": "1.0.0",
+  "hosts": ["mob.mddcloud.com.cn"],
+  "search": {
+    "inputs": ["q"],
+    "steps": [
+      {
+        "type": "assign",
+        "id": "sig",
+        "values": {
+          "time": "$millis()",
+          "suffix": "'/searchApi/search/getAllSearchResult4820.action'",
+          "data": "{ 'keyWord': q }"
+        }
+      },
+      {
+        "type": "http",
+        "id": "search",
+        "request": {
+          "method": "POST",
+          "url": "'https://mob.mddcloud.com.cn' & sig.suffix",
+          "headers": {
+            "Content-Type": "'application/json'"
+          },
+          "rewriteHeaders": {
+            "User-Agent": "'Mdd/5.8.00 (Android+32+)'",
+            "Referer": "'mdd'"
+          },
+          "body": "{ 'channel': '1000', 'data': sig.data, 'deviceNum': '853BDD7A1DC011F1C341455071C03AEB', 'deviceType': 0, 'jsonSign': 0, 'os': 'Android', 'sign': $md5('os:Android|version:5.8.00|action:' & sig.suffix & '|time:' & $string(sig.time) & '|appToken:|privateKey:e1be6b4cf4021b3d181170d1879a530a9e4130b69032144d5568abfd6cd6c1c2|data:' & $sortedRawString(sig.data) & '&'), 'sourceVersion': 0, 'terminalType': 'APP', 'thirdStatus': 0, 'time': sig.time, 'version': '5.8.00', 'visitorStatus': 0 }"
+        }
+      }
+    ],
+    "output": "[search.data[typeName in ['剧集', '电影', '综艺']].vodList.{ 'providerIds': { 'vodUuid': uuid }, 'indexedId': uuid, 'title': name, 'type': $$.typeName, 'year': $exists(year) ? $number(year) : undefined, 'imageUrl': coverImage, 'episodeCount': undefined }]"
+  },
+  "episodes": {
+    "inputs": ["vodUuid"],
+    "steps": [
+      {
+        "type": "assign",
+        "id": "sig",
+        "values": {
+          "time": "$millis()",
+          "suffix": "'/api/vod/listVodSactions.action'",
+          "data": "{ 'hasIntroduction': 0, 'vodUuid': vodUuid }"
+        }
+      },
+      {
+        "type": "http",
+        "id": "ep",
+        "request": {
+          "method": "POST",
+          "url": "'https://mob.mddcloud.com.cn' & sig.suffix",
+          "headers": {
+            "Content-Type": "'application/json'"
+          },
+          "rewriteHeaders": {
+            "User-Agent": "'Mdd/5.8.00 (Android+32+)'",
+            "Referer": "'mdd'"
+          },
+          "body": "{ 'channel': '1000', 'data': sig.data, 'deviceNum': '853BDD7A1DC011F1C341455071C03AEB', 'deviceType': 0, 'jsonSign': 0, 'os': 'Android', 'sign': $md5('os:Android|version:5.8.00|action:' & sig.suffix & '|time:' & $string(sig.time) & '|appToken:|privateKey:e1be6b4cf4021b3d181170d1879a530a9e4130b69032144d5568abfd6cd6c1c2|data:' & $sortedRawString(sig.data) & '&'), 'sourceVersion': 0, 'terminalType': 'APP', 'thirdStatus': 0, 'time': sig.time, 'version': '5.8.00', 'visitorStatus': 0 }"
+        }
+      }
+    ],
+    "output": "[ep.data.($idx := $; { 'providerIds': { 'sactionUuid': uuid, 'vodUuid': $$.vodUuid, 'durationSec': $exists(duration) ? $number(duration) : 0 }, 'indexedId': uuid, 'title': name ? name : ('第' & $string(sort) & '集'), 'episodeNumber': $exists(sort) ? $number(sort) : undefined })]"
+  },
+  "danmaku": {
+    "inputs": ["sactionUuid", "vodUuid", "durationSec"],
+    "steps": [
+      {
+        "type": "forEach",
+        "id": "segments",
+        "in": "$range(0, $ceil((durationSec > 0 ? durationSec : 5400) / 60))",
+        "as": "i",
+        "concurrency": 5,
+        "throttleMs": 50,
+        "request": {
+          "method": "POST",
+          "url": "'https://mob.mddcloud.com.cn/api/barrage/vodBarrage396.action'",
+          "headers": {
+            "Content-Type": "'application/json'"
+          },
+          "rewriteHeaders": {
+            "User-Agent": "'Mdd/5.8.00 (Android+32+)'",
+            "Referer": "'mdd'"
+          },
+          "body": "($t := $millis(); $sx := '/api/barrage/vodBarrage396.action'; $d := { 'sactionUuid': sactionUuid, 'times': i * 60, 'vodUuid': vodUuid }; { 'channel': '1000', 'data': $d, 'deviceNum': '853BDD7A1DC011F1C341455071C03AEB', 'deviceType': 0, 'jsonSign': 0, 'os': 'Android', 'sign': $md5('os:Android|version:5.8.00|action:' & $sx & '|time:' & $string($t) & '|appToken:|privateKey:e1be6b4cf4021b3d181170d1879a530a9e4130b69032144d5568abfd6cd6c1c2|data:' & $sortedRawString($d) & '&'), 'sourceVersion': 0, 'terminalType': 'APP', 'thirdStatus': 0, 'time': $t, 'version': '5.8.00', 'visitorStatus': 0 })"
+        },
+        "collect": "[data.barrageList]"
+      }
+    ],
+    "output": "[segments.{ 'p': $string(times) & ',1,' & $string($hexToInt($replace(color ? color : '#FFFFFF', /^#/, ''))) & ',' & (uuid ? $string(uuid) : ''), 'm': content }]"
+  }
+}

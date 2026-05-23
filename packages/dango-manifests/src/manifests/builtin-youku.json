@@ -1,0 +1,114 @@
+{
+  "apiVersion": 1,
+  "id": "builtin:youku",
+  "name": "Youku",
+  "version": "1.0.0",
+  "hosts": [
+    "search.youku.com",
+    "openapi.youku.com",
+    "acs.youku.com",
+    "log.mmstat.com"
+  ],
+  "search": {
+    "inputs": ["q"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "search",
+        "request": {
+          "method": "GET",
+          "url": "'https://search.youku.com/api/search'",
+          "query": "{ 'keyword': q, 'site': '1', 'categories': '0', 'ftype': '0', 'ob': '0', 'pg': '1' }",
+          "rewriteHeaders": { "Referer": "'https://www.youku.com/'" }
+        }
+      }
+    ],
+    "output": "[search.pageComponentList[commonData.isYouku=1 or commonData.hasYouku=1].commonData.($parts := $split(feature, ' · '); { 'providerIds': { 'showId': showId }, 'indexedId': showId, 'title': $replace(titleDTO.displayName, /<[^>]+>/, '') ~> $trim, 'type': $trim($parts[1]), 'year': $number($regexExtract(feature, '([12][890][0-9][0-9])')), 'imageUrl': posterDTO.vThumbUrl, 'episodeCount': episodeTotal })[providerIds.showId]]"
+  },
+  "episodes": {
+    "inputs": ["showId"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "page",
+        "request": {
+          "method": "GET",
+          "url": "'https://openapi.youku.com/v2/shows/videos.json'",
+          "query": "{ 'client_id': '53e6cc67237fc59a', 'package': 'com.huawei.hwvplayer.youku', 'ext': 'show', 'show_id': showId, 'page': '1', 'count': '100' }"
+        }
+      }
+    ],
+    "output": "[page.videos.{ 'providerIds': { 'vid': id }, 'indexedId': id, 'title': title, 'episodeNumber': $number(stage), 'imageUrl': thumbnail_v2 }]"
+  },
+  "danmaku": {
+    "inputs": ["vid"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "info",
+        "request": {
+          "method": "GET",
+          "url": "'https://openapi.youku.com/v2/videos/show.json'",
+          "query": "{ 'client_id': '53e6cc67237fc59a', 'video_id': vid, 'package': 'com.huawei.hwvplayer.youku', 'ext': 'show' }"
+        },
+        "extract": {
+          "durationSec": "$number(duration)"
+        }
+      },
+      {
+        "type": "http",
+        "id": "cna",
+        "request": {
+          "method": "GET",
+          "url": "'https://log.mmstat.com/eg.js'",
+          "format": "text",
+          "credentials": "include"
+        },
+        "extractHeaders": {
+          "value": "$replace(`etag`, /^\"|\"$/, '')"
+        }
+      },
+      {
+        "type": "http",
+        "id": "tkEnc",
+        "request": {
+          "method": "GET",
+          "url": "'https://acs.youku.com/h5/mtop.com.youku.aplatform.weakget/1.0/'",
+          "query": "{ 'jsv': '2.5.1', 'appKey': '24679788' }",
+          "credentials": "include"
+        },
+        "extractHeaders": {
+          "tk": "$regexExtract(`set-cookie`, '_m_h5_tk=([^;]+)')"
+        }
+      },
+      {
+        "type": "assign",
+        "id": "prep",
+        "values": {
+          "iters": "$map($range(0, $floor(info.durationSec / 60) + 1), function($mat) { ($t := $millis(); $msg := { 'ctime': $t, 'ctype': 10004, 'cver': 'v1.0', 'guid': cna.value, 'mat': $mat, 'mcount': 1, 'pid': 0, 'sver': '3.1.0', 'type': 1, 'vid': vid }; $msgB64 := $base64Encode($stringify($msg)); $innerSign := $md5($msgB64 & 'MkmC9SoIw6xCkSKHhJ7b5D2r51kBiREr'); $data := $stringify($merge([$msg, { 'msg': $msgB64, 'sign': $innerSign }])); $outerSign := $md5($substring(tkEnc.tk, 0, 32) & '&' & $string($t) & '&24679788&' & $data); { 'url': 'https://acs.youku.com/h5/mopen.youku.danmu.list/1.0/?' & $sortedQueryString({ 'jsv': '2.5.6', 'appKey': '24679788', 't': $string($t), 'sign': $outerSign, 'api': 'mopen.youku.danmu.list', 'v': '1.0', 'type': 'originaljson', 'dataType': 'jsonp', 'timeout': '20000', 'jsonpIncPrefix': 'utility' }), 'body': 'data=' & $encodeUrlComponent($data) }) })"
+        }
+      },
+      {
+        "type": "forEach",
+        "id": "segments",
+        "in": "prep.iters",
+        "as": "iter",
+        "concurrency": 4,
+        "throttleMs": 100,
+        "request": {
+          "method": "POST",
+          "url": "iter.url",
+          "headers": { "Content-Type": "'application/x-www-form-urlencoded'" },
+          "body": "iter.body",
+          "credentials": "include",
+          "rewriteHeaders": { "Referer": "'https://v.youku.com'" }
+        },
+        "extract": {
+          "items": "$jsonParse(data.result).data.result"
+        },
+        "collect": "items"
+      }
+    ],
+    "output": "[segments.{ 'p': $string($number(playat) / 1000) & ',1,16777215,' & $string(uid), 'm': content }]"
+  }
+}

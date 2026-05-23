@@ -1,0 +1,61 @@
+{
+  "apiVersion": 1,
+  "id": "builtin:bahamut",
+  "name": "Bahamut",
+  "version": "1.0.0",
+  "hosts": ["api.gamer.com.tw"],
+  "search": {
+    "inputs": ["q"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "search",
+        "request": {
+          "method": "GET",
+          "url": "'https://api.gamer.com.tw/mobile_app/anime/v1/search.php'",
+          "query": "{ 'kw': q }",
+          "rewriteHeaders": {
+            "User-Agent": "'Anime/2.29.2 (7N5749MM3F.tw.com.gamer.anime; build:972; iOS 26.0.0) Alamofire/5.6.4'"
+          }
+        }
+      }
+    ],
+    "output": "[search.anime[video_sn and title].{ 'providerIds': { 'videoSn': $string(video_sn) }, 'indexedId': $string(video_sn), 'title': title, 'type': '动漫', 'year': $exists(info) ? $number($regexExtract(info, '([12][890][0-9][0-9])')) : undefined, 'imageUrl': cover, 'episodeCount': $exists(info) ? $number($regexExtract(info, '共\\\\s*(\\\\d+)\\\\s*集')) : undefined }]"
+  },
+  "episodes": {
+    "inputs": ["videoSn"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "video",
+        "request": {
+          "method": "GET",
+          "url": "'https://api.gamer.com.tw/anime/v1/video.php'",
+          "query": "{ 'videoSn': videoSn }",
+          "rewriteHeaders": {
+            "User-Agent": "'Anime/2.29.2 (7N5749MM3F.tw.com.gamer.anime; build:972; iOS 26.0.0) Alamofire/5.6.4'"
+          }
+        }
+      }
+    ],
+    "output": "[video.data.anime.episodes.*[$exists(videoSn)].{ 'providerIds': { 'videoSn': $string(videoSn) }, 'indexedId': $string(videoSn), 'title': '第' & $string(episode) & '集', 'episodeNumber': $exists(episode) ? $number(episode) : undefined }]"
+  },
+  "danmaku": {
+    "inputs": ["videoSn"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "fetch",
+        "request": {
+          "method": "GET",
+          "url": "'https://api.gamer.com.tw/anime/v1/danmu.php'",
+          "query": "{ 'geo': 'TW,HK', 'videoSn': videoSn }",
+          "rewriteHeaders": {
+            "User-Agent": "'Anime/2.29.2 (7N5749MM3F.tw.com.gamer.anime; build:972; iOS 26.0.0) Alamofire/5.6.4'"
+          }
+        }
+      }
+    ],
+    "output": "[fetch.data.danmu[text].{ 'p': $string(time / 10) & ',' & (position = 1 ? '5' : (position = 2 ? '4' : '1')) & ',' & $string($hexToInt($replace(color ? color : '#FFFFFF', /^#/, ''))) & ',' & (userid ? userid : ''), 'm': text }]"
+  }
+}

@@ -5,16 +5,22 @@ export {
   ManifestRunner,
   type ManifestRunnerOptions,
 } from './engine/ManifestRunner.js'
-export { ProtoRegistry } from './engine/proto.js'
+export { ProtoRegistry, type ProtoTypeOverrides } from './engine/proto.js'
 export {
   type PipelineInput,
   type RunOptions,
   runPipeline,
 } from './engine/runner.js'
-export { findManifestForUrl, urlMatches } from './engine/url-match.js'
+export {
+  findManifestForUrl,
+  findManifestMatchForUrl,
+  matchUrl,
+  type UrlMatchResult,
+  urlMatches,
+} from './engine/url-match.js'
 export { helpers } from './helpers/registry.js'
 export type {
-  ConfigItem,
+  ConfigSchema,
   Manifest,
   Pipeline,
   RequestSpec,
