@@ -18,6 +18,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: write
 
 jobs:
   e2e:
@@ -96,6 +97,7 @@ jobs:
         run: pnpm build
 
       - name: Run E2E tests
+        id: e2e
         working-directory: packages/danmaku-anywhere
         # MV3 extensions need headed Chromium; xvfb provides a display.
         run: xvfb-run --auto-servernum pnpm test:e2e
@@ -103,7 +105,8 @@ jobs:
           PLAYWRIGHT_HEADED: '1'
 
       - name: Upload Playwright report on failure
-        if: failure()
+        id: upload-report
+        if: failure() && steps.e2e.conclusion == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: playwright-report
@@ -111,9 +114,25 @@ jobs:
           retention-days: 7
 
       - name: Upload test artifacts on failure
-        if: failure()
+        if: failure() && steps.e2e.conclusion == 'failure'
         uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: packages/danmaku-anywhere/test-results/
           retention-days: 7
+
+      - name: Post E2E status comment on PR
+        if: always() && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const post = require('./scripts/e2e-comment.cjs');
+            await post({
+              github,
+              context,
+              reportPath: 'packages/danmaku-anywhere/test-results/report.json',
+              reportUrl: '${{ steps.upload-report.outputs.artifact-url }}',
+              prNumber: '${{ github.event.pull_request.number }}',
+              sha: '${{ github.event.pull_request.head.sha }}',
+            });

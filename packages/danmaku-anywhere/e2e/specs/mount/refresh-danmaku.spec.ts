@@ -70,13 +70,11 @@ test('mount tree: refresh danmaku fetches new comments for an episode', async ({
   await popup.mount.expandSeason(season.id)
 
   const episodeItem = await popup.mount.episodeItem(episode.id).first()
-  await expect(episodeItem).toBeVisible({ timeout: 10_000 })
+  await expect(episodeItem).toBeVisible()
 
   await popup.mount.openItemMenu(episodeItem, 'refresh')
 
   await expect
-    .poll(async () => (await da.episode.get(episode.id))?.commentCount, {
-      timeout: 10_000,
-    })
+    .poll(async () => (await da.episode.get(episode.id))?.commentCount)
     .toBeGreaterThan(0)
 })

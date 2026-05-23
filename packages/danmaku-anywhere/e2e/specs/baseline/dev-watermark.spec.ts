@@ -11,7 +11,7 @@ test('popup shows E2E watermark with version', async ({
   extensionId,
 }) => {
   await page.goto(`chrome-extension://${extensionId}/pages/popup.html`)
-  await expect(page.locator('#root')).toBeVisible({ timeout: 10_000 })
+  await expect(page.locator('#root')).toBeVisible()
 
   await expect(page.getByText('E2E', { exact: true })).toBeVisible()
   await expect(page.getByText(/^v\d+\.\d+\.\d+/)).toBeVisible()

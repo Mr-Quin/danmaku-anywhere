@@ -20,23 +20,18 @@
     "format": "pnpm -r -F \"./packages/**\" format",
     "lint": "pnpm -r -F \"./packages/**\" lint",
     "lint:ci": "pnpm -r lint:ci",
-    "test": "pnpm -r test run",
+    "test": "pnpm -r test",
     "type-check": "pnpm -r type-check",
     "sync-changelog": "node --experimental-strip-types scripts/sync-changelog.ts Mr-Quin/danmaku-anywhere docs/src/content/docs/change-log.mdx",
     "knip": "knip",
     "prepare": "lefthook install"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.7",
-    "@typescript/native-preview": "7.0.0-dev.20251123.1",
-    "knip": "^6.3.0",
-    "lefthook": "^2.0.4",
-    "typescript": "^5.9.3"
+    "@biomejs/biome": "^2.4.15",
+    "@typescript/native-preview": "7.0.0-dev.20260521.1",
+    "knip": "6.14.1",
+    "lefthook": "^2.1.8",
+    "typescript": "^6.0.3"
   },
-  "pnpm": {
-    "ignoredBuiltDependencies": [
-      "workerd"
-    ]
-  },
-  "packageManager": "pnpm@10.11.0+sha256.a69e9cb077da419d47d18f1dd52e207245b29cac6e076acedbeb8be3b1a67bd7"
+  "packageManager": "pnpm@11.2.2"
 }

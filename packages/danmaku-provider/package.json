@@ -56,7 +56,7 @@
     }
   },
   "scripts": {
-    "test": "vitest",
+    "test": "vitest run",
     "protobuf:compile": "pbjs -t static-module -w es6 -o src/protobuf/protobuf.js src/protobuf/definition/bilibili.dm.proto && pbts -o src/protobuf/protobuf.d.ts src/protobuf/protobuf.js",
     "build": "pnpm protobuf:compile && tsgo",
     "lint": "tsgo && biome check --fix",

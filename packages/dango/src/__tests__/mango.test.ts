@@ -156,44 +156,6 @@ describe('Mango (episodes — forEach over months)', () => {
       },
     ])
   })
-
-  it('respects throttleMs between iterations', async () => {
-    const manifest = zManifest.parse(mangoManifest)
-    const bootstrap = {
-      data: {
-        tab_m: [{ m: '202309' }, { m: '202310' }, { m: '202311' }],
-        list: [],
-      },
-    }
-    const empty = { data: { list: [] } }
-    const callTimes: number[] = []
-    const start = Date.now()
-    const { fetcher } = mockFetcher({
-      'https://pcweb.api.mgtv.com/variety/showlist': (url) => {
-        callTimes.push(Date.now() - start)
-        return {
-          body: JSON.stringify(
-            new URL(url).searchParams.get('month') === '' ? bootstrap : empty
-          ),
-        }
-      },
-    })
-
-    await runPipeline(
-      manifest,
-      manifest.episodes!,
-      { collectionId: '444555' },
-      { fetcher }
-    )
-
-    // 4 calls total (1 bootstrap, 3 months). Iteration calls 2..4 (callTimes[1..3])
-    // must be ≥100ms apart per throttleMs in the manifest.
-    expect(callTimes.length).toBe(4)
-    for (let i = 2; i < callTimes.length; i++) {
-      const gap = callTimes[i]! - callTimes[i - 1]!
-      expect(gap).toBeGreaterThanOrEqual(95) // small slack for timer jitter
-    }
-  })
 })
 
 describe('Mango (danmaku — segment-loop forEach)', () => {

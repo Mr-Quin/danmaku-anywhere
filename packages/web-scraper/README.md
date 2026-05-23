@@ -16,4 +16,4 @@ Used by the extension and the Angular web app (with extension present). Depends 
 
 ## Dependencies
 
-- `@danmaku-anywhere/danmaku-converter`, `@danmaku-anywhere/danmaku-provider`, `zod`, `core-js`
+- `@danmaku-anywhere/danmaku-converter`, `@danmaku-anywhere/danmaku-provider`, `zod`
