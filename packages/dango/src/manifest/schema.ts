@@ -61,6 +61,13 @@ export const zRequestSpec = z.object({
    * (e.g. Bilibili's `seg.so` returns 304 past the last danmaku segment).
    */
   acceptStatus: z.array(z.number().int()).default([]),
+  /**
+   * Decompress the raw response body before applying `format`. Use for
+   * upstreams that ship deflate/gzip payloads without `Content-Encoding`
+   * (e.g. iQiyi's `.z` danmaku segments). The decompressed text/bytes are
+   * then parsed per `format`.
+   */
+  decompress: z.enum(['deflate', 'deflate-raw', 'gzip']).optional(),
 })
 export type RequestSpec = z.infer<typeof zRequestSpec>
 

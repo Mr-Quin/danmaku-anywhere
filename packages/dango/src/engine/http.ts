@@ -226,6 +226,16 @@ export async function executeRequest(
   return { body: parsedBody, headers: responseHeaders, status: res.status }
 }
 
+async function decompressBytes(
+  bytes: Uint8Array,
+  format: 'deflate' | 'deflate-raw' | 'gzip'
+): Promise<string> {
+  const blob = new Blob([bytes as BlobPart])
+  const stream = blob.stream()
+  const decoded = stream.pipeThrough(new DecompressionStream(format))
+  return new Response(decoded).text()
+}
+
 async function parseBody(
   spec: RequestSpec,
   res: HttpResponse,
@@ -247,6 +257,10 @@ async function parseBody(
       spec.protoMessage,
       await res.bytes()
     )
+  }
+  if (spec.decompress) {
+    const text = await decompressBytes(await res.bytes(), spec.decompress)
+    return parseTextBody(spec.format, text)
   }
   return parseTextBody(spec.format, await res.text())
 }

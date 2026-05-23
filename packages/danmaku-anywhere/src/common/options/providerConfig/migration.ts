@@ -7,6 +7,7 @@ import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import {
   builtInBilibiliProvider,
   builtInDanDanPlayProvider,
+  builtInIqiyiProvider,
   builtInMangoProvider,
   builtInTencentProvider,
   builtInYoukuProvider,
@@ -294,7 +295,11 @@ export function seedNewBuiltinProviders(
 ): ProviderConfig[] {
   const have = new Set(data.map((c) => c.id))
   const additions: ProviderConfig[] = []
-  for (const builtin of [builtInYoukuProvider, builtInMangoProvider]) {
+  for (const builtin of [
+    builtInYoukuProvider,
+    builtInMangoProvider,
+    builtInIqiyiProvider,
+  ]) {
     if (!have.has(builtin.id)) {
       additions.push(builtin)
     }

@@ -12,6 +12,9 @@ import builtinDandanplay from '@danmaku-anywhere/dango-manifests/manifests/built
 import builtinDdpCompat from '@danmaku-anywhere/dango-manifests/manifests/builtin-ddp-compat.json' with {
   type: 'json',
 }
+import builtinIqiyi from '@danmaku-anywhere/dango-manifests/manifests/builtin-iqiyi.json' with {
+  type: 'json',
+}
 import builtinMango from '@danmaku-anywhere/dango-manifests/manifests/builtin-mango.json' with {
   type: 'json',
 }
@@ -48,6 +51,7 @@ const builtinSpecs: ManifestSpec[] = [
   { manifest: builtinTencent },
   { manifest: builtinYouku },
   { manifest: builtinMango },
+  { manifest: builtinIqiyi },
 ]
 
 @injectable('Singleton')

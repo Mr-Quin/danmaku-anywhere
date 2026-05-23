@@ -62,12 +62,23 @@ export const builtInMangoProvider: ProviderConfig = {
   configValues: {},
 }
 
+export const builtInIqiyiProvider: ProviderConfig = {
+  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Iqiyi],
+  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Iqiyi],
+  name: 'iQIYI',
+  impl: DanmakuSourceType.Iqiyi,
+  enabled: true,
+  isBuiltIn: true,
+  configValues: {},
+}
+
 export const defaultProviderConfigs: ProviderConfig[] = [
   builtInDanDanPlayProvider,
   builtInBilibiliProvider,
   builtInTencentProvider,
   builtInYoukuProvider,
   builtInMangoProvider,
+  builtInIqiyiProvider,
 ]
 
 export function createCustomDanDanPlayProvider(

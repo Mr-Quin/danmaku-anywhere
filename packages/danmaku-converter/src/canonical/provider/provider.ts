@@ -5,6 +5,7 @@ export enum DanmakuSourceType {
   Tencent = 'Tencent',
   Youku = 'Youku',
   Mango = 'Mango',
+  Iqiyi = 'Iqiyi',
   Custom = 'Custom',
 }
 
@@ -16,6 +17,7 @@ export const PROVIDER_TO_BUILTIN_ID = {
   [DanmakuSourceType.Tencent]: 'builtin:tencent',
   [DanmakuSourceType.Youku]: 'builtin:youku',
   [DanmakuSourceType.Mango]: 'builtin:mango',
+  [DanmakuSourceType.Iqiyi]: 'builtin:iqiyi',
   [DanmakuSourceType.MacCMS]: LEGACY_MACCMS_ID, // not built-in, but used for migrations to indicate this is a migrated option
 } as const satisfies Record<DanmakuSourceType, string>
 
