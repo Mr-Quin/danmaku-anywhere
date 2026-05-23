@@ -284,6 +284,8 @@
     "importFromUrl": "从 URL 导入",
     "importSuccess_other": "成功导入{{count}}个文件",
     "parseError": "文件解析失败",
+    "pickFiles": "选择文件",
+    "pickFolder": "选择文件夹",
     "skipped_other": "跳过{{count}}个文件",
     "urlDialog": {
       "errors": {

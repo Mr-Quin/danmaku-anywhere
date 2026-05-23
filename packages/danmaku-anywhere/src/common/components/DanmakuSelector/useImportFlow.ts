@@ -6,6 +6,34 @@ import {
   useDanmakuImport,
   VALID_EXTENSIONS,
 } from '@/common/components/ImportPageCore/useDanmakuImport'
+import type { EnvironmentType } from '@/common/environment/context'
+import { useEnvironmentContext } from '@/common/environment/context'
+import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
+import { useIsInTab } from '@/common/hooks/useIsInTab'
+import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { isDetachedWindow } from '@/popup/utils/isDetachedWindow'
+
+const IMPORT_WINDOW_WIDTH = 520
+const IMPORT_WINDOW_HEIGHT = 380
+
+export interface DetachContext {
+  envType: EnvironmentType
+  isMobile: boolean
+  isInTab: boolean
+  isStandaloneRuntime: boolean
+  isDetachedWindow: boolean
+}
+
+export function shouldDetachImport(ctx: DetachContext): boolean {
+  return (
+    ctx.envType === 'popup' &&
+    !ctx.isMobile &&
+    !ctx.isInTab &&
+    !ctx.isStandaloneRuntime &&
+    !ctx.isDetachedWindow
+  )
+}
 
 function toAbsolutePath(path: string): string {
   if (path.startsWith('/')) {
@@ -53,6 +81,26 @@ export const useImportFlow = () => {
   const { handleImportClick, mutate, data, isPending, isError, error, reset } =
     useDanmakuImport()
 
+  const { type: envType } = useEnvironmentContext()
+  const { isMobile } = usePlatformInfo()
+  const isInTab = useIsInTab()
+
+  const willDetach = shouldDetachImport({
+    envType,
+    isMobile,
+    isInTab,
+    isStandaloneRuntime: IS_STANDALONE_RUNTIME,
+    isDetachedWindow: isDetachedWindow(),
+  })
+
+  function detachToImportWindow(): void {
+    void chromeRpcClient.openPopupInNewWindow({
+      path: 'import',
+      width: IMPORT_WINDOW_WIDTH,
+      height: IMPORT_WINDOW_HEIGHT,
+    })
+  }
+
   const handleFiles = async (files: File[]) => {
     const processedFiles: File[] = []
 
@@ -76,10 +124,18 @@ export const useImportFlow = () => {
   }
 
   const openFileInput = () => {
+    if (willDetach) {
+      detachToImportWindow()
+      return
+    }
     fileInputRef.current?.click()
   }
 
   const openFolderInput = () => {
+    if (willDetach) {
+      detachToImportWindow()
+      return
+    }
     folderInputRef.current?.click()
   }
 
@@ -114,6 +170,7 @@ export const useImportFlow = () => {
     dragProps,
     fileInputRef,
     folderInputRef,
+    willDetach,
     // Data
     importState: { data, isPending, isError, error },
     // Actions

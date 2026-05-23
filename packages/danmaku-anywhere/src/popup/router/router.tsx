@@ -12,6 +12,7 @@ import { AiProvidersPage } from '../pages/ai/AiProvidersPage'
 import { ConfigPage } from '../pages/config/pages/ConfigPage'
 import { MountConfigEditor } from '../pages/config/pages/MountConfigEditor'
 import { Home } from '../pages/home/Home'
+import { ImportStandalonePage } from '../pages/import/ImportStandalonePage'
 import { IntegrationPolicy } from '../pages/integrationPolicy/pages/IntegrationPolicy'
 import { IntegrationPolicyEditor } from '../pages/integrationPolicy/pages/IntegrationPolicyEditor'
 import { MountPage } from '../pages/mount/MountPage'
@@ -94,6 +95,10 @@ export const routes: RouteObject[] = [
         Component: TitleMappingPage,
       },
     ],
+  },
+  {
+    path: '/import',
+    Component: ImportStandalonePage,
   },
   {
     path: '/options',

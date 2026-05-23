@@ -293,6 +293,8 @@
     "importSuccess_one": "Successfully imported {{count}} file",
     "importSuccess_other": "Successfully imported {{count}} files",
     "parseError": "Failed to parse file",
+    "pickFiles": "Pick files",
+    "pickFolder": "Pick folder",
     "skipped_one": "Skpped {{count}} file",
     "skipped_other": "Skpped {{count}} files",
     "urlDialog": {

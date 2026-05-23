@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { matchRoutes } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 import { getStorageArea } from '@/common/storage/getStorageArea'
+import { isDetachedWindow } from '@/popup/utils/isDetachedWindow'
 import { getAncestorPaths } from './getAncestorPaths'
 import {
   POPUP_DEFAULT_ROUTE,
@@ -59,28 +60,32 @@ export const RootRouter = () => {
   // overwrite the persisted target.
   const restored = useRef(false)
 
-  useEffect(
-    () =>
-      router.subscribe((state) => {
-        if (!restored.current) {
-          return
-        }
-        if (state.navigation.state !== 'idle') {
-          return
-        }
-        const { pathname, search, hash } = state.location
-        const path = `${pathname}${search}${hash}`
-        if (path === '/') {
-          return
-        }
-        void getStorageArea('session').set({
-          [POPUP_ROUTE_STORAGE_KEY]: path,
-        })
-      }),
-    []
-  )
+  useEffect(() => {
+    if (isDetachedWindow()) {
+      return
+    }
+    return router.subscribe((state) => {
+      if (!restored.current) {
+        return
+      }
+      if (state.navigation.state !== 'idle') {
+        return
+      }
+      const { pathname, search, hash } = state.location
+      const path = `${pathname}${search}${hash}`
+      if (path === '/') {
+        return
+      }
+      void getStorageArea('session').set({
+        [POPUP_ROUTE_STORAGE_KEY]: path,
+      })
+    })
+  }, [])
 
   useEffect(() => {
+    if (isDetachedWindow()) {
+      return
+    }
     const ac = new AbortController()
     void restoreRoute(ac.signal, () => {
       restored.current = true
