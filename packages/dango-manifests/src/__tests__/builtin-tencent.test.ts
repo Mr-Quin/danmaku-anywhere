@@ -350,9 +350,9 @@ describe('builtin:tencent manifest', () => {
     // p is `${seconds},${rtl=1},${colorInt}`. Tencent has no userHash;
     // color resolves via gradient_colors[0] (preferred) or color, default white.
     expect(result).toEqual([
-      { p: '5,1,16777215', m: 'hello tencent' },
-      { p: '12.345,1,16711680', m: 'colored' },
-      { p: '35,1,16777215', m: 'no style' },
+      { p: '5,1,16777215,', m: 'hello tencent' },
+      { p: '12.345,1,16711680,', m: 'colored' },
+      { p: '35,1,16777215,', m: 'no style' },
     ])
     expect(calls).toHaveLength(3)
   })
@@ -448,10 +448,10 @@ describe('builtin:tencent manifest', () => {
     }>
 
     expect(result).toEqual([
-      { p: '1,1,65280', m: 'green' },
-      { p: '2,1,16777215', m: 'hashed' },
-      { p: '3,1,16777215', m: 'broken' },
-      { p: '4,1,16777215', m: 'absent' },
+      { p: '1,1,65280,', m: 'green' },
+      { p: '2,1,16777215,', m: 'hashed' },
+      { p: '3,1,16777215,', m: 'broken' },
+      { p: '4,1,16777215,', m: 'absent' },
     ])
   })
 })
