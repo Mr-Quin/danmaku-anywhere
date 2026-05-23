@@ -105,7 +105,11 @@ export function setupCookieReplay(hosts: readonly string[]): void {
             value: parsed.value,
             domain,
             path,
-            secure: 'secure' in parsed.attrs,
+            // sameSite=no_restriction (= SameSite=None) requires Secure;
+            // Chrome would reject the set otherwise. Partitioned cookies
+            // are spec'd as Secure-only, so forcing this is safe even when
+            // the upstream header forgot the Secure attribute.
+            secure: true,
             httpOnly: 'httponly' in parsed.attrs,
             sameSite: 'no_restriction',
             expirationDate,

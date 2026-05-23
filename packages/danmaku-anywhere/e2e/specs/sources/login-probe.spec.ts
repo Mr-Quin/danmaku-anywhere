@@ -71,7 +71,7 @@ test('bilibiliSetCookies fetches the URL declared by the manifest cookieSet fiel
       // when the popup mounts /providers because their list rows render
       // regardless of `enabled`) so strict-mode network doesn't fail.
       {
-        pattern: /^http:\/\/bilibili\.com\/?$/,
+        pattern: /^https:\/\/www\.bilibili\.com\/?$/,
         respond: (route) => {
           cookieSetCalls++
           return route.fulfill({ status: 200, body: 'ok' })
