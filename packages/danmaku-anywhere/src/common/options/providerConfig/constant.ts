@@ -82,6 +82,16 @@ export const builtInSohuProvider: ProviderConfig = {
   configValues: {},
 }
 
+export const builtInMaiduiduiProvider: ProviderConfig = {
+  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Maiduidui],
+  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Maiduidui],
+  name: 'Maiduidui',
+  impl: DanmakuSourceType.Maiduidui,
+  enabled: true,
+  isBuiltIn: true,
+  configValues: {},
+}
+
 export const defaultProviderConfigs: ProviderConfig[] = [
   builtInDanDanPlayProvider,
   builtInBilibiliProvider,
@@ -90,6 +100,7 @@ export const defaultProviderConfigs: ProviderConfig[] = [
   builtInMangoProvider,
   builtInIqiyiProvider,
   builtInSohuProvider,
+  builtInMaiduiduiProvider,
 ]
 
 export function createCustomDanDanPlayProvider(

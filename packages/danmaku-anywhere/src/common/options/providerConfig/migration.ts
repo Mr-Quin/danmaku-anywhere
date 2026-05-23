@@ -8,6 +8,7 @@ import {
   builtInBilibiliProvider,
   builtInDanDanPlayProvider,
   builtInIqiyiProvider,
+  builtInMaiduiduiProvider,
   builtInMangoProvider,
   builtInSohuProvider,
   builtInTencentProvider,
@@ -301,6 +302,7 @@ export function seedNewBuiltinProviders(
     builtInMangoProvider,
     builtInIqiyiProvider,
     builtInSohuProvider,
+    builtInMaiduiduiProvider,
   ]) {
     if (!have.has(builtin.id)) {
       additions.push(builtin)

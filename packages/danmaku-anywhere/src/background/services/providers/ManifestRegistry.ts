@@ -15,6 +15,9 @@ import builtinDdpCompat from '@danmaku-anywhere/dango-manifests/manifests/builti
 import builtinIqiyi from '@danmaku-anywhere/dango-manifests/manifests/builtin-iqiyi.json' with {
   type: 'json',
 }
+import builtinMaiduidui from '@danmaku-anywhere/dango-manifests/manifests/builtin-maiduidui.json' with {
+  type: 'json',
+}
 import builtinMango from '@danmaku-anywhere/dango-manifests/manifests/builtin-mango.json' with {
   type: 'json',
 }
@@ -56,6 +59,7 @@ const builtinSpecs: ManifestSpec[] = [
   { manifest: builtinMango },
   { manifest: builtinIqiyi },
   { manifest: builtinSohu },
+  { manifest: builtinMaiduidui },
 ]
 
 @injectable('Singleton')
