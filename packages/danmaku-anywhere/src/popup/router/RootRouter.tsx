@@ -6,14 +6,18 @@ import { POPUP_ROUTE_STORAGE_KEY, router, routes } from './router'
 
 // Walk the URL hierarchy of `target` and return the intermediate paths that
 // resolve to real routes, excluding /mount (the initial entry) and the target
-// itself. e.g. '/options/advanced' -> ['/options']; '/styles' -> [].
+// itself. e.g. '/options/advanced' -> ['/options']; '/styles' -> []. Search
+// and hash fragments are stripped before splitting so a '/' inside a query
+// (e.g. ?next=/foo) can't be mistaken for a path segment.
 function getAncestorPaths(target: string): string[] {
-  const segments = target.split('/').filter(Boolean)
+  const queryIdx = target.search(/[?#]/)
+  const pathname = queryIdx >= 0 ? target.slice(0, queryIdx) : target
+  const segments = pathname.split('/').filter(Boolean)
   const paths: string[] = []
   let current = ''
   for (const seg of segments) {
     current += `/${seg}`
-    if (current === target || current === '/mount') {
+    if (current === pathname || current === '/mount') {
       continue
     }
     if (matchRoutes(routes, current)) {
