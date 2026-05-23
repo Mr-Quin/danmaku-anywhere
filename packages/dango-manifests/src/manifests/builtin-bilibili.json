@@ -34,11 +34,41 @@
     "steps": [
       {
         "type": "http",
+        "id": "nav",
+        "request": {
+          "method": "GET",
+          "url": "'https://api.bilibili.com/x/web-interface/nav'",
+          "credentials": "include",
+          "rewriteHeaders": { "Referer": "'https://www.bilibili.com/'" }
+        },
+        "extract": {
+          "imgKey": "$regexExtract(data.wbi_img.img_url, '/([a-f0-9]+)\\\\.png')",
+          "subKey": "$regexExtract(data.wbi_img.sub_url, '/([a-f0-9]+)\\\\.png')"
+        }
+      },
+      {
+        "type": "assign",
+        "id": "wbi",
+        "values": {
+          "mixinKey": "$substring($permute([46,47,18,2,53,8,23,32,15,50,10,31,58,3,45,35,27,43,5,49,33,9,42,19,29,28,14,39,12,38,41,13,37,48,7,16,24,55,40,61,26,17,0,1,60,51,30,4,22,25,54,21,56,59,6,63,57,62,11,36,20,34,44,52], nav.imgKey & nav.subKey), 0, 32)",
+          "wts": "$string($now())"
+        }
+      },
+      {
+        "type": "assign",
+        "id": "params",
+        "values": {
+          "bangumi": "($p := { 'keyword': q, 'search_type': 'media_bangumi', 'wts': wbi.wts }; $merge([$p, { 'w_rid': $md5($sortedQueryString($p) & wbi.mixinKey) }]))",
+          "ft": "($p := { 'keyword': q, 'search_type': 'media_ft', 'wts': wbi.wts }; $merge([$p, { 'w_rid': $md5($sortedQueryString($p) & wbi.mixinKey) }]))"
+        }
+      },
+      {
+        "type": "http",
         "id": "media_bangumi",
         "request": {
           "method": "GET",
-          "url": "'https://api.bilibili.com/x/web-interface/search/type'",
-          "query": "{ 'keyword': q, 'search_type': 'media_bangumi' }",
+          "url": "'https://api.bilibili.com/x/web-interface/wbi/search/type'",
+          "query": "params.bangumi",
           "credentials": "include",
           "rewriteHeaders": { "Referer": "'https://www.bilibili.com/'" }
         }
@@ -48,8 +78,8 @@
         "id": "media_ft",
         "request": {
           "method": "GET",
-          "url": "'https://api.bilibili.com/x/web-interface/search/type'",
-          "query": "{ 'keyword': q, 'search_type': 'media_ft' }",
+          "url": "'https://api.bilibili.com/x/web-interface/wbi/search/type'",
+          "query": "params.ft",
           "credentials": "include",
           "rewriteHeaders": { "Referer": "'https://www.bilibili.com/'" }
         }

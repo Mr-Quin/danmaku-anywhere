@@ -87,9 +87,22 @@ describe('builtin:bilibili manifest', () => {
     expect(() => zManifest.parse(builtinBilibili)).not.toThrow()
   })
 
-  it('runs parallel media_bangumi + media_ft searches', async () => {
+  it('runs WBI-signed media_bangumi + media_ft searches', async () => {
+    const navResponse = {
+      data: {
+        wbi_img: {
+          img_url:
+            'https://i0.hdslb.com/bfs/wbi/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.png',
+          sub_url:
+            'https://i0.hdslb.com/bfs/wbi/bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.png',
+        },
+      },
+    }
     const { fetcher, calls } = mockFetcher({
-      'https://api.bilibili.com/x/web-interface/search/type': (url) => {
+      'https://api.bilibili.com/x/web-interface/nav': {
+        body: JSON.stringify(navResponse),
+      },
+      'https://api.bilibili.com/x/web-interface/wbi/search/type': (url) => {
         const params = new URL(url).searchParams
         const body =
           params.get('search_type') === 'media_bangumi'
@@ -104,7 +117,8 @@ describe('builtin:bilibili manifest', () => {
 
     const result = await runner.runSearch({ q: 'frieren' })
 
-    expect(calls).toHaveLength(2)
+    // 1 nav + 2 signed searches
+    expect(calls).toHaveLength(3)
     for (const c of calls) {
       const init = c.init as {
         credentials?: string
@@ -114,6 +128,12 @@ describe('builtin:bilibili manifest', () => {
       expect(init.rewriteHeaders).toEqual({
         Referer: 'https://www.bilibili.com/',
       })
+    }
+    // Every search call carries a w_rid signature.
+    const searchCalls = calls.filter((c) => c.url.includes('/wbi/search/'))
+    expect(searchCalls).toHaveLength(2)
+    for (const c of searchCalls) {
+      expect(new URL(c.url).searchParams.get('w_rid')).toMatch(/^[a-f0-9]{32}$/)
     }
 
     expect(result).toEqual([
