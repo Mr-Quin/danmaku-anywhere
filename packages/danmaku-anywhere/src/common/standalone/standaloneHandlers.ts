@@ -99,8 +99,6 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     mediaParseUrl: () =>
       null as unknown as BackgroundMethods['mediaParseUrl']['output'],
     danmakuPurgeCache: () => 0,
-    bilibiliGetLoginStatus: () => ({ isLogin: true }),
-    tencentTestCookies: () => true,
     fetchImage: ({ src }) => src,
     getActiveTabUrl: () => 'https://example.com',
     getFrameId: () => 0,
@@ -142,7 +140,13 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     cloudBackupCreate: () => ({ success: false, id: '' }),
     cloudBackupDownload: () => standaloneBackupData,
     dataWipeDanmaku: () => undefined,
-    bilibiliSetCookies: () => undefined,
+    providerGetSpec: () => ({
+      name: '',
+      hasLoginProbe: false,
+      cookieSet: undefined,
+      configSchema: undefined,
+    }),
+    providerProbeLogin: () => null,
   }
 
 export const standaloneControllerHandlers: StandaloneRpcHandlers<ControllerMethods> =

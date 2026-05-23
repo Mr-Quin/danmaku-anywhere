@@ -12,7 +12,7 @@ interface ProviderConfigListItemProps {
 export const ProviderConfigListItem = ({
   config,
 }: ProviderConfigListItemProps) => {
-  const { showWarning, warningType } = useProviderWarning(config)
+  const { showWarning, cookieSet } = useProviderWarning(config)
 
   return (
     <ListItemPrimaryStack
@@ -20,7 +20,7 @@ export const ProviderConfigListItem = ({
         config.isBuiltIn ? localizedDanmakuSourceType(config.impl) : config.name
       }
     >
-      {showWarning && <ProviderWarningIcon warningType={warningType} />}
+      {showWarning && <ProviderWarningIcon cookieSet={cookieSet} />}
       <ProviderConfigChip config={config} />
     </ListItemPrimaryStack>
   )

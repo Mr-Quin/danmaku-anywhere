@@ -242,15 +242,23 @@ export class ProviderService {
     return this.manifestRegistry.getRunner(manifestId).runLoginProbe<T>()
   }
 
-  async setCookies(manifestId: string): Promise<void> {
-    const { cookieSet } = this.manifestRegistry.getRunner(manifestId).manifest
-    if (!cookieSet) {
-      throw new Error(`manifest "${manifestId}" has no cookieSet declaration`)
+  // Surfaces the host-relevant subset of a manifest so the popup can render
+  // generic affordances (warning icon, cookieSet link, config form) without
+  // bundling source-specific switches.
+  getManifestSpec(manifestId: string): ManifestSpec {
+    const { manifest } = this.manifestRegistry.getRunner(manifestId)
+    return {
+      name: manifest.name,
+      hasLoginProbe: manifest.loginProbe !== undefined,
+      cookieSet: manifest.cookieSet,
+      configSchema: manifest.configSchema,
     }
-    // `credentials: 'include'` so the browser actually processes Set-Cookie
-    // from the cross-origin response. Without it Chrome drops cookies from
-    // extension-initiated requests even when the cookieReplay listener has
-    // captured the header for the engine's view.
-    await fetch(cookieSet.url, { credentials: 'include' })
   }
+}
+
+export interface ManifestSpec {
+  name: string
+  hasLoginProbe: boolean
+  cookieSet?: { url: string; title?: string }
+  configSchema?: unknown
 }

@@ -1,4 +1,3 @@
-import { PROVIDER_TO_BUILTIN_ID } from '@danmaku-anywhere/danmaku-converter'
 import {
   getDanmuicuConfig,
   getMaccmsConfig,
@@ -21,7 +20,6 @@ import { MacCmsProviderService } from '@/background/services/providers/MacCmsPro
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import { AuthClientService } from '@/common/auth/AuthClientService'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { DanmakuAnywhereDb } from '@/common/db/db'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { MountConfigService } from '@/common/options/mountConfig/service'
@@ -112,31 +110,16 @@ export class RpcManager {
         episodeMatch: async (data) => {
           return this.episodeMatchingService.findMatchingEpisodes(data)
         },
-        bilibiliSetCookies: async () => {
-          this.logger.debug('Setting bilibili cookies')
-          await this.providerService.setCookies(
-            PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]
-          )
+        providerGetSpec: async (input) => {
+          return this.providerService.getManifestSpec(input.manifestId)
         },
-        bilibiliGetLoginStatus: async () => {
-          this.logger.debug('Get bilibili login status')
-          const result = await this.providerService.probeLogin<{
-            isLogin: boolean
-          }>(PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili])
-          if (result === null) {
-            throw new Error('bilibili manifest has no loginProbe pipeline')
-          }
-          return result
-        },
-        tencentTestCookies: async () => {
-          this.logger.debug('Testing tencent cookies')
+        providerProbeLogin: async (input) => {
           try {
-            const ok = await this.providerService.probeLogin<boolean>(
-              PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]
+            return await this.providerService.probeLogin<boolean>(
+              input.manifestId
             )
-            return ok === true
           } catch (e) {
-            this.logger.error('Test tencent cookies failed', e)
+            this.logger.error(`loginProbe failed for ${input.manifestId}`, e)
             return false
           }
         },
