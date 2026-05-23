@@ -4,7 +4,7 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import { CloudDownload, UploadFile } from '@mui/icons-material'
 import type { ReactElement } from 'react'
-import { useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { CaptureKeypress } from '@/common/components/CaptureKeypress'
 import { DanmakuViewer } from '@/common/components/DanmakuSelector/components/DanmakuViewer'
@@ -40,6 +40,7 @@ export interface MountPageContentProps {
   isMounted?: boolean
   isConnected?: boolean
   onGoSearch: () => void
+  autoImport?: 'files' | 'folder'
 }
 
 export const MountPageContent = ({
@@ -55,6 +56,7 @@ export const MountPageContent = ({
   isMounted = false,
   isConnected = true,
   onGoSearch,
+  autoImport,
 }: MountPageContentProps): ReactElement => {
   const { t } = useTranslation()
   const { isMobile } = usePlatformInfo()
@@ -67,6 +69,19 @@ export const MountPageContent = ({
   const danmakuTreeRef = useRef<DanmakuTreeApi>(null)
 
   const importFlow = useImportFlow()
+
+  const autoImportFiredRef = useRef(false)
+  useEffect(() => {
+    if (!autoImport || autoImportFiredRef.current) {
+      return
+    }
+    autoImportFiredRef.current = true
+    if (autoImport === 'files') {
+      importFlow.openFileInput()
+    } else {
+      importFlow.openFolderInput()
+    }
+  }, [autoImport, importFlow])
 
   const treeActions = useDanmakuTreeActions({
     treeRef: danmakuTreeRef,

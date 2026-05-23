@@ -1,8 +1,8 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import type { ReactElement } from 'react'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
+import { useNavigate, useSearchParams } from 'react-router'
 import { MountPageContent } from '@/common/components/DanmakuSelector/MountPageContent'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { tabQueryKeys } from '@/common/queries/queryKeys'
@@ -10,6 +10,13 @@ import { controllerRpcClient } from '@/common/rpcClient/controller/client'
 import { useMountAvailability } from '@/popup/hooks/useMountAvailability'
 import { useMountDanmakuPopup } from '@/popup/pages/mount/useMountDanmakuPopup'
 import { useStore } from '@/popup/store'
+
+function parseAutoImport(value: string | null): 'files' | 'folder' | undefined {
+  if (value === 'files' || value === 'folder') {
+    return value
+  }
+  return undefined
+}
 
 export const MountPage = (): ReactElement => {
   const { t } = useTranslation()
@@ -28,6 +35,17 @@ export const MountPage = (): ReactElement => {
   const isConnected = availability.kind === 'connected'
 
   const navigate = useNavigate()
+
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [autoImport] = useState(() =>
+    parseAutoImport(searchParams.get('autoImport'))
+  )
+
+  useEffect(() => {
+    if (searchParams.get('autoImport') !== null) {
+      setSearchParams({}, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   const tabDanmakuState = useQuery({
     queryKey: tabQueryKeys.getState(),
@@ -77,6 +95,7 @@ export const MountPage = (): ReactElement => {
       isMounted={isMounted}
       isConnected={isConnected}
       onGoSearch={handleGoSearch}
+      autoImport={autoImport}
     />
   )
 }

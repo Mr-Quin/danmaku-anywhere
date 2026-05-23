@@ -6,6 +6,9 @@ import {
   useDanmakuImport,
   VALID_EXTENSIONS,
 } from '@/common/components/ImportPageCore/useDanmakuImport'
+import { useEnvironmentContext } from '@/common/environment/context'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { isStandaloneWindow } from '@/popup/utils/isStandaloneWindow'
 
 function toAbsolutePath(path: string): string {
   if (path.startsWith('/')) {
@@ -53,6 +56,12 @@ export const useImportFlow = () => {
   const { handleImportClick, mutate, data, isPending, isError, error, reset } =
     useDanmakuImport()
 
+  const { type: envType } = useEnvironmentContext()
+
+  function shouldDetach(): boolean {
+    return envType === 'popup' && !isStandaloneWindow()
+  }
+
   const handleFiles = async (files: File[]) => {
     const processedFiles: File[] = []
 
@@ -76,10 +85,18 @@ export const useImportFlow = () => {
   }
 
   const openFileInput = () => {
+    if (shouldDetach()) {
+      void chromeRpcClient.openPopupInNewWindow('mount?autoImport=files')
+      return
+    }
     fileInputRef.current?.click()
   }
 
   const openFolderInput = () => {
+    if (shouldDetach()) {
+      void chromeRpcClient.openPopupInNewWindow('mount?autoImport=folder')
+      return
+    }
     folderInputRef.current?.click()
   }
 

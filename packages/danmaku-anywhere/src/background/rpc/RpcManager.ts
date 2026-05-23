@@ -294,7 +294,9 @@ export class RpcManager {
         },
         openPopupInNewWindow: async (path) => {
           void chrome.windows.create({
-            url: chrome.runtime.getURL(`pages/popup.html#/${path}`),
+            url: chrome.runtime.getURL(
+              `pages/popup.html?standalone=1#/${path}`
+            ),
             type: 'popup',
             width: 550,
             height: 650,
