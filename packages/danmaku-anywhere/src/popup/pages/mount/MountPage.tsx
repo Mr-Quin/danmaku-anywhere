@@ -42,9 +42,12 @@ export const MountPage = (): ReactElement => {
   )
 
   useEffect(() => {
-    if (searchParams.get('autoImport') !== null) {
-      setSearchParams({}, { replace: true })
+    if (!searchParams.has('autoImport')) {
+      return
     }
+    const next = new URLSearchParams(searchParams)
+    next.delete('autoImport')
+    setSearchParams(next, { replace: true })
   }, [searchParams, setSearchParams])
 
   const tabDanmakuState = useQuery({
