@@ -6,6 +6,9 @@ import {
 import builtinAiyifan from '@danmaku-anywhere/dango-manifests/manifests/builtin-aiyifan.json' with {
   type: 'json',
 }
+import builtinBahamut from '@danmaku-anywhere/dango-manifests/manifests/builtin-bahamut.json' with {
+  type: 'json',
+}
 import builtinBilibili from '@danmaku-anywhere/dango-manifests/manifests/builtin-bilibili.json' with {
   type: 'json',
 }
@@ -68,6 +71,7 @@ const builtinSpecs: ManifestSpec[] = [
   { manifest: builtinMaiduidui },
   { manifest: builtinRenren },
   { manifest: builtinAiyifan },
+  { manifest: builtinBahamut },
 ]
 
 @injectable('Singleton')

@@ -112,6 +112,16 @@ export const builtInAiyifanProvider: ProviderConfig = {
   configValues: {},
 }
 
+export const builtInBahamutProvider: ProviderConfig = {
+  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bahamut],
+  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bahamut],
+  name: 'Bahamut',
+  impl: DanmakuSourceType.Bahamut,
+  enabled: true,
+  isBuiltIn: true,
+  configValues: {},
+}
+
 export const defaultProviderConfigs: ProviderConfig[] = [
   builtInDanDanPlayProvider,
   builtInBilibiliProvider,
@@ -123,6 +133,7 @@ export const defaultProviderConfigs: ProviderConfig[] = [
   builtInMaiduiduiProvider,
   builtInRenrenProvider,
   builtInAiyifanProvider,
+  builtInBahamutProvider,
 ]
 
 export function createCustomDanDanPlayProvider(

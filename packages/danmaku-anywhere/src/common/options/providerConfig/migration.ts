@@ -6,6 +6,7 @@ import {
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import {
   builtInAiyifanProvider,
+  builtInBahamutProvider,
   builtInBilibiliProvider,
   builtInDanDanPlayProvider,
   builtInIqiyiProvider,
@@ -307,6 +308,7 @@ export function seedNewBuiltinProviders(
     builtInMaiduiduiProvider,
     builtInRenrenProvider,
     builtInAiyifanProvider,
+    builtInBahamutProvider,
   ]) {
     if (!have.has(builtin.id)) {
       additions.push(builtin)
