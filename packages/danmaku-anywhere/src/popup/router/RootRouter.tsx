@@ -1,13 +1,22 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { matchRoutes } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 import { getStorageArea } from '@/common/storage/getStorageArea'
 import { POPUP_ROUTE_STORAGE_KEY, router, routes } from './router'
 
 export const RootRouter = () => {
+  // Gate the persist subscriber until the restore effect has read storage.
+  // Without this, the initial /mount redirect's settled navigation can write
+  // '/mount' to storage before storage.get resolves, clobbering the persisted
+  // route the user is supposed to be restored to.
+  const restored = useRef(false)
+
   useEffect(
     () =>
       router.subscribe((state) => {
+        if (!restored.current) {
+          return
+        }
         if (state.navigation.state !== 'idle') {
           return
         }
@@ -30,24 +39,30 @@ export const RootRouter = () => {
     let cancelled = false
     const storage = getStorageArea('session')
     void (async () => {
-      const data = await storage.get(POPUP_ROUTE_STORAGE_KEY).catch(() => null)
-      if (cancelled) {
-        return
+      try {
+        const data = await storage
+          .get(POPUP_ROUTE_STORAGE_KEY)
+          .catch(() => null)
+        if (cancelled) {
+          return
+        }
+        const persisted = data?.[POPUP_ROUTE_STORAGE_KEY]
+        if (
+          typeof persisted !== 'string' ||
+          persisted === '' ||
+          persisted === '/' ||
+          persisted === '/mount'
+        ) {
+          return
+        }
+        if (!matchRoutes(routes, persisted)) {
+          void storage.remove(POPUP_ROUTE_STORAGE_KEY).catch(() => undefined)
+          return
+        }
+        void router.navigate(persisted)
+      } finally {
+        restored.current = true
       }
-      const persisted = data?.[POPUP_ROUTE_STORAGE_KEY]
-      if (
-        typeof persisted !== 'string' ||
-        persisted === '' ||
-        persisted === '/' ||
-        persisted === '/mount'
-      ) {
-        return
-      }
-      if (!matchRoutes(routes, persisted)) {
-        void storage.remove(POPUP_ROUTE_STORAGE_KEY).catch(() => undefined)
-        return
-      }
-      void router.navigate(persisted)
     })()
     return () => {
       cancelled = true
