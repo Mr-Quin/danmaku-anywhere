@@ -1,4 +1,5 @@
 import { md5 } from 'js-md5'
+import { gatewayDecrypt } from './gateway-decrypt.js'
 
 /**
  * Closed namespace callable from JSONata as `$<name>(...)`. Helpers must be
@@ -112,6 +113,7 @@ function jsonpUnwrap(input: string): unknown {
 export const helpers: Record<string, Helper> = {
   // crypto
   md5: (s) => md5(String(s)),
+  gatewayDecrypt: (s, k) => gatewayDecrypt(String(s), String(k)),
 
   // codec
   base64Encode: (s) => base64Encode(String(s)),
