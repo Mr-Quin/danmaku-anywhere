@@ -1,16 +1,9 @@
 import { matchRoutes, type RouteObject } from 'react-router'
 
 /**
- * Walk the URL hierarchy of `target` and return the intermediate paths that
- * resolve to real routes, excluding `alreadyInHistory` (the path that occupies
- * the current history entry, so PUSHing it would create a duplicate) and the
- * target itself. Search and hash fragments are stripped before splitting so a
- * '/' inside a query (e.g. ?next=/foo) can't be mistaken for a path segment;
- * a trailing slash is normalized so '/a/b' and '/a/b/' identify the same
- * route.
- *
- * Used by the popup route restore flow to PUSH each ancestor before the final
- * target so the in-page back button steps back through the URL tree.
+ * Return route-resolving ancestors of `target`, excluding `alreadyInHistory`
+ * (would dupe the current entry) and the target itself. Search/hash are
+ * stripped and trailing slashes normalized before walking.
  */
 export function getAncestorPaths(
   target: string,

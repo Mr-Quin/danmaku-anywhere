@@ -10,13 +10,10 @@ import {
   routes,
 } from './router'
 
-// Restore the persisted popup route by walking the URL hierarchy and PUSHing
-// each ancestor on top of /mount, so the in-page back button steps back
-// through the URL tree (e.g. /options/advanced -> back -> /options -> back
-// -> /mount). A loader redirect would REPLACE history and leave back()
-// dead-ending. openGate is called immediately before the final navigate so
-// the target's settled state is persisted, and again from `finally` so the
-// gate also opens on every early-return path.
+// PUSH each ancestor of the persisted route on top of /mount so back walks
+// through them instead of dead-ending. openGate fires before the final
+// navigate (so its settled state persists) and again in finally (so
+// early-return paths still resume persistence).
 async function restoreRoute(
   signal: AbortSignal,
   openGate: () => void
@@ -58,11 +55,8 @@ async function restoreRoute(
 }
 
 export const RootRouter = () => {
-  // Gate the persist subscriber until the restore effect is ready. Closed
-  // through storage.get and the ancestor walk so intermediate routes never
-  // overwrite the target in storage; opened just before the final navigate so
-  // the target's settled state is persisted (and so subsequent user-driven
-  // navigations resume normal persistence).
+  // Gate the persist subscriber so intermediate restore navigations don't
+  // overwrite the persisted target.
   const restored = useRef(false)
 
   useEffect(
