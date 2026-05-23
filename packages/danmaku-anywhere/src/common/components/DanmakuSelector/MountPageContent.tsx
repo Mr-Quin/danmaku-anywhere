@@ -11,6 +11,7 @@ import { DanmakuViewer } from '@/common/components/DanmakuSelector/components/Da
 import { DragDropOverlay } from '@/common/components/DanmakuSelector/components/DragDropOverlay'
 import { MountPageBottomBar } from '@/common/components/DanmakuSelector/components/MountPageBottomBar'
 import { MountPageToolbar } from '@/common/components/DanmakuSelector/components/MountPageToolbar'
+import { HiddenImportInputs } from '@/common/components/DanmakuSelector/HiddenImportInputs'
 import {
   DanmakuTree,
   type DanmakuTreeApi,
@@ -19,7 +20,6 @@ import { UrlImportDialog } from '@/common/components/DanmakuSelector/UrlImportDi
 import { useDanmakuTreeActions } from '@/common/components/DanmakuSelector/useDanmakuTreeActions'
 import { useImportFlow } from '@/common/components/DanmakuSelector/useImportFlow'
 import { ImportResultDialog } from '@/common/components/ImportPageCore/ImportResultDialog'
-import { VALID_EXTENSIONS } from '@/common/components/ImportPageCore/useDanmakuImport'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { ImportResultContent } from '../ImportPageCore/ImportResultContent'
@@ -122,32 +122,10 @@ export const MountPageContent = ({
     <TabLayout {...importFlow.dragProps}>
       <DragDropOverlay in={importFlow.isDragging} />
 
-      <input
-        type="file"
-        hidden
-        ref={importFlow.fileInputRef}
-        onChange={(e) => {
-          if (e.target.files) {
-            importFlow.handleFiles(Array.from(e.target.files))
-          }
-          e.target.value = ''
-        }}
-        accept={[...VALID_EXTENSIONS, '.zip'].join(',')}
-        multiple
-      />
-
-      <input
-        type="file"
-        hidden
-        ref={importFlow.folderInputRef}
-        onChange={(e) => {
-          if (e.target.files) {
-            importFlow.handleFiles(Array.from(e.target.files))
-          }
-          e.target.value = ''
-        }}
-        // @ts-expect-error non-standard attribute, but allows selecting folder to upload
-        webkitdirectory=""
+      <HiddenImportInputs
+        fileInputRef={importFlow.fileInputRef}
+        folderInputRef={importFlow.folderInputRef}
+        onFiles={importFlow.handleFiles}
       />
 
       <CaptureKeypress

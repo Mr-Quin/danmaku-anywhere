@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
 import { RouterProvider } from 'react-router/dom'
 import { getStorageArea } from '@/common/storage/getStorageArea'
-import { isStandaloneWindow } from '@/popup/utils/isStandaloneWindow'
+import { isDetachedWindow } from '@/popup/utils/isDetachedWindow'
 import { POPUP_ROUTE_STORAGE_KEY, router } from './router'
 
 export const RootRouter = () => {
   useEffect(() => {
-    if (isStandaloneWindow()) {
+    if (isDetachedWindow()) {
       return
     }
     return router.subscribe((state) => {

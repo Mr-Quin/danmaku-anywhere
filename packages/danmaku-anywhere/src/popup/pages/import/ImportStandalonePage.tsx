@@ -3,10 +3,10 @@ import { Box, Button, Stack, Typography } from '@mui/material'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DragDropOverlay } from '@/common/components/DanmakuSelector/components/DragDropOverlay'
+import { HiddenImportInputs } from '@/common/components/DanmakuSelector/HiddenImportInputs'
 import { useImportFlow } from '@/common/components/DanmakuSelector/useImportFlow'
 import { ImportResultContent } from '@/common/components/ImportPageCore/ImportResultContent'
 import { ImportResultDialog } from '@/common/components/ImportPageCore/ImportResultDialog'
-import { VALID_EXTENSIONS } from '@/common/components/ImportPageCore/useDanmakuImport'
 
 export function ImportStandalonePage(): ReactElement {
   const { t } = useTranslation()
@@ -48,31 +48,10 @@ export function ImportStandalonePage(): ReactElement {
         </Button>
       </Stack>
 
-      <input
-        type="file"
-        hidden
-        ref={importFlow.fileInputRef}
-        onChange={(e) => {
-          if (e.target.files) {
-            importFlow.handleFiles(Array.from(e.target.files))
-          }
-          e.target.value = ''
-        }}
-        accept={[...VALID_EXTENSIONS, '.zip'].join(',')}
-        multiple
-      />
-      <input
-        type="file"
-        hidden
-        ref={importFlow.folderInputRef}
-        onChange={(e) => {
-          if (e.target.files) {
-            importFlow.handleFiles(Array.from(e.target.files))
-          }
-          e.target.value = ''
-        }}
-        // @ts-expect-error non-standard attribute, but allows selecting folder to upload
-        webkitdirectory=""
+      <HiddenImportInputs
+        fileInputRef={importFlow.fileInputRef}
+        folderInputRef={importFlow.folderInputRef}
+        onFiles={importFlow.handleFiles}
       />
 
       <ImportResultDialog

@@ -8,10 +8,10 @@ import {
 } from '@/common/components/ImportPageCore/useDanmakuImport'
 import { useEnvironmentContext } from '@/common/environment/context'
 import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
+import { useIsInTab } from '@/common/hooks/useIsInTab'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { isStandaloneWindow } from '@/popup/utils/isStandaloneWindow'
-import { useIsInTab } from '@/popup/utils/useIsInTab'
+import { isDetachedWindow } from '@/popup/utils/isDetachedWindow'
 
 const IMPORT_WINDOW_WIDTH = 520
 const IMPORT_WINDOW_HEIGHT = 380
@@ -66,15 +66,12 @@ export const useImportFlow = () => {
   const { isMobile } = usePlatformInfo()
   const isInTab = useIsInTab()
 
-  function shouldDetach(): boolean {
-    return (
-      envType === 'popup' &&
-      !isMobile &&
-      !isInTab &&
-      !IS_STANDALONE_RUNTIME &&
-      !isStandaloneWindow()
-    )
-  }
+  const willDetach =
+    envType === 'popup' &&
+    !isMobile &&
+    !isInTab &&
+    !IS_STANDALONE_RUNTIME &&
+    !isDetachedWindow()
 
   function detachToImportWindow(): void {
     void chromeRpcClient.openPopupInNewWindow({
@@ -107,7 +104,7 @@ export const useImportFlow = () => {
   }
 
   const openFileInput = () => {
-    if (shouldDetach()) {
+    if (willDetach) {
       detachToImportWindow()
       return
     }
@@ -115,7 +112,7 @@ export const useImportFlow = () => {
   }
 
   const openFolderInput = () => {
-    if (shouldDetach()) {
+    if (willDetach) {
       detachToImportWindow()
       return
     }
@@ -153,7 +150,7 @@ export const useImportFlow = () => {
     dragProps,
     fileInputRef,
     folderInputRef,
-    willDetach: shouldDetach(),
+    willDetach,
     // Data
     importState: { data, isPending, isError, error },
     // Actions

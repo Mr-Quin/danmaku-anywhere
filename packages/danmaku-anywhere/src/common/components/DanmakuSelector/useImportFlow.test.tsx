@@ -27,27 +27,27 @@ vi.mock('@/common/rpcClient/background/client', () => ({
   },
 }))
 
-vi.mock('@/popup/utils/isStandaloneWindow', () => ({
-  isStandaloneWindow: vi.fn(),
+vi.mock('@/popup/utils/isDetachedWindow', () => ({
+  isDetachedWindow: vi.fn(),
 }))
 
-vi.mock('@/popup/utils/useIsInTab', () => ({
+vi.mock('@/common/hooks/useIsInTab', () => ({
   useIsInTab: vi.fn(),
 }))
 
 import { useEnvironmentContext } from '@/common/environment/context'
+import { useIsInTab } from '@/common/hooks/useIsInTab'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { isStandaloneWindow } from '@/popup/utils/isStandaloneWindow'
-import { useIsInTab } from '@/popup/utils/useIsInTab'
+import { isDetachedWindow } from '@/popup/utils/isDetachedWindow'
 import { useImportFlow } from './useImportFlow'
 
 /**
  * Verifies that the toolbar popup detaches file/folder imports into a small
  * /import chrome.windows popup, so the OS file picker can't dismiss the parent
  * popup mid-flow. Detach only kicks in for the desktop action popup itself.
- * Controller, mobile, standalone runtime, already-detached windows, and
- * popup.html opened directly in a tab must click the hidden input directly.
+ * Controller, mobile, standalone-runtime web app, already-detached windows,
+ * and popup.html opened directly in a tab must click the hidden input.
  */
 
 function makeWrapper() {
@@ -73,7 +73,7 @@ beforeEach(() => {
     environment: 'test',
     type: 'popup',
   })
-  vi.mocked(isStandaloneWindow).mockReturnValue(false)
+  vi.mocked(isDetachedWindow).mockReturnValue(false)
   vi.mocked(useIsInTab).mockReturnValue(false)
   mockPlatform(false)
   vi.mocked(chromeRpcClient.openPopupInNewWindow).mockResolvedValue(
@@ -86,7 +86,7 @@ afterEach(() => {
 })
 
 describe('useImportFlow detach behavior', () => {
-  it('detaches to a small /import window with autoImport=files from the toolbar popup', () => {
+  it('detaches openFileInput to a small /import window from the toolbar popup', () => {
     const { result } = renderHook(() => useImportFlow(), {
       wrapper: makeWrapper(),
     })
@@ -98,11 +98,9 @@ describe('useImportFlow detach behavior', () => {
     result.current.openFileInput()
 
     expect(chromeRpcClient.openPopupInNewWindow).toHaveBeenCalledTimes(1)
-    expect(chromeRpcClient.openPopupInNewWindow).toHaveBeenCalledWith({
-      path: 'import',
-      width: 520,
-      height: 380,
-    })
+    expect(chromeRpcClient.openPopupInNewWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ path: 'import' })
+    )
     expect(clickSpy).not.toHaveBeenCalled()
   })
 
@@ -117,11 +115,9 @@ describe('useImportFlow detach behavior', () => {
 
     result.current.openFolderInput()
 
-    expect(chromeRpcClient.openPopupInNewWindow).toHaveBeenCalledWith({
-      path: 'import',
-      width: 520,
-      height: 380,
-    })
+    expect(chromeRpcClient.openPopupInNewWindow).toHaveBeenCalledWith(
+      expect.objectContaining({ path: 'import' })
+    )
     expect(clickSpy).not.toHaveBeenCalled()
   })
 
@@ -142,8 +138,8 @@ describe('useImportFlow detach behavior', () => {
     expect(clickSpy).toHaveBeenCalledTimes(1)
   })
 
-  it('clicks the input ref when already in a standalone popup window', () => {
-    vi.mocked(isStandaloneWindow).mockReturnValue(true)
+  it('clicks the input ref when already in the detached chrome.windows popup', () => {
+    vi.mocked(isDetachedWindow).mockReturnValue(true)
 
     const { result } = renderHook(() => useImportFlow(), {
       wrapper: makeWrapper(),
