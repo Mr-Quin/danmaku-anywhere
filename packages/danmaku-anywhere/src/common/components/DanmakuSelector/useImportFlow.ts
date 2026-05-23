@@ -7,6 +7,7 @@ import {
   VALID_EXTENSIONS,
 } from '@/common/components/ImportPageCore/useDanmakuImport'
 import { useEnvironmentContext } from '@/common/environment/context'
+import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { isStandaloneWindow } from '@/popup/utils/isStandaloneWindow'
 
@@ -59,7 +60,9 @@ export const useImportFlow = () => {
   const { type: envType } = useEnvironmentContext()
 
   function shouldDetach(): boolean {
-    return envType === 'popup' && !isStandaloneWindow()
+    return (
+      envType === 'popup' && !IS_STANDALONE_RUNTIME && !isStandaloneWindow()
+    )
   }
 
   const handleFiles = async (files: File[]) => {

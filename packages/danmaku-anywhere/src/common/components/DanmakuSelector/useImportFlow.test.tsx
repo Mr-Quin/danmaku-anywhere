@@ -3,8 +3,18 @@ import { renderHook } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
+const mocks = vi.hoisted(() => ({
+  isStandaloneRuntime: false,
+}))
+
 vi.mock('@/common/environment/context', () => ({
   useEnvironmentContext: vi.fn(),
+}))
+
+vi.mock('@/common/environment/isStandalone', () => ({
+  get IS_STANDALONE_RUNTIME() {
+    return mocks.isStandaloneRuntime
+  },
 }))
 
 vi.mock('@/common/rpcClient/background/client', () => ({
@@ -40,6 +50,7 @@ function makeWrapper() {
 }
 
 beforeEach(() => {
+  mocks.isStandaloneRuntime = false
   vi.mocked(useEnvironmentContext).mockReturnValue({
     environment: 'test',
     type: 'popup',
@@ -112,6 +123,23 @@ describe('useImportFlow detach behavior', () => {
       environment: 'test',
       type: 'controller',
     })
+
+    const { result } = renderHook(() => useImportFlow(), {
+      wrapper: makeWrapper(),
+    })
+
+    const clickSpy = vi.fn()
+    // biome-ignore lint/suspicious/noExplicitAny: assigning ref for spy
+    ;(result.current.fileInputRef as any).current = { click: clickSpy }
+
+    result.current.openFileInput()
+
+    expect(chromeRpcClient.openPopupInNewWindow).not.toHaveBeenCalled()
+    expect(clickSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('clicks the input ref in the standalone web-app runtime even when env is popup', () => {
+    mocks.isStandaloneRuntime = true
 
     const { result } = renderHook(() => useImportFlow(), {
       wrapper: makeWrapper(),
