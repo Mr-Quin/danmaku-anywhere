@@ -59,6 +59,7 @@ export const RootRouter = () => {
           void storage.remove(POPUP_ROUTE_STORAGE_KEY).catch(() => undefined)
           return
         }
+        restored.current = true
         void router.navigate(persisted)
       } finally {
         restored.current = true
