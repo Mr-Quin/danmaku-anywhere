@@ -22,7 +22,7 @@ export function findFirstVisibleNode(
   selectors: IntegrationPolicySelector[],
   parent: Document = window.document
 ): HTMLElement | null {
-  for (const value of sortSelectors(selectors)) {
+  for (const value of sortSelectors([...selectors])) {
     const node = getElementByXpath(value, parent)
     if (node instanceof HTMLElement && isVisible(node)) {
       return node
