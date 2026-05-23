@@ -29,8 +29,13 @@ export const extractMedia = async (
   const mediaInfos = new Set<string>()
 
   const cleanupStack: (() => void)[] = []
+  let cleaned = false
 
   const cleanup = () => {
+    if (cleaned) {
+      return
+    }
+    cleaned = true
     Logger.debug('Cleaning up resources for tab:', tabId)
     cleanupStack.forEach((cb) => cb())
     tabResource[Symbol.asyncDispose]()

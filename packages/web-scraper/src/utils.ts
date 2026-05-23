@@ -104,6 +104,14 @@ type CreateTabOptions = {
   waitForNavigation?: boolean
 }
 
+async function removeWindow(windowId: number) {
+  try {
+    await chrome.windows.remove(windowId)
+  } catch (_) {
+    // window may already be closed
+  }
+}
+
 export const createTab = async (
   url: string,
   { tabId, waitForNavigation }: CreateTabOptions = {}
@@ -125,22 +133,30 @@ export const createTab = async (
     })
 
     if (!win.id || !win.tabs || !win.tabs[0].id) {
+      if (win.id !== undefined) {
+        await removeWindow(win.id)
+      }
       throw new Error('Failed to create window')
     }
 
-    const tab = await chrome.tabs.update(win.tabs[0].id, {
-      url,
-      active: true,
-    })
+    try {
+      const tab = await chrome.tabs.update(win.tabs[0].id, {
+        url,
+        active: true,
+      })
 
-    if (tab?.id === undefined) {
-      throw new Error('Failed to create tab')
-    }
+      if (tab?.id === undefined) {
+        throw new Error('Failed to create tab')
+      }
 
-    return {
-      tab,
-      tabId: tab.id,
-      window: win,
+      return {
+        tab,
+        tabId: tab.id,
+        window: win,
+      }
+    } catch (e) {
+      await removeWindow(win.id)
+      throw e
     }
   }
 
@@ -158,16 +174,16 @@ export const createTab = async (
     }
   }
 
-  await waitForTabUpdate(newTabId)
+  try {
+    await waitForTabUpdate(newTabId)
 
-  if (waitForNavigation) {
-    try {
+    if (waitForNavigation) {
       await waitForTabNavigation(newTabId)
-    } catch (e) {
-      Logger.debug('Failed to wait for navigation', e)
-      await cleanUp()
-      throw e
     }
+  } catch (e) {
+    Logger.debug('Failed to wait for tab to be ready', e)
+    await cleanUp()
+    throw e
   }
 
   return {
