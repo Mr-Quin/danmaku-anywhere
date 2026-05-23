@@ -2,36 +2,15 @@ import { useEffect, useRef } from 'react'
 import { matchRoutes } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 import { getStorageArea } from '@/common/storage/getStorageArea'
+import { getAncestorPaths } from './getAncestorPaths'
 import { POPUP_ROUTE_STORAGE_KEY, router, routes } from './router'
 
-// Walk the URL hierarchy of `target` and return the intermediate paths that
-// resolve to real routes, excluding /mount (the initial entry) and the target
-// itself. e.g. '/options/advanced' -> ['/options']; '/styles' -> []. Search
-// and hash fragments are stripped before splitting so a '/' inside a query
-// (e.g. ?next=/foo) can't be mistaken for a path segment.
-function getAncestorPaths(target: string): string[] {
-  const queryIdx = target.search(/[?#]/)
-  const pathname = queryIdx >= 0 ? target.slice(0, queryIdx) : target
-  const segments = pathname.split('/').filter(Boolean)
-  const paths: string[] = []
-  let current = ''
-  for (const seg of segments) {
-    current += `/${seg}`
-    if (current === pathname || current === '/mount') {
-      continue
-    }
-    if (matchRoutes(routes, current)) {
-      paths.push(current)
-    }
-  }
-  return paths
-}
-
 export const RootRouter = () => {
-  // Gate the persist subscriber until the restore effect has read storage.
-  // Without this, the initial /mount redirect's settled navigation can write
-  // '/mount' to storage before storage.get resolves, clobbering the persisted
-  // route the user is supposed to be restored to.
+  // Gate the persist subscriber until the restore effect is ready. Closed
+  // through storage.get and the ancestor walk so intermediate routes never
+  // overwrite the target in storage; opened just before the final navigate so
+  // the target's settled state is persisted (and so subsequent user-driven
+  // navigations resume normal persistence).
   const restored = useRef(false)
 
   useEffect(
@@ -83,8 +62,7 @@ export const RootRouter = () => {
           void storage.remove(POPUP_ROUTE_STORAGE_KEY).catch(() => undefined)
           return
         }
-        restored.current = true
-        for (const ancestor of getAncestorPaths(persisted)) {
+        for (const ancestor of getAncestorPaths(persisted, routes)) {
           if (cancelled) {
             return
           }
@@ -93,6 +71,7 @@ export const RootRouter = () => {
         if (cancelled) {
           return
         }
+        restored.current = true
         await router.navigate(persisted)
       } finally {
         restored.current = true

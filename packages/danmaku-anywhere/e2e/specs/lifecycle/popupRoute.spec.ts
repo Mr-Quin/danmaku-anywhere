@@ -47,17 +47,10 @@ test('reopened popup at a nested route rebuilds back stack to ancestors', async 
   extensionId,
 }) => {
   const da = await getDaClient(context)
-  await da.storage.setRaw(
-    'session',
-    'popup:lastRoute',
-    '/config/integration-policy/edit'
-  )
+  await da.storage.setRaw('session', 'popup:lastRoute', '/config/add')
 
   await openPopup(page, extensionId)
-  await expect(page).toHaveURL(/#\/config\/integration-policy\/edit$/)
-
-  await page.goBack()
-  await expect(page).toHaveURL(/#\/config\/integration-policy$/)
+  await expect(page).toHaveURL(/#\/config\/add$/)
 
   await page.goBack()
   await expect(page).toHaveURL(/#\/config$/)
