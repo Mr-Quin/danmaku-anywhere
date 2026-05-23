@@ -25,8 +25,6 @@ import { getLatestPipelineEntry } from '@/content/controller/danmaku/panelState/
 import { useStore } from '@/content/controller/store/store'
 import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.types'
 
-const AUTO_ADVANCE_MIN_DURATION_SECONDS = 30
-
 const logger = Logger.sub('[FrameManager]')
 const frameRegistry = uiContainer.get(FrameRegistry)
 
@@ -78,7 +76,7 @@ export const FrameManager = () => {
 
   const unmountDanmaku = useUnmountDanmaku()
   const { preloadNext, canLoadNext } = usePreloadNextEpisode()
-  const { goNext, canGoNext, isAutoAdvanceEnabled } = useEpisodeNavigation()
+  const { tryAutoAdvance } = useEpisodeNavigation()
 
   useMigrateDanmaku()
 
@@ -153,13 +151,7 @@ export const FrameManager = () => {
       if (frameId !== activeFrame?.frameId) {
         return
       }
-      if (!isAutoAdvanceEnabled || !canGoNext) {
-        return
-      }
-      if (data.duration <= AUTO_ADVANCE_MIN_DURATION_SECONDS) {
-        return
-      }
-      goNext()
+      tryAutoAdvance(data.duration)
     }
   )
 

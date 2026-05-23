@@ -43,12 +43,16 @@ function triggerNavigation(navigation: IntegrationPolicyNavigation): boolean {
   return true
 }
 
+// Ad-break ended events fire on stub clips that are typically much shorter
+// than the real episode. Gate auto-advance to videos longer than this.
+const AUTO_ADVANCE_MIN_DURATION_SECONDS = 30
+
 export interface UseEpisodeNavigationResult {
   goNext: () => void
   goPrev: () => void
   canGoNext: boolean
   canGoPrev: boolean
-  isAutoAdvanceEnabled: boolean
+  tryAutoAdvance: (videoDuration: number) => void
 }
 
 export function useEpisodeNavigation(): UseEpisodeNavigationResult {
@@ -56,10 +60,10 @@ export function useEpisodeNavigation(): UseEpisodeNavigationResult {
   const policy = integration?.policy
   const nextEpisode = policy?.nextEpisode
   const prevEpisode = policy?.prevEpisode
+  const isAutoAdvanceEnabled = policy?.options.autoAdvanceOnEnded ?? false
 
   const canGoNext = nextEpisode !== undefined
   const canGoPrev = prevEpisode !== undefined
-  const isAutoAdvanceEnabled = policy?.options.autoAdvanceOnEnded ?? false
 
   const goNext = useCallback(() => {
     if (!nextEpisode) {
@@ -75,11 +79,24 @@ export function useEpisodeNavigation(): UseEpisodeNavigationResult {
     triggerNavigation(prevEpisode)
   }, [prevEpisode])
 
+  const tryAutoAdvance = useCallback(
+    (videoDuration: number) => {
+      if (!isAutoAdvanceEnabled || !nextEpisode) {
+        return
+      }
+      if (videoDuration <= AUTO_ADVANCE_MIN_DURATION_SECONDS) {
+        return
+      }
+      triggerNavigation(nextEpisode)
+    },
+    [isAutoAdvanceEnabled, nextEpisode]
+  )
+
   return {
     goNext,
     goPrev,
     canGoNext,
     canGoPrev,
-    isAutoAdvanceEnabled,
+    tryAutoAdvance,
   }
 }

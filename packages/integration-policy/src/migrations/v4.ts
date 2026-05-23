@@ -82,6 +82,7 @@ export function migrateV3ToV4(data: IntegrationV3[]): IntegrationV4[] {
         ...policy.policy,
         version: 4,
         options: {
+          ...policy.policy.options,
           autoAdvanceOnEnded: false,
         },
       },
