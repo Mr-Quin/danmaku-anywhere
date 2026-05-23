@@ -12,8 +12,8 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { isServiceWorker } from '@/common/utils/utils'
 import { defaultProviderConfigs } from './constant'
 import {
+  ensureBuiltinProviders,
   migrateProviderConfigsToFlat,
-  seedNewBuiltinProviders,
 } from './migration'
 import type { ProviderConfig } from './schema'
 import { providerConfigSchema } from './schema'
@@ -37,29 +37,17 @@ export class ProviderConfigService implements IStoreService {
       .version(1, {
         upgrade: (data) => data,
       })
+      // v1 -> v2: the pre-dango discriminated-union ProviderConfig records
+      // get flattened to the new {manifestId, configValues, ...} shape.
       .version(2, {
         upgrade: (data) => migrateProviderConfigsToFlat(data),
       })
+      // v2 -> v3: seed every dango-shipped builtin that isn't already in
+      // the user's list. Idempotent — preserves user toggles + configValues
+      // on the records that already exist. Replaces what used to be a chain
+      // of one-bump-per-source migrations (v3..v9 on earlier dev branches).
       .version(3, {
-        upgrade: (data) => seedNewBuiltinProviders(data),
-      })
-      .version(4, {
-        upgrade: (data) => seedNewBuiltinProviders(data),
-      })
-      .version(5, {
-        upgrade: (data) => seedNewBuiltinProviders(data),
-      })
-      .version(6, {
-        upgrade: (data) => seedNewBuiltinProviders(data),
-      })
-      .version(7, {
-        upgrade: (data) => seedNewBuiltinProviders(data),
-      })
-      .version(8, {
-        upgrade: (data) => seedNewBuiltinProviders(data),
-      })
-      .version(9, {
-        upgrade: (data) => seedNewBuiltinProviders(data),
+        upgrade: (data) => ensureBuiltinProviders(data),
       })
   }
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {

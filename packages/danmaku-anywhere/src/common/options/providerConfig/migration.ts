@@ -5,17 +5,9 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import {
-  builtInAiyifanProvider,
-  builtInBahamutProvider,
   builtInBilibiliProvider,
   builtInDanDanPlayProvider,
-  builtInIqiyiProvider,
-  builtInMaiduiduiProvider,
-  builtInMangoProvider,
-  builtInRenrenProvider,
-  builtInSohuProvider,
   builtInTencentProvider,
-  builtInYoukuProvider,
   DDP_COMPAT_MANIFEST_ID,
   defaultProviderConfigs,
 } from './constant'
@@ -294,22 +286,17 @@ function inferTypeFromImpl(
 }
 
 // Append any builtin whose id isn't already in the user's stored list.
-// New builtins ship via this path so existing users see them on upgrade.
-export function seedNewBuiltinProviders(
+// Idempotent: stored configs (with user choices like `enabled`,
+// `configValues`) are preserved; only missing builtins get appended.
+// Used by the single .version(3) migration in service.ts and on every
+// SW boot via the bootstrap path so a new manifest added to the
+// `defaultProviderConfigs` list also reaches existing installs.
+export function ensureBuiltinProviders(
   data: ProviderConfig[]
 ): ProviderConfig[] {
   const have = new Set(data.map((c) => c.id))
   const additions: ProviderConfig[] = []
-  for (const builtin of [
-    builtInYoukuProvider,
-    builtInMangoProvider,
-    builtInIqiyiProvider,
-    builtInSohuProvider,
-    builtInMaiduiduiProvider,
-    builtInRenrenProvider,
-    builtInAiyifanProvider,
-    builtInBahamutProvider,
-  ]) {
+  for (const builtin of defaultProviderConfigs) {
     if (!have.has(builtin.id)) {
       additions.push(builtin)
     }
