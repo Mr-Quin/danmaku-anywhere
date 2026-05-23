@@ -67,8 +67,9 @@ test('bilibiliSetCookies fetches the URL declared by the manifest cookieSet fiel
       bilibili: { enabled: true },
     },
     network: [
-      // Mock both the cookieSet URL and the loginProbe (which fires when the
-      // popup mounts /providers) so strict-mode network doesn't fail.
+      // Mock cookieSet URL + the bilibili + tencent loginProbes (both fire
+      // when the popup mounts /providers because their list rows render
+      // regardless of `enabled`) so strict-mode network doesn't fail.
       {
         pattern: /^http:\/\/bilibili\.com\/?$/,
         respond: (route) => {
@@ -82,6 +83,11 @@ test('bilibiliSetCookies fetches the URL declared by the manifest cookieSet fiel
           route.fulfill({
             json: { code: 0, message: '0', data: { isLogin: false } },
           }),
+      },
+      {
+        pattern: TENCENT_DETAILS_URL,
+        respond: (route) =>
+          route.fulfill({ json: { ret: 0, msg: '', data: {} } }),
       },
     ],
   })
