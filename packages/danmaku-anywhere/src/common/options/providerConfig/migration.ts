@@ -9,6 +9,7 @@ import {
   builtInDanDanPlayProvider,
   builtInIqiyiProvider,
   builtInMangoProvider,
+  builtInSohuProvider,
   builtInTencentProvider,
   builtInYoukuProvider,
   DDP_COMPAT_MANIFEST_ID,
@@ -299,6 +300,7 @@ export function seedNewBuiltinProviders(
     builtInYoukuProvider,
     builtInMangoProvider,
     builtInIqiyiProvider,
+    builtInSohuProvider,
   ]) {
     if (!have.has(builtin.id)) {
       additions.push(builtin)

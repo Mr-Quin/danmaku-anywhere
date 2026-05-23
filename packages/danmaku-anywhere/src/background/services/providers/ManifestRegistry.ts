@@ -18,6 +18,9 @@ import builtinIqiyi from '@danmaku-anywhere/dango-manifests/manifests/builtin-iq
 import builtinMango from '@danmaku-anywhere/dango-manifests/manifests/builtin-mango.json' with {
   type: 'json',
 }
+import builtinSohu from '@danmaku-anywhere/dango-manifests/manifests/builtin-sohu.json' with {
+  type: 'json',
+}
 import builtinTencent from '@danmaku-anywhere/dango-manifests/manifests/builtin-tencent.json' with {
   type: 'json',
 }
@@ -52,6 +55,7 @@ const builtinSpecs: ManifestSpec[] = [
   { manifest: builtinYouku },
   { manifest: builtinMango },
   { manifest: builtinIqiyi },
+  { manifest: builtinSohu },
 ]
 
 @injectable('Singleton')

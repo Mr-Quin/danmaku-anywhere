@@ -19,6 +19,8 @@ const BUILTIN_PROVIDER_IDS = [
   PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
   PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Youku],
   PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Mango],
+  PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Iqiyi],
+  PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Sohu],
 ] as const
 
 test('fresh install: default options seeded, no console errors', async ({

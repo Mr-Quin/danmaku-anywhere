@@ -1,0 +1,76 @@
+{
+  "apiVersion": 1,
+  "id": "builtin:sohu",
+  "name": "Sohu",
+  "version": "1.0.0",
+  "hosts": [
+    "m.so.tv.sohu.com",
+    "pl.hd.sohu.com",
+    "api.danmu.tv.sohu.com",
+    "tv.sohu.com"
+  ],
+  "search": {
+    "inputs": ["q"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "search",
+        "request": {
+          "method": "GET",
+          "url": "'https://m.so.tv.sohu.com/search/pc/keyword'",
+          "query": "{ 'key': q, 'type': '1', 'page': '1', 'page_size': '20', 'tabsChosen': '0', 'poster': '4', 'tuple': '6', 'extSource': '1', 'show_star_detail': '3', 'pay': '1', 'hl': '3', 'uid': $string($millis() * 1000), 'plat': '-1', 'ssl': '0' }",
+          "rewriteHeaders": {
+            "Referer": "'https://so.tv.sohu.com/'",
+            "Origin": "'https://so.tv.sohu.com'"
+          }
+        }
+      }
+    ],
+    "output": "[search.data.items[aid and album_name and (is_trailer ? is_trailer != 1 : true) and (corner_mark.text ? corner_mark.text != '预告' : true)].($metaTxt := [meta.txt][$contains($, '|')][0]; $type := $metaTxt ? $trim($split($metaTxt, '|')[0]) : 'Sohu'; { 'providerIds': { 'aid': $string(aid) }, 'indexedId': $string(aid), 'title': $replace(album_name, /<<<|>>>/, ''), 'type': $type, 'year': year ? $number(year) : undefined, 'imageUrl': ver_big_pic, 'episodeCount': total_video_count > 0 ? total_video_count : undefined })]"
+  },
+  "episodes": {
+    "inputs": ["aid"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "playlist",
+        "request": {
+          "method": "GET",
+          "url": "'https://pl.hd.sohu.com/videolist'",
+          "query": "{ 'playlistid': aid, 'api_key': 'f351515304020cad28c92f70f002261c' }",
+          "format": "jsonp",
+          "rewriteHeaders": { "Referer": "'https://tv.sohu.com/'" }
+        }
+      }
+    ],
+    "output": "[playlist.videos.($idx := $; { 'providerIds': { 'vid': $string(vid), 'aid': $string($$.aid), 'durationSec': playLength > 0 ? $number(playLength) : 0 }, 'indexedId': $string(vid), 'title': video_name ? video_name : ('第' & $string(order ? order : 1) & '集'), 'episodeNumber': order ? $number(order) : undefined })]"
+  },
+  "danmaku": {
+    "inputs": ["vid", "aid", "durationSec"],
+    "steps": [
+      {
+        "type": "assign",
+        "id": "info",
+        "values": {
+          "maxTime": "durationSec > 0 ? $ceil(durationSec) : 10800"
+        }
+      },
+      {
+        "type": "forEach",
+        "id": "segments",
+        "in": "$range(0, $ceil(info.maxTime / 300))",
+        "as": "i",
+        "concurrency": 5,
+        "throttleMs": 50,
+        "request": {
+          "method": "GET",
+          "url": "'https://api.danmu.tv.sohu.com/dmh5/dmListAll'",
+          "query": "{ 'act': 'dmlist_v2', 'vid': vid, 'aid': aid, 'pct': '2', 'time_begin': $string(i * 300), 'time_end': $string((i + 1) * 300), 'dct': '1', 'request_from': 'h5_js' }",
+          "rewriteHeaders": { "Referer": "'https://tv.sohu.com/'" }
+        },
+        "collect": "info.comments"
+      }
+    ],
+    "output": "[segments.($colorRaw := t.c ? t.c : '#FFFFFF'; $color := $hexToInt($replace($string($colorRaw), /^#/, '')); $vt := v ? $string(v) : '0'; { 'p': $vt & ',1,' & $string($color) & ',' & (uid ? $string(uid) : ''), 'm': c })]"
+  }
+}
