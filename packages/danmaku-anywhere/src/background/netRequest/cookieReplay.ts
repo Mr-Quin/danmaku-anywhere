@@ -1,12 +1,25 @@
 // Some sources (e.g. Youku's mtop endpoints) ship Set-Cookie with the
 // `Partitioned` attribute. Chrome stores those in a per-top-frame
 // partition, which extension service workers can't access — so subsequent
-// `credentials: 'include'` fetches don't carry the token.
+// `credentials: 'include'` fetches don't carry the token, and fetch() also
+// filters Set-Cookie out of JS-visible response headers regardless of
+// partitioning.
 //
-// This listener observes response headers, parses each Set-Cookie, and
-// re-plants Partitioned cookies in the unpartitioned cookie store via
-// chrome.cookies.set. The next credentialed fetch then sees them via the
-// browser's default cookie attachment.
+// This listener observes response headers and (a) caches the raw Set-Cookie
+// strings keyed by URL so extensionFetchLike can synthesize the missing
+// response header for the engine's `extractHeaders` to JSONata over,
+// (b) re-plants Partitioned cookies in the unpartitioned cookie store via
+// chrome.cookies.set so the browser attaches them on subsequent
+// credentialed requests.
+
+const setCookieByUrl = new Map<string, string[]>()
+
+export function consumeSetCookies(url: string): string | null {
+  const list = setCookieByUrl.get(url)
+  if (!list || list.length === 0) return null
+  setCookieByUrl.delete(url)
+  return list.join('; ')
+}
 
 interface ParsedSetCookie {
   name: string
@@ -61,6 +74,13 @@ export function setupCookieReplay(): void {
       if (!details.responseHeaders) return {}
       for (const h of details.responseHeaders) {
         if (h.name.toLowerCase() !== 'set-cookie' || !h.value) continue
+        // Cache the raw header text so extensionFetchLike can surface it to
+        // the engine. Survives across the fetch() boundary even when
+        // chrome.cookies.set hasn't finished yet.
+        const existing = setCookieByUrl.get(details.url) ?? []
+        existing.push(`${h.value.split(';')[0]?.trim() ?? ''}`)
+        setCookieByUrl.set(details.url, existing)
+
         const parsed = parseSetCookie(h.value)
         if (!parsed) continue
         // Only re-plant Partitioned cookies; the rest land in the normal
