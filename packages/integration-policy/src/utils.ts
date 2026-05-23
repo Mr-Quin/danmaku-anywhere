@@ -6,10 +6,10 @@ import {
 
 export function createIntegrationInput(name = ''): IntegrationInput {
   return {
-    version: 3,
+    version: 4,
     name: name,
     policy: {
-      version: 3,
+      version: 4,
       title: {
         selector: [],
         regex: [],
@@ -26,7 +26,9 @@ export function createIntegrationInput(name = ''): IntegrationInput {
         selector: [],
         regex: [],
       },
-      options: {},
+      options: {
+        autoAdvanceOnEnded: false,
+      },
     },
   }
 }

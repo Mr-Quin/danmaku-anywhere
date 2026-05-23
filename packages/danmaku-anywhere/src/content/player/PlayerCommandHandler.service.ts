@@ -137,6 +137,17 @@ export class PlayerCommandHandler {
         frameId: this.frameId,
       })
     })
+
+    this.videoEvent.addVideoEventListener('ended', () => {
+      const video = this.videoEvent.getVideoElement()
+      if (!video) {
+        return
+      }
+      playerRpcClient.controller['relay:event:videoEnded']({
+        frameId: this.frameId,
+        data: { duration: video.duration },
+      })
+    })
   }
 
   private sendVideoState(video: HTMLVideoElement) {
