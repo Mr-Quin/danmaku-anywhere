@@ -12,13 +12,14 @@ const mockExtractMedia = vi.mocked(extractMedia)
 /**
  * The extract-media port handler bridges a content-script port to the
  * scraper pipeline. Three race conditions can orphan a scraping window:
- *   1. The port disconnects while extractMedia is still awaiting its
- *      initial setup, so the disconnect handler finds no cleanup yet.
- *   2. Two extractions on one tab clobber each other in the cleanup map.
- *   3. cleanup() is invoked twice (timeout + disconnect) and re-fires
- *      onComplete → port.disconnect() on a dead port.
- * These tests pin each behaviour: every started extraction must have its
- * cleanup invoked on disconnect, regardless of timing.
+ *   1. The port disconnects while extractMedia is still awaiting setup,
+ *      so the disconnect handler finds no cleanup yet.
+ *   2. Two ports from one tab clobber each other in the tab-id-keyed
+ *      cleanup map.
+ *   3. The 30s safety timer survives disconnect and re-fires cleanup on
+ *      a dead port.
+ * These tests pin each behaviour: every started extraction has its
+ * cleanup invoked exactly once when its port disconnects.
  */
 
 type ConnectListener = (port: chrome.runtime.Port) => void
@@ -103,23 +104,23 @@ describe('setupExtractMedia', () => {
     })
   })
 
-  it('runs cleanup for both concurrent extractions on the same tab', async () => {
+  it('does not clobber cleanups across concurrent ports from the same tab', async () => {
     const cleanups = [vi.fn(), vi.fn()]
     let callIndex = 0
-    mockExtractMedia.mockImplementation(async () => {
-      const c = cleanups[callIndex++]
-      return c
-    })
+    mockExtractMedia.mockImplementation(async () => cleanups[callIndex++])
 
     setupExtractMedia()
-    const fake = createFakePort(portNames.extractMedia, 42)
-    connectListeners[0](fake.port)
+    const handler = connectListeners[0]
+    const portA = createFakePort(portNames.extractMedia, 42)
+    const portB = createFakePort(portNames.extractMedia, 42)
+    handler(portA.port)
+    handler(portB.port)
 
-    fake.emitMessage({
+    portA.emitMessage({
       action: 'extractMedia',
       data: { url: 'https://a.example' },
     })
-    fake.emitMessage({
+    portB.emitMessage({
       action: 'extractMedia',
       data: { url: 'https://b.example' },
     })
@@ -127,12 +128,12 @@ describe('setupExtractMedia', () => {
     await vi.waitFor(() => {
       expect(mockExtractMedia).toHaveBeenCalledTimes(2)
     })
-    await Promise.resolve()
-    await Promise.resolve()
 
-    fake.simulateDisconnect()
-
+    portA.simulateDisconnect()
     expect(cleanups[0]).toHaveBeenCalledTimes(1)
+    expect(cleanups[1]).not.toHaveBeenCalled()
+
+    portB.simulateDisconnect()
     expect(cleanups[1]).toHaveBeenCalledTimes(1)
   })
 

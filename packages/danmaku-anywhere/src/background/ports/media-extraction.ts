@@ -1,25 +1,22 @@
 import { extractMedia } from '@danmaku-anywhere/web-scraper'
 import { portNames } from '@/common/ports/portNames'
 
-const EXTRACTION_TIMEOUT_MS = 30_000
-
 export function setupExtractMedia() {
   chrome.runtime.onConnect.addListener((port) => {
     if (port.name !== portNames.extractMedia) {
       return
     }
 
-    const cleanups = new Set<() => void>()
-    const timers = new Set<ReturnType<typeof setTimeout>>()
+    let cleanup: (() => void) | undefined
+    let timer: ReturnType<typeof setTimeout> | undefined
     let disconnected = false
 
     port.onDisconnect.addListener(() => {
       disconnected = true
-      timers.forEach((t) => clearTimeout(t))
-      timers.clear()
-      const pending = [...cleanups]
-      cleanups.clear()
-      pending.forEach((c) => c())
+      if (timer) {
+        clearTimeout(timer)
+      }
+      cleanup?.()
     })
 
     port.onMessage.addListener(async (message) => {
@@ -30,7 +27,7 @@ export function setupExtractMedia() {
       const { url } = message.data
 
       try {
-        const cleanup = await extractMedia(url, {
+        const c = await extractMedia(url, {
           onMediaFound: (mediaInfo) => {
             port.postMessage({
               action: 'extractMedia',
@@ -55,18 +52,12 @@ export function setupExtractMedia() {
         })
 
         if (disconnected) {
-          cleanup()
+          c()
           return
         }
 
-        cleanups.add(cleanup)
-        const timer = setTimeout(() => {
-          timers.delete(timer)
-          if (cleanups.delete(cleanup)) {
-            cleanup()
-          }
-        }, EXTRACTION_TIMEOUT_MS)
-        timers.add(timer)
+        cleanup = c
+        timer = setTimeout(c, 30_000)
       } catch (err) {
         port.postMessage({
           action: 'extractMedia',
