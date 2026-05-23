@@ -292,14 +292,14 @@ export class RpcManager {
         setHeaders: async (rule) => {
           await setRequestHeaderRule(rule)
         },
-        openPopupInNewWindow: async (path) => {
+        openPopupInNewWindow: async ({ path, width, height }) => {
           void chrome.windows.create({
             url: chrome.runtime.getURL(
               `pages/popup.html?standalone=1#/${path}`
             ),
             type: 'popup',
-            width: 550,
-            height: 650,
+            width: width ?? 550,
+            height: height ?? 650,
           })
         },
         getConfigMacCms: async (input) => {

@@ -157,7 +157,10 @@ export type BackgroundMethods = {
     },
     ExtractTitleResponse['result']
   >
-  openPopupInNewWindow: RPCDef<string, void>
+  openPopupInNewWindow: RPCDef<
+    { path: string; width?: number; height?: number },
+    void
+  >
   getConfigMacCms: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   getConfigDanmuIcu: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   providerConfigDelete: RPCDef<string, void>

@@ -8,8 +8,12 @@ import {
 } from '@/common/components/ImportPageCore/useDanmakuImport'
 import { useEnvironmentContext } from '@/common/environment/context'
 import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
+import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { isStandaloneWindow } from '@/popup/utils/isStandaloneWindow'
+
+const IMPORT_WINDOW_WIDTH = 420
+const IMPORT_WINDOW_HEIGHT = 280
 
 function toAbsolutePath(path: string): string {
   if (path.startsWith('/')) {
@@ -58,11 +62,23 @@ export const useImportFlow = () => {
     useDanmakuImport()
 
   const { type: envType } = useEnvironmentContext()
+  const { isMobile } = usePlatformInfo()
 
   function shouldDetach(): boolean {
     return (
-      envType === 'popup' && !IS_STANDALONE_RUNTIME && !isStandaloneWindow()
+      envType === 'popup' &&
+      !isMobile &&
+      !IS_STANDALONE_RUNTIME &&
+      !isStandaloneWindow()
     )
+  }
+
+  function detachToImportWindow(autoImport: 'files' | 'folder'): void {
+    void chromeRpcClient.openPopupInNewWindow({
+      path: `import?autoImport=${autoImport}`,
+      width: IMPORT_WINDOW_WIDTH,
+      height: IMPORT_WINDOW_HEIGHT,
+    })
   }
 
   const handleFiles = async (files: File[]) => {
@@ -89,7 +105,7 @@ export const useImportFlow = () => {
 
   const openFileInput = () => {
     if (shouldDetach()) {
-      void chromeRpcClient.openPopupInNewWindow('mount?autoImport=files')
+      detachToImportWindow('files')
       return
     }
     fileInputRef.current?.click()
@@ -97,7 +113,7 @@ export const useImportFlow = () => {
 
   const openFolderInput = () => {
     if (shouldDetach()) {
-      void chromeRpcClient.openPopupInNewWindow('mount?autoImport=folder')
+      detachToImportWindow('folder')
       return
     }
     folderInputRef.current?.click()

@@ -25,7 +25,7 @@ export const AppToolBar = () => {
   const { t } = useTranslation()
 
   const openInWindow = async () => {
-    void chromeRpcClient.openPopupInNewWindow('')
+    void chromeRpcClient.openPopupInNewWindow({ path: '' })
   }
 
   return (

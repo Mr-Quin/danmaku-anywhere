@@ -30,7 +30,9 @@ export const ControllerToolbar = () => {
   const episode = episodes?.length === 1 ? episodes[0] : undefined
 
   const openSettings = async () => {
-    void chromeRpcClient.openPopupInNewWindow('options?from=content')
+    void chromeRpcClient.openPopupInNewWindow({
+      path: 'options?from=content',
+    })
   }
 
   return (

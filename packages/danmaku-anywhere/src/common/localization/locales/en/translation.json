@@ -295,6 +295,7 @@
     "parseError": "Failed to parse file",
     "skipped_one": "Skpped {{count}} file",
     "skipped_other": "Skpped {{count}} files",
+    "standaloneHint": "Pick files or a folder to import. This window closes when import finishes.",
     "urlDialog": {
       "errors": {
         "fetchFailed": "Failed to fetch the URL.",

@@ -285,6 +285,7 @@
     "importSuccess_other": "成功导入{{count}}个文件",
     "parseError": "文件解析失败",
     "skipped_other": "跳过{{count}}个文件",
+    "standaloneHint": "选择文件或文件夹开始导入，完成后窗口将自动关闭。",
     "urlDialog": {
       "errors": {
         "fetchFailed": "请求 URL 失败",
