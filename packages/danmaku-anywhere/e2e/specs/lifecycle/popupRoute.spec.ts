@@ -5,8 +5,9 @@ import { expect, test } from '../../setup/fixtures'
  * Verifies popup route persistence: the active hash is written to
  * chrome.storage.session on navigation, restored on the next popup open
  * within the same session, and cleared when the stored path no longer
- * matches a known route (popup falls back to /mount). This is the
- * focus-loss reopen fix from DA-529 (issue #416).
+ * matches a known route (popup falls back to /mount). Also asserts that
+ * restoration preserves a back-navigable history entry so the in-page
+ * back button returns to /mount instead of dead-ending.
  */
 
 async function openPopup(page: import('@playwright/test').Page, id: string) {
@@ -34,6 +35,9 @@ test('reopened popup lands on the last-visited route within the session', async 
 
   await openPopup(page, extensionId)
   await expect(page).toHaveURL(/#\/styles$/)
+
+  await page.goBack()
+  await expect(page).toHaveURL(/#\/mount$/)
 })
 
 test('invalid stored route is cleared and popup falls back to /mount', async ({
