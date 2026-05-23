@@ -1,45 +1,22 @@
 import { CreateNewFolder, UploadFile } from '@mui/icons-material'
 import { Box, Button, Stack, Typography } from '@mui/material'
-import { type ReactElement, useEffect, useRef } from 'react'
+import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router'
+import { DragDropOverlay } from '@/common/components/DanmakuSelector/components/DragDropOverlay'
 import { useImportFlow } from '@/common/components/DanmakuSelector/useImportFlow'
 import { ImportResultContent } from '@/common/components/ImportPageCore/ImportResultContent'
 import { ImportResultDialog } from '@/common/components/ImportPageCore/ImportResultDialog'
 import { VALID_EXTENSIONS } from '@/common/components/ImportPageCore/useDanmakuImport'
 
-type AutoImport = 'files' | 'folder'
-
-function parseAutoImport(value: string | null): AutoImport | undefined {
-  if (value === 'files' || value === 'folder') {
-    return value
-  }
-  return undefined
-}
-
 export function ImportStandalonePage(): ReactElement {
   const { t } = useTranslation()
-  const [searchParams] = useSearchParams()
-  const autoImport = parseAutoImport(searchParams.get('autoImport'))
-
   const importFlow = useImportFlow()
-  const firedRef = useRef(false)
-
-  useEffect(() => {
-    if (firedRef.current || !autoImport) {
-      return
-    }
-    firedRef.current = true
-    if (autoImport === 'files') {
-      importFlow.openFileInput()
-    } else {
-      importFlow.openFolderInput()
-    }
-  }, [autoImport, importFlow])
 
   return (
     <Box
+      {...importFlow.dragProps}
       sx={{
+        position: 'relative',
         height: 1,
         display: 'flex',
         flexDirection: 'column',
@@ -49,6 +26,8 @@ export function ImportStandalonePage(): ReactElement {
         p: 2,
       }}
     >
+      <DragDropOverlay in={importFlow.isDragging} />
+
       <Typography variant="h6">
         {t('importPage.import', 'Import Danmaku')}
       </Typography>

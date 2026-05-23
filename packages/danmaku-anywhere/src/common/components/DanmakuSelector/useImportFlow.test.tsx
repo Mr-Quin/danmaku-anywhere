@@ -31,19 +31,23 @@ vi.mock('@/popup/utils/isStandaloneWindow', () => ({
   isStandaloneWindow: vi.fn(),
 }))
 
+vi.mock('@/popup/utils/useIsInTab', () => ({
+  useIsInTab: vi.fn(),
+}))
+
 import { useEnvironmentContext } from '@/common/environment/context'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { isStandaloneWindow } from '@/popup/utils/isStandaloneWindow'
+import { useIsInTab } from '@/popup/utils/useIsInTab'
 import { useImportFlow } from './useImportFlow'
 
 /**
  * Verifies that the toolbar popup detaches file/folder imports into a small
  * /import chrome.windows popup, so the OS file picker can't dismiss the parent
- * popup mid-flow. Detach only kicks in for desktop (`!isMobile`) popups that
- * aren't already standalone and aren't running in the standalone web-app build.
- * Controller, mobile, standalone runtime, and already-detached windows must
- * click the hidden input directly.
+ * popup mid-flow. Detach only kicks in for the desktop action popup itself.
+ * Controller, mobile, standalone runtime, already-detached windows, and
+ * popup.html opened directly in a tab must click the hidden input directly.
  */
 
 function makeWrapper() {
@@ -70,6 +74,7 @@ beforeEach(() => {
     type: 'popup',
   })
   vi.mocked(isStandaloneWindow).mockReturnValue(false)
+  vi.mocked(useIsInTab).mockReturnValue(false)
   mockPlatform(false)
   vi.mocked(chromeRpcClient.openPopupInNewWindow).mockResolvedValue(
     undefined as never
@@ -94,14 +99,14 @@ describe('useImportFlow detach behavior', () => {
 
     expect(chromeRpcClient.openPopupInNewWindow).toHaveBeenCalledTimes(1)
     expect(chromeRpcClient.openPopupInNewWindow).toHaveBeenCalledWith({
-      path: 'import?autoImport=files',
+      path: 'import',
       width: 520,
       height: 380,
     })
     expect(clickSpy).not.toHaveBeenCalled()
   })
 
-  it('detaches with autoImport=folder for openFolderInput in toolbar popup', () => {
+  it('detaches openFolderInput to the same /import window in toolbar popup', () => {
     const { result } = renderHook(() => useImportFlow(), {
       wrapper: makeWrapper(),
     })
@@ -113,11 +118,28 @@ describe('useImportFlow detach behavior', () => {
     result.current.openFolderInput()
 
     expect(chromeRpcClient.openPopupInNewWindow).toHaveBeenCalledWith({
-      path: 'import?autoImport=folder',
+      path: 'import',
       width: 520,
       height: 380,
     })
     expect(clickSpy).not.toHaveBeenCalled()
+  })
+
+  it('clicks the input ref when popup.html is opened in a normal tab', () => {
+    vi.mocked(useIsInTab).mockReturnValue(true)
+
+    const { result } = renderHook(() => useImportFlow(), {
+      wrapper: makeWrapper(),
+    })
+
+    const clickSpy = vi.fn()
+    // biome-ignore lint/suspicious/noExplicitAny: assigning ref for spy
+    ;(result.current.fileInputRef as any).current = { click: clickSpy }
+
+    result.current.openFileInput()
+
+    expect(chromeRpcClient.openPopupInNewWindow).not.toHaveBeenCalled()
+    expect(clickSpy).toHaveBeenCalledTimes(1)
   })
 
   it('clicks the input ref when already in a standalone popup window', () => {

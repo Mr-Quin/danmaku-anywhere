@@ -11,6 +11,7 @@ import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { isStandaloneWindow } from '@/popup/utils/isStandaloneWindow'
+import { useIsInTab } from '@/popup/utils/useIsInTab'
 
 const IMPORT_WINDOW_WIDTH = 520
 const IMPORT_WINDOW_HEIGHT = 380
@@ -63,19 +64,21 @@ export const useImportFlow = () => {
 
   const { type: envType } = useEnvironmentContext()
   const { isMobile } = usePlatformInfo()
+  const isInTab = useIsInTab()
 
   function shouldDetach(): boolean {
     return (
       envType === 'popup' &&
       !isMobile &&
+      !isInTab &&
       !IS_STANDALONE_RUNTIME &&
       !isStandaloneWindow()
     )
   }
 
-  function detachToImportWindow(autoImport: 'files' | 'folder'): void {
+  function detachToImportWindow(): void {
     void chromeRpcClient.openPopupInNewWindow({
-      path: `import?autoImport=${autoImport}`,
+      path: 'import',
       width: IMPORT_WINDOW_WIDTH,
       height: IMPORT_WINDOW_HEIGHT,
     })
@@ -105,7 +108,7 @@ export const useImportFlow = () => {
 
   const openFileInput = () => {
     if (shouldDetach()) {
-      detachToImportWindow('files')
+      detachToImportWindow()
       return
     }
     fileInputRef.current?.click()
@@ -113,7 +116,7 @@ export const useImportFlow = () => {
 
   const openFolderInput = () => {
     if (shouldDetach()) {
-      detachToImportWindow('folder')
+      detachToImportWindow()
       return
     }
     folderInputRef.current?.click()
