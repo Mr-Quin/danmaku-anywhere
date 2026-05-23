@@ -12,8 +12,8 @@ import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { isStandaloneWindow } from '@/popup/utils/isStandaloneWindow'
 
-const IMPORT_WINDOW_WIDTH = 420
-const IMPORT_WINDOW_HEIGHT = 280
+const IMPORT_WINDOW_WIDTH = 520
+const IMPORT_WINDOW_HEIGHT = 380
 
 function toAbsolutePath(path: string): string {
   if (path.startsWith('/')) {
@@ -150,6 +150,7 @@ export const useImportFlow = () => {
     dragProps,
     fileInputRef,
     folderInputRef,
+    willDetach: shouldDetach(),
     // Data
     importState: { data, isPending, isError, error },
     // Actions

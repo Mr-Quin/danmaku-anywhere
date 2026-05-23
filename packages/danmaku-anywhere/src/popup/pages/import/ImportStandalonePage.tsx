@@ -37,11 +37,6 @@ export function ImportStandalonePage(): ReactElement {
     }
   }, [autoImport, importFlow])
 
-  function handleDialogClose() {
-    importFlow.closeDialog()
-    window.close()
-  }
-
   return (
     <Box
       sx={{
@@ -50,18 +45,12 @@ export function ImportStandalonePage(): ReactElement {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        p: 3,
-        textAlign: 'center',
+        gap: 2,
+        p: 2,
       }}
     >
-      <Typography variant="h6" gutterBottom>
+      <Typography variant="h6">
         {t('importPage.import', 'Import Danmaku')}
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-        {t(
-          'importPage.standaloneHint',
-          'Pick files or a folder to import. This window closes when import finishes.'
-        )}
       </Typography>
       <Stack direction="row" spacing={1}>
         <Button
@@ -69,14 +58,14 @@ export function ImportStandalonePage(): ReactElement {
           startIcon={<UploadFile />}
           onClick={importFlow.openFileInput}
         >
-          {t('importPage.import', 'Import Danmaku')}
+          {t('importPage.pickFiles', 'Pick files')}
         </Button>
         <Button
           variant="outlined"
           startIcon={<CreateNewFolder />}
           onClick={importFlow.openFolderInput}
         >
-          {t('importPage.importFolder', 'Import Danmaku Folder')}
+          {t('importPage.pickFolder', 'Pick folder')}
         </Button>
       </Stack>
 
@@ -110,7 +99,7 @@ export function ImportStandalonePage(): ReactElement {
       <ImportResultDialog
         open={importFlow.showResultDialog}
         title={t('importPage.import', 'Import Danmaku')}
-        onClose={handleDialogClose}
+        onClose={importFlow.closeDialog}
         onImport={importFlow.confirmImport}
         disableImport={
           importFlow.importState.isPending || importFlow.importState.isError

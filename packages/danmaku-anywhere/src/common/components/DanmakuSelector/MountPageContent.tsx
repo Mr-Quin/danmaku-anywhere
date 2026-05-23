@@ -79,32 +79,33 @@ export const MountPageContent = ({
     onToggleMultiselect()
   }
 
-  const menuItems = useMemo<DAMenuItemConfig[]>(
-    () => [
-      {
-        kind: 'item',
-        id: 'import',
-        label: t('importPage.import', 'Import Danmaku'),
-        icon: <UploadFile />,
-        onClick: importFlow.openFileInput,
-      },
-      {
-        kind: 'item',
-        id: 'importFolder',
-        label: t('importPage.importFolder', 'Import Danmaku Folder'),
-        icon: <UploadFile />,
-        onClick: importFlow.openFolderInput,
-      },
-      {
-        kind: 'item',
-        id: 'importUrl',
-        label: t('importPage.importFromUrl', 'Import from URL'),
-        icon: <CloudDownload />,
-        onClick: importFlow.openUrlInput,
-      },
-    ],
-    [importFlow, t]
-  )
+  const menuItems = useMemo<DAMenuItemConfig[]>(() => {
+    const importItem: DAMenuItemConfig = {
+      kind: 'item',
+      id: 'import',
+      label: t('importPage.import', 'Import Danmaku'),
+      icon: <UploadFile />,
+      onClick: importFlow.openFileInput,
+    }
+    const folderItem: DAMenuItemConfig = {
+      kind: 'item',
+      id: 'importFolder',
+      label: t('importPage.importFolder', 'Import Danmaku Folder'),
+      icon: <UploadFile />,
+      onClick: importFlow.openFolderInput,
+    }
+    const urlItem: DAMenuItemConfig = {
+      kind: 'item',
+      id: 'importUrl',
+      label: t('importPage.importFromUrl', 'Import from URL'),
+      icon: <CloudDownload />,
+      onClick: importFlow.openUrlInput,
+    }
+    if (importFlow.willDetach) {
+      return [importItem, urlItem]
+    }
+    return [importItem, folderItem, urlItem]
+  }, [importFlow, t])
 
   if (viewingEpisode) {
     return (

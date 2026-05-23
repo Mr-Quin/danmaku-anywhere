@@ -95,8 +95,8 @@ describe('useImportFlow detach behavior', () => {
     expect(chromeRpcClient.openPopupInNewWindow).toHaveBeenCalledTimes(1)
     expect(chromeRpcClient.openPopupInNewWindow).toHaveBeenCalledWith({
       path: 'import?autoImport=files',
-      width: 420,
-      height: 280,
+      width: 520,
+      height: 380,
     })
     expect(clickSpy).not.toHaveBeenCalled()
   })
@@ -114,8 +114,8 @@ describe('useImportFlow detach behavior', () => {
 
     expect(chromeRpcClient.openPopupInNewWindow).toHaveBeenCalledWith({
       path: 'import?autoImport=folder',
-      width: 420,
-      height: 280,
+      width: 520,
+      height: 380,
     })
     expect(clickSpy).not.toHaveBeenCalled()
   })
