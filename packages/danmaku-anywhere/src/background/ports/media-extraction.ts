@@ -1,66 +1,72 @@
 import { extractMedia } from '@danmaku-anywhere/web-scraper'
 import { portNames } from '@/common/ports/portNames'
 
-export const setupExtractMedia = () => {
-  // cleanup keyed by tab id
-  const portCleanupCallbacks = new Map<number, () => void>()
-
+export function setupExtractMedia() {
   chrome.runtime.onConnect.addListener((port) => {
-    if (port.name !== portNames.extractMedia) return
+    if (port.name !== portNames.extractMedia) {
+      return
+    }
 
-    port.onMessage.addListener(async (message) => {
-      if (message.action === 'extractMedia' && port.sender?.tab?.id) {
-        const tabId = port.sender.tab.id
-        const { url } = message.data
+    let cleanup: (() => void) | undefined
+    let timer: ReturnType<typeof setTimeout> | undefined
+    let disconnected = false
 
-        try {
-          const cleanup = await extractMedia(url, {
-            onMediaFound: (mediaInfo) => {
-              port.postMessage({
-                action: 'extractMedia',
-                success: true,
-                data: mediaInfo,
-                isLast: false,
-              })
-            },
-            onError: (error) => {
-              port.postMessage({
-                action: 'extractMedia',
-                success: false,
-                err: error.message,
-                isLast: true,
-              })
-            },
-            onComplete: () => {
-              port.disconnect()
-            },
-          })
-
-          // abort after 30 seconds
-          setTimeout(() => {
-            cleanup()
-          }, 30000)
-
-          portCleanupCallbacks.set(tabId, cleanup)
-        } catch (err) {
-          port.postMessage({
-            action: 'extractMedia',
-            success: false,
-            err: err instanceof Error ? err.message : 'Unknown error',
-            isLast: true,
-          })
-          port.disconnect()
-        }
+    port.onDisconnect.addListener(() => {
+      disconnected = true
+      if (timer) {
+        clearTimeout(timer)
       }
+      cleanup?.()
     })
 
-    port.onDisconnect.addListener((port) => {
-      if (port.sender?.tab?.id) {
-        const tabId = port.sender.tab.id
-        const cleanup = portCleanupCallbacks.get(tabId)
-        if (cleanup) {
-          cleanup()
-          portCleanupCallbacks.delete(tabId)
+    port.onMessage.addListener(async (message) => {
+      if (message.action !== 'extractMedia' || !port.sender?.tab?.id) {
+        return
+      }
+
+      const { url } = message.data
+
+      try {
+        const c = await extractMedia(url, {
+          onMediaFound: (mediaInfo) => {
+            port.postMessage({
+              action: 'extractMedia',
+              success: true,
+              data: mediaInfo,
+              isLast: false,
+            })
+          },
+          onError: (error) => {
+            port.postMessage({
+              action: 'extractMedia',
+              success: false,
+              err: error.message,
+              isLast: true,
+            })
+          },
+          onComplete: () => {
+            if (!disconnected) {
+              port.disconnect()
+            }
+          },
+        })
+
+        if (disconnected) {
+          c()
+          return
+        }
+
+        cleanup = c
+        timer = setTimeout(c, 30_000)
+      } catch (err) {
+        port.postMessage({
+          action: 'extractMedia',
+          success: false,
+          err: err instanceof Error ? err.message : 'Unknown error',
+          isLast: true,
+        })
+        if (!disconnected) {
+          port.disconnect()
         }
       }
     })

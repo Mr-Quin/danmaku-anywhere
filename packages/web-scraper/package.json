@@ -12,6 +12,7 @@
   "scripts": {
     "build": "tsgo",
     "lint": "biome check --fix",
+    "test": "vitest run",
     "type-check": "tsgo --noEmit"
   },
   "dependencies": {
