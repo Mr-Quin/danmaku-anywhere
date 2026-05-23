@@ -6,6 +6,7 @@ import {
   useDanmakuImport,
   VALID_EXTENSIONS,
 } from '@/common/components/ImportPageCore/useDanmakuImport'
+import type { EnvironmentType } from '@/common/environment/context'
 import { useEnvironmentContext } from '@/common/environment/context'
 import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
 import { useIsInTab } from '@/common/hooks/useIsInTab'
@@ -15,6 +16,24 @@ import { isDetachedWindow } from '@/popup/utils/isDetachedWindow'
 
 const IMPORT_WINDOW_WIDTH = 520
 const IMPORT_WINDOW_HEIGHT = 380
+
+export interface DetachContext {
+  envType: EnvironmentType
+  isMobile: boolean
+  isInTab: boolean
+  isStandaloneRuntime: boolean
+  isDetachedWindow: boolean
+}
+
+export function shouldDetachImport(ctx: DetachContext): boolean {
+  return (
+    ctx.envType === 'popup' &&
+    !ctx.isMobile &&
+    !ctx.isInTab &&
+    !ctx.isStandaloneRuntime &&
+    !ctx.isDetachedWindow
+  )
+}
 
 function toAbsolutePath(path: string): string {
   if (path.startsWith('/')) {
@@ -66,12 +85,13 @@ export const useImportFlow = () => {
   const { isMobile } = usePlatformInfo()
   const isInTab = useIsInTab()
 
-  const willDetach =
-    envType === 'popup' &&
-    !isMobile &&
-    !isInTab &&
-    !IS_STANDALONE_RUNTIME &&
-    !isDetachedWindow()
+  const willDetach = shouldDetachImport({
+    envType,
+    isMobile,
+    isInTab,
+    isStandaloneRuntime: IS_STANDALONE_RUNTIME,
+    isDetachedWindow: isDetachedWindow(),
+  })
 
   function detachToImportWindow(): void {
     void chromeRpcClient.openPopupInNewWindow({
