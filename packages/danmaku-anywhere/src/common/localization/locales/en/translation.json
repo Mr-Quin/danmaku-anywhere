@@ -345,6 +345,10 @@
         "matchedButEmpty": "A node is found, but the text is empty"
       }
     },
+    "episodeNavigation": {
+      "next": "Next Episode",
+      "prev": "Previous Episode"
+    },
     "manualModeEnabled": "Manual mode is enabled, switch to a different mode to enable automation.",
     "mode": {
       "ai": {
@@ -529,7 +533,9 @@
     "hotkeys": {
       "addHotkey": "Add Hotkey",
       "enterKey": "Enter key",
+      "nextEpisode": "Next episode",
       "openSearchPanel": "Open search panel",
+      "prevEpisode": "Previous episode",
       "refreshComments": "Refresh comments",
       "toggleEnableDanmaku": "Show/Hide danmaku",
       "togglePip": "Picture-in-picture",

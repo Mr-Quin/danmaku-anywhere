@@ -19,7 +19,10 @@ import { FrameRegistry } from '@/content/controller/danmaku/frame/FrameRegistry.
 import { selectBestFrame } from '@/content/controller/danmaku/frame/selectBestFrame'
 import { useMigrateDanmaku } from '@/content/controller/danmaku/frame/useMigrateDanmaku'
 import { usePreloadNextEpisode } from '@/content/controller/danmaku/frame/usePreloadNextEpisode'
+import { useEpisodeNavigation } from '@/content/controller/danmaku/integration/hooks/useEpisodeNavigation'
 import { useStore } from '@/content/controller/store/store'
+
+const AUTO_ADVANCE_MIN_DURATION_SECONDS = 30
 
 const logger = Logger.sub('[FrameManager]')
 const frameRegistry = uiContainer.get(FrameRegistry)
@@ -37,6 +40,7 @@ export const FrameManager = () => {
 
   const unmountDanmaku = useUnmountDanmaku()
   const { preloadNext, canLoadNext } = usePreloadNextEpisode()
+  const { goNext, canGoNext, isAutoAdvanceEnabled } = useEpisodeNavigation()
 
   useMigrateDanmaku()
 
@@ -96,6 +100,22 @@ export const FrameManager = () => {
     reEvaluateActiveFrame()
   })
 
+  const handleVideoEnded = useEventCallback(
+    (frameId: number, data: { duration: number }) => {
+      const activeFrame = useStore.getState().frame.activeFrame
+      if (frameId !== activeFrame?.frameId) {
+        return
+      }
+      if (!isAutoAdvanceEnabled || !canGoNext) {
+        return
+      }
+      if (data.duration <= AUTO_ADVANCE_MIN_DURATION_SECONDS) {
+        return
+      }
+      goNext()
+    }
+  )
+
   const handlePreloadNext = useEventCallback(async (frameId: number) => {
     const activeFrame = useStore.getState().frame.activeFrame
     if (frameId !== activeFrame?.frameId || !canLoadNext()) {
@@ -152,6 +172,9 @@ export const FrameManager = () => {
         },
         'relay:event:preloadNextEpisode': async ({ frameId }) => {
           handlePreloadNext(frameId)
+        },
+        'relay:event:videoEnded': async ({ frameId, data }) => {
+          handleVideoEnded(frameId, data)
         },
         'relay:event:showPopover': async () => handleShowPopover(),
         'relay:event:userInteraction': async () => {

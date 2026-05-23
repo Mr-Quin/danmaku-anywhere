@@ -1,5 +1,6 @@
 import { z } from 'zod'
-import { getRandomUUID } from '@/common/utils/utils'
+import { getRandomUUID } from '../uuid.js'
+import type { IntegrationV3 } from './v3.js'
 
 const regexString = z.string().refine(
   (v) => {
@@ -42,7 +43,7 @@ const optionsSchema = z.object({
   autoAdvanceOnEnded: z.boolean(),
 })
 
-export const zIntegrationPolicy = z.object({
+export const zIntegrationPolicyV4 = z.object({
   version: z.literal(4),
   title: z.object({
     selector: z.array(selectorSchema).min(1),
@@ -56,22 +57,34 @@ export const zIntegrationPolicy = z.object({
   options: optionsSchema,
 })
 
-export type IntegrationPolicy = z.infer<typeof zIntegrationPolicy>
-
-export type IntegrationPolicySelector = z.input<typeof selectorSchema>
-
-export type IntegrationPolicyNavigation = z.infer<typeof navigationSchema>
-
-export const zIntegration = z.object({
+export const zIntegrationV4 = z.object({
   version: z.literal(4),
   id: z
     .uuid()
     .optional()
     .prefault(() => getRandomUUID()),
   name: z.string().min(1),
-  policy: zIntegrationPolicy,
+  policy: zIntegrationPolicyV4,
 })
 
-export type IntegrationInput = z.input<typeof zIntegration>
+export type IntegrationV4 = z.infer<typeof zIntegrationV4>
 
-export type Integration = z.output<typeof zIntegration>
+export type IntegrationPolicyV4 = z.infer<typeof zIntegrationPolicyV4>
+
+export type IntegrationPolicyNavigation = z.infer<typeof navigationSchema>
+
+export function migrateV3ToV4(data: IntegrationV3[]): IntegrationV4[] {
+  return data.map((policy) => {
+    return {
+      ...policy,
+      version: 4,
+      policy: {
+        ...policy.policy,
+        version: 4,
+        options: {
+          autoAdvanceOnEnded: false,
+        },
+      },
+    } satisfies IntegrationV4
+  })
+}
