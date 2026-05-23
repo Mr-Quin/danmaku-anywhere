@@ -104,6 +104,10 @@
     ],
     "output": "[segments.($s := content_style and content_style != '' ? $jsonParse(content_style) : null; $g := $s.gradient_colors; $hex := $exists($g[0]) and $g[0] != '' ? $g[0] : $s.color; $color := $exists($hex) and $hex != '' ? $hexToInt($replace($hex, /^#/, '')) : 16777215; { 'p': $string($number(time_offset) / 1000) & ',1,' & $string($color) & ',' & (vuid ? $string(vuid) : ''), 'm': content })]"
   },
+  "cookieSet": {
+    "url": "https://v.qq.com",
+    "title": "Visit Tencent Video to set cookies"
+  },
   "loginProbe": {
     "inputs": [],
     "steps": [

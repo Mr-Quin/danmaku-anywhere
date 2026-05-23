@@ -195,7 +195,7 @@
         }
       }
     ],
-    "output": "nav.data"
+    "output": "nav.data.isLogin = true"
   },
   "parseUrl": {
     "inputs": [],

@@ -462,7 +462,7 @@ describe('builtin:bilibili manifest', () => {
     expect(await runner.runParseUrl('https://example.com/whatever')).toBeNull()
   })
 
-  it('loginProbe returns nav.data with isLogin flag', async () => {
+  it('loginProbe returns true when nav.data.isLogin is true', async () => {
     const { fetcher, calls } = mockFetcher({
       'https://api.bilibili.com/x/web-interface/nav': {
         body: JSON.stringify({
@@ -478,19 +478,14 @@ describe('builtin:bilibili manifest', () => {
     })
 
     expect(runner.hasLoginProbe()).toBe(true)
-    const result = (await runner.runLoginProbe()) as {
-      isLogin: boolean
-      uname?: string
-    } | null
-
-    expect(result?.isLogin).toBe(true)
+    expect(await runner.runLoginProbe()).toBe(true)
     expect(calls).toHaveLength(1)
     expect((calls[0].init as { credentials?: string }).credentials).toBe(
       'include'
     )
   })
 
-  it('loginProbe surfaces logged-out state via nav.data.isLogin = false', async () => {
+  it('loginProbe returns false when nav.data.isLogin is false', async () => {
     const { fetcher } = mockFetcher({
       'https://api.bilibili.com/x/web-interface/nav': {
         body: JSON.stringify({
@@ -505,8 +500,7 @@ describe('builtin:bilibili manifest', () => {
       fetcher,
     })
 
-    const result = (await runner.runLoginProbe()) as { isLogin: boolean } | null
-    expect(result?.isLogin).toBe(false)
+    expect(await runner.runLoginProbe()).toBe(false)
   })
 
   it('parseUrl emits episodeMeta=undefined when no episode matches the epid', async () => {
