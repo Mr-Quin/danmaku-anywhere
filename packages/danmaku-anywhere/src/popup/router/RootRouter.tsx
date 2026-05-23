@@ -4,6 +4,25 @@ import { RouterProvider } from 'react-router/dom'
 import { getStorageArea } from '@/common/storage/getStorageArea'
 import { POPUP_ROUTE_STORAGE_KEY, router, routes } from './router'
 
+// Walk the URL hierarchy of `target` and return the intermediate paths that
+// resolve to real routes, excluding /mount (the initial entry) and the target
+// itself. e.g. '/options/advanced' -> ['/options']; '/styles' -> [].
+function getAncestorPaths(target: string): string[] {
+  const segments = target.split('/').filter(Boolean)
+  const paths: string[] = []
+  let current = ''
+  for (const seg of segments) {
+    current += `/${seg}`
+    if (current === target || current === '/mount') {
+      continue
+    }
+    if (matchRoutes(routes, current)) {
+      paths.push(current)
+    }
+  }
+  return paths
+}
+
 export const RootRouter = () => {
   // Gate the persist subscriber until the restore effect has read storage.
   // Without this, the initial /mount redirect's settled navigation can write
@@ -32,9 +51,10 @@ export const RootRouter = () => {
     []
   )
 
-  // Restore as a PUSH on top of the initial /mount entry so the in-page
-  // back button has somewhere to return to. Using a loader redirect here
-  // would REPLACE history and leave back() dead-ending.
+  // Restore by walking the URL hierarchy and PUSHing each ancestor on top of
+  // /mount, so the in-page back button steps back through the URL tree (e.g.
+  // /options/advanced -> back -> /options -> back -> /mount). A loader
+  // redirect would REPLACE history and leave back() dead-ending.
   useEffect(() => {
     let cancelled = false
     const storage = getStorageArea('session')
@@ -60,7 +80,16 @@ export const RootRouter = () => {
           return
         }
         restored.current = true
-        void router.navigate(persisted)
+        for (const ancestor of getAncestorPaths(persisted)) {
+          if (cancelled) {
+            return
+          }
+          await router.navigate(ancestor)
+        }
+        if (cancelled) {
+          return
+        }
+        await router.navigate(persisted)
       } finally {
         restored.current = true
       }

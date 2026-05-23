@@ -6,8 +6,9 @@ import { expect, test } from '../../setup/fixtures'
  * chrome.storage.session on navigation, restored on the next popup open
  * within the same session, and cleared when the stored path no longer
  * matches a known route (popup falls back to /mount). Also asserts that
- * restoration preserves a back-navigable history entry so the in-page
- * back button returns to /mount instead of dead-ending.
+ * restoration rebuilds the URL hierarchy so the in-page back button
+ * walks through ancestor routes (e.g. /options/advanced -> /options ->
+ * /mount) instead of dead-ending at home.
  */
 
 async function openPopup(page: import('@playwright/test').Page, id: string) {
@@ -35,6 +36,31 @@ test('reopened popup lands on the last-visited route within the session', async 
 
   await openPopup(page, extensionId)
   await expect(page).toHaveURL(/#\/styles$/)
+
+  await page.goBack()
+  await expect(page).toHaveURL(/#\/mount$/)
+})
+
+test('reopened popup at a nested route rebuilds back stack to ancestors', async ({
+  context,
+  page,
+  extensionId,
+}) => {
+  const da = await getDaClient(context)
+  await da.storage.setRaw(
+    'session',
+    'popup:lastRoute',
+    '/config/integration-policy/edit'
+  )
+
+  await openPopup(page, extensionId)
+  await expect(page).toHaveURL(/#\/config\/integration-policy\/edit$/)
+
+  await page.goBack()
+  await expect(page).toHaveURL(/#\/config\/integration-policy$/)
+
+  await page.goBack()
+  await expect(page).toHaveURL(/#\/config$/)
 
   await page.goBack()
   await expect(page).toHaveURL(/#\/mount$/)
