@@ -143,6 +143,9 @@ export const helpers: Record<string, Helper> = {
 
   // misc
   now: () => Math.floor(Date.now() / 1000),
+  millis: () => Date.now(),
+  /** JSON.stringify; needed for signature flows where a payload is hashed before being sent. */
+  stringify: (v) => JSON.stringify(v),
   range: (start, end) => {
     const s = Number(start)
     const e = end === undefined ? s : Number(end)

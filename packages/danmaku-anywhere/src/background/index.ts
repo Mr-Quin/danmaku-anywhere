@@ -1,6 +1,7 @@
 import { configureApiStore } from '@danmaku-anywhere/danmaku-provider'
 import { AlarmManager } from '@/background/alarm/AlarmManager'
 import { ContextMenuManager } from '@/background/contextMenu/ContextMenuManager'
+import { setupCookieReplay } from '@/background/netRequest/cookieReplay'
 import { NetRequestManager } from '@/background/netRequest/NetrequestManager'
 import { PortsManager } from '@/background/ports/PortsManager'
 import { RpcManager } from '@/background/rpc/RpcManager'
@@ -30,6 +31,7 @@ container.get(ScriptingManager).setup()
 container.get(MountConfigTabReloader).setup()
 container.get(RpcManager).setup()
 container.get(NetRequestManager).setup()
+setupCookieReplay()
 container.get(AlarmManager).setup()
 container.get(PortsManager).setup()
 

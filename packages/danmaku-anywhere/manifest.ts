@@ -15,6 +15,12 @@ const permissions: chrome.runtime.ManifestPermissions[] = [
   'alarms',
   'webRequest',
   'contextMenus',
+  // chrome.cookies. Required for sources that sign requests using a token
+  // delivered via a Set-Cookie response header — fetch() strips Set-Cookie
+  // from JS-visible headers even with credentials:include, so we read the
+  // cookie from chrome.cookies and re-inject it into the engine's response
+  // headers map. See extensionFetchLike.
+  'cookies',
 ]
 
 if (isChrome) {
