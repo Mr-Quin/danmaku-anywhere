@@ -23,6 +23,7 @@ import { SearchPage } from '../pages/search/SearchPage'
 import { StylesPage } from '../pages/styles/StylesPage'
 
 export const POPUP_ROUTE_STORAGE_KEY = 'popup:lastRoute'
+export const POPUP_DEFAULT_ROUTE = '/mount'
 
 export const routes: RouteObject[] = [
   {
@@ -31,7 +32,7 @@ export const routes: RouteObject[] = [
     children: [
       {
         index: true,
-        loader: () => redirect('/mount'),
+        loader: () => redirect(POPUP_DEFAULT_ROUTE),
       },
       {
         path: 'mount',

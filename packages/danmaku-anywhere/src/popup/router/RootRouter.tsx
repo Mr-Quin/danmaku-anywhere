@@ -3,7 +3,12 @@ import { matchRoutes } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 import { getStorageArea } from '@/common/storage/getStorageArea'
 import { getAncestorPaths } from './getAncestorPaths'
-import { POPUP_ROUTE_STORAGE_KEY, router, routes } from './router'
+import {
+  POPUP_DEFAULT_ROUTE,
+  POPUP_ROUTE_STORAGE_KEY,
+  router,
+  routes,
+} from './router'
 
 export const RootRouter = () => {
   // Gate the persist subscriber until the restore effect is ready. Closed
@@ -39,14 +44,15 @@ export const RootRouter = () => {
   // /options/advanced -> back -> /options -> back -> /mount). A loader
   // redirect would REPLACE history and leave back() dead-ending.
   useEffect(() => {
-    let cancelled = false
+    const ac = new AbortController()
+    const { signal } = ac
     const storage = getStorageArea('session')
     void (async () => {
       try {
         const data = await storage
           .get(POPUP_ROUTE_STORAGE_KEY)
           .catch(() => null)
-        if (cancelled) {
+        if (signal.aborted) {
           return
         }
         const persisted = data?.[POPUP_ROUTE_STORAGE_KEY]
@@ -54,7 +60,7 @@ export const RootRouter = () => {
           typeof persisted !== 'string' ||
           persisted === '' ||
           persisted === '/' ||
-          persisted === '/mount'
+          persisted === POPUP_DEFAULT_ROUTE
         ) {
           return
         }
@@ -62,13 +68,18 @@ export const RootRouter = () => {
           void storage.remove(POPUP_ROUTE_STORAGE_KEY).catch(() => undefined)
           return
         }
-        for (const ancestor of getAncestorPaths(persisted, routes)) {
-          if (cancelled) {
+        const ancestors = getAncestorPaths(
+          persisted,
+          routes,
+          POPUP_DEFAULT_ROUTE
+        )
+        for (const ancestor of ancestors) {
+          if (signal.aborted) {
             return
           }
           await router.navigate(ancestor)
         }
-        if (cancelled) {
+        if (signal.aborted) {
           return
         }
         restored.current = true
@@ -78,7 +89,7 @@ export const RootRouter = () => {
       }
     })()
     return () => {
-      cancelled = true
+      ac.abort()
     }
   }, [])
 

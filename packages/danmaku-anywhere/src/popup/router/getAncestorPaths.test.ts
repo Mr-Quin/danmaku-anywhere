@@ -1,13 +1,14 @@
 import type { RouteObject } from 'react-router'
 import { describe, expect, it } from 'vitest'
 import { getAncestorPaths } from './getAncestorPaths'
-import { routes as popupRoutes } from './router'
+import { POPUP_DEFAULT_ROUTE, routes as popupRoutes } from './router'
 
 /**
  * Verifies getAncestorPaths walks a URL hierarchy and returns intermediate
  * paths that resolve to real routes. Covers single and multi-level depth,
- * /mount and target exclusion, search/hash stripping, unmatched intermediate
- * segments, and the real popup route table.
+ * the alreadyInHistory and target exclusions, search/hash stripping, query
+ * strings containing '/', unmatched intermediate segments, trailing slash
+ * normalization, and the real popup route table.
  */
 
 const fixtureRoutes: RouteObject[] = [
@@ -32,69 +33,73 @@ const fixtureRoutes: RouteObject[] = [
   },
 ]
 
+const walk = (target: string, routes = fixtureRoutes) =>
+  getAncestorPaths(target, routes, '/mount')
+
 describe('getAncestorPaths', () => {
   it('returns [] for a top-level route (no ancestors)', () => {
-    expect(getAncestorPaths('/a', fixtureRoutes)).toEqual([])
+    expect(walk('/a')).toEqual([])
   })
 
   it('returns the parent for a two-level route', () => {
-    expect(getAncestorPaths('/a/b', fixtureRoutes)).toEqual(['/a'])
+    expect(walk('/a/b')).toEqual(['/a'])
   })
 
   it('returns the chain for a three-level route', () => {
-    expect(getAncestorPaths('/a/nested/deep', fixtureRoutes)).toEqual([
-      '/a',
-      '/a/nested',
-    ])
+    expect(walk('/a/nested/deep')).toEqual(['/a', '/a/nested'])
   })
 
-  it('excludes /mount from the chain', () => {
-    expect(getAncestorPaths('/mount', fixtureRoutes)).toEqual([])
+  it('excludes the alreadyInHistory path from the chain', () => {
+    expect(walk('/mount')).toEqual([])
   })
 
   it('strips query string before walking segments', () => {
-    expect(getAncestorPaths('/a/b?from=settings', fixtureRoutes)).toEqual([
-      '/a',
-    ])
+    expect(walk('/a/b?from=settings')).toEqual(['/a'])
   })
 
   it('strips hash fragment before walking segments', () => {
-    expect(getAncestorPaths('/a/b#anchor', fixtureRoutes)).toEqual(['/a'])
+    expect(walk('/a/b#anchor')).toEqual(['/a'])
   })
 
   it('strips both query and hash', () => {
-    expect(getAncestorPaths('/a/b?x=1#y', fixtureRoutes)).toEqual(['/a'])
+    expect(walk('/a/b?x=1#y')).toEqual(['/a'])
   })
 
   it('does not split on / inside a query string', () => {
-    expect(getAncestorPaths('/a/b?next=/c/d', fixtureRoutes)).toEqual(['/a'])
+    expect(walk('/a/b?next=/c/d')).toEqual(['/a'])
   })
 
   it('skips intermediate segments that do not resolve to routes', () => {
-    expect(getAncestorPaths('/a/ghost/b', fixtureRoutes)).toEqual(['/a'])
+    expect(walk('/a/ghost/b')).toEqual(['/a'])
   })
 
   it('returns [] for the root path', () => {
-    expect(getAncestorPaths('/', fixtureRoutes)).toEqual([])
+    expect(walk('/')).toEqual([])
   })
 
-  it('handles trailing slashes via Boolean filter on segments', () => {
-    expect(getAncestorPaths('/a/b/', fixtureRoutes)).toEqual(['/a'])
+  it('normalizes trailing slashes', () => {
+    expect(walk('/a/b/')).toEqual(['/a'])
   })
 
   it('walks /options/advanced against the real popup routes', () => {
-    expect(getAncestorPaths('/options/advanced', popupRoutes)).toEqual([
-      '/options',
-    ])
+    expect(
+      getAncestorPaths('/options/advanced', popupRoutes, POPUP_DEFAULT_ROUTE)
+    ).toEqual(['/options'])
   })
 
   it('walks /config/integration-policy/edit against the real popup routes', () => {
     expect(
-      getAncestorPaths('/config/integration-policy/edit', popupRoutes)
+      getAncestorPaths(
+        '/config/integration-policy/edit',
+        popupRoutes,
+        POPUP_DEFAULT_ROUTE
+      )
     ).toEqual(['/config', '/config/integration-policy'])
   })
 
   it('returns [] for /styles against the real popup routes', () => {
-    expect(getAncestorPaths('/styles', popupRoutes)).toEqual([])
+    expect(
+      getAncestorPaths('/styles', popupRoutes, POPUP_DEFAULT_ROUTE)
+    ).toEqual([])
   })
 })
