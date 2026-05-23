@@ -18,6 +18,7 @@ export const danmakuSourceTypeList: DanmakuSourceType[] = [
   DanmakuSourceType.Sohu,
   DanmakuSourceType.Maiduidui,
   DanmakuSourceType.Renren,
+  DanmakuSourceType.Aiyifan,
 ]
 
 const DANMAKU_SOURCE_TYPE_LABEL = createLocalizationMap<DanmakuSourceType>({
@@ -34,6 +35,7 @@ const DANMAKU_SOURCE_TYPE_LABEL = createLocalizationMap<DanmakuSourceType>({
   [DanmakuSourceType.Maiduidui]: () =>
     i18n.t('danmaku.type.maiduidui', 'Maiduidui'),
   [DanmakuSourceType.Renren]: () => i18n.t('danmaku.type.renren', 'Renren'),
+  [DanmakuSourceType.Aiyifan]: () => i18n.t('danmaku.type.aiyifan', 'Aiyifan'),
 })
 
 export function localizedDanmakuSourceType(type: DanmakuSourceType): string {

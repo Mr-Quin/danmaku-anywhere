@@ -9,6 +9,7 @@ export enum DanmakuSourceType {
   Sohu = 'Sohu',
   Maiduidui = 'Maiduidui',
   Renren = 'Renren',
+  Aiyifan = 'Aiyifan',
   Custom = 'Custom',
 }
 
@@ -24,6 +25,7 @@ export const PROVIDER_TO_BUILTIN_ID = {
   [DanmakuSourceType.Sohu]: 'builtin:sohu',
   [DanmakuSourceType.Maiduidui]: 'builtin:maiduidui',
   [DanmakuSourceType.Renren]: 'builtin:renren',
+  [DanmakuSourceType.Aiyifan]: 'builtin:aiyifan',
   [DanmakuSourceType.MacCMS]: LEGACY_MACCMS_ID, // not built-in, but used for migrations to indicate this is a migrated option
 } as const satisfies Record<DanmakuSourceType, string>
 

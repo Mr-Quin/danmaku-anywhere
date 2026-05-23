@@ -3,6 +3,9 @@ import {
   type ProtoTypeOverrides,
   zManifest,
 } from '@danmaku-anywhere/dango'
+import builtinAiyifan from '@danmaku-anywhere/dango-manifests/manifests/builtin-aiyifan.json' with {
+  type: 'json',
+}
 import builtinBilibili from '@danmaku-anywhere/dango-manifests/manifests/builtin-bilibili.json' with {
   type: 'json',
 }
@@ -64,6 +67,7 @@ const builtinSpecs: ManifestSpec[] = [
   { manifest: builtinSohu },
   { manifest: builtinMaiduidui },
   { manifest: builtinRenren },
+  { manifest: builtinAiyifan },
 ]
 
 @injectable('Singleton')

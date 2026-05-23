@@ -55,6 +55,9 @@ export class ProviderConfigService implements IStoreService {
       .version(7, {
         upgrade: (data) => seedNewBuiltinProviders(data),
       })
+      .version(8, {
+        upgrade: (data) => seedNewBuiltinProviders(data),
+      })
   }
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {
     const configs = await this.options.get()

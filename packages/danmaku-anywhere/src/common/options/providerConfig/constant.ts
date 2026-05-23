@@ -102,6 +102,16 @@ export const builtInRenrenProvider: ProviderConfig = {
   configValues: {},
 }
 
+export const builtInAiyifanProvider: ProviderConfig = {
+  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Aiyifan],
+  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Aiyifan],
+  name: 'Aiyifan',
+  impl: DanmakuSourceType.Aiyifan,
+  enabled: true,
+  isBuiltIn: true,
+  configValues: {},
+}
+
 export const defaultProviderConfigs: ProviderConfig[] = [
   builtInDanDanPlayProvider,
   builtInBilibiliProvider,
@@ -112,6 +122,7 @@ export const defaultProviderConfigs: ProviderConfig[] = [
   builtInSohuProvider,
   builtInMaiduiduiProvider,
   builtInRenrenProvider,
+  builtInAiyifanProvider,
 ]
 
 export function createCustomDanDanPlayProvider(

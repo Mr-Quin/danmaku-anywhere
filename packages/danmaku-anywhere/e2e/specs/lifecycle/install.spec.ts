@@ -23,6 +23,7 @@ const BUILTIN_PROVIDER_IDS = [
   PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Sohu],
   PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Maiduidui],
   PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Renren],
+  PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Aiyifan],
 ] as const
 
 test('fresh install: default options seeded, no console errors', async ({
