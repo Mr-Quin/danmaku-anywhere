@@ -114,9 +114,10 @@ export class PlayerCommandHandler {
       if (!video) {
         return
       }
+      const duration = Number.isFinite(video.duration) ? video.duration : 0
       playerRpcClient.controller['relay:event:videoEnded']({
         frameId: this.frameId,
-        data: { duration: video.duration },
+        data: { duration },
       })
     })
   }
