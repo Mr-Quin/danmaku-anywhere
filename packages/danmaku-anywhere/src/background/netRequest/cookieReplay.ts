@@ -12,13 +12,33 @@
 // chrome.cookies.set so the browser attaches them on subsequent
 // credentialed requests.
 
-const setCookieByUrl = new Map<string, string[]>()
+// Capture window: entries that aren't consumed within this many ms get
+// pruned on the next write. Long enough to outlast a normal pipeline step;
+// short enough that a forgotten capture can't grow the map unbounded.
+const CAPTURE_TTL_MS = 60_000
+
+interface Captured {
+  cookies: string[]
+  insertedAt: number
+}
+
+const setCookieByUrl = new Map<string, Captured>()
 
 export function consumeSetCookies(url: string): string | null {
-  const list = setCookieByUrl.get(url)
-  if (!list || list.length === 0) return null
-  setCookieByUrl.delete(url)
-  return list.join('; ')
+  const entry = setCookieByUrl.get(url)
+  if (!entry || entry.cookies.length === 0) return null
+  // Don't delete; the listener overwrites on a fresh capture and the TTL
+  // sweep evicts stale entries. Deleting on consume would race with a
+  // re-fire that lands between consume and the next request.
+  return entry.cookies.join('; ')
+}
+
+function pruneStale(now: number): void {
+  for (const [url, entry] of setCookieByUrl) {
+    if (now - entry.insertedAt > CAPTURE_TTL_MS) {
+      setCookieByUrl.delete(url)
+    }
+  }
 }
 
 interface ParsedSetCookie {
@@ -76,15 +96,20 @@ export function setupCookieReplay(hosts: readonly string[]): void {
   const urls = hosts.length > 0 ? hostsToUrlPatterns(hosts) : ['<all_urls>']
   chrome.webRequest.onHeadersReceived.addListener(
     (details): chrome.webRequest.BlockingResponse => {
-      if (!details.responseHeaders) return {}
+      // tabId === -1 marks SW-initiated traffic (background fetch from the
+      // engine). Skip page/content-script traffic so normal browsing doesn't
+      // populate the cookie cache or get its Partitioned tokens re-planted.
+      if (details.tabId !== -1 || !details.responseHeaders) return {}
+      const now = Date.now()
+      pruneStale(now)
       for (const h of details.responseHeaders) {
         if (h.name.toLowerCase() !== 'set-cookie' || !h.value) continue
         // Cache the raw header text so extensionFetchLike can surface it to
         // the engine. Survives across the fetch() boundary even when
         // chrome.cookies.set hasn't finished yet.
-        const existing = setCookieByUrl.get(details.url) ?? []
+        const existing = setCookieByUrl.get(details.url)?.cookies ?? []
         existing.push(`${h.value.split(';')[0]?.trim() ?? ''}`)
-        setCookieByUrl.set(details.url, existing)
+        setCookieByUrl.set(details.url, { cookies: existing, insertedAt: now })
 
         const parsed = parseSetCookie(h.value)
         if (!parsed) continue

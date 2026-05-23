@@ -19,8 +19,10 @@ export const extensionFetchLike: FetchLike = async (input, init) => {
     res.headers.forEach((value, key) => headers.set(key, value))
     if (!headers.has('set-cookie')) {
       // fetch strips Set-Cookie from response.headers; cookieReplay captures
-      // the raw values from webRequest before they're filtered.
-      const captured = consumeSetCookies(input)
+      // the raw values from webRequest before they're filtered. Use res.url
+      // (final URL after redirects) since the listener keys on the URL that
+      // actually received the Set-Cookie response.
+      const captured = consumeSetCookies(res.url)
       if (captured !== null) {
         headers.set('set-cookie', captured)
       }
