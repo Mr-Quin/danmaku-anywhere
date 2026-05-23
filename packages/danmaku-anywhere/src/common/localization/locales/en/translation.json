@@ -206,10 +206,18 @@
     "noComments": "No comments",
     "refresh": "Refresh Danmaku",
     "type": {
+      "aiyifan": "Aiyifan",
+      "bahamut": "Bahamut",
       "bilibili": "Bilibili",
       "danDanPlay": "DanDanPlay",
+      "iqiyi": "iQIYI",
       "macCms": "MacCMS",
-      "tencent": "Tencent"
+      "maiduidui": "Maiduidui",
+      "mango": "Mango TV",
+      "renren": "Renren",
+      "sohu": "Sohu",
+      "tencent": "Tencent",
+      "youku": "Youku"
     },
     "unmount": "Unmount",
     "viewDanmaku": "View Danmaku"

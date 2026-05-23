@@ -199,10 +199,18 @@
     "noComments": "弹幕列表为空",
     "refresh": "刷新弹幕",
     "type": {
+      "aiyifan": "爱壹帆",
+      "bahamut": "巴哈姆特",
       "bilibili": "B站",
       "danDanPlay": "弹弹play",
+      "iqiyi": "爱奇艺",
       "macCms": "MacCMS",
-      "tencent": "腾讯"
+      "maiduidui": "埋堆堆",
+      "mango": "芒果TV",
+      "renren": "人人视频",
+      "sohu": "搜狐视频",
+      "tencent": "腾讯",
+      "youku": "优酷"
     },
     "unmount": "卸载弹幕",
     "viewDanmaku": "查看弹幕"
