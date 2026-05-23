@@ -107,4 +107,17 @@ export class ManifestRegistry {
     }
     return runner
   }
+
+  // Union of every registered manifest's hosts, deduplicated. Lets the
+  // background bootstrap narrow webRequest listeners to source-specific
+  // traffic instead of `<all_urls>`.
+  allHosts(): string[] {
+    const set = new Set<string>()
+    for (const runner of this.runners.values()) {
+      for (const host of runner.manifest.hosts) {
+        set.add(host)
+      }
+    }
+    return [...set]
+  }
 }

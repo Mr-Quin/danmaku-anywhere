@@ -247,6 +247,10 @@ export class ProviderService {
     if (!cookieSet) {
       throw new Error(`manifest "${manifestId}" has no cookieSet declaration`)
     }
-    await fetch(cookieSet.url)
+    // `credentials: 'include'` so the browser actually processes Set-Cookie
+    // from the cross-origin response. Without it Chrome drops cookies from
+    // extension-initiated requests even when the cookieReplay listener has
+    // captured the header for the engine's view.
+    await fetch(cookieSet.url, { credentials: 'include' })
   }
 }

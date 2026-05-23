@@ -7,6 +7,7 @@ import { PortsManager } from '@/background/ports/PortsManager'
 import { RpcManager } from '@/background/rpc/RpcManager'
 import { MountConfigTabReloader } from '@/background/scripting/MountConfigTabReloader'
 import { ScriptingManager } from '@/background/scripting/ScriptingManager'
+import { ManifestRegistry } from '@/background/services/providers/ManifestRegistry'
 import { OptionsManager } from '@/background/syncOptions/OptionsManager'
 import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
 import { generateId } from '@/background/utils/generateId'
@@ -31,7 +32,7 @@ container.get(ScriptingManager).setup()
 container.get(MountConfigTabReloader).setup()
 container.get(RpcManager).setup()
 container.get(NetRequestManager).setup()
-setupCookieReplay()
+setupCookieReplay(container.get(ManifestRegistry).allHosts())
 container.get(AlarmManager).setup()
 container.get(PortsManager).setup()
 

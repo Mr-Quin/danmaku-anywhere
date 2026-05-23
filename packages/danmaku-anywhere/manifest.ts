@@ -15,11 +15,12 @@ const permissions: chrome.runtime.ManifestPermissions[] = [
   'alarms',
   'webRequest',
   'contextMenus',
-  // chrome.cookies. Required for sources that sign requests using a token
-  // delivered via a Set-Cookie response header — fetch() strips Set-Cookie
-  // from JS-visible headers even with credentials:include, so we read the
-  // cookie from chrome.cookies and re-inject it into the engine's response
-  // headers map. See extensionFetchLike.
+  // chrome.cookies. Sources that sign requests using a Partitioned token
+  // (e.g. Youku's `_m_h5_tk`) deliver it via Set-Cookie with Partitioned;
+  // Chrome would otherwise stash it in a per-top-frame partition the
+  // service worker can't see. cookieReplay's webRequest listener catches
+  // the raw header for the engine, then chrome.cookies.set re-plants it
+  // in the unpartitioned store so the next credentialed fetch carries it.
   'cookies',
 ]
 

@@ -4,10 +4,9 @@ import { describe, expect, it } from 'vitest'
 import builtinYouku from '../manifests/builtin-youku.json' with { type: 'json' }
 
 /**
- * Smoke-tests builtin:youku's search pipeline shape against the host contract.
- * Youku is search-only for now; full danmaku fetch needs Set-Cookie extraction
- * in the engine (tracked separately). The dango package owns broader Youku
- * mechanics coverage.
+ * Smoke-tests builtin:youku's search pipeline shape against the host
+ * contract. The dango package owns broader Youku mechanics coverage
+ * (signing chain, partitioned cookie replay, etc.).
  */
 
 interface MockResponse {

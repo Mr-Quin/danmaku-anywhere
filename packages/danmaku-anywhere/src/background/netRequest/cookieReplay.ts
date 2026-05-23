@@ -61,7 +61,7 @@ function attrsExpire(attrs: Record<string, string | true>): number | undefined {
   return undefined
 }
 
-export function setupCookieReplay(): void {
+export function setupCookieReplay(hosts: readonly string[]): void {
   if (
     typeof chrome === 'undefined' ||
     !chrome.webRequest ||
@@ -69,6 +69,11 @@ export function setupCookieReplay(): void {
   ) {
     return
   }
+  // Narrow webRequest filter to the manifests' declared hosts so we don't
+  // observe — let alone re-plant — Set-Cookie from unrelated browsing
+  // traffic. `<all_urls>` would technically work given host_permissions but
+  // leaks every site's cookies through this handler.
+  const urls = hosts.length > 0 ? hostsToUrlPatterns(hosts) : ['<all_urls>']
   chrome.webRequest.onHeadersReceived.addListener(
     (details): chrome.webRequest.BlockingResponse => {
       if (!details.responseHeaders) return {}
@@ -113,7 +118,21 @@ export function setupCookieReplay(): void {
       }
       return {}
     },
-    { urls: ['<all_urls>'] },
+    { urls },
     ['responseHeaders', 'extraHeaders']
   )
+}
+
+// `hosts` come from manifest.hosts entries (bare hostnames or `*.example.com`
+// wildcards). webRequest expects URL match patterns; the pre-extension-host
+// portion of each pattern allows http/https and any port/path.
+function hostsToUrlPatterns(hosts: readonly string[]): string[] {
+  const patterns: string[] = []
+  for (const host of hosts) {
+    if (host === '*') {
+      return ['<all_urls>']
+    }
+    patterns.push(`*://${host}/*`)
+  }
+  return patterns
 }
