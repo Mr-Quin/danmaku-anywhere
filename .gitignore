@@ -36,3 +36,4 @@ test-results/
 playwright-report/
 .specs/
 docs/superpowers/pr*.json
+.superpowers/
