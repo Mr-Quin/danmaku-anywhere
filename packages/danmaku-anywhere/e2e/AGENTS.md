@@ -93,3 +93,56 @@ Add methods to a POM rather than reaching into selectors from a spec. If a spec 
 
 ### Locale-stable matchers
 Toast text and dialog title/body are i18n-translated. Prefer `popup.toast.expectSuccess` / `expectError` (which scope by `data-severity`) over raw text matching. When asserting message text, use a regex that matches both locales — see `SeasonDetailsPage.expectCommentCount` (matches `条弹幕` and `comments`).
+
+## Migration specs
+
+Live under `e2e/specs/migration/`. They are slower than baseline specs (~10 to 30s each first-run, dominated by downloading the prior release on a cold `.e2e-cache/`) and only run when changes might affect persisted shape: chrome.storage option schemas, Dexie IndexedDB schema versions, provider config reshapes, etc.
+
+### The swap mechanism
+
+Launch a persistent Chromium context with the prior released build via `--load-extension`. Let it boot and write defaults. Then call CDP `Extensions.loadUnpacked` with the current build's path inside the SAME context. Both manifests embed `MIGRATION_EXTENSION_KEY`, so Chrome resolves them to the same extension ID. The bumped current manifest version (+99 on the build component) triggers Chrome's real update install path, which actually re-evaluates the SW against the new files and runs the upgrade pipeline.
+
+`--load-extension` close + relaunch with a different path is NOT a valid swap: Chrome keeps the prior compiled SW bytecode and silently no-ops every migration. CDP `Extensions.loadUnpacked` is the only path that actually re-evaluates the SW. The launch helper passes `--enable-unsafe-extension-debugging` to unlock the CDP Extensions domain.
+
+### user_data_dir must be a short path
+
+Chrome's IDB / LevelDB silently breaks on Windows paths over `MAX_PATH` (260 chars). `testInfo.outputPath('userDataDir')` is too deep once Chrome adds its own per-origin subdir. Use `os.tmpdir()` for the user_data_dir or migrations will appear to never run because IDB never opens. This is a real Chrome quirk, not a test-only issue.
+
+### Sourcing the prior release
+
+`ensurePriorRelease(tag)` resolves the prior build in this order:
+
+1. `DA_PRIOR_EXTENSIONS_DIR` env var pointing at a folder of pre-downloaded unpacked extensions (subdirs named after the version, e.g. `1.5.0/`). Skips the network. Useful for local iteration.
+2. The on-disk cache at `.e2e-cache/prior-releases/<tag>/`.
+3. Public HTTPS download from `github.com/{repo}/releases/download/{tag}/{asset}`. No auth required (the release asset is public). CI does not need a token.
+
+The baseline tag, repo, and asset filename template live in `e2e/migration.config.json` so bumping the baseline doesn't require code changes. Bumping the baseline (e.g. after a new prod release) is a JSON edit and a fresh cache key derivation.
+
+### Seed data
+
+The smoke seeds state by driving v1.5.0's own popup UI from `e2e/poms/legacy/v1.5.0/MigrationLegacyPopup`. Two flows:
+
+- `restoreBackup(jsonPath)` — uploads to `/options/backup`, writes `chrome.storage`.
+- `importDanmaku(zipPath)` — uploads to `/mount`, writes IDB rows. v1.5.0's import auto-extracts zip files, so one zip can hold multiple danmaku files.
+
+Fixtures are committed as binaries under `e2e/fixtures/migration/`:
+
+- `backup.json.gz` — redacted chrome.storage backup.
+- `danmaku.zip` — one representative danmaku export per provider type.
+
+Regenerate with `scripts/prepareMigrationFixtures.mjs <backup.json> <export-root>`. The script strips API keys, auth headers, and user-identifying URLs; refuses to write if it can still detect anything resembling a secret.
+
+### Asserting post-swap
+
+Read state through a popup page (`chrome-extension://<id>/pages/popup.html`), not the service worker. The popup forces the new SW to wake and exercises RPC handlers, surfacing latent errors in the upgrade path. The swapped SW reference from Playwright may go stale.
+
+Smoke assertions combine an error gate AND positive data integrity assertions. The error gate catches throwing migrations (`OptionsService` logs them, Dexie's `db.open()` rejects). Positive assertions catch silent corruption (a migration that returns `[]` or drops a field without throwing) since no error fires. Neither alone is sufficient. Assertions match seeded state by ID rather than byte-equality so a v22 to v25 migration that legitimately reshapes fields still passes; the test fails only when an entry goes missing or the upgrade explicitly errors.
+
+### Helpers
+
+- `ensurePriorRelease(tag)`: stages a prior release into `.e2e-cache/prior-releases/<tag>/extension/`, injecting the test key. Honors `DA_PRIOR_EXTENSIONS_DIR` for local sourcing.
+- `ensureCurrentBuildForMigration()`: copies the current `build/` into `.e2e-cache/prior-releases/current-<workerSlot>/extension/`, injects the test key, bumps the manifest version.
+- `launchExtension({ userDataDir, extensionPath })`: launches a persistent context with the prior build via `--load-extension` and the CDP Extensions flag.
+- `swapExtension(launched, { extensionPath })`: swaps to the current build via CDP `Extensions.loadUnpacked` in the same context.
+
+Vendored POMs for the prior release's UI live under `e2e/poms/legacy/<version>/` and are frozen. Never share with current POMs since current UI evolves.

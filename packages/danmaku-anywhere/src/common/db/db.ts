@@ -14,6 +14,8 @@ import { Dexie } from 'dexie'
 import { injectable } from 'inversify'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
 
+export const DANMAKU_DB_NAME = 'danmaku-anywhere'
+
 type WithoutId<T> = Omit<T, 'id'>
 
 @injectable('Singleton')
@@ -29,7 +31,7 @@ export class DanmakuAnywhereDb extends Dexie {
   })
 
   constructor() {
-    super('danmaku-anywhere')
+    super(DANMAKU_DB_NAME)
 
     this.version(1).stores({
       dandanplay: 'meta.episodeId',

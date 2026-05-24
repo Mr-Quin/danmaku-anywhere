@@ -80,6 +80,18 @@ jobs:
         working-directory: packages/danmaku-anywhere
         run: pnpm exec playwright install --with-deps chromium
 
+      # Migration specs download prior releases over public HTTPS from
+      # github.com/{repo}/releases/download/... — no auth required. Cache
+      # them between runs; key is hashed over migration.config.json so
+      # bumping baselinePriorTag invalidates the cache automatically.
+      - name: Cache prior-release downloads
+        uses: actions/cache@v4
+        with:
+          path: packages/danmaku-anywhere/.e2e-cache/prior-releases
+          key: prior-releases-${{ runner.os }}-${{ hashFiles('packages/danmaku-anywhere/e2e/migration.config.json') }}
+          restore-keys: |
+            prior-releases-${{ runner.os }}-
+
       # .env is gitignored, so write a synthetic one for the build. The
       # hosts are intercepted by Playwright routes; nothing reaches them.
       - name: Write .env for build
