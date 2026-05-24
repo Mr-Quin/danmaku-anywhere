@@ -6,7 +6,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { useEffect } from 'react'
+import { useCallback, useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { DocIcon } from '@/common/components/DocIcon'
@@ -226,13 +226,16 @@ export const DanmakuStylesForm = ({
 
   const { control, setValue, getValues, watch, handleSubmit, subscribe } = form
 
-  const onSave = async (formData: DanmakuOptions) => {
-    onSaveStatusChange?.('saving')
+  const onSave = useCallback(
+    async (formData: DanmakuOptions) => {
+      onSaveStatusChange?.('saving')
 
-    await partialUpdate(formData)
+      await partialUpdate(formData)
 
-    onSaveStatusChange?.('saved')
-  }
+      onSaveStatusChange?.('saved')
+    },
+    [onSaveStatusChange, partialUpdate]
+  )
 
   const resetFlag = useResetForm({
     form,
