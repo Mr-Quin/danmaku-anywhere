@@ -2,7 +2,6 @@ import { Settings } from '@mui/icons-material'
 import {
   Box,
   Fade,
-  FormControlLabel,
   IconButton,
   LinearProgress,
   Typography,
@@ -85,22 +84,15 @@ export const ControllerToolbar = () => {
             >
               {activeConfig.name}
             </Typography>
-            <FormControlLabel
-              control={
-                <StyledEnableSwitch
-                  checked={!isManual}
-                  onChange={() => toggleManualMode()}
-                  size="small"
-                />
-              }
-              label={t('integration.autoMode', 'Auto Mode')}
-              labelPlacement="top"
+            <StyledEnableSwitch
+              checked={!isManual}
+              onChange={() => toggleManualMode()}
+              size="small"
               slotProps={{
-                typography: {
-                  variant: 'caption',
+                input: {
+                  'aria-label': t('integration.autoMode', 'Auto Mode'),
                 },
               }}
-              sx={{ m: 0, minWidth: 'max-content' }}
             />
           </>
         )}

@@ -27,9 +27,9 @@ export function SegmentedTabs({
       aria-label={ariaLabel}
       sx={(theme) => ({
         display: 'flex',
-        gap: '1px',
-        p: '2px',
-        borderRadius: 1,
+        gap: 1,
+        p: 0.5,
+        borderRadius: 0.5,
         bgcolor: theme.palette.paperAlt,
         border: `1px solid ${theme.palette.divider}`,
       })}
@@ -47,10 +47,10 @@ export function SegmentedTabs({
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '5px',
+              gap: 0.5,
               minHeight: 24,
               paddingInline: 1,
-              borderRadius: '6px',
+              borderRadius: 0.5,
               bgcolor: isActive ? 'primary.main' : 'transparent',
               color: isActive ? 'primary.contrastText' : 'text.secondary',
               fontWeight: 600,
