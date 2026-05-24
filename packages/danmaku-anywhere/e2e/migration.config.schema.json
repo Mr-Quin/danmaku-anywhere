@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "type": "object",
+  "required": ["repo", "baselinePriorTag", "assetNameTemplate"],
+  "additionalProperties": false,
+  "properties": {
+    "repo": {
+      "type": "string",
+      "description": "GitHub repo as owner/name. Used to construct the public release download URL.",
+      "pattern": "^[^/]+/[^/]+$"
+    },
+    "baselinePriorTag": {
+      "type": "string",
+      "description": "Git tag of the released prior version to swap from. Bumped when a new prod release ships. The smoke spec downloads this tag's chrome.zip release asset.",
+      "pattern": "^v?\\d+(\\.\\d+)*$"
+    },
+    "assetNameTemplate": {
+      "type": "string",
+      "description": "Release asset filename template. `{version}` is replaced with the tag minus its `v` prefix.",
+      "pattern": "\\{version\\}"
+    }
+  }
+}

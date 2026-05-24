@@ -4,3 +4,4 @@ test-results
 playwright-report
 blob-report
 .playwright-profile
+.e2e-cache

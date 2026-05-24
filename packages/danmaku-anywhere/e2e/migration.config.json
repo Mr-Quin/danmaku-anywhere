@@ -1,0 +1,6 @@
+{
+  "$schema": "./migration.config.schema.json",
+  "repo": "Mr-Quin/danmaku-anywhere",
+  "baselinePriorTag": "v1.5.0",
+  "assetNameTemplate": "danmaku-anywhere-{version}-chrome.zip"
+}
