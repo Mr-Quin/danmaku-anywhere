@@ -10,10 +10,11 @@ export interface FieldExtraction {
   regexMissed: boolean
 }
 
-// Cap regex inputs so a pathological pattern can't hang the page tab. A page
-// element's textContent can be arbitrarily large; the parsed values we care
-// about (titles, episode numbers) are always well under this bound.
+// Cap regex inputs so a pathological pattern can't hang the page tab.
+// MAX_PATTERN_LENGTH covers imported share-codes too; MAX_REGEX_INPUT_LENGTH
+// covers ancestor element mis-picks whose textContent is huge.
 const MAX_REGEX_INPUT_LENGTH = 10_000
+const MAX_PATTERN_LENGTH = 500
 
 export function extractFieldValue(
   integration: Integration | undefined,
@@ -62,6 +63,9 @@ export function applyRegex(
 ): { parsed: string; regexMissed: boolean } {
   if (!pattern) {
     return { parsed: raw, regexMissed: false }
+  }
+  if (pattern.length > MAX_PATTERN_LENGTH) {
+    return { parsed: raw, regexMissed: true }
   }
   const input =
     raw.length > MAX_REGEX_INPUT_LENGTH

@@ -29,16 +29,14 @@ export function useEditModeIntegration() {
       }
 
       const seed = createIntegrationInput(activeConfig.name)
-      const nextPolicy = applyFieldChange(
-        seed.policy as IntegrationPolicy,
-        fieldId,
-        change
-      )
       const next: Integration = {
-        version: 3,
+        ...seed,
         id: getRandomUUID(),
-        name: seed.name,
-        policy: nextPolicy,
+        policy: applyFieldChange(
+          seed.policy as IntegrationPolicy,
+          fieldId,
+          change
+        ),
       }
       await add(next, activeConfig.id)
     },
