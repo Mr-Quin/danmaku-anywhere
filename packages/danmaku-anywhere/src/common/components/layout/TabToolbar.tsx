@@ -49,14 +49,12 @@ export const TabToolbar = ({
   return (
     <Toolbar
       variant="dense"
+      disableGutters
       sx={{
         flexShrink: 0,
-        minHeight: 48,
+        minHeight: 40,
         paddingInline: 2,
-        paddingBlock: 1,
         gap: 0.5,
-        borderBottom: 1,
-        borderColor: 'divider',
       }}
     >
       {showBackButton && backButton}

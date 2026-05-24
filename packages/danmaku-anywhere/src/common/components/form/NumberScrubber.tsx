@@ -37,10 +37,10 @@ const StyledOutlinedInput = styled(OutlinedInput, {
 })<{ isDragging: boolean; bgPosition: string }>(
   ({ theme, isDragging, bgPosition }) => {
     const major = isDragging
-      ? theme.palette.primary.main
+      ? theme.palette.text.secondary
       : theme.palette.text.disabled
     const minor = isDragging
-      ? theme.palette.primary.light
+      ? theme.palette.text.disabled
       : theme.palette.divider
     return {
       width: '100%',
@@ -72,8 +72,8 @@ const StyledOutlinedInput = styled(OutlinedInput, {
       '&:hover': {
         backgroundColor: theme.palette.action.hover,
         backgroundImage: `
-        linear-gradient(90deg, transparent 39px, ${theme.palette.primary.main} 39px, ${theme.palette.primary.main} 40px),
-        linear-gradient(90deg, transparent 7px, ${theme.palette.primary.light} 7px, ${theme.palette.primary.light} 8px)
+        linear-gradient(90deg, transparent 39px, ${theme.palette.text.secondary} 39px, ${theme.palette.text.secondary} 40px),
+        linear-gradient(90deg, transparent 7px, ${theme.palette.divider} 7px, ${theme.palette.divider} 8px)
       `,
       },
     }

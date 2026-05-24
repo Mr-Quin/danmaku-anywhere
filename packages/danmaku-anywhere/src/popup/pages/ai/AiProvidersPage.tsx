@@ -1,5 +1,5 @@
-import { AddCircle } from '@mui/icons-material'
-import { IconButton, Stack } from '@mui/material'
+import { Add } from '@mui/icons-material'
+import { Button, Stack } from '@mui/material'
 import { type ReactElement, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
@@ -125,9 +125,15 @@ export const AiProvidersPage = (): ReactElement => {
   return (
     <TabLayout>
       <TabToolbar title={t('ai.providers', 'AI Providers')}>
-        <IconButton color="primary" size="small" onClick={handleAddProvider}>
-          <AddCircle />
-        </IconButton>
+        <Button
+          variant="soft"
+          color="primary"
+          size="small"
+          startIcon={<Add />}
+          onClick={handleAddProvider}
+        >
+          {t('common.add', 'Add')}
+        </Button>
       </TabToolbar>
       <AiProviderConfigList
         onEdit={handleEditProvider}
