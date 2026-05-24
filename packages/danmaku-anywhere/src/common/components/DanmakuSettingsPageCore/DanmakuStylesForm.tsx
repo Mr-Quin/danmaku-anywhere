@@ -1,4 +1,11 @@
-import { Collapse, debounce, Stack, TextField, Typography } from '@mui/material'
+import {
+  Box,
+  Collapse,
+  debounce,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -553,14 +560,13 @@ export const DanmakuStylesForm = ({
             control={control}
             render={({ field }) => (
               <Stack
-                spacing={1}
+                spacing={2}
                 direction="row"
                 sx={{
                   alignItems: 'center',
-                  justifyContent: 'space-between',
                 }}
               >
-                <div>
+                <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography
                     gutterBottom
                     variant="body2"
@@ -581,21 +587,24 @@ export const DanmakuStylesForm = ({
                       'Random: danmaku will be distributed uniformly. Order: danmaku will fill the screen from top to bottom.'
                     )}
                   </Typography>
-                </div>
-                <SegmentedTabs
-                  value={field.value}
-                  onChange={(v) => field.onChange(v)}
-                  items={[
-                    {
-                      value: 'random',
-                      label: t('stylePage.randomDistribution', 'Random'),
-                    },
-                    {
-                      value: 'order',
-                      label: t('stylePage.orderDistribution', 'Order'),
-                    },
-                  ]}
-                />
+                </Box>
+                <Box sx={{ flexShrink: 0, minWidth: 180 }}>
+                  <SegmentedTabs
+                    value={field.value}
+                    onChange={(v) => field.onChange(v)}
+                    color="secondary"
+                    items={[
+                      {
+                        value: 'random',
+                        label: t('stylePage.randomDistribution', 'Random'),
+                      },
+                      {
+                        value: 'order',
+                        label: t('stylePage.orderDistribution', 'Order'),
+                      },
+                    ]}
+                  />
+                </Box>
               </Stack>
             )}
           />

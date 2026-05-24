@@ -12,6 +12,7 @@ interface SegmentedTabsProps {
   value: string
   items: SegmentedTabsItem[]
   onChange: (value: string) => void
+  color?: 'primary' | 'secondary'
   'aria-label'?: string
 }
 
@@ -19,8 +20,11 @@ export function SegmentedTabs({
   value,
   items,
   onChange,
+  color = 'primary',
   'aria-label': ariaLabel,
 }: SegmentedTabsProps) {
+  const activeBg = `${color}.main`
+  const activeFg = `${color}.contrastText`
   return (
     <Box
       role="tablist"
@@ -51,18 +55,18 @@ export function SegmentedTabs({
               minHeight: 24,
               paddingInline: 1,
               borderRadius: 1,
-              bgcolor: isActive ? 'primary.main' : 'transparent',
-              color: isActive ? 'primary.contrastText' : 'text.secondary',
+              bgcolor: isActive ? activeBg : 'transparent',
+              color: isActive ? activeFg : 'text.secondary',
               fontWeight: 600,
               transition: theme.transitions.create(
                 ['background-color', 'color'],
                 { duration: theme.transitions.duration.shortest }
               ),
               '&:hover': {
-                bgcolor: isActive ? 'primary.main' : 'action.hover',
+                bgcolor: isActive ? activeBg : 'action.hover',
               },
               '&.Mui-focusVisible': {
-                outline: `2px solid ${theme.palette.primary.main}`,
+                outline: `2px solid ${theme.palette[color].main}`,
                 outlineOffset: -2,
               },
             })}
