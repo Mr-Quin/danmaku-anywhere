@@ -16,6 +16,7 @@ import { getScrollBarProps } from '@/common/components/layout/ScrollBox'
 import { formatHotkeyCombo } from '@/common/options/extensionOptions/hotkeys'
 import { useHotkeyOptions } from '@/common/options/extensionOptions/useHotkeyOptions'
 import { useSearchHistory } from '@/common/options/searchHistory/useSearchHistory'
+import { MONOSPACE_FONT_FAMILY } from '@/common/theme/sakura'
 import { getOS, matchWithPinyin } from '@/common/utils/utils'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { getUrlProviderLabel } from './UrlParseSection'
@@ -207,8 +208,7 @@ export function SearchInput({
               'data-testid': 'search-input',
               style: urlMode
                 ? {
-                    fontFamily:
-                      'ui-monospace, SFMono-Regular, Menlo, monospace',
+                    fontFamily: MONOSPACE_FONT_FAMILY,
                     fontSize: 12,
                   }
                 : undefined,
@@ -247,8 +247,7 @@ export function SearchInput({
                         borderRadius: 1,
                         bgcolor: 'background.paper',
                         border: `1px solid ${theme.palette.divider}`,
-                        fontFamily:
-                          'ui-monospace, SFMono-Regular, Menlo, monospace',
+                        fontFamily: MONOSPACE_FONT_FAMILY,
                         fontSize: 11,
                         fontWeight: 700,
                         color: 'text.secondary',

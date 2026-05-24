@@ -38,10 +38,7 @@ export const ConfigPage = () => {
   return (
     <>
       <TabLayout>
-        <ConfigToolbar
-          onAdd={handleAddConfig}
-          onShowIntegration={() => navigate('integration-policy')}
-        />
+        <ConfigToolbar onAdd={handleAddConfig} />
         <MountConfigList onEdit={handleEditConfig} onAdd={handleAddConfig} />
       </TabLayout>
       <Outlet />

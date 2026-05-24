@@ -7,7 +7,6 @@ import { useImportShareCodeDialog } from '@/common/options/combinedPolicy/useImp
 
 type ConfigToolbarProps = {
   onAdd: () => void
-  onShowIntegration: () => void
 }
 
 export const ConfigToolbar = ({ onAdd }: ConfigToolbarProps) => {

@@ -56,7 +56,7 @@ const StyledListItem = styled(ListItem)(({ theme }) => {
     border: `1px solid ${theme.palette.divider}`,
     borderRadius: theme.shape.borderRadius,
     backgroundColor: theme.palette.background.paper,
-    marginBottom: theme.spacing(0.5),
+    marginBottom: theme.spacing(1),
     '&:last-of-type': {
       marginBottom: 0,
     },

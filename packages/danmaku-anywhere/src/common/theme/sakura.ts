@@ -478,6 +478,9 @@ function buildSakuraComponents(
   }
 }
 
+export const MONOSPACE_FONT_FAMILY =
+  'ui-monospace, SFMono-Regular, Menlo, monospace'
+
 function buildSakuraTypography(
   pxToRem: (px: number) => string
 ): ThemeOptions['typography'] {

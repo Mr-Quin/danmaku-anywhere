@@ -1,5 +1,5 @@
 import { Delete, ErrorOutlined, Share } from '@mui/icons-material'
-import { Chip } from '@mui/material'
+import { Box, Chip } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { DraggableList } from '@/common/components/DraggableList'
@@ -15,6 +15,7 @@ import {
   useEditMountConfig,
   useMountConfig,
 } from '@/common/options/mountConfig/useMountConfig'
+import { MONOSPACE_FONT_FAMILY } from '@/common/theme/sakura'
 import { ConfigToggleSwitch } from '@/popup/pages/config/components/ConfigToggleSwitch'
 import { EmptyMountConfigList } from '@/popup/pages/config/components/EmptyMountConfigList'
 
@@ -123,13 +124,9 @@ export const MountConfigList = ({ onEdit, onAdd }: MountConfigListProps) => {
         </ListItemPrimaryStack>
       )}
       renderSecondary={(config) => (
-        <span
-          style={{
-            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-          }}
-        >
+        <Box component="span" sx={{ fontFamily: MONOSPACE_FONT_FAMILY }}>
           {config.patterns[0]}
-        </span>
+        </Box>
       )}
       renderSecondaryAction={(config) => {
         const menuItems: DAMenuItemConfig[] = []
