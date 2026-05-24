@@ -75,6 +75,20 @@ describe('findFirstVisibleNode', () => {
     expect(result?.id).toBe('visible')
   })
 
+  it('skips selectors whose ancestor is hidden via display:none', () => {
+    document.body.innerHTML = `
+      <div style="display: none"><button id="buried"></button></div>
+      <button id="exposed"></button>
+    `
+
+    const result = findFirstVisibleNode([
+      { value: '//button[@id="buried"]', quick: false },
+      { value: '//button[@id="exposed"]', quick: false },
+    ])
+
+    expect(result?.id).toBe('exposed')
+  })
+
   it('returns null when no selector matches', () => {
     document.body.innerHTML = '<button id="a"></button>'
 
