@@ -100,7 +100,7 @@ No per-session × close affordance. The global setting toggle is the only off sw
 
 ### Visual coherence with `SkipButton`
 
-The existing in-video [SkipButton](packages/danmaku-anywhere/src/content/player/components/SkipButton/SkipButton.tsx) was hand-rolled with vanilla CSS because the player runtime is intentionally light. Code-wise it stays a separate component with its own owner ([videoSkip](packages/danmaku-anywhere/src/content/player/videoSkip)). **Visually**, the designer should restyle the SkipButton in the same pass so the two in-video surfaces share a design language and do not visually compete.
+The existing in-video [SkipButton](../../../packages/danmaku-anywhere/src/content/player/components/SkipButton/SkipButton.tsx) was hand-rolled with vanilla CSS because the player runtime is intentionally light. Code-wise it stays a separate component with its own owner ([videoSkip](../../../packages/danmaku-anywhere/src/content/player/videoSkip)). **Visually**, the designer should restyle the SkipButton in the same pass so the two in-video surfaces share a design language and do not visually compete.
 
 ### Low-fi sketch (for reference, not prescription)
 
@@ -114,7 +114,7 @@ Both states appear during chrome-visible moments and fade alongside the FAB and 
 
 ### Frame placement
 
-The info panel renders in the player frame (the frame containing the active `<video>`). Ownership lives in a new `InfoPanelService` mounted by [PlayerCommandHandler.service.ts](packages/danmaku-anywhere/src/content/player/PlayerCommandHandler.service.ts), following the same Inversify service pattern as `DanmakuManagerService`, `VideoSkipService`, etc.
+The info panel renders in the player frame (the frame containing the active `<video>`). Ownership lives in a new `InfoPanelService` mounted by [PlayerCommandHandler.service.ts](../../../packages/danmaku-anywhere/src/content/player/PlayerCommandHandler.service.ts), following the same Inversify service pattern as `DanmakuManagerService`, `VideoSkipService`, etc.
 
 The service mounts a React subtree into the existing player shadow root and injects its CSS as a string via the existing `injectCss(shadowRoot, [...])` pattern.
 
@@ -153,9 +153,9 @@ Each player frame holds a tiny zustand slice (`usePanelStateStore`) consumed by 
 
 The FAB has helpers that the info panel needs. Generalize and move them so both consumers can import:
 
-- `useAutoHideOnIdle` — extracted from [useShowFab.tsx](packages/danmaku-anywhere/src/content/controller/ui/floatingButton/hooks/useShowFab.tsx). Pure logic, no MUI dependency.
-- A frame-light draggable wrapper — the existing [DraggableContainer](packages/danmaku-anywhere/src/content/controller/ui/components/DraggableContainer) imports from `@mui/material` (Popper), so plan on a vanilla fork rather than direct reuse. Keep the FAB on the original; the fork lives in shared utilities for the player frame.
-- `usePersistedPosition` — generalized from [usePersistedFabPosition.ts](packages/danmaku-anywhere/src/content/controller/ui/floatingButton/hooks/usePersistedFabPosition.ts), parameterizing the storage key and adding an optional bounds-clamping argument. The info panel passes the live video bounding rect as bounds.
+- `useAutoHideOnIdle` — extracted from [useShowFab.tsx](../../../packages/danmaku-anywhere/src/content/controller/ui/floatingButton/hooks/useShowFab.tsx). Pure logic, no MUI dependency.
+- A frame-light draggable wrapper — the existing [DraggableContainer](../../../packages/danmaku-anywhere/src/content/controller/ui/components/DraggableContainer.tsx) imports from `@mui/material` (Popper), so plan on a vanilla fork rather than direct reuse. Keep the FAB on the original; the fork lives in shared utilities for the player frame.
+- `usePersistedPosition` — generalized from [usePersistedFabPosition.ts](../../../packages/danmaku-anywhere/src/content/controller/ui/floatingButton/hooks/usePersistedFabPosition.ts), parameterizing the storage key and adding an optional bounds-clamping argument. The info panel passes the live video bounding rect as bounds.
 
 ### Position persistence
 
