@@ -270,7 +270,7 @@
     },
     "advanced": "Advanced editor",
     "empty": {
-      "pickField": "Pick {{label}}",
+      "pickTitle": "Pick title",
       "required": "REQ"
     },
     "entry": {

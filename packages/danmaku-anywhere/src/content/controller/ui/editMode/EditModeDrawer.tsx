@@ -110,7 +110,7 @@ export function EditModeDrawer() {
       anchorEl={anchorEl}
       initialOffset={initialOffset}
       onDragEnd={handleDragEnd}
-      sx={{ zIndex: 1400 }}
+      sx={{ zIndex: 2147483642 }}
     >
       {({ bind, isDragging }) => (
         <Box
@@ -244,10 +244,7 @@ export function EditModeDrawer() {
           )}
 
           {!titlePicked && (
-            <RequiredFieldEmpty
-              fieldLabel={getFieldLabel(t, 'title')}
-              onClick={() => handlePick('title')}
-            />
+            <RequiredFieldEmpty onClick={() => handlePick('title')} />
           )}
 
           {titlePicked && optionalAvailable.length > 0 && (

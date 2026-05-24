@@ -33,6 +33,7 @@ const DefaultHighlightBox = styled(Box)(({ theme }) => ({
   border: `2px solid ${red[500]}`,
   borderRadius: theme.shape.borderRadius,
   pointerEvents: 'none',
+  zIndex: 2147483647,
 }))
 
 const FieldHighlightBox = styled(Box, {
@@ -47,6 +48,7 @@ const FieldHighlightBox = styled(Box, {
   borderRadius: 6,
   pointerEvents: 'none',
   boxShadow: `0 0 0 5px ${color}22, 0 0 30px ${color}55`,
+  zIndex: 2147483647,
 }))
 
 const HightlightViewport = styled(Box)(({ theme }) => ({

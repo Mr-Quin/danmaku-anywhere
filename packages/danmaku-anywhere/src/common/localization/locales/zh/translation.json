@@ -263,7 +263,7 @@
     },
     "advanced": "高级编辑器",
     "empty": {
-      "pickField": "选取{{label}}",
+      "pickTitle": "选取标题",
       "required": "必填"
     },
     "entry": {

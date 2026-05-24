@@ -97,7 +97,7 @@ export function RefinePopper({
 
   const handleApply = async () => {
     try {
-      if (pattern.trim().length === 0) {
+      if (pattern.length === 0) {
         await clearFieldRegex(fieldId)
       } else {
         await setFieldRegex(fieldId, pattern)
@@ -130,7 +130,7 @@ export function RefinePopper({
           },
         },
       ]}
-      sx={{ zIndex: 1402 }}
+      sx={{ zIndex: 2147483643 }}
     >
       <ClickAwayListener onClickAway={onClose}>
         <Box
@@ -191,8 +191,15 @@ export function RefinePopper({
             {t('editMode.refine.pattern', 'Pattern')}
           </Typography>
           <TextField
+            autoFocus
             value={pattern}
             onChange={(e) => setPattern(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !evaluation.invalid) {
+                e.preventDefault()
+                void handleApply()
+              }
+            }}
             placeholder={t('editMode.refine.patternPlaceholder', '(.+?) · TV')}
             error={evaluation.invalid}
             helperText={

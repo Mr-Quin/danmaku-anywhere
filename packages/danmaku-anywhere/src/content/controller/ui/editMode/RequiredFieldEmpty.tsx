@@ -3,14 +3,10 @@ import { Box, ButtonBase, useTheme } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
 interface RequiredFieldEmptyProps {
-  fieldLabel: string
   onClick: () => void
 }
 
-export function RequiredFieldEmpty({
-  fieldLabel,
-  onClick,
-}: RequiredFieldEmptyProps) {
+export function RequiredFieldEmpty({ onClick }: RequiredFieldEmptyProps) {
   const { t } = useTranslation()
   const theme = useTheme()
   const color = theme.palette.fieldAccent.title
@@ -53,9 +49,7 @@ export function RequiredFieldEmpty({
         <Add sx={{ fontSize: 10 }} />
       </Box>
       <Box sx={{ flexGrow: 1 }}>
-        {t('editMode.empty.pickField', 'Pick {{label}}', {
-          label: fieldLabel.toLowerCase(),
-        })}
+        {t('editMode.empty.pickTitle', 'Pick title')}
       </Box>
       <Box
         component="span"
