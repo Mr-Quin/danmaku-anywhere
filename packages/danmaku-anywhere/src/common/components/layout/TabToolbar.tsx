@@ -1,6 +1,7 @@
 import { ChevronLeft } from '@mui/icons-material'
 import { IconButton, Toolbar, Typography } from '@mui/material'
 import type { PropsWithChildren, ReactNode } from 'react'
+import { TOOLBAR_MIN_HEIGHT } from '@/common/theme/sakura'
 
 type PageToolbarProps = {
   title?: ReactNode
@@ -52,7 +53,7 @@ export const TabToolbar = ({
       disableGutters
       sx={{
         flexShrink: 0,
-        minHeight: 44,
+        minHeight: TOOLBAR_MIN_HEIGHT,
         paddingInline: 2,
         paddingBlock: 0.5,
         gap: 0.5,

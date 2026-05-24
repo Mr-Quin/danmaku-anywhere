@@ -481,6 +481,9 @@ function buildSakuraComponents(
 export const MONOSPACE_FONT_FAMILY =
   'ui-monospace, SFMono-Regular, Menlo, monospace'
 
+/** Sakura design system: AppBar / TabToolbar / WindowToolbar height in px. */
+export const TOOLBAR_MIN_HEIGHT = 44
+
 function buildSakuraTypography(
   pxToRem: (px: number) => string
 ): ThemeOptions['typography'] {
@@ -531,7 +534,7 @@ export function createSakuraTheme(
   return createTheme(
     {
       palette,
-      shape: { borderRadius: 12 },
+      shape: { borderRadius: 8 },
       typography: {
         htmlFontSize,
         ...buildSakuraTypography(pxToRem),

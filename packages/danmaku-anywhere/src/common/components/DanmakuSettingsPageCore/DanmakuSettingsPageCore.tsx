@@ -2,30 +2,27 @@ import type {
   CollapseConfig,
   DanmakuFilter,
 } from '@danmaku-anywhere/danmaku-engine'
-import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined'
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined'
 import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined'
+import UnfoldLessOutlinedIcon from '@mui/icons-material/UnfoldLessOutlined'
 import { Box } from '@mui/material'
 import type { Draft } from 'immer'
 import { produce } from 'immer'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BlockTab } from '@/common/components/DanmakuFilter/BlockTab'
-import { CollapseTab } from '@/common/components/DanmakuFilter/CollapseTab'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { SegmentedTabs } from '@/common/components/SegmentedTabs'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
-import {
-  DanmakuStylesForm,
-  type SaveStatus,
-} from '@/content/common/DanmakuStyles/DanmakuStylesForm'
-import { SaveStatusIndicator } from '@/content/common/DanmakuStyles/SaveStatusIndicator'
+import { BlockTab } from './BlockTab'
+import { CollapseTab } from './CollapseTab'
+import { DanmakuStylesForm, type SaveStatus } from './DanmakuStylesForm'
+import { SaveStatusIndicator } from './SaveStatusIndicator'
 
 type Segment = 'style' | 'block' | 'collapse'
 
-export function DanmakuSettings() {
+export function DanmakuSettingsPageCore() {
   const { t } = useTranslation()
   const { data: config, partialUpdate } = useDanmakuOptions()
   const [segment, setSegment] = useState<Segment>('style')
@@ -68,36 +65,30 @@ export function DanmakuSettings() {
     })
   }
 
-  const blockCount = config.filters.length
-  const collapseCount =
-    config.collapse.pattern.patterns.length + config.collapse.whiteList.length
-
   return (
     <TabLayout>
       <TabToolbar title={t('stylePage.name', 'Danmaku Settings')}>
         <SaveStatusIndicator status={saveStatus} />
       </TabToolbar>
-      <Box sx={{ px: 2, pt: 1, pb: 0.5 }}>
+      <Box sx={{ px: 2, pb: 0.5 }}>
         <SegmentedTabs
           value={segment}
           onChange={(v) => setSegment(v as Segment)}
           items={[
             {
               value: 'style',
-              label: t('danmakuFilter.styleTab', 'Style'),
+              label: t('stylePage.style', 'Style'),
               icon: <TuneOutlinedIcon sx={{ fontSize: 14 }} />,
             },
             {
               value: 'block',
               label: t('danmakuFilter.blockTab', 'Block'),
               icon: <CloseOutlinedIcon sx={{ fontSize: 14 }} />,
-              badge: blockCount,
             },
             {
               value: 'collapse',
               label: t('danmakuFilter.collapseTab', 'Collapse'),
-              icon: <AutoAwesomeOutlinedIcon sx={{ fontSize: 14 }} />,
-              badge: collapseCount,
+              icon: <UnfoldLessOutlinedIcon sx={{ fontSize: 14 }} />,
             },
           ]}
         />

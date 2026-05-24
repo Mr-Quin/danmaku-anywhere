@@ -2,6 +2,7 @@ import { Close, Lock, LockOpen } from '@mui/icons-material'
 import { AppBar, IconButton, Stack, Toolbar, useTheme } from '@mui/material'
 import type { ReactNode } from 'react'
 
+import { TOOLBAR_MIN_HEIGHT } from '@/common/theme/sakura'
 import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallScreen'
 
 interface WindowToolbarProps {
@@ -42,7 +43,7 @@ export const WindowToolbar = (props: WindowToolbarProps) => {
 
   return (
     <AppBar position="relative" sx={{ zIndex: 1402 }}>
-      <Toolbar variant="dense" sx={{ minHeight: 44, gap: 2 }}>
+      <Toolbar variant="dense" sx={{ minHeight: TOOLBAR_MIN_HEIGHT, gap: 2 }}>
         {children}
         <Stack
           direction="row"

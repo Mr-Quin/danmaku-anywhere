@@ -1,11 +1,11 @@
-import { Box, ButtonBase, Typography } from '@mui/material'
+import { Box, ButtonBase, Tooltip, Typography } from '@mui/material'
 import type { ReactElement, ReactNode } from 'react'
 
 export interface SegmentedTabsItem {
   value: string
   label: ReactNode
   icon?: ReactElement
-  badge?: ReactNode
+  tooltip?: ReactNode
 }
 
 interface SegmentedTabsProps {
@@ -27,16 +27,16 @@ export function SegmentedTabs({
       aria-label={ariaLabel}
       sx={(theme) => ({
         display: 'flex',
-        gap: 1,
-        p: 0.5,
-        borderRadius: 0.5,
+        gap: 0.5,
+        p: 0.25,
+        borderRadius: 1,
         bgcolor: theme.palette.paperAlt,
         border: `1px solid ${theme.palette.divider}`,
       })}
     >
       {items.map((item) => {
         const isActive = item.value === value
-        return (
+        const button = (
           <ButtonBase
             key={item.value}
             role="tab"
@@ -50,7 +50,7 @@ export function SegmentedTabs({
               gap: 0.5,
               minHeight: 24,
               paddingInline: 1,
-              borderRadius: 0.5,
+              borderRadius: 1,
               bgcolor: isActive ? 'primary.main' : 'transparent',
               color: isActive ? 'primary.contrastText' : 'text.secondary',
               fontWeight: 600,
@@ -74,10 +74,18 @@ export function SegmentedTabs({
               sx={{ fontWeight: 'inherit', lineHeight: 1 }}
             >
               {item.label}
-              {item.badge !== undefined && ` · ${item.badge}`}
             </Typography>
           </ButtonBase>
         )
+
+        if (item.tooltip !== undefined) {
+          return (
+            <Tooltip key={item.value} title={item.tooltip}>
+              {button}
+            </Tooltip>
+          )
+        }
+        return button
       })}
     </Box>
   )

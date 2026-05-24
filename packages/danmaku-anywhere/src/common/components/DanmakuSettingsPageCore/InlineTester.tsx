@@ -38,7 +38,7 @@ export function InlineTester({ filters }: InlineTesterProps) {
     <Paper
       variant="outlined"
       sx={{
-        p: 2,
+        p: 1.5,
         bgcolor: alpha(theme.palette.primary.main, 0.04),
         borderColor: alpha(theme.palette.primary.main, 0.2),
       }}

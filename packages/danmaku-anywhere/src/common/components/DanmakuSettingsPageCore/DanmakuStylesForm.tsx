@@ -1,27 +1,20 @@
-import {
-  Collapse,
-  debounce,
-  Stack,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
-} from '@mui/material'
+import { Collapse, debounce, Stack, TextField, Typography } from '@mui/material'
 import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { DocIcon } from '@/common/components/DocIcon'
 import { getScrollBarProps } from '@/common/components/layout/ScrollBox'
+import { SegmentedTabs } from '@/common/components/SegmentedTabs'
 import { SettingsBlock } from '@/common/components/SettingsBlock'
 import { IS_CHROME } from '@/common/constants'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { useResetForm } from '@/common/hooks/useResetForm'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
-import { FontSelector } from '@/content/common/DanmakuStyles/FontSelector'
-import { LabeledSwitch } from '@/content/common/DanmakuStyles/LabeledSwitch'
+import { FontSelector } from './FontSelector'
 import { LabeledScrubber } from './LabeledScrubber'
 import { LabeledSlider } from './LabeledSlider'
+import { LabeledSwitch } from './LabeledSwitch'
 
 const opacityMarks = [
   {
@@ -589,27 +582,20 @@ export const DanmakuStylesForm = ({
                     )}
                   </Typography>
                 </div>
-                <ToggleButtonGroup
+                <SegmentedTabs
                   value={field.value}
-                  onChange={(e, newValue) => {
-                    if (newValue) {
-                      field.onChange(newValue)
-                    }
-                  }}
-                  size="small"
-                  color="primary"
-                  exclusive
-                  sx={{
-                    flex: '1 0 auto',
-                  }}
-                >
-                  <ToggleButton value="random">
-                    {t('stylePage.randomDistribution', 'Random')}
-                  </ToggleButton>
-                  <ToggleButton value="order">
-                    {t('stylePage.orderDistribution', 'Order')}
-                  </ToggleButton>
-                </ToggleButtonGroup>
+                  onChange={(v) => field.onChange(v)}
+                  items={[
+                    {
+                      value: 'random',
+                      label: t('stylePage.randomDistribution', 'Random'),
+                    },
+                    {
+                      value: 'order',
+                      label: t('stylePage.orderDistribution', 'Order'),
+                    },
+                  ]}
+                />
               </Stack>
             )}
           />

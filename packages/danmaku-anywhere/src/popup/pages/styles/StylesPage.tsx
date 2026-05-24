@@ -1,5 +1,5 @@
-import { DanmakuSettings } from '@/common/components/DanmakuSettings'
+import { DanmakuSettingsPageCore } from '@/common/components/DanmakuSettingsPageCore/DanmakuSettingsPageCore'
 
 export const StylesPage = () => {
-  return <DanmakuSettings />
+  return <DanmakuSettingsPageCore />
 }

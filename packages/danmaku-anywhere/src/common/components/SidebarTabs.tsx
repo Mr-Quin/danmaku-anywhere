@@ -1,4 +1,4 @@
-import { alpha, styled, Tabs, type TabsProps } from '@mui/material'
+import { styled, Tabs, type TabsProps } from '@mui/material'
 
 const StyledTabs = styled(Tabs)(({ theme }) => ({
   borderRight: `1px solid ${theme.palette.divider}`,
@@ -22,11 +22,10 @@ const StyledTabs = styled(Tabs)(({ theme }) => ({
     textTransform: 'none',
     gap: theme.spacing(0.375),
     color: theme.palette.text.secondary,
-    borderRadius: 8,
-    transition: theme.transitions.create(
-      ['background-color', 'color', 'box-shadow'],
-      { duration: theme.transitions.duration.shortest }
-    ),
+    borderRadius: theme.shape.borderRadius,
+    transition: theme.transitions.create(['background-color', 'color'], {
+      duration: theme.transitions.duration.shortest,
+    }),
     '&:hover': {
       backgroundColor: theme.palette.action.hover,
     },
@@ -34,7 +33,6 @@ const StyledTabs = styled(Tabs)(({ theme }) => ({
       backgroundColor: theme.palette.primary.light,
       color: theme.palette.primary.main,
       fontWeight: 700,
-      boxShadow: `inset 0 1px 2px ${alpha(theme.palette.primary.main, 0.2)}`,
     },
   },
   '& .MuiButtonBase-root': {
