@@ -49,7 +49,7 @@ describe('v4 migration', () => {
     expect(zIntegrationV4.parse(v4)).toEqual(v4)
   })
 
-  it('should accept click-mode navigation entries on the policy', () => {
+  it('should accept selector lists for navigation and the full options shape', () => {
     const id = getRandomUUID()
 
     const parsed = zIntegrationV4.parse({
@@ -62,22 +62,42 @@ describe('v4 migration', () => {
         episode: { selector: [], regex: [] },
         season: { selector: [], regex: [] },
         episodeTitle: { selector: [], regex: [] },
-        nextEpisode: {
-          mode: 'click',
-          selectors: [{ value: '//button[@id="next"]', quick: false }],
+        nextEpisode: [{ value: '//button[@id="next"]', quick: false }],
+        prevEpisode: [{ value: '//button[@id="prev"]', quick: false }],
+        options: {
+          autoAdvanceOnEnded: true,
+          skipPercentage: 0.95,
+          minVideoDuration: 60,
         },
-        prevEpisode: {
-          mode: 'click',
-          selectors: [{ value: '//button[@id="prev"]', quick: false }],
-        },
-        options: { autoAdvanceOnEnded: true },
       },
     })
 
-    expect(parsed.policy.options.autoAdvanceOnEnded).toBe(true)
-    expect(parsed.policy.nextEpisode).toEqual({
-      mode: 'click',
-      selectors: [{ value: '//button[@id="next"]', quick: false }],
+    expect(parsed.policy.options).toEqual({
+      autoAdvanceOnEnded: true,
+      skipPercentage: 0.95,
+      minVideoDuration: 60,
     })
+    expect(parsed.policy.nextEpisode).toEqual([
+      { value: '//button[@id="next"]', quick: false },
+    ])
+  })
+
+  it('should reject empty selector lists for navigation', () => {
+    const result = zIntegrationV4.safeParse({
+      version: 4,
+      id: getRandomUUID(),
+      name: 'test',
+      policy: {
+        version: 4,
+        title: { selector: [{ value: 's1', quick: false }], regex: [] },
+        episode: { selector: [], regex: [] },
+        season: { selector: [], regex: [] },
+        episodeTitle: { selector: [], regex: [] },
+        nextEpisode: [],
+        options: { autoAdvanceOnEnded: false },
+      },
+    })
+
+    expect(result.success).toBe(false)
   })
 })
