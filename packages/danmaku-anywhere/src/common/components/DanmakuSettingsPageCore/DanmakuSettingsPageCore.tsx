@@ -8,7 +8,7 @@ import UnfoldLessOutlinedIcon from '@mui/icons-material/UnfoldLessOutlined'
 import { Box } from '@mui/material'
 import type { Draft } from 'immer'
 import { produce } from 'immer'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
@@ -28,26 +28,12 @@ export function DanmakuSettingsPageCore() {
   const [segment, setSegment] = useState<Segment>('style')
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  // Tracks the latest config across in-flight updates so rapid edits compose
-  // instead of clobbering each other (React would still hold the pre-await config).
-  const configRef = useRef(config)
-  useEffect(() => {
-    configRef.current = config
-  }, [config])
-  useEffect(
-    () => () => {
-      if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
-    },
-    []
-  )
 
   async function update(updater: (draft: Draft<DanmakuOptions>) => void) {
     if (savedTimerRef.current) clearTimeout(savedTimerRef.current)
     setSaveStatus('saving')
-    const next = produce(configRef.current, updater)
-    configRef.current = next
     try {
-      await partialUpdate(next)
+      await partialUpdate(produce(config, updater))
       setSaveStatus('saved')
       savedTimerRef.current = setTimeout(() => setSaveStatus('idle'), 1500)
     } catch {
