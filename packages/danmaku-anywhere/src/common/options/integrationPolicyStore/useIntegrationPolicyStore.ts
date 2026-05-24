@@ -1,9 +1,10 @@
 import { produce } from 'immer'
 import { useMemo } from 'react'
 import { useInjectService } from '@/common/hooks/useInjectService'
-import type {
-  Integration,
-  IntegrationInput,
+import {
+  type Integration,
+  type IntegrationInput,
+  zIntegration,
 } from '@/common/options/integrationPolicyStore/schema'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 import type { Options } from '@/common/options/OptionsService/types'
@@ -38,10 +39,12 @@ export const useIntegrationPolicyStore = () => {
       // replace the stored config with the new one
       const newData = produce(policies, (draft) => {
         const index = draft.findIndex((item) => item.id === id)
-        draft[index] = {
+        // Re-parse so any input-typed fields (with schema defaults) come
+        // out as the canonical output shape.
+        draft[index] = zIntegration.parse({
           ...draft[index],
           ...config,
-        }
+        })
       })
 
       await updateMutation.mutateAsync({ data: newData, version })

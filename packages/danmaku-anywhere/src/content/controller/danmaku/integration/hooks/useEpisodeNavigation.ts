@@ -4,10 +4,6 @@ import { getElementByXpath } from '@/common/utils/utils'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
 import { sortSelectors } from '@/content/controller/danmaku/integration/xPathPolicyOps/mediaRegexMatcher'
 
-// Ad-break ended events fire on stub clips that are typically much shorter
-// than the real episode. Gate auto-advance to videos longer than this.
-export const DEFAULT_AUTO_ADVANCE_MIN_DURATION_SECONDS = 30
-
 function isVisible(element: HTMLElement): boolean {
   if (!element.isConnected) {
     return false
@@ -81,9 +77,9 @@ export function useEpisodeNavigation(): UseEpisodeNavigationResult {
   const nextEpisode = policy?.nextEpisode
   const prevEpisode = policy?.prevEpisode
   const isAutoAdvanceEnabled = policy?.options.autoAdvanceOnEnded ?? false
-  const minDuration =
-    policy?.options.minVideoDuration ??
-    DEFAULT_AUTO_ADVANCE_MIN_DURATION_SECONDS
+  // policy.options.minVideoDuration is schema-defaulted, but the whole policy
+  // may be absent when no integration is active.
+  const minDuration = policy?.options.minVideoDuration ?? 30
 
   const canGoNext = nextEpisode !== undefined
   const canGoPrev = prevEpisode !== undefined
