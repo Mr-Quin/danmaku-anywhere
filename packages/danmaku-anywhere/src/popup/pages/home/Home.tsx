@@ -1,6 +1,5 @@
 import AutoAwesomeOutlinedIcon from '@mui/icons-material/AutoAwesomeOutlined'
 import BoltOutlinedIcon from '@mui/icons-material/BoltOutlined'
-import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined'
 import LanguageOutlinedIcon from '@mui/icons-material/LanguageOutlined'
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined'
 import SearchOutlinedIcon from '@mui/icons-material/SearchOutlined'
@@ -69,14 +68,6 @@ export const Home = () => {
             label={t('tabs.style', 'Danmaku Settings')}
             value="/styles"
             to="/styles"
-            component={Link}
-          />
-          <Tab
-            icon={<FilterAltOutlinedIcon />}
-            iconPosition="top"
-            label={t('tabs.filter', 'Danmaku Filter')}
-            value="/filter"
-            to="/filter"
             component={Link}
           />
           <Tab

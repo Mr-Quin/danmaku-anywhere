@@ -1,6 +1,5 @@
 import { createHashRouter, type RouteObject, redirect } from 'react-router'
 import { ImportConfigPage } from '@/popup/pages/config/pages/import/ImportConfigPage'
-import { FilterPage } from '@/popup/pages/filterPage/FilterPage'
 import { AdvancedOptions } from '@/popup/pages/options/pages/advanced/AdvancedOptions'
 import { AuthPage } from '@/popup/pages/options/pages/auth/AuthPage'
 import { BackupPage } from '@/popup/pages/options/pages/backup/BackupPage'
@@ -49,10 +48,6 @@ export const routes: RouteObject[] = [
       {
         path: 'styles',
         Component: StylesPage,
-      },
-      {
-        path: 'filter',
-        Component: FilterPage,
       },
       {
         path: 'config',
