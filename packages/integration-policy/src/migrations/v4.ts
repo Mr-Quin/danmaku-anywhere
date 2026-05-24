@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { getRandomUUID } from '../uuid.js'
-import type { IntegrationV3 } from './v3.js'
+import type { IntegrationPolicyV3, IntegrationV3 } from './v3.js'
 
 const regexString = z.string().refine(
   (v) => {
@@ -73,19 +73,25 @@ export type IntegrationPolicyV4 = z.infer<typeof zIntegrationPolicyV4>
 
 export type IntegrationPolicyNavigation = z.infer<typeof navigationSchema>
 
+export function migrateV3PolicyToV4(
+  policy: IntegrationPolicyV3
+): IntegrationPolicyV4 {
+  return {
+    ...policy,
+    version: 4,
+    options: {
+      ...policy.options,
+      autoAdvanceOnEnded: false,
+    },
+  }
+}
+
 export function migrateV3ToV4(data: IntegrationV3[]): IntegrationV4[] {
   return data.map((policy) => {
     return {
       ...policy,
       version: 4,
-      policy: {
-        ...policy.policy,
-        version: 4,
-        options: {
-          ...policy.policy.options,
-          autoAdvanceOnEnded: false,
-        },
-      },
+      policy: migrateV3PolicyToV4(policy.policy),
     } satisfies IntegrationV4
   })
 }
