@@ -264,6 +264,59 @@
       "tencentCookieMissing": "<0></0>"
     }
   },
+  "editMode": {
+    "addField": {
+      "label": "+ Add"
+    },
+    "advanced": "Advanced editor",
+    "empty": {
+      "pickField": "Pick {{label}}",
+      "required": "REQ"
+    },
+    "entry": {
+      "advancedEditor": "Advanced Editor",
+      "editMode": "Edit Mode"
+    },
+    "field": {
+      "episode": "Episode",
+      "episodeTitle": "Episode title",
+      "season": "Season",
+      "title": "Title"
+    },
+    "footer": {
+      "advanced": "Advanced",
+      "autosaved": "Auto-saved"
+    },
+    "picker": {
+      "statusPrefix": "Picking",
+      "statusSuffix": "· click to select"
+    },
+    "picking": "PICKING",
+    "refine": {
+      "extracted": "Extracted",
+      "invalidRegex": "Invalid regex",
+      "noMatch": "(no match)",
+      "noRaw": "(no text from element)",
+      "pattern": "Pattern",
+      "patternPlaceholder": "(.+?) · TV",
+      "raw": "Raw",
+      "title": "Refine extraction · {{label}}"
+    },
+    "row": {
+      "noText": "(no text extracted)",
+      "notOnPage": "No longer on page",
+      "refine": "Refine (regex)",
+      "regexAppliedTooltip": "Regex refinement applied",
+      "regexMissed": "Regex did not match raw text",
+      "remove": "Remove",
+      "repick": "Re-pick"
+    },
+    "status": {
+      "empty": "Pick a title to begin",
+      "matched": "Configured for {{name}}"
+    },
+    "title": "Edit XPath"
+  },
   "error": {
     "unknown": "Something went wrong."
   },

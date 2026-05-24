@@ -257,6 +257,59 @@
       "tencentCookieMissing": "获取腾讯视频失败，可能是缺少 Cookie，请先访问<0>腾讯视频</0>并打开任意视频页面以确保 Cookie 正常。"
     }
   },
+  "editMode": {
+    "addField": {
+      "label": "+ 添加"
+    },
+    "advanced": "高级编辑器",
+    "empty": {
+      "pickField": "选取{{label}}",
+      "required": "必填"
+    },
+    "entry": {
+      "advancedEditor": "高级编辑器",
+      "editMode": "编辑模式"
+    },
+    "field": {
+      "episode": "集数",
+      "episodeTitle": "集标题",
+      "season": "季",
+      "title": "标题"
+    },
+    "footer": {
+      "advanced": "高级",
+      "autosaved": "已自动保存"
+    },
+    "picker": {
+      "statusPrefix": "正在选取",
+      "statusSuffix": "· 点击页面元素"
+    },
+    "picking": "选取中",
+    "refine": {
+      "extracted": "提取结果",
+      "invalidRegex": "正则表达式无效",
+      "noMatch": "(无匹配)",
+      "noRaw": "(元素无文本)",
+      "pattern": "正则",
+      "patternPlaceholder": "(.+?) · TV",
+      "raw": "原文",
+      "title": "提炼提取 · {{label}}"
+    },
+    "row": {
+      "noText": "(未提取到文本)",
+      "notOnPage": "页面上已不存在",
+      "refine": "提炼 (正则)",
+      "regexAppliedTooltip": "已应用正则提炼",
+      "regexMissed": "正则未能匹配原文",
+      "remove": "移除",
+      "repick": "重新选取"
+    },
+    "status": {
+      "empty": "请先选取标题",
+      "matched": "已为 {{name}} 配置"
+    },
+    "title": "编辑 XPath"
+  },
   "error": {
     "unknown": "出错啦!"
   },

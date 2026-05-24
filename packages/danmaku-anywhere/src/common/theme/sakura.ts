@@ -9,6 +9,8 @@ import type * as React from 'react'
 
 type SeverityKey = 'success' | 'warning' | 'info' | 'error'
 
+export type FieldAccentKey = 'title' | 'season' | 'episode' | 'episodeTitle'
+
 declare module '@mui/material/styles' {
   interface Palette {
     paperAlt: string
@@ -18,6 +20,7 @@ declare module '@mui/material/styles' {
     actionActive: string
     tooltipBg: string
     tooltipFg: string
+    fieldAccent: Record<FieldAccentKey, string>
   }
   interface PaletteOptions {
     paperAlt?: string
@@ -27,7 +30,15 @@ declare module '@mui/material/styles' {
     actionActive?: string
     tooltipBg?: string
     tooltipFg?: string
+    fieldAccent?: Record<FieldAccentKey, string>
   }
+}
+
+const FIELD_ACCENT: Record<FieldAccentKey, string> = {
+  title: '#E86A8E',
+  season: '#B39CF5',
+  episode: '#5AA7E8',
+  episodeTitle: '#E9A23B',
 }
 
 declare module '@mui/material/Button' {
@@ -96,6 +107,7 @@ const SAKURA_LIGHT: PaletteOptions = {
   actionActive: 'rgba(232,106,142,0.08)',
   tooltipBg: '#2A1B24',
   tooltipFg: '#FFFFFF',
+  fieldAccent: FIELD_ACCENT,
 }
 
 const SAKURA_DARK: PaletteOptions = {
@@ -148,6 +160,7 @@ const SAKURA_DARK: PaletteOptions = {
   actionActive: 'rgba(244,143,177,0.10)',
   tooltipBg: '#3A2E3A',
   tooltipFg: '#F6E8EE',
+  fieldAccent: FIELD_ACCENT,
 }
 
 const severityKeys: readonly SeverityKey[] = [

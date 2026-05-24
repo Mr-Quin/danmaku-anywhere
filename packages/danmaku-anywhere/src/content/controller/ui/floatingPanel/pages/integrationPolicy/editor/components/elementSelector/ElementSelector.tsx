@@ -9,37 +9,64 @@ import { useIsSmallScreen } from '@/content/controller/common/hooks/useIsSmallSc
 import { usePopup } from '@/content/controller/store/popupStore'
 import { getXPath } from './getXPath'
 
+interface FieldDressing {
+  color: string
+  label: string
+}
+
 interface HighlightElementProps {
   enable: boolean
   onExit: () => void
   onSelect: (xPath: string) => void
+  // When set, the picker uses the field color (dashed + halo hover ring)
+  // and a top-center status pill instead of the default red box + cancel
+  // button. Used by Edit Mode.
+  field?: FieldDressing
 }
 
-const HighlightBox = styled(Box)(({ theme }) => {
-  return {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: 0,
-    height: 0,
-    border: `2px solid ${red[500]}`,
-    borderRadius: theme.shape.borderRadius,
-    pointerEvents: 'none',
-  }
-})
+const DefaultHighlightBox = styled(Box)(({ theme }) => ({
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  width: 0,
+  height: 0,
+  border: `2px solid ${red[500]}`,
+  borderRadius: theme.shape.borderRadius,
+  pointerEvents: 'none',
+}))
 
-const HightlightViewport = styled(Box)(({ theme }) => {
-  return {
-    position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100vw',
-    height: '100vh',
-    pointerEvents: 'none',
-    zIndex: 2147483647, // Max z-index
-    border: `2px solid ${theme.palette.primary.main}`,
-    boxSizing: 'border-box',
-  }
+const FieldHighlightBox = styled(Box, {
+  shouldForwardProp: (prop) => prop !== 'color',
+})<{ color: string }>(({ color }) => ({
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  width: 0,
+  height: 0,
+  border: `2px dashed ${color}`,
+  borderRadius: 6,
+  pointerEvents: 'none',
+  boxShadow: `0 0 0 5px ${color}22, 0 0 30px ${color}55`,
+}))
+
+const HightlightViewport = styled(Box)(({ theme }) => ({
+  position: 'fixed',
+  top: 0,
+  left: 0,
+  width: '100vw',
+  height: '100vh',
+  pointerEvents: 'none',
+  zIndex: 2147483647,
+  border: `2px solid ${theme.palette.primary.main}`,
+  boxSizing: 'border-box',
+}))
+
+const DimVeil = styled(Box)({
+  position: 'fixed',
+  inset: 0,
+  pointerEvents: 'none',
+  zIndex: 2147483646,
+  boxShadow: 'inset 0 0 0 9999px rgba(0,0,0,0.18)',
 })
 
 const StyledCancelButton = styled(Button)(({ theme }) => ({
@@ -47,7 +74,7 @@ const StyledCancelButton = styled(Button)(({ theme }) => ({
   bottom: 48,
   left: '50%',
   transform: 'translateX(-50%)',
-  zIndex: 2147483647, // Max z-index
+  zIndex: 2147483647,
   pointerEvents: 'auto',
   boxShadow: theme.shadows[6],
   fontWeight: 'bold',
@@ -56,8 +83,67 @@ const StyledCancelButton = styled(Button)(({ theme }) => ({
   paddingRight: theme.spacing(4),
 }))
 
-export const ElementSelector = (props: HighlightElementProps) => {
-  const { enable } = props
+const StatusPillRoot = styled(Box)(({ theme }) => ({
+  position: 'fixed',
+  top: 14,
+  left: '50%',
+  transform: 'translateX(-50%)',
+  zIndex: 2147483647,
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 8,
+  padding: '7px 12px',
+  borderRadius: 999,
+  background: theme.palette.background.paper,
+  border: `1px solid ${theme.palette.divider}`,
+  boxShadow: theme.shadows[6],
+  fontSize: 12,
+  fontWeight: 600,
+  color: theme.palette.text.primary,
+  pointerEvents: 'none',
+}))
+
+const EscChip = styled('span')(({ theme }) => ({
+  padding: '1px 6px',
+  borderRadius: 4,
+  background: theme.palette.action.hover,
+  fontSize: 10.5,
+  fontWeight: 700,
+  fontFamily: 'ui-monospace, monospace',
+  color: theme.palette.text.secondary,
+}))
+
+interface StatusPillProps {
+  fieldColor: string
+  fieldLabel: string
+}
+
+function StatusPill({ fieldColor, fieldLabel }: StatusPillProps) {
+  const { t } = useTranslation()
+  const isMobile = useIsSmallScreen()
+  return (
+    <StatusPillRoot>
+      <span
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: '50%',
+          background: fieldColor,
+          boxShadow: `0 0 0 5px ${fieldColor}33`,
+        }}
+      />
+      <span>
+        {t('editMode.picker.statusPrefix', 'Picking')}{' '}
+        <b style={{ color: fieldColor }}>{fieldLabel}</b>{' '}
+        {t('editMode.picker.statusSuffix', '· click to select')}
+      </span>
+      {!isMobile && <EscChip>Esc</EscChip>}
+    </StatusPillRoot>
+  )
+}
+
+export function ElementSelector(props: HighlightElementProps) {
+  const { enable, field } = props
 
   const { t } = useTranslation()
 
@@ -87,12 +173,9 @@ export const ElementSelector = (props: HighlightElementProps) => {
       }
       if (
         event.target instanceof HTMLElement &&
-        /**
-         * This checks if the click is on the cancel button.
-         * Since the button is inside shadow DOM, it will not be detected by event.target.
-         * And since the button should be the only element (inside the controller root) that can be clicked while the selector is active,
-         * we can use the controller root id to check if the click is on the cancel button.
-         */
+        // Clicks inside the controller root (cancel button etc.) shouldn't
+        // count as a page-element selection. Shadow DOM hides the inner
+        // node from event.target, so the root id is the only signal here.
         event.target.id === CONTROLLER_ROOT_ID
       ) {
         return
@@ -159,20 +242,34 @@ export const ElementSelector = (props: HighlightElementProps) => {
 
   return createPortal(
     <>
-      <HighlightBox ref={highlightRef} />
-      <HightlightViewport />
-      <StyledCancelButton
-        variant="contained"
-        color="primary"
-        size="large"
-        onClick={(e) => {
-          e.stopPropagation()
-          props.onExit()
-        }}
-      >
-        {t('integrationPolicyPage.editor.cancelSelection', 'Cancel Selection')}
-        {!isMobile && ' (Esc)'}
-      </StyledCancelButton>
+      <DimVeil />
+      {field ? (
+        <FieldHighlightBox ref={highlightRef} color={field.color} />
+      ) : (
+        <>
+          <DefaultHighlightBox ref={highlightRef} />
+          <HightlightViewport />
+        </>
+      )}
+      {field ? (
+        <StatusPill fieldColor={field.color} fieldLabel={field.label} />
+      ) : (
+        <StyledCancelButton
+          variant="contained"
+          color="primary"
+          size="large"
+          onClick={(e) => {
+            e.stopPropagation()
+            props.onExit()
+          }}
+        >
+          {t(
+            'integrationPolicyPage.editor.cancelSelection',
+            'Cancel Selection'
+          )}
+          {!isMobile && ' (Esc)'}
+        </StyledCancelButton>
+      )}
       <Popover
         open={!!text}
         anchorEl={() => createVirtualElement(x + 10, y + 10)}
