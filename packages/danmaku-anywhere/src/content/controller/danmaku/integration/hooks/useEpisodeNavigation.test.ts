@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { findFirstVisibleNode, shouldAutoAdvance } from './useEpisodeNavigation'
+import {
+  clickFirstVisible,
+  findFirstVisibleNode,
+  shouldAutoAdvance,
+} from './useEpisodeNavigation'
 
 /**
  * Exercises the pure helpers backing the episode-navigation hook:
@@ -119,11 +123,36 @@ describe('findFirstVisibleNode', () => {
     const onClick = vi.fn()
     button.addEventListener('click', onClick)
 
-    findFirstVisibleNode([
+    const clicked = clickFirstVisible([
       { value: '//button[@id="x"]', quick: false },
-    ])?.click()
+    ])
 
+    expect(clicked).toBe(true)
     expect(onClick).toHaveBeenCalledTimes(1)
+  })
+
+  it('walks past hidden matches of the same xpath to find a visible one', () => {
+    document.body.innerHTML = `
+      <button class="nav" style="display: none">hidden</button>
+      <button class="nav">visible</button>
+    `
+
+    const result = findFirstVisibleNode([
+      { value: '//button[@class="nav"]', quick: false },
+    ])
+
+    expect(result?.textContent).toBe('visible')
+  })
+
+  it('returns SVG elements when they match the selector', () => {
+    document.body.innerHTML = '<svg><a id="svg-link"><rect /></a></svg>'
+
+    const result = findFirstVisibleNode([
+      { value: '//*[@id="svg-link"]', quick: false },
+    ])
+
+    expect(result).toBeInstanceOf(SVGElement)
+    expect((result as SVGElement).id).toBe('svg-link')
   })
 })
 
