@@ -1,3 +1,4 @@
+import { AddOutlined } from '@mui/icons-material'
 import { Button, type ButtonProps } from '@mui/material'
 
 type AddButtonProps = Omit<ButtonProps, 'children'>
@@ -15,7 +16,7 @@ export function AddButton(props: AddButtonProps) {
         ...(Array.isArray(sx) ? sx : [sx]),
       ]}
     >
-      +
+      <AddOutlined />
     </Button>
   )
 }

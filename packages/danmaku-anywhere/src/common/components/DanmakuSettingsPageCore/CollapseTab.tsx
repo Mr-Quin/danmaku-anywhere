@@ -245,7 +245,7 @@ export function CollapseTab({
         }
       >
         <Stack useFlexGap spacing={2.5}>
-          <Stack useFlexGap spacing={1}>
+          <Stack useFlexGap spacing={2}>
             <SettingRow
               disabled={!collapse.pattern.enabled}
               title={t('danmakuFilter.liveCount', 'Show combo counter')}

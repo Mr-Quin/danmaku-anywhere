@@ -56,7 +56,7 @@ const StyledListItem = styled(ListItem)(({ theme }) => {
     border: `1px solid ${theme.palette.divider}`,
     borderRadius: theme.shape.borderRadius,
     backgroundColor: theme.palette.background.paper,
-    marginBottom: theme.spacing(1),
+    marginBottom: theme.spacing(0.5),
     '&:last-of-type': {
       marginBottom: 0,
     },
@@ -342,7 +342,7 @@ export function DraggableList<T extends DraggableItem>({
         items={orderedItems.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        <ScrollBox sx={{ overflow: 'auto', px: 2, pb: 1 }}>
+        <ScrollBox sx={{ overflow: 'auto' }}>
           <List dense disablePadding>
             {orderedItems.map((item) => (
               <SortableItem

@@ -79,7 +79,7 @@ export const IntegrationPage = () => {
       </TabToolbar>
       <ScrollBox
         sx={{
-          p: 2,
+          px: 2,
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',

@@ -224,9 +224,8 @@ export function SearchForm({
       <Stack
         spacing={1}
         sx={{
-          px: 1.25,
-          pt: 1,
-          pb: 0.75,
+          px: 2,
+          pb: 0.5,
           flexShrink: 0,
         }}
       >

@@ -111,59 +111,61 @@ export const MountConfigList = ({ onEdit, onAdd }: MountConfigListProps) => {
   }
 
   return (
-    <DraggableList
-      items={configs}
-      onEdit={onEdit}
-      onReorder={(sourceIndex, destinationIndex) => {
-        reorder.mutate({ sourceIndex, destinationIndex })
-      }}
-      renderEmpty={() => <EmptyMountConfigList onCreate={onAdd} />}
-      renderPrimary={(config) => (
-        <ListItemPrimaryStack text={config.name}>
-          <ConfigBadge config={config} />
-        </ListItemPrimaryStack>
-      )}
-      renderSecondary={(config) => (
-        <Box component="span" sx={{ fontFamily: MONOSPACE_FONT_FAMILY }}>
-          {config.patterns[0]}
-        </Box>
-      )}
-      renderSecondaryAction={(config) => {
-        const menuItems: DAMenuItemConfig[] = []
+    <Box sx={{ px: 2 }}>
+      <DraggableList
+        items={configs}
+        onEdit={onEdit}
+        onReorder={(sourceIndex, destinationIndex) => {
+          reorder.mutate({ sourceIndex, destinationIndex })
+        }}
+        renderEmpty={() => <EmptyMountConfigList onCreate={onAdd} />}
+        renderPrimary={(config) => (
+          <ListItemPrimaryStack text={config.name}>
+            <ConfigBadge config={config} />
+          </ListItemPrimaryStack>
+        )}
+        renderSecondary={(config) => (
+          <Box component="span" sx={{ fontFamily: MONOSPACE_FONT_FAMILY }}>
+            {config.patterns[0]}
+          </Box>
+        )}
+        renderSecondaryAction={(config) => {
+          const menuItems: DAMenuItemConfig[] = []
 
-        if (config.mode === 'xpath' && !isConfigIncomplete(config)) {
+          if (config.mode === 'xpath' && !isConfigIncomplete(config)) {
+            menuItems.push({
+              id: 'share',
+              label: t('configPage.copyShareCode', 'Copy Share Code'),
+              onClick: () => handleExportShare(config),
+              icon: <Share />,
+            })
+            menuItems.push({
+              kind: 'separator',
+              id: 'separator',
+            })
+          }
+
           menuItems.push({
-            id: 'share',
-            label: t('configPage.copyShareCode', 'Copy Share Code'),
-            onClick: () => handleExportShare(config),
-            icon: <Share />,
+            id: 'delete',
+            label: t('common.delete', 'Delete'),
+            onClick: () => handleDelete(config),
+            color: 'error',
+            icon: <Delete />,
           })
-          menuItems.push({
-            kind: 'separator',
-            id: 'separator',
-          })
-        }
 
-        menuItems.push({
-          id: 'delete',
-          label: t('common.delete', 'Delete'),
-          onClick: () => handleDelete(config),
-          color: 'error',
-          icon: <Delete />,
-        })
-
-        return (
-          <>
-            <ConfigToggleSwitch config={config} />
-            <DrilldownMenu
-              BoxProps={{ sx: { display: 'inline' } }}
-              ButtonProps={{ edge: 'end', size: 'small' }}
-              dense
-              items={menuItems}
-            />
-          </>
-        )
-      }}
-    />
+          return (
+            <>
+              <ConfigToggleSwitch config={config} />
+              <DrilldownMenu
+                BoxProps={{ sx: { display: 'inline' } }}
+                ButtonProps={{ edge: 'end', size: 'small' }}
+                dense
+                items={menuItems}
+              />
+            </>
+          )
+        }}
+      />
+    </Box>
   )
 }

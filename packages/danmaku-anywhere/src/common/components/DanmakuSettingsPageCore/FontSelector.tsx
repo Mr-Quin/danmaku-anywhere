@@ -30,15 +30,15 @@ export const FontSelector = ({
 
   return (
     <Stack
-      direction="row"
+      direction="column"
       sx={{
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 2,
+        gap: 1,
       }}
     >
       <div>
-        <Typography>{label}</Typography>
+        <Typography sx={{ flex: 1, fontWeight: 600 }} variant="body2">
+          {label}
+        </Typography>
         <Typography
           variant="caption"
           sx={{

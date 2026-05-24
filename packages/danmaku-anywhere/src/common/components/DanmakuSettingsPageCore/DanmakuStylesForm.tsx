@@ -270,7 +270,7 @@ export const DanmakuStylesForm = ({
   return (
     <Stack useFlexGap spacing={2}>
       <SettingsBlock title={t('stylePage.style', 'Style')}>
-        <Stack useFlexGap spacing={1}>
+        <Stack useFlexGap spacing={2}>
           <Controller
             name="style.opacity"
             control={control}
@@ -380,7 +380,7 @@ export const DanmakuStylesForm = ({
         </Stack>
       </SettingsBlock>
       <SettingsBlock title={t('stylePage.speedSettings', 'Speed Settings')}>
-        <Stack useFlexGap spacing={1}>
+        <Stack useFlexGap spacing={2}>
           <Controller
             name="speed"
             control={control}
@@ -450,7 +450,7 @@ export const DanmakuStylesForm = ({
         </Stack>
       </SettingsBlock>
       <SettingsBlock title={t('stylePage.safeZones', 'Display Area')}>
-        <Stack useFlexGap spacing={1}>
+        <Stack useFlexGap spacing={2}>
           <LabeledSlider
             label={t('stylePage.safeZone.y', 'Y-axis display range')}
             tooltip={t(
@@ -611,7 +611,7 @@ export const DanmakuStylesForm = ({
         </Stack>
       </SettingsBlock>
       <SettingsBlock title={t('stylePage.specialDanmaku', 'Special Danmaku')}>
-        <Stack useFlexGap spacing={1}>
+        <Stack spacing={2}>
           <Controller
             name="specialComments.top"
             control={control}

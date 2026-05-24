@@ -39,8 +39,7 @@ export function InlineTester({ filters }: InlineTesterProps) {
       variant="outlined"
       sx={{
         p: 1.5,
-        bgcolor: alpha(theme.palette.primary.main, 0.04),
-        borderColor: alpha(theme.palette.primary.main, 0.2),
+        bgcolor: theme.palette.paperAlt,
       }}
     >
       <Stack
@@ -55,7 +54,7 @@ export function InlineTester({ filters }: InlineTesterProps) {
           variant="body2"
           sx={{
             fontWeight: 600,
-            color: 'text.primary',
+            color: 'text.secondary',
           }}
         >
           {t('danmakuFilter.testFilterPatterns', 'Test Filter Patterns')}

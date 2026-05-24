@@ -60,7 +60,7 @@ export const SearchSettings = ({ dragOverlayPortal }: SearchSettingsProps) => {
           variant="overline"
           sx={{
             color: 'text.secondary',
-            px: 0.25,
+            pb: 1,
             display: 'block',
           }}
         >

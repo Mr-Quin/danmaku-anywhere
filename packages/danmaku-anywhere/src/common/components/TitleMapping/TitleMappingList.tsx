@@ -1,5 +1,5 @@
 import { Delete } from '@mui/icons-material'
-import { Chip, IconButton, Tooltip } from '@mui/material'
+import { Box, Chip, IconButton, Tooltip } from '@mui/material'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
@@ -35,26 +35,32 @@ export const TitleMappingList = ({
   )
 
   return (
-    <DraggableList<DraggableSeasonMap>
-      items={items}
-      clickable
-      multiselect={multiselect}
-      selectedIds={selectedIds}
-      onSelectionChange={onSelectionChange}
-      onEdit={(item) => onSelect(item.original)}
-      disableReorder
-      renderPrimary={(item) => (
-        <ListItemPrimaryStack text={item.original.key}>
-          <Chip label={item.original.seasonIds.length} size="small" />
-        </ListItemPrimaryStack>
-      )}
-      renderSecondaryAction={(item) => (
-        <Tooltip title={t('common.delete', 'Delete')}>
-          <IconButton edge="end" size="small" onClick={() => onDelete(item.id)}>
-            <Delete fontSize="small" />
-          </IconButton>
-        </Tooltip>
-      )}
-    />
+    <Box sx={{ px: 2 }}>
+      <DraggableList<DraggableSeasonMap>
+        items={items}
+        clickable
+        multiselect={multiselect}
+        selectedIds={selectedIds}
+        onSelectionChange={onSelectionChange}
+        onEdit={(item) => onSelect(item.original)}
+        disableReorder
+        renderPrimary={(item) => (
+          <ListItemPrimaryStack text={item.original.key}>
+            <Chip label={item.original.seasonIds.length} size="small" />
+          </ListItemPrimaryStack>
+        )}
+        renderSecondaryAction={(item) => (
+          <Tooltip title={t('common.delete', 'Delete')}>
+            <IconButton
+              edge="end"
+              size="small"
+              onClick={() => onDelete(item.id)}
+            >
+              <Delete fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
+      />
+    </Box>
   )
 }

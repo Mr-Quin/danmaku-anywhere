@@ -72,7 +72,6 @@ export const LabeledSlider = ({
         spacing={1}
         sx={{
           alignItems: 'center',
-          mb: 0.5,
         }}
       >
         <Typography

@@ -138,7 +138,7 @@ export function RulesList({
             </Box>
           ))}
           {rules.length === 0 && (
-            <ListItem>
+            <ListItem sx={{ height: 32, pl: 1 }} dense disableGutters>
               <Typography
                 variant="body2"
                 sx={{
@@ -165,7 +165,7 @@ type DisplayRowProps = {
 
 const ROW_SX = {
   py: 0.5,
-  bgcolor: 'background.default',
+  pl: 1,
 } as const
 
 function DisplayRow({ rule, canEdit, onEdit, onDelete }: DisplayRowProps) {
@@ -175,7 +175,7 @@ function DisplayRow({ rule, canEdit, onEdit, onDelete }: DisplayRowProps) {
   const label = hasLabel(rule) ? rule.label : null
 
   return (
-    <ListItem sx={ROW_SX}>
+    <ListItem sx={ROW_SX} disableGutters>
       <Stack
         direction="row"
         spacing={1}

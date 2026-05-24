@@ -35,7 +35,7 @@ export function SettingsBlock({
         <Stack
           direction="row"
           spacing={1}
-          sx={{ alignItems: 'flex-start', mb: 1.5 }}
+          sx={{ alignItems: 'flex-start', mb: 2 }}
         >
           <Box sx={{ flex: 1, minWidth: 0 }}>
             {title && <Typography variant="h5">{title}</Typography>}
