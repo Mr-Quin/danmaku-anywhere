@@ -7,8 +7,11 @@ import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { VideoInfo } from '@/common/rpcClient/background/types'
+import type { FieldAccentKey } from '@/common/theme/sakura'
 import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
+
+export type EditModeFieldId = FieldAccentKey
 
 enableMapSet()
 
@@ -125,6 +128,17 @@ interface StoreState {
     toggleAiEditor: (show?: boolean) => void
     isPicking: boolean
     setIsPicking: (picking: boolean) => void
+  }
+
+  editMode: {
+    active: boolean
+    setActive: (active: boolean) => void
+    pickTarget: EditModeFieldId | null
+    setPickTarget: (target: EditModeFieldId | null) => void
+    refiningId: EditModeFieldId | null
+    setRefiningId: (id: EditModeFieldId | null) => void
+    missingElements: Set<EditModeFieldId>
+    setMissingElement: (id: EditModeFieldId, missing: boolean) => void
   }
 }
 
@@ -335,6 +349,43 @@ const useStoreBase = create<StoreState>()(
       setIsPicking: (picking) => {
         set((state) => {
           state.integrationForm.isPicking = picking
+        })
+      },
+    },
+
+    editMode: {
+      active: false,
+      setActive: (active) => {
+        set((state) => {
+          state.editMode.active = active
+          if (!active) {
+            state.editMode.pickTarget = null
+            state.editMode.refiningId = null
+            state.editMode.missingElements.clear()
+            state.integrationForm.isPicking = false
+          }
+        })
+      },
+      pickTarget: null,
+      setPickTarget: (target) => {
+        set((state) => {
+          state.editMode.pickTarget = target
+        })
+      },
+      refiningId: null,
+      setRefiningId: (id) => {
+        set((state) => {
+          state.editMode.refiningId = id
+        })
+      },
+      missingElements: new Set<EditModeFieldId>(),
+      setMissingElement: (id, missing) => {
+        set((state) => {
+          if (missing) {
+            state.editMode.missingElements.add(id)
+          } else {
+            state.editMode.missingElements.delete(id)
+          }
         })
       },
     },

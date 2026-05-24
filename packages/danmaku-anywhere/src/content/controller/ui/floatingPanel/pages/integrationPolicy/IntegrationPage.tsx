@@ -1,5 +1,5 @@
-import { Share, Upload } from '@mui/icons-material'
-import { Typography } from '@mui/material'
+import { Settings, Share, Upload, Visibility } from '@mui/icons-material'
+import { Button, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
@@ -13,6 +13,7 @@ import { integrationData } from '@/common/options/mountConfig/integrationData'
 import type { AutomationMode } from '@/common/options/mountConfig/schema'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
+import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { MatchingSteps } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/components/MatchingSteps'
 import { AiSettingsEditor } from '@/content/controller/ui/floatingPanel/pages/integrationPolicy/editor/AiSettingsEditor'
@@ -21,8 +22,20 @@ import { IntegrationEditor } from '@/content/controller/ui/floatingPanel/pages/i
 export const IntegrationPage = () => {
   const { t } = useTranslation()
   const activeConfig = useActiveConfig()
-  const { showEditor, showAiEditor } = useStore.use.integrationForm()
+  const { showEditor, showAiEditor, toggleEditor } =
+    useStore.use.integrationForm()
+  const editMode = useStore.use.editMode()
+  const closePopup = usePopup.use.toggleOpen()
   const { setMode } = useEditMountConfig()
+
+  const handleOpenEditMode = () => {
+    closePopup(false)
+    editMode.setActive(true)
+  }
+
+  const handleOpenAdvancedEditor = () => {
+    toggleEditor(true)
+  }
 
   const handleModeChange = (newMode: string) => {
     if (newMode !== activeConfig.mode && activeConfig.id) {
@@ -111,6 +124,28 @@ export const IntegrationPage = () => {
             },
           ]}
         />
+
+        {activeConfig.mode === 'xpath' && (
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="contained"
+              color="primary"
+              size="small"
+              startIcon={<Visibility />}
+              onClick={handleOpenEditMode}
+            >
+              {t('editMode.entry.editMode', 'Edit Mode')}
+            </Button>
+            <Button
+              variant="text"
+              size="small"
+              startIcon={<Settings />}
+              onClick={handleOpenAdvancedEditor}
+            >
+              {t('editMode.entry.advancedEditor', 'Advanced Editor')}
+            </Button>
+          </Stack>
+        )}
 
         {activeConfig.mode === 'manual' ? (
           <Typography>
