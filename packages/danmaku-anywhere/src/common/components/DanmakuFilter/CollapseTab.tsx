@@ -3,24 +3,13 @@ import type {
   DanmakuFilter,
   LabeledPattern,
 } from '@danmaku-anywhere/danmaku-engine'
-import { ExpandMore } from '@mui/icons-material'
-import {
-  AccordionDetails,
-  AccordionSummary,
-  Box,
-  Divider,
-  Paper,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { Box, Stack, Switch, TextField, Typography } from '@mui/material'
 import type { Draft } from 'immer'
 import type { ReactNode } from 'react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
-import { OutlineAccordion } from '@/common/components/OutlineAccordion'
+import { SettingsBlock } from '@/common/components/SettingsBlock'
 import { defaultCollapseConfig } from '@/common/options/danmakuOptions/constant'
 import { LabeledSlider } from '@/content/common/DanmakuStyles/LabeledSlider'
 import { PatternComposer } from './PatternComposer'
@@ -55,20 +44,10 @@ function SettingRow({ title, hint, control, disabled }: SettingRowProps) {
       ]}
     >
       <Box sx={{ flex: 1 }}>
-        <Typography
-          variant="body2"
-          sx={{
-            fontWeight: 600,
-          }}
-        >
+        <Typography variant="body2" sx={{ fontWeight: 600 }}>
           {title}
         </Typography>
-        <Typography
-          variant="caption"
-          sx={{
-            color: 'text.secondary',
-          }}
-        >
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
           {hint}
         </Typography>
       </Box>
@@ -182,23 +161,24 @@ export function CollapseTab({
   }
 
   return (
-    <Box
-      sx={{
-        p: 2,
-      }}
-    >
-      <Stack useFlexGap spacing={3}>
-        <ModeBlock
+    <Box sx={{ p: 2 }}>
+      <Stack useFlexGap spacing={2}>
+        <SettingsBlock
           title={t('danmakuFilter.dedupeModeTitle', 'Dedupe')}
           subtitle={t(
             'danmakuFilter.dedupeModeSubtitle',
             'Drop identical comments that appear multiple times within a time window.'
           )}
-          enabled={collapse.dedupe.enabled}
-          onToggle={(checked) =>
-            onChange((draft) => {
-              draft.dedupe.enabled = checked
-            })
+          disabled={!collapse.dedupe.enabled}
+          headerRight={
+            <Switch
+              checked={collapse.dedupe.enabled}
+              onChange={(_, checked) =>
+                onChange((draft) => {
+                  draft.dedupe.enabled = checked
+                })
+              }
+            />
           }
         >
           <Stack useFlexGap spacing={2}>
@@ -245,19 +225,24 @@ export function CollapseTab({
               }
             />
           </Stack>
-        </ModeBlock>
+        </SettingsBlock>
 
-        <ModeBlock
+        <SettingsBlock
           title={t('danmakuFilter.patternModeTitle', 'Collapse')}
           subtitle={t(
             'danmakuFilter.patternModeSubtitle',
             'Collapse multiple comments into one comment.'
           )}
-          enabled={collapse.pattern.enabled}
-          onToggle={(checked) =>
-            onChange((draft) => {
-              draft.pattern.enabled = checked
-            })
+          disabled={!collapse.pattern.enabled}
+          headerRight={
+            <Switch
+              checked={collapse.pattern.enabled}
+              onChange={(_, checked) =>
+                onChange((draft) => {
+                  draft.pattern.enabled = checked
+                })
+              }
+            />
           }
         >
           <Stack useFlexGap spacing={2.5}>
@@ -357,9 +342,9 @@ export function CollapseTab({
               }
             />
           </Stack>
-        </ModeBlock>
+        </SettingsBlock>
 
-        <StaticBlock
+        <SettingsBlock
           title={t('danmakuFilter.whiteListHeader', 'White List')}
           subtitle={t(
             'danmakuFilter.whiteListHint',
@@ -383,114 +368,8 @@ export function CollapseTab({
               emptyText={t('danmakuFilter.noWhiteList', 'No White List')}
             />
           </Stack>
-        </StaticBlock>
+        </SettingsBlock>
       </Stack>
     </Box>
-  )
-}
-
-type StaticBlockProps = {
-  title: string
-  subtitle: string
-  children: ReactNode
-}
-
-/** Paper bg + input bg override; inputs inside each block read as background.default. */
-const blockSx = {
-  bgcolor: 'background.paper',
-  '& .MuiOutlinedInput-root': { bgcolor: 'background.default' },
-} as const
-
-function StaticBlock({ title, subtitle, children }: StaticBlockProps) {
-  return (
-    <Paper variant="outlined" sx={{ p: 2, ...blockSx }}>
-      <Box
-        sx={{
-          mb: 1.5,
-        }}
-      >
-        <Typography variant="h5">{title}</Typography>
-        <Typography
-          variant="caption"
-          sx={{
-            color: 'text.secondary',
-            display: 'block',
-            mt: 0.25,
-          }}
-        >
-          {subtitle}
-        </Typography>
-      </Box>
-      {children}
-    </Paper>
-  )
-}
-
-type ModeBlockProps = {
-  title: string
-  subtitle: string
-  enabled: boolean
-  onToggle: (enabled: boolean) => void
-  children: ReactNode
-}
-
-function ModeBlock({
-  title,
-  subtitle,
-  enabled,
-  onToggle,
-  children,
-}: ModeBlockProps) {
-  const [expanded, setExpanded] = useState(true)
-  return (
-    <OutlineAccordion
-      disableGutters
-      elevation={0}
-      expanded={expanded}
-      onChange={(_, value) => setExpanded(value)}
-      sx={blockSx}
-    >
-      <AccordionSummary>
-        <Stack
-          direction="row"
-          spacing={1}
-          sx={{
-            alignItems: 'center',
-            width: '100%',
-          }}
-        >
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography variant="h5">{title}</Typography>
-            <Typography
-              variant="caption"
-              sx={{
-                color: 'text.secondary',
-                display: 'block',
-                mt: 0.25,
-              }}
-            >
-              {subtitle}
-            </Typography>
-          </Box>
-          <ExpandMore
-            sx={{
-              transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
-              transition: (theme) =>
-                theme.transitions.create('transform', {
-                  duration: theme.transitions.duration.shortest,
-                }),
-              color: 'action.active',
-            }}
-          />
-          <Switch
-            checked={enabled}
-            onChange={(_, checked) => onToggle(checked)}
-            onClick={(e) => e.stopPropagation()}
-          />
-        </Stack>
-      </AccordionSummary>
-      <Divider />
-      <AccordionDetails>{children}</AccordionDetails>
-    </OutlineAccordion>
   )
 }

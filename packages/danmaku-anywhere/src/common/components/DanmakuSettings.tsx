@@ -12,7 +12,6 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BlockTab } from '@/common/components/DanmakuFilter/BlockTab'
 import { CollapseTab } from '@/common/components/DanmakuFilter/CollapseTab'
-import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { SegmentedTabs } from '@/common/components/SegmentedTabs'
@@ -69,7 +68,7 @@ export function DanmakuSettings() {
       <TabToolbar title={t('stylePage.name', 'Danmaku Settings')}>
         <SaveStatusIndicator status={saveStatus} />
       </TabToolbar>
-      <Box sx={{ px: 2, pt: 1, pb: 0.5 }}>
+      <Box sx={{ px: 2, pb: 1 }}>
         <SegmentedTabs
           value={segment}
           onChange={(v) => setSegment(v as Segment)}
@@ -77,27 +76,25 @@ export function DanmakuSettings() {
             {
               value: 'style',
               label: t('danmakuFilter.styleTab', 'Style'),
-              icon: <TuneOutlinedIcon fontSize="small" />,
+              icon: <TuneOutlinedIcon sx={{ fontSize: 14 }} />,
             },
             {
               value: 'block',
               label: t('danmakuFilter.blockTab', 'Block'),
-              icon: <CloseOutlinedIcon fontSize="small" />,
+              icon: <CloseOutlinedIcon sx={{ fontSize: 14 }} />,
               badge: blockCount,
             },
             {
               value: 'collapse',
               label: t('danmakuFilter.collapseTab', 'Collapse'),
-              icon: <AutoAwesomeOutlinedIcon fontSize="small" />,
+              icon: <AutoAwesomeOutlinedIcon sx={{ fontSize: 14 }} />,
               badge: collapseCount,
             },
           ]}
         />
       </Box>
       {segment === 'style' && (
-        <ScrollBox sx={{ px: 3, pb: 2, maxWidth: '100%', overflowX: 'hidden' }}>
-          <DanmakuStylesForm onSaveStatusChange={setSaveStatus} />
-        </ScrollBox>
+        <DanmakuStylesForm onSaveStatusChange={setSaveStatus} />
       )}
       {segment === 'block' && (
         <BlockTab

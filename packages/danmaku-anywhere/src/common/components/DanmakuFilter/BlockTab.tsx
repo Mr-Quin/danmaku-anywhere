@@ -1,7 +1,8 @@
 import type { DanmakuFilter } from '@danmaku-anywhere/danmaku-engine'
-import { Box, Stack, Typography } from '@mui/material'
+import { Box, Stack } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { SettingsBlock } from '@/common/components/SettingsBlock'
 import { InlineTester } from './InlineTester'
 import { RuleComposer } from './RuleComposer'
 import { RulesList } from './RulesList'
@@ -12,16 +13,9 @@ type BlockTabProps = {
   onAdd: (rule: DanmakuFilter) => void
   onEdit: (index: number, rule: DanmakuFilter) => void
   onDelete: (index: number) => void
-  initialFilter?: string
 }
 
-export function BlockTab({
-  filters,
-  onAdd,
-  onEdit,
-  onDelete,
-  initialFilter,
-}: BlockTabProps) {
+export function BlockTab({ filters, onAdd, onEdit, onDelete }: BlockTabProps) {
   const { t } = useTranslation()
   const [error, setError] = useState('')
 
@@ -37,43 +31,37 @@ export function BlockTab({
   }
 
   return (
-    <Box
-      sx={{
-        p: 2,
-      }}
-    >
-      <Stack spacing={3}>
-        <Typography
-          variant="body1"
-          sx={{
-            color: 'text.secondary',
-          }}
-        >
-          {t(
+    <Box sx={{ p: 2 }}>
+      <Stack useFlexGap spacing={2}>
+        <SettingsBlock
+          title={t('danmakuFilter.blockTab', 'Block')}
+          subtitle={t(
             'danmakuFilter.description',
             'Hide matching comments. They never reach the screen.'
           )}
-        </Typography>
-
-        <RuleComposer
-          title={t('danmakuFilter.addFilterPattern', 'Add Filter Pattern')}
-          placeholder={t(
-            'danmakuFilter.enterFilterPatternPlaceholder',
-            'Text or /regex/'
-          )}
-          error={error}
-          onAdd={handleAdd}
-          onErrorClear={() => setError('')}
-          initialValue={initialFilter}
-        />
-
-        <RulesList
-          title={t('danmakuFilter.activeFilters', 'Active Filters')}
-          rules={filters}
-          onDelete={onDelete}
-          onEdit={onEdit}
-          emptyText={t('danmakuFilter.noActiveFilters', 'No active filters')}
-        />
+        >
+          <Stack useFlexGap spacing={2}>
+            <RuleComposer
+              placeholder={t(
+                'danmakuFilter.enterFilterPatternPlaceholder',
+                'Text or /regex/'
+              )}
+              error={error}
+              onAdd={handleAdd}
+              onErrorClear={() => setError('')}
+            />
+            <RulesList
+              title={t('danmakuFilter.activeFilters', 'Active Filters')}
+              rules={filters}
+              onDelete={onDelete}
+              onEdit={onEdit}
+              emptyText={t(
+                'danmakuFilter.noActiveFilters',
+                'No active filters'
+              )}
+            />
+          </Stack>
+        </SettingsBlock>
 
         <InlineTester filters={filters} />
       </Stack>

@@ -27,10 +27,11 @@ export function SegmentedTabs({
       aria-label={ariaLabel}
       sx={(theme) => ({
         display: 'flex',
-        gap: 0.5,
-        p: 0.5,
-        borderRadius: '999px',
+        gap: '1px',
+        p: '2px',
+        borderRadius: 1,
         bgcolor: theme.palette.paperAlt,
+        border: `1px solid ${theme.palette.divider}`,
       })}
     >
       {items.map((item) => {
@@ -43,16 +44,16 @@ export function SegmentedTabs({
             onClick={() => onChange(item.value)}
             sx={(theme) => ({
               flex: 1,
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: 0.5,
-              minHeight: 30,
-              paddingInline: 1.25,
-              borderRadius: '999px',
+              gap: '5px',
+              minHeight: 24,
+              paddingInline: 1,
+              borderRadius: '6px',
               bgcolor: isActive ? 'primary.main' : 'transparent',
-              color: isActive ? 'primary.contrastText' : 'text.primary',
-              fontWeight: isActive ? 700 : 500,
+              color: isActive ? 'primary.contrastText' : 'text.secondary',
+              fontWeight: 600,
               transition: theme.transitions.create(
                 ['background-color', 'color'],
                 { duration: theme.transitions.duration.shortest }
@@ -68,16 +69,12 @@ export function SegmentedTabs({
           >
             {item.icon}
             <Typography
-              variant="body2"
+              variant="caption"
               color="inherit"
-              sx={{ fontWeight: 'inherit' }}
+              sx={{ fontWeight: 'inherit', lineHeight: 1 }}
             >
               {item.label}
-              {item.badge !== undefined && (
-                <Box component="span" sx={{ opacity: 0.7, ml: 0.5 }}>
-                  · {item.badge}
-                </Box>
-              )}
+              {item.badge !== undefined && ` · ${item.badge}`}
             </Typography>
           </ButtonBase>
         )
