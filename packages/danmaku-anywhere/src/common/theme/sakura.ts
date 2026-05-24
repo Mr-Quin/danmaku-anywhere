@@ -34,6 +34,9 @@ declare module '@mui/material/Button' {
   interface ButtonPropsVariantOverrides {
     soft: true
   }
+  interface ButtonPropsSizeOverrides {
+    xs: true
+  }
 }
 
 declare module '@mui/material/styles' {
@@ -167,6 +170,10 @@ function buildSakuraComponents(
       },
       variants: [
         {
+          props: { size: 'xs' },
+          style: { minHeight: 26, paddingInline: 10, fontSize: pxToRem(12) },
+        },
+        {
           props: { variant: 'soft', color: 'primary' },
           style: ({ theme }) => ({
             backgroundColor: theme.palette.primary.light,
@@ -203,7 +210,7 @@ function buildSakuraComponents(
     MuiIconButton: {
       defaultProps: { size: 'small' },
       styleOverrides: {
-        root: { borderRadius: 7 },
+        root: { borderRadius: 8 },
       },
     },
     MuiTable: { defaultProps: { size: 'small' } },
@@ -337,7 +344,7 @@ function buildSakuraComponents(
       styleOverrides: {
         root: ({ theme }) => ({
           borderRadius: 8,
-          padding: '6px 8px',
+          padding: theme.spacing(0.75, 1),
           '&.Mui-selected': {
             backgroundColor: theme.palette.action.selected,
             '&:hover': { backgroundColor: theme.palette.action.selected },
@@ -360,7 +367,6 @@ function buildSakuraComponents(
 
     MuiTabs: {
       styleOverrides: {
-        root: { minHeight: 36 },
         indicator: { height: 2 },
       },
     },
@@ -368,7 +374,6 @@ function buildSakuraComponents(
       styleOverrides: {
         root: {
           textTransform: 'none',
-          minHeight: 36,
           padding: '8px 10px',
           fontSize: pxToRem(13),
           fontWeight: 600,
@@ -424,6 +429,10 @@ function buildSakuraComponents(
             return {}
           }
           return { color: theme.palette.severityInk?.[sev] || 'currentColor' }
+        },
+        action: {
+          alignItems: 'center',
+          marginRight: 0,
         },
       },
     },

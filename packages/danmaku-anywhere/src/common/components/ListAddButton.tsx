@@ -6,9 +6,8 @@ export function ListAddButton(props: ButtonProps) {
     <Button
       variant="soft"
       color="primary"
-      size="small"
+      size="xs"
       startIcon={<Add />}
-      sx={{ minHeight: 26, py: 0 }}
       {...props}
     />
   )

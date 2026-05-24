@@ -62,8 +62,6 @@ const StyledListItem = styled(ListItem)(({ theme }) => {
     },
     '.MuiListItemButton-root': {
       paddingRight: theme.spacing(12), // make room for action buttons
-      paddingTop: theme.spacing(0.75),
-      paddingBottom: theme.spacing(0.75),
     },
   }
 })
