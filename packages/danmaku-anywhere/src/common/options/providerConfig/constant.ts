@@ -42,98 +42,10 @@ export const builtInTencentProvider: ProviderConfig = {
   configValues: {},
 }
 
-export const builtInYoukuProvider: ProviderConfig = {
-  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Youku],
-  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Youku],
-  name: 'Youku',
-  impl: DanmakuSourceType.Youku,
-  enabled: true,
-  isBuiltIn: true,
-  configValues: {},
-}
-
-export const builtInMangoProvider: ProviderConfig = {
-  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Mango],
-  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Mango],
-  name: 'Mango TV',
-  impl: DanmakuSourceType.Mango,
-  enabled: true,
-  isBuiltIn: true,
-  configValues: {},
-}
-
-export const builtInIqiyiProvider: ProviderConfig = {
-  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Iqiyi],
-  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Iqiyi],
-  name: 'iQIYI',
-  impl: DanmakuSourceType.Iqiyi,
-  enabled: true,
-  isBuiltIn: true,
-  configValues: {},
-}
-
-export const builtInSohuProvider: ProviderConfig = {
-  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Sohu],
-  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Sohu],
-  name: 'Sohu',
-  impl: DanmakuSourceType.Sohu,
-  enabled: true,
-  isBuiltIn: true,
-  configValues: {},
-}
-
-export const builtInMaiduiduiProvider: ProviderConfig = {
-  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Maiduidui],
-  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Maiduidui],
-  name: 'Maiduidui',
-  impl: DanmakuSourceType.Maiduidui,
-  enabled: true,
-  isBuiltIn: true,
-  configValues: {},
-}
-
-export const builtInRenrenProvider: ProviderConfig = {
-  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Renren],
-  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Renren],
-  name: 'Renren',
-  impl: DanmakuSourceType.Renren,
-  enabled: true,
-  isBuiltIn: true,
-  configValues: {},
-}
-
-export const builtInAiyifanProvider: ProviderConfig = {
-  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Aiyifan],
-  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Aiyifan],
-  name: 'Aiyifan',
-  impl: DanmakuSourceType.Aiyifan,
-  enabled: true,
-  isBuiltIn: true,
-  configValues: {},
-}
-
-export const builtInBahamutProvider: ProviderConfig = {
-  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bahamut],
-  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bahamut],
-  name: 'Bahamut',
-  impl: DanmakuSourceType.Bahamut,
-  enabled: true,
-  isBuiltIn: true,
-  configValues: {},
-}
-
 export const defaultProviderConfigs: ProviderConfig[] = [
   builtInDanDanPlayProvider,
   builtInBilibiliProvider,
   builtInTencentProvider,
-  builtInYoukuProvider,
-  builtInMangoProvider,
-  builtInIqiyiProvider,
-  builtInSohuProvider,
-  builtInMaiduiduiProvider,
-  builtInRenrenProvider,
-  builtInAiyifanProvider,
-  builtInBahamutProvider,
 ]
 
 export function createCustomDanDanPlayProvider(

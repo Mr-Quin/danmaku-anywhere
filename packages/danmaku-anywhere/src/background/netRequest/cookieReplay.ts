@@ -1,9 +1,8 @@
-// Some sources (e.g. Youku's mtop endpoints) ship Set-Cookie with the
-// `Partitioned` attribute. Chrome stores those in a per-top-frame
-// partition, which extension service workers can't access — so subsequent
-// `credentials: 'include'` fetches don't carry the token, and fetch() also
-// filters Set-Cookie out of JS-visible response headers regardless of
-// partitioning.
+// Some sources ship Set-Cookie with the `Partitioned` attribute. Chrome
+// stores those in a per-top-frame partition, which extension service
+// workers can't access, so subsequent `credentials: 'include'` fetches
+// don't carry the token. fetch() also filters Set-Cookie out of
+// JS-visible response headers regardless of partitioning.
 //
 // This listener observes response headers and (a) caches the raw Set-Cookie
 // strings keyed by URL so extensionFetchLike can synthesize the missing

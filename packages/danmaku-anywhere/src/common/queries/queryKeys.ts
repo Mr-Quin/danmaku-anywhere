@@ -62,8 +62,10 @@ export const customEpisodeQueryKeys = {
 }
 
 export const sourceQueryKeys = {
-  bilibili: () => [{ scope: 'source', kind: 'bilibili' }] as const,
-  tencent: () => [{ scope: 'source', kind: 'tencent' }] as const,
+  manifestSpec: (manifestId: string) =>
+    [{ scope: 'source', kind: 'manifestSpec', manifestId }] as const,
+  providerProbe: (manifestId: string) =>
+    [{ scope: 'source', kind: 'providerProbe', manifestId }] as const,
 }
 
 export const tabQueryKeys = {

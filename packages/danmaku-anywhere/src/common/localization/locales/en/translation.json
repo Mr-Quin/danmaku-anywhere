@@ -206,18 +206,10 @@
     "noComments": "No comments",
     "refresh": "Refresh Danmaku",
     "type": {
-      "aiyifan": "Aiyifan",
-      "bahamut": "Bahamut",
       "bilibili": "Bilibili",
       "danDanPlay": "DanDanPlay",
-      "iqiyi": "iQIYI",
       "macCms": "MacCMS",
-      "maiduidui": "Maiduidui",
-      "mango": "Mango TV",
-      "renren": "Renren",
-      "sohu": "Sohu",
-      "tencent": "Tencent",
-      "youku": "Youku"
+      "tencent": "Tencent"
     },
     "unmount": "Unmount",
     "viewDanmaku": "View Danmaku"
@@ -268,12 +260,6 @@
   },
   "danmakuPage": {
     "confirmDeleteMessage": "Are you sure to delete the selected Danmaku?"
-  },
-  "danmakuSource": {
-    "tooltip": {
-      "bilibiliNotLoggedIn": "<0></0>",
-      "tencentCookieMissing": "<0></0>"
-    }
   },
   "error": {
     "unknown": "Something went wrong."
@@ -613,7 +599,10 @@
         "edit": "Edit Provider: {{name}}"
       }
     },
-    "name": "Danmaku Providers"
+    "name": "Danmaku Providers",
+    "warning": {
+      "defaultTooltip": "Authentication required"
+    }
   },
   "searchPage": {
     "alert": {

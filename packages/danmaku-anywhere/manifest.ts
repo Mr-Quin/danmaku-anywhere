@@ -16,11 +16,11 @@ const permissions: chrome.runtime.ManifestPermissions[] = [
   'webRequest',
   'contextMenus',
   // chrome.cookies. Sources that sign requests using a Partitioned token
-  // (e.g. Youku's `_m_h5_tk`) deliver it via Set-Cookie with Partitioned;
-  // Chrome would otherwise stash it in a per-top-frame partition the
-  // service worker can't see. cookieReplay's webRequest listener catches
-  // the raw header for the engine, then chrome.cookies.set re-plants it
-  // in the unpartitioned store so the next credentialed fetch carries it.
+  // deliver it via Set-Cookie with Partitioned; Chrome would otherwise
+  // stash it in a per-top-frame partition the service worker can't see.
+  // cookieReplay's webRequest listener catches the raw header for the
+  // engine, then chrome.cookies.set re-plants it in the unpartitioned
+  // store so the next credentialed fetch carries it.
   'cookies',
 ]
 

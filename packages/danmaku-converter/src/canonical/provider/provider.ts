@@ -3,14 +3,6 @@ export enum DanmakuSourceType {
   DanDanPlay = 'DanDanPlay',
   Bilibili = 'Bilibili',
   Tencent = 'Tencent',
-  Youku = 'Youku',
-  Mango = 'Mango',
-  Iqiyi = 'Iqiyi',
-  Sohu = 'Sohu',
-  Maiduidui = 'Maiduidui',
-  Renren = 'Renren',
-  Aiyifan = 'Aiyifan',
-  Bahamut = 'Bahamut',
   Custom = 'Custom',
 }
 
@@ -20,14 +12,6 @@ export const PROVIDER_TO_BUILTIN_ID = {
   [DanmakuSourceType.DanDanPlay]: 'builtin:dandanplay',
   [DanmakuSourceType.Bilibili]: 'builtin:bilibili',
   [DanmakuSourceType.Tencent]: 'builtin:tencent',
-  [DanmakuSourceType.Youku]: 'builtin:youku',
-  [DanmakuSourceType.Mango]: 'builtin:mango',
-  [DanmakuSourceType.Iqiyi]: 'builtin:iqiyi',
-  [DanmakuSourceType.Sohu]: 'builtin:sohu',
-  [DanmakuSourceType.Maiduidui]: 'builtin:maiduidui',
-  [DanmakuSourceType.Renren]: 'builtin:renren',
-  [DanmakuSourceType.Aiyifan]: 'builtin:aiyifan',
-  [DanmakuSourceType.Bahamut]: 'builtin:bahamut',
   [DanmakuSourceType.MacCMS]: LEGACY_MACCMS_ID, // not built-in, but used for migrations to indicate this is a migrated option
 } as const satisfies Record<DanmakuSourceType, string>
 

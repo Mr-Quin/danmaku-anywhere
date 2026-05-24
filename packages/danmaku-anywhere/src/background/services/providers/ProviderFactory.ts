@@ -34,17 +34,6 @@ const builtinProvider: Record<string, DanmakuSourceType> = {
     DanmakuSourceType.Bilibili,
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]]:
     DanmakuSourceType.Tencent,
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Youku]]: DanmakuSourceType.Youku,
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Mango]]: DanmakuSourceType.Mango,
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Iqiyi]]: DanmakuSourceType.Iqiyi,
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Sohu]]: DanmakuSourceType.Sohu,
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Maiduidui]]:
-    DanmakuSourceType.Maiduidui,
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Renren]]: DanmakuSourceType.Renren,
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Aiyifan]]:
-    DanmakuSourceType.Aiyifan,
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bahamut]]:
-    DanmakuSourceType.Bahamut,
 }
 
 function createDanmakuProvider(

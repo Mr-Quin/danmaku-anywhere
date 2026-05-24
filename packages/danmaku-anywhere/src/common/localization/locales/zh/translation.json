@@ -199,18 +199,10 @@
     "noComments": "弹幕列表为空",
     "refresh": "刷新弹幕",
     "type": {
-      "aiyifan": "爱壹帆",
-      "bahamut": "巴哈姆特",
       "bilibili": "B站",
       "danDanPlay": "弹弹play",
-      "iqiyi": "爱奇艺",
       "macCms": "MacCMS",
-      "maiduidui": "埋堆堆",
-      "mango": "芒果TV",
-      "renren": "人人视频",
-      "sohu": "搜狐视频",
-      "tencent": "腾讯",
-      "youku": "优酷"
+      "tencent": "腾讯"
     },
     "unmount": "卸载弹幕",
     "viewDanmaku": "查看弹幕"
@@ -261,12 +253,6 @@
   },
   "danmakuPage": {
     "confirmDeleteMessage": "确定要删除选中的弹幕吗？"
-  },
-  "danmakuSource": {
-    "tooltip": {
-      "bilibiliNotLoggedIn": "未登录哔哩哔哩，获取的剧集信息和弹幕可能受限。请<0>前往B站</0>登录。",
-      "tencentCookieMissing": "获取腾讯视频失败，可能是缺少 Cookie，请先访问<0>腾讯视频</0>并打开任意视频页面以确保 Cookie 正常。"
-    }
   },
   "error": {
     "unknown": "出错啦!"
@@ -597,7 +583,10 @@
         "edit": "编辑弹幕源: {{name}}"
       }
     },
-    "name": "弹幕源"
+    "name": "弹幕源",
+    "warning": {
+      "defaultTooltip": ""
+    }
   },
   "searchPage": {
     "alert": {

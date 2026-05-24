@@ -97,18 +97,7 @@ export const ProviderEditor = ({
             isEdit={isEdit}
           />
         )
-      // Builtins whose configSchema has no user-facing fields share the same
-      // no-config form (just a disabled name + save). The schema-forms
-      // initiative will collapse all four of these into one renderer.
       case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]:
-      case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Youku]:
-      case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Mango]:
-      case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Iqiyi]:
-      case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Sohu]:
-      case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Maiduidui]:
-      case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Renren]:
-      case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Aiyifan]:
-      case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bahamut]:
         return (
           <TencentProviderForm
             provider={provider}
