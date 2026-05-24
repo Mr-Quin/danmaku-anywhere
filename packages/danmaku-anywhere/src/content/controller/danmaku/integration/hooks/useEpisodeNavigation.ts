@@ -15,13 +15,20 @@ function isVisible(element: HTMLElement): boolean {
   if (element instanceof HTMLButtonElement && element.disabled) {
     return false
   }
-  const style = window.getComputedStyle(element)
-  if (
-    style.display === 'none' ||
-    style.visibility === 'hidden' ||
-    style.opacity === '0'
-  ) {
-    return false
+  // Walk up the tree — display:none / opacity:0 on an ancestor doesn't
+  // propagate into the element's own computed style, and visibility:hidden
+  // on an ancestor can be overridden lower down. Stop at <html>.
+  let current: HTMLElement | null = element
+  while (current) {
+    const style = window.getComputedStyle(current)
+    if (
+      style.display === 'none' ||
+      style.visibility === 'hidden' ||
+      style.opacity === '0'
+    ) {
+      return false
+    }
+    current = current.parentElement
   }
   return true
 }
@@ -30,8 +37,8 @@ export function findFirstVisibleNode(
   selectors: IntegrationPolicySelector[],
   parent: Document = window.document
 ): HTMLElement | null {
-  for (const value of sortSelectors([...selectors])) {
-    const node = getElementByXpath(value, parent)
+  for (const xpath of sortSelectors([...selectors])) {
+    const node = getElementByXpath(xpath, parent)
     if (node instanceof HTMLElement && isVisible(node)) {
       return node
     }
