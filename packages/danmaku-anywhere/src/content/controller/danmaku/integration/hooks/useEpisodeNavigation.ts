@@ -1,10 +1,34 @@
 import { useCallback } from 'react'
 import type { IntegrationPolicySelector } from '@/common/options/integrationPolicyStore/schema'
-import { getElementByXpath } from '@/common/utils/utils'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
 import { sortSelectors } from '@/content/controller/danmaku/integration/xPathPolicyOps/mediaRegexMatcher'
 
-function isVisible(element: HTMLElement): boolean {
+type ClickableElement = HTMLElement | SVGElement
+
+function* iterateXpathMatches(
+  xpath: string,
+  parent: Document = window.document
+): Generator<Node> {
+  let result: XPathResult
+  try {
+    result = document.evaluate(
+      xpath,
+      parent,
+      null,
+      XPathResult.ORDERED_NODE_ITERATOR_TYPE,
+      null
+    )
+  } catch {
+    return
+  }
+  let node = result.iterateNext()
+  while (node) {
+    yield node
+    node = result.iterateNext()
+  }
+}
+
+function isVisible(element: ClickableElement): boolean {
   if (!element.isConnected) {
     return false
   }
@@ -14,7 +38,7 @@ function isVisible(element: HTMLElement): boolean {
   // Walk up the tree — display:none / opacity:0 on an ancestor doesn't
   // propagate into the element's own computed style, and visibility:hidden
   // on an ancestor can be overridden lower down. Stop at <html>.
-  let current: HTMLElement | null = element
+  let current: Element | null = element
   while (current) {
     const style = window.getComputedStyle(current)
     if (
@@ -29,25 +53,36 @@ function isVisible(element: HTMLElement): boolean {
   return true
 }
 
+function isClickable(node: Node): node is ClickableElement {
+  return node instanceof HTMLElement || node instanceof SVGElement
+}
+
 export function findFirstVisibleNode(
   selectors: IntegrationPolicySelector[],
   parent: Document = window.document
-): HTMLElement | null {
+): ClickableElement | null {
   for (const xpath of sortSelectors([...selectors])) {
-    const node = getElementByXpath(xpath, parent)
-    if (node instanceof HTMLElement && isVisible(node)) {
-      return node
+    for (const node of iterateXpathMatches(xpath, parent)) {
+      if (isClickable(node) && isVisible(node)) {
+        return node
+      }
     }
   }
   return null
 }
 
-function clickFirstVisible(selectors: IntegrationPolicySelector[]): boolean {
+export function clickFirstVisible(
+  selectors: IntegrationPolicySelector[]
+): boolean {
   const target = findFirstVisibleNode(selectors)
   if (!target) {
     return false
   }
-  target.click()
+  // dispatchEvent works for both HTMLElement and SVGElement; some TS lib
+  // versions don't expose .click() on SVGElement even though browsers do.
+  target.dispatchEvent(
+    new MouseEvent('click', { bubbles: true, cancelable: true })
+  )
   return true
 }
 
