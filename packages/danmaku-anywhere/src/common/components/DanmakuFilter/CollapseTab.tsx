@@ -161,215 +161,213 @@ export function CollapseTab({
   }
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Stack useFlexGap spacing={2}>
-        <SettingsBlock
-          title={t('danmakuFilter.dedupeModeTitle', 'Dedupe')}
-          subtitle={t(
-            'danmakuFilter.dedupeModeSubtitle',
-            'Drop identical comments that appear multiple times within a time window.'
-          )}
-          disabled={!collapse.dedupe.enabled}
-          headerRight={
-            <Switch
-              checked={collapse.dedupe.enabled}
-              onChange={(_, checked) =>
-                onChange((draft) => {
-                  draft.dedupe.enabled = checked
-                })
-              }
-            />
-          }
-        >
-          <Stack useFlexGap spacing={2}>
-            <LabeledSlider
-              label={t('danmakuFilter.timeWindow', 'Time window')}
-              value={collapse.dedupe.windowMs}
-              min={0}
-              max={2000}
-              step={100}
-              disabled={!collapse.dedupe.enabled}
-              marks={[
-                { value: 0, label: '0s' },
-                { value: 1000, label: '1s' },
-                { value: 2000, label: '2s' },
-              ]}
-              valueLabelDisplay="auto"
-              valueLabelFormat={(v) => formatSeconds(v as number)}
-              formatChipValue={(v) => formatSeconds(v as number)}
-              commitOnRelease
-              onChange={(_, v) =>
-                onChange((draft) => {
-                  draft.dedupe.windowMs = v as number
-                })
+    <Stack useFlexGap spacing={2}>
+      <SettingsBlock
+        title={t('danmakuFilter.dedupeModeTitle', 'Dedupe')}
+        subtitle={t(
+          'danmakuFilter.dedupeModeSubtitle',
+          'Drop identical comments that appear multiple times within a time window.'
+        )}
+        disabled={!collapse.dedupe.enabled}
+        headerRight={
+          <Switch
+            checked={collapse.dedupe.enabled}
+            onChange={(_, checked) =>
+              onChange((draft) => {
+                draft.dedupe.enabled = checked
+              })
+            }
+          />
+        }
+      >
+        <Stack useFlexGap spacing={2}>
+          <LabeledSlider
+            label={t('danmakuFilter.timeWindow', 'Time window')}
+            value={collapse.dedupe.windowMs}
+            min={0}
+            max={2000}
+            step={100}
+            disabled={!collapse.dedupe.enabled}
+            marks={[
+              { value: 0, label: '0s' },
+              { value: 1000, label: '1s' },
+              { value: 2000, label: '2s' },
+            ]}
+            valueLabelDisplay="auto"
+            valueLabelFormat={(v) => formatSeconds(v as number)}
+            formatChipValue={(v) => formatSeconds(v as number)}
+            commitOnRelease
+            onChange={(_, v) =>
+              onChange((draft) => {
+                draft.dedupe.windowMs = v as number
+              })
+            }
+          />
+          <SettingRow
+            title={t('danmakuFilter.maxDedupe', 'Max identical')}
+            hint={t(
+              'danmakuFilter.maxDedupeHint',
+              'Only dedupe comments that appear less than this number of times.'
+            )}
+            disabled={!collapse.dedupe.enabled}
+            control={
+              <ClampedIntField
+                value={collapse.dedupe.maxDedupe}
+                min={2}
+                max={10}
+                onCommit={(n) =>
+                  onChange((draft) => {
+                    draft.dedupe.maxDedupe = n
+                  })
+                }
+              />
+            }
+          />
+        </Stack>
+      </SettingsBlock>
+
+      <SettingsBlock
+        title={t('danmakuFilter.patternModeTitle', 'Collapse')}
+        subtitle={t(
+          'danmakuFilter.patternModeSubtitle',
+          'Collapse multiple comments into one comment.'
+        )}
+        disabled={!collapse.pattern.enabled}
+        headerRight={
+          <Switch
+            checked={collapse.pattern.enabled}
+            onChange={(_, checked) =>
+              onChange((draft) => {
+                draft.pattern.enabled = checked
+              })
+            }
+          />
+        }
+      >
+        <Stack useFlexGap spacing={2.5}>
+          <Stack useFlexGap spacing={1}>
+            <SettingRow
+              disabled={!collapse.pattern.enabled}
+              title={t('danmakuFilter.liveCount', 'Show combo counter')}
+              hint={t(
+                'danmakuFilter.liveCountHint',
+                'Counter increases as repeats arrive. Turn off to show the total number of similar comments upfront.'
+              )}
+              control={
+                <Switch
+                  checked={collapse.pattern.liveCount}
+                  onChange={(_, checked) =>
+                    onChange((draft) => {
+                      draft.pattern.liveCount = checked
+                    })
+                  }
+                />
               }
             />
             <SettingRow
-              title={t('danmakuFilter.maxDedupe', 'Max identical')}
+              disabled={!collapse.pattern.enabled}
+              title={t('danmakuFilter.pulse', 'Pulse effect')}
               hint={t(
-                'danmakuFilter.maxDedupeHint',
-                'Only dedupe comments that appear less than this number of times.'
+                'danmakuFilter.pulseHint',
+                'Show a pulse animation when the counter increments.'
               )}
-              disabled={!collapse.dedupe.enabled}
+              control={
+                <Switch
+                  checked={collapse.pattern.pulse}
+                  disabled={!collapse.pattern.liveCount}
+                  onChange={(_, checked) =>
+                    onChange((draft) => {
+                      draft.pattern.pulse = checked
+                    })
+                  }
+                />
+              }
+            />
+            <SettingRow
+              disabled={!collapse.pattern.enabled}
+              title={t('danmakuFilter.autoCollapse', 'Auto-collapse')}
+              hint={t(
+                'danmakuFilter.autoCollapseHint',
+                'Automatically collapse identical comments that appear in a row.'
+              )}
+              control={
+                <Switch
+                  checked={collapse.pattern.autoCollapse}
+                  onChange={(_, checked) =>
+                    onChange((draft) => {
+                      draft.pattern.autoCollapse = checked
+                    })
+                  }
+                />
+              }
+            />
+            <SettingRow
+              disabled={!collapse.pattern.enabled}
+              title={t('danmakuFilter.minCount', 'Minimum copies')}
+              hint={t(
+                'danmakuFilter.minCountHint',
+                'Only trigger collapse when at least this many comments arrive. Applies for both auto-collapse and patterns.'
+              )}
               control={
                 <ClampedIntField
-                  value={collapse.dedupe.maxDedupe}
+                  value={collapse.pattern.minCount}
                   min={2}
-                  max={10}
+                  max={20}
                   onCommit={(n) =>
                     onChange((draft) => {
-                      draft.dedupe.maxDedupe = n
+                      draft.pattern.minCount = n
                     })
                   }
                 />
               }
             />
           </Stack>
-        </SettingsBlock>
 
-        <SettingsBlock
-          title={t('danmakuFilter.patternModeTitle', 'Collapse')}
-          subtitle={t(
-            'danmakuFilter.patternModeSubtitle',
-            'Collapse multiple comments into one comment.'
-          )}
-          disabled={!collapse.pattern.enabled}
-          headerRight={
-            <Switch
-              checked={collapse.pattern.enabled}
-              onChange={(_, checked) =>
-                onChange((draft) => {
-                  draft.pattern.enabled = checked
-                })
-              }
-            />
-          }
-        >
-          <Stack useFlexGap spacing={2.5}>
-            <Stack useFlexGap spacing={1}>
-              <SettingRow
-                disabled={!collapse.pattern.enabled}
-                title={t('danmakuFilter.liveCount', 'Show combo counter')}
-                hint={t(
-                  'danmakuFilter.liveCountHint',
-                  'Counter increases as repeats arrive. Turn off to show the total number of similar comments upfront.'
-                )}
-                control={
-                  <Switch
-                    checked={collapse.pattern.liveCount}
-                    onChange={(_, checked) =>
-                      onChange((draft) => {
-                        draft.pattern.liveCount = checked
-                      })
-                    }
-                  />
-                }
+          <RulesList
+            title={t('danmakuFilter.patternsHeader', 'Patterns')}
+            rules={collapse.pattern.patterns}
+            onDelete={handleDeletePattern}
+            onEdit={(index, draft) =>
+              onEditPattern(index, draft as LabeledPattern)
+            }
+            onResetDefaults={handleResetPatterns}
+            emptyText={t('danmakuFilter.noPatterns', 'No patterns')}
+            composer={
+              <PatternComposer
+                onAdd={handleAddPattern}
+                error={patternError}
+                onErrorClear={() => setPatternError('')}
               />
-              <SettingRow
-                disabled={!collapse.pattern.enabled}
-                title={t('danmakuFilter.pulse', 'Pulse effect')}
-                hint={t(
-                  'danmakuFilter.pulseHint',
-                  'Show a pulse animation when the counter increments.'
-                )}
-                control={
-                  <Switch
-                    checked={collapse.pattern.pulse}
-                    disabled={!collapse.pattern.liveCount}
-                    onChange={(_, checked) =>
-                      onChange((draft) => {
-                        draft.pattern.pulse = checked
-                      })
-                    }
-                  />
-                }
-              />
-              <SettingRow
-                disabled={!collapse.pattern.enabled}
-                title={t('danmakuFilter.autoCollapse', 'Auto-collapse')}
-                hint={t(
-                  'danmakuFilter.autoCollapseHint',
-                  'Automatically collapse identical comments that appear in a row.'
-                )}
-                control={
-                  <Switch
-                    checked={collapse.pattern.autoCollapse}
-                    onChange={(_, checked) =>
-                      onChange((draft) => {
-                        draft.pattern.autoCollapse = checked
-                      })
-                    }
-                  />
-                }
-              />
-              <SettingRow
-                disabled={!collapse.pattern.enabled}
-                title={t('danmakuFilter.minCount', 'Minimum copies')}
-                hint={t(
-                  'danmakuFilter.minCountHint',
-                  'Only trigger collapse when at least this many comments arrive. Applies for both auto-collapse and patterns.'
-                )}
-                control={
-                  <ClampedIntField
-                    value={collapse.pattern.minCount}
-                    min={2}
-                    max={20}
-                    onCommit={(n) =>
-                      onChange((draft) => {
-                        draft.pattern.minCount = n
-                      })
-                    }
-                  />
-                }
-              />
-            </Stack>
+            }
+          />
+        </Stack>
+      </SettingsBlock>
 
-            <RulesList
-              title={t('danmakuFilter.patternsHeader', 'Patterns')}
-              rules={collapse.pattern.patterns}
-              onDelete={handleDeletePattern}
-              onEdit={(index, draft) =>
-                onEditPattern(index, draft as LabeledPattern)
-              }
-              onResetDefaults={handleResetPatterns}
-              emptyText={t('danmakuFilter.noPatterns', 'No patterns')}
-              composer={
-                <PatternComposer
-                  onAdd={handleAddPattern}
-                  error={patternError}
-                  onErrorClear={() => setPatternError('')}
-                />
-              }
-            />
-          </Stack>
-        </SettingsBlock>
-
-        <SettingsBlock
-          title={t('danmakuFilter.whiteListHeader', 'White List')}
-          subtitle={t(
-            'danmakuFilter.whiteListHint',
-            'Rules listed here will not be collapsed or deduped.'
-          )}
-        >
-          <Stack useFlexGap spacing={1}>
-            <RuleComposer
-              placeholder={t(
-                'danmakuFilter.enterFilterPatternPlaceholder',
-                'Text or /regex/'
-              )}
-              onAdd={handleAddWhiteList}
-              error={whiteListError}
-              onErrorClear={() => setWhiteListError('')}
-            />
-            <RulesList
-              rules={collapse.whiteList}
-              onDelete={handleDeleteWhiteList}
-              onEdit={onEditWhiteList}
-              emptyText={t('danmakuFilter.noWhiteList', 'No White List')}
-            />
-          </Stack>
-        </SettingsBlock>
-      </Stack>
-    </Box>
+      <SettingsBlock
+        title={t('danmakuFilter.whiteListHeader', 'White List')}
+        subtitle={t(
+          'danmakuFilter.whiteListHint',
+          'Rules listed here will not be collapsed or deduped.'
+        )}
+      >
+        <Stack useFlexGap spacing={1}>
+          <RuleComposer
+            placeholder={t(
+              'danmakuFilter.enterFilterPatternPlaceholder',
+              'Text or /regex/'
+            )}
+            onAdd={handleAddWhiteList}
+            error={whiteListError}
+            onErrorClear={() => setWhiteListError('')}
+          />
+          <RulesList
+            rules={collapse.whiteList}
+            onDelete={handleDeleteWhiteList}
+            onEdit={onEditWhiteList}
+            emptyText={t('danmakuFilter.noWhiteList', 'No White List')}
+          />
+        </Stack>
+      </SettingsBlock>
+    </Stack>
   )
 }

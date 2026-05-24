@@ -30,7 +30,7 @@ export const AppToolBar = () => {
 
   return (
     <AppBar position="static">
-      <Toolbar variant="dense">
+      <Toolbar variant="dense" sx={{ minHeight: 44 }}>
         <Fade in={isAnyLoading} unmountOnExit>
           <Box
             sx={{

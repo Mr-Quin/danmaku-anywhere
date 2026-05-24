@@ -52,8 +52,9 @@ export const TabToolbar = ({
       disableGutters
       sx={{
         flexShrink: 0,
-        minHeight: 40,
+        minHeight: 44,
         paddingInline: 2,
+        paddingBlock: 0.5,
         gap: 0.5,
       }}
     >

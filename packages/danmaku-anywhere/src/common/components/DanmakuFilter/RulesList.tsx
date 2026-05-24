@@ -113,7 +113,7 @@ export function RulesList({
           {composer}
         </Box>
       )}
-      <Paper variant="outlined">
+      <Paper variant="outlined" sx={{ overflow: 'hidden' }}>
         <List dense disablePadding>
           {rules.map((rule, i) => (
             <Box key={`${rule.type}-${rule.value}-${i}`}>

@@ -1,5 +1,4 @@
 import {
-  Box,
   Collapse,
   debounce,
   Stack,
@@ -269,411 +268,397 @@ export const DanmakuStylesForm = ({
   const useCustomCss = watch('useCustomCss', config.useCustomCss)
 
   return (
-    <Box sx={{ p: 2 }}>
-      <Stack useFlexGap spacing={2}>
-        <SettingsBlock title={t('stylePage.style', 'Style')}>
-          <Stack useFlexGap spacing={1}>
-            <Controller
-              name="style.opacity"
-              control={control}
-              render={({ field }) => (
-                <LabeledSlider
-                  label={t('stylePage.opacity', 'Opacity')}
-                  value={field.value}
-                  onChange={(_e, newValue) =>
-                    field.onChange(newValue as number)
-                  }
-                  step={0.01}
-                  min={0}
-                  max={1}
-                  size="small"
-                  valueLabelDisplay="auto"
-                  marks={opacityMarks}
-                  valueLabelFormat={opacityValueLabelFormat}
-                />
-              )}
-            />
-            <Controller
-              name="style.fontSize"
-              control={control}
-              render={({ field }) => (
-                <LabeledSlider
-                  label={t('stylePage.size', 'Size')}
-                  value={field.value}
-                  onChange={(_e, newValue) =>
-                    field.onChange(newValue as number)
-                  }
-                  step={1}
-                  min={4}
-                  max={48}
-                  size="small"
-                  valueLabelDisplay="auto"
-                  marks={fontSizeMarks}
-                  valueLabelFormat={fontSizeValueLabelFormat}
-                />
-              )}
-            />
-            {!isMobile && IS_CHROME && (
-              <Controller
-                name="style.fontFamily"
-                control={control}
-                render={({ field }) => (
-                  <FontSelector
-                    value={field.value}
-                    onChange={(font) => field.onChange(font)}
-                    label={t('stylePage.font', 'Font')}
-                  />
-                )}
+    <Stack useFlexGap spacing={2}>
+      <SettingsBlock title={t('stylePage.style', 'Style')}>
+        <Stack useFlexGap spacing={1}>
+          <Controller
+            name="style.opacity"
+            control={control}
+            render={({ field }) => (
+              <LabeledSlider
+                label={t('stylePage.opacity', 'Opacity')}
+                value={field.value}
+                onChange={(_e, newValue) => field.onChange(newValue as number)}
+                step={0.01}
+                min={0}
+                max={1}
+                size="small"
+                valueLabelDisplay="auto"
+                marks={opacityMarks}
+                valueLabelFormat={opacityValueLabelFormat}
               />
             )}
-            <Controller
-              name="useCustomCss"
-              control={control}
-              render={({ field }) => (
-                <LabeledSwitch
-                  label={
-                    <Stack
-                      component="span"
-                      direction="row"
-                      sx={{
-                        alignItems: 'center',
-                        gap: 1,
-                      }}
-                    >
-                      {t('stylePage.useCustomCss', 'Use Custom CSS')}
-                      <DocIcon path="docs/custom-css" />
-                    </Stack>
-                  }
-                  edge="end"
-                  checked={field.value}
-                  onChange={(e) => field.onChange(e.target.checked)}
-                />
-              )}
-            />
-            <Collapse in={useCustomCss} unmountOnExit>
-              <Controller
-                name="customCss"
-                control={control}
-                render={({ field }) => (
-                  <TextField
-                    placeholder={customCssPlaceholder}
-                    helperText={t(
-                      'stylePage.customCssDescription',
-                      'Custom CSS rules applied to every danmaku. See docs for more info.'
-                    )}
-                    value={field.value ?? ''}
-                    onChange={(e) => field.onChange(e.target.value)}
-                    multiline
-                    minRows={3}
-                    maxRows={10}
-                    size="small"
-                    fullWidth
-                    slotProps={{
-                      input: {
-                        sx: (theme) => ({
-                          fontFamily: 'monospace',
-                          fontSize: theme.typography.body2.fontSize,
-                          '& .MuiInputBase-input': {
-                            ...getScrollBarProps(theme),
-                          },
-                        }),
-                      },
-                    }}
-                  />
-                )}
+          />
+          <Controller
+            name="style.fontSize"
+            control={control}
+            render={({ field }) => (
+              <LabeledSlider
+                label={t('stylePage.size', 'Size')}
+                value={field.value}
+                onChange={(_e, newValue) => field.onChange(newValue as number)}
+                step={1}
+                min={4}
+                max={48}
+                size="small"
+                valueLabelDisplay="auto"
+                marks={fontSizeMarks}
+                valueLabelFormat={fontSizeValueLabelFormat}
               />
-            </Collapse>
-          </Stack>
-        </SettingsBlock>
-        <SettingsBlock title={t('stylePage.speedSettings', 'Speed Settings')}>
-          <Stack useFlexGap spacing={1}>
+            )}
+          />
+          {!isMobile && IS_CHROME && (
             <Controller
-              name="speed"
+              name="style.fontFamily"
               control={control}
               render={({ field }) => (
-                <LabeledSlider
-                  label={t('stylePage.speed', 'Speed')}
-                  value={convertActualSpeedToDisplay(field.value)}
-                  onChange={(_e, newValue) => {
-                    field.onChange(
-                      convertDisplaySpeedToActual(newValue as number)
-                    )
-                  }}
-                  step={1}
-                  min={1}
-                  max={5}
-                  marks={speedMarks}
-                  size="small"
-                  valueLabelDisplay="auto"
-                />
-              )}
-            />
-            <Controller
-              name="offset"
-              control={control}
-              render={({ field }) => (
-                <LabeledScrubber
-                  label={t('stylePage.offset', 'Time Offset')}
-                  tooltip={t(
-                    'stylePage.tooltip.offsetScrubber',
-                    'Drag horizontally or use scroll wheel to adjust. Double-click to manual entry. Positive values make danmaku appear later, negative values earlier.'
-                  )}
+                <FontSelector
                   value={field.value}
-                  onChange={(newValue) => field.onChange(newValue)}
-                  onReset={() => field.onChange(0)}
-                  step={10}
-                  fastStep={100}
-                  slowStep={1}
-                  min={-100000}
-                  max={100000}
-                  formatValue={offsetValueLabelFormat}
-                  unit="ms"
+                  onChange={(font) => field.onChange(font)}
+                  label={t('stylePage.font', 'Font')}
                 />
               )}
             />
-            <Controller
-              name="interval"
-              control={control}
-              render={({ field }) => (
-                <LabeledSlider
-                  label={t('stylePage.interval', 'Emission Interval')}
-                  tooltip={t(
-                    'stylePage.tooltip.interval',
-                    'Lower value means more densely packed danmaku. May cause performance issues if set too low.'
-                  )}
-                  value={field.value}
-                  onChange={(_e, newValue) =>
-                    field.onChange(newValue as number)
-                  }
-                  step={10}
-                  min={100}
-                  max={1000}
-                  marks={intervalMarks}
-                  size="small"
-                  valueLabelDisplay="auto"
-                  valueLabelFormat={(value) => `${value}ms`}
-                />
-              )}
-            />
-          </Stack>
-        </SettingsBlock>
-        <SettingsBlock title={t('stylePage.safeZones', 'Display Area')}>
-          <Stack useFlexGap spacing={1}>
-            <LabeledSlider
-              label={t('stylePage.safeZone.y', 'Y-axis display range')}
-              tooltip={t(
-                'stylePage.tooltip.safeZone.y',
-                'Y-axis (up and down) display range'
-              )}
-              value={[yStart, yEnd]}
-              onChange={(_e, newValue, activeThumb) => {
-                if (!Array.isArray(newValue)) return
-
-                const minDist = 10
-                const minVal = 0
-                const maxVal = 100
-
-                const currentYStart = getValues('area.yStart')
-                const currentYEnd = getValues('area.yEnd')
-
-                if (activeThumb === 0) {
-                  const updatedYStart = Math.max(
-                    minVal,
-                    Math.min(newValue[0], currentYEnd - minDist)
-                  )
-                  setValue('area.yStart', updatedYStart, { shouldDirty: true })
-                } else {
-                  const updatedYEnd = Math.min(
-                    maxVal,
-                    Math.max(newValue[1], currentYStart + minDist)
-                  )
-                  setValue('area.yEnd', updatedYEnd, { shouldDirty: true })
-                }
-              }}
-              step={1}
-              min={0}
-              max={100}
-              size="small"
-              valueLabelDisplay="auto"
-              marks={safeZoneMarks}
-              valueLabelFormat={safeZoneValueLabelFormat}
-              disableSwap
-            />
-            <Controller
-              name="trackHeight"
-              control={control}
-              render={({ field }) => (
-                <LabeledSlider
-                  label={t('stylePage.trackHeight', 'Track Height')}
-                  tooltip={t(
-                    'stylePage.tooltip.trackHeight',
-                    'Higher values makes danmaku farther apart'
-                  )}
-                  value={field.value}
-                  onChange={(_e, newValue) =>
-                    field.onChange(newValue as number)
-                  }
-                  step={1}
-                  min={12}
-                  max={60}
-                  marks={trackHeightMarks}
-                  size="small"
-                  valueLabelDisplay="auto"
-                />
-              )}
-            />
-            <Controller
-              name="maxOnScreen"
-              control={control}
-              render={({ field }) => (
-                <LabeledSlider
-                  label={t('stylePage.maxOnScreen', 'Maximum Limit')}
-                  tooltip={t(
-                    'stylePage.tooltip.maxOnScreen',
-                    'The maximum number of danmaku that can be displayed on the screen at the same time.'
-                  )}
-                  value={field.value}
-                  onChange={(_e, newValue) =>
-                    field.onChange(newValue as number)
-                  }
-                  step={1}
-                  min={0}
-                  max={1000}
-                  marks={maxOnScreenMarks}
-                  size="small"
-                  valueLabelDisplay="auto"
-                />
-              )}
-            />
-            <Controller
-              name="overlap"
-              control={control}
-              render={({ field }) => (
-                <LabeledSlider
-                  label={t('stylePage.overlap', 'Overlap')}
-                  tooltip={t(
-                    'stylePage.tooltip.overlap',
-                    'Higher values reduce the distance between danmaku, allowing more danmaku to be displayed on the screen at the same time, at the cost of overlapping. Set to 0 to disable overlap.'
-                  )}
-                  value={field.value ?? 0}
-                  onChange={(_e, newValue) =>
-                    field.onChange(newValue as number)
-                  }
-                  step={1}
-                  min={0}
-                  max={400}
-                  marks={overlapMarks}
-                  size="small"
-                  valueLabelDisplay="auto"
-                  valueLabelFormat={safeZoneValueLabelFormat}
-                />
-              )}
-            />
-            <Controller
-              name="distribution"
-              control={control}
-              render={({ field }) => (
-                <Stack
-                  spacing={1}
-                  direction="row"
-                  sx={{
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div>
-                    <Typography
-                      gutterBottom
-                      variant="body2"
-                      sx={{
-                        fontWeight: 600,
-                      }}
-                    >
-                      {t('stylePage.distribution', 'Distribution')}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: 'text.secondary',
-                      }}
-                    >
-                      {t(
-                        'stylePage.tooltip.distribution',
-                        'Random: danmaku will be distributed uniformly. Order: danmaku will fill the screen from top to bottom.'
-                      )}
-                    </Typography>
-                  </div>
-                  <ToggleButtonGroup
-                    value={field.value}
-                    onChange={(e, newValue) => {
-                      if (newValue) {
-                        field.onChange(newValue)
-                      }
-                    }}
-                    size="small"
-                    color="primary"
-                    exclusive
+          )}
+          <Controller
+            name="useCustomCss"
+            control={control}
+            render={({ field }) => (
+              <LabeledSwitch
+                label={
+                  <Stack
+                    component="span"
+                    direction="row"
                     sx={{
-                      flex: '1 0 auto',
+                      alignItems: 'center',
+                      gap: 1,
                     }}
                   >
-                    <ToggleButton value="random">
-                      {t('stylePage.randomDistribution', 'Random')}
-                    </ToggleButton>
-                    <ToggleButton value="order">
-                      {t('stylePage.orderDistribution', 'Order')}
-                    </ToggleButton>
-                  </ToggleButtonGroup>
-                </Stack>
-              )}
-            />
-          </Stack>
-        </SettingsBlock>
-        <SettingsBlock title={t('stylePage.specialDanmaku', 'Special Danmaku')}>
-          <Stack useFlexGap spacing={1}>
+                    {t('stylePage.useCustomCss', 'Use Custom CSS')}
+                    <DocIcon path="docs/custom-css" />
+                  </Stack>
+                }
+                edge="end"
+                checked={field.value}
+                onChange={(e) => field.onChange(e.target.checked)}
+              />
+            )}
+          />
+          <Collapse in={useCustomCss} unmountOnExit>
             <Controller
-              name="specialComments.top"
+              name="customCss"
               control={control}
               render={({ field }) => (
-                <LabeledSwitch
-                  label={t(
-                    'stylePage.specialDanmakuConfig.showTop',
-                    'Top Danmaku'
+                <TextField
+                  placeholder={customCssPlaceholder}
+                  helperText={t(
+                    'stylePage.customCssDescription',
+                    'Custom CSS rules applied to every danmaku. See docs for more info.'
                   )}
-                  tooltip={t(
-                    'stylePage.tooltip.specialDanmaku',
-                    'When off, danmaku will be shown as normal scrolling danmaku'
-                  )}
-                  checked={field.value === 'normal'}
-                  onChange={(e) => {
-                    field.onChange(e.target.checked ? 'normal' : 'scroll')
+                  value={field.value ?? ''}
+                  onChange={(e) => field.onChange(e.target.value)}
+                  multiline
+                  minRows={3}
+                  maxRows={10}
+                  size="small"
+                  fullWidth
+                  slotProps={{
+                    input: {
+                      sx: (theme) => ({
+                        fontFamily: 'monospace',
+                        fontSize: theme.typography.body2.fontSize,
+                        '& .MuiInputBase-input': {
+                          ...getScrollBarProps(theme),
+                        },
+                      }),
+                    },
                   }}
                 />
               )}
             />
-            <Controller
-              name="specialComments.bottom"
-              control={control}
-              render={({ field }) => (
-                <LabeledSwitch
-                  label={t(
-                    'stylePage.specialDanmakuConfig.showBottom',
-                    'Bottom Danmaku'
-                  )}
-                  tooltip={t(
-                    'stylePage.tooltip.specialDanmaku',
-                    'When off, danmaku will be shown as normal scrolling danmaku'
-                  )}
-                  checked={field.value === 'normal'}
-                  onChange={(e) => {
-                    field.onChange(e.target.checked ? 'normal' : 'scroll')
+          </Collapse>
+        </Stack>
+      </SettingsBlock>
+      <SettingsBlock title={t('stylePage.speedSettings', 'Speed Settings')}>
+        <Stack useFlexGap spacing={1}>
+          <Controller
+            name="speed"
+            control={control}
+            render={({ field }) => (
+              <LabeledSlider
+                label={t('stylePage.speed', 'Speed')}
+                value={convertActualSpeedToDisplay(field.value)}
+                onChange={(_e, newValue) => {
+                  field.onChange(
+                    convertDisplaySpeedToActual(newValue as number)
+                  )
+                }}
+                step={1}
+                min={1}
+                max={5}
+                marks={speedMarks}
+                size="small"
+                valueLabelDisplay="auto"
+              />
+            )}
+          />
+          <Controller
+            name="offset"
+            control={control}
+            render={({ field }) => (
+              <LabeledScrubber
+                label={t('stylePage.offset', 'Time Offset')}
+                tooltip={t(
+                  'stylePage.tooltip.offsetScrubber',
+                  'Drag horizontally or use scroll wheel to adjust. Double-click to manual entry. Positive values make danmaku appear later, negative values earlier.'
+                )}
+                value={field.value}
+                onChange={(newValue) => field.onChange(newValue)}
+                onReset={() => field.onChange(0)}
+                step={10}
+                fastStep={100}
+                slowStep={1}
+                min={-100000}
+                max={100000}
+                formatValue={offsetValueLabelFormat}
+                unit="ms"
+              />
+            )}
+          />
+          <Controller
+            name="interval"
+            control={control}
+            render={({ field }) => (
+              <LabeledSlider
+                label={t('stylePage.interval', 'Emission Interval')}
+                tooltip={t(
+                  'stylePage.tooltip.interval',
+                  'Lower value means more densely packed danmaku. May cause performance issues if set too low.'
+                )}
+                value={field.value}
+                onChange={(_e, newValue) => field.onChange(newValue as number)}
+                step={10}
+                min={100}
+                max={1000}
+                marks={intervalMarks}
+                size="small"
+                valueLabelDisplay="auto"
+                valueLabelFormat={(value) => `${value}ms`}
+              />
+            )}
+          />
+        </Stack>
+      </SettingsBlock>
+      <SettingsBlock title={t('stylePage.safeZones', 'Display Area')}>
+        <Stack useFlexGap spacing={1}>
+          <LabeledSlider
+            label={t('stylePage.safeZone.y', 'Y-axis display range')}
+            tooltip={t(
+              'stylePage.tooltip.safeZone.y',
+              'Y-axis (up and down) display range'
+            )}
+            value={[yStart, yEnd]}
+            onChange={(_e, newValue, activeThumb) => {
+              if (!Array.isArray(newValue)) return
+
+              const minDist = 10
+              const minVal = 0
+              const maxVal = 100
+
+              const currentYStart = getValues('area.yStart')
+              const currentYEnd = getValues('area.yEnd')
+
+              if (activeThumb === 0) {
+                const updatedYStart = Math.max(
+                  minVal,
+                  Math.min(newValue[0], currentYEnd - minDist)
+                )
+                setValue('area.yStart', updatedYStart, { shouldDirty: true })
+              } else {
+                const updatedYEnd = Math.min(
+                  maxVal,
+                  Math.max(newValue[1], currentYStart + minDist)
+                )
+                setValue('area.yEnd', updatedYEnd, { shouldDirty: true })
+              }
+            }}
+            step={1}
+            min={0}
+            max={100}
+            size="small"
+            valueLabelDisplay="auto"
+            marks={safeZoneMarks}
+            valueLabelFormat={safeZoneValueLabelFormat}
+            disableSwap
+          />
+          <Controller
+            name="trackHeight"
+            control={control}
+            render={({ field }) => (
+              <LabeledSlider
+                label={t('stylePage.trackHeight', 'Track Height')}
+                tooltip={t(
+                  'stylePage.tooltip.trackHeight',
+                  'Higher values makes danmaku farther apart'
+                )}
+                value={field.value}
+                onChange={(_e, newValue) => field.onChange(newValue as number)}
+                step={1}
+                min={12}
+                max={60}
+                marks={trackHeightMarks}
+                size="small"
+                valueLabelDisplay="auto"
+              />
+            )}
+          />
+          <Controller
+            name="maxOnScreen"
+            control={control}
+            render={({ field }) => (
+              <LabeledSlider
+                label={t('stylePage.maxOnScreen', 'Maximum Limit')}
+                tooltip={t(
+                  'stylePage.tooltip.maxOnScreen',
+                  'The maximum number of danmaku that can be displayed on the screen at the same time.'
+                )}
+                value={field.value}
+                onChange={(_e, newValue) => field.onChange(newValue as number)}
+                step={1}
+                min={0}
+                max={1000}
+                marks={maxOnScreenMarks}
+                size="small"
+                valueLabelDisplay="auto"
+              />
+            )}
+          />
+          <Controller
+            name="overlap"
+            control={control}
+            render={({ field }) => (
+              <LabeledSlider
+                label={t('stylePage.overlap', 'Overlap')}
+                tooltip={t(
+                  'stylePage.tooltip.overlap',
+                  'Higher values reduce the distance between danmaku, allowing more danmaku to be displayed on the screen at the same time, at the cost of overlapping. Set to 0 to disable overlap.'
+                )}
+                value={field.value ?? 0}
+                onChange={(_e, newValue) => field.onChange(newValue as number)}
+                step={1}
+                min={0}
+                max={400}
+                marks={overlapMarks}
+                size="small"
+                valueLabelDisplay="auto"
+                valueLabelFormat={safeZoneValueLabelFormat}
+              />
+            )}
+          />
+          <Controller
+            name="distribution"
+            control={control}
+            render={({ field }) => (
+              <Stack
+                spacing={1}
+                direction="row"
+                sx={{
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                }}
+              >
+                <div>
+                  <Typography
+                    gutterBottom
+                    variant="body2"
+                    sx={{
+                      fontWeight: 600,
+                    }}
+                  >
+                    {t('stylePage.distribution', 'Distribution')}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'text.secondary',
+                    }}
+                  >
+                    {t(
+                      'stylePage.tooltip.distribution',
+                      'Random: danmaku will be distributed uniformly. Order: danmaku will fill the screen from top to bottom.'
+                    )}
+                  </Typography>
+                </div>
+                <ToggleButtonGroup
+                  value={field.value}
+                  onChange={(e, newValue) => {
+                    if (newValue) {
+                      field.onChange(newValue)
+                    }
                   }}
-                />
-              )}
-            />
-          </Stack>
-        </SettingsBlock>
-      </Stack>
-    </Box>
+                  size="small"
+                  color="primary"
+                  exclusive
+                  sx={{
+                    flex: '1 0 auto',
+                  }}
+                >
+                  <ToggleButton value="random">
+                    {t('stylePage.randomDistribution', 'Random')}
+                  </ToggleButton>
+                  <ToggleButton value="order">
+                    {t('stylePage.orderDistribution', 'Order')}
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              </Stack>
+            )}
+          />
+        </Stack>
+      </SettingsBlock>
+      <SettingsBlock title={t('stylePage.specialDanmaku', 'Special Danmaku')}>
+        <Stack useFlexGap spacing={1}>
+          <Controller
+            name="specialComments.top"
+            control={control}
+            render={({ field }) => (
+              <LabeledSwitch
+                label={t(
+                  'stylePage.specialDanmakuConfig.showTop',
+                  'Top Danmaku'
+                )}
+                tooltip={t(
+                  'stylePage.tooltip.specialDanmaku',
+                  'When off, danmaku will be shown as normal scrolling danmaku'
+                )}
+                checked={field.value === 'normal'}
+                onChange={(e) => {
+                  field.onChange(e.target.checked ? 'normal' : 'scroll')
+                }}
+              />
+            )}
+          />
+          <Controller
+            name="specialComments.bottom"
+            control={control}
+            render={({ field }) => (
+              <LabeledSwitch
+                label={t(
+                  'stylePage.specialDanmakuConfig.showBottom',
+                  'Bottom Danmaku'
+                )}
+                tooltip={t(
+                  'stylePage.tooltip.specialDanmaku',
+                  'When off, danmaku will be shown as normal scrolling danmaku'
+                )}
+                checked={field.value === 'normal'}
+                onChange={(e) => {
+                  field.onChange(e.target.checked ? 'normal' : 'scroll')
+                }}
+              />
+            )}
+          />
+        </Stack>
+      </SettingsBlock>
+    </Stack>
   )
 }
