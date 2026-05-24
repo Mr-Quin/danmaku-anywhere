@@ -79,6 +79,7 @@
     "danmakuAnywhere": "弹幕任何地方",
     "delete": "删除",
     "deleted": "已删除",
+    "discard": "放弃",
     "docs": "文档",
     "duration": {
       "day_other": "天"
@@ -262,13 +263,16 @@
       "label": "+ 添加"
     },
     "advanced": "高级编辑器",
-    "empty": {
-      "pickTitle": "选取标题",
-      "required": "必填"
-    },
     "entry": {
       "advancedEditor": "高级编辑器",
       "editMode": "编辑模式"
+    },
+    "exit": {
+      "confirmAdvancedBody": "打开高级编辑器将放弃在编辑模式中尚未保存的更改。",
+      "confirmBody": "现在关闭编辑模式将放弃尚未保存的选取和正则更改。",
+      "confirmTitle": "放弃未保存的更改？",
+      "discardAndClose": "放弃并关闭",
+      "discardAndOpenAdvanced": "放弃并打开"
     },
     "field": {
       "episode": "集数",
@@ -277,14 +281,13 @@
       "title": "标题"
     },
     "footer": {
-      "advanced": "高级",
-      "autosaved": "已自动保存"
+      "saved": "无未保存的更改",
+      "unsaved": "未保存的更改"
     },
     "picker": {
       "statusPrefix": "正在选取",
       "statusSuffix": "· 点击页面元素"
     },
-    "picking": "选取中",
     "refine": {
       "extracted": "提取结果",
       "invalidRegex": "正则表达式无效",
@@ -304,11 +307,15 @@
       "remove": "移除",
       "repick": "重新选取"
     },
+    "save": {
+      "success": "已保存"
+    },
     "status": {
       "empty": "请先选取标题",
-      "matched": "已为 {{name}} 配置"
+      "titleSet": "标题已配置"
     },
-    "title": "编辑 XPath"
+    "title": "编辑 XPath",
+    "unsaved": "未保存"
   },
   "error": {
     "unknown": "出错啦!"

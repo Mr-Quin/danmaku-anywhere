@@ -1,5 +1,5 @@
 import { Add } from '@mui/icons-material'
-import { Box, ButtonBase, Stack, Typography, useTheme } from '@mui/material'
+import { Chip, Stack, Typography, useTheme } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import type { FieldId } from './fields'
 import { getFieldLabel } from './fields'
@@ -20,47 +20,30 @@ export function AddFieldRow({ available, onPick }: AddFieldRowProps) {
   return (
     <Stack
       direction="row"
-      spacing={0.625}
-      sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+      spacing={1}
+      sx={{ alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}
     >
-      <Typography variant="overline" sx={{ color: 'text.secondary', mr: 0.25 }}>
+      <Typography variant="overline" sx={{ color: 'text.secondary' }}>
         {t('editMode.addField.label', '+ Add')}
       </Typography>
       {available.map((id) => {
         const color = theme.palette.fieldAccent[id]
         return (
-          <ButtonBase
+          <Chip
             key={id}
+            size="small"
+            clickable
+            variant="outlined"
             onClick={() => onPick(id)}
+            label={getFieldLabel(t, id)}
+            icon={<Add />}
             sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 0.5,
-              px: 0.875,
-              py: 0.25,
-              borderRadius: 999,
-              border: `1px solid ${color}66`,
+              borderColor: `${color}66`,
               color,
-              fontSize: 11,
-              fontWeight: 600,
-              fontFamily: 'inherit',
-              cursor: 'pointer',
-              '&:hover': {
-                background: `${color}14`,
-              },
+              '& .MuiChip-icon': { color },
+              '&:hover': { background: `${color}14` },
             }}
-          >
-            <Box
-              sx={{
-                width: 6,
-                height: 6,
-                borderRadius: '50%',
-                background: color,
-              }}
-            />
-            {getFieldLabel(t, id)}
-            <Add sx={{ fontSize: 11 }} />
-          </ButtonBase>
+          />
         )
       })}
     </Stack>

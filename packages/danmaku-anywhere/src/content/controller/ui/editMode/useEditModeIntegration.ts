@@ -1,5 +1,5 @@
 import { createIntegrationInput } from '@danmaku-anywhere/integration-policy'
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import type {
   Integration,
   IntegrationPolicy,
@@ -8,6 +8,7 @@ import { useIntegrationPolicyStore } from '@/common/options/integrationPolicySto
 import { getRandomUUID } from '@/common/utils/utils'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
+import { useStore } from '@/content/controller/store/store'
 import type { FieldId } from './fields'
 
 interface FieldUpdate {
@@ -15,43 +16,98 @@ interface FieldUpdate {
   regex?: string | null
 }
 
-export function useEditModeIntegration() {
+export function useEditModeDraft() {
   const integration = useActiveIntegration()
   const activeConfig = useActiveConfig()
+  const editMode = useStore.use.editMode()
   const { update, add } = useIntegrationPolicyStore()
 
-  const writeField = useCallback(
-    async (fieldId: FieldId, change: FieldUpdate) => {
-      if (integration) {
-        const nextPolicy = applyFieldChange(integration.policy, fieldId, change)
-        await update(integration.id, { policy: nextPolicy })
+  // Seed the draft from the active integration once when Edit Mode opens.
+  const seededRef = useRef(false)
+  useEffect(() => {
+    if (!editMode.active) {
+      seededRef.current = false
+      return
+    }
+    if (seededRef.current) {
+      return
+    }
+    seededRef.current = true
+    if (integration) {
+      editMode.initDraft({
+        policy: integration.policy,
+        name: integration.name,
+      })
+    } else {
+      const seed = createIntegrationInput(activeConfig.name)
+      editMode.initDraft({
+        policy: seed.policy as IntegrationPolicy,
+        name: seed.name,
+      })
+    }
+  }, [editMode.active, integration, activeConfig.name, editMode.initDraft])
+
+  const updateField = useCallback(
+    (fieldId: FieldId, change: FieldUpdate) => {
+      const draft = useStore.getState().editMode.draft
+      if (!draft) {
         return
       }
-
-      const seed = createIntegrationInput(activeConfig.name)
-      const next: Integration = {
-        ...seed,
-        id: getRandomUUID(),
-        policy: applyFieldChange(
-          seed.policy as IntegrationPolicy,
-          fieldId,
-          change
-        ),
-      }
-      await add(next, activeConfig.id)
+      editMode.updateDraftPolicy(
+        applyFieldChange(draft.policy, fieldId, change)
+      )
     },
-    [integration, activeConfig.id, activeConfig.name, update, add]
+    [editMode.updateDraftPolicy]
   )
+
+  const save = useCallback(async () => {
+    const draft = useStore.getState().editMode.draft
+    if (!draft) {
+      return
+    }
+    if (integration) {
+      await update(integration.id, { policy: draft.policy })
+      editMode.markSaved()
+      return
+    }
+    const next: Integration = {
+      ...createIntegrationInput(draft.name),
+      id: getRandomUUID(),
+      policy: draft.policy,
+    }
+    await add(next, activeConfig.id)
+    editMode.markSaved()
+  }, [integration, activeConfig.id, update, add, editMode.markSaved])
+
+  const discard = useCallback(() => {
+    if (integration) {
+      editMode.initDraft({
+        policy: integration.policy,
+        name: integration.name,
+      })
+      return
+    }
+    const seed = createIntegrationInput(activeConfig.name)
+    editMode.initDraft({
+      policy: seed.policy as IntegrationPolicy,
+      name: seed.name,
+    })
+  }, [integration, activeConfig.name, editMode.initDraft])
 
   return {
     integration,
+    draft: editMode.draft,
+    isDirty: editMode.isDirty,
     setFieldSelector: (fieldId: FieldId, xpath: string) =>
-      writeField(fieldId, { selector: xpath }),
+      updateField(fieldId, { selector: xpath }),
     clearFieldSelector: (fieldId: FieldId) =>
-      writeField(fieldId, { selector: null }),
+      updateField(fieldId, { selector: null }),
     setFieldRegex: (fieldId: FieldId, regex: string) =>
-      writeField(fieldId, { regex }),
-    clearFieldRegex: (fieldId: FieldId) => writeField(fieldId, { regex: null }),
+      updateField(fieldId, { regex }),
+    clearFieldRegex: (fieldId: FieldId) =>
+      updateField(fieldId, { regex: null }),
+    save,
+    discard,
   }
 }
 

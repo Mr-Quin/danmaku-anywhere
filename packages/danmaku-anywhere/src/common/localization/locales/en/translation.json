@@ -79,6 +79,7 @@
     "danmakuAnywhere": "Danmaku Anywhere",
     "delete": "Delete",
     "deleted": "Deleted",
+    "discard": "Discard",
     "docs": "Documentation",
     "duration": {
       "day_one": "{{count}} day",
@@ -269,13 +270,16 @@
       "label": "+ Add"
     },
     "advanced": "Advanced editor",
-    "empty": {
-      "pickTitle": "Pick title",
-      "required": "REQ"
-    },
     "entry": {
       "advancedEditor": "Advanced Editor",
       "editMode": "Edit Mode"
+    },
+    "exit": {
+      "confirmAdvancedBody": "Opening the Advanced Editor will discard your unsaved Edit Mode changes.",
+      "confirmBody": "Closing Edit Mode now will discard your unsaved picks and regex changes.",
+      "confirmTitle": "Discard unsaved changes?",
+      "discardAndClose": "Discard and close",
+      "discardAndOpenAdvanced": "Discard and open"
     },
     "field": {
       "episode": "Episode",
@@ -284,14 +288,13 @@
       "title": "Title"
     },
     "footer": {
-      "advanced": "Advanced",
-      "autosaved": "Auto-saved"
+      "saved": "No unsaved changes",
+      "unsaved": "Unsaved changes"
     },
     "picker": {
       "statusPrefix": "Picking",
       "statusSuffix": "· click to select"
     },
-    "picking": "PICKING",
     "refine": {
       "extracted": "Extracted",
       "invalidRegex": "Invalid regex",
@@ -311,11 +314,15 @@
       "remove": "Remove",
       "repick": "Re-pick"
     },
+    "save": {
+      "success": "Saved"
+    },
     "status": {
       "empty": "Pick a title to begin",
-      "matched": "Configured for {{name}}"
+      "titleSet": "Title configured"
     },
-    "title": "Edit XPath"
+    "title": "Edit XPath",
+    "unsaved": "UNSAVED"
   },
   "error": {
     "unknown": "Something went wrong."

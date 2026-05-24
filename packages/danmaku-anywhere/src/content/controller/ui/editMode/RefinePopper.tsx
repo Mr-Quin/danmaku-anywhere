@@ -12,12 +12,11 @@ import {
 } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useToast } from '@/common/components/Toast/toastStore'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
 import { useStore } from '@/content/controller/store/store'
 import type { FieldExtraction } from './extractFieldValue'
 import { type FieldId, getFieldLabel } from './fields'
-import { useEditModeIntegration } from './useEditModeIntegration'
+import { useEditModeDraft } from './useEditModeIntegration'
 
 interface RefinePopperProps {
   open: boolean
@@ -72,9 +71,8 @@ export function RefinePopper({
 }: RefinePopperProps) {
   const { t } = useTranslation()
   const theme = useTheme()
-  const toast = useToast.use.toast()
   const pickTarget = useStore.use.editMode().pickTarget
-  const { setFieldRegex, clearFieldRegex } = useEditModeIntegration()
+  const { setFieldRegex, clearFieldRegex } = useEditModeDraft()
 
   const initialPattern = extraction?.regex ?? ''
   const [pattern, setPattern] = useState(initialPattern)
@@ -95,17 +93,13 @@ export function RefinePopper({
     return null
   }
 
-  const handleApply = async () => {
-    try {
-      if (pattern.length === 0) {
-        await clearFieldRegex(fieldId)
-      } else {
-        await setFieldRegex(fieldId, pattern)
-      }
-      onClose()
-    } catch (error) {
-      toast.error((error as Error).message)
+  const handleApply = () => {
+    if (pattern.length === 0) {
+      clearFieldRegex(fieldId)
+    } else {
+      setFieldRegex(fieldId, pattern)
     }
+    onClose()
   }
 
   const handleReset = () => {
@@ -133,26 +127,24 @@ export function RefinePopper({
       sx={{ zIndex: 2147483643 }}
     >
       <ClickAwayListener onClickAway={onClose}>
-        <Box
+        <Stack
           {...withStopPropagation()}
+          spacing={1.25}
           sx={{
             width: 360,
-            p: 1.25,
-            borderRadius: 1.5,
+            p: 2,
+            borderRadius: 2,
             bgcolor: 'background.paper',
             border: `1px solid ${theme.palette.divider}`,
             boxShadow:
               '0 18px 40px -12px rgba(0,0,0,0.45), 0 2px 8px -2px rgba(0,0,0,0.3)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 1,
           }}
         >
-          <Stack direction="row" spacing={0.875} sx={{ alignItems: 'center' }}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
             <Box
               sx={{
-                width: 8,
-                height: 8,
+                width: 10,
+                height: 10,
                 borderRadius: '50%',
                 background: color,
                 boxShadow: `0 0 0 3px ${color}33`,
@@ -164,90 +156,96 @@ export function RefinePopper({
               })}
             </Typography>
             <Box sx={{ flexGrow: 1 }} />
-            <IconButton size="small" onClick={onClose} sx={{ p: 0.5 }}>
-              <Close sx={{ fontSize: 14 }} />
+            <IconButton size="small" onClick={onClose}>
+              <Close fontSize="small" />
             </IconButton>
           </Stack>
 
-          <Typography variant="overline" sx={{ color: 'text.secondary' }}>
-            {t('editMode.refine.raw', 'Raw')}
-          </Typography>
-          <Box
-            sx={{
-              px: 1.125,
-              py: 0.875,
-              borderRadius: 1,
-              bgcolor: 'paperAlt',
-              border: `1px solid ${theme.palette.divider}`,
-              fontFamily: 'ui-monospace, monospace',
-              fontSize: 11.5,
-              wordBreak: 'break-word',
-            }}
-          >
-            {raw || t('editMode.refine.noRaw', '(no text from element)')}
-          </Box>
+          <Stack spacing={0.5}>
+            <Typography variant="overline" sx={{ color: 'text.secondary' }}>
+              {t('editMode.refine.raw', 'Raw')}
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                px: 1.25,
+                py: 1,
+                borderRadius: 1,
+                bgcolor: 'paperAlt',
+                border: `1px solid ${theme.palette.divider}`,
+                fontFamily: 'ui-monospace, monospace',
+                wordBreak: 'break-word',
+              }}
+            >
+              {raw || t('editMode.refine.noRaw', '(no text from element)')}
+            </Typography>
+          </Stack>
 
-          <Typography variant="overline" sx={{ color: 'text.secondary' }}>
-            {t('editMode.refine.pattern', 'Pattern')}
-          </Typography>
-          <TextField
-            autoFocus
-            value={pattern}
-            onChange={(e) => setPattern(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !evaluation.invalid) {
-                e.preventDefault()
-                void handleApply()
+          <Stack spacing={0.5}>
+            <Typography variant="overline" sx={{ color: 'text.secondary' }}>
+              {t('editMode.refine.pattern', 'Pattern')}
+            </Typography>
+            <TextField
+              autoFocus
+              value={pattern}
+              onChange={(e) => setPattern(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !evaluation.invalid) {
+                  e.preventDefault()
+                  handleApply()
+                }
+              }}
+              placeholder={t(
+                'editMode.refine.patternPlaceholder',
+                '(.+?) · TV'
+              )}
+              error={evaluation.invalid}
+              helperText={
+                evaluation.invalid
+                  ? t('editMode.refine.invalidRegex', 'Invalid regex')
+                  : undefined
               }
-            }}
-            placeholder={t('editMode.refine.patternPlaceholder', '(.+?) · TV')}
-            error={evaluation.invalid}
-            helperText={
-              evaluation.invalid
-                ? t('editMode.refine.invalidRegex', 'Invalid regex')
-                : undefined
-            }
-            slotProps={{
-              input: {
-                sx: {
-                  fontFamily: 'ui-monospace, monospace',
-                  fontSize: 12,
+              slotProps={{
+                input: {
+                  sx: { fontFamily: 'ui-monospace, monospace' },
                 },
-              },
-            }}
-            {...withStopPropagation()}
-          />
+              }}
+              {...withStopPropagation()}
+            />
+          </Stack>
 
-          <Typography variant="overline" sx={{ color: 'text.secondary' }}>
-            {t('editMode.refine.extracted', 'Extracted')}
-          </Typography>
-          <Box
-            sx={{
-              px: 1.125,
-              py: 0.875,
-              borderRadius: 1,
-              bgcolor: evaluation.matched ? `${color}24` : 'paperAlt',
-              border: `1px solid ${
-                evaluation.matched ? `${color}66` : theme.palette.divider
-              }`,
-              fontSize: 13,
-              fontWeight: 600,
-              minHeight: 28,
-              wordBreak: 'break-word',
-            }}
-          >
-            {pattern.length === 0
-              ? raw
-              : evaluation.matched
-                ? evaluation.parsed
-                : t('editMode.refine.noMatch', '(no match)')}
-          </Box>
+          <Stack spacing={0.5}>
+            <Typography variant="overline" sx={{ color: 'text.secondary' }}>
+              {t('editMode.refine.extracted', 'Extracted')}
+            </Typography>
+            <Typography
+              variant="body2"
+              sx={{
+                px: 1.25,
+                py: 1,
+                borderRadius: 1,
+                bgcolor: evaluation.matched ? `${color}24` : 'paperAlt',
+                border: `1px solid ${
+                  evaluation.matched ? `${color}66` : theme.palette.divider
+                }`,
+                fontWeight: 600,
+                minHeight: 32,
+                wordBreak: 'break-word',
+              }}
+            >
+              {pattern.length === 0
+                ? raw
+                : evaluation.matched
+                  ? evaluation.parsed
+                  : t('editMode.refine.noMatch', '(no match)')}
+            </Typography>
+          </Stack>
 
           <Stack
             direction="row"
-            spacing={0.75}
+            spacing={1}
             sx={{
-              pt: 0.5,
+              pt: 1,
               borderTop: `1px solid ${theme.palette.divider}`,
               alignItems: 'center',
             }}
@@ -259,15 +257,13 @@ export function RefinePopper({
             <Button
               size="small"
               variant="contained"
-              onClick={() => {
-                void handleApply()
-              }}
+              onClick={handleApply}
               disabled={evaluation.invalid}
             >
               {t('common.apply', 'Apply')}
             </Button>
           </Stack>
-        </Box>
+        </Stack>
       </ClickAwayListener>
     </Popper>
   )
