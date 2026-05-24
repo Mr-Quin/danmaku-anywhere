@@ -391,9 +391,9 @@ function buildSakuraComponents(
 
     MuiAlert: {
       styleOverrides: {
-        root: ({ ownerState, theme }: { ownerState: any; theme: any }) => {
+        root: ({ ownerState, theme }) => {
           const severity = ownerState.severity || 'error'
-          const severityColors: Record<string, any> = {
+          const severityColors = {
             success: {
               backgroundColor: theme.palette.success.light,
               color:
@@ -423,17 +423,17 @@ function buildSakuraComponents(
             ...(severityColors[severity] || {}),
           }
         },
-        icon: ({ ownerState, theme }: { ownerState: any; theme: any }) => {
+        icon: ({ ownerState, theme }) => {
           const sev = ownerState.severity
           if (!sev) {
             return {}
           }
           return { color: theme.palette.severityInk?.[sev] || 'currentColor' }
         },
-        action: {
+        action: ({ theme }) => ({
           alignItems: 'center',
-          marginRight: 0,
-        },
+          padding: `0 0 0 ${theme.spacing(1)}`,
+        }),
       },
     },
 
