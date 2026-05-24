@@ -101,14 +101,13 @@ export function setupCookieReplay(hosts: readonly string[]): void {
       if (details.tabId !== -1 || !details.responseHeaders) return {}
       const now = Date.now()
       pruneStale(now)
+      // Collect this response's cookies into a fresh array so a later
+      // re-fire of the same URL overwrites rather than accumulating onto
+      // stale captures. Within one response the engine sees every header.
+      const captured: string[] = []
       for (const h of details.responseHeaders) {
         if (h.name.toLowerCase() !== 'set-cookie' || !h.value) continue
-        // Cache the raw header text so extensionFetchLike can surface it to
-        // the engine. Survives across the fetch() boundary even when
-        // chrome.cookies.set hasn't finished yet.
-        const existing = setCookieByUrl.get(details.url)?.cookies ?? []
-        existing.push(`${h.value.split(';')[0]?.trim() ?? ''}`)
-        setCookieByUrl.set(details.url, { cookies: existing, insertedAt: now })
+        captured.push(h.value.split(';')[0]?.trim() ?? '')
 
         const parsed = parseSetCookie(h.value)
         if (!parsed) continue
@@ -143,6 +142,9 @@ export function setupCookieReplay(hosts: readonly string[]): void {
             // combinations (e.g. host-only cookies with no leading dot
             // domain). Nothing actionable from a background listener.
           })
+      }
+      if (captured.length > 0) {
+        setCookieByUrl.set(details.url, { cookies: captured, insertedAt: now })
       }
       return {}
     },
