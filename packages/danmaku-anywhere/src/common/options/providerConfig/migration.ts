@@ -303,3 +303,16 @@ export function ensureBuiltinProviders(
   }
   return additions.length > 0 ? [...data, ...additions] : data
 }
+
+// Drop stored builtin records whose manifestId is no longer registered.
+// Non-builtin (user-added) configs are preserved as-is. Used by the
+// v3 -> v4 migration after the 8 reference-only sources were unbundled
+// from the extension.
+export function pruneUnknownBuiltins(data: ProviderConfig[]): ProviderConfig[] {
+  const known = new Set<string>([
+    ...defaultProviderConfigs.map((c) => c.manifestId),
+    DDP_COMPAT_MANIFEST_ID,
+    LEGACY_MACCMS_ID,
+  ])
+  return data.filter((c) => !c.isBuiltIn || known.has(c.manifestId))
+}

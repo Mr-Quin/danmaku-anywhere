@@ -5,7 +5,9 @@ import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
 import {
   migrateDanmakuSourcesToProviders,
   migrateProviderConfigsToFlat,
+  pruneUnknownBuiltins,
 } from './migration'
+import type { ProviderConfig } from './schema'
 
 /**
  * Exercises both provider-config migrations:
@@ -606,5 +608,72 @@ describe('migrateProviderConfigsToFlat', () => {
     // Corrupted record dropped, valid record preserved
     expect(flat).toHaveLength(1)
     expect(flat[0].id).toBe('builtin:dandanplay')
+  })
+})
+
+describe('pruneUnknownBuiltins', () => {
+  const builtin = (manifestId: string): ProviderConfig => ({
+    id: manifestId,
+    manifestId,
+    name: 'X',
+    impl: DanmakuSourceType.DanDanPlay,
+    enabled: true,
+    isBuiltIn: true,
+    configValues: {},
+  })
+
+  it('drops builtin records whose manifestId is no longer registered', () => {
+    const data: ProviderConfig[] = [
+      builtin('builtin:dandanplay'),
+      builtin('builtin:bilibili'),
+      builtin('builtin:tencent'),
+      builtin('builtin:youku'),
+      builtin('builtin:mango'),
+      builtin('builtin:bahamut'),
+    ]
+
+    const out = pruneUnknownBuiltins(data)
+
+    expect(out.map((c) => c.manifestId)).toEqual([
+      'builtin:dandanplay',
+      'builtin:bilibili',
+      'builtin:tencent',
+    ])
+  })
+
+  it('preserves DDP-compat and MacCMS builtins', () => {
+    const data: ProviderConfig[] = [
+      builtin('builtin:ddp-compat'),
+      builtin('legacy:maccms'),
+    ]
+
+    const out = pruneUnknownBuiltins(data)
+
+    expect(out).toEqual(data)
+  })
+
+  it('preserves user-added (non-builtin) configs regardless of manifestId', () => {
+    const userConfig: ProviderConfig = {
+      id: 'user-uuid-1',
+      manifestId: 'builtin:youku',
+      name: 'My Youku',
+      impl: DanmakuSourceType.DanDanPlay,
+      enabled: true,
+      isBuiltIn: false,
+      configValues: {},
+    }
+
+    const out = pruneUnknownBuiltins([userConfig])
+
+    expect(out).toEqual([userConfig])
+  })
+
+  it('is idempotent on already-pruned data', () => {
+    const data: ProviderConfig[] = [
+      builtin('builtin:dandanplay'),
+      builtin('builtin:bilibili'),
+    ]
+
+    expect(pruneUnknownBuiltins(pruneUnknownBuiltins(data))).toEqual(data)
   })
 })

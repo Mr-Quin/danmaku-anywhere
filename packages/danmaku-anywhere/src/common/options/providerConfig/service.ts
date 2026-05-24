@@ -14,6 +14,7 @@ import { defaultProviderConfigs } from './constant'
 import {
   ensureBuiltinProviders,
   migrateProviderConfigsToFlat,
+  pruneUnknownBuiltins,
 } from './migration'
 import type { ProviderConfig } from './schema'
 import { providerConfigSchema } from './schema'
@@ -43,11 +44,17 @@ export class ProviderConfigService implements IStoreService {
         upgrade: (data) => migrateProviderConfigsToFlat(data),
       })
       // v2 -> v3: seed every dango-shipped builtin that isn't already in
-      // the user's list. Idempotent — preserves user toggles + configValues
+      // the user's list. Idempotent, preserves user toggles + configValues
       // on the records that already exist. Replaces what used to be a chain
       // of one-bump-per-source migrations (v3..v9 on earlier dev branches).
       .version(3, {
         upgrade: (data) => ensureBuiltinProviders(data),
+      })
+      // v3 -> v4: drop builtin records whose manifestId is no longer
+      // registered (the 8 sources we unbundled into reference-only).
+      // Idempotent; non-builtin user configs are untouched.
+      .version(4, {
+        upgrade: (data) => pruneUnknownBuiltins(data),
       })
   }
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {
