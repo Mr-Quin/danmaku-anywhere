@@ -31,15 +31,10 @@ const matcherSchema = z.object({
   regex: z.array(regexSchema),
 })
 
-const clickNavigationSchema = z.object({
-  mode: z.literal('click'),
-  selectors: z.array(selectorSchema).min(1),
-})
-
-const navigationSchema = z.discriminatedUnion('mode', [clickNavigationSchema])
-
 const optionsSchema = z.object({
   autoAdvanceOnEnded: z.boolean(),
+  skipPercentage: z.number().min(0).max(1).optional(),
+  minVideoDuration: z.number().int().nonnegative().optional(),
 })
 
 export const zIntegrationPolicy = z.object({
@@ -51,16 +46,14 @@ export const zIntegrationPolicy = z.object({
   episode: matcherSchema,
   season: matcherSchema,
   episodeTitle: matcherSchema,
-  nextEpisode: navigationSchema.optional(),
-  prevEpisode: navigationSchema.optional(),
+  nextEpisode: z.array(selectorSchema).min(1).optional(),
+  prevEpisode: z.array(selectorSchema).min(1).optional(),
   options: optionsSchema,
 })
 
 export type IntegrationPolicy = z.infer<typeof zIntegrationPolicy>
 
 export type IntegrationPolicySelector = z.input<typeof selectorSchema>
-
-export type IntegrationPolicyNavigation = z.infer<typeof navigationSchema>
 
 export const zIntegration = z.object({
   version: z.literal(4),

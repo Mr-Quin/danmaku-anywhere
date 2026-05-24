@@ -1,18 +1,26 @@
 import { useCallback } from 'react'
-import type {
-  IntegrationPolicyNavigation,
-  IntegrationPolicySelector,
-} from '@/common/options/integrationPolicyStore/schema'
+import type { IntegrationPolicySelector } from '@/common/options/integrationPolicyStore/schema'
 import { getElementByXpath } from '@/common/utils/utils'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
 import { sortSelectors } from '@/content/controller/danmaku/integration/xPathPolicyOps/mediaRegexMatcher'
+
+// Ad-break ended events fire on stub clips that are typically much shorter
+// than the real episode. Gate auto-advance to videos longer than this.
+export const DEFAULT_AUTO_ADVANCE_MIN_DURATION_SECONDS = 30
 
 function isVisible(element: HTMLElement): boolean {
   if (!element.isConnected) {
     return false
   }
+  if (element instanceof HTMLButtonElement && element.disabled) {
+    return false
+  }
   const style = window.getComputedStyle(element)
-  if (style.display === 'none' || style.visibility === 'hidden') {
+  if (
+    style.display === 'none' ||
+    style.visibility === 'hidden' ||
+    style.opacity === '0'
+  ) {
     return false
   }
   return true
@@ -31,11 +39,8 @@ export function findFirstVisibleNode(
   return null
 }
 
-function triggerNavigation(navigation: IntegrationPolicyNavigation): boolean {
-  if (navigation.mode !== 'click') {
-    return false
-  }
-  const target = findFirstVisibleNode(navigation.selectors)
+function clickFirstVisible(selectors: IntegrationPolicySelector[]): boolean {
+  const target = findFirstVisibleNode(selectors)
   if (!target) {
     return false
   }
@@ -43,9 +48,17 @@ function triggerNavigation(navigation: IntegrationPolicyNavigation): boolean {
   return true
 }
 
-// Ad-break ended events fire on stub clips that are typically much shorter
-// than the real episode. Gate auto-advance to videos longer than this.
-const AUTO_ADVANCE_MIN_DURATION_SECONDS = 30
+export function shouldAutoAdvance(
+  enabled: boolean,
+  canGoNext: boolean,
+  videoDuration: number,
+  minDuration: number
+): boolean {
+  if (!enabled || !canGoNext) {
+    return false
+  }
+  return videoDuration > minDuration
+}
 
 export interface UseEpisodeNavigationResult {
   goNext: () => void
@@ -61,6 +74,9 @@ export function useEpisodeNavigation(): UseEpisodeNavigationResult {
   const nextEpisode = policy?.nextEpisode
   const prevEpisode = policy?.prevEpisode
   const isAutoAdvanceEnabled = policy?.options.autoAdvanceOnEnded ?? false
+  const minDuration =
+    policy?.options.minVideoDuration ??
+    DEFAULT_AUTO_ADVANCE_MIN_DURATION_SECONDS
 
   const canGoNext = nextEpisode !== undefined
   const canGoPrev = prevEpisode !== undefined
@@ -69,27 +85,34 @@ export function useEpisodeNavigation(): UseEpisodeNavigationResult {
     if (!nextEpisode) {
       return
     }
-    triggerNavigation(nextEpisode)
+    clickFirstVisible(nextEpisode)
   }, [nextEpisode])
 
   const goPrev = useCallback(() => {
     if (!prevEpisode) {
       return
     }
-    triggerNavigation(prevEpisode)
+    clickFirstVisible(prevEpisode)
   }, [prevEpisode])
 
   const tryAutoAdvance = useCallback(
     (videoDuration: number) => {
-      if (!isAutoAdvanceEnabled || !nextEpisode) {
+      if (
+        !shouldAutoAdvance(
+          isAutoAdvanceEnabled,
+          nextEpisode !== undefined,
+          videoDuration,
+          minDuration
+        )
+      ) {
         return
       }
-      if (videoDuration <= AUTO_ADVANCE_MIN_DURATION_SECONDS) {
+      if (!nextEpisode) {
         return
       }
-      triggerNavigation(nextEpisode)
+      clickFirstVisible(nextEpisode)
     },
-    [isAutoAdvanceEnabled, nextEpisode]
+    [isAutoAdvanceEnabled, nextEpisode, minDuration]
   )
 
   return {
