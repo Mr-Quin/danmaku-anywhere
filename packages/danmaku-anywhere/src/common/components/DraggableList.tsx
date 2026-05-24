@@ -37,20 +37,29 @@ import { ScrollBox } from './layout/ScrollBox'
 const DraggableItemIcon = styled(ListItemIcon)(({ theme }) => {
   return {
     cursor: 'grab',
+    color: theme.palette.text.disabled,
     '&:active': {
       cursor: 'grabbing',
     },
     minWidth: 0,
-    paddingRight: theme.spacing(1),
+    paddingRight: theme.spacing(0.75),
     alignSelf: 'stretch',
     ['& > svg']: {
       margin: 'auto',
+      fontSize: '1rem',
     },
   }
 })
 
 const StyledListItem = styled(ListItem)(({ theme }) => {
   return {
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: theme.palette.background.paper,
+    marginBottom: theme.spacing(0.5),
+    '&:last-of-type': {
+      marginBottom: 0,
+    },
     '.MuiListItemButton-root': {
       paddingRight: theme.spacing(12), // make room for action buttons
     },

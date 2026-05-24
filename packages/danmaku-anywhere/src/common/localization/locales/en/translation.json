@@ -112,7 +112,6 @@
   },
   "configPage": {
     "copyShareCode": "Copy Share Code",
-    "createConfig": "Create Config",
     "editor": {
       "addPattern": "Add Pattern",
       "advanced": "Advanced",
@@ -215,8 +214,6 @@
     "viewDanmaku": "View Danmaku"
   },
   "danmakuFilter": {
-    "activeFilters": "Active Filters",
-    "addFilterPattern": "Add Filter Pattern",
     "autoCollapse": "Auto-collapse",
     "autoCollapseHint": "Automatically collapse identical comments that appear in a row.",
     "blockTab": "Block",
@@ -702,7 +699,6 @@
     "config": "Config",
     "danmaku": "Danmaku",
     "debug": "Debug",
-    "filter": "Danmaku Filter",
     "integration": "Integration",
     "mount": "Library",
     "providers": "Providers",

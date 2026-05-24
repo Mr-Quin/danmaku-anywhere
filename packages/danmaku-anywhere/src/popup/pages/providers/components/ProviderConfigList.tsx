@@ -1,5 +1,5 @@
 import { Delete } from '@mui/icons-material'
-import { Switch } from '@mui/material'
+import { Box, Switch } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
@@ -36,41 +36,43 @@ export const ProviderConfigList = ({
   }
 
   return (
-    <DraggableList
-      items={configs}
-      onEdit={onEdit}
-      onReorder={(sourceIndex, destinationIndex) => {
-        reorder.mutate({ sourceIndex, destinationIndex })
-      }}
-      renderPrimary={(config) => <ProviderConfigListItem config={config} />}
-      renderSecondary={getSecondaryText}
-      renderSecondaryAction={(config) => (
-        <>
-          <Switch
-            onChange={(e) => handleToggle(config)}
-            checked={config.enabled}
-            disabled={toggle.isPending}
-            onClick={(e) => e.stopPropagation()}
-            size="small"
-          />
-          {!config.isBuiltIn && (
-            <DrilldownMenu
-              BoxProps={{ sx: { display: 'inline' } }}
-              ButtonProps={{ edge: 'end', size: 'small' }}
-              dense
-              items={[
-                {
-                  id: 'delete',
-                  label: t('common.delete', 'Delete'),
-                  onClick: () => onDelete(config),
-                  icon: <Delete />,
-                  color: 'error',
-                },
-              ]}
+    <Box sx={{ px: 2 }}>
+      <DraggableList
+        items={configs}
+        onEdit={onEdit}
+        onReorder={(sourceIndex, destinationIndex) => {
+          reorder.mutate({ sourceIndex, destinationIndex })
+        }}
+        renderPrimary={(config) => <ProviderConfigListItem config={config} />}
+        renderSecondary={getSecondaryText}
+        renderSecondaryAction={(config) => (
+          <>
+            <Switch
+              onChange={(e) => handleToggle(config)}
+              checked={config.enabled}
+              disabled={toggle.isPending}
+              onClick={(e) => e.stopPropagation()}
+              size="small"
             />
-          )}
-        </>
-      )}
-    />
+            {!config.isBuiltIn && (
+              <DrilldownMenu
+                BoxProps={{ sx: { display: 'inline' } }}
+                ButtonProps={{ edge: 'end', size: 'small' }}
+                dense
+                items={[
+                  {
+                    id: 'delete',
+                    label: t('common.delete', 'Delete'),
+                    onClick: () => onDelete(config),
+                    icon: <Delete />,
+                    color: 'error',
+                  },
+                ]}
+              />
+            )}
+          </>
+        )}
+      />
+    </Box>
   )
 }

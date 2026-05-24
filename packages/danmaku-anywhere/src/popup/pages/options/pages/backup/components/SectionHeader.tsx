@@ -10,20 +10,13 @@ export function SectionHeader({
   return (
     <Box sx={{ mb: 2 }}>
       <Typography
-        variant="subtitle1"
-        sx={{
-          fontWeight: 600,
-          mb: 0.5,
-        }}
+        variant="overline"
+        color="text.secondary"
+        sx={{ display: 'block', mb: 0.5 }}
       >
         {title}
       </Typography>
-      <Typography
-        variant="body2"
-        sx={{
-          color: 'text.secondary',
-        }}
-      >
+      <Typography variant="body2" color="text.secondary">
         {description}
       </Typography>
     </Box>

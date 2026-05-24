@@ -14,6 +14,7 @@ import { useNavigate } from 'react-router'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { TOOLBAR_MIN_HEIGHT } from '@/common/theme/sakura'
 import { ThemeToggle } from '@/popup/component/ThemeToggle'
 import { EnableExtensionToggle } from './EnableExtensionToggle'
 
@@ -30,7 +31,7 @@ export const AppToolBar = () => {
 
   return (
     <AppBar position="static">
-      <Toolbar variant="dense">
+      <Toolbar variant="dense" sx={{ minHeight: TOOLBAR_MIN_HEIGHT }}>
         <Fade in={isAnyLoading} unmountOnExit>
           <Box
             sx={{

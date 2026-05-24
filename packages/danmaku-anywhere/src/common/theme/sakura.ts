@@ -34,6 +34,9 @@ declare module '@mui/material/Button' {
   interface ButtonPropsVariantOverrides {
     soft: true
   }
+  interface ButtonPropsSizeOverrides {
+    xs: true
+  }
 }
 
 declare module '@mui/material/styles' {
@@ -167,10 +170,14 @@ function buildSakuraComponents(
       },
       variants: [
         {
+          props: { size: 'xs' },
+          style: { minHeight: 26, paddingInline: 10, fontSize: pxToRem(12) },
+        },
+        {
           props: { variant: 'soft', color: 'primary' },
           style: ({ theme }) => ({
             backgroundColor: theme.palette.primary.light,
-            color: theme.palette.primaryInk,
+            color: theme.palette.primary.main,
             '&:hover': {
               backgroundColor: alpha(theme.palette.primary.main, 0.22),
             },
@@ -203,7 +210,7 @@ function buildSakuraComponents(
     MuiIconButton: {
       defaultProps: { size: 'small' },
       styleOverrides: {
-        root: { borderRadius: 7 },
+        root: { borderRadius: 8 },
       },
     },
     MuiTable: { defaultProps: { size: 'small' } },
@@ -314,6 +321,16 @@ function buildSakuraComponents(
         root: ({ theme }) => ({
           borderRadius: 8,
           backgroundColor: theme.palette.paperAlt,
+          transition: theme.transitions.create(['box-shadow', 'border-color'], {
+            duration: theme.transitions.duration.shortest,
+          }),
+          '&.Mui-focused': {
+            boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.18)}`,
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: theme.palette.primary.main,
+            borderWidth: 1,
+          },
         }),
         input: { padding: '7px 10px' },
         notchedOutline: ({ theme }) => ({ borderColor: theme.palette.divider }),
@@ -327,7 +344,7 @@ function buildSakuraComponents(
       styleOverrides: {
         root: ({ theme }) => ({
           borderRadius: 8,
-          padding: '6px 8px',
+          padding: theme.spacing(0.75, 1),
           '&.Mui-selected': {
             backgroundColor: theme.palette.action.selected,
             '&:hover': { backgroundColor: theme.palette.action.selected },
@@ -350,7 +367,6 @@ function buildSakuraComponents(
 
     MuiTabs: {
       styleOverrides: {
-        root: { minHeight: 36 },
         indicator: { height: 2 },
       },
     },
@@ -358,7 +374,6 @@ function buildSakuraComponents(
       styleOverrides: {
         root: {
           textTransform: 'none',
-          minHeight: 36,
           padding: '8px 10px',
           fontSize: pxToRem(13),
           fontWeight: 600,
@@ -376,9 +391,9 @@ function buildSakuraComponents(
 
     MuiAlert: {
       styleOverrides: {
-        root: ({ ownerState, theme }: { ownerState: any; theme: any }) => {
+        root: ({ ownerState, theme }) => {
           const severity = ownerState.severity || 'error'
-          const severityColors: Record<string, any> = {
+          const severityColors = {
             success: {
               backgroundColor: theme.palette.success.light,
               color:
@@ -408,13 +423,17 @@ function buildSakuraComponents(
             ...(severityColors[severity] || {}),
           }
         },
-        icon: ({ ownerState, theme }: { ownerState: any; theme: any }) => {
+        icon: ({ ownerState, theme }) => {
           const sev = ownerState.severity
           if (!sev) {
             return {}
           }
           return { color: theme.palette.severityInk?.[sev] || 'currentColor' }
         },
+        action: ({ theme }) => ({
+          alignItems: 'center',
+          padding: `0 0 0 ${theme.spacing(1)}`,
+        }),
       },
     },
 
@@ -468,6 +487,12 @@ function buildSakuraComponents(
   }
 }
 
+export const MONOSPACE_FONT_FAMILY =
+  'ui-monospace, SFMono-Regular, Menlo, monospace'
+
+/** Sakura design system: AppBar / TabToolbar / WindowToolbar height in px. */
+export const TOOLBAR_MIN_HEIGHT = 44
+
 function buildSakuraTypography(
   pxToRem: (px: number) => string
 ): ThemeOptions['typography'] {
@@ -518,7 +543,7 @@ export function createSakuraTheme(
   return createTheme(
     {
       palette,
-      shape: { borderRadius: 12 },
+      shape: { borderRadius: 8 },
       typography: {
         htmlFontSize,
         ...buildSakuraTypography(pxToRem),

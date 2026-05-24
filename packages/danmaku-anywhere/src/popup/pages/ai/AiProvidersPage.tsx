@@ -1,8 +1,8 @@
-import { AddCircle } from '@mui/icons-material'
-import { IconButton, Stack } from '@mui/material'
+import { Stack } from '@mui/material'
 import { type ReactElement, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
+import { ListAddButton } from '@/common/components/ListAddButton'
 import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
@@ -125,9 +125,9 @@ export const AiProvidersPage = (): ReactElement => {
   return (
     <TabLayout>
       <TabToolbar title={t('ai.providers', 'AI Providers')}>
-        <IconButton color="primary" size="small" onClick={handleAddProvider}>
-          <AddCircle />
-        </IconButton>
+        <ListAddButton onClick={handleAddProvider}>
+          {t('common.add', 'Add')}
+        </ListAddButton>
       </TabToolbar>
       <AiProviderConfigList
         onEdit={handleEditProvider}

@@ -1,6 +1,7 @@
 import { ChevronLeft } from '@mui/icons-material'
-import { Divider, IconButton, Toolbar, Typography } from '@mui/material'
+import { IconButton, Toolbar, Typography } from '@mui/material'
 import type { PropsWithChildren, ReactNode } from 'react'
+import { TOOLBAR_MIN_HEIGHT } from '@/common/theme/sakura'
 
 type PageToolbarProps = {
   title?: ReactNode
@@ -34,7 +35,7 @@ export const TabToolbar = ({
     if (typeof title === 'string') {
       return (
         <Typography
-          variant="h5"
+          variant="h4"
           sx={{ flexGrow: 1, minWidth: 0 }}
           noWrap
           title={title}
@@ -47,22 +48,21 @@ export const TabToolbar = ({
   }
 
   return (
-    <>
-      <Toolbar
-        variant="dense"
-        sx={{
-          flexShrink: 0,
-          minHeight: 40,
-          paddingInline: 1.25,
-          gap: 0.5,
-        }}
-      >
-        {showBackButton && backButton}
-        {leftElement}
-        {renderTitle()}
-        {children}
-      </Toolbar>
-      <Divider />
-    </>
+    <Toolbar
+      variant="dense"
+      disableGutters
+      sx={{
+        flexShrink: 0,
+        minHeight: TOOLBAR_MIN_HEIGHT,
+        paddingInline: 2,
+        paddingBlock: 0.5,
+        gap: 0.5,
+      }}
+    >
+      {showBackButton && backButton}
+      {leftElement}
+      {renderTitle()}
+      {children}
+    </Toolbar>
   )
 }

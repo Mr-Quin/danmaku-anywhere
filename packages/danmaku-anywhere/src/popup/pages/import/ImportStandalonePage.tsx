@@ -28,7 +28,7 @@ export function ImportStandalonePage(): ReactElement {
     >
       <DragDropOverlay in={importFlow.isDragging} />
 
-      <Typography variant="h6">
+      <Typography variant="h4">
         {t('importPage.import', 'Import Danmaku')}
       </Typography>
       <Stack direction="row" spacing={1}>

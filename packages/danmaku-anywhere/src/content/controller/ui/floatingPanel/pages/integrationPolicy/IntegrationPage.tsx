@@ -1,17 +1,12 @@
 import { Share, Upload } from '@mui/icons-material'
-import {
-  Stack,
-  ToggleButton,
-  ToggleButtonGroup,
-  Tooltip,
-  Typography,
-} from '@mui/material'
+import { Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
+import { SegmentedTabs } from '@/common/components/SegmentedTabs'
 import { useExportShareCode } from '@/common/options/combinedPolicy/useExportShareCode'
 import { useImportShareCodeDialog } from '@/common/options/combinedPolicy/useImportShareCodeDialog'
 import { integrationData } from '@/common/options/mountConfig/integrationData'
@@ -29,12 +24,12 @@ export const IntegrationPage = () => {
   const { showEditor, showAiEditor } = useStore.use.integrationForm()
   const { setMode } = useEditMountConfig()
 
-  const handleModeChange = (
-    _: React.MouseEvent<HTMLElement>,
-    newMode: AutomationMode | null
-  ) => {
-    if (newMode && newMode !== activeConfig.mode && activeConfig.id) {
-      void setMode.mutate({ id: activeConfig.id, mode: newMode })
+  const handleModeChange = (newMode: string) => {
+    if (newMode !== activeConfig.mode && activeConfig.id) {
+      void setMode.mutate({
+        id: activeConfig.id,
+        mode: newMode as AutomationMode,
+      })
     }
   }
 
@@ -84,7 +79,7 @@ export const IntegrationPage = () => {
       </TabToolbar>
       <ScrollBox
         sx={{
-          p: 2,
+          px: 2,
           flexGrow: 1,
           display: 'flex',
           flexDirection: 'column',
@@ -92,40 +87,30 @@ export const IntegrationPage = () => {
           overflowX: 'hidden',
         }}
       >
-        <Stack
-          direction="row"
-          spacing={2}
-          sx={{
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <ToggleButtonGroup
-            value={activeConfig.mode}
-            exclusive
-            onChange={handleModeChange}
-            size="small"
-          >
-            <Tooltip title={integrationData.ai.description()}>
-              <ToggleButton value="ai">
-                <integrationData.ai.icon fontSize="small" sx={{ mr: 1 }} />
-                {integrationData.ai.label()}
-              </ToggleButton>
-            </Tooltip>
-            <Tooltip title={integrationData.xpath.description()}>
-              <ToggleButton value="xpath">
-                <integrationData.xpath.icon fontSize="small" sx={{ mr: 1 }} />
-                {integrationData.xpath.label()}
-              </ToggleButton>
-            </Tooltip>
-            <Tooltip title={integrationData.manual.description()}>
-              <ToggleButton value="manual">
-                <integrationData.manual.icon fontSize="small" sx={{ mr: 1 }} />
-                {integrationData.manual.label()}
-              </ToggleButton>
-            </Tooltip>
-          </ToggleButtonGroup>
-        </Stack>
+        <SegmentedTabs
+          value={activeConfig.mode}
+          onChange={handleModeChange}
+          items={[
+            {
+              value: 'ai',
+              label: integrationData.ai.label(),
+              icon: <integrationData.ai.icon sx={{ fontSize: 14 }} />,
+              tooltip: integrationData.ai.description(),
+            },
+            {
+              value: 'xpath',
+              label: integrationData.xpath.label(),
+              icon: <integrationData.xpath.icon sx={{ fontSize: 14 }} />,
+              tooltip: integrationData.xpath.description(),
+            },
+            {
+              value: 'manual',
+              label: integrationData.manual.label(),
+              icon: <integrationData.manual.icon sx={{ fontSize: 14 }} />,
+              tooltip: integrationData.manual.description(),
+            },
+          ]}
+        />
 
         {activeConfig.mode === 'manual' ? (
           <Typography>

@@ -27,6 +27,7 @@ export const WindowPaneLayout = (props: WindowPaneLayoutProps) => {
 
   return (
     <Paper
+      elevation={6}
       sx={{
         padding: 0,
         position: 'relative',

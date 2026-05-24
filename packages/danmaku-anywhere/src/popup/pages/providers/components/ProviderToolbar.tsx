@@ -1,5 +1,6 @@
-import { Add, AddCircle } from '@mui/icons-material'
+import { Add } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
+import { ListAddButton } from '@/common/components/ListAddButton'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import {
@@ -21,9 +22,12 @@ export const ProviderToolbar = ({
   return (
     <TabToolbar title={t('providers.name', 'Danmaku Providers')}>
       <DrilldownMenu
-        icon={<AddCircle />}
-        ButtonProps={{ color: 'primary', size: 'small' }}
         dense
+        renderButton={({ onClick }) => (
+          <ListAddButton onClick={onClick}>
+            {t('common.add', 'Add')}
+          </ListAddButton>
+        )}
         items={[
           {
             id: 'add-dandanplay',

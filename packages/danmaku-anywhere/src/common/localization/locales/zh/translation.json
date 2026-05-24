@@ -111,7 +111,6 @@
   },
   "configPage": {
     "copyShareCode": "复制分享码",
-    "createConfig": "新建配置",
     "editor": {
       "addPattern": "添加模式",
       "advanced": "高级",
@@ -208,8 +207,6 @@
     "viewDanmaku": "查看弹幕"
   },
   "danmakuFilter": {
-    "activeFilters": "已启用屏蔽词",
-    "addFilterPattern": "添加屏蔽词",
     "autoCollapse": "自动折叠",
     "autoCollapseHint": "自动折叠连续出现的相同弹幕。",
     "blockTab": "屏蔽",
@@ -684,7 +681,6 @@
     "config": "装填配置",
     "danmaku": "弹幕列表",
     "debug": "调试",
-    "filter": "弹幕过滤",
     "integration": "自动化",
     "mount": "弹幕库",
     "providers": "弹幕源",

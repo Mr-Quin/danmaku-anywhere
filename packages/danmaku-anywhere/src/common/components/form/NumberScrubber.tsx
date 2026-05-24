@@ -49,7 +49,9 @@ const StyledOutlinedInput = styled(OutlinedInput, {
       touchAction: 'none',
       fontFamily: 'monospace',
       fontSize: theme.typography.body1.fontSize,
-      transition: 'background-color 0.2s',
+      transition: theme.transitions.create(['background-color', 'box-shadow'], {
+        duration: theme.transitions.duration.shortest,
+      }),
       backgroundImage: `
       linear-gradient(90deg, transparent 39px, ${major} 39px, ${major} 40px),
       linear-gradient(90deg, transparent 7px, ${minor} 7px, ${minor} 8px)
@@ -58,6 +60,9 @@ const StyledOutlinedInput = styled(OutlinedInput, {
       backgroundRepeat: 'repeat-x, repeat-x',
       backgroundPosition: bgPosition,
       backgroundColor: isDragging ? theme.palette.action.hover : 'transparent',
+      boxShadow: isDragging
+        ? `0 0 0 3px ${theme.palette.action.focus}`
+        : 'none',
       '& .MuiOutlinedInput-input': {
         textAlign: 'center',
         pointerEvents: 'none',

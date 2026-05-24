@@ -12,16 +12,9 @@ type BlockTabProps = {
   onAdd: (rule: DanmakuFilter) => void
   onEdit: (index: number, rule: DanmakuFilter) => void
   onDelete: (index: number) => void
-  initialFilter?: string
 }
 
-export function BlockTab({
-  filters,
-  onAdd,
-  onEdit,
-  onDelete,
-  initialFilter,
-}: BlockTabProps) {
+export function BlockTab({ filters, onAdd, onEdit, onDelete }: BlockTabProps) {
   const { t } = useTranslation()
   const [error, setError] = useState('')
 
@@ -37,26 +30,18 @@ export function BlockTab({
   }
 
   return (
-    <Box
-      sx={{
-        p: 2,
-      }}
-    >
-      <Stack spacing={3}>
-        <Typography
-          variant="body1"
-          sx={{
-            color: 'text.secondary',
-          }}
-        >
-          {t(
-            'danmakuFilter.description',
-            'Hide matching comments. They never reach the screen.'
-          )}
-        </Typography>
-
+    <Stack useFlexGap spacing={1}>
+      <Typography
+        variant="caption"
+        sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}
+      >
+        {t(
+          'danmakuFilter.description',
+          'Filter out danmaku that match the patterns below'
+        )}
+      </Typography>
+      <Stack useFlexGap spacing={2}>
         <RuleComposer
-          title={t('danmakuFilter.addFilterPattern', 'Add Filter Pattern')}
           placeholder={t(
             'danmakuFilter.enterFilterPatternPlaceholder',
             'Text or /regex/'
@@ -64,19 +49,18 @@ export function BlockTab({
           error={error}
           onAdd={handleAdd}
           onErrorClear={() => setError('')}
-          initialValue={initialFilter}
         />
-
         <RulesList
-          title={t('danmakuFilter.activeFilters', 'Active Filters')}
+          title={t('danmakuFilter.patternsHeader', 'Patterns')}
           rules={filters}
           onDelete={onDelete}
           onEdit={onEdit}
           emptyText={t('danmakuFilter.noActiveFilters', 'No active filters')}
         />
-
-        <InlineTester filters={filters} />
       </Stack>
-    </Box>
+      <Box sx={{ mt: 1 }}>
+        <InlineTester filters={filters} />
+      </Box>
+    </Stack>
   )
 }

@@ -166,7 +166,7 @@ export const AiProviderForm = ({
               <AccordionDetails>
                 <Stack spacing={3}>
                   <Box>
-                    <Typography variant="subtitle2" gutterBottom>
+                    <Typography variant="overline" gutterBottom>
                       {t('ai.queryParams', 'Query Params')}
                     </Typography>
                     <Controller
@@ -185,7 +185,7 @@ export const AiProviderForm = ({
                   </Box>
 
                   <Box>
-                    <Typography variant="subtitle2" gutterBottom>
+                    <Typography variant="overline" gutterBottom>
                       {t('ai.headers', 'Headers')}
                     </Typography>
                     <Controller
@@ -204,7 +204,7 @@ export const AiProviderForm = ({
                   </Box>
 
                   <Box>
-                    <Typography variant="subtitle2" gutterBottom>
+                    <Typography variant="overline" gutterBottom>
                       {t('ai.providerOptions', 'Provider Options')}
                     </Typography>
                     <Controller

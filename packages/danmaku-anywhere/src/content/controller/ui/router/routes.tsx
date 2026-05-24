@@ -1,6 +1,5 @@
 import BugReportOutlinedIcon from '@mui/icons-material/BugReportOutlined'
 import CommentOutlinedIcon from '@mui/icons-material/CommentOutlined'
-import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined'
 import IntegrationInstructionsOutlinedIcon from '@mui/icons-material/IntegrationInstructionsOutlined'
 import LocalOfferOutlinedIcon from '@mui/icons-material/LocalOfferOutlined'
 import MyLocationOutlinedIcon from '@mui/icons-material/MyLocationOutlined'
@@ -17,7 +16,6 @@ import { MountPage } from '@/content/controller/ui/floatingPanel/pages/mount/Mou
 import { SelectorPage } from '@/content/controller/ui/floatingPanel/pages/SelectorPage'
 import { StylesPage } from '@/content/controller/ui/floatingPanel/pages/StylesPage'
 import { SearchPage } from '@/content/controller/ui/floatingPanel/pages/search/SearchPage'
-import { FilterPage } from '../floatingPanel/pages/FilterPage'
 import { TitleMappingPage } from '../floatingPanel/pages/titleMapping/TitleMappingPage'
 
 interface Route {
@@ -57,12 +55,6 @@ export const routes: Route[] = [
     name: () => i18n.t('tabs.style', 'Style'),
     icon: <TuneOutlinedIcon />,
     element: <StylesPage />,
-  },
-  {
-    tab: PopupTab.Filter,
-    name: () => i18n.t('tabs.filter', 'Danmaku Filter'),
-    icon: <FilterAltOutlinedIcon />,
-    element: <FilterPage />,
   },
   {
     tab: PopupTab.Policy,

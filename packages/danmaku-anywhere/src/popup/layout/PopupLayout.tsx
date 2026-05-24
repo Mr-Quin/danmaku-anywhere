@@ -1,4 +1,4 @@
-import { Box, Container } from '@mui/material'
+import { Box } from '@mui/material'
 import type { PropsWithChildren } from 'react'
 import { DevWatermark } from '@/common/components/DevWatermark'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
@@ -12,28 +12,19 @@ export const PopupLayout = ({ children }: PropsWithChildren<{}>) => {
   const height = fillViewport ? '100vh' : 600
 
   return (
-    <Container
+    <Box
       sx={{
-        padding: 0,
-        width: width,
+        width,
         maxWidth: width,
-        height: height,
+        height,
         maxHeight: height,
         overflow: 'hidden',
+        bgcolor: 'background.default',
+        position: 'relative',
       }}
-      fixed
     >
-      <Box
-        sx={{
-          height: 1,
-          overflow: 'hidden',
-          position: 'relative',
-          bgcolor: 'background.default',
-        }}
-      >
-        {children}
-        <DevWatermark />
-      </Box>
-    </Container>
+      {children}
+      <DevWatermark />
+    </Box>
   )
 }

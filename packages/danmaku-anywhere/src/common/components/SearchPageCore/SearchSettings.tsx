@@ -60,29 +60,21 @@ export const SearchSettings = ({ dragOverlayPortal }: SearchSettingsProps) => {
           variant="overline"
           sx={{
             color: 'text.secondary',
-            px: 0.25,
+            pb: 1,
             display: 'block',
           }}
         >
           {t('searchPage.settings.sources', 'Sources')}
         </Typography>
         <Box
-          sx={(theme) => ({
-            '& .MuiList-root': {
-              gap: 0.5,
-              display: 'flex',
-              flexDirection: 'column',
-            },
+          sx={{
             '& .MuiListItem-root': {
-              border: `1px solid ${theme.palette.divider}`,
-              borderRadius: 1,
-              backgroundColor: theme.palette.background.paper,
               padding: '4px 6px',
             },
             '& .MuiListItem-root .MuiListItemButton-root': {
               paddingRight: 6,
             },
-          })}
+          }}
         >
           <DraggableList
             overlayPortal={dragOverlayPortal}
