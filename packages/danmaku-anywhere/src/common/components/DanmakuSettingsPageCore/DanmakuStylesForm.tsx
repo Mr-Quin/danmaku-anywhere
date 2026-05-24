@@ -260,6 +260,7 @@ export const DanmakuStylesForm = ({
 
     return () => {
       unsubscribe()
+      debouncedSave.clear()
     }
   }, [subscribe])
 

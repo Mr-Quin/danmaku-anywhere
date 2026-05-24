@@ -62,11 +62,13 @@ function ClampedIntField({
   min,
   max,
   onCommit,
+  disabled,
 }: {
   value: number
   min: number
   max: number
   onCommit: (n: number) => void
+  disabled?: boolean
 }) {
   const [text, setText] = useState(String(value))
   useEffect(() => {
@@ -77,6 +79,7 @@ function ClampedIntField({
       size="small"
       type="number"
       value={text}
+      disabled={disabled}
       onChange={(e) => setText(e.target.value)}
       onBlur={() => {
         const n = Math.max(min, Math.min(max, Number(text) || min))
@@ -215,6 +218,7 @@ export function CollapseTab({
                 value={collapse.dedupe.maxDedupe}
                 min={2}
                 max={10}
+                disabled={!collapse.dedupe.enabled}
                 onCommit={(n) =>
                   onChange((draft) => {
                     draft.dedupe.maxDedupe = n
@@ -256,6 +260,7 @@ export function CollapseTab({
               control={
                 <Switch
                   checked={collapse.pattern.liveCount}
+                  disabled={!collapse.pattern.enabled}
                   onChange={(_, checked) =>
                     onChange((draft) => {
                       draft.pattern.liveCount = checked
@@ -274,7 +279,9 @@ export function CollapseTab({
               control={
                 <Switch
                   checked={collapse.pattern.pulse}
-                  disabled={!collapse.pattern.liveCount}
+                  disabled={
+                    !collapse.pattern.enabled || !collapse.pattern.liveCount
+                  }
                   onChange={(_, checked) =>
                     onChange((draft) => {
                       draft.pattern.pulse = checked
@@ -293,6 +300,7 @@ export function CollapseTab({
               control={
                 <Switch
                   checked={collapse.pattern.autoCollapse}
+                  disabled={!collapse.pattern.enabled}
                   onChange={(_, checked) =>
                     onChange((draft) => {
                       draft.pattern.autoCollapse = checked
@@ -313,6 +321,7 @@ export function CollapseTab({
                   value={collapse.pattern.minCount}
                   min={2}
                   max={20}
+                  disabled={!collapse.pattern.enabled}
                   onCommit={(n) =>
                     onChange((draft) => {
                       draft.pattern.minCount = n

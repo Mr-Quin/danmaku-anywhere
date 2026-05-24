@@ -17,7 +17,11 @@ export const ConfigToolbar = ({ onAdd }: ConfigToolbarProps) => {
   return (
     <TabToolbar title={t('configPage.name', 'Configs')}>
       <Tooltip title={t('configPage.importShareCode', 'Import Share Code')}>
-        <IconButton size="small" onClick={handleImportConfigs}>
+        <IconButton
+          size="small"
+          onClick={handleImportConfigs}
+          aria-label={t('configPage.importShareCode', 'Import Share Code')}
+        >
           <Upload fontSize="small" />
         </IconButton>
       </Tooltip>
