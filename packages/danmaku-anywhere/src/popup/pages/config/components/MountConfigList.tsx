@@ -122,7 +122,15 @@ export const MountConfigList = ({ onEdit, onAdd }: MountConfigListProps) => {
           <ConfigBadge config={config} />
         </ListItemPrimaryStack>
       )}
-      renderSecondary={(config) => config.patterns[0]}
+      renderSecondary={(config) => (
+        <span
+          style={{
+            fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+          }}
+        >
+          {config.patterns[0]}
+        </span>
+      )}
       renderSecondaryAction={(config) => {
         const menuItems: DAMenuItemConfig[] = []
 

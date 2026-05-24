@@ -51,6 +51,13 @@ const DraggableItemIcon = styled(ListItemIcon)(({ theme }) => {
 
 const StyledListItem = styled(ListItem)(({ theme }) => {
   return {
+    border: `1px solid ${theme.palette.divider}`,
+    borderRadius: theme.shape.borderRadius,
+    backgroundColor: theme.palette.background.paper,
+    marginBottom: theme.spacing(0.75),
+    '&:last-of-type': {
+      marginBottom: 0,
+    },
     '.MuiListItemButton-root': {
       paddingRight: theme.spacing(12), // make room for action buttons
     },

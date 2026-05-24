@@ -110,7 +110,7 @@ export const AiProvidersPage = (): ReactElement => {
             }
             onGoBack={handleCloseEditor}
           />
-          <ScrollBox sx={{ p: 2, overflow: 'auto' }}>
+          <ScrollBox sx={{ p: 1, overflow: 'auto' }}>
             <AiProviderForm
               provider={editingProvider}
               onSubmit={handleSave}

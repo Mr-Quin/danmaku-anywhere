@@ -137,8 +137,9 @@ export const FileUpload = ({
       />
       {children}
       <Typography
-        variant="h6"
+        variant="body2"
         color={isDragging ? 'primary.main' : 'textSecondary'}
+        sx={{ fontWeight: 600 }}
       >
         {t('importPage.help.dragNDrop1', 'Drag and drop files here')}
       </Typography>

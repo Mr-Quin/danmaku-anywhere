@@ -164,10 +164,11 @@ export const About = () => {
 
         {/* Resources */}
         <Typography
-          variant="subtitle2"
+          variant="overline"
           gutterBottom
           sx={{
             color: 'text.secondary',
+            display: 'block',
           }}
         >
           {i18n.t('aboutPage.resources', 'Resources')}
@@ -199,9 +200,9 @@ export const About = () => {
                 </Box>
                 <Box sx={{ flexGrow: 1 }}>
                   <Typography
-                    variant="subtitle1"
+                    variant="body2"
                     sx={{
-                      fontWeight: 'medium',
+                      fontWeight: 600,
                     }}
                   >
                     {resource.title()}
@@ -243,10 +244,11 @@ export const About = () => {
 
         {/* Credits */}
         <Typography
-          variant="subtitle2"
+          variant="overline"
           gutterBottom
           sx={{
             color: 'text.secondary',
+            display: 'block',
           }}
         >
           {i18n.t('aboutPage.imageIllustrator', 'Graphic Illustrator')}
@@ -257,7 +259,7 @@ export const About = () => {
             mb: 4,
           }}
         >
-          <Card variant="outlined" sx={{ p: 2 }}>
+          <Card variant="outlined" sx={{ p: 1 }}>
             <Stack
               direction="row"
               spacing={2}
@@ -269,10 +271,12 @@ export const About = () => {
                 src={IMAGE_ASSETS.CarryBook}
                 sx={{ width: 60, height: 60, borderRadius: 1 }}
               />
-              <Typography variant="subtitle1">吳都行</Typography>
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                吳都行
+              </Typography>
             </Stack>
           </Card>
-          <Card variant="outlined" sx={{ p: 2 }}>
+          <Card variant="outlined" sx={{ p: 1 }}>
             <Stack
               direction="row"
               spacing={2}
@@ -285,7 +289,7 @@ export const About = () => {
                 sx={{ width: 60, height: 60, borderRadius: 1 }}
               />
               <Typography
-                variant="subtitle1"
+                variant="body2"
                 component="a"
                 href="https://space.bilibili.com/220694183"
                 target="_blank"
@@ -293,6 +297,7 @@ export const About = () => {
                 sx={{
                   color: 'text.primary',
                   textDecoration: 'none',
+                  fontWeight: 600,
                   '&:hover': { textDecoration: 'underline' },
                 }}
               >
@@ -321,7 +326,7 @@ export const About = () => {
               }}
             >
               <InfoOutlined color="action" />
-              <Typography variant="subtitle1">
+              <Typography variant="body2" sx={{ fontWeight: 600 }}>
                 {i18n.t('aboutPage.technicalInfo', 'Technical Information')}
               </Typography>
             </Stack>

@@ -16,7 +16,7 @@ export const EmptyMountConfigList = ({
     <Box>
       <Stack
         sx={{
-          p: 2,
+          p: 1,
           pt: 8,
           alignItems: 'center',
           zIndex: 2,

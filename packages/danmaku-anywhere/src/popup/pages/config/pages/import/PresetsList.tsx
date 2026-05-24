@@ -170,12 +170,12 @@ export const PresetsList = () => {
         {selectedPreset && (
           <>
             <DialogTitle>
-              <Typography variant="h6" component="p">
+              <Typography variant="h4" component="p">
                 {selectedPreset.name}
               </Typography>
               {selectedPreset.author && (
                 <Typography
-                  variant="subtitle2"
+                  variant="caption"
                   component="p"
                   color="textSecondary"
                 >
@@ -185,13 +185,13 @@ export const PresetsList = () => {
             </DialogTitle>
             <DialogContent dividers>
               {selectedPreset.description && (
-                <Typography variant="body1" color="textSecondary" gutterBottom>
+                <Typography variant="body2" color="textSecondary" gutterBottom>
                   {selectedPreset.description}
                 </Typography>
               )}
 
               {selectedPreset.integration && (
-                <Typography variant="subtitle1" gutterBottom>
+                <Typography variant="overline" gutterBottom>
                   {t(
                     'configPage.import.hasIntegration',
                     'Includes Integration'
@@ -199,7 +199,7 @@ export const PresetsList = () => {
                 </Typography>
               )}
 
-              <Typography variant="subtitle1" gutterBottom>
+              <Typography variant="overline" gutterBottom>
                 {t('configPage.editor.urlPatterns', 'URL Patterns')}
               </Typography>
               <PreFormat disableCopy>

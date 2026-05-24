@@ -341,7 +341,7 @@ export const RetentionPolicyPage = () => {
                     justifyContent: 'space-between',
                   }}
                 >
-                  <Typography variant="body1">
+                  <Typography variant="body2">
                     {t(
                       'optionsPage.dataManagement.wipeDanmakuData',
                       'Wipe Danmaku Data'

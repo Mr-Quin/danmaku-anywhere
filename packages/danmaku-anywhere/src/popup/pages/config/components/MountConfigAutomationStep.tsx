@@ -64,9 +64,9 @@ const AutomationCard = ({
             >
               <data.icon />
               <Typography
-                variant="subtitle1"
+                variant="body2"
                 sx={{
-                  fontWeight: 'bold',
+                  fontWeight: 600,
                 }}
               >
                 {data.label()}
@@ -99,7 +99,7 @@ export const MountConfigAutomationStep = ({
 
   return (
     <Stack spacing={1}>
-      <Typography variant="body1">
+      <Typography variant="body2">
         {t('configPage.editor.automation.title', 'Select Automation Method')}
       </Typography>
       <Controller

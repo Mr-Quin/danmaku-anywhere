@@ -39,7 +39,7 @@ export const OptionsPageToolBar = ({
       <Toolbar variant="dense" sx={{ justifyContent: 'space-between' }}>
         {leftElement ?? defaultLeftElement}
         <Typography
-          variant="h6"
+          variant="h5"
           sx={{
             position: 'absolute',
             left: '50%',

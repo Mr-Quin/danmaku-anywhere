@@ -65,7 +65,7 @@ export const ImportConfigPage = () => {
       case 'confirmUpload': {
         return (
           <>
-            <Typography variant="subtitle1" gutterBottom>
+            <Typography variant="body2" sx={{ fontWeight: 600 }} gutterBottom>
               {t('importPage.willImport', { count: selectedFiles.length })}
             </Typography>
             <PreFormat>
@@ -84,9 +84,10 @@ export const ImportConfigPage = () => {
             {result.succeeded.length > 0 && (
               <>
                 <Typography
-                  variant="subtitle1"
+                  variant="body2"
                   sx={{
                     color: 'success.main',
+                    fontWeight: 600,
                   }}
                 >
                   {t('importPage.importSuccess', {
@@ -104,7 +105,11 @@ export const ImportConfigPage = () => {
             )}
             {result.errored.length > 0 && (
               <>
-                <Typography color="error" variant="subtitle1">
+                <Typography
+                  color="error"
+                  variant="body2"
+                  sx={{ fontWeight: 600 }}
+                >
                   {t('importPage.importError', {
                     count: result.errored.length,
                   })}
@@ -125,9 +130,10 @@ export const ImportConfigPage = () => {
         return (
           <>
             <Typography
-              variant="subtitle1"
+              variant="body2"
               sx={{
                 color: 'error.main',
+                fontWeight: 600,
               }}
             >
               {t('error.unknown', 'Something went wrong.')}
@@ -166,7 +172,7 @@ export const ImportConfigPage = () => {
       {tabValue === 'upload' && (
         <Box
           sx={{
-            p: 2,
+            p: 1,
           }}
         >
           <FileUpload

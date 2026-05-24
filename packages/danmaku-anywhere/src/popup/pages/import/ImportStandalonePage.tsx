@@ -22,13 +22,13 @@ export function ImportStandalonePage(): ReactElement {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 2,
-        p: 2,
+        gap: 1,
+        p: 1,
       }}
     >
       <DragDropOverlay in={importFlow.isDragging} />
 
-      <Typography variant="h6">
+      <Typography variant="h4">
         {t('importPage.import', 'Import Danmaku')}
       </Typography>
       <Stack direction="row" spacing={1}>

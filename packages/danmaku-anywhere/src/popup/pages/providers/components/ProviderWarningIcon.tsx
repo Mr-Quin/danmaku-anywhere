@@ -15,7 +15,7 @@ export const ProviderWarningIcon = ({
   const getTooltipContent = () => {
     if (warningType === 'bilibili') {
       return (
-        <Typography variant="subtitle2">
+        <Typography variant="caption">
           {/* @ts-ignore */}
           <Trans i18nKey="danmakuSource.tooltip.bilibiliNotLoggedIn">
             <ExternalLink
@@ -31,7 +31,7 @@ export const ProviderWarningIcon = ({
 
     if (warningType === 'tencent') {
       return (
-        <Typography variant="subtitle2">
+        <Typography variant="caption">
           {/* @ts-ignore */}
           <Trans i18nKey="danmakuSource.tooltip.tencentCookieMissing">
             <ExternalLink
