@@ -76,6 +76,6 @@ export function buildFixtureIntegrationPolicy(): Integration['policy'] {
     },
     season: { selector: [], regex: [] },
     episodeTitle: { selector: [], regex: [] },
-    options: { autoAdvanceOnEnded: false },
+    options: {},
   }
 }

@@ -34,9 +34,7 @@ export function createIntegrationInput(name = ''): IntegrationInput {
         selector: [],
         regex: [],
       },
-      options: {
-        autoAdvanceOnEnded: false,
-      },
+      options: {},
     },
   }
 }

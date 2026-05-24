@@ -4,10 +4,11 @@ import type { IntegrationV3 } from './v3.js'
 import { migrateV3ToV4, zIntegrationV4 } from './v4.js'
 
 /**
- * Verifies v3 -> v4 migration: version bump, options.autoAdvanceOnEnded
- * being initialised to false, and that nextEpisode/prevEpisode remain
- * absent. Also verifies the v4 schema accepts the click-mode navigation
- * shape and a fully-populated options object.
+ * Verifies v3 -> v4 migration: version bump, options defaulting to the
+ * canonical {autoAdvanceOnEnded:false, skipPercentage:0, minVideoDuration:30}
+ * shape, and nextEpisode/prevEpisode remaining absent. Also verifies the
+ * v4 schema accepts a fully-populated options object and rejects an empty
+ * navigation selector list.
  */
 
 describe('v4 migration', () => {
@@ -42,6 +43,8 @@ describe('v4 migration', () => {
         episodeTitle: { selector: [], regex: [] },
         options: {
           autoAdvanceOnEnded: false,
+          skipPercentage: 0,
+          minVideoDuration: 30,
         },
       },
     })

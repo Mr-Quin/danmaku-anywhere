@@ -18,7 +18,11 @@ describe('deserializeIntegration', () => {
       episode: { selector: [], regex: [] },
       season: { selector: [], regex: [] },
       episodeTitle: { selector: [], regex: [] },
-      options: { autoAdvanceOnEnded: false },
+      options: {
+        autoAdvanceOnEnded: false,
+        skipPercentage: 0,
+        minVideoDuration: 30,
+      },
     }
 
     const result = deserializeIntegration(serializeIntegration(v4Policy))
@@ -39,8 +43,31 @@ describe('deserializeIntegration', () => {
     const result = deserializeIntegration(v3Json)
 
     expect(result.version).toBe(4)
-    expect(result.options.autoAdvanceOnEnded).toBe(false)
+    expect(result.options).toEqual({
+      autoAdvanceOnEnded: false,
+      skipPercentage: 0,
+      minVideoDuration: 30,
+    })
     expect(result.nextEpisode).toBeUndefined()
     expect(result.prevEpisode).toBeUndefined()
+  })
+
+  it('fills in missing option fields when stored data omits them', () => {
+    const partialJson = JSON.stringify({
+      version: 4,
+      title: { selector: [{ value: 's1', quick: false }], regex: [] },
+      episode: { selector: [], regex: [] },
+      season: { selector: [], regex: [] },
+      episodeTitle: { selector: [], regex: [] },
+      options: { autoAdvanceOnEnded: true },
+    })
+
+    const result = deserializeIntegration(partialJson)
+
+    expect(result.options).toEqual({
+      autoAdvanceOnEnded: true,
+      skipPercentage: 0,
+      minVideoDuration: 30,
+    })
   })
 })

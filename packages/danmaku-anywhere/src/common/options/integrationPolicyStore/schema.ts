@@ -32,9 +32,9 @@ const matcherSchema = z.object({
 })
 
 const optionsSchema = z.object({
-  autoAdvanceOnEnded: z.boolean(),
-  skipPercentage: z.number().min(0).max(1).optional(),
-  minVideoDuration: z.number().int().nonnegative().optional(),
+  autoAdvanceOnEnded: z.boolean().default(false),
+  skipPercentage: z.number().min(0).max(1).default(0),
+  minVideoDuration: z.number().int().nonnegative().default(30),
 })
 
 export const zIntegrationPolicy = z.object({
