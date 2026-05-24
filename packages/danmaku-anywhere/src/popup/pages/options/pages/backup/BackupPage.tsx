@@ -17,7 +17,7 @@ export function BackupPage() {
       />
       <Box
         sx={{
-          p: 1,
+          p: 2,
         }}
       >
         <Stack spacing={2}>

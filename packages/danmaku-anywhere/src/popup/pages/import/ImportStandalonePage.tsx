@@ -22,8 +22,8 @@ export function ImportStandalonePage(): ReactElement {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 1,
-        p: 1,
+        gap: 2,
+        p: 2,
       }}
     >
       <DragDropOverlay in={importFlow.isDragging} />

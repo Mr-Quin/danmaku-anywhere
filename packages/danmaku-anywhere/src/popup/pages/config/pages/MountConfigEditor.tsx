@@ -175,7 +175,7 @@ export const MountConfigEditor = ({
       />
       <Box
         sx={{
-          p: 1,
+          p: 2,
         }}
       >
         <Stepper activeStep={activeStep}>

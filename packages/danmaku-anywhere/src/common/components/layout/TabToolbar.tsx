@@ -1,5 +1,5 @@
 import { ChevronLeft } from '@mui/icons-material'
-import { Divider, IconButton, Toolbar, Typography } from '@mui/material'
+import { IconButton, Toolbar, Typography } from '@mui/material'
 import type { PropsWithChildren, ReactNode } from 'react'
 
 type PageToolbarProps = {
@@ -34,7 +34,7 @@ export const TabToolbar = ({
     if (typeof title === 'string') {
       return (
         <Typography
-          variant="h5"
+          variant="h4"
           sx={{ flexGrow: 1, minWidth: 0 }}
           noWrap
           title={title}
@@ -47,22 +47,22 @@ export const TabToolbar = ({
   }
 
   return (
-    <>
-      <Toolbar
-        variant="dense"
-        sx={{
-          flexShrink: 0,
-          minHeight: 40,
-          paddingInline: 1.25,
-          gap: 0.5,
-        }}
-      >
-        {showBackButton && backButton}
-        {leftElement}
-        {renderTitle()}
-        {children}
-      </Toolbar>
-      <Divider />
-    </>
+    <Toolbar
+      variant="dense"
+      sx={{
+        flexShrink: 0,
+        minHeight: 48,
+        paddingInline: 2,
+        paddingBlock: 1,
+        gap: 0.5,
+        borderBottom: 1,
+        borderColor: 'divider',
+      }}
+    >
+      {showBackButton && backButton}
+      {leftElement}
+      {renderTitle()}
+      {children}
+    </Toolbar>
   )
 }

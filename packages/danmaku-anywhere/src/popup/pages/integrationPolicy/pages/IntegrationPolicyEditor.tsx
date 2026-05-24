@@ -32,7 +32,7 @@ export const IntegrationPolicyEditor = () => {
         <OptionsPageToolBar sticky title={config.name} />
         <Box
           sx={{
-            p: 1,
+            p: 2,
             overflow: 'auto',
           }}
         >

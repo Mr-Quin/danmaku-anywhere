@@ -1,5 +1,5 @@
 import type { PaperProps } from '@mui/material'
-import { Paper } from '@mui/material'
+import { alpha, Paper } from '@mui/material'
 import type { ReactNode, Ref } from 'react'
 
 import { DevWatermark } from '@/common/components/DevWatermark'
@@ -27,7 +27,7 @@ export const WindowPaneLayout = (props: WindowPaneLayoutProps) => {
 
   return (
     <Paper
-      sx={{
+      sx={(theme) => ({
         padding: 0,
         position: 'relative',
         width: sm ? '100%' : width,
@@ -37,7 +37,8 @@ export const WindowPaneLayout = (props: WindowPaneLayoutProps) => {
         display: 'flex',
         flexDirection: 'column',
         touchAction: 'manipulation',
-      }}
+        boxShadow: `0 12px 32px -8px ${alpha(theme.palette.primary.main, 0.45)}, 0 0 0 1px ${theme.palette.divider}`,
+      })}
       ref={ref}
       {...props.paperProps}
     >

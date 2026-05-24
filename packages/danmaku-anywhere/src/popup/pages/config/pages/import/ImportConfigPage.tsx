@@ -172,7 +172,7 @@ export const ImportConfigPage = () => {
       {tabValue === 'upload' && (
         <Box
           sx={{
-            p: 1,
+            p: 2,
           }}
         >
           <FileUpload

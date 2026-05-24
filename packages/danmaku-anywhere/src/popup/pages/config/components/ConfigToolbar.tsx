@@ -1,7 +1,7 @@
-import { AddCircle, Edit, Upload } from '@mui/icons-material'
+import { Add, Upload } from '@mui/icons-material'
+import { Button, IconButton, Tooltip } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
-import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { useImportShareCodeDialog } from '@/common/options/combinedPolicy/useImportShareCodeDialog'
 
 type ConfigToolbarProps = {
@@ -9,35 +9,27 @@ type ConfigToolbarProps = {
   onShowIntegration: () => void
 }
 
-export const ConfigToolbar = ({
-  onAdd,
-  onShowIntegration,
-}: ConfigToolbarProps) => {
+export const ConfigToolbar = ({ onAdd }: ConfigToolbarProps) => {
   const { t } = useTranslation()
 
   const handleImportConfigs = useImportShareCodeDialog()
 
   return (
     <TabToolbar title={t('configPage.name', 'Configs')}>
-      <DrilldownMenu
-        icon={<AddCircle />}
-        ButtonProps={{ color: 'primary', size: 'small' }}
-        dense
-        items={[
-          {
-            id: 'add',
-            label: t('configPage.createConfig', 'Create Config'),
-            onClick: onAdd,
-            icon: <Edit />,
-          },
-          {
-            id: 'import',
-            label: t('configPage.importShareCode', 'Import Share Code'),
-            icon: <Upload />,
-            onClick: handleImportConfigs,
-          },
-        ]}
-      />
+      <Tooltip title={t('configPage.importShareCode', 'Import Share Code')}>
+        <IconButton size="small" onClick={handleImportConfigs}>
+          <Upload fontSize="small" />
+        </IconButton>
+      </Tooltip>
+      <Button
+        variant="soft"
+        color="primary"
+        size="small"
+        startIcon={<Add />}
+        onClick={onAdd}
+      >
+        {t('common.add', 'Add')}
+      </Button>
     </TabToolbar>
   )
 }

@@ -37,14 +37,16 @@ import { ScrollBox } from './layout/ScrollBox'
 const DraggableItemIcon = styled(ListItemIcon)(({ theme }) => {
   return {
     cursor: 'grab',
+    color: theme.palette.text.disabled,
     '&:active': {
       cursor: 'grabbing',
     },
     minWidth: 0,
-    paddingRight: theme.spacing(1),
+    paddingRight: theme.spacing(0.75),
     alignSelf: 'stretch',
     ['& > svg']: {
       margin: 'auto',
+      fontSize: '1rem',
     },
   }
 })
@@ -54,12 +56,14 @@ const StyledListItem = styled(ListItem)(({ theme }) => {
     border: `1px solid ${theme.palette.divider}`,
     borderRadius: theme.shape.borderRadius,
     backgroundColor: theme.palette.background.paper,
-    marginBottom: theme.spacing(0.75),
+    marginBottom: theme.spacing(1),
     '&:last-of-type': {
       marginBottom: 0,
     },
     '.MuiListItemButton-root': {
       paddingRight: theme.spacing(12), // make room for action buttons
+      paddingTop: theme.spacing(0.75),
+      paddingBottom: theme.spacing(0.75),
     },
   }
 })
@@ -338,7 +342,7 @@ export function DraggableList<T extends DraggableItem>({
         items={orderedItems.map((item) => item.id)}
         strategy={verticalListSortingStrategy}
       >
-        <ScrollBox sx={{ overflow: 'auto' }}>
+        <ScrollBox sx={{ overflow: 'auto', px: 2, py: 1 }}>
           <List dense disablePadding>
             {orderedItems.map((item) => (
               <SortableItem

@@ -16,7 +16,6 @@ import {
   Card,
   CardActionArea,
   Chip,
-  Container,
   IconButton,
   Stack,
   SvgIcon,
@@ -127,7 +126,7 @@ export const About = () => {
   return (
     <OptionsPageLayout>
       <OptionsPageToolBar title={t('optionsPage.pages.help')} />
-      <Container maxWidth="md" sx={{ mt: 4 }}>
+      <Box sx={{ mt: 4, px: 2 }}>
         {/* Header */}
         <Stack
           spacing={2}
@@ -259,7 +258,7 @@ export const About = () => {
             mb: 4,
           }}
         >
-          <Card variant="outlined" sx={{ p: 1 }}>
+          <Card variant="outlined" sx={{ p: 2 }}>
             <Stack
               direction="row"
               spacing={2}
@@ -276,7 +275,7 @@ export const About = () => {
               </Typography>
             </Stack>
           </Card>
-          <Card variant="outlined" sx={{ p: 1 }}>
+          <Card variant="outlined" sx={{ p: 2 }}>
             <Stack
               direction="row"
               spacing={2}
@@ -407,7 +406,7 @@ export const About = () => {
             Copyright © 2023-2025 Mr-Quin. Licensed under AGPL-3.0.
           </Typography>
         </Box>
-      </Container>
+      </Box>
     </OptionsPageLayout>
   )
 }

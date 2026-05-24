@@ -314,6 +314,12 @@ function buildSakuraComponents(
         root: ({ theme }) => ({
           borderRadius: 8,
           backgroundColor: theme.palette.paperAlt,
+          transition: theme.transitions.create(['box-shadow', 'border-color'], {
+            duration: theme.transitions.duration.shortest,
+          }),
+          '&.Mui-focused': {
+            boxShadow: `0 0 0 3px ${theme.palette.action.focus}`,
+          },
         }),
         input: { padding: '7px 10px' },
         notchedOutline: ({ theme }) => ({ borderColor: theme.palette.divider }),
