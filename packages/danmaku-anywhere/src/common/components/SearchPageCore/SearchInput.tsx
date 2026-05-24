@@ -267,14 +267,6 @@ export function SearchInput({
           sx={(theme) => ({
             '& .MuiOutlinedInput-root': {
               paddingInline: 1,
-              transition: 'box-shadow 120ms ease, border-color 120ms ease',
-              '&.Mui-focused': {
-                boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.18)}`,
-              },
-              '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                borderColor: theme.palette.primary.main,
-                borderWidth: 1,
-              },
               ...(urlMode && {
                 '& .MuiOutlinedInput-notchedOutline': {
                   borderColor: theme.palette.primary.main,

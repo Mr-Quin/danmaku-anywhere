@@ -1,8 +1,8 @@
-import { Add } from '@mui/icons-material'
-import { Button, Stack } from '@mui/material'
+import { Stack } from '@mui/material'
 import { type ReactElement, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
+import { ListAddButton } from '@/common/components/ListAddButton'
 import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
@@ -125,15 +125,9 @@ export const AiProvidersPage = (): ReactElement => {
   return (
     <TabLayout>
       <TabToolbar title={t('ai.providers', 'AI Providers')}>
-        <Button
-          variant="soft"
-          color="primary"
-          size="small"
-          startIcon={<Add />}
-          onClick={handleAddProvider}
-        >
+        <ListAddButton onClick={handleAddProvider}>
           {t('common.add', 'Add')}
-        </Button>
+        </ListAddButton>
       </TabToolbar>
       <AiProviderConfigList
         onEdit={handleEditProvider}

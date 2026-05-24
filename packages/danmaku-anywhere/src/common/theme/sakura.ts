@@ -170,7 +170,7 @@ function buildSakuraComponents(
           props: { variant: 'soft', color: 'primary' },
           style: ({ theme }) => ({
             backgroundColor: theme.palette.primary.light,
-            color: theme.palette.primaryInk,
+            color: theme.palette.primary.main,
             '&:hover': {
               backgroundColor: alpha(theme.palette.primary.main, 0.22),
             },
@@ -318,7 +318,11 @@ function buildSakuraComponents(
             duration: theme.transitions.duration.shortest,
           }),
           '&.Mui-focused': {
-            boxShadow: `0 0 0 3px ${theme.palette.action.focus}`,
+            boxShadow: `0 0 0 3px ${alpha(theme.palette.primary.main, 0.18)}`,
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: theme.palette.primary.main,
+            borderWidth: 1,
           },
         }),
         input: { padding: '7px 10px' },

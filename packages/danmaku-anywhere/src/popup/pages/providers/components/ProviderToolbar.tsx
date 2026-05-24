@@ -1,6 +1,6 @@
 import { Add } from '@mui/icons-material'
-import { Button } from '@mui/material'
 import { useTranslation } from 'react-i18next'
+import { ListAddButton } from '@/common/components/ListAddButton'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import {
@@ -24,15 +24,9 @@ export const ProviderToolbar = ({
       <DrilldownMenu
         dense
         renderButton={({ onClick }) => (
-          <Button
-            variant="soft"
-            color="primary"
-            size="small"
-            startIcon={<Add />}
-            onClick={onClick}
-          >
+          <ListAddButton onClick={onClick}>
             {t('common.add', 'Add')}
-          </Button>
+          </ListAddButton>
         )}
         items={[
           {

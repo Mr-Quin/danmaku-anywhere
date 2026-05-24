@@ -1,6 +1,7 @@
-import { Add, Upload } from '@mui/icons-material'
-import { Button, IconButton, Tooltip } from '@mui/material'
+import { Upload } from '@mui/icons-material'
+import { IconButton, Tooltip } from '@mui/material'
 import { useTranslation } from 'react-i18next'
+import { ListAddButton } from '@/common/components/ListAddButton'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useImportShareCodeDialog } from '@/common/options/combinedPolicy/useImportShareCodeDialog'
 
@@ -21,15 +22,7 @@ export const ConfigToolbar = ({ onAdd }: ConfigToolbarProps) => {
           <Upload fontSize="small" />
         </IconButton>
       </Tooltip>
-      <Button
-        variant="soft"
-        color="primary"
-        size="small"
-        startIcon={<Add />}
-        onClick={onAdd}
-      >
-        {t('common.add', 'Add')}
-      </Button>
+      <ListAddButton onClick={onAdd}>{t('common.add', 'Add')}</ListAddButton>
     </TabToolbar>
   )
 }
