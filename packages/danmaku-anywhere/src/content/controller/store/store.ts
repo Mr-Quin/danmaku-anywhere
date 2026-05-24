@@ -5,6 +5,7 @@ import type {
 import { enableMapSet } from 'immer'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
+import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { VideoInfo } from '@/common/rpcClient/background/types'
 import type { FieldAccentKey } from '@/common/theme/sakura'
@@ -12,6 +13,11 @@ import { createSelectors } from '@/common/utils/createSelectors'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 
 export type EditModeFieldId = FieldAccentKey
+
+export interface EditModeDraft {
+  policy: IntegrationPolicy
+  name: string
+}
 
 enableMapSet()
 
@@ -139,6 +145,11 @@ interface StoreState {
     setRefiningId: (id: EditModeFieldId | null) => void
     missingElements: Set<EditModeFieldId>
     setMissingElement: (id: EditModeFieldId, missing: boolean) => void
+    draft: EditModeDraft | null
+    isDirty: boolean
+    initDraft: (draft: EditModeDraft) => void
+    updateDraftPolicy: (policy: IntegrationPolicy) => void
+    markSaved: () => void
   }
 }
 
@@ -362,6 +373,8 @@ const useStoreBase = create<StoreState>()(
             state.editMode.pickTarget = null
             state.editMode.refiningId = null
             state.editMode.missingElements.clear()
+            state.editMode.draft = null
+            state.editMode.isDirty = false
             state.integrationForm.isPicking = false
           }
         })
@@ -386,6 +399,27 @@ const useStoreBase = create<StoreState>()(
           } else {
             state.editMode.missingElements.delete(id)
           }
+        })
+      },
+      draft: null,
+      isDirty: false,
+      initDraft: (draft) => {
+        set((state) => {
+          state.editMode.draft = draft
+          state.editMode.isDirty = false
+        })
+      },
+      updateDraftPolicy: (policy) => {
+        set((state) => {
+          if (state.editMode.draft) {
+            state.editMode.draft.policy = policy
+            state.editMode.isDirty = true
+          }
+        })
+      },
+      markSaved: () => {
+        set((state) => {
+          state.editMode.isDirty = false
         })
       },
     },

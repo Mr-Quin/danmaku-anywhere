@@ -1,4 +1,4 @@
-import { Box, styled } from '@mui/material'
+import { Box, Stack, styled, Typography } from '@mui/material'
 import { useEffect, useRef, useState } from 'react'
 import { getElementByXpath } from '@/common/utils/utils'
 import { useStore } from '@/content/controller/store/store'
@@ -9,6 +9,8 @@ interface PickedFrameProps {
   color: string
   label: string
   xpath: string
+  raw: string | null
+  parsed: string | null
 }
 
 interface Rect {
@@ -30,22 +32,18 @@ const FrameBox = styled(Box, {
   zIndex: 2147483640,
 }))
 
-const FrameLabel = styled('span', {
+const FrameLabel = styled(Stack, {
   shouldForwardProp: (prop) => prop !== 'color',
-})<{ color: string }>(({ color }) => ({
+})<{ color: string }>(({ color, theme }) => ({
   position: 'fixed',
-  padding: '1px 7px',
-  borderRadius: '3px 3px 3px 0',
+  padding: theme.spacing(0.5, 1),
+  borderRadius: '4px 4px 4px 0',
   background: color,
   color: '#fff',
-  fontSize: 10.5,
-  fontWeight: 700,
-  lineHeight: '17px',
-  fontFamily: "'Plus Jakarta Sans Variable', system-ui, sans-serif",
   boxShadow: `0 4px 10px -4px ${color}88`,
   pointerEvents: 'none',
   zIndex: 2147483641,
-  whiteSpace: 'nowrap',
+  maxWidth: 360,
 }))
 
 export function PickedFrame({
@@ -53,6 +51,8 @@ export function PickedFrame({
   color,
   label,
   xpath,
+  raw,
+  parsed,
 }: PickedFrameProps) {
   const setMissingElement = useStore.use.editMode().setMissingElement
   const [rect, setRect] = useState<Rect | null>(null)
@@ -103,7 +103,9 @@ export function PickedFrame({
     return null
   }
 
-  const labelTop = Math.max(rect.top - 19, 2)
+  const labelHeight = parsed ? 44 : 22
+  const labelTop = Math.max(rect.top - labelHeight - 2, 2)
+  const showParsed = parsed !== null && parsed !== raw
 
   return (
     <>
@@ -118,12 +120,36 @@ export function PickedFrame({
       />
       <FrameLabel
         color={color}
+        spacing={0.25}
         sx={{
           top: labelTop,
           left: rect.left,
         }}
       >
-        {label}
+        <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+          <Typography
+            variant="overline"
+            sx={{ color: '#fff', lineHeight: 1.1, fontWeight: 700 }}
+          >
+            {label}
+          </Typography>
+          {showParsed && (
+            <Typography
+              variant="caption"
+              sx={{
+                color: '#fff',
+                fontWeight: 600,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                maxWidth: 280,
+              }}
+              title={parsed ?? ''}
+            >
+              {parsed}
+            </Typography>
+          )}
+        </Stack>
       </FrameLabel>
     </>
   )

@@ -1,4 +1,4 @@
-import type { Integration } from '@/common/options/integrationPolicyStore/schema'
+import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
 import { getElementByXpath } from '@/common/utils/utils'
 import type { FieldId } from './fields'
 
@@ -17,10 +17,10 @@ const MAX_REGEX_INPUT_LENGTH = 10_000
 const MAX_PATTERN_LENGTH = 500
 
 export function extractFieldValue(
-  integration: Integration | undefined,
+  policy: IntegrationPolicy | undefined,
   fieldId: FieldId
 ): FieldExtraction {
-  const matcher = integration?.policy?.[fieldId]
+  const matcher = policy?.[fieldId]
   const xpath = matcher?.selector?.[0]?.value || null
   const regex = matcher?.regex?.[0]?.value || null
 

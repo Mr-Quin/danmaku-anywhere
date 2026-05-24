@@ -1,4 +1,4 @@
-import { Refresh, Tune, Visibility, VisibilityOff } from '@mui/icons-material'
+import { Check, Refresh, Tune, VisibilityOff } from '@mui/icons-material'
 import {
   Box,
   IconButton,
@@ -43,13 +43,11 @@ export function PickedFieldRow({
     extraction.raw !== extraction.parsed
 
   return (
-    <Box
+    <Stack
+      spacing={0.5}
       sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 0.5,
-        px: 1.125,
-        py: 0.875,
+        px: 1.5,
+        py: 1,
         borderRadius: 1,
         bgcolor: 'paperAlt',
         border: '1px solid',
@@ -60,13 +58,13 @@ export function PickedFieldRow({
     >
       <Stack
         direction="row"
-        spacing={0.75}
+        spacing={1}
         sx={{ alignItems: 'center', minWidth: 0 }}
       >
         <Box
           sx={{
-            width: 7,
-            height: 7,
+            width: 8,
+            height: 8,
             borderRadius: '50%',
             background: color,
             flexShrink: 0,
@@ -75,11 +73,7 @@ export function PickedFieldRow({
         />
         <Typography
           variant="overline"
-          sx={{
-            color,
-            lineHeight: 1.2,
-            fontWeight: 700,
-          }}
+          sx={{ color, fontWeight: 700, lineHeight: 1.2 }}
         >
           {label}
         </Typography>
@@ -90,22 +84,19 @@ export function PickedFieldRow({
               'Regex refinement applied'
             )}
           >
-            <Box
-              component="span"
+            <Typography
+              variant="caption"
               sx={{
-                px: 0.625,
-                py: 0,
-                borderRadius: '3px',
-                fontSize: 9,
-                fontWeight: 700,
-                lineHeight: '13px',
+                px: 0.5,
+                borderRadius: 0.5,
                 bgcolor: 'action.hover',
                 color: 'text.secondary',
                 fontFamily: 'ui-monospace, monospace',
+                fontWeight: 700,
               }}
             >
               .*
-            </Box>
+            </Typography>
           </Tooltip>
         )}
         <Box sx={{ flexGrow: 1 }} />
@@ -113,42 +104,33 @@ export function PickedFieldRow({
           <IconButton
             size="small"
             onClick={onRefine}
-            sx={{ color: refining ? color : 'text.secondary', p: 0.25 }}
+            sx={{ color: refining ? color : 'text.secondary' }}
           >
-            <Tune sx={{ fontSize: 14 }} />
+            <Tune fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title={t('editMode.row.repick', 'Re-pick')}>
-          <IconButton
-            size="small"
-            onClick={onRepick}
-            sx={{ color: 'text.secondary', p: 0.25 }}
-          >
-            <Refresh sx={{ fontSize: 14 }} />
+          <IconButton size="small" onClick={onRepick}>
+            <Refresh fontSize="small" />
           </IconButton>
         </Tooltip>
         <Tooltip title={t('editMode.row.remove', 'Remove')}>
-          <IconButton
-            size="small"
-            onClick={onRemove}
-            sx={{ color: 'text.secondary', p: 0.25 }}
-          >
-            <VisibilityOff sx={{ fontSize: 14 }} />
+          <IconButton size="small" onClick={onRemove}>
+            <VisibilityOff fontSize="small" />
           </IconButton>
         </Tooltip>
       </Stack>
 
       <Stack
         direction="row"
-        spacing={0.625}
+        spacing={0.75}
         sx={{ alignItems: 'center', minWidth: 0 }}
       >
-        <Visibility sx={{ fontSize: 11, color, flexShrink: 0 }} />
+        <Check sx={{ fontSize: 14, color, flexShrink: 0 }} />
         <Typography
           variant="body2"
           sx={{
             fontWeight: 600,
-            color: 'text.primary',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -162,30 +144,27 @@ export function PickedFieldRow({
       </Stack>
 
       {showRaw && (
-        <Box
+        <Typography
+          variant="caption"
           sx={{
-            pl: 1.5,
-            mt: 0.125,
-            fontSize: 10.5,
+            pl: 2.5,
             color: 'text.secondary',
             fontFamily: 'ui-monospace, monospace',
             whiteSpace: 'nowrap',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
+            display: 'block',
           }}
           title={extraction.raw ?? ''}
         >
           ↪ {extraction.raw}
-        </Box>
+        </Typography>
       )}
 
       {isMissing && (
         <Typography
           variant="caption"
-          sx={{
-            color: theme.palette.warning.main,
-            fontWeight: 600,
-          }}
+          sx={{ color: theme.palette.warning.main, fontWeight: 600 }}
         >
           {t('editMode.row.notOnPage', 'No longer on page')}
         </Typography>
@@ -194,14 +173,11 @@ export function PickedFieldRow({
       {extraction.regexMissed && extraction.raw && (
         <Typography
           variant="caption"
-          sx={{
-            color: theme.palette.warning.main,
-            fontWeight: 600,
-          }}
+          sx={{ color: theme.palette.warning.main, fontWeight: 600 }}
         >
           {t('editMode.row.regexMissed', 'Regex did not match raw text')}
         </Typography>
       )}
-    </Box>
+    </Stack>
   )
 }
