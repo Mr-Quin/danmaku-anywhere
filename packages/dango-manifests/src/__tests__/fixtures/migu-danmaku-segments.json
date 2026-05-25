@@ -1,0 +1,45 @@
+{
+  "_comment": "Ciphertexts produced by encrypting the JSON below under the upstream key (vwwLu7e6ug4HAQMAug8CsA8HD7oHDwuxAg4HAQG6DLA=) with AES-256-ECB + PKCS#7 + nibble-permuted key derivation. Roundtripped through the upstream gateway-crypto reference; the test decrypts them via $gatewayDecrypt.",
+  "segments": [
+    {
+      "start": 0,
+      "end": 30,
+      "ct": "DcLnQB5RnTkOU7UERdfQ0eCoBJoI83b8NB4TVG0CekGgOsYCxubwWNnEcq+FCCFAx4Hx4l3WjRfnKkBnpbkIoh9xi8lGyQHqWvTN+iamWoBRnWzS/gBjq2tQQLdV3DzUM9TgpOx5HhOoFr8Xi9oL1FS0Sqml6+prk9FmgWyLBfcR0l2Ja7X+9PSMAqUDC2ad/SzK2ZydeUeYloEqKgiLvK5NEU0840a/SgUs07g/wCk=",
+      "plaintext": {
+        "body": {
+          "result": [
+            {
+              "cid": "900000001",
+              "playtime": "1.50",
+              "textcolor": "FFFFFF",
+              "msg": "hello migu"
+            },
+            {
+              "cid": "900000002",
+              "playtime": "2.50",
+              "textcolor": "FF0000",
+              "msg": "red one"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "start": 30,
+      "end": 45,
+      "ct": "DcLnQB5RnTkOU7UERdfQ0eCoBJoI83b8NB4TVG0CekFzb2gl0rInZTxt/sfuEnqgkql01IM0E10x+cZBE+IIZX1QPWmkjXbvMue0KhK/UltN99Y3S38JIvaiFlrLonYfpcFIZFZJSKicvkIggPrvmQ==",
+      "plaintext": {
+        "body": {
+          "result": [
+            {
+              "cid": "900000003",
+              "playtime": "35.00",
+              "textcolor": "00FF00",
+              "msg": "green two"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

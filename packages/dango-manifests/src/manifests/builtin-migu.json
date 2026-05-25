@@ -1,0 +1,97 @@
+{
+  "apiVersion": 1,
+  "id": "builtin:migu",
+  "name": "Migu Video",
+  "version": "1.0.0",
+  "hosts": ["jadeite.migu.cn", "v3-sc.miguvideo.com", "webapi.miguvideo.com"],
+  "search": {
+    "inputs": ["q"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "search",
+        "request": {
+          "method": "POST",
+          "url": "'https://jadeite.migu.cn/search/v3/open-search'",
+          "headers": {
+            "Content-Type": "'application/json'",
+            "appId": "'miguvideo'",
+            "terminalId": "'www'"
+          },
+          "body": "{ 'k': q, 'pageIdx': 1, 'pageSize': 20, 'ct': 101, 'mediaSource': 9000000, 'appVersion': '6.1.1.00', 'isCorrectWord': 1, 'copyrightTerminal': 3, 'searchScene': 2, 'uiVersion': 'A3.26.0', 'sid': '1X4A395AL3XS3UV5MT8PQ1L5JUYK6KFM8VKDSDD48S5Y7YX5WY1MOUHRT6512988' }",
+          "rewriteHeaders": {
+            "Origin": "'https://www.miguvideo.com'",
+            "Referer": "'https://www.miguvideo.com/'",
+            "User-Agent": "'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36'"
+          }
+        }
+      }
+    ],
+    "output": "[search.body.contentInfoList[$exists(shortMediaAsset) and shortMediaAsset.isLong = true].($sma := shortMediaAsset; $eps := $exists($sma.extraData.episodes[0]) ? $sma.extraData.episodes[0] : $sma.pID; { 'providerIds': { 'epsId': $string($eps) }, 'indexedId': $string($eps), 'title': $sma.name, 'type': $sma.contDisplayName, 'typeDescription': $sma.contDisplayName, 'imageUrl': $sma.h5pics.highResolutionV, 'year': $exists($sma.year) and $trim($sma.year) != '' ? $number($trim($sma.year)) : null })]"
+  },
+  "episodes": {
+    "inputs": ["epsId"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "info",
+        "request": {
+          "method": "GET",
+          "url": "'https://v3-sc.miguvideo.com/program/v4/cont/content-info/' & $string(epsId) & '/1'",
+          "rewriteHeaders": {
+            "User-Agent": "'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36'"
+          }
+        }
+      }
+    ],
+    "output": "($epsIdStr := $string(epsId); $datas := info.body.data.datas; $exists($datas) ? [$datas.{ 'providerIds': { 'epsId': $epsIdStr, 'pId': $string(pID) }, 'indexedId': $string(pID), 'title': name, 'episodeNumber': name }] : ($pid := info.body.data.playing.pID; $exists($pid) ? [{ 'providerIds': { 'epsId': $epsIdStr, 'pId': $string($pid) }, 'indexedId': $string($pid), 'title': info.body.data.name, 'episodeNumber': '1' }] : []))"
+  },
+  "danmaku": {
+    "inputs": ["epsId", "pId"],
+    "steps": [
+      {
+        "type": "http",
+        "id": "info",
+        "request": {
+          "method": "GET",
+          "url": "'https://v3-sc.miguvideo.com/program/v4/cont/content-info/' & $string(pId) & '/1'",
+          "rewriteHeaders": {
+            "User-Agent": "'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36'"
+          }
+        }
+      },
+      {
+        "type": "assign",
+        "id": "plan",
+        "values": {
+          "duration": "$timeToSeconds($string(info.body.data.playing.duration))",
+          "segCount": "$ceil($timeToSeconds($string(info.body.data.playing.duration)) / 30)"
+        }
+      },
+      {
+        "type": "forEach",
+        "id": "segments",
+        "in": "$range(0, plan.segCount)",
+        "as": "i",
+        "concurrency": 4,
+        "throttleMs": 50,
+        "request": {
+          "method": "GET",
+          "url": "'https://webapi.miguvideo.com/gateway/live_barrage/videox/barrage/v2/list/' & $string(epsId) & '/' & $string(pId) & '/' & $string(i * 30) & '/' & $string((i + 1) * 30 < plan.duration ? (i + 1) * 30 : plan.duration) & '/020'",
+          "format": "text",
+          "headers": {
+            "appCode": "'miguvideo_default_h5'"
+          },
+          "rewriteHeaders": {
+            "User-Agent": "'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36'"
+          }
+        },
+        "extract": {
+          "comments": "($decoded := $jsonParse($gatewayDecrypt($, 'vwwLu7e6ug4HAQMAug8CsA8HD7oHDwuxAg4HAQG6DLA=')); $exists($decoded.body.result) ? $decoded.body.result : [])"
+        },
+        "collect": "comments"
+      }
+    ],
+    "output": "[segments.{ 'cid': $number(cid), 'p': $string(playtime) & ',1,' & $string($hexToInt(textcolor)), 'm': msg }]"
+  }
+}
