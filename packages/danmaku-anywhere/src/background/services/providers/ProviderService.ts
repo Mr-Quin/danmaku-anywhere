@@ -1,5 +1,4 @@
 import type {
-  ByProvider,
   CustomSeason,
   Episode,
   EpisodeMeta,
@@ -16,31 +15,31 @@ import type {
   DanmakuFetchRequest,
 } from '@/common/danmaku/dto'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { assertProviderType, isProvider } from '@/common/danmaku/utils'
+import { isProvider } from '@/common/danmaku/utils'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
-import type { IDanmakuProvider, OmitSeasonId } from './IDanmakuProvider'
+import type { OmitSeasonId } from './IDanmakuProvider'
+import { ManifestRegistry } from './ManifestRegistry'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from './ProviderFactory'
 
-const enrichEpisode = <T extends DanmakuSourceType>(
-  episode: OmitSeasonId<ByProvider<EpisodeMeta, T>>,
-  season: ByProvider<Season, T>
-) => {
+function enrichEpisode(
+  episode: OmitSeasonId<EpisodeMeta>,
+  season: Season
+): WithSeason<EpisodeMeta> {
   return {
     ...episode,
     seasonId: season.id,
-    season: season,
+    season,
   }
 }
 
 @injectable('Singleton')
 export class ProviderService {
-  private logger: ILogger
-  private parsers: IDanmakuProvider[] = []
+  private readonly logger: ILogger
 
   constructor(
     @inject(DanmakuService)
@@ -50,6 +49,8 @@ export class ProviderService {
     private providerConfigService: ProviderConfigService,
     @inject(DanmakuProviderFactory)
     private danmakuProviderFactory: IDanmakuProviderFactory,
+    @inject(ManifestRegistry)
+    private manifestRegistry: ManifestRegistry,
     @inject(LoggerSymbol) logger: ILogger
   ) {
     invariant(
@@ -57,21 +58,6 @@ export class ProviderService {
       'ProviderService is only available in service worker'
     )
     this.logger = logger.sub('[ProviderService]')
-  }
-
-  private async initParsers() {
-    try {
-      const bilibiliConfig =
-        await this.providerConfigService.getBuiltInBilibili()
-      const tencentConfig = await this.providerConfigService.getBuiltInTencent()
-
-      this.parsers = [
-        this.danmakuProviderFactory(bilibiliConfig),
-        this.danmakuProviderFactory(tencentConfig),
-      ]
-    } catch (e) {
-      this.logger.error('Failed to init parsers', e)
-    }
   }
 
   async searchSeason(
@@ -113,35 +99,14 @@ export class ProviderService {
     const providerConfig = await this.providerConfigService.mustGet(
       season.providerConfigId
     )
-    const service = this.danmakuProviderFactory.getTyped(providerConfig)
+    const service = this.danmakuProviderFactory(providerConfig)
 
-    const enrichEpisodes = <T extends DanmakuSourceType>(
-      episodes: OmitSeasonId<ByProvider<EpisodeMeta, T>>[],
-      season: ByProvider<Season, T>
-    ) => {
-      return episodes.map((episode) => enrichEpisode(episode, season))
+    if (service.forProvider === DanmakuSourceType.MacCMS) {
+      throw new Error('MacCMS does not support fetching episodes')
     }
 
-    switch (service.forProvider) {
-      case DanmakuSourceType.DanDanPlay: {
-        assertProviderType(season, DanmakuSourceType.DanDanPlay)
-        const episodes = await service.getEpisodes(season.providerIds)
-        return enrichEpisodes(episodes, season)
-      }
-      case DanmakuSourceType.Bilibili: {
-        assertProviderType(season, DanmakuSourceType.Bilibili)
-        const episodes = await service.getEpisodes(season.providerIds)
-        return enrichEpisodes(episodes, season)
-      }
-      case DanmakuSourceType.Tencent: {
-        assertProviderType(season, DanmakuSourceType.Tencent)
-        const episodes = await service.getEpisodes(season.providerIds)
-        return enrichEpisodes(episodes, season)
-      }
-      case DanmakuSourceType.MacCMS: {
-        throw new Error('MacCMS does not support fetching episodes')
-      }
-    }
+    const episodes = await service.getEpisodes(season.providerIds)
+    return episodes.map((episode) => enrichEpisode(episode, season))
   }
 
   async refreshSeason(filter: SeasonQueryFilter) {
@@ -152,15 +117,16 @@ export class ProviderService {
     )
 
     const service = this.danmakuProviderFactory(providerConfig)
-    if (service?.getSeason) {
-      const seasonInsert = await service.getSeason(season.providerIds)
-      if (seasonInsert) {
-        await this.seasonService.upsert(seasonInsert)
-      } else {
-        throw new Error(`Season refresh failed: ${season.title}`, {
-          cause: season,
-        })
-      }
+    if (!service.getSeason) {
+      return
+    }
+    const seasonInsert = await service.getSeason(season.providerIds)
+    if (seasonInsert) {
+      await this.seasonService.upsert(seasonInsert)
+    } else {
+      throw new Error(`Season refresh failed: ${season.title}`, {
+        cause: season,
+      })
     }
   }
 
@@ -172,7 +138,7 @@ export class ProviderService {
 
     const service = this.danmakuProviderFactory(config)
 
-    if (service?.preloadNextEpisode) {
+    if (service.preloadNextEpisode) {
       return service.preloadNextEpisode(resolved)
     }
 
@@ -195,7 +161,7 @@ export class ProviderService {
         lastChecked: 0,
       },
       season
-    ) as WithSeason<EpisodeMeta>
+    )
     return { type: 'by-meta', meta, options: request.options }
   }
 
@@ -204,15 +170,16 @@ export class ProviderService {
     const { options = {} } = resolved
     const provider = resolved.meta.provider
 
-    let existingDanmaku: WithSeason<Episode> | undefined
+    if (provider === DanmakuSourceType.MacCMS) {
+      throw new Error('MacCMS episodes are not refetchable')
+    }
 
     const { meta } = resolved
-    const [found] = await this.danmakuService.filter({
+    const [existingDanmaku] = await this.danmakuService.filter({
       provider,
       indexedId: meta.indexedId,
       seasonId: meta.seasonId,
     })
-    existingDanmaku = found
 
     if (existingDanmaku && !options.forceUpdate) {
       this.logger.debug('Danmaku found in db', existingDanmaku)
@@ -244,26 +211,54 @@ export class ProviderService {
     return {
       ...saved,
       season,
-    } as WithSeason<Episode>
+    }
   }
 
   async parseUrl(url: string): Promise<WithSeason<EpisodeMeta>> {
-    if (this.parsers.length === 0) {
-      await this.initParsers()
-    }
-
-    for (const provider of this.parsers) {
-      if (provider.parseUrl && provider.canParse?.(url)) {
-        const result = await provider.parseUrl(url)
-        if (result) {
-          const { episodeMeta, seasonInsert } = result
-          const season = await this.seasonService.upsert(seasonInsert)
-
-          return enrichEpisode(episodeMeta, season) as WithSeason<EpisodeMeta>
-        }
+    const configs = await this.providerConfigService.getAll()
+    for (const config of configs) {
+      if (!config.enabled) {
+        continue
+      }
+      const service = this.danmakuProviderFactory(config)
+      if (!service.canParse?.(url)) {
+        continue
+      }
+      if (!service.parseUrl) {
+        continue
+      }
+      const result = await service.parseUrl(url)
+      if (result) {
+        const { episodeMeta, seasonInsert } = result
+        const season = await this.seasonService.upsert(seasonInsert)
+        return enrichEpisode(episodeMeta, season)
       }
     }
 
     throw new Error('No provider found capable of parsing URL')
   }
+
+  async probeLogin<T = unknown>(manifestId: string): Promise<T | null> {
+    return this.manifestRegistry.getRunner(manifestId).runLoginProbe<T>()
+  }
+
+  // Surfaces the host-relevant subset of a manifest so the popup can render
+  // generic affordances (warning icon, cookieSet link, config form) without
+  // bundling source-specific switches.
+  getManifestSpec(manifestId: string): ManifestSpec {
+    const { manifest } = this.manifestRegistry.getRunner(manifestId)
+    return {
+      name: manifest.name,
+      hasLoginProbe: manifest.loginProbe !== undefined,
+      cookieSet: manifest.cookieSet,
+      configSchema: manifest.configSchema,
+    }
+  }
+}
+
+export interface ManifestSpec {
+  name: string
+  hasLoginProbe: boolean
+  cookieSet?: { url: string; title?: string }
+  configSchema?: unknown
 }
