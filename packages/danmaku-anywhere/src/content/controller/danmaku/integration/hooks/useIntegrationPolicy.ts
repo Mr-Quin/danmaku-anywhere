@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
+import { isNotCustom } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
@@ -127,19 +127,20 @@ export const useIntegrationPolicy = () => {
             if (result.data.status !== 'success') {
               return
             }
-            if (result.data.data.provider === DanmakuSourceType.MacCMS) {
+            const matched = result.data.data
+            if (!isNotCustom(matched)) {
               toast.success(
                 t(
                   'integration.alert.matchedLocalDanmaku',
                   'Matched local danmaku'
                 )
               )
-              void mountDanmaku([result.data.data])
+              void mountDanmaku([matched])
             } else {
               loadMutation.mutate(
                 {
                   type: 'by-meta',
-                  meta: result.data.data,
+                  meta: matched,
                   options: {
                     forceUpdate: false,
                   },

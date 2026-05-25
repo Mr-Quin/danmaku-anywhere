@@ -1,8 +1,8 @@
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 
-export interface ProviderFormProps<T extends ProviderConfig = ProviderConfig> {
-  provider: T
-  onSubmit: (data: T) => void | Promise<void>
+export interface ProviderFormProps {
+  provider: ProviderConfig
+  onSubmit: (data: ProviderConfig) => void | Promise<void>
   onReset?: () => void
   isEdit: boolean
 }

@@ -1,8 +1,10 @@
+import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import { Delete } from '@mui/icons-material'
-import { Box, Switch } from '@mui/material'
+import { Switch } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
+import { DDP_COMPAT_MANIFEST_ID } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import {
   useEditProviderConfig,
@@ -26,53 +28,51 @@ export const ProviderConfigList = ({
   }
 
   const getSecondaryText = (config: ProviderConfig) => {
-    if (config.type === 'DanDanPlayCompatible') {
-      return config.options.baseUrl
+    if (config.manifestId === DDP_COMPAT_MANIFEST_ID) {
+      return (config.configValues.baseUrl as string) ?? ''
     }
-    if (config.type === 'MacCMS') {
-      return config.options.danmakuBaseUrl
+    if (config.manifestId === LEGACY_MACCMS_ID) {
+      return (config.configValues.danmakuBaseUrl as string) ?? ''
     }
     return ''
   }
 
   return (
-    <Box sx={{ px: 2 }}>
-      <DraggableList
-        items={configs}
-        onEdit={onEdit}
-        onReorder={(sourceIndex, destinationIndex) => {
-          reorder.mutate({ sourceIndex, destinationIndex })
-        }}
-        renderPrimary={(config) => <ProviderConfigListItem config={config} />}
-        renderSecondary={getSecondaryText}
-        renderSecondaryAction={(config) => (
-          <>
-            <Switch
-              onChange={(e) => handleToggle(config)}
-              checked={config.enabled}
-              disabled={toggle.isPending}
-              onClick={(e) => e.stopPropagation()}
-              size="small"
+    <DraggableList
+      items={configs}
+      onEdit={onEdit}
+      onReorder={(sourceIndex, destinationIndex) => {
+        reorder.mutate({ sourceIndex, destinationIndex })
+      }}
+      renderPrimary={(config) => <ProviderConfigListItem config={config} />}
+      renderSecondary={getSecondaryText}
+      renderSecondaryAction={(config) => (
+        <>
+          <Switch
+            onChange={(e) => handleToggle(config)}
+            checked={config.enabled}
+            disabled={toggle.isPending}
+            onClick={(e) => e.stopPropagation()}
+            size="small"
+          />
+          {!config.isBuiltIn && (
+            <DrilldownMenu
+              BoxProps={{ sx: { display: 'inline' } }}
+              ButtonProps={{ edge: 'end', size: 'small' }}
+              dense
+              items={[
+                {
+                  id: 'delete',
+                  label: t('common.delete', 'Delete'),
+                  onClick: () => onDelete(config),
+                  icon: <Delete />,
+                  color: 'error',
+                },
+              ]}
             />
-            {!config.isBuiltIn && (
-              <DrilldownMenu
-                BoxProps={{ sx: { display: 'inline' } }}
-                ButtonProps={{ edge: 'end', size: 'small' }}
-                dense
-                items={[
-                  {
-                    id: 'delete',
-                    label: t('common.delete', 'Delete'),
-                    onClick: () => onDelete(config),
-                    icon: <Delete />,
-                    color: 'error',
-                  },
-                ]}
-              />
-            )}
-          </>
-        )}
-      />
-    </Box>
+          )}
+        </>
+      )}
+    />
   )
 }
