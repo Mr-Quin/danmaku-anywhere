@@ -1,4 +1,8 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import {
+  DanmakuSourceType,
+  type Episode,
+  type WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 import { isProvider } from '@/common/danmaku/utils'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useStore } from '@/content/controller/store/store'
@@ -20,7 +24,7 @@ export const usePreloadNextEpisode = () => {
     if (isProvider(episode, DanmakuSourceType.DanDanPlay)) {
       await chromeRpcClient.episodePreloadNext({
         type: 'by-meta',
-        meta: episode,
+        meta: episode as WithSeason<Episode>,
       })
     }
   }
