@@ -1,37 +1,13 @@
 import { z } from 'zod'
-import {
-  zBilibiliProviderIds,
-  zDanDanPlayProviderIds,
-  zTencentProviderIds,
-} from '../episode/v4/schema.js'
 import { DanmakuSourceType, type DbEntity } from '../provider/provider.js'
 
-const zBaseEpisodeStub = z.object({
+export const zEpisodeStub = z.object({
+  provider: z.enum(DanmakuSourceType),
+  providerIds: z.record(z.string(), z.unknown()),
   title: z.string(),
   episodeNumber: z.union([z.number(), z.string()]).optional(),
   indexedId: z.string(),
 })
-
-export const zDanDanPlayEpisodeStub = zBaseEpisodeStub.extend({
-  provider: z.literal(DanmakuSourceType.DanDanPlay),
-  providerIds: zDanDanPlayProviderIds,
-})
-
-export const zBilibiliEpisodeStub = zBaseEpisodeStub.extend({
-  provider: z.literal(DanmakuSourceType.Bilibili),
-  providerIds: zBilibiliProviderIds,
-})
-
-export const zTencentEpisodeStub = zBaseEpisodeStub.extend({
-  provider: z.literal(DanmakuSourceType.Tencent),
-  providerIds: zTencentProviderIds,
-})
-
-export const zEpisodeStub = z.discriminatedUnion('provider', [
-  zDanDanPlayEpisodeStub,
-  zBilibiliEpisodeStub,
-  zTencentEpisodeStub,
-])
 
 export type EpisodeStub = z.infer<typeof zEpisodeStub>
 

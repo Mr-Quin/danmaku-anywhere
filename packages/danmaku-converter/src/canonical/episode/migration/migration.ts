@@ -1,7 +1,6 @@
 import type { z } from 'zod'
 import { stripHtml } from '../../../utils/index.js'
 import {
-  type ByProvider,
   DanmakuSourceType,
   PROVIDER_TO_BUILTIN_ID,
 } from '../../provider/provider.js'
@@ -175,10 +174,7 @@ const v3ToV4 = (
     | BiliBiliDanmakuInsertV3
     | TencentDanmakuInsertV3,
   seasonId: number
-):
-  | ByProvider<EpisodeInsertV4, DanmakuSourceType.DanDanPlay>
-  | ByProvider<EpisodeInsertV4, DanmakuSourceType.Tencent>
-  | ByProvider<EpisodeInsertV4, DanmakuSourceType.Bilibili> => {
+): EpisodeInsertV4 => {
   const baseUpdate = {
     comments: item.comments,
     commentCount: item.commentCount,
@@ -186,50 +182,43 @@ const v3ToV4 = (
     schemaVersion: 4,
   } as const
 
-  const getEpisode = ():
-    | ByProvider<EpisodeInsertV4, DanmakuSourceType.DanDanPlay>
-    | ByProvider<EpisodeInsertV4, DanmakuSourceType.Tencent>
-    | ByProvider<EpisodeInsertV4, DanmakuSourceType.Bilibili> => {
-    if (item.provider === 'DanDanPlay') {
-      return {
-        ...baseUpdate,
-        provider: item.provider,
-        seasonId,
-        title: item.episodeTitle,
-        providerIds: {
-          episodeId: item.meta.episodeId,
-        },
-        indexedId: item.meta.episodeId.toString(),
-        params: item.params || {},
-      } satisfies ByProvider<EpisodeInsertV4, DanmakuSourceType.DanDanPlay>
-    }
-    if (item.provider === 'Bilibili') {
-      return {
-        ...baseUpdate,
-        title: stripHtml(item.meta.title),
-        provider: item.provider,
-        seasonId,
-        providerIds: {
-          cid: item.meta.cid,
-          aid: item.meta.aid,
-          bvid: item.meta.bvid,
-        },
-        indexedId: item.meta.cid.toString(),
-      } satisfies ByProvider<EpisodeInsertV4, DanmakuSourceType.Bilibili>
-    }
+  if (item.provider === 'DanDanPlay') {
     return {
       ...baseUpdate,
-      title: stripHtml(item.episodeTitle),
+      provider: item.provider,
+      seasonId,
+      title: item.episodeTitle,
+      providerIds: {
+        episodeId: item.meta.episodeId,
+      },
+      indexedId: item.meta.episodeId.toString(),
+      params: item.params || {},
+    }
+  }
+  if (item.provider === 'Bilibili') {
+    return {
+      ...baseUpdate,
+      title: stripHtml(item.meta.title),
       provider: item.provider,
       seasonId,
       providerIds: {
-        vid: item.meta.vid,
+        cid: item.meta.cid,
+        aid: item.meta.aid,
+        bvid: item.meta.bvid,
       },
-      indexedId: item.meta.vid.toString(),
-    } satisfies ByProvider<EpisodeInsertV4, DanmakuSourceType.Tencent>
+      indexedId: item.meta.cid.toString(),
+    }
   }
-
-  return getEpisode()
+  return {
+    ...baseUpdate,
+    title: stripHtml(item.episodeTitle),
+    provider: item.provider,
+    seasonId,
+    providerIds: {
+      vid: item.meta.vid,
+    },
+    indexedId: item.meta.vid.toString(),
+  }
 }
 
 const customV3ToV4 = (item: CustomDanmakuInsertV3): CustomEpisodeInsertV4 => {
