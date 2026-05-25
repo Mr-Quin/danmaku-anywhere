@@ -1,7 +1,4 @@
-import {
-  DanmakuSourceType,
-  PROVIDER_TO_BUILTIN_ID,
-} from '@danmaku-anywhere/danmaku-converter'
+import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { produce } from 'immer'
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
@@ -14,14 +11,12 @@ import type { OptionsService } from '@/common/options/OptionsService/OptionsServ
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { isServiceWorker } from '@/common/utils/utils'
 import { defaultProviderConfigs } from './constant'
-import type {
-  BuiltInBilibiliProvider,
-  BuiltInDanDanPlayProvider,
-  BuiltInTencentProvider,
-  ProviderConfig,
-} from './schema'
+import {
+  ensureBuiltinProviders,
+  migrateProviderConfigsToFlat,
+} from './migration'
+import type { ProviderConfig } from './schema'
 import { providerConfigSchema } from './schema'
-import { assertProviderConfigType } from './utils'
 
 @injectable('Singleton')
 export class ProviderConfigService implements IStoreService {
@@ -38,11 +33,21 @@ export class ProviderConfigService implements IStoreService {
       'providerConfig',
       defaultProviderConfigs,
       this.logger
-    ).version(1, {
-      upgrade: (data) => {
-        return data
-      },
-    })
+    )
+      .version(1, {
+        upgrade: (data) => data,
+      })
+      // v1 -> v2: the pre-dango discriminated-union ProviderConfig records
+      // get flattened to the new {manifestId, configValues, ...} shape.
+      .version(2, {
+        upgrade: (data) => migrateProviderConfigsToFlat(data),
+      })
+      // v2 -> v3: seed every dango-shipped builtin that isn't already in
+      // the user's list. Idempotent, preserves user toggles + configValues
+      // on the records that already exist.
+      .version(3, {
+        upgrade: (data) => ensureBuiltinProviders(data),
+      })
   }
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {
     const configs = await this.options.get()
@@ -110,39 +115,6 @@ export class ProviderConfigService implements IStoreService {
       config.impl === DanmakuSourceType.Bilibili ||
       config.impl === DanmakuSourceType.Tencent
     )
-  }
-
-  async getBuiltInDanDanPlay(): Promise<BuiltInDanDanPlayProvider> {
-    const config = await this.get(
-      PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]
-    )
-    if (!config) {
-      throw new Error('Built-in DanDanPlay provider not found')
-    }
-    assertProviderConfigType(config, 'DanDanPlay')
-    return config
-  }
-
-  async getBuiltInBilibili(): Promise<BuiltInBilibiliProvider> {
-    const config = await this.get(
-      PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]
-    )
-    if (!config) {
-      throw new Error('Built-in Bilibili provider not found')
-    }
-    assertProviderConfigType(config, 'Bilibili')
-    return config as BuiltInBilibiliProvider
-  }
-
-  async getBuiltInTencent(): Promise<BuiltInTencentProvider> {
-    const config = await this.get(
-      PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]
-    )
-    if (!config) {
-      throw new Error('Built-in Tencent provider not found')
-    }
-    assertProviderConfigType(config, 'Tencent')
-    return config as BuiltInTencentProvider
   }
 
   async update<T extends ProviderConfig>(
