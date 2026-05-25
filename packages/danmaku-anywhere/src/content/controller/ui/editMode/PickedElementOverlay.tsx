@@ -36,7 +36,6 @@ export function PickedElementOverlay() {
       color: theme.palette.fieldAccent[fieldId],
       label: getFieldLabel(t, fieldId),
       parsed: extraction.parsed,
-      raw: extraction.raw,
     }
   }).filter((entry): entry is NonNullable<typeof entry> => entry !== null)
 
@@ -50,7 +49,6 @@ export function PickedElementOverlay() {
           label={f.label}
           xpath={f.xpath}
           parsed={f.parsed}
-          raw={f.raw}
         />
       ))}
     </>,

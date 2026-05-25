@@ -29,12 +29,14 @@ const BaseWindow = ({
   const sm = useIsSmallScreen()
 
   const isPicking = useStore((state) => state.integrationForm.isPicking)
+  const editModeActive = useStore((state) => state.editMode.active)
+  const visible = open && !isPicking && !editModeActive
 
   if (sm) {
     return (
       <SwipeableDrawer
         anchor="bottom"
-        open={open && !isPicking}
+        open={visible}
         onOpen={() => onOpen()}
         onClose={() => onClose()}
         disableSwipeToOpen
@@ -55,11 +57,7 @@ const BaseWindow = ({
   }
 
   return (
-    <WindowPopper
-      anchorEl={anchorEl}
-      open={open && !isPicking}
-      unmountOnExit={false}
-    >
+    <WindowPopper anchorEl={anchorEl} open={visible} unmountOnExit={false}>
       {({ bind }) => {
         return (
           <>

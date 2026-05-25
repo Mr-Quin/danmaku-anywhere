@@ -1,5 +1,5 @@
 import { createIntegrationInput } from '@danmaku-anywhere/integration-policy'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect } from 'react'
 import type {
   Integration,
   IntegrationPolicy,
@@ -16,36 +16,38 @@ interface FieldUpdate {
   regex?: string | null
 }
 
+// Seeds the editMode draft from the active integration when Edit Mode opens.
+// Mount this hook in ONE component near the top of the Edit Mode tree;
+// duplicating the call in transient children (e.g. RefinePopper) caused the
+// draft to be reset every time those children unmount/remount.
+export function useEditModeDraftSeed() {
+  const integration = useActiveIntegration()
+  const activeConfig = useActiveConfig()
+  const active = useStore((s) => s.editMode.active)
+  const draft = useStore((s) => s.editMode.draft)
+  const initDraft = useStore((s) => s.editMode.initDraft)
+
+  useEffect(() => {
+    if (!active || draft) {
+      return
+    }
+    if (integration) {
+      initDraft({ policy: integration.policy, name: integration.name })
+      return
+    }
+    const seed = createIntegrationInput(activeConfig.name)
+    initDraft({
+      policy: seed.policy as IntegrationPolicy,
+      name: seed.name,
+    })
+  }, [active, draft, integration, activeConfig.name, initDraft])
+}
+
 export function useEditModeDraft() {
   const integration = useActiveIntegration()
   const activeConfig = useActiveConfig()
   const editMode = useStore.use.editMode()
   const { update, add } = useIntegrationPolicyStore()
-
-  // Seed the draft from the active integration once when Edit Mode opens.
-  const seededRef = useRef(false)
-  useEffect(() => {
-    if (!editMode.active) {
-      seededRef.current = false
-      return
-    }
-    if (seededRef.current) {
-      return
-    }
-    seededRef.current = true
-    if (integration) {
-      editMode.initDraft({
-        policy: integration.policy,
-        name: integration.name,
-      })
-    } else {
-      const seed = createIntegrationInput(activeConfig.name)
-      editMode.initDraft({
-        policy: seed.policy as IntegrationPolicy,
-        name: seed.name,
-      })
-    }
-  }, [editMode.active, integration, activeConfig.name, editMode.initDraft])
 
   const updateField = useCallback(
     (fieldId: FieldId, change: FieldUpdate) => {
