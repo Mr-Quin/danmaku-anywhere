@@ -1,60 +1,32 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useSyncExternalStore } from 'react'
+import {
+  createIdleTracker,
+  type IdleTracker,
+} from '@/content/common/idleTracker'
 
-const TOUCH_QUERY = '(pointer: coarse)'
-
-function useIsTouch(): boolean {
-  const [isTouch, setIsTouch] = useState<boolean>(
-    () => window.matchMedia(TOUCH_QUERY).matches
+/**
+ * Subscribes to an existing IdleTracker and returns its active state.
+ * Use when multiple consumers should share visibility transitions
+ * (e.g. density chart and info panel keyed to the same video element).
+ */
+export function useAutoHideOnIdle(tracker: IdleTracker): boolean {
+  return useSyncExternalStore(
+    (callback) => tracker.subscribe(callback),
+    () => tracker.getActive(),
+    () => true
   )
-
-  useEffect(() => {
-    const mq = window.matchMedia(TOUCH_QUERY)
-    const handler = (event: MediaQueryListEvent) => {
-      setIsTouch(event.matches)
-    }
-    mq.addEventListener('change', handler)
-    return () => {
-      mq.removeEventListener('change', handler)
-    }
-  }, [])
-
-  return isTouch
 }
 
 /**
- * Tracks user activity on the window. Returns true while the user is active,
- * flips to false after `idleMs` of inactivity. Stays true on first render
- * until the first activity arms the hide timer.
+ * Convenience hook that owns a window-scoped IdleTracker.
+ * For consumers without an existing tracker (e.g. the controller-frame FAB).
  */
-export function useAutoHideOnIdle(idleMs = 3000): boolean {
-  const [visible, setVisible] = useState<boolean>(true)
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined
-  )
-  const isTouch = useIsTouch()
-
+export function useWindowIdleTracker(idleMs = 3000): IdleTracker {
+  const tracker = useMemo(() => createIdleTracker(window, { idleMs }), [idleMs])
   useEffect(() => {
-    const onActivity = () => {
-      setVisible(true)
-      clearTimeout(timeoutRef.current)
-      timeoutRef.current = setTimeout(() => {
-        setVisible(false)
-      }, idleMs)
-    }
-
-    if (!isTouch) {
-      window.addEventListener('mousemove', onActivity)
-    }
-    window.addEventListener('touchmove', onActivity, { capture: true })
-
     return () => {
-      clearTimeout(timeoutRef.current)
-      if (!isTouch) {
-        window.removeEventListener('mousemove', onActivity)
-      }
-      window.removeEventListener('touchmove', onActivity, { capture: true })
+      tracker.destroy()
     }
-  }, [isTouch, idleMs])
-
-  return visible
+  }, [tracker])
+  return tracker
 }

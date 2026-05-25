@@ -1,9 +1,51 @@
 .da-info-panel {
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 1;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 2147483647;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  max-width: 320px;
+  font:
+    12px / 1.4 system-ui,
+    sans-serif;
+  color: #fff;
+  background: rgba(20, 20, 24, 0.78);
+  border-radius: 999px;
   pointer-events: none;
-  /* placeholder; final styles ship with the visual pass */
-  display: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.da-info-panel.is-visible {
+  opacity: 1;
+}
+
+.da-info-panel-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #888;
+}
+
+.da-info-panel[data-da-info-state="matched"] .da-info-panel-dot {
+  background: #fbbf24;
+}
+.da-info-panel[data-da-info-state="mounted"] .da-info-panel-dot {
+  background: #34d399;
+}
+.da-info-panel[data-da-info-state="error"] .da-info-panel-dot,
+.da-info-panel[data-da-info-state="disconnected"] .da-info-panel-dot {
+  background: #f87171;
+}
+
+.da-info-panel-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

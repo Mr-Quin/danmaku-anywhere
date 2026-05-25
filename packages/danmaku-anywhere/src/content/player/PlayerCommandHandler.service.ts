@@ -14,6 +14,7 @@ import { PLAYER_ROOT_ID } from '@/content/player/constants/rootId'
 import { DanmakuManagerService } from '@/content/player/danmakuManager/DanmakuManager.service'
 import { DanmakuDensityService } from '@/content/player/densityPlot/DanmakuDensity.service'
 import densityPlotCss from '@/content/player/densityPlot/DanmakuDensityChart.css?inline'
+import { PlayerIdleService } from '@/content/player/idle/PlayerIdle.service'
 import { InfoPanelService } from '@/content/player/infoPanel/InfoPanel.service'
 import infoPanelCss from '@/content/player/infoPanel/PlayerInfoPanel.css?inline'
 import { createPipWindow, moveElement } from '@/content/player/pipUtils'
@@ -45,6 +46,7 @@ export class PlayerCommandHandler {
     @inject(VideoEventService) private videoEvent: VideoEventService,
     @inject(VideoSkipService) private videoSkip: VideoSkipService,
     @inject(DanmakuDensityService) private density: DanmakuDensityService,
+    @inject(PlayerIdleService) private playerIdle: PlayerIdleService,
     @inject(InfoPanelService) private infoPanel: InfoPanelService,
     @inject(DanmakuOptionsService)
     private danmakuOptions: DanmakuOptionsService,
@@ -69,6 +71,7 @@ export class PlayerCommandHandler {
     this.wireWindowEvents()
     this.createRpcServer()
 
+    this.playerIdle.start()
     this.manager.start(ctx.query)
   }
 

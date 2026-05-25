@@ -3,6 +3,7 @@ import { createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { PanelStateSnapshot } from '@/common/rpcClient/background/types'
+import { PlayerIdleService } from '@/content/player/idle/PlayerIdle.service'
 import { PlayerInfoPanel } from './PlayerInfoPanel'
 import { usePanelStateStore } from './panelStateStore'
 
@@ -12,7 +13,10 @@ export class InfoPanelService {
   private mountNode: HTMLDivElement | null = null
   private root: Root | null = null
 
-  constructor(@inject(LoggerSymbol) logger: ILogger) {
+  constructor(
+    @inject(PlayerIdleService) private playerIdle: PlayerIdleService,
+    @inject(LoggerSymbol) logger: ILogger
+  ) {
     this.logger = logger.sub('[InfoPanelService]')
   }
 
@@ -24,6 +28,12 @@ export class InfoPanelService {
     parent.appendChild(this.mountNode)
     this.root = createRoot(this.mountNode)
     this.root.render(createElement(PlayerInfoPanel))
+
+    usePanelStateStore.getState().setActive(this.playerIdle.getActive())
+    this.playerIdle.subscribe((active) => {
+      usePanelStateStore.getState().setActive(active)
+    })
+
     this.logger.debug('Info panel mounted')
   }
 
