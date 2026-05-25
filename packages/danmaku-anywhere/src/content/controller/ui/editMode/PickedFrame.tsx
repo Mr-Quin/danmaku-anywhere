@@ -9,7 +9,6 @@ interface PickedFrameProps {
   color: string
   label: string
   xpath: string
-  raw: string | null
   parsed: string | null
 }
 
@@ -51,7 +50,6 @@ export function PickedFrame({
   color,
   label,
   xpath,
-  raw,
   parsed,
 }: PickedFrameProps) {
   const setMissingElement = useStore.use.editMode().setMissingElement
@@ -103,9 +101,9 @@ export function PickedFrame({
     return null
   }
 
-  const labelHeight = parsed ? 44 : 22
+  const showParsed = parsed !== null && parsed.length > 0
+  const labelHeight = showParsed ? 44 : 22
   const labelTop = Math.max(rect.top - labelHeight - 2, 2)
-  const showParsed = parsed !== null && parsed !== raw
 
   return (
     <>
