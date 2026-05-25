@@ -1,13 +1,11 @@
 import { configureApiStore } from '@danmaku-anywhere/danmaku-provider'
 import { AlarmManager } from '@/background/alarm/AlarmManager'
 import { ContextMenuManager } from '@/background/contextMenu/ContextMenuManager'
-import { setupCookieReplay } from '@/background/netRequest/cookieReplay'
 import { NetRequestManager } from '@/background/netRequest/NetrequestManager'
 import { PortsManager } from '@/background/ports/PortsManager'
 import { RpcManager } from '@/background/rpc/RpcManager'
 import { MountConfigTabReloader } from '@/background/scripting/MountConfigTabReloader'
 import { ScriptingManager } from '@/background/scripting/ScriptingManager'
-import { ManifestRegistry } from '@/background/services/providers/ManifestRegistry'
 import { OptionsManager } from '@/background/syncOptions/OptionsManager'
 import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
 import { generateId } from '@/background/utils/generateId'
@@ -32,7 +30,6 @@ container.get(ScriptingManager).setup()
 container.get(MountConfigTabReloader).setup()
 container.get(RpcManager).setup()
 container.get(NetRequestManager).setup()
-setupCookieReplay(container.get(ManifestRegistry).allHosts())
 container.get(AlarmManager).setup()
 container.get(PortsManager).setup()
 

@@ -1,5 +1,4 @@
 import type { FetchLike } from '@danmaku-anywhere/dango'
-import { consumeSetCookies } from '@/background/netRequest/cookieReplay'
 import { setSessionHeader } from '@/background/netRequest/setSessionHeader'
 
 // `fetch` silently drops forbidden request headers like Origin / Referer /
@@ -12,21 +11,10 @@ export const extensionFetchLike: FetchLike = async (input, init) => {
       ? await setSessionHeader(input, rewrite)
       : null
   try {
-    // Drop `rewriteHeaders` (applied via DNR above) before handing to fetch.
     const { rewriteHeaders: _, ...requestInit } = init ?? {}
     const res = await fetch(input, requestInit as RequestInit)
     const headers = new Map<string, string>()
     res.headers.forEach((value, key) => headers.set(key, value))
-    if (!headers.has('set-cookie')) {
-      // fetch strips Set-Cookie from response.headers; cookieReplay captures
-      // the raw values from webRequest before they're filtered. Use res.url
-      // (final URL after redirects) since the listener keys on the URL that
-      // actually received the Set-Cookie response.
-      const captured = consumeSetCookies(res.url)
-      if (captured !== null) {
-        headers.set('set-cookie', captured)
-      }
-    }
     return {
       status: res.status,
       text: () => res.text(),
@@ -34,8 +22,6 @@ export const extensionFetchLike: FetchLike = async (input, init) => {
       headers,
     }
   } finally {
-    // Swallow cleanup errors so they don't mask the original fetch error.
-    // Stale session rules are GC'd on session end.
     if (dnr) {
       try {
         await dnr.removeRule()

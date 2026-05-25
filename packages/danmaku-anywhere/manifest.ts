@@ -15,9 +15,6 @@ const permissions: chrome.runtime.ManifestPermissions[] = [
   'alarms',
   'webRequest',
   'contextMenus',
-  // cookieReplay re-plants Partitioned Set-Cookie tokens into the
-  // unpartitioned store so SW fetches carry them.
-  'cookies',
 ]
 
 if (isChrome) {
