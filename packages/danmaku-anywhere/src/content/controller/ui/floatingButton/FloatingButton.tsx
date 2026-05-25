@@ -13,13 +13,13 @@ import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
 import { isConfigIncomplete } from '@/common/options/mountConfig/isPermissive'
 import { createVirtualElement } from '@/common/utils/utils'
+import { useAutoHideOnIdle } from '@/content/common/hooks/useAutoHideOnIdle'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useStore } from '@/content/controller/store/store'
 import { DraggableContainer } from '@/content/controller/ui/components/DraggableContainer'
 import { FabContextMenu } from '@/content/controller/ui/floatingButton/components/FabContextMenu'
 import { FabLoadingIndicator } from '@/content/controller/ui/floatingButton/components/FabLoadingIndicator'
 import { usePersistedFabPosition } from './hooks/usePersistedFabPosition'
-import { useShowFab } from './hooks/useShowFab'
 
 interface FloatingButtonProps extends FabProps {
   onOpen: (virtualElement: PopoverVirtualElement) => void
@@ -50,7 +50,7 @@ export const FloatingButton = forwardRef<
 >(({ onOpen, isOpen }: FloatingButtonProps, ref) => {
   const isLoading = useAnyLoading()
 
-  const showFab = useShowFab()
+  const showFab = useAutoHideOnIdle()
 
   const [contextMenuAnchor, setContextMenuAnchor] =
     useState<PopoverVirtualElement | null>(null)

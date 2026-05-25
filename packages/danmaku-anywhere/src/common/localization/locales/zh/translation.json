@@ -534,6 +534,9 @@
       "togglePip": "画中画（实验）",
       "unmountComments": "卸载弹幕"
     },
+    "infoPanel": {
+      "enabled": "显示信息面板"
+    },
     "language": "语言",
     "matchLocalDanmaku": "匹配本地弹幕",
     "matchLocalDanmakuDesc": "自动匹配本地文件中的弹幕。",

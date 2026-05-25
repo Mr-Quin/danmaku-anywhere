@@ -178,6 +178,7 @@ export const standalonePlayerCommandHandlers: StandaloneRpcHandlers<PlayerRelayC
       debugOverlay: false,
     }),
     'relay:command:setOcclusionDebugOverlay': () => undefined,
+    'relay:command:syncPanelState': () => undefined,
   }
 
 export const standalonePlayerEventHandlers: StandaloneRpcHandlers<PlayerRelayEvents> =

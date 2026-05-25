@@ -516,6 +516,9 @@ export class RpcManager {
         'relay:command:setOcclusionDebugOverlay': passThrough(
           relayFrameClient['relay:command:setOcclusionDebugOverlay']
         ),
+        'relay:command:syncPanelState': passThrough(
+          relayFrameClient['relay:command:syncPanelState']
+        ),
         'relay:event:playerReady': passThrough(
           relayFrameClient['relay:event:playerReady']
         ),

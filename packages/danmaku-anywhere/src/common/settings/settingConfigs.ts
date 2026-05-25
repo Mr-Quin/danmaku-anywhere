@@ -205,6 +205,17 @@ const advancedSettings: AdvancedSettingConfig[] = [
     getValue: (options) => options.autoBookmark,
     createUpdate: (_, newValue) => ({ autoBookmark: newValue }),
   },
+  {
+    id: 'toggle.infoPanel.enabled',
+    label: () => i18n.t('optionsPage.infoPanel.enabled', 'Show info panel'),
+    category: 'advanced',
+    group: 'behavior',
+    type: 'toggle',
+    getValue: (options) => options.infoPanel.enabled,
+    createUpdate: (_, newValue) => ({
+      infoPanel: { enabled: newValue },
+    }),
+  },
   uploadDebugDataButton,
 ]
 

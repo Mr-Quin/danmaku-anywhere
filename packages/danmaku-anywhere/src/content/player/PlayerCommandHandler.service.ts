@@ -14,6 +14,8 @@ import { PLAYER_ROOT_ID } from '@/content/player/constants/rootId'
 import { DanmakuManagerService } from '@/content/player/danmakuManager/DanmakuManager.service'
 import { DanmakuDensityService } from '@/content/player/densityPlot/DanmakuDensity.service'
 import densityPlotCss from '@/content/player/densityPlot/DanmakuDensityChart.css?inline'
+import { InfoPanelService } from '@/content/player/infoPanel/InfoPanel.service'
+import infoPanelCss from '@/content/player/infoPanel/PlayerInfoPanel.css?inline'
 import { createPipWindow, moveElement } from '@/content/player/pipUtils'
 import { VideoEventService } from '@/content/player/videoEvent/VideoEvent.service'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
@@ -43,6 +45,7 @@ export class PlayerCommandHandler {
     @inject(VideoEventService) private videoEvent: VideoEventService,
     @inject(VideoSkipService) private videoSkip: VideoSkipService,
     @inject(DanmakuDensityService) private density: DanmakuDensityService,
+    @inject(InfoPanelService) private infoPanel: InfoPanelService,
     @inject(DanmakuOptionsService)
     private danmakuOptions: DanmakuOptionsService,
     @inject(ExtensionOptionsService)
@@ -74,7 +77,13 @@ export class PlayerCommandHandler {
     this.root = root
 
     this.manager.setParent(shadowRoot)
-    injectCss(shadowRoot, [skipButtonCss, densityPlotCss, danmakuComponentCss])
+    injectCss(shadowRoot, [
+      skipButtonCss,
+      densityPlotCss,
+      danmakuComponentCss,
+      infoPanelCss,
+    ])
+    this.infoPanel.mount(shadowRoot)
   }
 
   private wireLifecycleEvents() {
@@ -262,6 +271,9 @@ export class PlayerCommandHandler {
         },
         'relay:command:setOcclusionDebugOverlay': async ({ data: enabled }) => {
           this.manager.setOcclusionDebugOverlay(enabled)
+        },
+        'relay:command:syncPanelState': async ({ data: snapshot }) => {
+          this.infoPanel.setSnapshot(snapshot)
         },
       },
       {

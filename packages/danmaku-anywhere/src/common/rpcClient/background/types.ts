@@ -322,6 +322,31 @@ type FrameContext = {
   frameId: number
 }
 
+export type PanelSubstate =
+  | 'loading'
+  | 'matched'
+  | 'mounted'
+  | 'noMatch'
+  | 'error'
+  | 'disconnected'
+
+export interface PanelMediaInfo {
+  title: string
+  seasonDecorator?: string
+  episode: number
+  episodeTitle?: string
+  originalTitle?: string
+}
+
+export interface PanelStateSnapshot {
+  enabled: boolean
+  isManual: boolean
+  state: PanelSubstate
+  media?: PanelMediaInfo
+  commentCount?: number
+  provider?: string
+}
+
 // Controller -> Player communication
 // Here the frameId is used to identify the DESTINATION frame
 export type PlayerRelayCommands = {
@@ -352,6 +377,11 @@ export type PlayerRelayCommands = {
   >
   'relay:command:setOcclusionDebugOverlay': RPCDef<
     InputWithFrameId<boolean>,
+    void,
+    FrameContext
+  >
+  'relay:command:syncPanelState': RPCDef<
+    InputWithFrameId<PanelStateSnapshot>,
     void,
     FrameContext
   >

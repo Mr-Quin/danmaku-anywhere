@@ -1,0 +1,9 @@
+.da-info-panel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  pointer-events: none;
+  /* placeholder; final styles ship with the visual pass */
+  display: none;
+}

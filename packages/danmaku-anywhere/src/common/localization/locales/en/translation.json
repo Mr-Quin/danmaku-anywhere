@@ -549,6 +549,9 @@
       "togglePip": "Picture-in-picture",
       "unmountComments": "Unmount comments"
     },
+    "infoPanel": {
+      "enabled": "Show info panel"
+    },
     "language": "Language",
     "matchLocalDanmaku": "Enable matching local Danmaku",
     "matchLocalDanmakuDesc": "Auto-match comments from local files on disk.",
