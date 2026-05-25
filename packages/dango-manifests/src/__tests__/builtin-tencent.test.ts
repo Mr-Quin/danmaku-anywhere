@@ -95,8 +95,8 @@ function makeEpisodePage(start: number, count: number) {
         vid: `vid_${n}`,
         cid: 'mzc00200qkxg2td',
         is_trailer: '0',
-        play_title: `${n}`,
-        title: `第${n}集`,
+        play_title: `第${n}集`,
+        title: `${n}`,
         union_title: `第${n}集 - 标题${n}`,
         image_url: `https://example.com/${n}.jpg`,
       },
@@ -277,13 +277,23 @@ describe('builtin:tencent manifest', () => {
 
     const result = (await runner.runEpisodes({
       cid: 'mzc00200qkxg2td',
-    })) as Array<{ providerIds: { vid: string }; episodeNumber: string }>
+    })) as Array<{
+      providerIds: { vid: string }
+      title: string
+      episodeNumber: string
+      alternativeTitle?: string[]
+    }>
 
     expect(calls).toHaveLength(3)
     expect(result).toHaveLength(245)
     expect(result[0].providerIds.vid).toBe('vid_1')
     expect(result[244].providerIds.vid).toBe('vid_245')
+    // play_title → title (the formatted "第N话 名称"),
+    // raw `title` field → episodeNumber (just the number),
+    // union_title → alternativeTitle. All source-provided fields.
+    expect(result[0].title).toBe('第1集')
     expect(result[0].episodeNumber).toBe('1')
+    expect(result[0].alternativeTitle).toEqual(['第1集 - 标题1'])
   })
 
   it('handles a series whose total fits in one (full) page', async () => {
@@ -315,7 +325,7 @@ describe('builtin:tencent manifest', () => {
     expect(result).toHaveLength(100)
   })
 
-  it('runs the two-phase danmaku flow and parses styled comments', async () => {
+  it('runs the two-phase danmaku flow and emits {p, m} CommentEntity rows', async () => {
     const vid = 'vid_42'
     const { fetcher, calls } = mockFetcher({
       [`https://dm.video.qq.com/barrage/base/${vid}`]: {
@@ -332,13 +342,116 @@ describe('builtin:tencent manifest', () => {
       fetcher,
     })
 
-    const result = await runner.runDanmaku({ vid })
+    const result = (await runner.runDanmaku({ vid })) as Array<{
+      p: string
+      m: string
+    }>
 
+    // p is `${seconds},${rtl=1},${colorInt}`. Tencent has no userHash;
+    // color resolves via gradient_colors[0] (preferred) or color, default white.
     expect(result).toEqual([
-      { cid: 101, p: '5,1,16777215', m: 'hello tencent' },
-      { cid: 102, p: '12.345,1,16711680', m: 'colored' },
-      { cid: 201, p: '35,1,16777215', m: 'no style' },
+      { p: '5,1,16777215,', m: 'hello tencent' },
+      { p: '12.345,1,16711680,', m: 'colored' },
+      { p: '35,1,16777215,', m: 'no style' },
     ])
     expect(calls).toHaveLength(3)
+  })
+
+  it('loginProbe returns true when the details endpoint succeeds', async () => {
+    const { fetcher, calls } = mockFetcher({
+      'https://pbaccess.video.qq.com/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vversion_name=8.2.96&vversion_platform=2':
+        {
+          body: JSON.stringify({
+            ret: 0,
+            msg: '',
+            data: { module_list_datas: [] },
+          }),
+        },
+    })
+    const runner = new ManifestRunner(zManifest.parse(builtinTencent), {
+      fetcher,
+    })
+
+    expect(runner.hasLoginProbe()).toBe(true)
+    expect(await runner.runLoginProbe()).toBe(true)
+
+    expect(calls).toHaveLength(1)
+    const init = calls[0].init as {
+      method?: string
+      rewriteHeaders?: Record<string, string>
+    }
+    expect(init.method).toBe('POST')
+    expect(init.rewriteHeaders).toEqual({
+      Origin: 'https://v.qq.com',
+      Referer: 'https://v.qq.com/',
+    })
+  })
+
+  it('loginProbe returns false when the details endpoint reports ret != 0', async () => {
+    const { fetcher } = mockFetcher({
+      'https://pbaccess.video.qq.com/trpc.universal_backend_service.page_server_rpc.PageServer/GetPageData?video_appid=3000010&vversion_name=8.2.96&vversion_platform=2':
+        { body: JSON.stringify({ ret: -1100001, msg: 'need login' }) },
+    })
+    const runner = new ManifestRunner(zManifest.parse(builtinTencent), {
+      fetcher,
+    })
+
+    expect(await runner.runLoginProbe()).toBe(false)
+  })
+
+  it('color resolution handles missing gradient_colors, leading #, and broken JSON', async () => {
+    const vid = 'vid_color'
+    const segment = {
+      barrage_list: [
+        // color-only (no gradient_colors)
+        {
+          id: '1',
+          content: 'green',
+          time_offset: 1000,
+          content_style: '{"color":"00FF00","position":0}',
+        },
+        // defensive: leading # in color hex
+        {
+          id: '2',
+          content: 'hashed',
+          time_offset: 2000,
+          content_style: '{"color":"#FFFFFF","position":0}',
+        },
+        // broken JSON falls through to white
+        {
+          id: '3',
+          content: 'broken',
+          time_offset: 3000,
+          content_style: 'not json',
+        },
+        // missing content_style entirely
+        { id: '4', content: 'absent', time_offset: 4000 },
+      ],
+    }
+    const { fetcher } = mockFetcher({
+      [`https://dm.video.qq.com/barrage/base/${vid}`]: {
+        body: JSON.stringify({
+          segment_index: { '0': { segment_start: 0, segment_name: '0' } },
+        }),
+      },
+      [`https://dm.video.qq.com/barrage/segment/${vid}/0`]: {
+        body: JSON.stringify(segment),
+      },
+    })
+    const runner = new ManifestRunner(zManifest.parse(builtinTencent), {
+      fetcher,
+    })
+
+    const result = (await runner.runDanmaku({ vid })) as Array<{
+      p: string
+      m: string
+    }>
+
+    expect(result).toEqual([
+      { p: '1,1,65280,', m: 'green' },
+      { p: '2,1,16777215,', m: 'hashed' },
+      { p: '3,1,16777215,', m: 'broken' },
+      { p: '4,1,16777215,', m: 'absent' },
+    ])
   })
 })
