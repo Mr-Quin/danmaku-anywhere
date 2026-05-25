@@ -20,6 +20,8 @@ import type {
 } from './IDanmakuProvider'
 import type { ManifestRegistry } from './ManifestRegistry'
 
+// Undefined values in configValues would shadow manifest schema defaults
+// when spread; drop them before merging.
 function stripUndefined(o: Record<string, unknown>): Record<string, unknown> {
   const out: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(o)) {
@@ -66,9 +68,6 @@ export interface ManifestProviderConfig {
   provider: DanmakuSourceType
   providerConfigId: string
   configValues?: Record<string, unknown>
-  // Per-source last-resort override; should be rare. Most fields belong in
-  // configSchema and flow through `configValues` automatically.
-  extraInputs?: () => Record<string, unknown>
 }
 
 export class ManifestProviderService implements IDanmakuProvider {
@@ -82,18 +81,15 @@ export class ManifestProviderService implements IDanmakuProvider {
     this.forProvider = config.provider
   }
 
-  // Precedence (low → high): configSchema defaults, user-configured values,
-  // per-call inputs (providerIds / meta.params), per-source extras override.
-  // Undefined values are dropped so they don't shadow lower layers.
+  // Precedence (low to high): configSchema defaults, user-configured
+  // values, per-call inputs (providerIds / meta.params).
   private resolveInputs(
     inputs: Record<string, unknown>
   ): Record<string, unknown> {
     const runner = this.registry.getRunner(this.config.manifestId)
     const defaults = runner.configDefaults()
     const configValues = stripUndefined(this.config.configValues ?? {})
-    const rawExtras = this.config.extraInputs ? this.config.extraInputs() : {}
-    const extras = stripUndefined(rawExtras)
-    return { ...defaults, ...configValues, ...inputs, ...extras }
+    return { ...defaults, ...configValues, ...inputs }
   }
 
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
@@ -194,8 +190,7 @@ export class ManifestProviderService implements IDanmakuProvider {
   async parseUrl(url: string): Promise<ParseUrlResult | null> {
     this.logger.debug('Parse URL via manifest', this.config.manifestId, url)
     const runner = this.registry.getRunner(this.config.manifestId)
-    const extras = this.config.extraInputs ? this.config.extraInputs() : {}
-    const result = await runner.runParseUrl<ManifestParseUrlOutput>(url, extras)
+    const result = await runner.runParseUrl<ManifestParseUrlOutput>(url)
     if (result === null) {
       return null
     }

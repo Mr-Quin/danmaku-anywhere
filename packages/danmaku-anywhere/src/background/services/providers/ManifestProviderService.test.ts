@@ -12,10 +12,10 @@ import { ManifestProviderService } from './ManifestProviderService'
 import type { ManifestRegistry } from './ManifestRegistry'
 
 /**
- * Covers ManifestProviderService's host-side responsibilities:
- * threading `extraInputs` into every pipeline run, applying `stripHtml`
- * + canonical provider fields to search/episodes output, and forwarding
- * danmaku pipeline output (already CommentEntity-shaped) to the caller.
+ * Covers ManifestProviderService's host-side responsibilities: applying
+ * `stripHtml` + canonical provider fields to search/episodes output and
+ * forwarding danmaku pipeline output (already CommentEntity-shaped) to
+ * the caller. Input precedence is exercised via the configValues path.
  */
 
 function makeRunner(returns: Record<string, unknown>): ManifestRunner {
@@ -83,17 +83,17 @@ describe('ManifestProviderService.search', () => {
     expect(runner.runSearch).toHaveBeenCalledWith({ q: 'frieren' })
   })
 
-  it('merges extraInputs into the search pipeline inputs', async () => {
+  it('merges configValues into the search pipeline inputs', async () => {
     const runner = makeRunner({ search: [] })
     const svc = new ManifestProviderService(
       {
         manifestId: 'builtin:ddp-compat',
         provider: DanmakuSourceType.DanDanPlay,
         providerConfigId: 'compat-1',
-        extraInputs: () => ({
+        configValues: {
           baseUrl: 'https://compat.example',
           authHeaders: [],
-        }),
+        },
       },
       makeRegistry(runner),
       silentLogger
