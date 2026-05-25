@@ -1,21 +1,4 @@
-/**
- * HMAC-SHA256 over a UTF-8 message and base64-encoded key, returning lowercase
- * hex. Generic enough that manifests can use it for any HMAC-SHA256 signing
- * scheme by base64-encoding the key in the manifest expression.
- */
-
-function u8(length: number): Uint8Array<ArrayBuffer> {
-  return new Uint8Array(new ArrayBuffer(length))
-}
-
-function base64Decode(b64: string): Uint8Array<ArrayBuffer> {
-  const binary = atob(b64.replace(/\s+/g, ''))
-  const bytes = u8(binary.length)
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i)
-  }
-  return bytes
-}
+import { base64ToBytes, u8 } from './_subtle-bytes.js'
 
 function bytesToHex(bytes: Uint8Array): string {
   let out = ''
@@ -32,7 +15,7 @@ function importKey(keyB64: string): Promise<CryptoKey> {
   }
   const imported = crypto.subtle.importKey(
     'raw',
-    base64Decode(keyB64),
+    base64ToBytes(keyB64),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
     ['sign']

@@ -14,35 +14,19 @@
  * final synthetic block is appended so that the CBC layer's mandatory
  * PKCS#7 unpadding succeeds; we strip the real PKCS#7 pad ourselves.
  */
+import { base64ToBytes, u8, ZERO_IV } from './_subtle-bytes.js'
+
 const NIBBLE_PERM = new Uint8Array([
   3, 5, 7, 0, 15, 10, 13, 1, 11, 14, 4, 6, 9, 12, 8, 2,
 ])
-
-// WebCrypto's typings (BufferSource = ArrayBufferView<ArrayBuffer> | ...)
-// reject the default Uint8Array<ArrayBufferLike>, so allocate over a concrete
-// ArrayBuffer everywhere we hand bytes to subtle.
-function u8(length: number): Uint8Array<ArrayBuffer> {
-  return new Uint8Array(new ArrayBuffer(length))
-}
-
-const ZERO_IV = u8(16)
 
 // Caching by the manifest-supplied key string lets repeated calls within a
 // pipeline (one per response segment) share the same CryptoKey import while
 // still supporting a key rotation mid-session via a manifest edit.
 const keyCache = new Map<string, Promise<CryptoKey>>()
 
-function base64Decode(b64: string): Uint8Array<ArrayBuffer> {
-  const binary = atob(b64.replace(/\s+/g, ''))
-  const bytes = u8(binary.length)
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i)
-  }
-  return bytes
-}
-
 function deriveAesKey(keyB64: string): Uint8Array<ArrayBuffer> {
-  const decoded = base64Decode(keyB64)
+  const decoded = base64ToBytes(keyB64)
   if (decoded.length !== 32) {
     throw new Error(
       `gateway key must decode to 32 bytes, got ${decoded.length} from ${keyB64.length}-char base64`
@@ -139,7 +123,7 @@ export async function gatewayDecrypt(
   ciphertextB64: string,
   keyB64: string
 ): Promise<string> {
-  const ciphertext = base64Decode(ciphertextB64)
+  const ciphertext = base64ToBytes(ciphertextB64)
   const key = await getKey(keyB64)
   const plaintext = await ecbDecrypt(key, ciphertext)
   return new TextDecoder('utf-8').decode(plaintext)

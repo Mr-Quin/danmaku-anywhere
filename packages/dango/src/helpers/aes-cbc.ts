@@ -1,33 +1,11 @@
-/**
- * AES-CBC encrypt/decrypt with selectable padding. Web Crypto supports the
- * standard PKCS#7 mode out of the box; the `no-padding` variant is needed
- * by sources that decrypt to a buffer whose final block is not PKCS#7-shaped
- * (e.g. JSON whose length already aligns to 16 plus trailing control bytes).
- *
- * For the `none` path we synthesize a trailing ciphertext block such that
- * subtle's mandatory PKCS#7 unpad produces a full 0x10 pad and strips back
- * to the original n blocks intact. Same fix-up-block trick as
- * gateway-decrypt.ts.
- */
+import { base64ToBytes, u8, ZERO_IV } from './_subtle-bytes.js'
 
-// WebCrypto's typings reject Uint8Array<ArrayBufferLike>; allocate over
-// a concrete ArrayBuffer for every buffer handed to subtle.
-function u8(length: number): Uint8Array<ArrayBuffer> {
-  return new Uint8Array(new ArrayBuffer(length))
-}
+// WebCrypto doesn't support AES-CBC without PKCS#7 unpad on decrypt. The
+// `padding: 'none'` path synthesizes a trailing block (aesEnc(0x10..0x10 XOR C_n))
+// so subtle's mandatory unpad strips back exactly that synthetic block, leaving
+// the original n blocks intact. Same fix-up-block trick as gateway-decrypt.ts.
 
-const ZERO_IV = u8(16)
-
-function base64Decode(b64: string): Uint8Array<ArrayBuffer> {
-  const binary = atob(b64.replace(/\s+/g, ''))
-  const bytes = u8(binary.length)
-  for (let i = 0; i < binary.length; i++) {
-    bytes[i] = binary.charCodeAt(i)
-  }
-  return bytes
-}
-
-function base64Encode(bytes: Uint8Array): string {
+function bytesToBase64(bytes: Uint8Array): string {
   let binary = ''
   for (const b of bytes) binary += String.fromCharCode(b)
   return btoa(binary)
@@ -40,7 +18,7 @@ function importKey(keyB64: string): Promise<CryptoKey> {
   if (cached !== undefined) {
     return cached
   }
-  const decoded = base64Decode(keyB64)
+  const decoded = base64ToBytes(keyB64)
   if (decoded.length !== 16 && decoded.length !== 24 && decoded.length !== 32) {
     throw new Error(
       `AES-CBC key must decode to 16, 24, or 32 bytes, got ${decoded.length}`
@@ -58,7 +36,7 @@ function importKey(keyB64: string): Promise<CryptoKey> {
 }
 
 function decodeIv(ivB64: string): Uint8Array<ArrayBuffer> {
-  const iv = base64Decode(ivB64)
+  const iv = base64ToBytes(ivB64)
   if (iv.length !== 16) {
     throw new Error(`AES-CBC IV must decode to 16 bytes, got ${iv.length}`)
   }
@@ -73,14 +51,12 @@ export async function aesCbcEncrypt(
   const key = await importKey(keyB64)
   const iv = decodeIv(ivB64)
   const pt = new TextEncoder().encode(plaintext)
-  // TextEncoder emits Uint8Array<ArrayBufferLike>; copy into the concrete-AB
-  // variant subtle's types insist on.
   const input = u8(pt.length)
   input.set(pt)
   const ct = new Uint8Array(
     await crypto.subtle.encrypt({ name: 'AES-CBC', iv }, key, input)
   )
-  return base64Encode(ct)
+  return bytesToBase64(ct)
 }
 
 async function decryptNoPad(
@@ -96,9 +72,6 @@ async function decryptNoPad(
   const n = ciphertext.length / 16
   const cLast = ciphertext.subarray((n - 1) * 16, n * 16)
 
-  // C_extra = aesEnc(0x10..0x10 XOR C_n). subtle.encrypt with IV=0 on a
-  // single 16-byte input emits [aesEnc(input), aesEnc(0x10..0x10 XOR aesEnc(input))];
-  // we keep just the first block.
   const aesInput = u8(16)
   for (let i = 0; i < 16; i++) {
     aesInput[i] = 0x10 ^ (cLast[i] as number)
@@ -124,7 +97,7 @@ export async function aesCbcDecrypt(
 ): Promise<string> {
   const key = await importKey(keyB64)
   const iv = decodeIv(ivB64)
-  const ct = base64Decode(ciphertextB64)
+  const ct = base64ToBytes(ciphertextB64)
   const plaintext =
     padding === 'none'
       ? await decryptNoPad(key, iv, ct)

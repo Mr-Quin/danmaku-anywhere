@@ -133,21 +133,13 @@ describe('builtin:hanjutv manifest', () => {
     ])
   })
 
-  it('danmaku: emits canonical {cid, p, m} entries with type-2 collapsed to 5', async () => {
-    const handlers: Record<string, MockResponse> = {}
-    for (let i = 0; i < 30; i++) {
-      const fromAxis = i * 60000
-      const toAxis = (i + 1) * 60000
-      const url = `https://hxqapi.hiyun.tv/api/danmu/playItem/list?pid=hjtv-ep-001&prevId=0&fromAxis=${fromAxis}&toAxis=${toAxis}&offset=0`
-      // Only the first segment carries danmus; the rest return empty pages.
-      handlers[url] = {
-        body:
-          i === 0
-            ? JSON.stringify(danmuFixture)
-            : JSON.stringify({ danmus: [] }),
-      }
-    }
-    const { fetcher } = mockFetcher(handlers)
+  it('danmaku: emits canonical {cid, p, m} entries and stops on the first empty page', async () => {
+    const { fetcher, calls } = mockFetcher({
+      'https://hxqapi.hiyun.tv/api/danmu/playItem/list?pid=hjtv-ep-001&prevId=0&fromAxis=0&toAxis=60000&offset=0':
+        { body: JSON.stringify(danmuFixture) },
+      'https://hxqapi.hiyun.tv/api/danmu/playItem/list?pid=hjtv-ep-001&prevId=0&fromAxis=60000&toAxis=120000&offset=0':
+        { body: JSON.stringify({ danmus: [] }) },
+    })
     const runner = new ManifestRunner(zManifest.parse(builtinHanjutv), {
       fetcher,
     })
@@ -158,5 +150,6 @@ describe('builtin:hanjutv manifest', () => {
       { cid: 1001, p: '1.5,1,16777215', m: 'hello' },
       { cid: 1002, p: '2.5,5,16711680', m: 'bottom red' },
     ])
+    expect(calls).toHaveLength(2)
   })
 })

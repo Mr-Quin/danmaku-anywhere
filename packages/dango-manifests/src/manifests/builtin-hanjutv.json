@@ -54,9 +54,8 @@
       {
         "type": "forEach",
         "id": "segments",
-        "in": "$range(0, 30)",
+        "in": "$range(0, 240)",
         "as": "i",
-        "concurrency": 2,
         "throttleMs": 100,
         "request": {
           "method": "GET",
@@ -69,7 +68,8 @@
             "User-Agent": "'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'"
           }
         },
-        "collect": "danmus"
+        "collect": "danmus",
+        "breakOn": "$count($) = 0"
       }
     ],
     "output": "[segments.{ 'cid': $number(did), 'p': $string(t / 1000) & ',' & $string(tp = 2 ? 5 : tp) & ',' & $string($number(sc)), 'm': con }]"

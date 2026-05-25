@@ -42,9 +42,16 @@
             "User-Agent": "'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/144.0.0.0 Safari/537.36'"
           }
         }
+      },
+      {
+        "type": "assign",
+        "id": "picked",
+        "values": {
+          "items": "$exists(info.body.data.datas) ? info.body.data.datas : ($exists(info.body.data.playing.pID) ? [{ 'pID': info.body.data.playing.pID, 'name': info.body.data.name, 'episodeNumber': '1' }] : [])"
+        }
       }
     ],
-    "output": "($epsIdStr := $string(epsId); $datas := info.body.data.datas; $exists($datas) ? [$datas.{ 'providerIds': { 'epsId': $epsIdStr, 'pId': $string(pID) }, 'indexedId': $string(pID), 'title': name, 'episodeNumber': name }] : ($pid := info.body.data.playing.pID; $exists($pid) ? [{ 'providerIds': { 'epsId': $epsIdStr, 'pId': $string($pid) }, 'indexedId': $string($pid), 'title': info.body.data.name, 'episodeNumber': '1' }] : []))"
+    "output": "($epsIdStr := $string(epsId); [picked.items.{ 'providerIds': { 'epsId': $epsIdStr, 'pId': $string(pID) }, 'indexedId': $string(pID), 'title': name, 'episodeNumber': $exists(episodeNumber) ? episodeNumber : name }])"
   },
   "danmaku": {
     "inputs": ["epsId", "pId"],
