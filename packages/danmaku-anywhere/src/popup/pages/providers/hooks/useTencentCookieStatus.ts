@@ -12,9 +12,7 @@ export const useTencentCookieStatus = (config: ProviderConfig) => {
     select: (res) => res.data,
     queryKey: sourceQueryKeys.tencent(),
     enabled: isTencent,
-    staleTime: Number.POSITIVE_INFINITY,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
   })
 
   return {

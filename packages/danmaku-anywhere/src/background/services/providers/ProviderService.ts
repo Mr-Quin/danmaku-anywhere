@@ -215,11 +215,12 @@ export class ProviderService {
   }
 
   async parseUrl(url: string): Promise<WithSeason<EpisodeMeta>> {
+    // URL parsing is independent of provider enablement: the popup feeds
+    // any pasted URL regardless of which sources the user has toggled on.
+    // Disabling Bilibili would otherwise make a recognized bilibili.com
+    // URL fail with "No provider found".
     const configs = await this.providerConfigService.getAll()
     for (const config of configs) {
-      if (!config.enabled) {
-        continue
-      }
       const service = this.danmakuProviderFactory(config)
       if (!service.canParse?.(url)) {
         continue

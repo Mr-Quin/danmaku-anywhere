@@ -28,8 +28,12 @@ export const builtInBilibiliProvider: ProviderConfig = {
   impl: DanmakuSourceType.Bilibili,
   enabled: true,
   isBuiltIn: true,
-  // Empty so the manifest's configSchema is the single source of truth for defaults.
-  configValues: {},
+  // Pin xml explicitly so the user-visible default matches master. The
+  // manifest defaults to protobuf, which is the better long-term endpoint
+  // but would silently switch the format for existing users on upgrade.
+  configValues: {
+    danmakuFormat: 'xml',
+  },
 }
 
 export const builtInTencentProvider: ProviderConfig = {
