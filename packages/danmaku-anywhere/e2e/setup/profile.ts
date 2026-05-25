@@ -1,7 +1,5 @@
 import {
-  type BilibiliProviderOptions,
   DanDanChConvert,
-  type DanDanDanPlayProviderOptions,
   DanmakuSourceType,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { BrowserContext, Route } from '@playwright/test'
@@ -11,10 +9,13 @@ import type { StorageArea } from '../../src/devApi/namespaces/StorageNamespace'
 import type { DaClient } from './da-client'
 
 export interface BuiltInProvidersProfile {
-  bilibili?: { enabled?: boolean; options?: Partial<BilibiliProviderOptions> }
+  bilibili?: {
+    enabled?: boolean
+    options?: { danmakuFormat?: 'xml' | 'protobuf' }
+  }
   dandanplay?: {
     enabled?: boolean
-    options?: Partial<DanDanDanPlayProviderOptions>
+    options?: { chConvert?: DanDanChConvert }
   }
   tencent?: { enabled?: boolean }
 }
@@ -52,36 +53,36 @@ function buildBuiltInProviderConfigs(
   return [
     {
       id: 'builtin:dandanplay',
-      type: 'DanDanPlay',
+      manifestId: 'builtin:dandanplay',
       name: 'DanDanPlay',
       impl: DanmakuSourceType.DanDanPlay,
       enabled: dandanplay.enabled ?? false,
       isBuiltIn: true,
-      options: {
+      configValues: {
         chConvert: DanDanChConvert.None,
         ...dandanplay.options,
       },
     },
     {
       id: 'builtin:bilibili',
-      type: 'Bilibili',
+      manifestId: 'builtin:bilibili',
       name: 'Bilibili',
       impl: DanmakuSourceType.Bilibili,
       enabled: bilibili.enabled ?? false,
       isBuiltIn: true,
-      options: {
-        danmakuTypePreference: 'xml',
+      configValues: {
+        danmakuFormat: 'xml',
         ...bilibili.options,
       },
     },
     {
       id: 'builtin:tencent',
-      type: 'Tencent',
+      manifestId: 'builtin:tencent',
       name: 'Tencent',
       impl: DanmakuSourceType.Tencent,
       enabled: tencent.enabled ?? false,
       isBuiltIn: true,
-      options: {},
+      configValues: {},
     },
   ]
 }
