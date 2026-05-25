@@ -33,21 +33,23 @@ export class ProviderConfigService implements IStoreService {
       'providerConfig',
       defaultProviderConfigs,
       this.logger
-    )
-      .version(1, {
-        upgrade: (data) => data,
-      })
-      // v1 -> v2: the pre-dango discriminated-union ProviderConfig records
-      // get flattened to the new {manifestId, configValues, ...} shape.
-      .version(2, {
-        upgrade: (data) => migrateProviderConfigsToFlat(data),
-      })
-      // v2 -> v3: seed every dango-shipped builtin that isn't already in
-      // the user's list. Idempotent, preserves user toggles + configValues
-      // on the records that already exist.
-      .version(3, {
-        upgrade: (data) => ensureBuiltinProviders(data),
-      })
+    ).version(2, {
+      // One-shot upgrade from anything that came before (master's no-op v1,
+      // discriminated-union records, fresh-from-extensionOptions-v21 flat
+      // records). flatten is idempotent on already-flat input; ensure
+      // appends any missing builtin without disturbing user-edited entries.
+      upgrade: (data) => {
+        try {
+          return ensureBuiltinProviders(migrateProviderConfigsToFlat(data))
+        } catch (error) {
+          console.error(
+            '[providerConfig] migration failed, falling back to defaults:',
+            error
+          )
+          return [...defaultProviderConfigs]
+        }
+      },
+    })
   }
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {
     const configs = await this.options.get()
