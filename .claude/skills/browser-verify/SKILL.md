@@ -87,6 +87,8 @@ Same MCP browser, fresh artifact. For shadow-root introspection use `VITE_DA_ENV
 | Console errors | `list_console_messages({ types: ['error', 'warn'] })` |
 | Network requests | `list_network_requests({ resourceTypes: [...] })` |
 
+Screenshots go to `.tmp/<topic>-<n>.png` (gitignored). Never commit them to the repo and never put them under `.claude-verify/`. There is no agentic path to attach them to PRs or ClickUp tasks; the file just stays in `.tmp/` for the human to view locally if needed.
+
 ## 4. Tear down when done
 
 Always close the MCP browser at the end of a verification pass — otherwise a Chromium instance lingers, holding the Vite HMR socket and a `dev/chrome` filesystem lock until the Claude session exits.

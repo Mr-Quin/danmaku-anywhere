@@ -49,6 +49,8 @@ Make the changes. Apply these in order:
 - **KISS**: write the simplest thing that solves the *actual* task. No fallback chains for inputs that cannot happen (trust the caller, trust the type), no constants used in one place, no helpers used once, no abstractions for one call site. Three similar lines beat one clever generic. If you catch yourself writing `?? a ?? b ?? c`, stop and ask which of those branches can actually fire.
 - **YAGNI**: don't add a config knob, parameter, or branch unless *this* PR needs it. "In case someone later wants to…" is the smell. Future flexibility is cheaper to add when it's actually needed than to remove when it isn't.
 - **Library / framework idioms**: use each library's blessed patterns rather than inventing your own. Before writing a helper, check whether the framework already exposes the primitive (e.g. React hook, Hono middleware, Playwright fixture, octokit method, MUI component). For unfamiliar APIs or recent versions, fetch current docs via the `context7` MCP instead of trusting model memory. Match the project's existing usage of a library; if everywhere else uses pattern A and you're tempted to introduce pattern B, the burden of proof is on B.
+- **e2e coverage**: every feature/fix lands with e2e coverage under `packages/danmaku-anywhere/e2e/` unless coverage is genuinely infeasible. State *why* in the PR body when skipping. Use `browser-verify` while authoring the spec.
+- **Committed agent docs stay portable.** Files under `.claude/`, `CLAUDE.md`, `AGENTS.md` must not contain absolute paths into a developer's machine, OS-specific commands without an alternative, or project-specific magic values. Workspace-specific values (ClickUp IDs, etc.) belong in agent memory (`reference_*`) or a gitignored templated config. If a workflow depends on an MCP or local tool that may not be present, declare the prerequisite so the agent can stop and tell the human on a miss.
 
 ### 4. Verify
 
@@ -62,7 +64,7 @@ Make the changes. Apply these in order:
 | Packages      | `pnpm --filter <package> test`                     | N/A                                               |
 | Cross-cutting | `pnpm lint && pnpm --filter '...[origin/master]' test` | Depends on areas touched                          |
 
-Run e2e (`pnpm --filter @mr-quin/danmaku-anywhere test:e2e`) only when changes touch content scripts, mount profiles, integration policies, dango manifests, or popup flows covered by an existing spec — it's slow and opt-in.
+Run e2e (`pnpm --filter @mr-quin/danmaku-anywhere test:e2e`) for any PR that adds or touches an e2e spec, or that changes content scripts, mount profiles, integration policies, dango manifests, or popup flows. The suite should be running before push.
 
 #### Extension: open dev browser (for the human)
 
@@ -84,7 +86,9 @@ While `dev:browser` is running, agentic self-verification goes through the `brow
 Skill(browser-verify)
 ```
 
-Use for substantive UI / runtime changes. Skip when the change is non-visual.
+Use it whenever the change has runtime behavior worth observing, not just visual changes. For non-visual changes it's the primary way to confirm wiring (commands fire, RPC propagates, storage writes invalidate) and to capture selectors and event sequencing for the e2e spec. Screenshots go to `.tmp/` (gitignored); never commit them.
+
+If you only need to exercise a published preview build (e.g. reproducing against build N, bisecting nightlies), use the `preview-build` skill instead.
 
 #### Extension: i18n extraction
 
@@ -123,7 +127,14 @@ The PR itself is the human gate — push and open it without waiting.
 git push -u origin DA-XXX_<hint>
 gh pr create --title "(type) description [DA-XXX]" --label "ai-rereview" --body "$(cat <<'EOF'
 ## Summary
-- <bullet points>
+- <one short bullet per major change; "what" + "why" if non-obvious>
+
+## Test plan
+- [ ] <commands or e2e spec(s) the reviewer should run; reference paths under `packages/danmaku-anywhere/e2e/specs/...`>
+- <if e2e coverage is infeasible for this change, state why here>
+
+## Notes
+- <known edge cases, perf implications, follow-ups, anything that helps the reviewer>
 EOF
 )"
 ```
@@ -132,7 +143,11 @@ EOF
 - **type must match** the ClickUp task's Type field
 - **DA-XXX must match** the branch name
 - Do NOT include ClickUp links in the PR body — they are posted automatically
+- Do NOT mention other DA-XXX in the body / commits; ClickUp auto-link will silently reopen those tasks
 - The `ai-rereview` label is required: `.github/workflows/ai-rereview.yml` watches it and re-requests AI reviewers on every push
+- Drop sections that don't apply (e.g. no `Notes` if there's nothing real to say) rather than padding
+
+**Keep the PR body in sync as the branch evolves.** Use `gh pr edit <N> --body ...` (same HEREDOC pattern as creation) whenever new commits change scope, add/remove behavior, or invalidate a claim in the original body. Stale bodies mislead reviewers.
 
 ### 7. Review Monitoring
 
@@ -148,15 +163,19 @@ scripts/pr-status.sh <N>
 
 One GraphQL call returns reviews, pending reviewers, open threads, reactions, and check states.
 
-**When review comments are found:**
+**When review comments are found:** use the `reviewing-ai-feedback` skill to evaluate each thread (it lists known false-positive patterns from gemini/copilot on this repo and gives an accept/decline checklist). The default is to evaluate, not apply.
 
-1. **Evaluate validity** — not all bot suggestions are correct
-2. **If valid**: fix, reply with what changed
-3. **If not valid**: reply with why it was declined
+Mechanically:
+
+1. **Evaluate validity** via the skill above. Most reviewer suggestions are correct; decline only when you can name the rule
+2. **If valid**: fix, reply with what changed (cite the commit SHA)
+3. **If not valid**: reply with rationale citing the rule you're upholding
 4. **Resolve the thread**:
 
+Resolve `<owner>/<repo>` from `gh repo view --json owner,name`. Then:
+
 ```bash
-gh api graphql -f query='{ repository(owner: "Mr-Quin", name: "danmaku-anywhere") { pullRequest(number: N) { reviewThreads(first: 50) { nodes { id isResolved } } } } }'
+gh api graphql -f query='{ repository(owner: "<owner>", name: "<repo>") { pullRequest(number: N) { reviewThreads(first: 50) { nodes { id isResolved } } } } }'
 gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREAD_ID"}) { thread { isResolved } } }'
 ```
 

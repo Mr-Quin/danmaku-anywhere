@@ -5,7 +5,7 @@ description: Use to monitor an open PR for AI/bot review comments, evaluate them
 
 # babysit-pr — supervised PR monitoring loop
 
-Watch a PR for new review activity, **evaluate each comment on its merits**, push fixes only when the change is genuinely warranted, and stop on its own. AI reviewers in this repo (Gemini, Claude, Coderabbit, etc.) tend to be over-defensive and over-engineering — your job is to be the editor, not the stenographer.
+Watch a PR for new review activity, evaluate each comment via the `reviewing-ai-feedback` skill (which owns the accept/decline judgment), push fixes when warranted, and stop on its own.
 
 ## 0. Decide the duration
 
@@ -42,26 +42,9 @@ One GraphQL call returns: reviews, pending reviewers, open threads, reactions, c
 
 ### 2b. Classify each new comment
 
-For every unresolved thread / new review body, apply this filter:
+Evaluate via the `reviewing-ai-feedback` skill. It defines the accept/decline rules, false-positive patterns, accept-signals, reply style, and the in-chat reporting format. Default stance is "verify against the code; the reviewer is probably right." Decline only with a named rule. Resolve every thread you handle (accepted or declined).
 
-| Verdict | When | Action |
-|---|---|---|
-| **must-fix** | Real bug, security hole, broken behavior, project-convention violation (CLAUDE.md / AGENTS.md), CI-blocker | Implement the fix, commit, push, reply with what changed, resolve thread |
-| **judgment-call** | Genuinely improves the change (clearer naming, removes dead code, tightens a fragile match), low cost | Same as must-fix |
-| **skip-with-reply** | Defensive null check where input is trusted, speculative refactor, "consider adding tests for X" without specific bug, "what if Y?" hypotheticals, premature abstraction, restating existing behavior, micro-optimizations | Reply with crisp rationale (KISS, YAGNI, trust the type, etc.) — *then* resolve the thread |
-| **skip-silently** | Pure stylistic nits already covered by Biome, restating obvious code, duplicates of another comment | Resolve without reply |
-
-The default lean is **skip**. Only escalate to must-fix when you can articulate the concrete failure mode the comment prevents. "It would be safer to..." without a named failure mode is YAGNI.
-
-### 2c. Reply and resolve
-
-For replies, be brief and specific. Examples that read well:
-
-- `Skipped — input is sanitized one call up (link to scripts/preview-build-check.cjs:7); a second pass here is YAGNI.`
-- `Skipped — Biome enforces this already; no manual guard needed.`
-- `Fixed in <sha> by switching to startsWith — agree the substring match was fragile.`
-
-Then resolve via GraphQL:
+### 2c. Resolve mechanics
 
 ```bash
 gh api graphql -f query='{ repository(owner: "<OWNER>", name: "<REPO>") { pullRequest(number: N) { reviewThreads(first: 50) { nodes { id isResolved } } } } }'
@@ -97,11 +80,9 @@ Then send one message: PR URL, what was addressed, what was skipped (with one-li
 
 ## 4. Anti-patterns
 
-- **Don't blindly apply suggestions.** If you can't articulate why the change matters, skip it. AI reviewers reward agreement with more suggestions; you reward them with a clear no.
 - **Don't push speculative refactors.** "Could be cleaner" is not a reason. The PR is in review, not redesign.
-- **Don't add defensive code at trusted boundaries.** Internal callers, type-system-guaranteed shapes, sanitized values one frame up — leave them alone.
-- **Don't resolve a thread without replying** unless it's a pure duplicate or covered by tooling. The PR author (human) reads the thread later and needs to know your reasoning.
-- **Don't commit Co-Authored-By or AI attribution** (per `~/.claude/CLAUDE.md`).
+- **Don't resolve a thread without replying** unless it's a pure duplicate. The PR author reads the thread later and needs to know your reasoning.
+- **Don't commit Co-Authored-By or AI attribution.**
 - **Don't merge.** Ever. Merging is a human action.
 
 ## 5. Quick reference

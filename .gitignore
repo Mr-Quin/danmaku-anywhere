@@ -31,8 +31,7 @@ patch-*
 
 .wrangler
 .claude/scheduled_tasks.lock
-.claude/screenshots/
 test-results/
 playwright-report/
-.specs/
-docs/superpowers/pr*.json
+.tmp/
+.claude-verify/
