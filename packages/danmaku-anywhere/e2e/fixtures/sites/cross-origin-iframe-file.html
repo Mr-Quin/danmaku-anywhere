@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>DA Harness - cross-origin iframe (local file)</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #111;
+        color: #eee;
+        font-family: sans-serif;
+      }
+      iframe {
+        display: block;
+        width: 100%;
+        max-width: 960px;
+        aspect-ratio: 16 / 9;
+        margin: 0 auto;
+        border: 0;
+        background: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 data-testid="da-title">DA Harness Cross-Origin Iframe</h1>
+    <span data-testid="da-episode">Episode 1</span>
+    <iframe data-testid="da-iframe"></iframe>
+    <script>
+      const params = new URLSearchParams(window.location.search)
+      const inner = params.get('inner') || '/sites/iframe-inner-file.html'
+      document.querySelector('[data-testid="da-iframe"]').src = inner
+    </script>
+  </body>
+</html>

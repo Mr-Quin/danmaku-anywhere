@@ -5,9 +5,24 @@ import type {
 
 import type { Options } from '@/common/options/OptionsService/types'
 
+export type OcclusionQuality = 'low' | 'medium' | 'high'
+
+// Which segmentation model the occlusion feature uses. Only 'people' (MediaPipe
+// selfie) ships today; 'anime' is reserved for a forthcoming subtask and kept
+// here so persisted options stay forward-compatible.
+export type OcclusionModel = 'people' | 'anime'
+
 export type DanmakuOptions = Omit<DanmakuEngineOptions, 'show'> & {
   readonly customCss: string
   readonly useCustomCss: boolean
+  readonly occludeBehindPeople: boolean
+  readonly occlusionModel: OcclusionModel
+  // Person-confidence cutoff [0,1]: higher hides danmaku only over confident
+  // person pixels (tighter), lower hides more aggressively.
+  readonly occlusionConfidence: number
+  // Mask edge blur in px: feathers the cutout so danmaku fade behind people.
+  readonly occlusionEdgeSoftness: number
+  readonly occlusionQuality: OcclusionQuality
 }
 
 export type DanmakuOptionsOptions = Options<DanmakuOptions>
@@ -43,6 +58,11 @@ export const defaultDanmakuOptions: DanmakuOptions = {
   },
   useCustomCss: false,
   customCss: '',
+  occludeBehindPeople: false,
+  occlusionModel: 'people',
+  occlusionConfidence: 0.5,
+  occlusionEdgeSoftness: 4,
+  occlusionQuality: 'medium',
   maxOnScreen: 500,
   interval: 200,
   trackLimit: 32,

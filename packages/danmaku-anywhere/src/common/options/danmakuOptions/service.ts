@@ -132,6 +132,17 @@ export class DanmakuOptionsService implements IStoreService {
           })
         },
       })
+      .version(10, {
+        upgrade: (data) => {
+          return produce<PrevOptions>(data, (draft) => {
+            draft.occludeBehindPeople = false
+            draft.occlusionModel = 'people'
+            draft.occlusionConfidence = 0.5
+            draft.occlusionEdgeSoftness = 4
+            draft.occlusionQuality = 'medium'
+          })
+        },
+      })
   }
 
   async get() {
