@@ -127,3 +127,49 @@ test('occlusion: no mask when disabled', async ({ context, page }) => {
 
   expect(await maskImageOf(danmuContainer(page))).toBe('none')
 })
+
+test('occlusion: debug mode shows the mask debug overlay', async ({
+  context,
+  page,
+}) => {
+  const da = await getDaClient(context)
+  await applyProfile(context, da, {
+    extensionOptions: { matchLocalDanmaku: true, debug: true },
+    rawStorage: [
+      {
+        area: 'sync',
+        key: 'danmakuOptions',
+        value: {
+          data: { ...defaultDanmakuOptions, occludeBehindPeople: true },
+          version: 10,
+        },
+      },
+    ],
+  })
+
+  await da.episode.addCustom({
+    provider: DanmakuSourceType.MacCMS,
+    title: EPISODE_TITLE,
+    comments: COMMENTS,
+    commentCount: COMMENTS.length,
+    schemaVersion: 4,
+  })
+
+  await seedXPathIntegration(da, {
+    patterns: [MOUNT_PATTERN],
+    name: 'da-e2e',
+    policy: buildFixtureIntegrationPolicy(),
+  })
+  await da.mount.waitForRegistration(MOUNT_PATTERN, 5_000)
+
+  const integrationPage = new IntegrationPage(page)
+  await page.bringToFront()
+  await routeMedia(page, VIDEO_URL, 'media/sample-motion.webm')
+  await integrationPage.open(NATIVE_URL, 'native-video-file.html')
+
+  await da.mount.waitForMount(undefined, 15_000)
+
+  await expect(page.getByText(/occlusion .*fps/)).toBeVisible({
+    timeout: 15_000,
+  })
+})
