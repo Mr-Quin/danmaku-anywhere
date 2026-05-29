@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "chrome-devtools-ext": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "chrome-devtools-mcp@latest",
+        "--isolated",
+        "--categoryExtensions=true",
+        "--executablePath=${CHROME_DEVTOOLS_EXECUTABLE:-}"
+      ]
+    }
+  }
+}

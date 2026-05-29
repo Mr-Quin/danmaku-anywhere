@@ -36,4 +36,12 @@ Remote branches are auto-deleted by GitHub's "delete branch after merge" setting
 - Remove any `Read(...)` allow rules whose path references the removed worktree
 - Write the updated settings back
 
-6. **Report** what was cleaned up and what was kept (with task status).
+6. **Prune stale auto-memory** for each cleaned-up task:
+
+- Locate the project's auto-memory directory: `~/.claude/projects/<slug>/memory/` (on Windows `%USERPROFILE%\.claude\projects\<slug>\memory\`), where `<slug>` is the worktree's absolute path with path separators replaced by `-`. Glob `~/.claude/projects/*danmaku-anywhere*/memory/` if the slug is uncertain
+- Grep that directory for the cleaned task ID and any in-flight notes that referenced it
+- For each match: read the file, decide whether the content has surviving general value (e.g. a still-true gotcha or lesson) or is purely in-flight state. Delete the file if it's purely in-flight; otherwise leave it and note the staleness
+- Update `MEMORY.md` to remove entries for any files you deleted
+- Skip `feedback_*` and `reference_*` files unless the task ID appears in their body; those are usually general rules, not task-state
+
+7. **Report** what was cleaned up and what was kept (with task status), including which memory files were removed.

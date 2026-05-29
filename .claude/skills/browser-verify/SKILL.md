@@ -9,22 +9,19 @@ The agent gets its **own** Chrome (spawned by the MCP, isolated profile) so it c
 
 ## 0. Setup check
 
-Confirm tools `mcp__chrome-devtools-ext__*` are available in this session. If not, stop and ask the user to install the MCP:
+The MCP is declared as a project server in `.mcp.json` at the repo root (name `chrome-devtools-ext`, args `--isolated --categoryExtensions=true`). Confirm tools `mcp__chrome-devtools-ext__*` are available in this session. If they are, go to step 1.
 
-```bash
-claude mcp add --scope user chrome-devtools-ext -- npx chrome-devtools-mcp@latest --isolated --categoryExtensions=true
-```
+If they are not available:
 
-If `claude mcp add` errors on the flag, paste under `mcpServers` in `~/.claude.json`:
+1. Approve the project server if Claude prompts for it (servers from `.mcp.json` need a one-time approval; reset with `claude mcp reset-project-choices`).
+2. Give it a browser binary. The MCP is Puppeteer-based and launches Chrome directly over a pipe connection (required by `--categoryExtensions`; `--browserUrl` / `--wsEndpoint` do not work for the extension tools). `.mcp.json` passes `--executablePath=${CHROME_DEVTOOLS_EXECUTABLE:-}`: leave the var unset to use system Chrome (stable channel), or set `CHROME_DEVTOOLS_EXECUTABLE` to a Chrome/Chromium executable. Playwright's Chromium matches the e2e suite and works:
 
-```json
-"chrome-devtools-ext": {
-  "command": "npx",
-  "args": ["chrome-devtools-mcp@latest", "--isolated", "--categoryExtensions=true"]
-}
-```
+   ```bash
+   pnpm exec playwright install chromium
+   # export CHROME_DEVTOOLS_EXECUTABLE=~/.cache/ms-playwright/chromium-<rev>/chrome-linux64/chrome
+   ```
 
-Then `/mcp reload` (or restart Claude). Wait for confirmation before continuing.
+   Set the var in your shell env (e.g. `~/.zshenv`) so Claude inherits it, then do a full restart. A `/mcp` reload alone will not pick up a newly exported var. Wait for confirmation before continuing.
 
 ## 1. Dev loop (default during implementation)
 
@@ -86,6 +83,8 @@ Same MCP browser, fresh artifact. For shadow-root introspection use `VITE_DA_ENV
 | Run JS in page or SW | `evaluate_script({ ..., serviceWorkerId })` |
 | Console errors | `list_console_messages({ types: ['error', 'warn'] })` |
 | Network requests | `list_network_requests({ resourceTypes: [...] })` |
+
+Screenshots go to `.tmp/<topic>-<n>.png` (gitignored). Never commit them to the repo and never put them under `.claude-verify/`. There is no agentic path to attach them to PRs or ClickUp tasks; the file just stays in `.tmp/` for the human to view locally if needed.
 
 ## 4. Tear down when done
 
