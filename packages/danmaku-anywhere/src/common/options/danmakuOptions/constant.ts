@@ -7,10 +7,15 @@ import type { Options } from '@/common/options/OptionsService/types'
 
 export type OcclusionQuality = 'low' | 'medium' | 'high'
 
+// Which segmentation model the occlusion feature uses: 'people' (MediaPipe
+// selfie, real footage) or 'anime' (ISNet via onnxruntime-web, WebGPU only).
+export type OcclusionModel = 'people' | 'anime'
+
 export type DanmakuOptions = Omit<DanmakuEngineOptions, 'show'> & {
   readonly customCss: string
   readonly useCustomCss: boolean
   readonly occludeBehindPeople: boolean
+  readonly occlusionModel: OcclusionModel
   // Person-confidence cutoff [0,1]: higher hides danmaku only over confident
   // person pixels (tighter), lower hides more aggressively.
   readonly occlusionConfidence: number
@@ -53,6 +58,7 @@ export const defaultDanmakuOptions: DanmakuOptions = {
   useCustomCss: false,
   customCss: '',
   occludeBehindPeople: false,
+  occlusionModel: 'people',
   occlusionConfidence: 0.5,
   occlusionEdgeSoftness: 4,
   occlusionQuality: 'medium',

@@ -1,20 +1,24 @@
 import type { MaskProvider, SegmentationResult, SegmentOptions } from './types'
 
 const CHANNEL = 'occlusion'
-const INIT_TIMEOUT_MS = 15_000
-const SEGMENT_TIMEOUT_MS = 5_000
+const INIT_TIMEOUT_MS = 20_000
+const SEGMENT_TIMEOUT_MS = 8_000
+
+export type SegmentEngine = 'mediapipe' | 'anime'
 
 /**
- * Runs MediaPipe ImageSegmenter in a hidden chrome-extension:// iframe injected
+ * Runs a segmentation engine in a hidden chrome-extension:// iframe injected
  * into the page. The iframe is an extension-origin, single-world document, so
- * MediaPipe's wasm loader works (no isolated/main world split) under the
- * extension CSP even on strict-CSP hosts, and the model loads from local
- * web-accessible assets (no remote code). Frames go in and masks come back as
- * transferable buffers over postMessage.
+ * the ML runtime (MediaPipe wasm loader, or onnxruntime-web for anime) works
+ * (no isolated/main world split) under the extension CSP even on strict-CSP
+ * hosts, and models load from local web-accessible assets (no remote code).
+ * Frames go in and masks come back as transferable buffers over postMessage.
  */
 export class IframeMaskProvider implements MaskProvider {
   private iframe?: HTMLIFrameElement
   private ready?: Promise<void>
+
+  constructor(private readonly engine: SegmentEngine = 'mediapipe') {}
 
   init(): Promise<void> {
     if (!this.ready) {
@@ -36,6 +40,7 @@ export class IframeMaskProvider implements MaskProvider {
       iframe.src = chrome.runtime.getURL('pages/segmenter.html')
       this.iframe = iframe
 
+      let timer: ReturnType<typeof setTimeout>
       const settle = (err?: Error) => {
         window.removeEventListener('message', onMessage)
         clearTimeout(timer)
@@ -51,7 +56,7 @@ export class IframeMaskProvider implements MaskProvider {
         }
         if (e.data.type === 'ready') {
           iframe.contentWindow?.postMessage(
-            { __da: CHANNEL, type: 'init' },
+            { __da: CHANNEL, type: 'init', engine: this.engine },
             '*'
           )
           return
@@ -62,13 +67,13 @@ export class IframeMaskProvider implements MaskProvider {
           )
         }
       }
-      const timer = setTimeout(
+      timer = setTimeout(
         () => settle(new Error('segmenter init timed out')),
         INIT_TIMEOUT_MS
       )
       window.addEventListener('message', onMessage)
       iframe.addEventListener('error', () =>
-        settle(new Error('segmenter frame failed to load'))
+        settle(new Error('segmenter iframe failed to load'))
       )
       document.body.appendChild(iframe)
     })

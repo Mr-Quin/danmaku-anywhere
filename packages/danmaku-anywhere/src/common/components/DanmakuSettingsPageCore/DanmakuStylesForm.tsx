@@ -407,6 +407,55 @@ export const DanmakuStylesForm = ({
             <Collapse in={occludeBehindPeople} unmountOnExit>
               <Stack useFlexGap spacing={2}>
                 <Controller
+                  name="occlusionModel"
+                  control={control}
+                  render={({ field }) => (
+                    <Stack
+                      spacing={2}
+                      direction="row"
+                      sx={{ alignItems: 'center' }}
+                    >
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {t('stylePage.occlusionModel', 'Model')}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{ color: 'text.secondary' }}
+                        >
+                          {t(
+                            'stylePage.tooltip.occlusionModel',
+                            'People: real footage. Anime: stylized characters (heavier, needs WebGPU).'
+                          )}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ flexShrink: 0, minWidth: 180 }}>
+                        <SegmentedTabs
+                          value={field.value}
+                          onChange={(v) => field.onChange(v)}
+                          color="secondary"
+                          items={[
+                            {
+                              value: 'people',
+                              label: t(
+                                'stylePage.occlusionModelPeople',
+                                'People'
+                              ),
+                            },
+                            {
+                              value: 'anime',
+                              label: t(
+                                'stylePage.occlusionModelAnime',
+                                'Anime'
+                              ),
+                            },
+                          ]}
+                        />
+                      </Box>
+                    </Stack>
+                  )}
+                />
+                <Controller
                   name="occlusionConfidence"
                   control={control}
                   render={({ field }) => (

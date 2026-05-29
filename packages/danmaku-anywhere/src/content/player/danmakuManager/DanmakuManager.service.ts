@@ -7,6 +7,7 @@ import { uiContainer } from '@/common/ioc/uiIoc'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type {
   DanmakuOptions,
+  OcclusionModel,
   OcclusionQuality,
 } from '@/common/options/danmakuOptions/constant'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
@@ -59,7 +60,9 @@ export class DanmakuManagerService {
   // Occlusion (render danmaku behind people)
   private occlusionService?: OcclusionMaskService
   private occlusionServiceQuality?: OcclusionQuality
+  private occlusionServiceModel?: OcclusionModel
   private occludeBehindPeople = false
+  private occlusionModel: OcclusionModel = 'people'
   private occlusionConfidence = 0.5
   private occlusionEdgeSoftness = 4
   private occlusionQuality: OcclusionQuality = 'medium'
@@ -230,6 +233,9 @@ export class DanmakuManagerService {
     if (config.occludeBehindPeople !== undefined) {
       this.occludeBehindPeople = config.occludeBehindPeople
     }
+    if (config.occlusionModel !== undefined) {
+      this.occlusionModel = config.occlusionModel
+    }
     if (config.occlusionConfidence !== undefined) {
       this.occlusionConfidence = config.occlusionConfidence
     }
@@ -283,20 +289,22 @@ export class DanmakuManagerService {
       this.occlusionService?.dispose()
       this.occlusionService = undefined
       this.occlusionServiceQuality = undefined
+      this.occlusionServiceModel = undefined
       return
     }
-    // captureSize/cadence are fixed at construction, so a quality change needs a
-    // fresh service; threshold/softness/debug adjust live.
+    // captureSize/cadence and the model are fixed at construction, so a quality
+    // or model change needs a fresh service; threshold/softness/debug adjust live.
     if (
       this.occlusionService &&
-      this.occlusionServiceQuality !== this.occlusionQuality
+      (this.occlusionServiceQuality !== this.occlusionQuality ||
+        this.occlusionServiceModel !== this.occlusionModel)
     ) {
       this.occlusionService.dispose()
       this.occlusionService = undefined
     }
     if (!this.occlusionService) {
       this.occlusionService = new OcclusionMaskService(
-        createMaskProvider(),
+        createMaskProvider(this.occlusionModel),
         (url) => this.setOcclusionMaskUrl(url),
         {
           ...OCCLUSION_QUALITY_PRESETS[this.occlusionQuality],
@@ -306,6 +314,7 @@ export class DanmakuManagerService {
         }
       )
       this.occlusionServiceQuality = this.occlusionQuality
+      this.occlusionServiceModel = this.occlusionModel
     } else {
       this.occlusionService.setRuntime({
         threshold: this.occlusionConfidence,

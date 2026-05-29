@@ -142,6 +142,13 @@ export class DanmakuOptionsService implements IStoreService {
           })
         },
       })
+      .version(11, {
+        upgrade: (data) => {
+          return produce<PrevOptions>(data, (draft) => {
+            draft.occlusionModel = 'people'
+          })
+        },
+      })
   }
 
   async get() {
