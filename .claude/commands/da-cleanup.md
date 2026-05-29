@@ -38,7 +38,7 @@ Remote branches are auto-deleted by GitHub's "delete branch after merge" setting
 
 6. **Prune stale auto-memory** for each cleaned-up task:
 
-- Locate the project's auto-memory directory under Claude's user-config tree (the platform-dependent path is owned by the Claude harness; resolve it from the environment rather than hardcoding here)
+- Locate the project's auto-memory directory: `~/.claude/projects/<slug>/memory/` (on Windows `%USERPROFILE%\.claude\projects\<slug>\memory\`), where `<slug>` is the worktree's absolute path with path separators replaced by `-`. Glob `~/.claude/projects/*danmaku-anywhere*/memory/` if the slug is uncertain
 - Grep that directory for the cleaned task ID and any in-flight notes that referenced it
 - For each match: read the file, decide whether the content has surviving general value (e.g. a still-true gotcha or lesson) or is purely in-flight state. Delete the file if it's purely in-flight; otherwise leave it and note the staleness
 - Update `MEMORY.md` to remove entries for any files you deleted

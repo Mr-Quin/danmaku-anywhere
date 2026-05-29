@@ -50,10 +50,10 @@ gh release download "$TAG" --pattern "$ASSET" --dir "$DEST"
 unzip -q "$DEST/$ASSET" -d "$DEST/unpacked"
 ```
 
-**PowerShell** (escape the inner double-quotes; PowerShell strips unescaped ones before passing to native exes):
+**PowerShell** (parse the JSON in PowerShell rather than passing a `jq` filter through the native-command boundary, which mangles quotes):
 ```powershell
 $TAG = '<tag from step 1>'
-$ASSET = gh release view $TAG --json assets --jq '.assets[] | select(.name | endswith(\"-chrome.zip\")) | .name'
+$ASSET = ((gh release view $TAG --json assets | ConvertFrom-Json).assets | Where-Object { $_.name -like '*-chrome.zip' }).name
 $DEST = ".tmp/preview-$TAG"
 New-Item -ItemType Directory -Force -Path $DEST | Out-Null
 gh release download $TAG --pattern $ASSET --dir $DEST
