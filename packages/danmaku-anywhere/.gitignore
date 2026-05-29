@@ -1,6 +1,10 @@
 extention-profile
 build-standalone
 test-results
+
+# MediaPipe wasm is copied from node_modules at (pre)build/(pre)dev by
+# scripts/copy-mediapipe.mjs; the model + test videos are committed.
+public/mediapipe/wasm/
 playwright-report
 blob-report
 .playwright-profile

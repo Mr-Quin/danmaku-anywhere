@@ -174,11 +174,6 @@ export class AppSidebar {
                   label: 'Components',
                   icon: 'toolbar',
                 },
-                {
-                  path: '/debug/playground',
-                  label: 'Playground',
-                  icon: 'science',
-                },
               ],
             },
           ]),

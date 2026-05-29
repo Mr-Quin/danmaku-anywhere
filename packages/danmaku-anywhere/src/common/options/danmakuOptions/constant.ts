@@ -8,6 +8,7 @@ import type { Options } from '@/common/options/OptionsService/types'
 export type DanmakuOptions = Omit<DanmakuEngineOptions, 'show'> & {
   readonly customCss: string
   readonly useCustomCss: boolean
+  readonly occludeBehindPeople: boolean
 }
 
 export type DanmakuOptionsOptions = Options<DanmakuOptions>
@@ -43,6 +44,7 @@ export const defaultDanmakuOptions: DanmakuOptions = {
   },
   useCustomCss: false,
   customCss: '',
+  occludeBehindPeople: false,
   maxOnScreen: 500,
   interval: 200,
   trackLimit: 32,

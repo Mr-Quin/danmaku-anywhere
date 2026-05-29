@@ -643,6 +643,7 @@
     "interval": "发射间隔",
     "maxOnScreen": "最大同屏弹幕数",
     "name": "弹幕设置",
+    "occludeBehindPeople": "弹幕显示在人物后方",
     "offset": "时间轴",
     "opacity": "不透明度",
     "orderDistribution": "顺序",
@@ -665,6 +666,7 @@
       "distribution": "均匀：弹幕将均匀地填充屏幕。顺序：弹幕将从上到下填充屏幕",
       "interval": "值越小弹幕越密集。过低可能导致卡顿。",
       "maxOnScreen": "屏幕上显示的弹幕数量不超过此值。超过此值的弹幕将被丢弃。",
+      "occludeBehindPeople": "实验性功能。使用本地分割模型，让弹幕显示在视频中的人物后方。仅支持 Chrome，在性能较弱的设备上可能影响性能。",
       "offsetScrubber": "水平拖动或使用滚轮调整，双击手动输入。正值使弹幕延后出现，负值使弹幕提前出现。",
       "overlap": "允许弹幕重叠以减少弹幕之间的间距，值越高，重叠幅度越大。0表示禁止重叠。",
       "safeZone": {

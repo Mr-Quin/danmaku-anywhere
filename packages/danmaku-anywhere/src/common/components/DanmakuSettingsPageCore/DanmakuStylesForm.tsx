@@ -320,6 +320,27 @@ export const DanmakuStylesForm = ({
               )}
             />
           )}
+          {IS_CHROME && (
+            <Controller
+              name="occludeBehindPeople"
+              control={control}
+              render={({ field }) => (
+                <LabeledSwitch
+                  label={t(
+                    'stylePage.occludeBehindPeople',
+                    'Render behind people'
+                  )}
+                  tooltip={t(
+                    'stylePage.tooltip.occludeBehindPeople',
+                    'Experimental. Uses on-device segmentation to render danmaku behind people in the video. Chrome only, and may affect performance on slower devices.'
+                  )}
+                  edge="end"
+                  checked={field.value}
+                  onChange={(e) => field.onChange(e.target.checked)}
+                />
+              )}
+            />
+          )}
           <Controller
             name="useCustomCss"
             control={control}

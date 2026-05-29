@@ -12,6 +12,8 @@ import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
 import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayout.service'
 import { RectObserver } from '@/content/player/danmakuManager/RectObserver'
 import { DanmakuDebugOverlayService } from '@/content/player/debugOverlay/DanmakuDebugOverlay.service'
+import { createMaskProvider } from '@/content/player/occlusion/createMaskProvider'
+import { OcclusionMaskService } from '@/content/player/occlusion/OcclusionMaskService'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
 
 @injectable('Singleton')
@@ -41,6 +43,10 @@ export class DanmakuManagerService {
 
   // Observers
   private rectObs?: RectObserver
+
+  // Occlusion (render danmaku behind people)
+  private occlusionService?: OcclusionMaskService
+  private occludeBehindPeople = false
 
   constructor(
     @inject(VideoNodeObserverService)
@@ -155,6 +161,7 @@ export class DanmakuManagerService {
 
       this.renderer.create(this.nodes.container, this.video, this.comments)
     }
+    this.updateOcclusion()
   }
 
   mount(comments: CommentEntity[]) {
@@ -189,6 +196,7 @@ export class DanmakuManagerService {
     this.comments = []
     this.hasComments = false
     this.isMounted = false
+    this.updateOcclusion()
   }
 
   setParent(parent: HTMLElement) {
@@ -198,12 +206,16 @@ export class DanmakuManagerService {
 
   updateConfig(config: Partial<DanmakuOptions>) {
     this.cleanupInjectedCss()
+    if (config.occludeBehindPeople !== undefined) {
+      this.occludeBehindPeople = config.occludeBehindPeople
+    }
     if (this.parent && config.useCustomCss === true && config.customCss) {
       // TODO: validate css
       this.injectedCss = injectCss(this.parent, [config.customCss])
     }
     this.renderer.updateConfig(config)
     this.updateContainerStyles()
+    this.updateOcclusion()
   }
 
   seek(time: number) {
@@ -230,6 +242,28 @@ export class DanmakuManagerService {
     this.renderer.hide()
   }
 
+  setOcclusionMaskUrl(url?: string) {
+    this.renderer.setOcclusionMaskUrl(url)
+  }
+
+  private updateOcclusion() {
+    const shouldRun =
+      this.occludeBehindPeople && this.isMounted && this.video !== null
+    if (!shouldRun) {
+      this.occlusionService?.stop()
+      return
+    }
+    if (!this.occlusionService) {
+      this.occlusionService = new OcclusionMaskService(
+        createMaskProvider(),
+        (url) => this.setOcclusionMaskUrl(url)
+      )
+    }
+    if (this.video) {
+      this.occlusionService.start(this.video)
+    }
+  }
+
   resize() {
     this.handleRectChange(this.rect, false)
   }
@@ -237,6 +271,8 @@ export class DanmakuManagerService {
   stop() {
     this.logger.debug('Stopping')
 
+    this.occlusionService?.dispose()
+    this.occlusionService = undefined
     this.teardownObs()
     this.videoNodeObs.stop()
     this.debugOverlayService.unmount()

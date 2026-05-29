@@ -282,4 +282,8 @@ export class DanmakuRenderer {
       this.manager.unfreeze()
     }
   }
+
+  setOcclusionMaskUrl(url?: string): void {
+    this.manager?.updateOccludedUrl(url ?? undefined)
+  }
 }

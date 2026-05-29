@@ -103,14 +103,6 @@ export const routes: Routes = [
               ),
             title: `Debug Components | ${PAGE_TITLE}`,
           },
-          {
-            path: 'playground',
-            loadComponent: () =>
-              import(
-                './features/debug/playground/playground-page.component'
-              ).then((m) => m.PlaygroundPageComponent),
-            title: `Playground | ${PAGE_TITLE}`,
-          },
         ],
       },
     ],

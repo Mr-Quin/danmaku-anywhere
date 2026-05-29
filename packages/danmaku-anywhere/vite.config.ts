@@ -80,6 +80,8 @@ export default defineConfig({
       input: {
         app: 'pages/popup.html',
         dashboard: 'pages/dashboard.html',
+        // Hidden extension page that hosts MediaPipe for the occlusion feature.
+        segmenter: 'pages/segmenter.html',
       },
       output: {
         manualChunks: (id) => {
