@@ -136,6 +136,9 @@ export class DanmakuOptionsService implements IStoreService {
         upgrade: (data) => {
           return produce<PrevOptions>(data, (draft) => {
             draft.occludeBehindPeople = false
+            draft.occlusionConfidence = 0.5
+            draft.occlusionEdgeSoftness = 4
+            draft.occlusionQuality = 'medium'
           })
         },
       })

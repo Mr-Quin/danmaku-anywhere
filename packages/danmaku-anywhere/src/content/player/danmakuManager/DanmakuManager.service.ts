@@ -5,7 +5,10 @@ import { createElement } from 'react'
 import ReactDOM from 'react-dom/client'
 import { uiContainer } from '@/common/ioc/uiIoc'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
-import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
+import type {
+  DanmakuOptions,
+  OcclusionQuality,
+} from '@/common/options/danmakuOptions/constant'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { injectCss } from '@/content/common/injectCss'
 import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
@@ -15,6 +18,15 @@ import { DanmakuDebugOverlayService } from '@/content/player/debugOverlay/Danmak
 import { createMaskProvider } from '@/content/player/occlusion/createMaskProvider'
 import { OcclusionMaskService } from '@/content/player/occlusion/OcclusionMaskService'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
+
+const OCCLUSION_QUALITY_PRESETS: Record<
+  OcclusionQuality,
+  { captureSize: number; minIntervalMs: number; outputMaxSide: number }
+> = {
+  low: { captureSize: 192, minIntervalMs: 120, outputMaxSide: 256 },
+  medium: { captureSize: 256, minIntervalMs: 80, outputMaxSide: 320 },
+  high: { captureSize: 256, minIntervalMs: 50, outputMaxSide: 384 },
+}
 
 @injectable('Singleton')
 export class DanmakuManagerService {
@@ -46,7 +58,12 @@ export class DanmakuManagerService {
 
   // Occlusion (render danmaku behind people)
   private occlusionService?: OcclusionMaskService
+  private occlusionServiceQuality?: OcclusionQuality
   private occludeBehindPeople = false
+  private occlusionConfidence = 0.5
+  private occlusionEdgeSoftness = 4
+  private occlusionQuality: OcclusionQuality = 'medium'
+  private debug = false
 
   constructor(
     @inject(VideoNodeObserverService)
@@ -71,11 +88,15 @@ export class DanmakuManagerService {
     extensionOptionsService
       .get()
       .then((options) => {
+        this.debug = options.debug
         this.debugOverlayService.setDebugEnabled(options.debug)
+        this.occlusionService?.setRuntime({ debug: options.debug })
       })
       .catch((e) => this.logger.error(e))
     extensionOptionsService.onChange((options) => {
+      this.debug = options.debug
       this.debugOverlayService.setDebugEnabled(options.debug)
+      this.occlusionService?.setRuntime({ debug: options.debug })
     })
   }
 
@@ -209,6 +230,15 @@ export class DanmakuManagerService {
     if (config.occludeBehindPeople !== undefined) {
       this.occludeBehindPeople = config.occludeBehindPeople
     }
+    if (config.occlusionConfidence !== undefined) {
+      this.occlusionConfidence = config.occlusionConfidence
+    }
+    if (config.occlusionEdgeSoftness !== undefined) {
+      this.occlusionEdgeSoftness = config.occlusionEdgeSoftness
+    }
+    if (config.occlusionQuality !== undefined) {
+      this.occlusionQuality = config.occlusionQuality
+    }
     if (this.parent && config.useCustomCss === true && config.customCss) {
       // TODO: validate css
       this.injectedCss = injectCss(this.parent, [config.customCss])
@@ -250,14 +280,38 @@ export class DanmakuManagerService {
     const shouldRun =
       this.occludeBehindPeople && this.isMounted && this.video !== null
     if (!shouldRun) {
-      this.occlusionService?.stop()
+      this.occlusionService?.dispose()
+      this.occlusionService = undefined
+      this.occlusionServiceQuality = undefined
       return
+    }
+    // captureSize/cadence are fixed at construction, so a quality change needs a
+    // fresh service; threshold/softness/debug adjust live.
+    if (
+      this.occlusionService &&
+      this.occlusionServiceQuality !== this.occlusionQuality
+    ) {
+      this.occlusionService.dispose()
+      this.occlusionService = undefined
     }
     if (!this.occlusionService) {
       this.occlusionService = new OcclusionMaskService(
         createMaskProvider(),
-        (url) => this.setOcclusionMaskUrl(url)
+        (url) => this.setOcclusionMaskUrl(url),
+        {
+          ...OCCLUSION_QUALITY_PRESETS[this.occlusionQuality],
+          threshold: this.occlusionConfidence,
+          edgeSoftness: this.occlusionEdgeSoftness,
+          debug: this.debug,
+        }
       )
+      this.occlusionServiceQuality = this.occlusionQuality
+    } else {
+      this.occlusionService.setRuntime({
+        threshold: this.occlusionConfidence,
+        edgeSoftness: this.occlusionEdgeSoftness,
+        debug: this.debug,
+      })
     }
     if (this.video) {
       this.occlusionService.start(this.video)

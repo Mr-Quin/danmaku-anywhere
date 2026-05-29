@@ -10,6 +10,9 @@ import { FilesetResolver, ImageSegmenter } from '@mediapipe/tasks-vision'
  */
 
 const CHANNEL = 'occlusion'
+// The bundled selfie model's PERSON category is index 0 (verified empirically;
+// inverted from some docs). confidenceMasks[0] is the per-pixel person prob.
+const PERSON_CATEGORY = 0
 
 type ReadyMsg = { __da: typeof CHANNEL; type: 'ready' }
 type Reply = {
@@ -31,7 +34,7 @@ async function init() {
   segmenter = await ImageSegmenter.createFromOptions(fileset, {
     baseOptions: { modelAssetPath: modelPath, delegate: 'GPU' },
     runningMode: 'VIDEO',
-    outputCategoryMask: true,
+    outputConfidenceMasks: true,
   })
 }
 
@@ -61,13 +64,22 @@ window.addEventListener('message', async (e: MessageEvent) => {
         msg.bitmap as ImageBitmap,
         lastTimestamp
       )
-      const mask = result.categoryMask
+      const mask = result.confidenceMasks?.[PERSON_CATEGORY]
       const dims = { w: mask?.width ?? 0, h: mask?.height ?? 0 }
-      // getAsUint8Array reads the mask back to CPU; copy out of the wasm-owned
-      // view before transferring its buffer.
-      const view = mask?.getAsUint8Array()
-      const bytes = view ? new Uint8Array(view) : new Uint8Array(0)
-      mask?.close()
+      const threshold = typeof msg.threshold === 'number' ? msg.threshold : 0.5
+      // getAsFloat32Array reads the per-pixel person confidence back to CPU;
+      // threshold here (person => 0, background => 1) so only a small Uint8
+      // mask is transferred, not the floats.
+      const conf = mask?.getAsFloat32Array()
+      const bytes = new Uint8Array(dims.w * dims.h)
+      if (conf) {
+        for (let i = 0; i < conf.length; i++) {
+          bytes[i] = conf[i] >= threshold ? 0 : 1
+        }
+      }
+      for (const m of result.confidenceMasks ?? []) {
+        m.close()
+      }
       result.close()
       ;(msg.bitmap as ImageBitmap).close()
       reply({ type: 'segment', ok: true, dims, bytes }, [bytes.buffer])

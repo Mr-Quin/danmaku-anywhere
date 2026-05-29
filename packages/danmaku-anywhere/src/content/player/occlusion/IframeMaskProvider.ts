@@ -1,4 +1,4 @@
-import type { MaskProvider, SegmentationResult } from './types'
+import type { MaskProvider, SegmentationResult, SegmentOptions } from './types'
 
 const CHANNEL = 'occlusion'
 const INIT_TIMEOUT_MS = 15_000
@@ -74,7 +74,10 @@ export class IframeMaskProvider implements MaskProvider {
     })
   }
 
-  segment(frame: ImageBitmap): Promise<SegmentationResult | null> {
+  segment(
+    frame: ImageBitmap,
+    options?: SegmentOptions
+  ): Promise<SegmentationResult | null> {
     return new Promise((resolve) => {
       const target = this.iframe?.contentWindow
       if (!target) {
@@ -113,7 +116,12 @@ export class IframeMaskProvider implements MaskProvider {
       timer = setTimeout(() => finish(null), SEGMENT_TIMEOUT_MS)
       window.addEventListener('message', onMessage)
       target.postMessage(
-        { __da: CHANNEL, type: 'segment', bitmap: frame },
+        {
+          __da: CHANNEL,
+          type: 'segment',
+          bitmap: frame,
+          threshold: options?.threshold,
+        },
         '*',
         [frame]
       )

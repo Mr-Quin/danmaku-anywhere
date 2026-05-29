@@ -3,9 +3,15 @@ import type { Size } from './maskGeometry'
 export type { Size }
 
 export interface SegmentationResult {
-  // Per-pixel category values in the segmenter's own grid (row-major).
+  // Per-pixel mask in the segmenter's own grid (row-major): 0 = person (hidden),
+  // non-zero = background (shown).
   category: Uint8Array
   maskSize: Size
+}
+
+export interface SegmentOptions {
+  // Person-confidence cutoff [0,1] applied where confidence data is available.
+  threshold?: number
 }
 
 /**
@@ -16,6 +22,9 @@ export interface SegmentationResult {
  */
 export interface MaskProvider {
   init(): Promise<void>
-  segment(frame: ImageBitmap): Promise<SegmentationResult | null>
+  segment(
+    frame: ImageBitmap,
+    options?: SegmentOptions
+  ): Promise<SegmentationResult | null>
   dispose(): void
 }
