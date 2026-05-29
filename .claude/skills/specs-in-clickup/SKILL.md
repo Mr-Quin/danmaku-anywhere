@@ -10,7 +10,7 @@ Brainstorm outputs, design specs, and implementation plans live as **ClickUp doc
 ## Prerequisites
 
 - ClickUp MCP (`clickup_*` tools)
-- Agent-memory entry `reference_clickup_setup` with the workspace's `space_id`, `list_id`, and `task_type_id`s
+- `CLICKUP_DA_SPACE_ID` set in the environment (the developer exports it in their shell, e.g. `~/.zshenv`; see `da-dev` step 1)
 
 If either is missing, stop and tell the human. Don't fall back to committing the spec to the repo. Never hardcode IDs in tracked files.
 
@@ -20,12 +20,12 @@ After `superpowers:brainstorming`, `superpowers:writing-plans`, or anything that
 
 1. **Find or create the related ClickUp task.** `da-dev` step 1 does this. Note the DA-XXX ID.
 2. **Search for an existing doc** before creating a new one. `clickup_search` with `filters: { asset_types: ['doc'] }` covers names and contents; `clickup_get_task_comments` covers links posted to the task. Iterate via `clickup_update_document_page` rather than recreate.
-3. **Create the doc at space level.** Tasks cannot be doc parents; list-level docs (`type: "6"`) surface as views inside the list. Resolve `<space_id>` from memory.
+3. **Create the doc at space level.** Tasks cannot be doc parents; list-level docs (`type: "6"`) surface as views inside the list. Resolve `<space_id>` from `$CLICKUP_DA_SPACE_ID`.
    ```
    clickup_create_document(
      name: "Spec: <topic>",
      parent: { id: <space_id>, type: "4" },
-     visibility: <project default; see reference_clickup_setup>,
+     visibility: <project default>,
      create_page: false
    )
    ```

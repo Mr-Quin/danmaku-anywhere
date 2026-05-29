@@ -13,7 +13,7 @@ Orchestrates: ClickUp task → branch → implement → verify → self-review �
 
 ### 1. ClickUp Task
 
-Look up ClickUp workspace IDs (list ID, Type field ID, option IDs) from memory; ask the user if absent.
+This is the ClickUp-integrated workflow and is opt-in; contributors who don't use it never need ClickUp configured. The workspace IDs come from environment variables (inherited across worktrees): `CLICKUP_DA_LIST_ID` (Extension Tasks list), `CLICKUP_DA_SPACE_ID`, and `CLICKUP_DA_TYPE_FIELD_ID`. If any are unset, stop and ask the user to export them (e.g. in `~/.zshenv`). Resolve the Type *option* ID for the chosen type (extension/app/proxy/chore/docs) by name via `clickup_get_custom_fields`, so the option IDs need no separate config.
 
 Explore for an existing match: `clickup_search` with nouns from the request, scoped to the Extension Tasks list. Scan recent activity if the search is too narrow. Multiple plausible hits → list and ask. None → create one and pick the Type based on the scope of the change. Grab the custom ID (`DA-XXX`).
 
@@ -50,7 +50,7 @@ Make the changes. Apply these in order:
 - **YAGNI**: don't add a config knob, parameter, or branch unless *this* PR needs it. "In case someone later wants to…" is the smell. Future flexibility is cheaper to add when it's actually needed than to remove when it isn't.
 - **Library / framework idioms**: use each library's blessed patterns rather than inventing your own. Before writing a helper, check whether the framework already exposes the primitive (e.g. React hook, Hono middleware, Playwright fixture, octokit method, MUI component). For unfamiliar APIs or recent versions, fetch current docs via the `context7` MCP instead of trusting model memory. Match the project's existing usage of a library; if everywhere else uses pattern A and you're tempted to introduce pattern B, the burden of proof is on B.
 - **e2e coverage**: every feature/fix lands with e2e coverage under `packages/danmaku-anywhere/e2e/` unless coverage is genuinely infeasible. State *why* in the PR body when skipping. Use `browser-verify` while authoring the spec.
-- **Committed agent docs stay portable.** Files under `.claude/`, `CLAUDE.md`, `AGENTS.md` must not contain absolute paths into a developer's machine, OS-specific commands without an alternative, or project-specific magic values. Workspace-specific values (ClickUp IDs, etc.) belong in agent memory (`reference_*`) or a gitignored templated config. If a workflow depends on an MCP or local tool that may not be present, declare the prerequisite so the agent can stop and tell the human on a miss.
+- **Committed agent docs stay portable.** Files under `.claude/`, `CLAUDE.md`, `AGENTS.md` must not contain absolute paths into a developer's machine, OS-specific commands without an alternative, or project-specific magic values. Workspace-specific values (ClickUp IDs, browser executable paths, etc.) live in environment variables (e.g. `CLICKUP_DA_*`, `CHROME_DEVTOOLS_EXECUTABLE`) that the developer sets in their shell, not in committed files; env vars are inherited across worktrees, unlike per-project agent memory. If a workflow depends on an MCP or local tool that may not be present, declare the prerequisite so the agent can stop and tell the human on a miss.
 
 ### 4. Verify
 
