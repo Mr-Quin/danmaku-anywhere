@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Anime segmentation test</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 16px;
+        background: #111;
+        color: #eee;
+        font-family: sans-serif;
+      }
+      #log {
+        white-space: pre-wrap;
+        font: 12px monospace;
+        color: #8f8;
+        margin: 8px 0;
+      }
+      .row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+      canvas {
+        max-width: 480px;
+        background: #000;
+        outline: 1px solid #333;
+      }
+      input[type='text'] {
+        width: 520px;
+        max-width: 80vw;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Anime segmentation test (ort-web WebGPU)</h1>
+    <p>
+      Paste an image URL (anime frame/screenshot) and click Run, or pick a local
+      file. The model runs in this extension page via onnxruntime-web on WebGPU.
+    </p>
+    <div>
+      <input
+        id="url"
+        type="text"
+        placeholder="https://.../anime-frame.jpg"
+      />
+      <button id="run">Run URL</button>
+      <input id="file" type="file" accept="image/*" />
+    </div>
+    <div id="log">loading...</div>
+    <div class="row">
+      <div>
+        <div>input</div>
+        <canvas id="src"></canvas>
+      </div>
+      <div>
+        <div>mask (white = subject)</div>
+        <canvas id="mask"></canvas>
+      </div>
+      <div>
+        <div>overlay (subject kept, bg dimmed)</div>
+        <canvas id="overlay"></canvas>
+      </div>
+    </div>
+    <script src="/src/content/player/occlusion/animeTest.ts" type="module"></script>
+  </body>
+</html>

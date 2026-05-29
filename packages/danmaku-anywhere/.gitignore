@@ -5,6 +5,11 @@ test-results
 # MediaPipe wasm is copied from node_modules at (pre)build/(pre)dev by
 # scripts/copy-mediapipe.mjs; the model + test videos are committed.
 public/mediapipe/wasm/
+
+# Anime prototype: large hosted assets (onnxruntime-web wasm + the ISNet model)
+# are fetched/copied, never committed.
+public/ort/
+public/models/
 playwright-report
 blob-report
 .playwright-profile

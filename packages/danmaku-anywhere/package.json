@@ -83,6 +83,7 @@
     "immer": "^10.2.0",
     "inversify": "^7.10.4",
     "jszip": "^3.10.1",
+    "onnxruntime-web": "^1.26.0",
     "opencc-js": "^1.0.5",
     "pinyin-pro": "^3.27.0",
     "react": "19.2.0",

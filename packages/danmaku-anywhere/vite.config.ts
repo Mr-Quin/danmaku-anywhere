@@ -82,6 +82,8 @@ export default defineConfig({
         dashboard: 'pages/dashboard.html',
         // Hidden extension page that hosts MediaPipe for the occlusion feature.
         segmenter: 'pages/segmenter.html',
+        // Throwaway anime-segmentation prototype harness (non-prod only).
+        ...(daEnv === 'prod' ? {} : { 'anime-test': 'pages/anime-test.html' }),
       },
       output: {
         manualChunks: (id) => {
