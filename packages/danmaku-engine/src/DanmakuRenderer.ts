@@ -38,6 +38,7 @@ export class DanmakuRenderer {
   comments: CommentEntity[] = []
   config: DanmakuOptions = DEFAULT_DANMAKU_OPTIONS
   created = false
+  private occlusionMaskUrl?: string
 
   private parsedComments: ParsedComment[] = []
   private decisions: Decision[] = []
@@ -141,6 +142,13 @@ export class DanmakuRenderer {
     manager.mount(container)
     this.setArea()
     this.updateOptions()
+
+    // A recreate builds a fresh manager; reapply the last occlusion mask so it
+    // survives the swap (the live loop only re-pushes on the next frame, which
+    // never comes while paused).
+    if (this.occlusionMaskUrl) {
+      manager.updateOccludedUrl(this.occlusionMaskUrl)
+    }
 
     if (!this.media.paused) {
       manager.startPlaying()
@@ -284,6 +292,7 @@ export class DanmakuRenderer {
   }
 
   setOcclusionMaskUrl(url?: string): void {
+    this.occlusionMaskUrl = url
     this.manager?.updateOccludedUrl(url ?? undefined)
   }
 }

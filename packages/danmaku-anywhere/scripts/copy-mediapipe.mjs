@@ -1,6 +1,6 @@
 // Copy MediaPipe tasks-vision wasm assets into public/ so they ship UNHASHED
 // (FilesetResolver requests them by exact name from a directory URL) and are
-// served from the extension origin via chrome.runtime.getURL — never a CDN
+// served from the extension origin via chrome.runtime.getURL, never from a CDN
 // (MV3 forbids remote code).
 //
 // The .tflite model is NOT in the npm package; vendor it into

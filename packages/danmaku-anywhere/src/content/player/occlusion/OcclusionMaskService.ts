@@ -31,24 +31,36 @@ export class OcclusionMaskService {
   private running = false
   private busy = false
   private lastSegmentTs = 0
-  private initialized?: Promise<void>
   private readonly captureCanvas = document.createElement('canvas')
   private readonly maskCanvas = document.createElement('canvas')
+  private readonly captureCtx: CanvasRenderingContext2D | null
+  private readonly maskCtx: CanvasRenderingContext2D | null
 
   constructor(
     private readonly provider: MaskProvider,
     private readonly applyMask: (url?: string) => void,
     private readonly options: OcclusionMaskOptions = {}
-  ) {}
+  ) {
+    this.captureCanvas.width = options.captureSize ?? DEFAULT_CAPTURE_SIZE
+    this.captureCanvas.height = this.captureCanvas.width
+    this.captureCtx = this.captureCanvas.getContext('2d')
+    this.maskCtx = this.maskCanvas.getContext('2d')
+  }
 
   start(video: HTMLVideoElement): void {
     if (this.running && this.video === video) {
       return
     }
     this.stop()
+    // requestVideoFrameCallback drives the loop; the flag is synced storage and
+    // can reach a browser without it, so treat absence as "unavailable" rather
+    // than throwing during danmaku mount.
+    if (typeof video.requestVideoFrameCallback !== 'function') {
+      return
+    }
     this.video = video
     this.running = true
-    this.scheduleFrame()
+    void this.run()
   }
 
   stop(): void {
@@ -61,6 +73,18 @@ export class OcclusionMaskService {
   dispose(): void {
     this.stop()
     this.provider.dispose()
+  }
+
+  private async run(): Promise<void> {
+    try {
+      await this.provider.init()
+    } catch {
+      // Init failed (wasm/model load, WebGL unavailable). Give up for now
+      // without breaking playback; a later start() can retry a fresh provider.
+      this.running = false
+      return
+    }
+    this.scheduleFrame()
   }
 
   private scheduleFrame(): void {
@@ -100,20 +124,25 @@ export class OcclusionMaskService {
   }
 
   private async segmentAndApply(video: HTMLVideoElement): Promise<void> {
-    if (!this.initialized) {
-      this.initialized = this.provider.init()
-    }
-    await this.initialized
-
-    const captureSize = this.options.captureSize ?? DEFAULT_CAPTURE_SIZE
-    this.captureCanvas.width = captureSize
-    this.captureCanvas.height = captureSize
-    const captureCtx = this.captureCanvas.getContext('2d')
-    if (!captureCtx) {
+    const captureCtx = this.captureCtx
+    const maskCtx = this.maskCtx
+    if (!captureCtx || !maskCtx) {
       return
     }
-    captureCtx.drawImage(video, 0, 0, captureSize, captureSize)
-    const frame = await createImageBitmap(this.captureCanvas)
+
+    const captureSize = this.captureCanvas.width
+    let frame: ImageBitmap
+    try {
+      captureCtx.drawImage(video, 0, 0, captureSize, captureSize)
+      frame = await createImageBitmap(this.captureCanvas)
+    } catch (e) {
+      // Cross-origin-without-CORS or DRM/EME video taints the canvas; reading it
+      // back is impossible, so disable for this video instead of retrying.
+      if (e instanceof DOMException && e.name === 'SecurityError') {
+        this.stop()
+      }
+      return
+    }
 
     const result = await this.provider.segment(frame)
     if (!result || !this.running) {
@@ -140,11 +169,12 @@ export class OcclusionMaskService {
       isPerson: this.options.isPerson ?? defaultIsPerson,
     })
 
-    this.maskCanvas.width = mask.width
-    this.maskCanvas.height = mask.height
-    const maskCtx = this.maskCanvas.getContext('2d')
-    if (!maskCtx) {
-      return
+    if (
+      this.maskCanvas.width !== mask.width ||
+      this.maskCanvas.height !== mask.height
+    ) {
+      this.maskCanvas.width = mask.width
+      this.maskCanvas.height = mask.height
     }
     const imageData = maskCtx.createImageData(mask.width, mask.height)
     imageData.data.set(mask.data)

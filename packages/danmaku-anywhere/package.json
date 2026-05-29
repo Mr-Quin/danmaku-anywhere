@@ -14,6 +14,7 @@
     "prebuild": "node scripts/copy-mediapipe.mjs",
     "dev": "vite",
     "predev": "node scripts/copy-mediapipe.mjs",
+    "predev:browser": "node scripts/copy-mediapipe.mjs",
     "dev:browser": "node e2e/setup/open-browser.ts",
     "dev:browser:build": "node e2e/setup/open-browser.ts --build",
     "dev:firefox": "VITE_TARGET_BROWSER=firefox pnpm run dev",

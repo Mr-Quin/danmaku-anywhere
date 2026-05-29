@@ -1,6 +1,8 @@
 import type { MaskProvider, SegmentationResult } from './types'
 
 const CHANNEL = 'occlusion'
+const INIT_TIMEOUT_MS = 15_000
+const SEGMENT_TIMEOUT_MS = 5_000
 
 /**
  * Runs MediaPipe ImageSegmenter in a hidden chrome-extension:// iframe injected
@@ -16,7 +18,11 @@ export class IframeMaskProvider implements MaskProvider {
 
   init(): Promise<void> {
     if (!this.ready) {
-      this.ready = this.create()
+      // Reset on failure so a later attempt (e.g. a new video) can retry.
+      this.ready = this.create().catch((e) => {
+        this.dispose()
+        throw e
+      })
     }
     return this.ready
   }
@@ -30,30 +36,63 @@ export class IframeMaskProvider implements MaskProvider {
       iframe.src = chrome.runtime.getURL('pages/segmenter.html')
       this.iframe = iframe
 
+      const settle = (err?: Error) => {
+        window.removeEventListener('message', onMessage)
+        clearTimeout(timer)
+        if (err) {
+          reject(err)
+        } else {
+          resolve()
+        }
+      }
       const onMessage = (e: MessageEvent) => {
         if (e.source !== iframe.contentWindow || e.data?.__da !== CHANNEL) {
           return
         }
         if (e.data.type === 'ready') {
-          this.post({ type: 'init' })
+          iframe.contentWindow?.postMessage(
+            { __da: CHANNEL, type: 'init' },
+            '*'
+          )
           return
         }
         if (e.data.type === 'init') {
-          window.removeEventListener('message', onMessage)
-          if (e.data.ok) {
-            resolve()
-          } else {
-            reject(new Error(`segmenter init failed: ${e.data.error}`))
-          }
+          settle(
+            e.data.ok ? undefined : new Error(`segmenter init: ${e.data.error}`)
+          )
         }
       }
+      const timer = setTimeout(
+        () => settle(new Error('segmenter init timed out')),
+        INIT_TIMEOUT_MS
+      )
       window.addEventListener('message', onMessage)
+      iframe.addEventListener('error', () =>
+        settle(new Error('segmenter frame failed to load'))
+      )
       document.body.appendChild(iframe)
     })
   }
 
   segment(frame: ImageBitmap): Promise<SegmentationResult | null> {
     return new Promise((resolve) => {
+      const target = this.iframe?.contentWindow
+      if (!target) {
+        frame.close()
+        resolve(null)
+        return
+      }
+      let settled = false
+      let timer: ReturnType<typeof setTimeout>
+      const finish = (result: SegmentationResult | null) => {
+        if (settled) {
+          return
+        }
+        settled = true
+        window.removeEventListener('message', onMessage)
+        clearTimeout(timer)
+        resolve(result)
+      }
       const onMessage = (e: MessageEvent) => {
         if (
           e.source !== this.iframe?.contentWindow ||
@@ -62,27 +101,23 @@ export class IframeMaskProvider implements MaskProvider {
         ) {
           return
         }
-        window.removeEventListener('message', onMessage)
         if (!e.data.ok || !e.data.bytes) {
-          resolve(null)
+          finish(null)
           return
         }
-        resolve({
+        finish({
           category: e.data.bytes as Uint8Array,
           maskSize: { width: e.data.dims.w, height: e.data.dims.h },
         })
       }
+      timer = setTimeout(() => finish(null), SEGMENT_TIMEOUT_MS)
       window.addEventListener('message', onMessage)
-      this.post({ type: 'segment', bitmap: frame }, [frame])
+      target.postMessage(
+        { __da: CHANNEL, type: 'segment', bitmap: frame },
+        '*',
+        [frame]
+      )
     })
-  }
-
-  private post(msg: Record<string, unknown>, transfer: Transferable[] = []) {
-    this.iframe?.contentWindow?.postMessage(
-      { __da: CHANNEL, ...msg },
-      '*',
-      transfer
-    )
   }
 
   dispose(): void {
