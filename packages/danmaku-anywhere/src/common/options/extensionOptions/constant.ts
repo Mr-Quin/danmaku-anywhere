@@ -1,5 +1,6 @@
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 
+import { IS_DA_DEV } from '@/common/constants'
 import { Language } from '@/common/localization/language'
 import { defaultKeymap } from '@/common/options/extensionOptions/hotkeys'
 import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
@@ -22,7 +23,7 @@ export const ChConvertList = [
 
 export const defaultExtensionOptions: ExtensionOptions = {
   enabled: true,
-  debug: false,
+  debug: IS_DA_DEV,
   lang: Language.zh,
   searchUsingSimplified: false,
   retentionPolicy: {
