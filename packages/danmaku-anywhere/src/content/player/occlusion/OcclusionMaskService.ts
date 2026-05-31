@@ -86,6 +86,7 @@ export class OcclusionMaskService {
   private callbackId: number | null = null
   private fps: number | null = null
   private lastError: string | null = null
+  private lastStatusReason?: OcclusionStatusReason
   private lastAppliedTs = 0
 
   constructor(
@@ -107,7 +108,13 @@ export class OcclusionMaskService {
   private status(reason: OcclusionStatusReason, message: string): void {
     this.lastError = message
     this.log(message)
-    this.options.onStatus?.({ reason, message })
+    // The capture loop can hit the same gate (e.g. 'segment') every frame; only
+    // surface a reason once until it changes or a frame succeeds, so a persistent
+    // failure does not spam the same toast.
+    if (reason !== this.lastStatusReason) {
+      this.lastStatusReason = reason
+      this.options.onStatus?.({ reason, message })
+    }
   }
 
   getStats(): OcclusionStats {
@@ -156,6 +163,7 @@ export class OcclusionMaskService {
       return
     }
     this.lastError = null
+    this.lastStatusReason = undefined
     this.fps = null
     this.lastAppliedTs = 0
     this.video = video
@@ -246,6 +254,12 @@ export class OcclusionMaskService {
       !video.paused &&
       video.readyState >= 2 &&
       document.visibilityState === 'visible'
+
+    if (!ready) {
+      // Reset the fps seed so a pause/hidden gap is not counted as one huge
+      // frame interval when capture resumes.
+      this.lastAppliedTs = 0
+    }
 
     if (ready && !this.busy && now - this.lastSegmentTs >= interval) {
       this.lastSegmentTs = now
@@ -375,6 +389,7 @@ export class OcclusionMaskService {
     }
     this.applyMask(this.maskCanvas.toDataURL('image/png'))
     this.lastError = null
+    this.lastStatusReason = undefined
     const appliedAt = performance.now()
     if (this.lastAppliedTs > 0) {
       const dt = appliedAt - this.lastAppliedTs

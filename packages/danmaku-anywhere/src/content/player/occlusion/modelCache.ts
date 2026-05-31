@@ -160,7 +160,7 @@ async function readResponseBytes(
 ): Promise<ArrayBuffer> {
   const header = response.headers?.get('content-length')
   const parsed = header ? Number.parseInt(header, 10) : null
-  const total = parsed !== null && Number.isFinite(parsed) ? parsed : null
+  const total = Number.isFinite(parsed) ? parsed : null
 
   const body = response.body
   if (!body || typeof body.getReader !== 'function') {
@@ -257,10 +257,8 @@ export async function fetchModelWithCache(
   if (cached && cached.byteLength > 0) {
     const ok = await matchesIntegrity(cached, options.sha256, deps.digest)
     if (ok) {
-      options.onProgress?.({
-        loaded: cached.byteLength,
-        total: cached.byteLength,
-      })
+      // No onProgress on a cache hit: it serves instantly, and reporting
+      // progress here would surface a misleading "downloading" notice.
       return cached
     }
     await opfs.remove(options.id).catch(() => undefined)

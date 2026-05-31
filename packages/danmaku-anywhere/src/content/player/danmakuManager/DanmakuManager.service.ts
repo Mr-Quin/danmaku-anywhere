@@ -298,13 +298,9 @@ export class DanmakuManagerService {
         debugOverlay: this.debug,
       }
     }
-    const stats = this.occlusionService.getStats()
     return {
-      running: stats.running,
+      ...this.occlusionService.getStats(),
       model: this.occlusionServiceModel ?? null,
-      fps: stats.fps,
-      lastError: stats.lastError,
-      debugOverlay: stats.debugOverlay,
     }
   }
 
@@ -340,9 +336,10 @@ export class DanmakuManagerService {
     }
     if (!this.occlusionService) {
       const preset = OCCLUSION_QUALITY_PRESETS[this.occlusionQuality]
-      // The anime ISNet model runs at 1024 and is far heavier than the people
-      // segmenter, so it needs a higher-res capture (less upscaling to the model
-      // input) and a much slower cadence to avoid saturating the GPU.
+      // The anime ISNet model is heavier and distortion-sensitive, so it gets an
+      // aspect-preserving capture (undistorted, a bit above the model input for
+      // clean downscaling) and a slower cadence than the lightweight people
+      // segmenter, to avoid saturating the GPU.
       const tuned =
         this.occlusionModel === 'anime'
           ? {
