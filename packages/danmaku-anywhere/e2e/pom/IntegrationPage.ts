@@ -141,4 +141,14 @@ export class IntegrationPage {
     }
     return this.page.locator('#danmaku-anywhere-player .da-danmaku')
   }
+
+  // The danmu library's container element, where the occlusion mask-image is
+  // applied. Lives in the iframe's document for iframe scenarios.
+  danmuContainer(): Locator {
+    const selector = '#danmaku-anywhere-player [data-danmu-container]'
+    if (this.iframeSelector) {
+      return this.page.frameLocator(this.iframeSelector).locator(selector)
+    }
+    return this.page.locator(selector)
+  }
 }

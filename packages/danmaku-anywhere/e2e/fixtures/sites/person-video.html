@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>DA Harness - person video (local file)</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #111;
+        color: #eee;
+        font-family: sans-serif;
+      }
+      video {
+        display: block;
+        width: 100%;
+        max-width: 960px;
+        margin: 0 auto;
+        background: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 data-testid="da-title">DA Harness Person Video</h1>
+    <span data-testid="da-episode">Episode 1</span>
+    <video
+      data-testid="da-video"
+      src="/media/person-akiyo.webm"
+      controls
+      autoplay
+      muted
+      loop
+      playsinline
+    ></video>
+  </body>
+</html>

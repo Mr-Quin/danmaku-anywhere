@@ -1,6 +1,8 @@
 extention-profile
 build-standalone
 test-results
+
+public/mediapipe/wasm/
 playwright-report
 blob-report
 .playwright-profile

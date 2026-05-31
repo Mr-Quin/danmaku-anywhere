@@ -79,6 +79,9 @@ export const manifest = defineManifest({
     512: 'normal_512.png',
   },
   default_locale: 'en',
+  content_security_policy: {
+    extension_pages: "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'",
+  },
   ...(isFirefox && {
     browser_specific_settings: {
       gecko: {
