@@ -73,9 +73,14 @@ async function initAnime(
   const ort = await import('onnxruntime-web/webgpu')
   ortRef = ort
   ort.env.wasm.wasmPaths = chrome.runtime.getURL('ort/')
+  // Cache-bust by content hash so a re-uploaded model at the same path is never
+  // served stale from a CDN edge cache (each version is a distinct URL).
+  const url = descriptor.sha256
+    ? `${descriptor.url}?v=${descriptor.sha256}`
+    : descriptor.url
   const bytes = await fetchModelWithCache({
     id: 'anime-isnet',
-    url: descriptor.url,
+    url,
     sha256: descriptor.sha256,
     onProgress: onProgress
       ? (progress) => {
