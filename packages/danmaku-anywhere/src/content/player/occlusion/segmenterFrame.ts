@@ -19,6 +19,9 @@ const CHANNEL = 'occlusion'
 // inverted from some docs). confidenceMasks[0] is the per-pixel person prob.
 const PERSON_CATEGORY = 0
 const ANIME_INPUT_SIZE = getModel('anime').inputSize
+// Above this subject coverage the anime detection is treated as degenerate and
+// suppressed, so a bad frame does not hide every danmaku.
+const MAX_SUBJECT_FRACTION = 0.9
 
 type ReadyMsg = { __da: typeof CHANNEL; type: 'ready' }
 type Reply = {
@@ -159,12 +162,23 @@ async function segmentAnime(bitmap: ImageBitmap, threshold: number) {
   // content (drop the padding) and threshold directly: subject => 0 (hidden),
   // background => 1 (shown), matching the mediapipe convention downstream.
   const bytes = new Uint8Array(contentW * contentH)
+  let subject = 0
   for (let y = 0; y < contentH; y++) {
     const srcRow = (offsetY + y) * size + offsetX
     const dstRow = y * contentW
     for (let x = 0; x < contentW; x++) {
-      bytes[dstRow + x] = mask[srcRow + x] >= threshold ? 0 : 1
+      const hidden = mask[srcRow + x] >= threshold
+      if (hidden) {
+        subject++
+      }
+      bytes[dstRow + x] = hidden ? 0 : 1
     }
+  }
+  // Degenerate guard: when the model flags almost the entire frame as subject
+  // (an over-confident or confused detection), masking every pixel would hide
+  // all danmaku on screen. Emit no mask instead so danmaku stay visible.
+  if (subject > bytes.length * MAX_SUBJECT_FRACTION) {
+    bytes.fill(1)
   }
   return { dims: { w: contentW, h: contentH }, bytes }
 }
