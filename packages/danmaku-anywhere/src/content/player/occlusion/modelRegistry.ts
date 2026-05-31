@@ -32,9 +32,9 @@ const MODEL_DESCRIPTORS: Readonly<Record<OcclusionModel, ModelDescriptor>> = {
   },
   anime: {
     runtime: 'ort',
-    inputSize: 1024,
+    inputSize: 320,
     url: `${HOSTED_MODELS_BASE_URL}/anime-isnet.onnx`,
-    sha256: 'f15622d853e8260172812b657053460e20806f04b9e05147d49af7bed31a6e99',
+    sha256: 'bed52e3bc068689c1b37f73871e184ae65e183cb6232097bb7fb72a72372f60e',
   },
 }
 
