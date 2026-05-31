@@ -1,4 +1,11 @@
-import { Box, Paper, Stack, Typography } from '@mui/material'
+import {
+  Box,
+  Paper,
+  Stack,
+  type SxProps,
+  type Theme,
+  Typography,
+} from '@mui/material'
 import type { ReactNode } from 'react'
 
 interface SettingsBlockProps {
@@ -6,6 +13,7 @@ interface SettingsBlockProps {
   subtitle?: ReactNode
   headerRight?: ReactNode
   disabled?: boolean
+  sx?: SxProps<Theme>
   children: ReactNode
 }
 
@@ -14,6 +22,7 @@ export function SettingsBlock({
   subtitle,
   headerRight,
   disabled,
+  sx,
   children,
 }: SettingsBlockProps) {
   const hasHeader = title || subtitle || headerRight
@@ -29,6 +38,7 @@ export function SettingsBlock({
           },
         },
         !!disabled && { opacity: 0.7 },
+        ...(Array.isArray(sx) ? sx : [sx]),
       ]}
     >
       {hasHeader && (

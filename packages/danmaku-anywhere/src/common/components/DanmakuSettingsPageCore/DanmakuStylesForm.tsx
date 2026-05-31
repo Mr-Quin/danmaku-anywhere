@@ -266,6 +266,7 @@ export const DanmakuStylesForm = ({
   const yStart = watch('area.yStart', config.area.yStart)
   const yEnd = watch('area.yEnd', config.area.yEnd)
   const useCustomCss = watch('useCustomCss', config.useCustomCss)
+  const occlusion = watch('occlusion', config.occlusion)
 
   return (
     <Stack useFlexGap spacing={2}>
@@ -654,6 +655,144 @@ export const DanmakuStylesForm = ({
           />
         </Stack>
       </SettingsBlock>
+      {IS_CHROME && (
+        <SettingsBlock
+          title={t('stylePage.occlusion', 'Render behind people')}
+          sx={{
+            borderWidth: 3,
+            borderStyle: 'solid',
+            borderColor: 'transparent',
+            borderImage:
+              'repeating-linear-gradient(45deg, #f5c518 0 10px, #1a1a1a 10px 20px) 3',
+          }}
+        >
+          <Stack useFlexGap spacing={2}>
+            <Controller
+              name="occlusion"
+              control={control}
+              render={({ field }) => (
+                <LabeledSwitch
+                  label={t('common.enable', 'Enable')}
+                  tooltip={t(
+                    'stylePage.tooltip.occlusion',
+                    'Experimental. Hides danmaku behind people in the video. May affect performance on slower devices.'
+                  )}
+                  edge="end"
+                  checked={field.value}
+                  onChange={(e) => field.onChange(e.target.checked)}
+                />
+              )}
+            />
+            <Collapse in={occlusion} unmountOnExit>
+              <Stack useFlexGap spacing={2}>
+                <Controller
+                  name="occlusionConfidence"
+                  control={control}
+                  render={({ field }) => (
+                    <LabeledSlider
+                      label={t(
+                        'stylePage.occlusionConfidence',
+                        'Confidence threshold'
+                      )}
+                      tooltip={t(
+                        'stylePage.tooltip.occlusionConfidence',
+                        'Higher only hides danmaku over high-confidence person pixels (tighter). Lower hides more aggressively.'
+                      )}
+                      value={field.value}
+                      onChange={(_e, newValue) =>
+                        field.onChange(newValue as number)
+                      }
+                      step={0.05}
+                      min={0}
+                      max={1}
+                      size="small"
+                      valueLabelDisplay="auto"
+                    />
+                  )}
+                />
+                <Controller
+                  name="occlusionEdgeSoftness"
+                  control={control}
+                  render={({ field }) => (
+                    <LabeledSlider
+                      label={t(
+                        'stylePage.occlusionEdgeSoftness',
+                        'Edge softness'
+                      )}
+                      tooltip={t(
+                        'stylePage.tooltip.occlusionEdgeSoftness',
+                        'Blurs the mask edge so danmaku fade behind people instead of clipping sharply.'
+                      )}
+                      value={field.value}
+                      onChange={(_e, newValue) =>
+                        field.onChange(newValue as number)
+                      }
+                      step={1}
+                      min={0}
+                      max={20}
+                      size="small"
+                      valueLabelDisplay="auto"
+                    />
+                  )}
+                />
+                <Controller
+                  name="occlusionQuality"
+                  control={control}
+                  render={({ field }) => (
+                    <Stack
+                      spacing={2}
+                      direction="row"
+                      sx={{ alignItems: 'center' }}
+                    >
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {t('stylePage.occlusionQuality', 'Performance')}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{ color: 'text.secondary' }}
+                        >
+                          {t(
+                            'stylePage.tooltip.occlusionQuality',
+                            'Higher updates the mask more often at higher resolution, using more CPU/GPU.'
+                          )}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ flexShrink: 0, minWidth: 180 }}>
+                        <SegmentedTabs
+                          value={field.value}
+                          onChange={(v) => field.onChange(v)}
+                          color="secondary"
+                          items={[
+                            {
+                              value: 'low',
+                              label: t('stylePage.occlusionQualityLow', 'Low'),
+                            },
+                            {
+                              value: 'medium',
+                              label: t(
+                                'stylePage.occlusionQualityMedium',
+                                'Medium'
+                              ),
+                            },
+                            {
+                              value: 'high',
+                              label: t(
+                                'stylePage.occlusionQualityHigh',
+                                'High'
+                              ),
+                            },
+                          ]}
+                        />
+                      </Box>
+                    </Stack>
+                  )}
+                />
+              </Stack>
+            </Collapse>
+          </Stack>
+        </SettingsBlock>
+      )}
     </Stack>
   )
 }

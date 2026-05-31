@@ -82,6 +82,7 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
 
   const context = await launchExtension(userDataDir, priorExt)
   const consoleWatcher = attachConsoleWatcher(context)
+  await stubReleaseNotes(context)
 
   const popup = await MigrationLegacyPopup.open(context, MIGRATION_EXTENSION_ID)
   await popup.restoreBackup(backupPath)
@@ -166,6 +167,26 @@ async function openProbePage(context: BrowserContext): Promise<Page> {
     )
     .catch(() => undefined)
   return page
+}
+
+// Both popups fetch the GitHub releases API on open via useLatestReleaseNotes;
+// on CI that unauthenticated call hits a rate limit (403) that trips the console
+// watcher. Stub just that one route (a blanket egress block hangs the legacy
+// popup, which needs its other network calls). Everything else is left alone.
+async function stubReleaseNotes(context: BrowserContext): Promise<void> {
+  await context.route(
+    /api\.github\.com\/repos\/[^/]+\/[^/]+\/releases\//,
+    async (route) => {
+      await route.fulfill({
+        json: {
+          name: '',
+          body: '',
+          html_url: 'https://release.invalid',
+          published_at: '2020-01-01T00:00:00Z',
+        },
+      })
+    }
+  )
 }
 
 async function gunzipTo(src: string, dest: string): Promise<string> {
