@@ -101,6 +101,10 @@ export const FrameManager = () => {
 
   const handleOcclusionStatus = useEventCallback((status: OcclusionStatus) => {
     const reasonText: Record<OcclusionStatus['reason'], string> = {
+      downloading: t(
+        'stylePage.occlusionStatus.downloading',
+        'Downloading the anime occlusion model. This happens once and may take a while.'
+      ),
       init: t(
         'stylePage.occlusionError.init',
         'Failed to load the occlusion model.'
@@ -122,7 +126,11 @@ export const FrameManager = () => {
         'Occlusion is not supported on this video.'
       ),
     }
-    toast.error(reasonText[status.reason])
+    if (status.reason === 'downloading') {
+      toast.info(reasonText[status.reason])
+    } else {
+      toast.error(reasonText[status.reason])
+    }
   })
 
   const handlePreloadNext = useEventCallback(async (frameId: number) => {

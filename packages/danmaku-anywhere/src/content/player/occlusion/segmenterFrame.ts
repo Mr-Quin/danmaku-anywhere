@@ -54,19 +54,31 @@ async function initMediapipe() {
   })
 }
 
-async function initAnime() {
+async function initAnime(
+  onProgress?: (loaded: number, total: number | null) => void
+) {
   if (animeSession) {
     return
   }
   if (!navigator.gpu) {
     throw new Error('WebGPU is unavailable; the anime model requires WebGPU')
   }
+  const descriptor = getModel('anime')
+  if (!descriptor.url) {
+    throw new Error('anime model url is not configured')
+  }
   const ort = await import('onnxruntime-web/webgpu')
   ortRef = ort
   ort.env.wasm.wasmPaths = chrome.runtime.getURL('ort/')
   const bytes = await fetchModelWithCache({
     id: 'anime-isnet',
-    url: chrome.runtime.getURL('models/anime-isnet.onnx'),
+    url: descriptor.url,
+    sha256: descriptor.sha256,
+    onProgress: onProgress
+      ? (progress) => {
+          return onProgress(progress.loaded, progress.total)
+        }
+      : undefined,
   })
   animeSession = await ort.InferenceSession.create(bytes, {
     executionProviders: ['webgpu'],
@@ -175,7 +187,9 @@ window.addEventListener('message', async (e: MessageEvent) => {
     if (msg.type === 'init') {
       runtime = msg.runtime === 'ort' ? 'ort' : 'mediapipe'
       if (runtime === 'ort') {
-        await initAnime()
+        await initAnime((loaded, total) => {
+          reply({ type: 'progress', loaded, total })
+        })
       } else {
         await initMediapipe()
       }

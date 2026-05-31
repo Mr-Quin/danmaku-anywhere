@@ -690,6 +690,9 @@
     "occlusionQualityHigh": "High",
     "occlusionQualityLow": "Low",
     "occlusionQualityMedium": "Medium",
+    "occlusionStatus": {
+      "downloading": "Downloading the anime occlusion model. This happens once and may take a while."
+    },
     "offset": "Time Offset",
     "opacity": "Opacity",
     "orderDistribution": "Order",

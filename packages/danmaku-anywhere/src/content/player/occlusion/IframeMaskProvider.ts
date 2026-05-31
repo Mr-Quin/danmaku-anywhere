@@ -22,6 +22,7 @@ export class IframeMaskProvider implements MaskProvider {
   // pending caller and clears its listener + timer instead of leaking them
   // until the timeout.
   private readonly cleanups = new Set<() => void>()
+  onDownloadProgress?: (loaded: number, total: number | null) => void
 
   constructor(private readonly runtime: ModelRuntime) {}
 
@@ -67,6 +68,17 @@ export class IframeMaskProvider implements MaskProvider {
             { __da: CHANNEL, type: 'init', runtime: this.runtime },
             this.origin
           )
+          return
+        }
+        if (e.data.type === 'progress') {
+          // A large model download can outlast the init timeout, so treat the
+          // timer as an inactivity watchdog: reset it on each progress chunk.
+          clearTimeout(timer)
+          timer = setTimeout(
+            () => settle(new Error('segmenter init timed out')),
+            INIT_TIMEOUT_MS
+          )
+          this.onDownloadProgress?.(e.data.loaded, e.data.total)
           return
         }
         if (e.data.type === 'init') {

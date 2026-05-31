@@ -6,6 +6,7 @@ import type { MaskProvider } from './types'
 // distinct because the user-facing remedy differs; 'segment' covers a runtime
 // produced-no-mask result; 'unavailable' is a missing browser capability.
 export type OcclusionStatusReason =
+  | 'downloading'
   | 'init'
   | 'taint'
   | 'webgpu'
@@ -183,6 +184,20 @@ export class OcclusionMaskService {
 
   private async run(): Promise<void> {
     const video = this.video
+    // A hosted model (anime) downloads on first use; announce it once so a long
+    // first-run wait is not a silent hang. Informational, so it bypasses the
+    // lastError-setting status() path.
+    let announcedDownload = false
+    this.provider.onDownloadProgress = (_loaded, total) => {
+      if (announcedDownload) {
+        return
+      }
+      announcedDownload = true
+      const mb = total ? Math.round(total / 1_000_000) : null
+      const message = mb ? `downloading model (~${mb} MB)` : 'downloading model'
+      this.log(message)
+      this.options.onStatus?.({ reason: 'downloading', message })
+    }
     try {
       await this.provider.init()
     } catch (e) {
@@ -195,6 +210,8 @@ export class OcclusionMaskService {
       const reason = /webgpu/i.test(detail) ? 'webgpu' : 'init'
       this.status(reason, `provider init failed: ${detail}`)
       return
+    } finally {
+      this.provider.onDownloadProgress = undefined
     }
     if (!this.running || this.video !== video) {
       return

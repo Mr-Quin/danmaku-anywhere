@@ -672,6 +672,9 @@
     "occlusionQualityHigh": "高",
     "occlusionQualityLow": "低",
     "occlusionQualityMedium": "中",
+    "occlusionStatus": {
+      "downloading": "正在下载动画遮挡模型。仅需下载一次，可能需要一些时间。"
+    },
     "offset": "时间轴",
     "opacity": "不透明度",
     "orderDistribution": "顺序",
