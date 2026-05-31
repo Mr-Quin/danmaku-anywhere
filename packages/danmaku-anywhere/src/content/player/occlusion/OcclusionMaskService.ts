@@ -27,6 +27,10 @@ export interface OcclusionStats {
 
 export interface OcclusionMaskOptions {
   captureSize?: number
+  // Capture at the video's aspect ratio (long side = captureSize) instead of a
+  // square. The anime model is distortion-sensitive, so it needs an undistorted
+  // frame; the people segmenter is robust and uses the cheaper square capture.
+  capturePreserveAspect?: boolean
   minIntervalMs?: number
   outputMaxSide?: number
   isPerson?: (value: number) => boolean
@@ -267,12 +271,26 @@ export class OcclusionMaskService {
 
     const t0 = performance.now()
     const captureSize = this.options.captureSize ?? DEFAULT_CAPTURE_SIZE
+    let resizeWidth = captureSize
+    let resizeHeight = captureSize
+    if (
+      this.options.capturePreserveAspect &&
+      video.videoWidth > 0 &&
+      video.videoHeight > 0
+    ) {
+      const aspect = video.videoWidth / video.videoHeight
+      if (aspect >= 1) {
+        resizeHeight = Math.max(1, Math.round(captureSize / aspect))
+      } else {
+        resizeWidth = Math.max(1, Math.round(captureSize * aspect))
+      }
+    }
     let frame: ImageBitmap
     try {
       // Resize on the GPU during decode; avoids a main-thread canvas draw.
       frame = await createImageBitmap(video, {
-        resizeWidth: captureSize,
-        resizeHeight: captureSize,
+        resizeWidth,
+        resizeHeight,
         resizeQuality: 'medium',
       })
     } catch (e) {

@@ -348,6 +348,7 @@ export class DanmakuManagerService {
           ? {
               ...preset,
               captureSize: 512,
+              capturePreserveAspect: true,
               minIntervalMs: Math.max(preset.minIntervalMs, 500),
             }
           : preset
