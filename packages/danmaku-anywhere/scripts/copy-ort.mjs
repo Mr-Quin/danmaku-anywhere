@@ -7,8 +7,8 @@
 // .asyncify; the base pair backs the plain wasm EP. Each .wasm has a sibling
 // .mjs glue loader fetched alongside it.
 //
-// The .onnx model is NOT in the npm package; vendor it into public/models/
-// separately (R2 download or committed binary).
+// Only the wasm runtime is bundled. The .onnx model itself is hosted and
+// fetched at runtime into OPFS (see modelRegistry), never bundled.
 
 import fs from 'node:fs'
 import { createRequire } from 'node:module'
