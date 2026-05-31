@@ -339,11 +339,23 @@ export class DanmakuManagerService {
       this.occlusionService = undefined
     }
     if (!this.occlusionService) {
+      const preset = OCCLUSION_QUALITY_PRESETS[this.occlusionQuality]
+      // The anime ISNet model runs at 1024 and is far heavier than the people
+      // segmenter, so it needs a higher-res capture (less upscaling to the model
+      // input) and a much slower cadence to avoid saturating the GPU.
+      const tuned =
+        this.occlusionModel === 'anime'
+          ? {
+              ...preset,
+              captureSize: 512,
+              minIntervalMs: Math.max(preset.minIntervalMs, 500),
+            }
+          : preset
       this.occlusionService = new OcclusionMaskService(
         createMaskProvider(this.occlusionModel),
         (url) => this.setOcclusionMaskUrl(url),
         {
-          ...OCCLUSION_QUALITY_PRESETS[this.occlusionQuality],
+          ...tuned,
           threshold: this.occlusionConfidence,
           edgeSoftness: this.occlusionEdgeSoftness,
           debug: this.debug,

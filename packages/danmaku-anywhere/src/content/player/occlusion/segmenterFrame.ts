@@ -125,49 +125,48 @@ async function segmentAnime(bitmap: ImageBitmap, threshold: number) {
     throw new Error('no offscreen 2d context')
   }
   const size = ANIME_INPUT_SIZE
-  ctx.drawImage(bitmap, 0, 0, size, size)
+  // Letterbox the frame into the square input: preserve aspect ratio, center,
+  // pad with black. ISNet is trained on undistorted, padded input, so stretching
+  // to square (and the wrong normalization) degrades the mask.
+  const scale = Math.min(size / bitmap.width, size / bitmap.height)
+  const contentW = Math.max(1, Math.round(bitmap.width * scale))
+  const contentH = Math.max(1, Math.round(bitmap.height * scale))
+  const offsetX = Math.floor((size - contentW) / 2)
+  const offsetY = Math.floor((size - contentH) / 2)
+  ctx.fillStyle = '#000'
+  ctx.fillRect(0, 0, size, size)
+  ctx.drawImage(bitmap, offsetX, offsetY, contentW, contentH)
   const { data } = ctx.getImageData(0, 0, size, size)
   const plane = size * size
   const input = new Float32Array(3 * plane)
   for (let i = 0; i < plane; i++) {
-    input[i] = data[i * 4] / 255 - 0.5
-    input[plane + i] = data[i * 4 + 1] / 255 - 0.5
-    input[2 * plane + i] = data[i * 4 + 2] / 255 - 0.5
+    input[i] = data[i * 4] / 255
+    input[plane + i] = data[i * 4 + 1] / 255
+    input[2 * plane + i] = data[i * 4 + 2] / 255
   }
   const tensor = new ort.Tensor('float32', input, [1, 3, size, size])
   const feeds: Record<string, Tensor> = {
     [animeSession.inputNames[0]]: tensor,
   }
   const output = (await animeSession.run(feeds))[animeSession.outputNames[0]]
-  const logits = output.data as Float32Array
-  // Trust the model's own output dims rather than assuming a square input-sized
-  // mask, so a non-[1,1,H,W] output surfaces as a clear error instead of a
-  // silently sheared mask.
-  const outW = output.dims[output.dims.length - 1]
-  const outH = output.dims[output.dims.length - 2]
-  if (outW * outH !== logits.length) {
+  const mask = output.data as Float32Array
+  if (mask.length !== plane) {
     throw new Error(
-      `anime model output shape ${output.dims.join('x')} does not match data length ${logits.length}`
+      `anime model output ${output.dims.join('x')} does not match input ${size}x${size}`
     )
   }
-  let min = Number.POSITIVE_INFINITY
-  let max = Number.NEGATIVE_INFINITY
-  for (const v of logits) {
-    if (v < min) {
-      min = v
-    }
-    if (v > max) {
-      max = v
+  // The output is already a [0,1] foreground alpha. Crop back to the letterboxed
+  // content (drop the padding) and threshold directly: subject => 0 (hidden),
+  // background => 1 (shown), matching the mediapipe convention downstream.
+  const bytes = new Uint8Array(contentW * contentH)
+  for (let y = 0; y < contentH; y++) {
+    const srcRow = (offsetY + y) * size + offsetX
+    const dstRow = y * contentW
+    for (let x = 0; x < contentW; x++) {
+      bytes[dstRow + x] = mask[srcRow + x] >= threshold ? 0 : 1
     }
   }
-  const span = max - min || 1
-  // ISNet outputs a subject saliency map. Subject => 0 (hidden), background => 1
-  // (shown), to match the mediapipe convention used downstream.
-  const bytes = new Uint8Array(logits.length)
-  for (let i = 0; i < logits.length; i++) {
-    bytes[i] = (logits[i] - min) / span >= threshold ? 0 : 1
-  }
-  return { dims: { w: outW, h: outH }, bytes }
+  return { dims: { w: contentW, h: contentH }, bytes }
 }
 
 window.addEventListener('message', async (e: MessageEvent) => {
