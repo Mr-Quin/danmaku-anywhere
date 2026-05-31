@@ -7,15 +7,18 @@ import { uiContainer } from '@/common/ioc/uiIoc'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type {
   DanmakuOptions,
+  OcclusionModel,
   OcclusionQuality,
 } from '@/common/options/danmakuOptions/constant'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import type { SegmentationStats } from '@/common/rpcClient/background/types'
 import { injectCss } from '@/content/common/injectCss'
 import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
 import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayout.service'
 import { RectObserver } from '@/content/player/danmakuManager/RectObserver'
 import { DanmakuDebugOverlayService } from '@/content/player/debugOverlay/DanmakuDebugOverlay.service'
 import { createMaskProvider } from '@/content/player/occlusion/createMaskProvider'
+import type { OcclusionStatus } from '@/content/player/occlusion/OcclusionMaskService'
 import { OcclusionMaskService } from '@/content/player/occlusion/OcclusionMaskService'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
 
@@ -59,10 +62,13 @@ export class DanmakuManagerService {
   // Occlusion (render danmaku behind people)
   private occlusionService?: OcclusionMaskService
   private occlusionServiceQuality?: OcclusionQuality
+  private occlusionServiceModel?: OcclusionModel
   private occlusion = false
   private occlusionConfidence = 0.5
   private occlusionEdgeSoftness = 4
   private occlusionQuality: OcclusionQuality = 'medium'
+  private occlusionModel: OcclusionModel = 'people'
+  private occlusionStatusListener?: (status: OcclusionStatus) => void
   private debug = false
 
   constructor(
@@ -239,6 +245,9 @@ export class DanmakuManagerService {
     if (config.occlusionQuality !== undefined) {
       this.occlusionQuality = config.occlusionQuality
     }
+    if (config.occlusionModel !== undefined) {
+      this.occlusionModel = config.occlusionModel
+    }
     if (this.parent && config.useCustomCss === true && config.customCss) {
       // TODO: validate css
       this.injectedCss = injectCss(this.parent, [config.customCss])
@@ -276,26 +285,62 @@ export class DanmakuManagerService {
     this.renderer.setOcclusionMaskUrl(url)
   }
 
+  // Live stats for the devtools Segmentation panel. `model` is null when no
+  // service is active so the panel shows an idle state. The service owns
+  // running/fps/lastError/debugOverlay; the manager only knows the model.
+  getSegmentationStats(): SegmentationStats {
+    if (!this.occlusionService) {
+      return {
+        running: false,
+        model: null,
+        fps: null,
+        lastError: null,
+        debugOverlay: this.debug,
+      }
+    }
+    const stats = this.occlusionService.getStats()
+    return {
+      running: stats.running,
+      model: this.occlusionServiceModel ?? null,
+      fps: stats.fps,
+      lastError: stats.lastError,
+      debugOverlay: stats.debugOverlay,
+    }
+  }
+
+  setOcclusionDebugOverlay(enabled: boolean) {
+    this.occlusionService?.setRuntime({ debug: enabled })
+  }
+
+  // Classified failure events (init/taint/webgpu/segment/unavailable) for a
+  // higher layer (settings/toast) to surface. Only one listener is needed.
+  onOcclusionStatus(listener: (status: OcclusionStatus) => void) {
+    this.occlusionStatusListener = listener
+  }
+
   private updateOcclusion() {
     const shouldRun = this.occlusion && this.isMounted && this.video !== null
     if (!shouldRun) {
       this.occlusionService?.dispose()
       this.occlusionService = undefined
       this.occlusionServiceQuality = undefined
+      this.occlusionServiceModel = undefined
       return
     }
-    // captureSize/cadence are fixed at construction, so a quality change needs a
-    // fresh service; threshold/softness/debug adjust live.
+    // captureSize/cadence are fixed at construction and the model selects the
+    // segmenter runtime/iframe, so a quality or model change needs a fresh
+    // service; threshold/softness/debug adjust live.
     if (
       this.occlusionService &&
-      this.occlusionServiceQuality !== this.occlusionQuality
+      (this.occlusionServiceQuality !== this.occlusionQuality ||
+        this.occlusionServiceModel !== this.occlusionModel)
     ) {
       this.occlusionService.dispose()
       this.occlusionService = undefined
     }
     if (!this.occlusionService) {
       this.occlusionService = new OcclusionMaskService(
-        createMaskProvider(),
+        createMaskProvider(this.occlusionModel),
         (url) => this.setOcclusionMaskUrl(url),
         {
           ...OCCLUSION_QUALITY_PRESETS[this.occlusionQuality],
@@ -303,9 +348,14 @@ export class DanmakuManagerService {
           edgeSoftness: this.occlusionEdgeSoftness,
           debug: this.debug,
           log: (message) => this.logger.debug(`[occlusion] ${message}`),
+          onStatus: (status) => {
+            this.logger.debug(`[occlusion] status: ${status.reason}`)
+            this.occlusionStatusListener?.(status)
+          },
         }
       )
       this.occlusionServiceQuality = this.occlusionQuality
+      this.occlusionServiceModel = this.occlusionModel
     } else {
       this.occlusionService.setRuntime({
         threshold: this.occlusionConfidence,

@@ -1,5 +1,6 @@
 import { useEventCallback } from '@mui/material'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
 import { uiContainer } from '@/common/ioc/uiIoc'
@@ -20,11 +21,13 @@ import { selectBestFrame } from '@/content/controller/danmaku/frame/selectBestFr
 import { useMigrateDanmaku } from '@/content/controller/danmaku/frame/useMigrateDanmaku'
 import { usePreloadNextEpisode } from '@/content/controller/danmaku/frame/usePreloadNextEpisode'
 import { useStore } from '@/content/controller/store/store'
+import type { OcclusionStatus } from '@/content/player/occlusion/OcclusionMaskService'
 
 const logger = Logger.sub('[FrameManager]')
 const frameRegistry = uiContainer.get(FrameRegistry)
 
 export const FrameManager = () => {
+  const { t } = useTranslation()
   const { toast } = useToast()
 
   const config = useActiveConfig()
@@ -96,6 +99,32 @@ export const FrameManager = () => {
     reEvaluateActiveFrame()
   })
 
+  const handleOcclusionStatus = useEventCallback((status: OcclusionStatus) => {
+    const reasonText: Record<OcclusionStatus['reason'], string> = {
+      init: t(
+        'stylePage.occlusionError.init',
+        'Failed to load the occlusion model.'
+      ),
+      taint: t(
+        'stylePage.occlusionError.taint',
+        'Occlusion turned off: this video is protected (cross-origin or DRM) and cannot be read.'
+      ),
+      webgpu: t(
+        'stylePage.occlusionError.webgpu',
+        'The anime occlusion model needs a WebGPU-capable browser. Switch to the People model or update your browser.'
+      ),
+      segment: t(
+        'stylePage.occlusionError.segment',
+        'Occlusion ran but produced no result.'
+      ),
+      unavailable: t(
+        'stylePage.occlusionError.unavailable',
+        'Occlusion is not supported on this video.'
+      ),
+    }
+    toast.error(reasonText[status.reason])
+  })
+
   const handlePreloadNext = useEventCallback(async (frameId: number) => {
     const activeFrame = useStore.getState().frame.activeFrame
     if (frameId !== activeFrame?.frameId || !canLoadNext()) {
@@ -156,6 +185,9 @@ export const FrameManager = () => {
         'relay:event:showPopover': async () => handleShowPopover(),
         'relay:event:userInteraction': async () => {
           window.dispatchEvent(new Event('touchmove'))
+        },
+        'relay:event:occlusionStatus': async ({ data }) => {
+          handleOcclusionStatus(data)
         },
       },
       { logger }

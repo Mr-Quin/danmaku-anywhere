@@ -62,6 +62,7 @@ export class PlayerCommandHandler {
     await this.setupDom()
     this.wireLifecycleEvents()
     this.wireStorageEvents()
+    this.wireOcclusionStatus()
     this.wireWindowEvents()
     this.createRpcServer()
 
@@ -157,6 +158,18 @@ export class PlayerCommandHandler {
       options.playerOptions.enableFullscreenInteraction
   }
 
+  private wireOcclusionStatus() {
+    this.manager.onOcclusionStatus((status) => {
+      void playerRpcClient.controller['relay:event:occlusionStatus'](
+        {
+          frameId: this.frameId,
+          data: status,
+        },
+        { optional: true }
+      )
+    })
+  }
+
   private wireWindowEvents() {
     document.addEventListener('fullscreenchange', () => {
       if (this.enableFullscreenInteraction) {
@@ -243,6 +256,12 @@ export class PlayerCommandHandler {
         },
         'relay:command:debugSkipButton': async () => {
           this.videoSkip.debugShowSkipButton()
+        },
+        'relay:command:getSegmentationStats': async () => {
+          return this.manager.getSegmentationStats()
+        },
+        'relay:command:setOcclusionDebugOverlay': async ({ data: enabled }) => {
+          this.manager.setOcclusionDebugOverlay(enabled)
         },
       },
       {

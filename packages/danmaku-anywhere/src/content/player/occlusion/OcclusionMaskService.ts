@@ -1,6 +1,29 @@
 import { buildAlphaMask } from './maskGeometry'
 import type { MaskProvider } from './types'
 
+// The failure gates that users actually hit. 'taint' (cross-origin/DRM video),
+// 'init' (wasm/model load) and 'webgpu' (anime runtime needs WebGPU) are
+// distinct because the user-facing remedy differs; 'segment' covers a runtime
+// produced-no-mask result; 'unavailable' is a missing browser capability.
+export type OcclusionStatusReason =
+  | 'init'
+  | 'taint'
+  | 'webgpu'
+  | 'segment'
+  | 'unavailable'
+
+export interface OcclusionStatus {
+  reason: OcclusionStatusReason
+  message: string
+}
+
+export interface OcclusionStats {
+  running: boolean
+  fps: number | null
+  lastError: string | null
+  debugOverlay: boolean
+}
+
 export interface OcclusionMaskOptions {
   captureSize?: number
   minIntervalMs?: number
@@ -13,6 +36,9 @@ export interface OcclusionMaskOptions {
   // playback, so without this a real-page failure (init, cross-origin taint,
   // empty mask) is invisible.
   log?: (message: string) => void
+  // Structured, classified counterpart to `log`: fired for the failure gates a
+  // higher layer (settings/toast) surfaces, and tracked as `lastError` in stats.
+  onStatus?: (status: OcclusionStatus) => void
 }
 
 const DEFAULT_CAPTURE_SIZE = 256
@@ -53,6 +79,9 @@ export class OcclusionMaskService {
   private appliedOnce = false
   private imageData?: ImageData
   private callbackId: number | null = null
+  private fps: number | null = null
+  private lastError: string | null = null
+  private lastAppliedTs = 0
 
   constructor(
     private readonly provider: MaskProvider,
@@ -68,6 +97,21 @@ export class OcclusionMaskService {
 
   private log(message: string): void {
     this.options.log?.(message)
+  }
+
+  private status(reason: OcclusionStatusReason, message: string): void {
+    this.lastError = message
+    this.log(message)
+    this.options.onStatus?.({ reason, message })
+  }
+
+  getStats(): OcclusionStats {
+    return {
+      running: this.running,
+      fps: this.fps,
+      lastError: this.lastError,
+      debugOverlay: this.debug,
+    }
   }
 
   // Adjustable live (no segmenter re-init), unlike captureSize/cadence.
@@ -100,9 +144,15 @@ export class OcclusionMaskService {
     // can reach a browser without it, so treat absence as "unavailable" rather
     // than throwing during danmaku mount.
     if (typeof video.requestVideoFrameCallback !== 'function') {
-      this.log('start skipped: requestVideoFrameCallback unavailable')
+      this.status(
+        'unavailable',
+        'start skipped: requestVideoFrameCallback unavailable'
+      )
       return
     }
+    this.lastError = null
+    this.fps = null
+    this.lastAppliedTs = 0
     this.video = video
     this.running = true
     this.log('starting')
@@ -119,6 +169,8 @@ export class OcclusionMaskService {
     this.lastSegmentTs = 0
     this.busy = false
     this.appliedOnce = false
+    this.fps = null
+    this.lastAppliedTs = 0
     this.applyMask(undefined)
     this.debugView?.remove()
     this.debugView = undefined
@@ -134,12 +186,14 @@ export class OcclusionMaskService {
     try {
       await this.provider.init()
     } catch (e) {
-      // Init failed (wasm/model load, WebGL unavailable). Give up for now
+      // Init failed (wasm/model load, WebGPU unavailable). Give up for now
       // without breaking playback; a later start() can retry a fresh provider.
       if (this.video === video) {
         this.running = false
       }
-      this.log(`provider init failed: ${e instanceof Error ? e.message : e}`)
+      const detail = e instanceof Error ? e.message : String(e)
+      const reason = /webgpu/i.test(detail) ? 'webgpu' : 'init'
+      this.status(reason, `provider init failed: ${detail}`)
       return
     }
     if (!this.running || this.video !== video) {
@@ -209,8 +263,12 @@ export class OcclusionMaskService {
       // back is impossible, so disable for this video instead of retrying.
       if (e instanceof DOMException && e.name === 'SecurityError') {
         this.debugView?.showDisabled('disabled (tainted canvas)')
-        this.log('disabled: video canvas is tainted (cross-origin/DRM)')
+        // stop() resets running/fps but keeps lastError, so set status after.
         this.stop()
+        this.status(
+          'taint',
+          'disabled: video canvas is tainted (cross-origin/DRM)'
+        )
         return
       }
       this.log(`capture failed: ${e instanceof Error ? e.message : e}`)
@@ -225,7 +283,10 @@ export class OcclusionMaskService {
       threshold: this.threshold,
     })
     if (!result) {
-      this.log('segment returned no result (provider failed or timed out)')
+      this.status(
+        'segment',
+        'segment returned no result (provider failed or timed out)'
+      )
       return
     }
     if (!this.running || this.video !== video) {
@@ -278,10 +339,19 @@ export class OcclusionMaskService {
       return
     }
     this.applyMask(this.maskCanvas.toDataURL('image/png'))
+    this.lastError = null
+    const appliedAt = performance.now()
+    if (this.lastAppliedTs > 0) {
+      const dt = appliedAt - this.lastAppliedTs
+      const instantFps = dt > 0 ? 1000 / dt : 0
+      this.fps =
+        this.fps === null ? instantFps : this.fps * 0.7 + instantFps * 0.3
+    }
+    this.lastAppliedTs = appliedAt
     if (!this.appliedOnce) {
       this.appliedOnce = true
       this.log(
-        `first mask applied (${mask.width}x${mask.height}) in ${Math.round(performance.now() - t0)}ms`
+        `first mask applied (${mask.width}x${mask.height}) in ${Math.round(appliedAt - t0)}ms`
       )
     }
 

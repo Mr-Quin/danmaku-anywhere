@@ -1,3 +1,4 @@
+import type { ModelRuntime } from './modelRegistry'
 import type { MaskProvider, SegmentationResult, SegmentOptions } from './types'
 
 const CHANNEL = 'occlusion'
@@ -21,6 +22,8 @@ export class IframeMaskProvider implements MaskProvider {
   // pending caller and clears its listener + timer instead of leaking them
   // until the timeout.
   private readonly cleanups = new Set<() => void>()
+
+  constructor(private readonly runtime: ModelRuntime) {}
 
   init(): Promise<void> {
     if (!this.ready) {
@@ -61,7 +64,7 @@ export class IframeMaskProvider implements MaskProvider {
         }
         if (e.data.type === 'ready') {
           iframe.contentWindow?.postMessage(
-            { __da: CHANNEL, type: 'init' },
+            { __da: CHANNEL, type: 'init', runtime: this.runtime },
             this.origin
           )
           return

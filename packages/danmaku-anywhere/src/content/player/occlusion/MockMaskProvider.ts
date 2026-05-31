@@ -1,21 +1,33 @@
+import type { OcclusionModel } from '@/common/options/danmakuOptions/constant'
 import type { MaskProvider, SegmentationResult, Size } from './types'
 
 /**
- * Deterministic stand-in for the real segmenter: marks a centered ellipse as
- * "person" so the full mask pipeline can be exercised without MediaPipe or a
- * real-person video. Matches the bundled selfie_segmenter convention (person =
- * category 0, background = non-zero). Used by e2e and dev verification.
+ * Deterministic stand-in for the real segmenter, used by e2e and dev. For the
+ * people model it marks a centered ellipse as "person" so the full mask
+ * pipeline runs without MediaPipe or a real-person video (person = category 0,
+ * background = non-zero, matching the selfie segmenter). For the anime model it
+ * rejects init with a WebGPU error: e2e/CI browsers have no WebGPU, so this is
+ * the faithful stand-in for what the real ORT runtime does there, and it lets
+ * the error-visibility path be asserted deterministically.
  */
 export class MockMaskProvider implements MaskProvider {
   private readonly category: Uint8Array
   private readonly maskSize: Size
 
-  constructor(maskSize: Size = { width: 256, height: 256 }) {
+  constructor(
+    private readonly model: OcclusionModel = 'people',
+    maskSize: Size = { width: 256, height: 256 }
+  ) {
     this.maskSize = maskSize
     this.category = buildCenteredEllipse(maskSize)
   }
 
   init(): Promise<void> {
+    if (this.model === 'anime') {
+      return Promise.reject(
+        new Error('WebGPU is unavailable; the anime model requires WebGPU')
+      )
+    }
     return Promise.resolve()
   }
 

@@ -257,6 +257,18 @@
       "tencentCookieMissing": "获取腾讯视频失败，可能是缺少 Cookie，请先访问<0>腾讯视频</0>并打开任意视频页面以确保 Cookie 正常。"
     }
   },
+  "debugPage": {
+    "segmentation": {
+      "active": "运行中",
+      "controls": "控制",
+      "debugOverlay": "调试叠加层",
+      "fps": "帧率",
+      "idle": "空闲",
+      "model": "模型",
+      "running": "运行状态",
+      "status": "状态"
+    }
+  },
   "error": {
     "unknown": "出错啦!"
   },
@@ -646,6 +658,16 @@
     "occlusion": "显示在人物后方",
     "occlusionConfidence": "置信度阈值",
     "occlusionEdgeSoftness": "边缘柔化",
+    "occlusionError": {
+      "init": "加载遮挡模型失败。",
+      "segment": "遮挡已运行，但未生成结果。",
+      "taint": "已关闭遮挡：该视频受保护（跨域或 DRM），无法读取画面。",
+      "unavailable": "该视频不支持遮挡功能。",
+      "webgpu": "动画遮挡模型需要支持 WebGPU 的浏览器。请切换到真人模型或更新浏览器。"
+    },
+    "occlusionModel": "模型",
+    "occlusionModelAnime": "动画",
+    "occlusionModelPeople": "真人",
     "occlusionQuality": "性能",
     "occlusionQualityHigh": "高",
     "occlusionQualityLow": "低",
@@ -675,6 +697,7 @@
       "occlusion": "实验功能。将弹幕显示在视频中的人物后方。在性能较弱的设备上可能影响流畅度。",
       "occlusionConfidence": "数值越高，仅在高置信度的人物像素处遮挡弹幕（更精确）。数值越低，遮挡范围越大。",
       "occlusionEdgeSoftness": "柔化遮罩边缘，使弹幕在人物后方渐隐，而不是生硬地被裁切。",
+      "occlusionModel": "真人模型适用于真人视频。动画模型针对动画内容，但开销更大且为实验性功能，需要支持 WebGPU 的浏览器。",
       "occlusionQuality": "数值越高，遮罩更新越频繁、分辨率越高，占用更多 CPU/GPU。",
       "offsetScrubber": "水平拖动或使用滚轮调整，双击手动输入。正值使弹幕延后出现，负值使弹幕提前出现。",
       "overlap": "允许弹幕重叠以减少弹幕之间的间距，值越高，重叠幅度越大。0表示禁止重叠。",
