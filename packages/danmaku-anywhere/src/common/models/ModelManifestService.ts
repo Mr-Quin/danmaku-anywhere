@@ -93,6 +93,11 @@ export class ModelManifestService {
 
   /** Forces a re-fetch regardless of the cache TTL (the manual refresh button). */
   async refresh(): Promise<ModelEntry[]> {
+    // Let any in-flight first-load settle first so its later cache write cannot
+    // clobber the fresher manifest this fetch is about to store.
+    if (this.manifestPromise) {
+      await this.manifestPromise.catch(() => undefined)
+    }
     this.cache = await this.fetchRemote(this.cache)
     return this.cache.models
   }

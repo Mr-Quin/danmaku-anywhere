@@ -21,9 +21,11 @@ export class OcclusionModelService {
   private readonly logger: ILogger
   // Coalesces repeated download requests for the same id (e.g. reopening the
   // popup mid-download) so they share one fetch instead of racing OPFS writes.
+  // The controller lets delete() cancel an in-flight download so it cannot write
+  // the file back after eviction.
   private readonly inFlightDownloads = new Map<
     string,
-    Promise<ModelManagementState>
+    { promise: Promise<ModelManagementState>; controller: AbortController }
   >()
 
   constructor(
@@ -54,27 +56,38 @@ export class OcclusionModelService {
   download(id: string): Promise<ModelManagementState> {
     const existing = this.inFlightDownloads.get(id)
     if (existing) {
-      return existing
+      return existing.promise
     }
-    const promise = this.runDownload(id).finally(() => {
+    const controller = new AbortController()
+    const promise = this.runDownload(id, controller.signal).finally(() => {
       this.inFlightDownloads.delete(id)
     })
-    this.inFlightDownloads.set(id, promise)
+    this.inFlightDownloads.set(id, { promise, controller })
     return promise
   }
 
-  private async runDownload(id: string): Promise<ModelManagementState> {
+  private async runDownload(
+    id: string,
+    signal: AbortSignal
+  ): Promise<ModelManagementState> {
     const model = await this.manifest.getModel(id)
     const url = model && modelDownloadUrl(model)
     if (!model || model.delivery !== 'hosted' || !url) {
       throw new RpcException(`model "${id}" is not a downloadable hosted model`)
     }
     this.logger.debug(`downloading model "${id}"`)
-    await fetchAndCacheFile({ id: model.id, url, sha256: model.sha256 })
+    await fetchAndCacheFile({ id: model.id, url, sha256: model.sha256, signal })
     return this.getState()
   }
 
   async delete(id: string): Promise<ModelManagementState> {
+    // Cancel and drain an in-flight download first so it cannot write the file
+    // back after we evict it.
+    const inflight = this.inFlightDownloads.get(id)
+    if (inflight) {
+      inflight.controller.abort()
+      await inflight.promise.catch(() => undefined)
+    }
     await removeCachedFile(id)
     return this.getState()
   }
