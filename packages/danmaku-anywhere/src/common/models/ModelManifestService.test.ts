@@ -42,6 +42,7 @@ const remoteManifest = {
       runtime: 'ort',
       delivery: 'hosted',
       url: 'https://example.test/fast.onnx',
+      sha256: 'b'.repeat(64),
       inputSize: 256,
       requiresWebGpu: true,
     },

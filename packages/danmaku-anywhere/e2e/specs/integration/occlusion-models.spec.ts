@@ -32,6 +32,7 @@ const MANIFEST = {
       runtime: 'ort',
       delivery: 'hosted',
       url: 'https://assets.danmaku.weeblify.app/models/isnet-cpu.onnx',
+      sha256: 'c'.repeat(64),
       inputSize: 320,
       requiresWebGpu: false,
     },

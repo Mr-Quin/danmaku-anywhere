@@ -54,10 +54,18 @@ export const modelEntrySchema = z
     requiresWebGpu: z.boolean(),
     capture: captureSchema.optional(),
   })
-  .refine((entry) => entry.delivery === 'bundled' || entry.url !== undefined, {
-    message: 'hosted models must have a url',
-    path: ['url'],
-  })
+  .refine(
+    (entry) =>
+      entry.delivery === 'bundled' ||
+      (entry.url !== undefined && entry.sha256 !== undefined),
+    {
+      // A hosted model must carry a hash so its bytes are integrity-verified
+      // before they reach the runtime; an entry without one is rejected and the
+      // manifest falls back to the baseline.
+      message: 'hosted models must have a url and sha256',
+      path: ['sha256'],
+    }
+  )
 export type ModelEntry = z.infer<typeof modelEntrySchema>
 
 export const modelManifestSchema = z.object({

@@ -24,6 +24,7 @@ const hosted = {
   runtime: 'ort',
   delivery: 'hosted',
   url: 'https://example.test/anime.onnx',
+  sha256: 'a'.repeat(64),
   inputSize: 320,
   requiresWebGpu: true,
 }
@@ -55,6 +56,12 @@ describe('modelEntrySchema', () => {
   it('rejects a hosted entry without a url', () => {
     expect(() =>
       modelEntrySchema.parse({ ...hosted, url: undefined })
+    ).toThrow()
+  })
+
+  it('rejects a hosted entry without a sha256', () => {
+    expect(() =>
+      modelEntrySchema.parse({ ...hosted, sha256: undefined })
     ).toThrow()
   })
 
