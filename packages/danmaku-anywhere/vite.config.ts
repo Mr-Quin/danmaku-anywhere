@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vitest/config'
 import { manifest } from './manifest'
 import { getBuildContext } from './scripts/getBuildContext'
+import { vendorRuntimeAssets } from './scripts/vendorRuntimeAssets'
 
 const { browser, appVersion, isDev, daEnv, gitBranch } = getBuildContext()
 
@@ -30,7 +31,11 @@ console.log('Building for', {
 
 export default defineConfig({
   // @ts-ignore
-  plugins: [react({}), crx({ manifest, browser: browser.name })],
+  plugins: [
+    vendorRuntimeAssets(),
+    react({}),
+    crx({ manifest, browser: browser.name }),
+  ],
   // Don't pre-bundle the variable font packages: when crxjs serves dev assets,
   // `?url` for pre-bundled CSS resolves to a `/vendor/...__url.js` shim instead
   // of the real CSS path, which breaks <link rel=stylesheet> font loading.

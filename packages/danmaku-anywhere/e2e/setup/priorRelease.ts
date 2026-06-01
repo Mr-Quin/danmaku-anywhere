@@ -37,8 +37,7 @@ export async function ensurePriorRelease(tag: string): Promise<string> {
           'Either unset the env var or add the tagged subdir.'
       )
     }
-    // Always re-copy from local source so source edits aren't masked by
-    // a stale cache.
+    // Re-copy from source so local edits aren't served from a stale cache.
     await fs.rm(dir, { recursive: true, force: true })
     await fs.mkdir(extensionDir, { recursive: true })
     await fs.cp(localSrc, extensionDir, { recursive: true })

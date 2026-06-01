@@ -3,6 +3,8 @@ build-standalone
 test-results
 
 public/mediapipe/wasm/
+public/ort/
+model-assets/
 playwright-report
 blob-report
 .playwright-profile

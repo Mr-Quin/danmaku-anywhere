@@ -26,5 +26,8 @@ export interface MaskProvider {
     frame: ImageBitmap,
     options?: SegmentOptions
   ): Promise<SegmentationResult | null>
-  dispose(): void
+  dispose?(): void
+  // Reports download progress while init() fetches a hosted model (only fires on
+  // a cache miss). `total` is null when the server omits Content-Length.
+  onDownloadProgress?: (loaded: number, total: number | null) => void
 }

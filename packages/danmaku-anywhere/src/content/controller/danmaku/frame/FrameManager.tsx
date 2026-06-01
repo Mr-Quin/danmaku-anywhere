@@ -4,6 +4,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
 import { uiContainer } from '@/common/ioc/uiIoc'
 import { Logger } from '@/common/Logger'
+import { i18n } from '@/common/localization/i18n'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
@@ -20,9 +21,45 @@ import { selectBestFrame } from '@/content/controller/danmaku/frame/selectBestFr
 import { useMigrateDanmaku } from '@/content/controller/danmaku/frame/useMigrateDanmaku'
 import { usePreloadNextEpisode } from '@/content/controller/danmaku/frame/usePreloadNextEpisode'
 import { useStore } from '@/content/controller/store/store'
+import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.service'
 
 const logger = Logger.sub('[FrameManager]')
 const frameRegistry = uiContainer.get(FrameRegistry)
+
+function occlusionStatusText(reason: OcclusionStatus['reason']): string {
+  switch (reason) {
+    case 'downloading':
+      return i18n.t(
+        'stylePage.occlusionStatus.downloading',
+        'Downloading the anime occlusion model. This happens once and may take a while.'
+      )
+    case 'taint':
+      return i18n.t(
+        'stylePage.occlusionError.taint',
+        'Occlusion turned off: this video is protected (cross-origin or DRM) and cannot be read.'
+      )
+    case 'webgpu':
+      return i18n.t(
+        'stylePage.occlusionError.webgpu',
+        'The anime occlusion model needs a WebGPU-capable browser. Switch to the People model or update your browser.'
+      )
+    case 'segment':
+      return i18n.t(
+        'stylePage.occlusionError.segment',
+        'Occlusion ran but produced no result.'
+      )
+    case 'unavailable':
+      return i18n.t(
+        'stylePage.occlusionError.unavailable',
+        'Occlusion is not supported on this video.'
+      )
+    case 'init':
+      return i18n.t(
+        'stylePage.occlusionError.init',
+        'Failed to load the occlusion model.'
+      )
+  }
+}
 
 export const FrameManager = () => {
   const { toast } = useToast()
@@ -96,6 +133,15 @@ export const FrameManager = () => {
     reEvaluateActiveFrame()
   })
 
+  const handleOcclusionStatus = useEventCallback((status: OcclusionStatus) => {
+    const message = occlusionStatusText(status.reason)
+    if (status.reason === 'downloading') {
+      toast.info(message)
+    } else {
+      toast.error(message)
+    }
+  })
+
   const handlePreloadNext = useEventCallback(async (frameId: number) => {
     const activeFrame = useStore.getState().frame.activeFrame
     if (frameId !== activeFrame?.frameId || !canLoadNext()) {
@@ -157,6 +203,9 @@ export const FrameManager = () => {
         'relay:event:userInteraction': async () => {
           window.dispatchEvent(new Event('touchmove'))
         },
+        'relay:event:occlusionStatus': async ({ data }) => {
+          handleOcclusionStatus(data)
+        },
       },
       { logger }
     )
@@ -171,8 +220,7 @@ export const FrameManager = () => {
   }, [])
 
   useEffect(() => {
-    // Notify all player scripts that the controller is ready.
-    // Players that loaded before the controller will re-send playerReady.
+    // Players that loaded before the controller re-send playerReady on this.
     void playerRpcClient.player['relay:command:controllerReady'](
       { frameId: 0 },
       { optional: true }

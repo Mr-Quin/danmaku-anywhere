@@ -172,7 +172,6 @@ const offsetValueLabelFormat = (value: number) => {
 }
 
 const convertActualSpeedToDisplay = (actualSpeed: number) => {
-  // convert actual playback rate to a number between 1 and 5
   switch (actualSpeed) {
     case 0.5:
       return 1
@@ -685,6 +684,55 @@ export const DanmakuStylesForm = ({
             />
             <Collapse in={occlusion} unmountOnExit>
               <Stack useFlexGap spacing={2}>
+                <Controller
+                  name="occlusionModel"
+                  control={control}
+                  render={({ field }) => (
+                    <Stack
+                      spacing={2}
+                      direction="row"
+                      sx={{ alignItems: 'center' }}
+                    >
+                      <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                          {t('stylePage.occlusionModel', 'Model')}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{ color: 'text.secondary' }}
+                        >
+                          {t(
+                            'stylePage.tooltip.occlusionModel',
+                            'People works on live-action video. Anime targets animation but is heavier and experimental, and needs a WebGPU-capable browser.'
+                          )}
+                        </Typography>
+                      </Box>
+                      <Box sx={{ flexShrink: 0, minWidth: 180 }}>
+                        <SegmentedTabs
+                          value={field.value}
+                          onChange={(v) => field.onChange(v)}
+                          color="secondary"
+                          items={[
+                            {
+                              value: 'people',
+                              label: t(
+                                'stylePage.occlusionModelPeople',
+                                'People'
+                              ),
+                            },
+                            {
+                              value: 'anime',
+                              label: t(
+                                'stylePage.occlusionModelAnime',
+                                'Anime'
+                              ),
+                            },
+                          ]}
+                        />
+                      </Box>
+                    </Stack>
+                  )}
+                />
                 <Controller
                   name="occlusionConfidence"
                   control={control}

@@ -167,6 +167,14 @@ export const standalonePlayerCommandHandlers: StandaloneRpcHandlers<PlayerRelayC
     'relay:command:show': () => undefined,
     'relay:command:controllerReady': () => undefined,
     'relay:command:debugSkipButton': () => undefined,
+    'relay:command:getSegmentationStats': () => ({
+      running: false,
+      model: null,
+      fps: null,
+      lastError: null,
+      debugOverlay: false,
+    }),
+    'relay:command:setOcclusionDebugOverlay': () => undefined,
   }
 
 export const standalonePlayerEventHandlers: StandaloneRpcHandlers<PlayerRelayEvents> =

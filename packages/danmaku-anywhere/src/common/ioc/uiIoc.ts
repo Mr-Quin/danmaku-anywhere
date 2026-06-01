@@ -1,11 +1,18 @@
 import 'reflect-metadata'
 import { Container } from 'inversify'
+import { IS_DA_E2E } from '@/common/constants'
 import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
 import {
   type IOptionsServiceFactory,
   OptionsServiceFactory,
   optionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
+import {
+  type IMaskProviderFactory,
+  MaskProviderFactory,
+  maskProviderFactory,
+  mockMaskProviderFactory,
+} from '@/content/player/occlusion/maskProviderFactory'
 import { type ILogger, Logger, LoggerSymbol } from '../Logger'
 import { i18n } from '../localization/i18n'
 import { AiProviderConfigService } from '../options/aiProviderConfig/service'
@@ -22,6 +29,10 @@ const uiContainer = new Container({ autobind: true, defaultScope: 'Singleton' })
 uiContainer
   .bind<IOptionsServiceFactory>(OptionsServiceFactory)
   .toFactory(optionsServiceFactory)
+
+uiContainer
+  .bind<IMaskProviderFactory>(MaskProviderFactory)
+  .toFactory(IS_DA_E2E ? mockMaskProviderFactory : maskProviderFactory)
 
 uiContainer.bind<ILogger>(LoggerSymbol).toConstantValue(Logger)
 

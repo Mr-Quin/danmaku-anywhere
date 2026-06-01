@@ -433,6 +433,12 @@ export class RpcManager {
         'relay:command:debugSkipButton': passThrough(
           relayFrameClient['relay:command:debugSkipButton']
         ),
+        'relay:command:getSegmentationStats': passThrough(
+          relayFrameClient['relay:command:getSegmentationStats']
+        ),
+        'relay:command:setOcclusionDebugOverlay': passThrough(
+          relayFrameClient['relay:command:setOcclusionDebugOverlay']
+        ),
         'relay:event:playerReady': passThrough(
           relayFrameClient['relay:event:playerReady']
         ),
@@ -456,6 +462,9 @@ export class RpcManager {
         ),
         'relay:event:userInteraction': passThrough(
           relayFrameClient['relay:event:userInteraction']
+        ),
+        'relay:event:occlusionStatus': passThrough(
+          relayFrameClient['relay:event:occlusionStatus']
         ),
       },
       {

@@ -58,11 +58,13 @@ import type {
 } from '@/common/danmaku/dto'
 import type { LogEntry } from '@/common/Logger'
 import type { AiProviderConfigInput } from '@/common/options/aiProviderConfig/schema'
+import type { OcclusionModel } from '@/common/options/danmakuOptions/constant'
 import type {
   MountConfig,
   MountConfigAiConfig,
 } from '@/common/options/mountConfig/schema'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
+import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.service'
 import type { RPCDef } from '../../rpc/types'
 
 type IconSetDto =
@@ -214,6 +216,24 @@ export type PlayerRelayCommands = {
     void,
     FrameContext
   >
+  'relay:command:getSegmentationStats': RPCDef<
+    InputWithFrameId<void>,
+    SegmentationStats,
+    FrameContext
+  >
+  'relay:command:setOcclusionDebugOverlay': RPCDef<
+    InputWithFrameId<boolean>,
+    void,
+    FrameContext
+  >
+}
+
+export type SegmentationStats = {
+  running: boolean
+  model: OcclusionModel | null
+  fps: number | null
+  lastError: string | null
+  debugOverlay: boolean
 }
 
 type PlayerReadyData = {
@@ -243,4 +263,5 @@ export type PlayerRelayEvents = {
   'relay:event:preloadNextEpisode': RPCDef<InputWithFrameId<void>, void>
   'relay:event:showPopover': RPCDef<InputWithFrameId<void>, void>
   'relay:event:userInteraction': RPCDef<InputWithFrameId<void>, void>
+  'relay:event:occlusionStatus': RPCDef<InputWithFrameId<OcclusionStatus>, void>
 }
