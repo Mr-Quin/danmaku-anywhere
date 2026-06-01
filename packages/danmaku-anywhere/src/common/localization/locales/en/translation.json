@@ -691,6 +691,7 @@
       "download": "Download",
       "downloaded": "Downloaded ({{size}})",
       "downloadError": "Failed to download model",
+      "empty": "No models available",
       "needsWebgpu": "Needs a WebGPU-capable browser",
       "notDownloaded": "Not downloaded",
       "notDownloadedSize": "Not downloaded ({{size}})",

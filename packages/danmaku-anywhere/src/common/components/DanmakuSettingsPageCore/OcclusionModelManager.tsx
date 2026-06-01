@@ -88,7 +88,7 @@ export function OcclusionModelManager({
   )
 
   function labelOf(model: ModelEntry): string {
-    return i18n.language.startsWith('zh') ? model.label.zh : model.label.en
+    return i18n.language?.startsWith('zh') ? model.label.zh : model.label.en
   }
 
   function renderHostedAction(
@@ -142,76 +142,83 @@ export function OcclusionModelManager({
         </Tooltip>
       </Stack>
 
-      {isLoading ? (
-        <CircularProgress size={20} />
-      ) : (
-        models.map((model) => {
-          const downloadedSize = storageById.get(model.id)
-          const isDownloaded = downloadedSize !== undefined
-          const isHosted = model.delivery === 'hosted'
-          const isActive = model.id === activeModelId
-          const blockedByWebgpu = model.requiresWebGpu && !webgpuAvailable
-          const busy =
-            (download.isPending && download.variables === model.id) ||
-            (remove.isPending && remove.variables === model.id)
+      {isLoading ? <CircularProgress size={20} /> : null}
+      {!isLoading && models.length === 0 ? (
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          {t('stylePage.occlusionModels.empty', 'No models available')}
+        </Typography>
+      ) : null}
+      {!isLoading
+        ? models.map((model) => {
+            const downloadedSize = storageById.get(model.id)
+            const isDownloaded = downloadedSize !== undefined
+            const isHosted = model.delivery === 'hosted'
+            const isActive = model.id === activeModelId
+            const blockedByWebgpu = model.requiresWebGpu && !webgpuAvailable
+            const busy =
+              (download.isPending && download.variables === model.id) ||
+              (remove.isPending && remove.variables === model.id)
 
-          return (
-            <Stack
-              key={model.id}
-              direction="row"
-              spacing={1}
-              data-testid={`occlusion-model-${model.id}`}
-              sx={{ alignItems: 'center' }}
-            >
-              <Radio
-                size="small"
-                checked={isActive}
-                disabled={blockedByWebgpu}
-                onChange={() => onSetActive(model.id)}
-                slotProps={{
-                  input: {
-                    'aria-label': labelOf(model),
-                  },
-                }}
-              />
-              <Box sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {labelOf(model)}
-                </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  {modelStateText(t, {
-                    isActive,
-                    isHosted,
-                    isDownloaded,
-                    downloadedSize,
-                    sizeBytes: model.sizeBytes,
-                    blockedByWebgpu,
-                  })}
-                </Typography>
-              </Box>
-              <Chip
-                size="small"
-                variant="outlined"
-                label={model.runtime}
-                sx={{ flexShrink: 0 }}
-              />
-              {model.requiresWebGpu ? (
+            return (
+              <Stack
+                key={model.id}
+                direction="row"
+                spacing={1}
+                data-testid={`occlusion-model-${model.id}`}
+                sx={{ alignItems: 'center' }}
+              >
+                <Radio
+                  size="small"
+                  checked={isActive}
+                  disabled={blockedByWebgpu}
+                  onChange={() => onSetActive(model.id)}
+                  slotProps={{
+                    input: {
+                      'aria-label': labelOf(model),
+                    },
+                  }}
+                />
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {labelOf(model)}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'text.secondary' }}
+                  >
+                    {modelStateText(t, {
+                      isActive,
+                      isHosted,
+                      isDownloaded,
+                      downloadedSize,
+                      sizeBytes: model.sizeBytes,
+                      blockedByWebgpu,
+                    })}
+                  </Typography>
+                </Box>
                 <Chip
                   size="small"
-                  color={webgpuAvailable ? 'default' : 'warning'}
-                  label="WebGPU"
+                  variant="outlined"
+                  label={model.runtime}
                   sx={{ flexShrink: 0 }}
                 />
-              ) : null}
-              {isHosted ? (
-                <Box sx={{ flexShrink: 0, minWidth: 88, textAlign: 'right' }}>
-                  {renderHostedAction(model.id, isDownloaded, busy)}
-                </Box>
-              ) : null}
-            </Stack>
-          )
-        })
-      )}
+                {model.requiresWebGpu ? (
+                  <Chip
+                    size="small"
+                    color={webgpuAvailable ? 'default' : 'warning'}
+                    label="WebGPU"
+                    sx={{ flexShrink: 0 }}
+                  />
+                ) : null}
+                {isHosted ? (
+                  <Box sx={{ flexShrink: 0, minWidth: 88, textAlign: 'right' }}>
+                    {renderHostedAction(model.id, isDownloaded, busy)}
+                  </Box>
+                ) : null}
+              </Stack>
+            )
+          })
+        : null}
     </Stack>
   )
 }

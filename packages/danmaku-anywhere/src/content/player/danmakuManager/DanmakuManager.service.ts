@@ -311,7 +311,10 @@ export class DanmakuManagerService {
         await chromeRpcClient.occlusionResolveModel({ id: modelId })
       ).data
     } catch (e) {
+      // Resolution failed (transient background RPC error); stop rather than
+      // leave a stale model running while the UI shows a different one.
       this.logger.error(e)
+      this.occlusionService.reset()
       return
     }
     // A newer update may have superseded this resolve while it was in flight
