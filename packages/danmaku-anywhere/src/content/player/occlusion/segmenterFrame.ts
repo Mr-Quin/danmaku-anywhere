@@ -1,7 +1,7 @@
 import { FilesetResolver, ImageSegmenter } from '@mediapipe/tasks-vision'
 import type { InferenceSession, Tensor } from 'onnxruntime-web/webgpu'
+import type { ModelEntry } from '@/common/models/schema'
 import { fetchAndCacheFile } from '@/common/storage/opfsFileCache'
-import { getModel, type ModelRuntime } from './modelRegistry'
 
 /**
  * Segmenter host page, loaded as a chrome-extension:// iframe inside the host
@@ -9,19 +9,23 @@ import { getModel, type ModelRuntime } from './modelRegistry'
  * (MediaPipe wasm loader, onnxruntime-web) work here (no isolated/main world
  * split) under the extension CSP ('wasm-unsafe-eval'), and `new Worker`/getURL
  * are same-origin. The content script drives it via postMessage and transferable
- * ImageBitmaps. Two runtimes: 'mediapipe' (selfie, people) and 'ort' (ISNet via
- * onnxruntime-web WebGPU, anime). Both return a category mask where the subject
- * => 0 (hidden), background => 1 (shown).
+ * ImageBitmaps, passing the full resolved model descriptor in `init`. Two
+ * runtimes: 'mediapipe' (selfie, people) and 'ort' (onnxruntime-web WebGPU, any
+ * hosted ORT model). Both return a category mask where the subject => 0
+ * (hidden), background => 1 (shown).
  */
 
 const CHANNEL = 'occlusion'
 // The bundled selfie model's PERSON category is index 0 (verified empirically;
 // inverted from some docs). confidenceMasks[0] is the per-pixel person prob.
 const PERSON_CATEGORY = 0
-const ANIME_INPUT_SIZE = getModel('anime').inputSize
-// Above this subject coverage the anime detection is treated as degenerate and
+// Above this subject coverage an ORT detection is treated as degenerate and
 // suppressed, so a bad frame does not hide every danmaku.
 const MAX_SUBJECT_FRACTION = 0.9
+// Standard ImageNet normalization (RGB order), used when preprocessing.normalize
+// is 'imagenet'.
+const IMAGENET_MEAN = [0.485, 0.456, 0.406]
+const IMAGENET_STD = [0.229, 0.224, 0.225]
 
 type ReadyMsg = { __da: typeof CHANNEL; type: 'ready' }
 type Reply = {
@@ -31,15 +35,15 @@ type Reply = {
   [k: string]: unknown
 }
 
-let runtime: ModelRuntime | undefined
+let descriptor: ModelEntry | undefined
 let segmenter: ImageSegmenter | undefined
 let lastTimestamp = 0
 
-// Lazily imported only when the 'ort' runtime is selected (keeps onnxruntime-web
+// Lazily imported only when an 'ort' model is selected (keeps onnxruntime-web
 // off the default 'mediapipe' path).
 let ortRef: typeof import('onnxruntime-web/webgpu') | undefined
-let animeSession: InferenceSession | undefined
-let animeCanvas: OffscreenCanvas | undefined
+let ortSession: InferenceSession | undefined
+let ortCanvas: OffscreenCanvas | undefined
 
 async function initMediapipe() {
   if (segmenter) {
@@ -57,41 +61,39 @@ async function initMediapipe() {
   })
 }
 
-async function initAnime(
+async function initOrt(
+  model: ModelEntry,
   onProgress?: (loaded: number, total: number | null) => void
 ) {
-  if (animeSession) {
+  if (ortSession) {
     return
   }
-  if (!navigator.gpu) {
-    throw new Error('WebGPU is unavailable; the anime model requires WebGPU')
+  if (model.requiresWebGpu && !navigator.gpu) {
+    throw new Error('WebGPU is unavailable; this model requires WebGPU')
   }
-  const descriptor = getModel('anime')
-  if (!descriptor.url) {
-    throw new Error('anime model url is not configured')
+  if (!model.url) {
+    throw new Error('hosted model url is not configured')
   }
   const ort = await import('onnxruntime-web/webgpu')
   ortRef = ort
   ort.env.wasm.wasmPaths = chrome.runtime.getURL('ort/')
   // Cache-bust by content hash so a re-uploaded model at the same path is never
   // served stale from a CDN edge cache (each version is a distinct URL).
-  const url = descriptor.sha256
-    ? `${descriptor.url}?v=${descriptor.sha256}`
-    : descriptor.url
+  const url = model.sha256 ? `${model.url}?v=${model.sha256}` : model.url
   const bytes = await fetchAndCacheFile({
-    id: 'anime-isnet',
+    id: model.id,
     url,
-    sha256: descriptor.sha256,
+    sha256: model.sha256,
     onProgress: onProgress
       ? (progress) => {
           return onProgress(progress.loaded, progress.total)
         }
       : undefined,
   })
-  animeSession = await ort.InferenceSession.create(bytes, {
+  ortSession = await ort.InferenceSession.create(bytes, {
     executionProviders: ['webgpu'],
   })
-  animeCanvas = new OffscreenCanvas(ANIME_INPUT_SIZE, ANIME_INPUT_SIZE)
+  ortCanvas = new OffscreenCanvas(model.inputSize, model.inputSize)
 }
 
 function segmentMediapipe(bitmap: ImageBitmap, threshold: number) {
@@ -123,19 +125,47 @@ function segmentMediapipe(bitmap: ImageBitmap, threshold: number) {
   }
 }
 
-async function segmentAnime(bitmap: ImageBitmap, threshold: number) {
-  const ort = ortRef
-  if (!animeSession || !ort || !animeCanvas) {
-    throw new Error('anime session not initialized')
+function buildOrtInput(
+  model: ModelEntry,
+  data: Uint8ClampedArray
+): Float32Array {
+  const size = model.inputSize
+  const plane = size * size
+  const input = new Float32Array(3 * plane)
+  const { normalize, layout, channelOrder } = model.preprocessing
+  // Source pixels are RGBA; map to the model's channel order.
+  const srcChannel = channelOrder === 'bgr' ? [2, 1, 0] : [0, 1, 2]
+  for (let i = 0; i < plane; i++) {
+    for (let c = 0; c < 3; c++) {
+      const raw = data[i * 4 + srcChannel[c]] / 255
+      const value =
+        normalize === 'imagenet'
+          ? (raw - IMAGENET_MEAN[c]) / IMAGENET_STD[c]
+          : raw
+      const index = layout === 'nhwc' ? i * 3 + c : c * plane + i
+      input[index] = value
+    }
   }
-  const ctx = animeCanvas.getContext('2d')
+  return input
+}
+
+async function segmentOrt(
+  model: ModelEntry,
+  bitmap: ImageBitmap,
+  threshold: number
+) {
+  const ort = ortRef
+  if (!ortSession || !ort || !ortCanvas) {
+    throw new Error('ort session not initialized')
+  }
+  const ctx = ortCanvas.getContext('2d')
   if (!ctx) {
     throw new Error('no offscreen 2d context')
   }
-  const size = ANIME_INPUT_SIZE
+  const size = model.inputSize
   // Letterbox the frame into the square input: preserve aspect ratio, center,
-  // pad with black. ISNet is trained on undistorted, padded input, so stretching
-  // to square (and the wrong normalization) degrades the mask.
+  // pad with black. ISNet-family models are trained on undistorted, padded
+  // input, so stretching to square degrades the mask.
   const scale = Math.min(size / bitmap.width, size / bitmap.height)
   const contentW = Math.max(1, Math.round(bitmap.width * scale))
   const contentH = Math.max(1, Math.round(bitmap.height * scale))
@@ -145,34 +175,27 @@ async function segmentAnime(bitmap: ImageBitmap, threshold: number) {
   ctx.fillRect(0, 0, size, size)
   ctx.drawImage(bitmap, offsetX, offsetY, contentW, contentH)
   const { data } = ctx.getImageData(0, 0, size, size)
-  const plane = size * size
-  const input = new Float32Array(3 * plane)
-  for (let i = 0; i < plane; i++) {
-    input[i] = data[i * 4] / 255
-    input[plane + i] = data[i * 4 + 1] / 255
-    input[2 * plane + i] = data[i * 4 + 2] / 255
-  }
-  const tensor = new ort.Tensor('float32', input, [1, 3, size, size])
+  const input = buildOrtInput(model, data)
+  const dims =
+    model.preprocessing.layout === 'nhwc'
+      ? [1, size, size, 3]
+      : [1, 3, size, size]
+  const tensor = new ort.Tensor('float32', input, dims)
   const feeds: Record<string, Tensor> = {
-    [animeSession.inputNames[0]]: tensor,
+    [ortSession.inputNames[0]]: tensor,
   }
-  const output = (await animeSession.run(feeds))[animeSession.outputNames[0]]
-  const mask = output.data as Float32Array
-  if (mask.length !== plane) {
-    throw new Error(
-      `anime model output ${output.dims.join('x')} does not match input ${size}x${size}`
-    )
-  }
-  // The output is already a [0,1] foreground alpha. Crop back to the letterboxed
-  // content (drop the padding) and threshold directly: subject => 0 (hidden),
-  // background => 1 (shown), matching the mediapipe convention downstream.
+  const output = (await ortSession.run(feeds))[ortSession.outputNames[0]]
+  const foreground = readForeground(model, output, size)
+  // Crop back to the letterboxed content (drop the padding) and threshold:
+  // subject => 0 (hidden), background => 1 (shown), matching the mediapipe
+  // convention downstream.
   const bytes = new Uint8Array(contentW * contentH)
   let subject = 0
   for (let y = 0; y < contentH; y++) {
     const srcRow = (offsetY + y) * size + offsetX
     const dstRow = y * contentW
     for (let x = 0; x < contentW; x++) {
-      const hidden = mask[srcRow + x] >= threshold
+      const hidden = foreground[srcRow + x] >= threshold
       if (hidden) {
         subject++
       }
@@ -186,6 +209,41 @@ async function segmentAnime(bitmap: ImageBitmap, threshold: number) {
     bytes.fill(1)
   }
   return { dims: { w: contentW, h: contentH }, bytes }
+}
+
+function readForeground(
+  model: ModelEntry,
+  output: Tensor,
+  size: number
+): Float32Array {
+  const data = output.data as Float32Array
+  const plane = size * size
+  if (model.preprocessing.output === 'argmax') {
+    // Class index per pixel from a [1, C, H, W] output; class 0 is background,
+    // any other class is subject. No shipped model uses argmax yet.
+    const classes = data.length / plane
+    const foreground = new Float32Array(plane)
+    for (let i = 0; i < plane; i++) {
+      let best = 0
+      let bestClass = 0
+      for (let c = 0; c < classes; c++) {
+        const v = data[c * plane + i]
+        if (v > best) {
+          best = v
+          bestClass = c
+        }
+      }
+      foreground[i] = bestClass === 0 ? 0 : 1
+    }
+    return foreground
+  }
+  if (data.length !== plane) {
+    throw new Error(
+      `model output ${output.dims.join('x')} does not match input ${size}x${size}`
+    )
+  }
+  // Already a [0,1] foreground alpha.
+  return data
 }
 
 window.addEventListener('message', async (e: MessageEvent) => {
@@ -203,9 +261,9 @@ window.addEventListener('message', async (e: MessageEvent) => {
   }
   try {
     if (msg.type === 'init') {
-      runtime = msg.runtime === 'ort' ? 'ort' : 'mediapipe'
-      if (runtime === 'ort') {
-        await initAnime((loaded, total) => {
+      descriptor = msg.descriptor as ModelEntry
+      if (descriptor.runtime === 'ort') {
+        await initOrt(descriptor, (loaded, total) => {
           reply({ type: 'progress', loaded, total })
         })
       } else {
@@ -228,8 +286,8 @@ window.addEventListener('message', async (e: MessageEvent) => {
       const threshold = typeof msg.threshold === 'number' ? msg.threshold : 0.5
       try {
         const { dims, bytes } =
-          runtime === 'ort'
-            ? await segmentAnime(bitmap, threshold)
+          descriptor?.runtime === 'ort'
+            ? await segmentOrt(descriptor, bitmap, threshold)
             : segmentMediapipe(bitmap, threshold)
         reply({ type: 'segment', id: msg.id, ok: true, dims, bytes }, [
           bytes.buffer,

@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { ILogger } from '@/common/Logger'
+import { modelEntrySchema } from '@/common/models/schema'
 import { MockMaskProvider } from './MockMaskProvider'
 import type { IMaskProviderFactory } from './maskProviderFactory'
 import {
@@ -7,6 +8,15 @@ import {
   OcclusionService,
   type OcclusionStatus,
 } from './Occlusion.service'
+
+const peopleModel = modelEntrySchema.parse({
+  id: 'people',
+  label: { en: 'People', zh: '真人' },
+  runtime: 'mediapipe',
+  delivery: 'bundled',
+  inputSize: 256,
+  requiresWebGpu: false,
+})
 
 /**
  * Unit tests for the observable status/stats surface of OcclusionService.
@@ -27,11 +37,12 @@ function makeLogger(debug = vi.fn()): ILogger {
   return logger
 }
 
-const factory: IMaskProviderFactory = (model) => new MockMaskProvider(model)
+const factory: IMaskProviderFactory = (descriptor) =>
+  new MockMaskProvider(descriptor)
 
 function makeConfig(overrides: Partial<OcclusionConfig> = {}): OcclusionConfig {
   return {
-    model: 'people',
+    descriptor: peopleModel,
     captureSize: 256,
     capturePreserveAspect: false,
     minIntervalMs: 80,

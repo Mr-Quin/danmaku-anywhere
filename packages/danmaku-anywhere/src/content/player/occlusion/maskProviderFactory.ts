@@ -1,15 +1,14 @@
-import type { OcclusionModel } from '@/common/options/danmakuOptions/constant'
+import type { ModelEntry } from '@/common/models/schema'
 import { IframeMaskProvider } from './IframeMaskProvider'
 import { MockMaskProvider } from './MockMaskProvider'
-import { getModel } from './modelRegistry'
 import type { MaskProvider } from './types'
 
 export const MaskProviderFactory = Symbol.for('MaskProviderFactory')
 
-export type IMaskProviderFactory = (model: OcclusionModel) => MaskProvider
+export type IMaskProviderFactory = (descriptor: ModelEntry) => MaskProvider
 
 export function maskProviderFactory(): IMaskProviderFactory {
-  return (model) => new IframeMaskProvider(getModel(model).runtime)
+  return (descriptor) => new IframeMaskProvider(descriptor)
 }
 
 /**
@@ -18,5 +17,5 @@ export function maskProviderFactory(): IMaskProviderFactory {
  * model.
  */
 export function mockMaskProviderFactory(): IMaskProviderFactory {
-  return (model) => new MockMaskProvider(model)
+  return (descriptor) => new MockMaskProvider(descriptor)
 }

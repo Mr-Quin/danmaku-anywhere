@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
-import type { OcclusionModel } from '@/common/options/danmakuOptions/constant'
+import type { ModelEntry } from '@/common/models/schema'
 import { buildAlphaMask } from './maskGeometry'
 import {
   type IMaskProviderFactory,
@@ -31,7 +31,7 @@ export interface OcclusionStats {
 }
 
 export interface OcclusionConfig {
-  model: OcclusionModel
+  descriptor: ModelEntry
   captureSize: number
   // Capture at the video's aspect ratio (long side = captureSize) instead of a
   // square. The anime model is distortion-sensitive; the people segmenter is
@@ -79,7 +79,7 @@ export class OcclusionService {
   private readonly rawMaskCtx: CanvasRenderingContext2D | null
   private readonly logger: ILogger
   private provider?: MaskProvider
-  private currentModel?: OcclusionModel
+  private currentModelId?: string
   // Replaced by configure(); a no-op until then.
   private applyMask: (url?: string) => void = () => undefined
   private onStatus?: (status: OcclusionStatus) => void
@@ -119,11 +119,11 @@ export class OcclusionService {
     this.threshold = config.threshold
     this.edgeSoftness = config.edgeSoftness
     this.setDebug(config.debug)
-    if (config.model !== this.currentModel) {
+    if (config.descriptor.id !== this.currentModelId) {
       this.stop()
       this.provider?.dispose?.()
-      this.provider = this.createProvider(config.model)
-      this.currentModel = config.model
+      this.provider = this.createProvider(config.descriptor)
+      this.currentModelId = config.descriptor.id
     }
   }
 
@@ -212,7 +212,7 @@ export class OcclusionService {
     this.stop()
     this.provider?.dispose?.()
     this.provider = undefined
-    this.currentModel = undefined
+    this.currentModelId = undefined
   }
 
   private async run(): Promise<void> {

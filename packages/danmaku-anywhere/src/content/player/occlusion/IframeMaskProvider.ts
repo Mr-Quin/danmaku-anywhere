@@ -1,4 +1,4 @@
-import type { ModelRuntime } from './modelRegistry'
+import type { ModelEntry } from '@/common/models/schema'
 import type { MaskProvider, SegmentationResult, SegmentOptions } from './types'
 
 const CHANNEL = 'occlusion'
@@ -24,7 +24,7 @@ export class IframeMaskProvider implements MaskProvider {
   private readonly cleanups = new Set<() => void>()
   onDownloadProgress?: (loaded: number, total: number | null) => void
 
-  constructor(private readonly runtime: ModelRuntime) {}
+  constructor(private readonly descriptor: ModelEntry) {}
 
   init(): Promise<void> {
     if (!this.ready) {
@@ -65,7 +65,7 @@ export class IframeMaskProvider implements MaskProvider {
         }
         if (e.data.type === 'ready') {
           iframe.contentWindow?.postMessage(
-            { __da: CHANNEL, type: 'init', runtime: this.runtime },
+            { __da: CHANNEL, type: 'init', descriptor: this.descriptor },
             this.origin
           )
           return

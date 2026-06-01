@@ -57,6 +57,8 @@ import type {
   MacCMSFetchData,
 } from '@/common/danmaku/dto'
 import type { LogEntry } from '@/common/Logger'
+import type { ModelManagementState } from '@/common/models/dto'
+import type { ModelEntry } from '@/common/models/schema'
 import type { AiProviderConfigInput } from '@/common/options/aiProviderConfig/schema'
 import type { OcclusionModel } from '@/common/options/danmakuOptions/constant'
 import type {
@@ -178,6 +180,11 @@ export type BackgroundMethods = {
   bookmarkDeleteBySeason: RPCDef<BookmarkDeleteBySeasonInput, void>
   bookmarkGetAll: RPCDef<void, Bookmark[]>
   bookmarkRefresh: RPCDef<BookmarkRefreshInput, Bookmark>
+  occlusionGetModels: RPCDef<void, ModelManagementState>
+  occlusionRefreshModels: RPCDef<void, ModelManagementState>
+  occlusionResolveModel: RPCDef<{ id: string }, ModelEntry>
+  occlusionDownloadModel: RPCDef<{ id: string }, ModelManagementState>
+  occlusionDeleteModel: RPCDef<{ id: string }, ModelManagementState>
 }
 
 type InputWithFrameId<TInput> = TInput extends void
