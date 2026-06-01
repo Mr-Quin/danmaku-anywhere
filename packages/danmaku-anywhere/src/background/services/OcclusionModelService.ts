@@ -4,11 +4,11 @@ import type { ModelManagementState } from '@/common/models/dto'
 import { ModelManifestService } from '@/common/models/ModelManifestService'
 import { type ModelEntry, modelDownloadUrl } from '@/common/models/schema'
 import { RpcException } from '@/common/rpc/types'
-import { fetchAndCacheFile } from '@/common/storage/opfsFileCache'
 import {
-  deleteModelFile,
-  listModelFiles,
-} from '@/common/storage/opfsModelStore'
+  fetchAndCacheFile,
+  listCachedFiles,
+  removeCachedFile,
+} from '@/common/storage/opfsFileCache'
 
 /**
  * Background-side model management. The background worker shares one
@@ -37,7 +37,7 @@ export class OcclusionModelService {
   async getState(): Promise<ModelManagementState> {
     const [models, storage] = await Promise.all([
       this.manifest.listModels(),
-      listModelFiles(),
+      listCachedFiles(),
     ])
     return { models, storage }
   }
@@ -75,7 +75,7 @@ export class OcclusionModelService {
   }
 
   async delete(id: string): Promise<ModelManagementState> {
-    await deleteModelFile(id)
+    await removeCachedFile(id)
     return this.getState()
   }
 }

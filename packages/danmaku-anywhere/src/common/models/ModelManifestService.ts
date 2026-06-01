@@ -126,7 +126,11 @@ export class ModelManifestService {
       return fallback ?? BASELINE_MANIFEST
     }
     try {
-      const res = await this.io.fetch(MANIFEST_URL)
+      // Time-box the fetch so a hanging connection falls back to the cached or
+      // baseline manifest quickly instead of stalling occlusion startup.
+      const res = await this.io.fetch(MANIFEST_URL, {
+        signal: AbortSignal.timeout(5000),
+      })
       if (!res.ok) {
         throw new Error(`manifest fetch failed (${res.status})`)
       }

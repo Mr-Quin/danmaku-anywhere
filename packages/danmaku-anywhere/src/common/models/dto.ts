@@ -1,4 +1,4 @@
-import type { ModelStorageEntry } from '@/common/storage/opfsModelStore'
+import type { CachedFileInfo } from '@/common/storage/opfsFileCache'
 import type { ModelEntry } from './schema'
 
 /**
@@ -8,5 +8,5 @@ import type { ModelEntry } from './schema'
  */
 export interface ModelManagementState {
   models: ModelEntry[]
-  storage: ModelStorageEntry[]
+  storage: CachedFileInfo[]
 }
