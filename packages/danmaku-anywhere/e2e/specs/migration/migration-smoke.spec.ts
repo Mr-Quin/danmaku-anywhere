@@ -40,8 +40,7 @@ const BACKUP_GZ = path.join(FIXTURES_DIR, 'backup.json.gz')
 const DANMAKU_ZIP = path.join(FIXTURES_DIR, 'danmaku.zip')
 const POPUP_TIMEOUT_MS = 5_000
 
-// Pre-existing IDB-quirk noise from LogService that's been there since the
-// first e2e ran. Justified opt-out, not a hidden regression.
+// LogService IDB-quirk noise, unrelated to migration.
 const IGNORED_ERROR_PATTERNS = [/Failed to save log/]
 
 test.describe('migration swap', () => {

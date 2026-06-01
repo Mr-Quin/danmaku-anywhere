@@ -64,7 +64,7 @@ import type {
   MountConfigAiConfig,
 } from '@/common/options/mountConfig/schema'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
-import type { OcclusionStatus } from '@/content/player/occlusion/OcclusionMaskService'
+import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.service'
 import type { RPCDef } from '../../rpc/types'
 
 type IconSetDto =

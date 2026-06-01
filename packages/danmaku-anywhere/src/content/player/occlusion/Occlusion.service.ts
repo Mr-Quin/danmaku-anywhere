@@ -1,10 +1,15 @@
+import { inject, injectable } from 'inversify'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import type { OcclusionModel } from '@/common/options/danmakuOptions/constant'
 import { buildAlphaMask } from './maskGeometry'
+import {
+  type IMaskProviderFactory,
+  MaskProviderFactory,
+} from './maskProviderFactory'
 import type { MaskProvider } from './types'
 
-// The failure gates that users actually hit. 'taint' (cross-origin/DRM video),
-// 'init' (wasm/model load) and 'webgpu' (anime runtime needs WebGPU) are
-// distinct because the user-facing remedy differs; 'segment' covers a runtime
-// produced-no-mask result; 'unavailable' is a missing browser capability.
+// Distinct reasons because the user-facing remedy differs (taint vs webgpu vs
+// init); the rest are surfaced the same way.
 export type OcclusionStatusReason =
   | 'downloading'
   | 'init'
@@ -25,24 +30,21 @@ export interface OcclusionStats {
   debugOverlay: boolean
 }
 
-export interface OcclusionMaskOptions {
-  captureSize?: number
+export interface OcclusionConfig {
+  model: OcclusionModel
+  captureSize: number
   // Capture at the video's aspect ratio (long side = captureSize) instead of a
-  // square. The anime model is distortion-sensitive, so it needs an undistorted
-  // frame; the people segmenter is robust and uses the cheaper square capture.
-  capturePreserveAspect?: boolean
-  minIntervalMs?: number
-  outputMaxSide?: number
-  isPerson?: (value: number) => boolean
-  threshold?: number
-  edgeSoftness?: number
-  debug?: boolean
-  // Diagnostic sink. The loop swallows transient errors to avoid breaking
-  // playback, so without this a real-page failure (init, cross-origin taint,
-  // empty mask) is invisible.
-  log?: (message: string) => void
-  // Structured, classified counterpart to `log`: fired for the failure gates a
-  // higher layer (settings/toast) surfaces, and tracked as `lastError` in stats.
+  // square. The anime model is distortion-sensitive; the people segmenter is
+  // robust and uses the cheaper square capture.
+  capturePreserveAspect: boolean
+  minIntervalMs: number
+  outputMaxSide: number
+  threshold: number
+  edgeSoftness: number
+  debug: boolean
+  applyMask: (url?: string) => void
+  // Classified failure gates a higher layer (settings/toast) surfaces; also
+  // tracked as lastError in stats.
   onStatus?: (status: OcclusionStatus) => void
 }
 
@@ -53,22 +55,20 @@ const DEBUG_Z_INDEX = '2147483646'
 
 // The bundled selfie_segmenter's category mask marks the PERSON as category 0
 // and the background as non-zero (verified empirically against the shipped
-// model; this is inverted from some MediaPipe docs). Danmaku are hidden where
-// the person is, so person pixels become transparent (alpha 0) in the mask.
-function defaultIsPerson(value: number): boolean {
+// model; inverted from some MediaPipe docs). Danmaku hide where the person is,
+// so person pixels become transparent (alpha 0) in the mask.
+function isPerson(value: number): boolean {
   return value === 0
 }
 
 /**
  * Drives a per-frame person-mask loop for one video and applies the resulting
  * alpha mask (as a data URL) to the danmaku overlay so comments render behind
- * people. Capture and mask application live in the content script (co-located
- * with the video and overlay); inference is delegated to the MaskProvider.
- *
- * In debug mode it also paints a visible overlay of the detected region plus a
- * timing readout, so the feature can be seen working and profiled.
+ * people. Capture and mask application live here (co-located with the video and
+ * overlay); inference is delegated to a MaskProvider created per model.
  */
-export class OcclusionMaskService {
+@injectable('Singleton')
+export class OcclusionService {
   private video: HTMLVideoElement | null = null
   private running = false
   private busy = false
@@ -77,9 +77,19 @@ export class OcclusionMaskService {
   private readonly rawMaskCanvas = document.createElement('canvas')
   private readonly maskCtx: CanvasRenderingContext2D | null
   private readonly rawMaskCtx: CanvasRenderingContext2D | null
-  private threshold: number
-  private edgeSoftness: number
-  private debug: boolean
+  private readonly logger: ILogger
+  private provider?: MaskProvider
+  private currentModel?: OcclusionModel
+  // Replaced by configure(); a no-op until then.
+  private applyMask: (url?: string) => void = () => undefined
+  private onStatus?: (status: OcclusionStatus) => void
+  private captureSize = DEFAULT_CAPTURE_SIZE
+  private capturePreserveAspect = false
+  private minIntervalMs = DEFAULT_MIN_INTERVAL_MS
+  private outputMaxSide = DEFAULT_OUTPUT_MAX_SIDE
+  private threshold = 0.5
+  private edgeSoftness = 0
+  private debug = false
   private debugView?: OcclusionDebugView
   private appliedOnce = false
   private imageData?: ImageData
@@ -90,19 +100,46 @@ export class OcclusionMaskService {
   private lastAppliedTs = 0
 
   constructor(
-    private readonly provider: MaskProvider,
-    private readonly applyMask: (url?: string) => void,
-    private readonly options: OcclusionMaskOptions = {}
+    @inject(MaskProviderFactory)
+    private readonly createProvider: IMaskProviderFactory,
+    @inject(LoggerSymbol) logger: ILogger
   ) {
     this.maskCtx = this.maskCanvas.getContext('2d')
     this.rawMaskCtx = this.rawMaskCanvas.getContext('2d')
-    this.threshold = options.threshold ?? 0.5
-    this.edgeSoftness = options.edgeSoftness ?? 0
-    this.debug = options.debug ?? false
+    this.logger = logger.sub('[OcclusionService]')
+  }
+
+  configure(config: OcclusionConfig): void {
+    this.applyMask = config.applyMask
+    this.onStatus = config.onStatus
+    this.captureSize = config.captureSize
+    this.capturePreserveAspect = config.capturePreserveAspect
+    this.minIntervalMs = config.minIntervalMs
+    this.outputMaxSide = config.outputMaxSide
+    this.threshold = config.threshold
+    this.edgeSoftness = config.edgeSoftness
+    this.setDebug(config.debug)
+    if (config.model !== this.currentModel) {
+      this.stop()
+      this.provider?.dispose?.()
+      this.provider = this.createProvider(config.model)
+      this.currentModel = config.model
+    }
+  }
+
+  setDebug(debug: boolean): void {
+    if (debug === this.debug) {
+      return
+    }
+    this.debug = debug
+    if (!debug) {
+      this.debugView?.remove()
+      this.debugView = undefined
+    }
   }
 
   private log(message: string): void {
-    this.options.log?.(message)
+    this.logger.debug(message)
   }
 
   private status(reason: OcclusionStatusReason, message: string): void {
@@ -113,7 +150,7 @@ export class OcclusionMaskService {
     // failure does not spam the same toast.
     if (reason !== this.lastStatusReason) {
       this.lastStatusReason = reason
-      this.options.onStatus?.({ reason, message })
+      this.onStatus?.({ reason, message })
     }
   }
 
@@ -126,32 +163,14 @@ export class OcclusionMaskService {
     }
   }
 
-  // Adjustable live (no segmenter re-init), unlike captureSize/cadence.
-  setRuntime(opts: {
-    threshold?: number
-    edgeSoftness?: number
-    debug?: boolean
-  }): void {
-    if (opts.threshold !== undefined) {
-      this.threshold = opts.threshold
-    }
-    if (opts.edgeSoftness !== undefined) {
-      this.edgeSoftness = opts.edgeSoftness
-    }
-    if (opts.debug !== undefined && opts.debug !== this.debug) {
-      this.debug = opts.debug
-      if (!this.debug) {
-        this.debugView?.remove()
-        this.debugView = undefined
-      }
-    }
-  }
-
   start(video: HTMLVideoElement): void {
     if (this.running && this.video === video) {
       return
     }
     this.stop()
+    if (!this.provider) {
+      return
+    }
     // requestVideoFrameCallback drives the loop; the flag is synced storage and
     // can reach a browser without it, so treat absence as "unavailable" rather
     // than throwing during danmaku mount.
@@ -189,18 +208,24 @@ export class OcclusionMaskService {
     this.debugView = undefined
   }
 
-  dispose(): void {
+  reset(): void {
     this.stop()
-    this.provider.dispose()
+    this.provider?.dispose?.()
+    this.provider = undefined
+    this.currentModel = undefined
   }
 
   private async run(): Promise<void> {
+    const provider = this.provider
     const video = this.video
+    if (!provider) {
+      return
+    }
     // A hosted model (anime) downloads on first use; announce it once so a long
     // first-run wait is not a silent hang. Informational, so it bypasses the
     // lastError-setting status() path.
     let announcedDownload = false
-    this.provider.onDownloadProgress = (_loaded, total) => {
+    provider.onDownloadProgress = (_loaded, total) => {
       if (announcedDownload) {
         return
       }
@@ -208,10 +233,10 @@ export class OcclusionMaskService {
       const mb = total ? Math.round(total / 1_000_000) : null
       const message = mb ? `downloading model (~${mb} MB)` : 'downloading model'
       this.log(message)
-      this.options.onStatus?.({ reason: 'downloading', message })
+      this.onStatus?.({ reason: 'downloading', message })
     }
     try {
-      await this.provider.init()
+      await provider.init()
     } catch (e) {
       // Init failed (wasm/model load, WebGPU unavailable). Give up for now
       // without breaking playback; a later start() can retry a fresh provider.
@@ -223,7 +248,7 @@ export class OcclusionMaskService {
       this.status(reason, `provider init failed: ${detail}`)
       return
     } finally {
-      this.provider.onDownloadProgress = undefined
+      provider.onDownloadProgress = undefined
     }
     if (!this.running || this.video !== video) {
       return
@@ -249,7 +274,6 @@ export class OcclusionMaskService {
       return
     }
     const now = performance.now()
-    const interval = this.options.minIntervalMs ?? DEFAULT_MIN_INTERVAL_MS
     const ready =
       !video.paused &&
       video.readyState >= 2 &&
@@ -261,7 +285,7 @@ export class OcclusionMaskService {
       this.lastAppliedTs = 0
     }
 
-    if (ready && !this.busy && now - this.lastSegmentTs >= interval) {
+    if (ready && !this.busy && now - this.lastSegmentTs >= this.minIntervalMs) {
       this.lastSegmentTs = now
       this.busy = true
       try {
@@ -279,24 +303,24 @@ export class OcclusionMaskService {
   private async segmentAndApply(video: HTMLVideoElement): Promise<void> {
     const maskCtx = this.maskCtx
     const rawMaskCtx = this.rawMaskCtx
-    if (!maskCtx || !rawMaskCtx) {
+    const provider = this.provider
+    if (!maskCtx || !rawMaskCtx || !provider) {
       return
     }
 
     const t0 = performance.now()
-    const captureSize = this.options.captureSize ?? DEFAULT_CAPTURE_SIZE
-    let resizeWidth = captureSize
-    let resizeHeight = captureSize
+    let resizeWidth = this.captureSize
+    let resizeHeight = this.captureSize
     if (
-      this.options.capturePreserveAspect &&
+      this.capturePreserveAspect &&
       video.videoWidth > 0 &&
       video.videoHeight > 0
     ) {
       const aspect = video.videoWidth / video.videoHeight
       if (aspect >= 1) {
-        resizeHeight = Math.max(1, Math.round(captureSize / aspect))
+        resizeHeight = Math.max(1, Math.round(this.captureSize / aspect))
       } else {
-        resizeWidth = Math.max(1, Math.round(captureSize * aspect))
+        resizeWidth = Math.max(1, Math.round(this.captureSize * aspect))
       }
     }
     let frame: ImageBitmap
@@ -312,7 +336,8 @@ export class OcclusionMaskService {
       // back is impossible, so disable for this video instead of retrying.
       if (e instanceof DOMException && e.name === 'SecurityError') {
         this.debugView?.showDisabled('disabled (tainted canvas)')
-        // stop() resets running/fps but keeps lastError, so set status after.
+        // status() must run after stop(): stop clears running/fps but the status
+        // sets lastError, which must survive.
         this.stop()
         this.status(
           'taint',
@@ -328,7 +353,7 @@ export class OcclusionMaskService {
       frame.close()
       return
     }
-    const result = await this.provider.segment(frame, {
+    const result = await provider.segment(frame, {
       threshold: this.threshold,
     })
     if (!result) {
@@ -351,9 +376,10 @@ export class OcclusionMaskService {
       width: video.videoWidth || box.width,
       height: video.videoHeight || box.height,
     }
-    const maxSide = this.options.outputMaxSide ?? DEFAULT_OUTPUT_MAX_SIDE
-    const outputScale = Math.min(1, maxSide / Math.max(box.width, box.height))
-    const isPerson = this.options.isPerson ?? defaultIsPerson
+    const outputScale = Math.min(
+      1,
+      this.outputMaxSide / Math.max(box.width, box.height)
+    )
 
     const mask = buildAlphaMask({
       category: result.category,
@@ -485,11 +511,11 @@ class OcclusionDebugView {
       const tint = ctx.createImageData(u.mask.width, u.mask.height)
       for (let i = 0; i < u.mask.data.length; i += 4) {
         // mask alpha 0 => person; tint it green, leave background clear.
-        const isPerson = u.mask.data[i + 3] === 0
+        const personHere = u.mask.data[i + 3] === 0
         tint.data[i] = 0
         tint.data[i + 1] = 255
         tint.data[i + 2] = 128
-        tint.data[i + 3] = isPerson ? 110 : 0
+        tint.data[i + 3] = personHere ? 110 : 0
       }
       ctx.putImageData(tint, 0, 0)
     }

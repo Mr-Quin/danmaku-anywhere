@@ -1,18 +1,27 @@
 import { describe, expect, test } from 'vitest'
-
 import { getModel } from './modelRegistry'
 
 /**
- * Verifies the occlusion model registry: each occlusionModel option maps to a
- * descriptor with the expected runtime, so the provider factory and the
- * segmenter iframe agree on how to run each model.
+ * Verifies the occlusion model descriptors the rest of the system depends on:
+ * the people model is bundled (mediapipe, no hosted url), the anime model is
+ * hosted ort with the input size segmenterFrame feeds the tensor and an sha256
+ * the OPFS cache verifies. A wrong runtime, inputSize, or hosting flag is a real
+ * shippable bug a runtime-string check alone would miss.
  */
 describe('modelRegistry', () => {
-  test('people maps to the mediapipe runtime', () => {
-    expect(getModel('people').runtime).toBe('mediapipe')
+  test('people is a bundled mediapipe model', () => {
+    const people = getModel('people')
+    expect(people.runtime).toBe('mediapipe')
+    expect(people.inputSize).toBe(256)
+    expect(people.url).toBeUndefined()
+    expect(people.sha256).toBeUndefined()
   })
 
-  test('anime maps to the ort runtime', () => {
-    expect(getModel('anime').runtime).toBe('ort')
+  test('anime is a hosted ort model with an integrity hash', () => {
+    const anime = getModel('anime')
+    expect(anime.runtime).toBe('ort')
+    expect(anime.inputSize).toBe(320)
+    expect(anime.url).toMatch(/^https:\/\/\S+\.onnx$/)
+    expect(anime.sha256).toMatch(/^[0-9a-f]{64}$/)
   })
 })

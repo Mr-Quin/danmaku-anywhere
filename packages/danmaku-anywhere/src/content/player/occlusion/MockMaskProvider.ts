@@ -35,10 +35,6 @@ export class MockMaskProvider implements MaskProvider {
     frame.close()
     return Promise.resolve({ category: this.category, maskSize: this.maskSize })
   }
-
-  dispose(): void {
-    // nothing to release
-  }
 }
 
 function buildCenteredEllipse(size: Size): Uint8Array {

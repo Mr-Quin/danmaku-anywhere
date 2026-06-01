@@ -1,51 +1,35 @@
-/**
- * OPFS-backed cache for large segmentation model files.
- *
- * Fetches a model by id from a URL (streaming, with progress), verifies its
- * integrity against an optional sha256, persists the bytes in the origin
- * private file system, and serves them from there on subsequent calls. Built to
- * run in a Window OR Worker context (the segmenter iframe), with the OPFS layer
- * behind a small interface so it can be faked in tests.
- */
-
-export interface ModelCacheProgress {
+export interface DownloadProgress {
   loaded: number
-  /** Total bytes expected, or null when the server omits Content-Length. */
+  /** Null when the server omits Content-Length. */
   total: number | null
 }
 
-export interface FetchModelOptions {
-  /** Stable identifier; becomes the OPFS file name. */
+export interface FetchAndCacheOptions {
+  /** Stable id; used as the OPFS file name. */
   id: string
-  /** Location to fetch from on a cache miss. */
   url: string
-  /** Lowercase hex sha256. When set, cached and fetched bytes are verified. */
+  /** Lowercase hex sha256; when set, cached and fetched bytes are verified. */
   sha256?: string
-  onProgress?: (progress: ModelCacheProgress) => void
-  /** Cancels an in-flight fetch (does not affect an OPFS cache hit). */
+  onProgress?: (progress: DownloadProgress) => void
   signal?: AbortSignal
 }
 
-/**
- * Minimal OPFS surface used by the cache. The default implementation wraps
- * navigator.storage; tests inject a fake.
- */
+/** Minimal OPFS surface used by the cache; tests inject a fake. */
 export interface OpfsAdapter {
   read(name: string): Promise<ArrayBuffer | null>
   write(name: string, bytes: ArrayBuffer): Promise<void>
   remove(name: string): Promise<void>
 }
 
-export interface ModelCacheDeps {
-  /** OPFS access, or null when OPFS is unavailable in this context. */
+export interface OpfsFileCacheDeps {
+  /** Null when OPFS is unavailable in this context. */
   opfs: OpfsAdapter | null
   fetch: typeof fetch
   digest: (bytes: ArrayBuffer) => Promise<string>
-  /** Best-effort persistence request; resolves to whether storage is persisted. */
   requestPersistence: () => Promise<boolean>
 }
 
-const LOG_PREFIX = '[occlusion] modelCache'
+const LOG_PREFIX = '[opfsFileCache]'
 
 let warnedOpfsUnavailable = false
 
@@ -129,7 +113,7 @@ function createNavigatorOpfs(): OpfsAdapter | null {
   }
 }
 
-function createDefaultDeps(): ModelCacheDeps {
+function createDefaultDeps(): OpfsFileCacheDeps {
   let opfs: OpfsAdapter | null = null
   try {
     opfs = createNavigatorOpfs()
@@ -155,7 +139,7 @@ function throwIfAborted(signal: AbortSignal | undefined): void {
 
 async function readResponseBytes(
   response: Response,
-  onProgress: ((progress: ModelCacheProgress) => void) | undefined,
+  onProgress: ((progress: DownloadProgress) => void) | undefined,
   signal: AbortSignal | undefined
 ): Promise<ArrayBuffer> {
   const header = response.headers?.get('content-length')
@@ -212,8 +196,8 @@ async function matchesIntegrity(
 }
 
 async function downloadAndVerify(
-  options: FetchModelOptions,
-  deps: ModelCacheDeps
+  options: FetchAndCacheOptions,
+  deps: OpfsFileCacheDeps
 ): Promise<ArrayBuffer> {
   throwIfAborted(options.signal)
   const response = await deps.fetch(options.url, { signal: options.signal })
@@ -235,16 +219,14 @@ async function downloadAndVerify(
 }
 
 /**
- * Returns the model bytes, using OPFS as a persistent cache when available.
- *
- * On a verified cache hit, no fetch is made. On a miss, a partial cache, or an
- * integrity mismatch, the model is re-downloaded, verified, and written back.
- * When OPFS is unavailable, falls back to a plain fetch with no caching and logs
- * once.
+ * Fetch a large file by id, using OPFS as a persistent cache. A verified cache
+ * hit skips the network; a miss, partial, or integrity mismatch re-downloads,
+ * verifies, and writes back. Falls back to a plain fetch (no caching) when OPFS
+ * is unavailable. Runs in a Window or Worker context.
  */
-export async function fetchModelWithCache(
-  options: FetchModelOptions,
-  deps: ModelCacheDeps = createDefaultDeps()
+export async function fetchAndCacheFile(
+  options: FetchAndCacheOptions,
+  deps: OpfsFileCacheDeps = createDefaultDeps()
 ): Promise<ArrayBuffer> {
   const { opfs } = deps
 
@@ -257,8 +239,8 @@ export async function fetchModelWithCache(
   if (cached && cached.byteLength > 0) {
     const ok = await matchesIntegrity(cached, options.sha256, deps.digest)
     if (ok) {
-      // No onProgress on a cache hit: it serves instantly, and reporting
-      // progress here would surface a misleading "downloading" notice.
+      // No onProgress on a cache hit: it serves instantly, so reporting progress
+      // would surface a misleading "downloading" notice.
       return cached
     }
     await opfs.remove(options.id).catch(() => undefined)
@@ -273,6 +255,6 @@ export async function fetchModelWithCache(
 }
 
 /** Test-only: resets the "log once" latch between cases. */
-export function resetModelCacheWarnings(): void {
+export function resetOpfsFileCacheWarnings(): void {
   warnedOpfsUnavailable = false
 }

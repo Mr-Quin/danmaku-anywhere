@@ -17,9 +17,10 @@ import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
 import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayout.service'
 import { RectObserver } from '@/content/player/danmakuManager/RectObserver'
 import { DanmakuDebugOverlayService } from '@/content/player/debugOverlay/DanmakuDebugOverlay.service'
-import { createMaskProvider } from '@/content/player/occlusion/createMaskProvider'
-import type { OcclusionStatus } from '@/content/player/occlusion/OcclusionMaskService'
-import { OcclusionMaskService } from '@/content/player/occlusion/OcclusionMaskService'
+import {
+  OcclusionService,
+  type OcclusionStatus,
+} from '@/content/player/occlusion/Occlusion.service'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
 
 const OCCLUSION_QUALITY_PRESETS: Record<
@@ -49,20 +50,13 @@ export class DanmakuManagerService {
   private comments: CommentEntity[] = []
   private hasComments = false
 
-  // State
   public isMounted = false
 
-  // Styles
   private rect = new DOMRectReadOnly()
   private injectedCss: HTMLElement[] = []
 
-  // Observers
   private rectObs?: RectObserver
 
-  // Occlusion (render danmaku behind people)
-  private occlusionService?: OcclusionMaskService
-  private occlusionServiceQuality?: OcclusionQuality
-  private occlusionServiceModel?: OcclusionModel
   private occlusion = false
   private occlusionConfidence = 0.5
   private occlusionEdgeSoftness = 4
@@ -78,6 +72,8 @@ export class DanmakuManagerService {
     layoutManager: DanmakuLayoutService,
     @inject(DanmakuDebugOverlayService)
     private debugOverlayService: DanmakuDebugOverlayService,
+    @inject(OcclusionService)
+    private occlusionService: OcclusionService,
     @inject(LoggerSymbol) logger: ILogger
   ) {
     this.logger = logger.sub('[DanmakuManagerService]')
@@ -96,13 +92,13 @@ export class DanmakuManagerService {
       .then((options) => {
         this.debug = options.debug
         this.debugOverlayService.setDebugEnabled(options.debug)
-        this.occlusionService?.setRuntime({ debug: options.debug })
+        this.occlusionService.setDebug(options.debug)
       })
       .catch((e) => this.logger.error(e))
     extensionOptionsService.onChange((options) => {
       this.debug = options.debug
       this.debugOverlayService.setDebugEnabled(options.debug)
-      this.occlusionService?.setRuntime({ debug: options.debug })
+      this.occlusionService.setDebug(options.debug)
     })
   }
 
@@ -182,8 +178,7 @@ export class DanmakuManagerService {
       this.renderer.create(this.nodes.container, this.video, this.comments)
       this.isMounted = true
     } else {
-      // recreate danmaku if it's already mounted
-      // this fixes an issue where danmaku can get "stuck" on the screen
+      // recreate to fix danmaku getting "stuck" on screen
       if (this.renderer.created) this.renderer.destroy()
 
       this.renderer.create(this.nodes.container, this.video, this.comments)
@@ -194,8 +189,6 @@ export class DanmakuManagerService {
   mount(comments: CommentEntity[]) {
     this.comments = comments
     this.hasComments = true
-    // Allow deferring the creation of danmaku
-    // if video is not ready, danmaku will be created when video is ready
     if (this.video) {
       this.logger.debug('Mounting danmaku')
       this.createDanmaku()
@@ -206,7 +199,6 @@ export class DanmakuManagerService {
   }
 
   unmount() {
-    // If the danmaku is not mounted, only clear the comments
     if (!this.isMounted) {
       if (this.hasComments) {
         this.hasComments = false
@@ -268,7 +260,6 @@ export class DanmakuManagerService {
   }
 
   private attachContainer() {
-    // If the wrapper is already in the document, do nothing
     if (this.nodes.container.isConnected) return
     this.nodes.wrapper.appendChild(this.nodes.container)
   }
@@ -285,31 +276,18 @@ export class DanmakuManagerService {
     this.renderer.setOcclusionMaskUrl(url)
   }
 
-  // Live stats for the devtools Segmentation panel. `model` is null when no
-  // service is active so the panel shows an idle state. The service owns
-  // running/fps/lastError/debugOverlay; the manager only knows the model.
   getSegmentationStats(): SegmentationStats {
-    if (!this.occlusionService) {
-      return {
-        running: false,
-        model: null,
-        fps: null,
-        lastError: null,
-        debugOverlay: this.debug,
-      }
-    }
+    const stats = this.occlusionService.getStats()
     return {
-      ...this.occlusionService.getStats(),
-      model: this.occlusionServiceModel ?? null,
+      ...stats,
+      model: stats.running ? this.occlusionModel : null,
     }
   }
 
   setOcclusionDebugOverlay(enabled: boolean) {
-    this.occlusionService?.setRuntime({ debug: enabled })
+    this.occlusionService.setDebug(enabled)
   }
 
-  // Classified failure events (init/taint/webgpu/segment/unavailable) for a
-  // higher layer (settings/toast) to surface. Only one listener is needed.
   onOcclusionStatus(listener: (status: OcclusionStatus) => void) {
     this.occlusionStatusListener = listener
   }
@@ -317,62 +295,37 @@ export class DanmakuManagerService {
   private updateOcclusion() {
     const shouldRun = this.occlusion && this.isMounted && this.video !== null
     if (!shouldRun) {
-      this.occlusionService?.dispose()
-      this.occlusionService = undefined
-      this.occlusionServiceQuality = undefined
-      this.occlusionServiceModel = undefined
+      this.occlusionService.reset()
       return
     }
-    // captureSize/cadence are fixed at construction and the model selects the
-    // segmenter runtime/iframe, so a quality or model change needs a fresh
-    // service; threshold/softness/debug adjust live.
-    if (
-      this.occlusionService &&
-      (this.occlusionServiceQuality !== this.occlusionQuality ||
-        this.occlusionServiceModel !== this.occlusionModel)
-    ) {
-      this.occlusionService.dispose()
-      this.occlusionService = undefined
-    }
-    if (!this.occlusionService) {
-      const preset = OCCLUSION_QUALITY_PRESETS[this.occlusionQuality]
-      // The anime ISNet model is heavier and distortion-sensitive, so it gets an
-      // aspect-preserving capture (undistorted, a bit above the model input for
-      // clean downscaling) and a slower cadence than the lightweight people
-      // segmenter, to avoid saturating the GPU.
-      const tuned =
-        this.occlusionModel === 'anime'
-          ? {
-              ...preset,
-              captureSize: 512,
-              capturePreserveAspect: true,
-              minIntervalMs: Math.max(preset.minIntervalMs, 500),
-            }
-          : preset
-      this.occlusionService = new OcclusionMaskService(
-        createMaskProvider(this.occlusionModel),
-        (url) => this.setOcclusionMaskUrl(url),
-        {
-          ...tuned,
-          threshold: this.occlusionConfidence,
-          edgeSoftness: this.occlusionEdgeSoftness,
-          debug: this.debug,
-          log: (message) => this.logger.debug(`[occlusion] ${message}`),
-          onStatus: (status) => {
-            this.logger.debug(`[occlusion] status: ${status.reason}`)
-            this.occlusionStatusListener?.(status)
-          },
-        }
-      )
-      this.occlusionServiceQuality = this.occlusionQuality
-      this.occlusionServiceModel = this.occlusionModel
-    } else {
-      this.occlusionService.setRuntime({
-        threshold: this.occlusionConfidence,
-        edgeSoftness: this.occlusionEdgeSoftness,
-        debug: this.debug,
-      })
-    }
+    const preset = OCCLUSION_QUALITY_PRESETS[this.occlusionQuality]
+    // The anime ISNet model is heavier and distortion-sensitive, so it gets an
+    // aspect-preserving capture (undistorted, a bit above the model input for
+    // clean downscaling) and a slower cadence than the lightweight people
+    // segmenter, to avoid saturating the GPU.
+    const tuned =
+      this.occlusionModel === 'anime'
+        ? {
+            captureSize: 512,
+            capturePreserveAspect: true,
+            minIntervalMs: Math.max(preset.minIntervalMs, 500),
+            outputMaxSide: preset.outputMaxSide,
+          }
+        : {
+            captureSize: preset.captureSize,
+            capturePreserveAspect: false,
+            minIntervalMs: preset.minIntervalMs,
+            outputMaxSide: preset.outputMaxSide,
+          }
+    this.occlusionService.configure({
+      model: this.occlusionModel,
+      ...tuned,
+      threshold: this.occlusionConfidence,
+      edgeSoftness: this.occlusionEdgeSoftness,
+      debug: this.debug,
+      applyMask: (url) => this.setOcclusionMaskUrl(url),
+      onStatus: (status) => this.occlusionStatusListener?.(status),
+    })
     if (this.video) {
       this.occlusionService.start(this.video)
     }
@@ -385,8 +338,7 @@ export class DanmakuManagerService {
   stop() {
     this.logger.debug('Stopping')
 
-    this.occlusionService?.dispose()
-    this.occlusionService = undefined
+    this.occlusionService.reset()
     this.teardownObs()
     this.videoNodeObs.stop()
     this.debugOverlayService.unmount()

@@ -1,6 +1,6 @@
 import { FilesetResolver, ImageSegmenter } from '@mediapipe/tasks-vision'
 import type { InferenceSession, Tensor } from 'onnxruntime-web/webgpu'
-import { fetchModelWithCache } from './modelCache'
+import { fetchAndCacheFile } from '@/common/storage/opfsFileCache'
 import { getModel, type ModelRuntime } from './modelRegistry'
 
 /**
@@ -78,7 +78,7 @@ async function initAnime(
   const url = descriptor.sha256
     ? `${descriptor.url}?v=${descriptor.sha256}`
     : descriptor.url
-  const bytes = await fetchModelWithCache({
+  const bytes = await fetchAndCacheFile({
     id: 'anime-isnet',
     url,
     sha256: descriptor.sha256,

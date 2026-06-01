@@ -172,7 +172,6 @@ const offsetValueLabelFormat = (value: number) => {
 }
 
 const convertActualSpeedToDisplay = (actualSpeed: number) => {
-  // convert actual playback rate to a number between 1 and 5
   switch (actualSpeed) {
     case 0.5:
       return 1

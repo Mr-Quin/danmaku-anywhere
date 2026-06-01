@@ -10,12 +10,9 @@
   "type": "module",
   "scripts": {
     "build": "vite build --outDir build --emptyOutDir",
-    "prebuild": "node scripts/copy-mediapipe.mjs && node scripts/copy-ort.mjs",
     "build:firefox": "VITE_TARGET_BROWSER=firefox pnpm run build",
     "dev": "vite",
-    "predev": "node scripts/copy-mediapipe.mjs && node scripts/copy-ort.mjs",
     "dev:browser": "node e2e/setup/open-browser.ts",
-    "predev:browser": "node scripts/copy-mediapipe.mjs && node scripts/copy-ort.mjs",
     "dev:browser:build": "node e2e/setup/open-browser.ts --build",
     "dev:firefox": "VITE_TARGET_BROWSER=firefox pnpm run dev",
     "dev:harness": "node e2e/harness/serve.mjs",
