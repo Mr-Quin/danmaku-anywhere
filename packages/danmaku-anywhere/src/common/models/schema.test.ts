@@ -53,6 +53,14 @@ describe('modelEntrySchema', () => {
     })
   })
 
+  it('accepts the signed normalization mode', () => {
+    const entry = modelEntrySchema.parse({
+      ...hosted,
+      preprocessing: { normalize: 'signed' },
+    })
+    expect(entry.preprocessing.normalize).toBe('signed')
+  })
+
   it('rejects a hosted entry without a url', () => {
     expect(() =>
       modelEntrySchema.parse({ ...hosted, url: undefined })

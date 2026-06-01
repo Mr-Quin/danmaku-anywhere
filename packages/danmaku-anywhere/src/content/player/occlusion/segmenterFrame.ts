@@ -1,7 +1,11 @@
 import { FilesetResolver, ImageSegmenter } from '@mediapipe/tasks-vision'
 import type { InferenceSession, Tensor } from 'onnxruntime-web/webgpu'
 import { TRUSTED_MODEL_ORIGIN } from '@/common/models/baseline'
-import { type ModelEntry, modelDownloadUrl } from '@/common/models/schema'
+import {
+  type ModelEntry,
+  type ModelPreprocessing,
+  modelDownloadUrl,
+} from '@/common/models/schema'
 import { fetchAndCacheFile } from '@/common/storage/opfsFileCache'
 
 /**
@@ -130,6 +134,22 @@ function segmentMediapipe(bitmap: ImageBitmap, threshold: number) {
   }
 }
 
+function normalizeChannel(
+  raw: number,
+  normalize: ModelPreprocessing['normalize'],
+  src: number
+): number {
+  if (normalize === 'imagenet') {
+    // IMAGENET_MEAN/STD are in source (rgb) order, indexed by the source channel
+    // so they stay correct under a bgr channelOrder.
+    return (raw - IMAGENET_MEAN[src]) / IMAGENET_STD[src]
+  }
+  if (normalize === 'signed') {
+    return raw * 2 - 1
+  }
+  return raw
+}
+
 function buildOrtInput(
   model: ModelEntry,
   data: Uint8ClampedArray
@@ -138,20 +158,14 @@ function buildOrtInput(
   const plane = size * size
   const input = new Float32Array(3 * plane)
   const { normalize, layout, channelOrder } = model.preprocessing
-  // Source pixels are RGBA; map to the model's channel order. IMAGENET_MEAN/STD
-  // are in source (rgb) order, so they are indexed by the source channel, not
-  // the destination, to stay correct under a bgr channelOrder.
+  // Source pixels are RGBA; map to the model's channel order.
   const srcChannel = channelOrder === 'bgr' ? [2, 1, 0] : [0, 1, 2]
   for (let i = 0; i < plane; i++) {
     for (let c = 0; c < 3; c++) {
       const src = srcChannel[c]
       const raw = data[i * 4 + src] / 255
-      const value =
-        normalize === 'imagenet'
-          ? (raw - IMAGENET_MEAN[src]) / IMAGENET_STD[src]
-          : raw
       const index = layout === 'nhwc' ? i * 3 + c : c * plane + i
-      input[index] = value
+      input[index] = normalizeChannel(raw, normalize, src)
     }
   }
   return input

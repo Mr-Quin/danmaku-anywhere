@@ -19,6 +19,12 @@ import {
 @injectable('Singleton')
 export class OcclusionModelService {
   private readonly logger: ILogger
+  // Coalesces repeated download requests for the same id (e.g. reopening the
+  // popup mid-download) so they share one fetch instead of racing OPFS writes.
+  private readonly inFlightDownloads = new Map<
+    string,
+    Promise<ModelManagementState>
+  >()
 
   constructor(
     @inject(ModelManifestService)
@@ -45,7 +51,19 @@ export class OcclusionModelService {
     return this.manifest.resolveModel(id)
   }
 
-  async download(id: string): Promise<ModelManagementState> {
+  download(id: string): Promise<ModelManagementState> {
+    const existing = this.inFlightDownloads.get(id)
+    if (existing) {
+      return existing
+    }
+    const promise = this.runDownload(id).finally(() => {
+      this.inFlightDownloads.delete(id)
+    })
+    this.inFlightDownloads.set(id, promise)
+    return promise
+  }
+
+  private async runDownload(id: string): Promise<ModelManagementState> {
     const model = await this.manifest.getModel(id)
     const url = model && modelDownloadUrl(model)
     if (!model || model.delivery !== 'hosted' || !url) {

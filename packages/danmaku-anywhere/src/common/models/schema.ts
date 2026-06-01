@@ -19,9 +19,10 @@ const preprocessingDefaults = {
 } as const
 
 const preprocessingSchema = z.object({
-  // /255 (unit) vs ImageNet mean/std.
+  // unit: /255 ([0,1]). signed: (/255 - 0.5) / 0.5 ([-1,1], e.g. MODNet).
+  // imagenet: per-channel mean/std.
   normalize: z
-    .enum(['unit', 'imagenet'])
+    .enum(['unit', 'imagenet', 'signed'])
     .default(preprocessingDefaults.normalize),
   layout: z.enum(['nchw', 'nhwc']).default(preprocessingDefaults.layout),
   channelOrder: z
