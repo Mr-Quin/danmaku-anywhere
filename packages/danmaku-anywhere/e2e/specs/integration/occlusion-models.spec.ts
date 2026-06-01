@@ -108,6 +108,9 @@ test('occlusion models: lists, reflects OPFS state, switches active, and evicts 
   const page = await context.newPage()
   await Popup.open(page, extensionId, '/styles')
 
+  // Direct testids rather than a POM: this is the only spec touching the model
+  // manager, and its rows expose stable data-testids, so a dedicated POM method
+  // per action would not earn its keep here.
   const hostedRow = page.getByTestId('occlusion-model-isnet-cpu')
   await expect(hostedRow).toBeVisible()
   // A delete action is only offered for a downloaded hosted model.

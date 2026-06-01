@@ -3,6 +3,13 @@ import { type ModelManifest, modelManifestSchema } from './schema'
 export const MANIFEST_URL =
   'https://assets.danmaku.weeblify.app/models/manifest.json'
 
+// The only origin hosted models may be fetched from in PR1. The segmenter iframe
+// receives its descriptor over postMessage (whose source the iframe cannot
+// distinguish from a malicious host-page script), so it validates the download
+// origin against this before fetching. Arbitrary-origin model fetch is a later
+// phase with its own connect-src trust handling.
+export const TRUSTED_MODEL_ORIGIN = new URL(MANIFEST_URL).origin
+
 // Zero-friction default: bundled MediaPipe, no download, no WebGPU.
 export const DEFAULT_MODEL_ID = 'people'
 

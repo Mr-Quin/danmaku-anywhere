@@ -47,7 +47,10 @@ export const modelEntrySchema = z
     runtime: modelRuntimeSchema,
     delivery: z.enum(['bundled', 'hosted']),
     url: z.url().optional(),
-    sha256: z.string().optional(),
+    sha256: z
+      .string()
+      .regex(/^[0-9a-fA-F]{64}$/, 'sha256 must be 64 hex chars')
+      .optional(),
     sizeBytes: z.number().int().nonnegative().optional(),
     inputSize: z.number().int().positive(),
     preprocessing: preprocessingSchema.default(preprocessingDefaults),

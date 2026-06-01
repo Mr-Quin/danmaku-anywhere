@@ -1,5 +1,6 @@
 import { FilesetResolver, ImageSegmenter } from '@mediapipe/tasks-vision'
 import type { InferenceSession, Tensor } from 'onnxruntime-web/webgpu'
+import { TRUSTED_MODEL_ORIGIN } from '@/common/models/baseline'
 import { type ModelEntry, modelDownloadUrl } from '@/common/models/schema'
 import { fetchAndCacheFile } from '@/common/storage/opfsFileCache'
 
@@ -74,6 +75,12 @@ async function initOrt(
   const url = modelDownloadUrl(model)
   if (!url) {
     throw new Error('hosted model url is not configured')
+  }
+  // The descriptor arrives over postMessage; refuse a model from anywhere but
+  // our hosting origin so a malicious host page cannot turn this iframe into an
+  // arbitrary-fetch surface.
+  if (new URL(url).origin !== TRUSTED_MODEL_ORIGIN) {
+    throw new Error('refusing to fetch a model from an untrusted origin')
   }
   const ort = await import('onnxruntime-web/webgpu')
   ortRef = ort

@@ -62,7 +62,9 @@ function isPerson(value: number): boolean {
 }
 
 function modelKey(descriptor: ModelEntry): string {
-  return `${descriptor.id}|${descriptor.url ?? ''}|${descriptor.sha256 ?? ''}`
+  // Every load-bearing field (inputSize, preprocessing, capture, source) must
+  // rebuild the provider when it changes, so key on the whole descriptor.
+  return JSON.stringify(descriptor)
 }
 
 /**
