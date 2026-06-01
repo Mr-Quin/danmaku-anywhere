@@ -131,9 +131,14 @@ export class ModelManifestService {
       return fallback ?? BASELINE_MANIFEST
     }
     try {
-      // Time-box the fetch so a hanging connection falls back to the cached or
-      // baseline manifest quickly instead of stalling occlusion startup.
-      const res = await this.io.fetch(MANIFEST_URL, {
+      // The manifest is a mutable pointer, so bypass the HTTP/CDN cache: a
+      // unique query defeats a stale CDN edge copy and `no-store` skips the
+      // browser cache, so a fresh upload (and the manual refresh) is seen
+      // immediately. Our chrome.storage record is the intended cache layer.
+      // Time-box the fetch so a hanging connection falls back quickly instead
+      // of stalling occlusion startup.
+      const res = await this.io.fetch(`${MANIFEST_URL}?t=${this.io.now()}`, {
+        cache: 'no-store',
         signal: AbortSignal.timeout(5000),
       })
       if (!res.ok) {

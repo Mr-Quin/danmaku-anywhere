@@ -90,6 +90,20 @@ describe('ModelManifestService', () => {
     })
   })
 
+  it('bypasses the HTTP/CDN cache when fetching the manifest', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(remoteManifest))
+    const service = new ModelManifestService(
+      logger,
+      makeIo({ fetch: fetchMock })
+    )
+
+    await service.listModels()
+
+    const [url, init] = fetchMock.mock.calls[0]
+    expect(url).toMatch(/\?t=/)
+    expect(init).toMatchObject({ cache: 'no-store' })
+  })
+
   it('uses a fresh cached manifest without fetching', async () => {
     const io = makeIo({
       fetch: vi.fn(),
