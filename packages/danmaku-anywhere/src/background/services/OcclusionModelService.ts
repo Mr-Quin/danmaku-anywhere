@@ -2,7 +2,7 @@ import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ModelManagementState } from '@/common/models/dto'
 import { ModelManifestService } from '@/common/models/ModelManifestService'
-import type { ModelEntry } from '@/common/models/schema'
+import { type ModelEntry, modelDownloadUrl } from '@/common/models/schema'
 import { RpcException } from '@/common/rpc/types'
 import { fetchAndCacheFile } from '@/common/storage/opfsFileCache'
 import {
@@ -47,10 +47,10 @@ export class OcclusionModelService {
 
   async download(id: string): Promise<ModelManagementState> {
     const model = await this.manifest.getModel(id)
-    if (!model || model.delivery !== 'hosted' || !model.url) {
+    const url = model && modelDownloadUrl(model)
+    if (!model || model.delivery !== 'hosted' || !url) {
       throw new RpcException(`model "${id}" is not a downloadable hosted model`)
     }
-    const url = model.sha256 ? `${model.url}?v=${model.sha256}` : model.url
     this.logger.debug(`downloading model "${id}"`)
     await fetchAndCacheFile({ id: model.id, url, sha256: model.sha256 })
     return this.getState()

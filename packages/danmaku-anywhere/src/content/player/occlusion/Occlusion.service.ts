@@ -61,6 +61,10 @@ function isPerson(value: number): boolean {
   return value === 0
 }
 
+function modelKey(descriptor: ModelEntry): string {
+  return `${descriptor.id}|${descriptor.url ?? ''}|${descriptor.sha256 ?? ''}`
+}
+
 /**
  * Drives a per-frame person-mask loop for one video and applies the resulting
  * alpha mask (as a data URL) to the danmaku overlay so comments render behind
@@ -79,7 +83,9 @@ export class OcclusionService {
   private readonly rawMaskCtx: CanvasRenderingContext2D | null
   private readonly logger: ILogger
   private provider?: MaskProvider
-  private currentModelId?: string
+  // Identity of the model behind the live provider. Includes the download source
+  // so a manifest refresh that re-points the same id rebuilds the provider.
+  private currentModelKey?: string
   // Replaced by configure(); a no-op until then.
   private applyMask: (url?: string) => void = () => undefined
   private onStatus?: (status: OcclusionStatus) => void
@@ -119,11 +125,12 @@ export class OcclusionService {
     this.threshold = config.threshold
     this.edgeSoftness = config.edgeSoftness
     this.setDebug(config.debug)
-    if (config.descriptor.id !== this.currentModelId) {
+    const key = modelKey(config.descriptor)
+    if (key !== this.currentModelKey) {
       this.stop()
       this.provider?.dispose?.()
       this.provider = this.createProvider(config.descriptor)
-      this.currentModelId = config.descriptor.id
+      this.currentModelKey = key
     }
   }
 
@@ -212,7 +219,7 @@ export class OcclusionService {
     this.stop()
     this.provider?.dispose?.()
     this.provider = undefined
-    this.currentModelId = undefined
+    this.currentModelKey = undefined
   }
 
   private async run(): Promise<void> {

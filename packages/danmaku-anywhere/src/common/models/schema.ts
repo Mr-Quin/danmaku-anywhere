@@ -65,3 +65,16 @@ export const modelManifestSchema = z.object({
   models: z.array(modelEntrySchema).min(1),
 })
 export type ModelManifest = z.infer<typeof modelManifestSchema>
+
+/**
+ * The download URL for a hosted model, cache-busted by content hash so a
+ * re-uploaded model at the same path is never served stale from a CDN edge
+ * cache (each version is a distinct URL). The iframe and the background worker
+ * both fetch through this so they agree on the URL behind a shared OPFS entry.
+ */
+export function modelDownloadUrl(model: ModelEntry): string | undefined {
+  if (!model.url) {
+    return undefined
+  }
+  return model.sha256 ? `${model.url}?v=${model.sha256}` : model.url
+}

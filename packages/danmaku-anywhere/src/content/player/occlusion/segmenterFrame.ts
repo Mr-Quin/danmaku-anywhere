@@ -1,6 +1,6 @@
 import { FilesetResolver, ImageSegmenter } from '@mediapipe/tasks-vision'
 import type { InferenceSession, Tensor } from 'onnxruntime-web/webgpu'
-import type { ModelEntry } from '@/common/models/schema'
+import { type ModelEntry, modelDownloadUrl } from '@/common/models/schema'
 import { fetchAndCacheFile } from '@/common/storage/opfsFileCache'
 
 /**
@@ -71,15 +71,13 @@ async function initOrt(
   if (model.requiresWebGpu && !navigator.gpu) {
     throw new Error('WebGPU is unavailable; this model requires WebGPU')
   }
-  if (!model.url) {
+  const url = modelDownloadUrl(model)
+  if (!url) {
     throw new Error('hosted model url is not configured')
   }
   const ort = await import('onnxruntime-web/webgpu')
   ortRef = ort
   ort.env.wasm.wasmPaths = chrome.runtime.getURL('ort/')
-  // Cache-bust by content hash so a re-uploaded model at the same path is never
-  // served stale from a CDN edge cache (each version is a distinct URL).
-  const url = model.sha256 ? `${model.url}?v=${model.sha256}` : model.url
   const bytes = await fetchAndCacheFile({
     id: model.id,
     url,
@@ -133,14 +131,17 @@ function buildOrtInput(
   const plane = size * size
   const input = new Float32Array(3 * plane)
   const { normalize, layout, channelOrder } = model.preprocessing
-  // Source pixels are RGBA; map to the model's channel order.
+  // Source pixels are RGBA; map to the model's channel order. IMAGENET_MEAN/STD
+  // are in source (rgb) order, so they are indexed by the source channel, not
+  // the destination, to stay correct under a bgr channelOrder.
   const srcChannel = channelOrder === 'bgr' ? [2, 1, 0] : [0, 1, 2]
   for (let i = 0; i < plane; i++) {
     for (let c = 0; c < 3; c++) {
-      const raw = data[i * 4 + srcChannel[c]] / 255
+      const src = srcChannel[c]
+      const raw = data[i * 4 + src] / 255
       const value =
         normalize === 'imagenet'
-          ? (raw - IMAGENET_MEAN[c]) / IMAGENET_STD[c]
+          ? (raw - IMAGENET_MEAN[src]) / IMAGENET_STD[src]
           : raw
       const index = layout === 'nhwc' ? i * 3 + c : c * plane + i
       input[index] = value
@@ -219,23 +220,10 @@ function readForeground(
   const data = output.data as Float32Array
   const plane = size * size
   if (model.preprocessing.output === 'argmax') {
-    // Class index per pixel from a [1, C, H, W] output; class 0 is background,
-    // any other class is subject. No shipped model uses argmax yet.
-    const classes = data.length / plane
-    const foreground = new Float32Array(plane)
-    for (let i = 0; i < plane; i++) {
-      let best = 0
-      let bestClass = 0
-      for (let c = 0; c < classes; c++) {
-        const v = data[c * plane + i]
-        if (v > best) {
-          best = v
-          bestClass = c
-        }
-      }
-      foreground[i] = bestClass === 0 ? 0 : 1
-    }
-    return foreground
+    // Reserved by the schema for a future multi-class model. The subject class
+    // and output layout are model-specific and undefined here, so reject rather
+    // than guess; no shipped model uses argmax.
+    throw new Error('argmax output is not supported yet')
   }
   if (data.length !== plane) {
     throw new Error(

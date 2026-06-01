@@ -91,6 +91,37 @@ export function OcclusionModelManager({
     return i18n.language.startsWith('zh') ? model.label.zh : model.label.en
   }
 
+  function renderHostedAction(
+    id: string,
+    isDownloaded: boolean,
+    busy: boolean
+  ) {
+    if (busy) {
+      return <CircularProgress size={18} />
+    }
+    if (isDownloaded) {
+      return (
+        <Button
+          size="small"
+          color="error"
+          data-testid={`occlusion-model-delete-${id}`}
+          onClick={() => remove.mutate(id)}
+        >
+          {t('stylePage.occlusionModels.delete', 'Delete')}
+        </Button>
+      )
+    }
+    return (
+      <Button
+        size="small"
+        data-testid={`occlusion-model-download-${id}`}
+        onClick={() => download.mutate(id)}
+      >
+        {t('stylePage.occlusionModels.download', 'Download')}
+      </Button>
+    )
+  }
+
   return (
     <Stack useFlexGap spacing={1}>
       <Stack direction="row" sx={{ alignItems: 'center' }}>
@@ -174,26 +205,7 @@ export function OcclusionModelManager({
               ) : null}
               {isHosted ? (
                 <Box sx={{ flexShrink: 0, minWidth: 88, textAlign: 'right' }}>
-                  {busy ? (
-                    <CircularProgress size={18} />
-                  ) : isDownloaded ? (
-                    <Button
-                      size="small"
-                      color="error"
-                      data-testid={`occlusion-model-delete-${model.id}`}
-                      onClick={() => remove.mutate(model.id)}
-                    >
-                      {t('stylePage.occlusionModels.delete', 'Delete')}
-                    </Button>
-                  ) : (
-                    <Button
-                      size="small"
-                      data-testid={`occlusion-model-download-${model.id}`}
-                      onClick={() => download.mutate(model.id)}
-                    >
-                      {t('stylePage.occlusionModels.download', 'Download')}
-                    </Button>
-                  )}
+                  {renderHostedAction(model.id, isDownloaded, busy)}
                 </Box>
               ) : null}
             </Stack>
