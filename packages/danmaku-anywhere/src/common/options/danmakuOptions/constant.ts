@@ -14,10 +14,9 @@ export type DanmakuOptions = Omit<DanmakuEngineOptions, 'show'> & {
   readonly useCustomCss: boolean
   readonly occlusion: boolean
   readonly occlusionModel: OcclusionModel
-  // Person-confidence cutoff [0,1]: higher hides danmaku only over confident
-  // person pixels (tighter), lower hides more aggressively.
+  // [0,1], higher means less area will be occluded
   readonly occlusionConfidence: number
-  // Mask edge blur in px: feathers the cutout so danmaku fade behind people.
+  // mask edge blur in px
   readonly occlusionEdgeSoftness: number
   readonly occlusionQuality: OcclusionQuality
 }
@@ -58,7 +57,7 @@ export const defaultDanmakuOptions: DanmakuOptions = {
   occlusion: false,
   occlusionModel: 'people',
   occlusionConfidence: 0.5,
-  occlusionEdgeSoftness: 4,
+  occlusionEdgeSoftness: 1,
   occlusionQuality: 'medium',
   maxOnScreen: 500,
   interval: 200,

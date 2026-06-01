@@ -138,7 +138,7 @@ export class DanmakuOptionsService implements IStoreService {
             draft.occlusion = false
             draft.occlusionModel = 'people'
             draft.occlusionConfidence = 0.5
-            draft.occlusionEdgeSoftness = 4
+            draft.occlusionEdgeSoftness = 1
             draft.occlusionQuality = 'medium'
           })
         },
