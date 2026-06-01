@@ -37,8 +37,12 @@ function mockPolicy(
   overrides: Partial<IntegrationPolicy> = {}
 ): IntegrationPolicy {
   return {
-    version: 3,
-    options: {},
+    version: 4,
+    options: {
+      autoAdvanceOnEnded: false,
+      skipPercentage: 0,
+      minVideoDuration: 30,
+    },
     title: { regex: [], selector: [] }, // regex now array
     season: { regex: [], selector: [] },
     episode: { regex: [], selector: [] },

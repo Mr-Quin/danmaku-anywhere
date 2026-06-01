@@ -1,6 +1,8 @@
 import {
   Eject,
   PictureInPicture,
+  SkipNext,
+  SkipPrevious,
   Sync,
   Visibility,
   VisibilityOff,
@@ -14,6 +16,7 @@ import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useShowDanmaku } from '@/content/controller/common/hooks/useShowDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
+import { useEpisodeNavigation } from '@/content/controller/danmaku/integration/hooks/useEpisodeNavigation'
 import { useStore } from '@/content/controller/store/store'
 import type { ContextMenuItemProps } from '@/content/controller/ui/floatingButton/components/ContextMenuItem'
 import { ContextMenuItem } from '@/content/controller/ui/floatingButton/components/ContextMenuItem'
@@ -45,6 +48,8 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
   const showDanmakuMutation = useShowDanmaku()
 
   const { refreshComments, loadMutation, canRefresh } = useLoadDanmaku()
+
+  const { goNext, goPrev, canGoNext, canGoPrev } = useEpisodeNavigation()
 
   const { getKeyCombo } = useHotkeyOptions()
 
@@ -85,6 +90,20 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
       icon: () => <PictureInPicture fontSize="small" />,
       label: () => t('common.pip', 'Picture-in-Picture'),
       hotkey: getKeyCombo('togglePip'),
+    },
+    {
+      action: () => goPrev(),
+      disabled: () => !canGoPrev,
+      icon: () => <SkipPrevious fontSize="small" />,
+      label: () => t('integration.episodeNavigation.prev', 'Previous Episode'),
+      hotkey: getKeyCombo('prevEpisode'),
+    },
+    {
+      action: () => goNext(),
+      disabled: () => !canGoNext,
+      icon: () => <SkipNext fontSize="small" />,
+      label: () => t('integration.episodeNavigation.next', 'Next Episode'),
+      hotkey: getKeyCombo('nextEpisode'),
     },
   ]
 

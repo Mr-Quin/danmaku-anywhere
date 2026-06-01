@@ -331,6 +331,10 @@
         "matchedButEmpty": "匹配成功，但内容为空"
       }
     },
+    "episodeNavigation": {
+      "next": "下一集",
+      "prev": "上一集"
+    },
     "manualModeEnabled": "已启用手动模式，如需自动请切换至其他模式",
     "mode": {
       "ai": {
@@ -511,7 +515,9 @@
     "hotkeys": {
       "addHotkey": "添加快捷键",
       "enterKey": "输入快捷键",
+      "nextEpisode": "下一集",
       "openSearchPanel": "打开搜索面板",
+      "prevEpisode": "上一集",
       "refreshComments": "刷新弹幕",
       "toggleEnableDanmaku": "显示/隐藏弹幕",
       "togglePip": "画中画（实验）",

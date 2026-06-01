@@ -16,6 +16,8 @@ export const ALL_HOTKEYS = [
   'refreshComments',
   'unmountComments',
   'openSearchPanel',
+  'nextEpisode',
+  'prevEpisode',
 ] as const
 
 export type AllHotkeys = (typeof ALL_HOTKEYS)[number]
@@ -31,6 +33,9 @@ export const HOTKEY_LABELS = createLocalizationMap<AllHotkeys>({
     i18n.t('optionsPage.hotkeys.unmountComments', 'Unmount comments'),
   openSearchPanel: () =>
     i18n.t('optionsPage.hotkeys.openSearchPanel', 'Open search panel'),
+  nextEpisode: () => i18n.t('optionsPage.hotkeys.nextEpisode', 'Next episode'),
+  prevEpisode: () =>
+    i18n.t('optionsPage.hotkeys.prevEpisode', 'Previous episode'),
 })
 
 export type Keymap = Record<AllHotkeys, Hotkey>
@@ -41,6 +46,8 @@ export const defaultKeymap: Keymap = {
   unmountComments: createHotkey('shift+u'),
   togglePip: createHotkey('shift+p'),
   openSearchPanel: createHotkey('alt+k'),
+  nextEpisode: createHotkey('shift+.'),
+  prevEpisode: createHotkey('shift+,'),
 } as const
 
 const macModifierSymbols: Record<string, string> = {

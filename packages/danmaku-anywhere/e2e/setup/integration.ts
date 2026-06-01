@@ -28,7 +28,7 @@ export async function seedXPathIntegration(
   const mountConfigId = randomUUID()
 
   const integration: Integration = {
-    version: 3,
+    version: 4,
     id: integrationId,
     name: input.name ?? 'e2e integration',
     policy: input.policy,
@@ -61,7 +61,7 @@ export async function seedXPathIntegration(
 // Generic policy keyed to data-testid hooks on the fixture pages.
 export function buildFixtureIntegrationPolicy(): Integration['policy'] {
   return {
-    version: 3,
+    version: 4,
     title: {
       selector: [{ value: '//*[@data-testid="da-title"]', quick: true }],
       regex: [],

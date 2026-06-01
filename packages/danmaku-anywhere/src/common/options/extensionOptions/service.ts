@@ -271,6 +271,15 @@ export class ExtensionOptionsService implements IStoreService {
             }
           }),
       })
+      .version(26, {
+        upgrade: (data) =>
+          produce<ExtensionOptions>(data, (draft) => {
+            draft.hotkeys = {
+              ...defaultKeymap,
+              ...draft.hotkeys,
+            }
+          }),
+      })
   }
 
   async get() {

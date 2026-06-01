@@ -451,6 +451,9 @@ export class RpcManager {
         'relay:event:preloadNextEpisode': passThrough(
           relayFrameClient['relay:event:preloadNextEpisode']
         ),
+        'relay:event:videoEnded': passThrough(
+          relayFrameClient['relay:event:videoEnded']
+        ),
         'relay:event:showPopover': passThrough(
           relayFrameClient['relay:event:showPopover']
         ),
