@@ -61,6 +61,9 @@ export class ModelManifestService {
   private readonly logger: ILogger
   private readonly io: ModelManifestIo
   private cache?: ModelManifest
+  // Coalesces concurrent first-time resolves (e.g. occlusion start + the
+  // settings UI opening at once) into a single storage read / network fetch.
+  private manifestPromise?: Promise<ModelManifest>
 
   constructor(
     @inject(LoggerSymbol) logger: ILogger,
@@ -98,6 +101,15 @@ export class ModelManifestService {
     if (this.cache) {
       return this.cache
     }
+    if (!this.manifestPromise) {
+      this.manifestPromise = this.loadManifest().finally(() => {
+        this.manifestPromise = undefined
+      })
+    }
+    return this.manifestPromise
+  }
+
+  private async loadManifest(): Promise<ModelManifest> {
     const record = this.parseRecord(await this.io.readCache().catch(() => null))
     if (record && this.io.now() - record.fetchedAt < TTL_MS) {
       this.cache = record.manifest

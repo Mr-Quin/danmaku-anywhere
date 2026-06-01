@@ -42,8 +42,13 @@ export async function listModelFiles(
     if (handle.kind !== 'file') {
       continue
     }
-    const file = await (handle as FileSystemFileHandle).getFile()
-    entries.push({ id: name, sizeBytes: file.size })
+    try {
+      const file = await (handle as FileSystemFileHandle).getFile()
+      entries.push({ id: name, sizeBytes: file.size })
+    } catch {
+      // A file locked mid-download (or otherwise unreadable) should not break
+      // listing the rest.
+    }
   }
   return entries
 }
