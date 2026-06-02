@@ -11,12 +11,14 @@ describe('setSessionHeader', () => {
 
     const declarativeNetRequest = {
       getSessionRules: vi.fn().mockImplementation(async () => {
-        // simulate async delay to encourage race conditions if mutex wasn't there
-        await new Promise((resolve) => setTimeout(resolve, Math.random() * 10))
+        // Yield a macrotask between read and write so concurrent calls would
+        // interleave (and collide on IDs) if the mutex were removed. A fixed
+        // delay keeps the interleaving deterministic instead of random.
+        await new Promise((resolve) => setTimeout(resolve, 0))
         return [...rules]
       }),
       updateSessionRules: vi.fn().mockImplementation(async (options) => {
-        await new Promise((resolve) => setTimeout(resolve, Math.random() * 10))
+        await new Promise((resolve) => setTimeout(resolve, 0))
         if (options.addRules) {
           rules.push(...options.addRules)
         }

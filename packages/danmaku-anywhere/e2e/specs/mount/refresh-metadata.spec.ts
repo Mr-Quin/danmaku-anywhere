@@ -14,7 +14,8 @@ import { applyProfile } from '../../setup/profile'
  * Refresh Metadata via the season's context menu in the DanmakuTree.
  * Seeds a Bilibili season with a stale title + an episode, clicks the
  * Refresh menu, mocks the upstream season endpoint with a fresh title,
- * and asserts the DB record was re-upserted (version bumped + title
+ * and asserts the user sees a success toast and the tree row drops the
+ * stale title, with the DB record re-upserted (version bumped + title
  * replaced).
  */
 
@@ -73,6 +74,9 @@ test('mount tree: refresh metadata replaces stale season info', async ({
   const seasonItem = await popup.mount.waitForSeason(seeded.id)
 
   await popup.mount.openItemMenu(seasonItem, 'refresh')
+
+  await popup.toast.expectSuccess(/Success|成功/)
+  await expect(seasonItem).not.toContainText(STALE_TITLE)
 
   await expect
     .poll(async () => (await da.season.get(seeded.id))?.version)

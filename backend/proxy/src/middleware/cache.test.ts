@@ -1,38 +1,21 @@
 import { Hono } from 'hono'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 import { useCache } from './cache'
-
-// In-memory cache mock
-const memoryCache = new Map<string, Response>()
-
-const mockCache = {
-  match: async (key: Request | string) => {
-    const k = (key as Request).url || key.toString()
-    const res = memoryCache.get(k)
-    return res ? res.clone() : undefined
-  },
-  put: async (key: Request | string, res: Response) => {
-    const k = (key as Request).url || key.toString()
-    memoryCache.set(k, res.clone())
-  },
-}
 
 describe('Cache Middleware', () => {
   let app: Hono
   let handlerSpy: ReturnType<typeof vi.fn>
 
+  // Exercises the real Miniflare `caches.default`. The Cache API has no
+  // clear-all, so every test uses a random path to avoid colliding with
+  // entries the previous tests stored in the file-scoped cache.
   beforeEach(async () => {
-    // Stub global caches
-    vi.stubGlobal('caches', { default: mockCache })
-    memoryCache.clear()
-
-    app = new Hono()
-    handlerSpy = vi.fn((c) => c.json({ data: 'test', timestamp: Date.now() }))
-  })
-
-  afterEach(async () => {
-    vi.unstubAllGlobals()
+    let callCount = 0
+    handlerSpy = vi.fn((c) => {
+      callCount += 1
+      return c.json({ data: 'test', n: callCount })
+    })
   })
 
   // Helper to create app with options
@@ -44,8 +27,6 @@ describe('Cache Middleware', () => {
   }
 
   it('caches GET requests by default', async () => {
-    expect(caches.default).toBe(mockCache)
-
     createTestApp({ maxAge: 60 })
     const path = `/${Math.random()}`
 
@@ -166,13 +147,13 @@ describe('Cache Middleware', () => {
       new Request(`http://example.com${path}`),
       { app }
     )
-    const etag = res1.headers.get('ETag')
-    expect(etag).toBeDefined()
+    const etag = res1.headers.get('ETag') ?? ''
+    expect(etag).not.toBe('')
 
     // Second request with matching If-None-Match
     const res2 = await makeUnitTestRequest(
       new Request(`http://example.com${path}`, {
-        headers: { 'If-None-Match': etag! },
+        headers: { 'If-None-Match': etag },
       }),
       { app }
     )

@@ -19,6 +19,7 @@ export const createTrackingService = (
   environment: string,
   type: EnvironmentType
 ) => {
+  // No real telemetry under e2e (or standalone): specs must not emit Clarity traffic.
   if (trackingService !== null || IS_STANDALONE_RUNTIME || IS_DA_E2E) {
     return trackingService ?? new NoopTrackingService()
   }

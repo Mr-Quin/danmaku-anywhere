@@ -29,18 +29,20 @@ test('popup opened as a tab runs the picker in place, no detach window', async (
 
   const popup = await Popup.open(page, extensionId, '/mount')
 
-  const newPagePromise = context
-    .waitForEvent('page', { timeout: 1000 })
-    .catch(() => null)
   const fileChooserPromise = page.waitForEvent('filechooser')
+  const pageCountBefore = context.pages().length
 
   await popup.mount.openToolbarMenu('import')
 
+  // The picker firing is the discriminating signal: the in-tab branch opens the
+  // OS file chooser, the detach branch calls chrome.windows.create and never
+  // does. So awaiting the chooser already proves no detach happened; the page
+  // count then deterministically confirms no extra window, with no arbitrary
+  // wait for an event that should never come.
   const chooser = await fileChooserPromise
   expect(chooser.isMultiple()).toBe(true)
 
-  const newPage = await newPagePromise
-  expect(newPage).toBeNull()
+  expect(context.pages()).toHaveLength(pageCountBefore)
 })
 
 test('/import route renders standalone and runs a full file import', async ({

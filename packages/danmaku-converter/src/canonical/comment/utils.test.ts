@@ -18,9 +18,7 @@ const commentOptions = {
 
 describe('comment entity conversion', () => {
   it('should convert string to object', () => {
-    const commentOptions = parseCommentEntityP(commentEntity.p)
-
-    expect(commentOptions).toEqual(commentOptions)
+    expect(parseCommentEntityP(commentEntity.p)).toEqual(commentOptions)
   })
 
   it('should convert object to string', () => {

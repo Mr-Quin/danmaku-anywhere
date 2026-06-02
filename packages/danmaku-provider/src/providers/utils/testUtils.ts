@@ -1,12 +1,19 @@
 import { vi } from 'vitest'
 
+const asText = (data: unknown) => {
+  if (data === undefined || typeof data === 'string') {
+    return data
+  }
+  return JSON.stringify(data)
+}
+
 export const mockFetchResponse = (data?: any, status?: number) => {
   const mockFetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue({
     json: vi.fn().mockResolvedValue(data),
-    text: vi.fn().mockResolvedValue(data),
+    text: vi.fn().mockResolvedValue(asText(data)),
     arrayBuffer: vi.fn().mockResolvedValue(data),
     status: status || 200,
-    headers: new Map(),
+    headers: new Headers(),
   } as any)
 
   return mockFetch
