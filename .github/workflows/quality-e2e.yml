@@ -7,8 +7,6 @@ on:
       - 'packages/danmaku-converter/**'
       - 'packages/danmaku-engine/**'
       - 'packages/danmaku-provider/**'
-      - 'packages/dango/**'
-      - 'packages/dango-manifests/**'
       - 'packages/integration-policy/**'
       - 'packages/result/**'
       - 'packages/web-scraper/**'
