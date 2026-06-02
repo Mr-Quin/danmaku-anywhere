@@ -6,6 +6,7 @@ import {
   computed,
   DestroyRef,
   type ElementRef,
+  effect,
   inject,
   PLATFORM_ID,
   signal,
@@ -209,6 +210,12 @@ export class LaneShell {
   private readonly laneWidth = signal(1200)
   readonly paletteOpen = signal(false)
 
+  // Tracks the column ids known to the shell so an open initiated anywhere
+  // (a show card inside a body, a deep link, the sidebar) focuses the new
+  // column. Dedupe-focus opens append no new id, so this never double-fires
+  // for them; the explicit focusColumn paths handle those.
+  private knownColumnIds = new Set<string>()
+
   constructor() {
     afterNextRender(() => {
       const lane = this.laneRef()?.nativeElement
@@ -221,6 +228,23 @@ export class LaneShell {
       this.listenWheel(lane)
       this.listenKeyboard()
     })
+
+    effect(() => {
+      const ids = this.columns().map((c) => c.id)
+      this.focusNewlyOpened(ids)
+    })
+  }
+
+  private focusNewlyOpened(ids: string[]) {
+    const appended = ids.filter((id) => !this.knownColumnIds.has(id))
+    this.knownColumnIds = new Set(ids)
+    if (!this.isBrowser) {
+      return
+    }
+    if (appended.length !== 1) {
+      return
+    }
+    this.focusColumn(appended[0])
   }
 
   widthFor(col: Column): number {
