@@ -4,6 +4,8 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --hmr",
+    "demo": "ng serve --configuration fake --port 4300",
+    "serve:e2e": "ng serve --configuration fake --port 4173",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test:ng": "ng test",

@@ -23,13 +23,12 @@ import {
   tap,
   throwError,
 } from 'rxjs'
-import { ExtensionService } from './extension.service'
+import { ExtensionDetector } from '../backend/extension-detector'
+import { ExtensionMessenger } from '../backend/extension-messenger'
 
-@Injectable({
-  providedIn: 'root',
-})
-export class ExtensionMessagingService {
-  private extensionService = inject(ExtensionService)
+@Injectable()
+export class ExtensionMessagingService extends ExtensionMessenger {
+  private extensionService = inject(ExtensionDetector)
   private isBrowser = isPlatformBrowser(inject(PLATFORM_ID))
 
   private allMessages$ = this.isBrowser
