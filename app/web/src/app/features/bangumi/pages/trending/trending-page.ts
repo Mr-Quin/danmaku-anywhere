@@ -4,10 +4,11 @@ import {
   Component,
   computed,
   inject,
+  output,
 } from '@angular/core'
 import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
 import { VirtualizedGrid } from '../../../../shared/components/virtualized-grid'
-import { ShowCard } from '../../components/show-card'
+import { ShowCard, type ShowCardData } from '../../components/show-card'
 import { ShowCardSkeleton } from '../../components/show-card-skeleton'
 import { BangumiService } from '../../services/bangumi.service'
 import { transformToShowCardData } from '../../utils/transform-to-show-card-data'
@@ -37,7 +38,11 @@ import { transformToShowCardData } from '../../utils/transform-to-show-card-data
         </ng-template>
 
         <ng-template #body let-item="$implicit">
-          <da-show-card [show]="item" />
+          <da-show-card
+            [show]="item"
+            (detailsClick)="openDetails.emit(item)"
+            (watchClick)="openWatch.emit($event)"
+          />
         </ng-template>
 
         <ng-template #error>
@@ -56,6 +61,9 @@ import { transformToShowCardData } from '../../utils/transform-to-show-card-data
   `,
 })
 export class TrendingPage {
+  readonly openDetails = output<ShowCardData>()
+  readonly openWatch = output<ShowCardData>()
+
   protected bangumiService = inject(BangumiService)
 
   protected columnConfig = {

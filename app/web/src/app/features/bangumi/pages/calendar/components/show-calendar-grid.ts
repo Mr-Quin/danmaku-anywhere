@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   input,
+  output,
   signal,
 } from '@angular/core'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs'
@@ -43,7 +44,13 @@ export interface ShowCardGridItem {
                   @if (item.isSkeleton) {
                     <da-show-card-skeleton hideFooter hideAltTitle />
                   } @else if (item.data) {
-                    <da-show-card [show]="item.data" hideFooter hideAltTitle />
+                    <da-show-card
+                      [show]="item.data"
+                      hideFooter
+                      hideAltTitle
+                      (detailsClick)="openDetails.emit(item.data)"
+                      (watchClick)="openWatch.emit($event)"
+                    />
                   }
                 }
               </div>
@@ -91,6 +98,8 @@ export interface ShowCardGridItem {
 })
 export class ShowCalendarGrid {
   weekdays = input<ShowCardGridItem[][]>([])
+  readonly openDetails = output<ShowCardData>()
+  readonly openWatch = output<ShowCardData>()
   protected activeTabValue = signal(this.getTodayIndex())
 
   protected WEEKDAYS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
