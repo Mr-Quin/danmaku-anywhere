@@ -16,6 +16,7 @@ import {
 import { environment } from '../../../environments/environment'
 import { DebugOverlay } from '../../features/debug/debug-overlay/debug-overlay'
 import { ColumnShell } from './column-shell'
+import { PipTeleportManager } from './columns/pip-teleport'
 import { LaneStore } from './lane.store'
 import type { Column, ColumnKind } from './lane.types'
 import { Palette, type PaletteWatch } from './palette'
@@ -82,7 +83,7 @@ const FULL_MIN_WIDTH = 360
     </div>
 
     <div class="pip" [class.on]="floating()">
-      <div class="pip-inner" data-testid="pip-slot"></div>
+      <div #pipSlot class="pip-inner" data-testid="pip-slot"></div>
     </div>
 
     @if (paletteOpen()) {
@@ -191,11 +192,13 @@ export class LaneShell {
   readonly store = inject(LaneStore)
   private readonly platformId = inject(PLATFORM_ID)
   private readonly destroyRef = inject(DestroyRef)
+  private readonly pip = inject(PipTeleportManager)
   private readonly isBrowser = isPlatformBrowser(this.platformId)
 
   protected readonly isProduction = environment.production
 
   private readonly laneRef = viewChild<ElementRef<HTMLDivElement>>('lane')
+  private readonly pipSlotRef = viewChild<ElementRef<HTMLDivElement>>('pipSlot')
 
   readonly columns = this.store.columns
   readonly activeId = this.store.activeId
@@ -218,6 +221,7 @@ export class LaneShell {
 
   constructor() {
     afterNextRender(() => {
+      this.pip.setPipSlot(this.pipSlotRef()?.nativeElement ?? null)
       const lane = this.laneRef()?.nativeElement
       if (!lane) {
         return
@@ -432,16 +436,30 @@ export class LaneShell {
       const target = event.target
       const colEl =
         target instanceof Element ? target.closest('[data-column-id]') : null
-      if (colEl) {
-        const scroller = colEl.querySelector('[data-colscroll]')
-        if (scroller) {
-          const atTop = scroller.scrollTop <= 0
-          const atBottom =
-            scroller.scrollTop + scroller.clientHeight >=
-            scroller.scrollHeight - 1
-          if ((event.deltaY < 0 && !atTop) || (event.deltaY > 0 && !atBottom)) {
-            return
+      // Walk from the wheel target up through the column and let the nearest
+      // scrollable ancestor consume the wheel if it isn't at its edge yet.
+      // This covers both the main column scroller and any nested scroll
+      // container (rules, local, debug bodies) so inner scrolling still works.
+      if (colEl && target instanceof Element) {
+        let el: Element | null = target
+        while (el) {
+          if (el instanceof HTMLElement && el.scrollHeight > el.clientHeight) {
+            const overflowY = getComputedStyle(el).overflowY
+            if (overflowY === 'auto' || overflowY === 'scroll') {
+              const atTop = el.scrollTop <= 0
+              const atBottom =
+                el.scrollTop + el.clientHeight >= el.scrollHeight - 1
+              const canScroll =
+                (event.deltaY < 0 && !atTop) || (event.deltaY > 0 && !atBottom)
+              if (canScroll) {
+                return
+              }
+            }
           }
+          if (el === colEl) {
+            break
+          }
+          el = el.parentElement
         }
       }
       event.preventDefault()
