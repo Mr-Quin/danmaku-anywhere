@@ -34,13 +34,24 @@ export function bangumiProxy(upstreamOrigin: string) {
     target.pathname = `/${path}`
     target.search = new URL(c.req.url).search
 
-    const request = new Request(target, c.req.raw)
-    for (const name of [...request.headers.keys()]) {
-      if (!FORWARDED_HEADERS.includes(name)) {
-        request.headers.delete(name)
+    const headers = new Headers()
+    for (const name of FORWARDED_HEADERS) {
+      const value = c.req.header(name)
+      if (value) {
+        headers.set(name, value)
       }
     }
-    request.headers.set('user-agent', USER_AGENT)
+    headers.set('user-agent', USER_AGENT)
+
+    const hasBody = c.req.method !== 'GET' && c.req.method !== 'HEAD'
+    const request = new Request(target, {
+      method: c.req.method,
+      headers,
+      body: hasBody ? await c.req.raw.arrayBuffer() : undefined,
+      // Don't follow upstream redirects: a 3xx could point off bgm.tv and
+      // turn this into an open cross-origin proxy.
+      redirect: 'manual',
+    })
 
     return fetch(request)
   })
