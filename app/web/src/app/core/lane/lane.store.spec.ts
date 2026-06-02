@@ -209,6 +209,16 @@ describe('LaneStore', () => {
       expect(cols[0].kind).toBe('trending')
       expect(cols[0].id).not.toBe(seedId)
     })
+
+    it('repoints activeId to a remaining column when the active one closes', () => {
+      const store = createStore()
+      const trendingId = store.columns()[0].id
+      const calId = store.openApp('calendar')
+      store.setActive(calId)
+      store.close(calId)
+      expect(store.activeId()).toBe(trendingId)
+      expect(store.columns().some((c) => c.id === calId)).toBe(false)
+    })
   })
 
   describe('resize', () => {
