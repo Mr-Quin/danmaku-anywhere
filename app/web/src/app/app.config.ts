@@ -22,7 +22,8 @@ import { provideQueryClient } from '@tanstack/angular-query-experimental'
 import { ConfirmationService, MessageService } from 'primeng/api'
 import { providePrimeNG } from 'primeng/config'
 import { routes } from './app.routes'
-import { ExtensionService } from './core/extension/extension.service'
+import { backendProviders } from './core/backend/backend.providers'
+import { ExtensionDetector } from './core/backend/extension-detector'
 import { TitleService } from './core/services/title.service'
 import { TrackingService } from './core/tracking.service'
 import { UpdateService } from './core/update/update.service'
@@ -48,6 +49,7 @@ const preset = definePreset(Aura, {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    ...backendProviders,
     provideBrowserGlobalErrorListeners(),
     provideClientHydration(),
     provideQueryClient(queryClient),
@@ -82,7 +84,7 @@ export const appConfig: ApplicationConfig = {
       if (isPlatformBrowser(platformId)) {
         const trackingService = inject(TrackingService)
         trackingService.init()
-        const extensionService = inject(ExtensionService)
+        const extensionService = inject(ExtensionDetector)
         await extensionService.init()
       }
       console.log('App initialized')

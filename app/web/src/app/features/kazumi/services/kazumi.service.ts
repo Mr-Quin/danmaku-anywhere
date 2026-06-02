@@ -28,7 +28,7 @@ import {
   startWith,
   tap,
 } from 'rxjs'
-import { ExtensionMessagingService } from '../../../core/extension/extension-messaging.service'
+import { ExtensionMessenger } from '../../../core/backend/extension-messenger'
 import { queryKeys } from '../../../shared/query/queryKeys'
 import { sortArrayByOrder } from '../../../shared/utils/utils'
 import { withTimeout } from '../../../shared/utils/withTimeout'
@@ -80,7 +80,7 @@ export interface MediaSearchDetails {
 })
 export class KazumiService {
   private readonly db = new KazumiDb()
-  private readonly extensionMessagingService = inject(ExtensionMessagingService)
+  private readonly extensionMessagingService = inject(ExtensionMessenger)
   private readonly queryClient = inject(QueryClient)
 
   // active policy for tab
