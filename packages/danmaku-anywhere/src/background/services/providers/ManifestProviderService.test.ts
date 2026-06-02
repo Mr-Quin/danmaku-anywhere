@@ -1,10 +1,10 @@
-import type { ManifestRunner } from '@danmaku-anywhere/dango'
 import {
   type CommentEntity,
   DanmakuSourceType,
   EPISODE_SCHEMA_VERSION,
   SEASON_SCHEMA_VERSION,
 } from '@danmaku-anywhere/danmaku-converter'
+import type { ManifestRunner } from '@mr-quin/dango'
 import { describe, expect, it, vi } from 'vitest'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { ILogger } from '@/common/Logger'

@@ -243,40 +243,6 @@ importers:
         specifier: ^7.10.1
         version: 7.13.0(typescript@6.0.3)
 
-  packages/dango:
-    dependencies:
-      fast-xml-parser:
-        specifier: ^4.5.1
-        version: 4.5.6
-      js-md5:
-        specifier: ^0.8.3
-        version: 0.8.3
-      jsonata:
-        specifier: ^2.0.6
-        version: 2.2.1
-      protobufjs:
-        specifier: ^7.5.4
-        version: 7.6.0
-      zod:
-        specifier: ^4.3.5
-        version: 4.4.3
-    devDependencies:
-      vitest:
-        specifier: ^4.0.13
-        version: 4.1.0(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.3(@types/node@24.12.4)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.97.3)(tsx@4.22.3)(yaml@2.9.0))
-
-  packages/dango-manifests:
-    devDependencies:
-      '@danmaku-anywhere/dango':
-        specifier: workspace:*
-        version: link:../dango
-      protobufjs:
-        specifier: ^7.5.4
-        version: 7.6.0
-      vitest:
-        specifier: ^4.0.13
-        version: 4.1.0(@opentelemetry/api@1.9.1)(@types/node@24.12.4)(jsdom@28.1.0(@noble/hashes@2.2.0))(vite@7.3.3(@types/node@24.12.4)(jiti@2.7.0)(lightningcss@1.32.0)(sass@1.97.3)(tsx@4.22.3)(yaml@2.9.0))
-
   packages/danmaku-anywhere:
     dependencies:
       '@ai-sdk/openai':
@@ -285,12 +251,6 @@ importers:
       '@ai-sdk/openai-compatible':
         specifier: ^2.0.1
         version: 2.0.47(zod@4.4.3)
-      '@danmaku-anywhere/dango':
-        specifier: workspace:*
-        version: link:../dango
-      '@danmaku-anywhere/dango-manifests':
-        specifier: workspace:*
-        version: link:../dango-manifests
       '@danmaku-anywhere/danmaku-converter':
         specifier: workspace:*
         version: link:../danmaku-converter
@@ -345,6 +305,12 @@ importers:
       '@mediapipe/tasks-vision':
         specifier: 0.10.18
         version: 0.10.18
+      '@mr-quin/dango':
+        specifier: ^0.1.0
+        version: 0.1.0
+      '@mr-quin/dango-manifests':
+        specifier: ^0.1.0
+        version: 0.1.0
       '@mui/icons-material':
         specifier: ^9.0.1
         version: 9.0.1(@mui/material@9.0.1(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.0))(@types/react@19.2.15)(react@19.2.0))(@types/react@19.2.15)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@types/react@19.2.15)(react@19.2.0)
@@ -2861,6 +2827,13 @@ packages:
     peerDependenciesMeta:
       '@cfworker/json-schema':
         optional: true
+
+  '@mr-quin/dango-manifests@0.1.0':
+    resolution: {integrity: sha512-91pItO12xPzEbPI5QFZfCCDOk0znm2vMspqCpWCb6ZXhicknFigF07RdioT99TquiZJbpGgjp8/7cSJPuUMFNQ==}
+
+  '@mr-quin/dango@0.1.0':
+    resolution: {integrity: sha512-u8BpMbMMbvusGmFQMwtYohKyKY9VbfOidORipF+Bn7ory/dlJ+Syey8UYYr8fti5iRzOaymFnA1FgZp4e2FSKw==}
+    engines: {node: '>=20'}
 
   '@mr-quin/danmu@0.20.0-rc.4':
     resolution: {integrity: sha512-3DyaSqqZHCezileP15tuoKjSRh1AjIFBRbGwlizzVTDVjlousO8PaUdGCInmlGMJ1IUnNcEooI3aPbSsFbUQOg==}
@@ -10433,6 +10406,16 @@ snapshots:
       zod-to-json-schema: 3.25.2(zod@4.3.6)
     transitivePeerDependencies:
       - supports-color
+
+  '@mr-quin/dango-manifests@0.1.0': {}
+
+  '@mr-quin/dango@0.1.0':
+    dependencies:
+      fast-xml-parser: 4.5.6
+      js-md5: 0.8.3
+      jsonata: 2.2.1
+      protobufjs: 7.6.0
+      zod: 4.4.3
 
   '@mr-quin/danmu@0.20.0-rc.4':
     dependencies:
