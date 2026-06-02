@@ -6,7 +6,6 @@ import { faGithub } from '@fortawesome/free-brands-svg-icons'
 import { ButtonDirective } from 'primeng/button'
 import { Tag } from 'primeng/tag'
 import { SearchTriggerComponent } from '../../features/search/search-trigger.component'
-import { MaterialIcon } from '../../shared/components/material-icon'
 import { GITHUB_REPO_URL, PAGE_TITLE } from '../../shared/constants'
 import { LayoutService } from '../layout.service'
 import { ExtensionUpdateBanner } from './extension-update-banner.component'
@@ -21,7 +20,6 @@ import { FeedbackFormButton } from './feedback-form-button.component'
     Tag,
     FaIconComponent,
     ButtonDirective,
-    MaterialIcon,
     ExtensionUpdateBanner,
     FeedbackFormButton,
     SearchTriggerComponent,
@@ -43,7 +41,7 @@ import { FeedbackFormButton } from './feedback-form-button.component'
             text
             (click)="layoutService.toggleSidebar()"
           >
-            <da-mat-icon icon="menu" size="lg" />
+            <i class="pi pi-bars text-lg"></i>
           </button>
           <div class="flex items-center gap-2 flex-shrink-0">
             <h1 class="text-2xl font-bold"><a routerLink="/">

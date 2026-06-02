@@ -8,20 +8,13 @@ import {
 } from '@angular/core'
 import { Button } from 'primeng/button'
 import { Tag } from 'primeng/tag'
-import { MaterialIcon } from '../../../../../shared/components/material-icon'
 import { RatingDistributionComponent } from '../../../../../shared/components/rating-distribution.component'
 import type { BgmSubject } from '../../../types/bangumi.types'
 
 @Component({
   selector: 'da-subject-header',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    Button,
-    Tag,
-    MaterialIcon,
-    RatingDistributionComponent,
-  ],
+  imports: [CommonModule, Button, Tag, RatingDistributionComponent],
   template: `
     @let subjectData = subject();
     <div class="mb-6">
@@ -144,7 +137,7 @@ import type { BgmSubject } from '../../../types/bangumi.types'
               severity="primary"
               size="large"
             >
-              <da-mat-icon size="lg" icon="play_arrow" class="mr-2" />
+              <i class="pi pi-play text-lg mr-2"></i>
             </p-button>
             <p-button
               label="返回"

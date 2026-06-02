@@ -21,7 +21,6 @@ import { InputTextModule } from 'primeng/inputtext'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs'
 import { TrackingService } from '../../../core/tracking.service'
-import { MaterialIcon } from '../../../shared/components/material-icon'
 import { randomFrom } from '../../../shared/utils/utils'
 import { BangumiService } from '../../bangumi/services/bangumi.service'
 import { SettingsService } from '../../settings/settings.service'
@@ -46,7 +45,6 @@ import { KazumiService } from '../services/kazumi.service'
     Tab,
     TabPanels,
     TabPanel,
-    MaterialIcon,
     KazumiPolicyTab,
     SearchResultsComponent,
     AutoFocus,
@@ -92,7 +90,7 @@ import { KazumiService } from '../services/kazumi.service'
                 [severity]="!$canSearch() ? 'secondary' : 'primary'"
                 [disabled]="!$canSearch()"
               >
-                <da-mat-icon icon="send" size="lg" />
+                <i class="pi pi-send text-lg"></i>
               </p-button>
             </div>
           </form>

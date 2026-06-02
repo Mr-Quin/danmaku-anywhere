@@ -8,23 +8,7 @@ import {
 
 import { ColumnBodyHost } from './column-body-host'
 import type { Column, ColumnKind } from './lane.types'
-
-const GLYPH: Partial<Record<ColumnKind, string>> = {
-  trending: '★',
-  calendar: '☷',
-  search: '⌕',
-  rules: '☰',
-  show: '◈',
-  player: '▶',
-  history: '⟲',
-  settings: '⚙',
-  comments: '💬',
-  showtab: '◈',
-  local: '▤',
-  onboarding: '✦',
-  'debug-video': '⚇',
-  playground: '⚗',
-}
+import { iconFor } from './lane-icons'
 
 const TITLE: Partial<Record<ColumnKind, string>> = {
   trending: '热门',
@@ -58,7 +42,7 @@ const TITLE: Partial<Record<ColumnKind, string>> = {
   },
   template: `
     <header class="header">
-      <span class="glyph">{{ glyph() }}</span>
+      <i class="glyph pi {{ icon() }}"></i>
       <span class="title">{{ title() }}</span>
       @if (sub()) {
         <span class="sub">{{ sub() }}</span>
@@ -72,11 +56,11 @@ const TITLE: Partial<Record<ColumnKind, string>> = {
           [title]="pinned() ? '取消固定到侧栏' : '固定到侧栏'"
           (click)="pin.emit()"
         >
-          ⚲
+          <i class="pi {{ pinned() ? 'pi-bookmark-fill' : 'pi-bookmark' }}"></i>
         </button>
       }
       <button type="button" class="hbtn" title="调整宽度" (click)="resize.emit()">
-        ↔
+        <i class="pi pi-arrows-h"></i>
       </button>
       <button
         type="button"
@@ -85,10 +69,12 @@ const TITLE: Partial<Record<ColumnKind, string>> = {
         [title]="col().full ? '还原' : '铺满'"
         (click)="toggleFull.emit()"
       >
-        {{ col().full ? '⤡' : '⛶' }}
+        <i
+          class="pi {{ col().full ? 'pi-window-minimize' : 'pi-window-maximize' }}"
+        ></i>
       </button>
       <button type="button" class="hbtn" title="关闭" (click)="close.emit()">
-        ✕
+        <i class="pi pi-times"></i>
       </button>
     </header>
     <div class="scroll kz-scroll" data-colscroll>
@@ -265,7 +251,7 @@ export class ColumnShell {
     handle.addEventListener('pointerup', onUp)
   }
 
-  readonly glyph = computed(() => GLYPH[this.col().kind] ?? '◦')
+  readonly icon = computed(() => iconFor(this.col().kind))
   readonly title = computed(() => TITLE[this.col().kind] ?? this.col().kind)
   readonly sub = computed(() => {
     const col = this.col()

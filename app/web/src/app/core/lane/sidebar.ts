@@ -8,20 +8,20 @@ import {
 
 import { ThemeService } from '../theme/theme.service'
 import type { ColumnKind, PinnedItem } from './lane.types'
+import { iconFor } from './lane-icons'
 
 interface AppLauncher {
   kind: ColumnKind
-  glyph: string
   label: string
   badge?: boolean
 }
 
 const APPS: AppLauncher[] = [
-  { kind: 'trending', glyph: '★', label: '热门' },
-  { kind: 'calendar', glyph: '☷', label: '日历' },
-  { kind: 'search', glyph: '⌕', label: 'Kazumi 搜索' },
-  { kind: 'rules', glyph: '☰', label: '规则', badge: true },
-  { kind: 'history', glyph: '⟲', label: '历史' },
+  { kind: 'trending', label: '热门' },
+  { kind: 'calendar', label: '日历' },
+  { kind: 'search', label: 'Kazumi 搜索' },
+  { kind: 'rules', label: '规则', badge: true },
+  { kind: 'history', label: '历史' },
 ]
 
 @Component({
@@ -40,7 +40,7 @@ const APPS: AppLauncher[] = [
           [attr.data-kind]="app.kind"
           (click)="openApp.emit(app.kind)"
         >
-          {{ app.glyph }}
+          <i class="pi {{ iconFor(app.kind) }}"></i>
           @if (activeKind() === app.kind) {
             <span class="marker"></span>
           }
@@ -72,7 +72,7 @@ const APPS: AppLauncher[] = [
             title="取消固定"
             (click)="onUnpin($event, item.key)"
           >
-            ✕
+            <i class="pi pi-times"></i>
           </span>
         </div>
       }
@@ -88,12 +88,14 @@ const APPS: AppLauncher[] = [
         data-testid="theme-toggle"
         (click)="themeService.toggle()"
       >
-        {{ themeService.$isDark() ? '☀' : '☾' }}
+        <i class="pi {{ themeService.$isDark() ? 'pi-sun' : 'pi-moon' }}"></i>
       </button>
       <span class="tip">切换主题</span>
     </div>
     <div class="slot">
-      <button type="button" class="rail" (click)="openSettings.emit()">⚙</button>
+      <button type="button" class="rail" (click)="openSettings.emit()">
+        <i class="pi pi-cog"></i>
+      </button>
       <span class="tip">设置</span>
     </div>
   `,
@@ -262,6 +264,7 @@ export class Sidebar {
   readonly openSettings = output<void>()
 
   readonly apps = APPS
+  protected readonly iconFor = iconFor
 
   onUnpin(event: MouseEvent, key: number) {
     event.stopPropagation()

@@ -14,7 +14,6 @@ import { Dialog } from 'primeng/dialog'
 import { IconField } from 'primeng/iconfield'
 import { InputIcon } from 'primeng/inputicon'
 import { InputTextModule } from 'primeng/inputtext'
-import { MaterialIcon } from '../../shared/components/material-icon'
 import { BangumiSearchFilterComponent } from './bangumi/bangumi-search-filter.component'
 import { SearchResultListBangumiComponent } from './bangumi/search-result-list-bangumi.component'
 import { SearchHistoryComponent } from './history/search-history.component'
@@ -28,7 +27,6 @@ import type { SearchProvider } from './search-model.type'
     Dialog,
     FormsModule,
     InputTextModule,
-    MaterialIcon,
     ButtonDirective,
     SearchResultListBangumiComponent,
     IconField,
@@ -77,7 +75,7 @@ import type { SearchProvider } from './search-model.type'
                 }
               </p-iconfield>
               <button pButton type="submit" [disabled]="!$canSubmit()">
-                <da-mat-icon icon="send" />
+                <i class="pi pi-send"></i>
               </button>
             </div>
           </form>

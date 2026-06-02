@@ -25,7 +25,6 @@ import { Tag } from 'primeng/tag'
 import { defer, type Subscription, tap } from 'rxjs'
 import { TrackingService } from '../../../core/tracking.service'
 import { VideoPlayer } from '../../../core/video-player/video-player'
-import { MaterialIcon } from '../../../shared/components/material-icon'
 import { UnescapePipePipe } from '../../../shared/pipes/UrlDecodePipe'
 import { CommentsTab } from '../../bangumi/components/comments-tab'
 import { BangumiService } from '../../bangumi/services/bangumi.service'
@@ -44,7 +43,6 @@ interface Episode {
     Button,
     Skeleton,
     Tag,
-    MaterialIcon,
     FormsModule,
     Select,
     VideoPlayer,
@@ -96,7 +94,7 @@ interface Episode {
               [disabled]="!$hasPrevious()"
               (click)="onPreviousEpisode()"
             >
-              <da-mat-icon icon="skip_previous" />
+              <i class="pi pi-step-backward"></i>
             </button>
             <button
               type="button"
@@ -105,7 +103,7 @@ interface Episode {
               [disabled]="!$hasNext()"
               (click)="onNextEpisode()"
             >
-              <da-mat-icon icon="skip_next" />
+              <i class="pi pi-step-forward"></i>
             </button>
           </div>
         </div>
@@ -155,7 +153,7 @@ interface Episode {
                     (click)="episodesQuery.refetch()"
                     label="重试">
                     <ng-template #icon>
-                      <da-mat-icon icon="refresh" />
+                      <i class="pi pi-refresh"></i>
                     </ng-template>
                   </p-button>
                 </div>

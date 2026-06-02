@@ -14,6 +14,7 @@ import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
 import { BangumiService } from '../../features/bangumi/services/bangumi.service'
 import { transformToShowCardData } from '../../features/bangumi/utils/transform-to-show-card-data'
 import type { ColumnKind } from './lane.types'
+import { iconFor } from './lane-icons'
 
 interface ShowRow {
   id: number
@@ -26,15 +27,14 @@ interface ShowRow {
 interface AppRow {
   kind: ColumnKind
   label: string
-  glyph: string
 }
 
 const APP_ROWS: AppRow[] = [
-  { kind: 'trending', label: '热门', glyph: '★' },
-  { kind: 'calendar', label: '日历', glyph: '☷' },
-  { kind: 'search', label: 'Kazumi 搜索', glyph: '⌕' },
-  { kind: 'rules', label: '规则', glyph: '☰' },
-  { kind: 'history', label: '历史', glyph: '⟲' },
+  { kind: 'trending', label: '热门' },
+  { kind: 'calendar', label: '日历' },
+  { kind: 'search', label: 'Kazumi 搜索' },
+  { kind: 'rules', label: '规则' },
+  { kind: 'history', label: '历史' },
 ]
 
 export interface PaletteDetails {
@@ -57,7 +57,7 @@ export interface PaletteWatch {
   template: `
     <div class="panel" (click)="$event.stopPropagation()">
       <div class="search">
-        <span class="icon">⌕</span>
+        <i class="icon pi pi-search"></i>
         <input
           #input
           data-testid="palette-input"
@@ -73,7 +73,7 @@ export interface PaletteWatch {
           <div class="eyebrow">应用 · {{ apps().length }}</div>
           @for (app of apps(); track app.kind) {
             <button type="button" class="row" (click)="onApp(app.kind)">
-              <span class="swatch glyph">{{ app.glyph }}</span>
+              <span class="swatch"><i class="pi {{ iconFor(app.kind) }}"></i></span>
               <span class="label">{{ app.label }}</span>
             </button>
           }
@@ -89,7 +89,7 @@ export interface PaletteWatch {
               role="button"
               (click)="onWatch($event, show)"
             >
-              ▶ 观看
+              <i class="pi pi-play"></i> 观看
             </span>
           </div>
         }
@@ -241,6 +241,7 @@ export class Palette {
 
   private readonly inputRef = viewChild<ElementRef<HTMLInputElement>>('input')
   private readonly bangumi = inject(BangumiService)
+  protected readonly iconFor = iconFor
 
   readonly query = signal('')
 
