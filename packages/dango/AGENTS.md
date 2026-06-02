@@ -50,7 +50,7 @@ A `Manifest` is JSON validated by zod. Each manifest declares up to three `Pipel
 
 `src/helpers/registry.ts` is the closed namespace callable from JSONata as `$<name>`. Current set:
 
-- crypto: `$md5`
+- crypto: `$md5`, `$gatewayDecrypt`, `$aesCbcEncrypt`, `$aesCbcDecrypt`, `$hmacSha256`
 - codec: `$base64Encode`, `$base64Decode`, `$hexToInt`, `$bytesToHex`
 - text: `$regexExtract`, `$jsonParse`, `$jsonpUnwrap`, `$timeToSeconds`
 - query/signing: `$sortedQueryString`, `$sortedRawString`

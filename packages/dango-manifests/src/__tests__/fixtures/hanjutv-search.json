@@ -1,0 +1,5 @@
+{
+  "_comment": "Encrypted s5 search response. data = AES-128-CBC ciphertext (no padding) of the seriesList JSON. Key/IV = split(md5(md5(uid + ts) + RESPONSE_SECRET), 16). Regenerate by encrypting the matching plaintext (asserted in the test) under the same scheme.",
+  "ts": 1700000000000,
+  "data": "sZSnVwmhGYtBs/2q/QmFNZ2HcuNa7AVEZebJJFo+4zzJQSRVJBXgOwGAqvbeXwY4bzHu+Efj55q/+wBPRSM6NckB/PpdNj3GlPgb8fx4YxN9KSaIRH4gByzO52sAcmggHQNMLx4Y+rd+Ivt+5lB7r7QpF5dofU/D7etGP8pquJUceXEpmdWqFl1GeSymcaxRyEr/UIoq0Yi4t4xM97/40/INl6iB2RjZT/DyVfbt0EqcgN9Z1KXxRZJooZf2h9AGjyBcJX48Pt7dDbmshLdjZnUgJNqA6kjOT5gLOLIRTvPfeoXeOgRwnPb1sD2FcBKCZW7zpvdqJ5kdEB2bgNxrTw=="
+}

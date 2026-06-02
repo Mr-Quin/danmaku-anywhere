@@ -1,4 +1,7 @@
 import { md5 } from 'js-md5'
+import { aesCbcDecrypt, aesCbcEncrypt } from './aes-cbc.js'
+import { gatewayDecrypt } from './gateway-decrypt.js'
+import { hmacSha256 } from './hmac.js'
 
 /**
  * Closed namespace callable from JSONata as `$<name>(...)`. Helpers must be
@@ -112,6 +115,17 @@ function jsonpUnwrap(input: string): unknown {
 export const helpers: Record<string, Helper> = {
   // crypto
   md5: (s) => md5(String(s)),
+  gatewayDecrypt: (s, k) => gatewayDecrypt(String(s), String(k)),
+  aesCbcEncrypt: (pt, k, iv) =>
+    aesCbcEncrypt(String(pt), String(k), String(iv)),
+  aesCbcDecrypt: (ct, k, iv, padding) =>
+    aesCbcDecrypt(
+      String(ct),
+      String(k),
+      String(iv),
+      padding === 'none' ? 'none' : 'pkcs7'
+    ),
+  hmacSha256: (m, k) => hmacSha256(String(m), String(k)),
 
   // codec
   base64Encode: (s) => base64Encode(String(s)),
