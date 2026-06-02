@@ -55,6 +55,8 @@ import { KazumiService } from '../services/kazumi.service'
             @for (item of results; track item.url) {
               <div class="relative">
                 <div
+                  data-testid="kazumi-result-item"
+                  [attr.data-url]="item.url"
                   role="button"
                   class="rounded p-4 cursor-pointer dark:bg-surface-900 dark:hover:bg-surface-800 transition-[background]"
                   (click)="itemClick.emit(item)"

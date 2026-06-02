@@ -105,7 +105,7 @@ import type { SearchProvider } from './search-model.type'
             } @else {
             }
             }@else {
-              <da-search-history />
+              <da-search-history (openSearch)="onHistorySearch($event)" />
             }
           </div>
         </div>
@@ -156,6 +156,11 @@ export class SearchDialogComponent {
 
   handleTermChange(term: string) {
     this.searchService.setTerm(term)
+  }
+
+  async onHistorySearch(term: string) {
+    this.searchService.setTerm(term)
+    await this.searchService.search()
   }
 
   onVisibleChange(visible: boolean) {
