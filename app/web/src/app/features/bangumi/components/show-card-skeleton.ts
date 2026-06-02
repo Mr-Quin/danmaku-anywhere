@@ -15,7 +15,7 @@ import { Skeleton } from 'primeng/skeleton'
   template: `
     <p-card styleClass="overflow-hidden">
       <ng-template #header>
-        <div class="relative aspect-square md:aspect-[2/3]">
+        <div class="relative aspect-[17/24]">
           <p-skeleton width="100%" height="100%" />
         </div>
       </ng-template>

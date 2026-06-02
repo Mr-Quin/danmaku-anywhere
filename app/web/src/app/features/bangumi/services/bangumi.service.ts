@@ -1,8 +1,12 @@
-import { Injectable } from '@angular/core'
+import { Injectable, inject } from '@angular/core'
 import {
   infiniteQueryOptions,
   queryOptions,
 } from '@tanstack/angular-query-experimental'
+import {
+  BANGUMI_CLIENT,
+  BANGUMI_NEXT_CLIENT,
+} from '../../../core/backend/bangumi-clients'
 import { queryClient } from '../../../shared/query/queryClient'
 import { queryKeys } from '../../../shared/query/queryKeys'
 import type {
@@ -16,20 +20,19 @@ import type {
   BgmTrendingQueryResponse,
   LegacyBgmSubjectResponse,
 } from '../types/bangumi.types'
-import { bangumiClient } from './bangumiClient'
-import { bangumiNextClient } from './bangumiNextClient'
-
 @Injectable({
   providedIn: 'root',
 })
 export class BangumiService {
-  getCalendarQueryOptions = () =>
-    queryOptions({
+  private bgm = inject(BANGUMI_CLIENT)
+  private bgmNext = inject(BANGUMI_NEXT_CLIENT)
+
+  getCalendarQueryOptions() {
+    return queryOptions({
       queryKey: queryKeys.bangumi.calendar(),
       queryFn: async (): Promise<BgmCalendar> => {
-        const res = await bangumiNextClient.GET('/p1/calendar')
-        // biome-ignore lint/style/noNonNullAssertion: checked in middleware
-        const weeks = Object.values(res.data!)
+        const res = await this.bgmNext.GET('/p1/calendar')
+        const weeks = Object.values(res.data ?? {})
         return weeks.map((day) => {
           return day.filter(
             (item) => item.subject.type === 2 && item.subject.nameCN !== ''
@@ -37,14 +40,15 @@ export class BangumiService {
         })
       },
     })
+  }
 
-  getTrendingInfiniteQueryOptions = () =>
-    infiniteQueryOptions({
+  getTrendingInfiniteQueryOptions() {
+    return infiniteQueryOptions({
       queryKey: queryKeys.bangumi.trendingInfinite(),
       queryFn: async ({ pageParam = 0 }): Promise<BgmTrendingQueryResponse> => {
         const limit = 20
         const offset = pageParam * limit
-        const res = await bangumiNextClient.GET('/p1/trending/subjects', {
+        const res = await this.bgmNext.GET('/p1/trending/subjects', {
           params: {
             query: {
               type: 2,
@@ -71,12 +75,13 @@ export class BangumiService {
         return totalSize < lastPage.total ? allPages.length : undefined
       },
     })
+  }
 
-  getSubjectDetailsQueryOptions = (subjectId: number) =>
-    queryOptions({
+  getSubjectDetailsQueryOptions(subjectId: number) {
+    return queryOptions({
       queryKey: queryKeys.bangumi.subject.details(subjectId),
       queryFn: async (): Promise<BgmSubject> => {
-        const res = await bangumiNextClient.GET('/p1/subjects/{subjectID}', {
+        const res = await this.bgmNext.GET('/p1/subjects/{subjectID}', {
           params: {
             path: {
               subjectID: subjectId,
@@ -88,12 +93,13 @@ export class BangumiService {
       },
       enabled: !!subjectId,
     })
+  }
 
-  getSubjectEpisodesQueryOptions = (subjectId: number) =>
-    queryOptions({
+  getSubjectEpisodesQueryOptions(subjectId: number) {
+    return queryOptions({
       queryKey: queryKeys.bangumi.subject.episodes(subjectId),
       queryFn: async () => {
-        const res = await bangumiNextClient.GET(
+        const res = await this.bgmNext.GET(
           '/p1/subjects/{subjectID}/episodes',
           {
             params: {
@@ -108,12 +114,13 @@ export class BangumiService {
       },
       enabled: !!subjectId,
     })
+  }
 
-  getSubjectCharactersQueryOptions = (subjectId: number) =>
-    queryOptions({
+  getSubjectCharactersQueryOptions(subjectId: number) {
+    return queryOptions({
       queryKey: queryKeys.bangumi.subject.characters(subjectId),
       queryFn: async () => {
-        const res = await bangumiNextClient.GET(
+        const res = await this.bgmNext.GET(
           '/p1/subjects/{subjectID}/characters',
           {
             params: {
@@ -128,12 +135,13 @@ export class BangumiService {
       },
       enabled: !!subjectId,
     })
+  }
 
-  getSubjectRelationsQueryOptions = (subjectId: number) =>
-    queryOptions({
+  getSubjectRelationsQueryOptions(subjectId: number) {
+    return queryOptions({
       queryKey: queryKeys.bangumi.subject.relations(subjectId),
       queryFn: async () => {
-        const res = await bangumiNextClient.GET(
+        const res = await this.bgmNext.GET(
           '/p1/subjects/{subjectID}/relations',
           {
             params: {
@@ -148,12 +156,13 @@ export class BangumiService {
       },
       enabled: !!subjectId,
     })
+  }
 
-  getSubjectStaffPersonsQueryOptions = (subjectId: number) =>
-    queryOptions({
+  getSubjectStaffPersonsQueryOptions(subjectId: number) {
+    return queryOptions({
       queryKey: queryKeys.bangumi.subject.staffPersons(subjectId),
       queryFn: async () => {
-        const res = await bangumiNextClient.GET(
+        const res = await this.bgmNext.GET(
           '/p1/subjects/{subjectID}/staffs/persons',
           {
             params: {
@@ -168,87 +177,79 @@ export class BangumiService {
       },
       enabled: !!subjectId,
     })
+  }
 
-  getSubjectRecsQueryOptions = (subjectId: number) =>
-    queryOptions({
+  getSubjectRecsQueryOptions(subjectId: number) {
+    return queryOptions({
       queryKey: queryKeys.bangumi.subject.recommendations(subjectId),
       queryFn: async () => {
-        const res = await bangumiNextClient.GET(
-          '/p1/subjects/{subjectID}/recs',
-          {
-            params: {
-              path: {
-                subjectID: subjectId,
-              },
+        const res = await this.bgmNext.GET('/p1/subjects/{subjectID}/recs', {
+          params: {
+            path: {
+              subjectID: subjectId,
             },
-          }
-        )
+          },
+        })
         // biome-ignore lint/style/noNonNullAssertion: checked in middleware
         return res.data!
       },
       enabled: !!subjectId,
     })
+  }
 
-  getSubjectReviewsQueryOptions = (subjectId: number) =>
-    queryOptions({
+  getSubjectReviewsQueryOptions(subjectId: number) {
+    return queryOptions({
       queryKey: queryKeys.bangumi.subject.reviews(subjectId),
       queryFn: async () => {
-        const res = await bangumiNextClient.GET(
-          '/p1/subjects/{subjectID}/reviews',
-          {
-            params: {
-              path: {
-                subjectID: subjectId,
-              },
+        const res = await this.bgmNext.GET('/p1/subjects/{subjectID}/reviews', {
+          params: {
+            path: {
+              subjectID: subjectId,
             },
-          }
-        )
+          },
+        })
         // biome-ignore lint/style/noNonNullAssertion: checked in middleware
         return res.data!
       },
       enabled: !!subjectId,
     })
+  }
 
-  getSubjectTopicsQueryOptions = (subjectId: number) =>
-    queryOptions({
+  getSubjectTopicsQueryOptions(subjectId: number) {
+    return queryOptions({
       queryKey: queryKeys.bangumi.subject.topics(subjectId),
       queryFn: async () => {
-        const res = await bangumiNextClient.GET(
-          '/p1/subjects/{subjectID}/topics',
-          {
-            params: {
-              path: {
-                subjectID: subjectId,
-              },
+        const res = await this.bgmNext.GET('/p1/subjects/{subjectID}/topics', {
+          params: {
+            path: {
+              subjectID: subjectId,
             },
-          }
-        )
+          },
+        })
         // biome-ignore lint/style/noNonNullAssertion: checked in middleware
         return res.data!
       },
       enabled: !!subjectId,
     })
+  }
 
-  getSubjectTopicsInfiniteQueryOptions = (subjectId: number) =>
-    infiniteQueryOptions({
+  getSubjectTopicsInfiniteQueryOptions(subjectId: number) {
+    return infiniteQueryOptions({
       queryKey: queryKeys.bangumi.subject.topicsInfinite(subjectId),
       queryFn: async ({ pageParam = 0 }): Promise<BgmGetTopicResponse> => {
         const limit = 20
         const offset = pageParam * limit
-        const res = await bangumiNextClient.GET(
-          '/p1/subjects/{subjectID}/topics',
-          {
-            params: {
-              path: {
-                subjectID: subjectId,
-              },
-              query: {
-                limit,
-                offset,
-              },
+        const res = await this.bgmNext.GET('/p1/subjects/{subjectID}/topics', {
+          params: {
+            path: {
+              subjectID: subjectId,
             },
-          }
-        )
+            query: {
+              limit,
+              offset,
+            },
+          },
+        })
         // biome-ignore lint/style/noNonNullAssertion: checked in middleware
         return res.data!
       },
@@ -266,29 +267,27 @@ export class BangumiService {
       },
       enabled: !!subjectId,
     })
+  }
 
-  getSubjectReviewsInfiniteQueryOptions = (subjectId: number) =>
-    infiniteQueryOptions({
+  getSubjectReviewsInfiniteQueryOptions(subjectId: number) {
+    return infiniteQueryOptions({
       queryKey: queryKeys.bangumi.subject.reviewsInfinite(subjectId),
       queryFn: async ({
         pageParam = 0,
       }): Promise<BgmGetSubjectReviewResponse> => {
         const limit = 20
         const offset = pageParam * limit
-        const res = await bangumiNextClient.GET(
-          '/p1/subjects/{subjectID}/reviews',
-          {
-            params: {
-              path: {
-                subjectID: subjectId,
-              },
-              query: {
-                limit,
-                offset,
-              },
+        const res = await this.bgmNext.GET('/p1/subjects/{subjectID}/reviews', {
+          params: {
+            path: {
+              subjectID: subjectId,
             },
-          }
-        )
+            query: {
+              limit,
+              offset,
+            },
+          },
+        })
         // biome-ignore lint/style/noNonNullAssertion: checked in middleware
         return res.data!
       },
@@ -306,12 +305,13 @@ export class BangumiService {
       },
       enabled: !!subjectId,
     })
+  }
 
-  getSubjectCommentsQueryOptions = (subjectId: number) =>
-    queryOptions({
+  getSubjectCommentsQueryOptions(subjectId: number) {
+    return queryOptions({
       queryKey: queryKeys.bangumi.subject.comments(subjectId),
       queryFn: async () => {
-        const res = await bangumiNextClient.GET(
+        const res = await this.bgmNext.GET(
           '/p1/subjects/{subjectID}/comments',
           {
             params: {
@@ -326,16 +326,17 @@ export class BangumiService {
       },
       enabled: !!subjectId,
     })
+  }
 
-  getSubjectCommentsInfiniteQueryOptions = (subjectId: number) =>
-    infiniteQueryOptions({
+  getSubjectCommentsInfiniteQueryOptions(subjectId: number) {
+    return infiniteQueryOptions({
       queryKey: queryKeys.bangumi.subject.commentsInfinite(subjectId),
       queryFn: async ({
         pageParam = 0,
       }): Promise<BgmGetSubjectCommentResponse> => {
         const limit = 20
         const offset = pageParam * limit
-        const res = await bangumiNextClient.GET(
+        const res = await this.bgmNext.GET(
           '/p1/subjects/{subjectID}/comments',
           {
             params: {
@@ -366,19 +367,20 @@ export class BangumiService {
       },
       enabled: !!subjectId,
     })
+  }
 
-  searchSubjectsQueryOptions = (
+  searchSubjectsQueryOptions(
     searchString: string,
     sort?: BgmSubjectSearchSorting,
     filter?: BgmSubjectSearchFilterModel
-  ) =>
-    infiniteQueryOptions({
+  ) {
+    return infiniteQueryOptions({
       queryKey: queryKeys.bangumi.search.subjects(searchString, sort, filter),
       queryFn: async ({ pageParam = 0 }): Promise<LegacyBgmSubjectResponse> => {
         const limit = 10
         const offset = pageParam
 
-        const res = await bangumiClient.POST('/v0/search/subjects', {
+        const res = await this.bgm.POST('/v0/search/subjects', {
           body: {
             keyword: searchString,
             filter,
@@ -402,6 +404,7 @@ export class BangumiService {
         return lastPage.offset + lastPage.limit
       },
     })
+  }
 
   searchSubject(
     searchString: string,

@@ -110,9 +110,6 @@ importers:
       libass-wasm:
         specifier: ^4.1.0
         version: 4.1.0
-      material-symbols:
-        specifier: ^0.40.0
-        version: 0.40.2
       openapi-fetch:
         specifier: ^0.15.0
         version: 0.15.2
@@ -153,6 +150,9 @@ importers:
       '@angular/ssr':
         specifier: ^21.2.2
         version: 21.2.12(6c1d8fbd066ef9f0d9e21b9b3aa62b26)
+      '@playwright/test':
+        specifier: ^1.59.1
+        version: 1.60.0
       jsdom:
         specifier: ^28.1.0
         version: 28.1.0(@noble/hashes@2.2.0)
@@ -6639,9 +6639,6 @@ packages:
 
   marky@1.3.0:
     resolution: {integrity: sha512-ocnPZQLNpvbedwTy9kNrQEsknEfgvcLMvOtz3sFeWApDq1MXH1TqkCIx58xlpESsfwQOnuBO9beyQuNGzVvuhQ==}
-
-  material-symbols@0.40.2:
-    resolution: {integrity: sha512-QUJF1HztvcpP8pXHPPNESK05Thq/Zy8ub17T2xBDf4+gqx4KBs353lKHuVzE/eCYOtiB9JBlFOU7cjAI6vVMTQ==}
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -14028,8 +14025,6 @@ snapshots:
   marked@4.3.0: {}
 
   marky@1.3.0: {}
-
-  material-symbols@0.40.2: {}
 
   math-intrinsics@1.1.0: {}
 

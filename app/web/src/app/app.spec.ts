@@ -1,23 +1,31 @@
 import { TestBed } from '@angular/core/testing'
+import { provideRouter } from '@angular/router'
 import { App } from './app'
+import { provideTestApp } from './shared/testing/provide-test-app'
 
+/**
+ * App is the root shell: it creates and renders a single router-outlet under
+ * the fake-backend test providers. Asserts the component instantiates and the
+ * outlet anchor is present so routing has somewhere to project into.
+ */
 describe('App', () => {
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
+  beforeEach(() => {
+    TestBed.configureTestingModule({
       imports: [App],
-    }).compileComponents()
+      providers: [...provideTestApp(), provideRouter([])],
+    })
   })
 
-  it('should create the app', () => {
+  it('creates the root component', async () => {
     const fixture = TestBed.createComponent(App)
-    const app = fixture.componentInstance
-    expect(app).toBeTruthy()
+    await fixture.whenStable()
+    expect(fixture.componentInstance).toBeTruthy()
   })
 
-  it('should render title', () => {
+  it('renders a router outlet', async () => {
     const fixture = TestBed.createComponent(App)
-    fixture.detectChanges()
+    await fixture.whenStable()
     const compiled = fixture.nativeElement as HTMLElement
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, web')
+    expect(compiled.querySelector('router-outlet')).not.toBeNull()
   })
 })
