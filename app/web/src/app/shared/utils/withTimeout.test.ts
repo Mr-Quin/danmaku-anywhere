@@ -8,6 +8,7 @@ describe('withTimeout', () => {
 
   afterEach(() => {
     vi.useRealTimers()
+    vi.restoreAllMocks()
   })
 
   it('resolves with the value when the promise settles before the timeout', async () => {
