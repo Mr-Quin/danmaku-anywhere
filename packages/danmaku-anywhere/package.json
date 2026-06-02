@@ -45,6 +45,8 @@
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "@danmaku-anywhere/danmaku-engine": "workspace:*",
     "@danmaku-anywhere/danmaku-provider": "workspace:*",
+    "@danmaku-anywhere/dango": "workspace:*",
+    "@danmaku-anywhere/dango-manifests": "workspace:*",
     "@danmaku-anywhere/integration-policy": "workspace:*",
     "@danmaku-anywhere/result": "workspace:*",
     "@danmaku-anywhere/web-scraper": "workspace:*",

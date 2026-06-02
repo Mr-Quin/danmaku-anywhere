@@ -18,12 +18,12 @@ const COMPAT_BASE_URL = 'https://compat.example.invalid'
 
 const compatConfig: ProviderConfig = {
   id: 'compat-test-1',
-  type: 'DanDanPlayCompatible',
+  manifestId: 'builtin:ddp-compat',
   name: 'CompatTest',
   impl: DanmakuSourceType.DanDanPlay,
   enabled: true,
   isBuiltIn: false,
-  options: {
+  configValues: {
     baseUrl: COMPAT_BASE_URL,
     auth: { enabled: false, headers: [] },
   },

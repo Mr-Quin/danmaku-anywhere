@@ -61,6 +61,13 @@ export const zRequestSpec = z.object({
    * (e.g. Bilibili's `seg.so` returns 304 past the last danmaku segment).
    */
   acceptStatus: z.array(z.number().int()).default([]),
+  /**
+   * Decompress the raw response body before applying `format`. Use for
+   * upstreams that ship deflate/gzip payloads without `Content-Encoding`
+   * (e.g. iQiyi's `.z` danmaku segments). The decompressed text/bytes are
+   * then parsed per `format`.
+   */
+  decompress: z.enum(['deflate', 'deflate-raw', 'gzip']).optional(),
 })
 export type RequestSpec = z.infer<typeof zRequestSpec>
 
@@ -77,16 +84,29 @@ const zStepId = z
 const zHttpStep = z
   .object({
     type: z.literal('http'),
-    /** Required when `extract` is set, since extracts are stored at context[id]. */
+    /** Required when `extract`/`extractHeaders` is set, since extracts are stored at context[id]. */
     id: zStepId.optional(),
     request: zRequestSpec,
     /** Per-field JSONata against the response body. */
     extract: z.record(z.string(), zExpr).optional(),
+    /**
+     * Per-field JSONata against the response headers. Header names are
+     * lower-cased before exposure (HTTP is case-insensitive). Access with
+     * bracket-quoted names for headers containing `-`:
+     * `` `set-cookie` ``.
+     */
+    extractHeaders: z.record(z.string(), zExpr).optional(),
   })
-  .refine((step) => step.extract === undefined || step.id !== undefined, {
-    message: 'http step requires `id` when `extract` is set',
-    path: ['id'],
-  })
+  .refine(
+    (step) =>
+      (step.extract === undefined && step.extractHeaders === undefined) ||
+      step.id !== undefined,
+    {
+      message:
+        'http step requires `id` when `extract` / `extractHeaders` is set',
+      path: ['id'],
+    }
+  )
 
 const zAssignStep = z.object({
   type: z.literal('assign'),
@@ -118,6 +138,11 @@ const zForEachStep = z
      * cursor-style pagination ("stop when this page is partial").
      */
     breakOn: zExpr.optional(),
+    /**
+     * Require N consecutive truthy `breakOn` results before stopping.
+     * Default 1 (stop immediately). Raise it to tolerate transient empties.
+     */
+    breakOnConsecutive: z.number().int().min(1).max(20).default(1),
   })
   .refine((s) => s.breakOn === undefined || s.concurrency === 1, {
     message: 'forEach.breakOn requires concurrency: 1 (sequential execution)',
@@ -159,37 +184,55 @@ const zPipelineField = z
 // (helper removal, step-type semantics). Additive changes don't bump.
 export const SUPPORTED_API_VERSIONS = new Set<number>([1])
 
-const zConfigItem = z.discriminatedUnion('type', [
-  z.object({
-    type: z.literal('string'),
-    default: z.string().optional(),
-    label: z.string().optional(),
-    description: z.string().optional(),
-    sensitive: z.boolean().default(false),
-    required: z.boolean().default(false),
-  }),
-  z.object({
-    type: z.literal('number'),
-    default: z.number().optional(),
-    label: z.string().optional(),
-    description: z.string().optional(),
-    required: z.boolean().default(false),
-  }),
-  z.object({
-    type: z.literal('boolean'),
-    default: z.boolean().optional(),
-    label: z.string().optional(),
-    description: z.string().optional(),
-  }),
-  z.object({
-    type: z.literal('enum'),
-    values: z.array(z.string()).min(1),
-    default: z.string().optional(),
-    label: z.string().optional(),
-    description: z.string().optional(),
-  }),
-])
-export type ConfigItem = z.infer<typeof zConfigItem>
+// `configSchema` follows JSON Schema (draft 2020-12 subset). The engine
+// validates structural fields it consumes — type, properties, default,
+// required — and passes the rest through for downstream consumers (form
+// renderers using rjsf, AJV validators, IDE tooling).
+type JsonSchemaShape = {
+  type?:
+    | 'object'
+    | 'string'
+    | 'number'
+    | 'integer'
+    | 'boolean'
+    | 'array'
+    | 'null'
+  title?: string
+  description?: string
+  default?: unknown
+  format?: string
+  enum?: unknown[]
+  properties?: Record<string, JsonSchemaShape>
+  items?: JsonSchemaShape
+  required?: string[]
+  [k: string]: unknown
+}
+export const zConfigSchema: z.ZodType<JsonSchemaShape> = z.lazy(() =>
+  z
+    .object({
+      type: z
+        .enum([
+          'object',
+          'string',
+          'number',
+          'integer',
+          'boolean',
+          'array',
+          'null',
+        ])
+        .optional(),
+      title: z.string().optional(),
+      description: z.string().optional(),
+      default: z.unknown().optional(),
+      format: z.string().optional(),
+      enum: z.array(z.unknown()).optional(),
+      properties: z.record(z.string(), zConfigSchema).optional(),
+      items: zConfigSchema.optional(),
+      required: z.array(z.string()).optional(),
+    })
+    .passthrough()
+)
+export type ConfigSchema = z.infer<typeof zConfigSchema>
 
 export const zManifest = z.object({
   /** Engine API version; load fails if not in SUPPORTED_API_VERSIONS. */
@@ -212,7 +255,7 @@ export const zManifest = z.object({
    */
   hosts: z.array(z.string()).min(1),
   /** Per-installation options the user sets; merged into pipeline context at run time. */
-  configSchema: z.record(z.string(), zConfigItem).default({}),
+  configSchema: zConfigSchema.optional(),
   /**
    * Patterns for the host's "which source handles this URL" resolver.
    * Each entry: URL host matches `host` (exact / `*.domain`) AND pathname
@@ -227,5 +270,32 @@ export const zManifest = z.object({
   search: zPipelineField.optional(),
   episodes: zPipelineField.optional(),
   danmaku: zPipelineField.optional(),
+  /** Re-fetch a stored season's metadata. Inputs are the season's providerIds. */
+  season: zPipelineField.optional(),
+  /**
+   * Resolve a URL to a `{ seasonInsert, episodeMeta }` pair. Named capture
+   * groups from the first matching `urlMatch` entry become pipeline inputs
+   * (e.g. `path: '/play/ss(?<ssid>\\d+)'` → input `ssid` available in the
+   * pipeline context).
+   */
+  parseUrl: zPipelineField.optional(),
+  /**
+   * Probe whether the user's stored session/cookies grant a valid session
+   * at this source. Output shape is source-specific (user-info object,
+   * boolean, etc.); the host inspects it per provider.
+   */
+  loginProbe: zPipelineField.optional(),
+  /**
+   * Declarative login action: opening (or fetching) `url` is expected to
+   * persist session cookies for this source. The host renders a button
+   * surfaced when the user wants to authenticate; presence of this field
+   * is what makes that button appear.
+   */
+  cookieSet: z
+    .object({
+      url: z.url(),
+      title: z.string().optional(),
+    })
+    .optional(),
 })
 export type Manifest = z.infer<typeof zManifest>

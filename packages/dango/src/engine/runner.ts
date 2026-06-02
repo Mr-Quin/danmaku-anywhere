@@ -27,15 +27,23 @@ export interface RunOptions {
 }
 
 async function runHttpExtract(
-  response: unknown,
-  extract: Record<string, string> | undefined
+  result: { body: unknown; headers: Record<string, string> },
+  extract: Record<string, string> | undefined,
+  extractHeaders: Record<string, string> | undefined
 ): Promise<unknown> {
-  if (!extract) {
-    return response
+  if (!extract && !extractHeaders) {
+    return result.body
   }
   const bag: Record<string, unknown> = {}
-  for (const [name, expr] of Object.entries(extract)) {
-    bag[name] = await evalExpr(expr, response)
+  if (extract) {
+    for (const [name, expr] of Object.entries(extract)) {
+      bag[name] = await evalExpr(expr, result.body)
+    }
+  }
+  if (extractHeaders) {
+    for (const [name, expr] of Object.entries(extractHeaders)) {
+      bag[name] = await evalExpr(expr, result.headers)
+    }
   }
   return bag
 }
@@ -137,13 +145,13 @@ async function runStep(
     const runIteration = async (element: unknown) => {
       throwIfAborted(options.signal)
       const iterContext: Context = { ...context, [step.as]: element }
-      const response = await executeRequest(step.request, iterContext, {
+      const result = await executeRequest(step.request, iterContext, {
         fetcher: options.fetcher,
         allowedHosts: manifest.hosts,
         signal: options.signal,
         protoRegistry: options.protoRegistry,
       })
-      const extracted = await runHttpExtract(response, step.extract)
+      const extracted = await runHttpExtract(result, step.extract, undefined)
       if (!step.collect) {
         return extracted
       }
@@ -151,20 +159,24 @@ async function runStep(
     }
     let perItemResults: unknown[]
     if (step.breakOn) {
-      // Sequential mode with early exit. The breakOn predicate is evaluated
-      // against each iteration's collected result; truthy stops the loop AFTER
-      // including the current result (so a "this page is partial" predicate
-      // still keeps the final partial page). throttleMs still applies between
-      // iteration starts so cursor pagination respects upstream rate limits.
+      // Sequential. Current result is included before the stop check;
+      // breakOnConsecutive requires N back-to-back truthy to stop.
       perItemResults = []
       const stopExpr = step.breakOn
+      const threshold = step.breakOnConsecutive
       const waitForSlot = makeThrottle(step.throttleMs, options.signal)
+      let consecutive = 0
       for (const element of items) {
         await waitForSlot()
         const result = await runIteration(element)
         perItemResults.push(result)
         const stop = await evalExpr(stopExpr, result)
-        if (stop) break
+        if (stop) {
+          consecutive += 1
+          if (consecutive >= threshold) break
+        } else {
+          consecutive = 0
+        }
       }
     } else {
       perItemResults = await runWithConcurrency(
@@ -189,7 +201,7 @@ async function runStep(
   }
 
   // http
-  const response = await executeRequest(step.request, context, {
+  const result = await executeRequest(step.request, context, {
     fetcher: options.fetcher,
     allowedHosts: manifest.hosts,
     signal: options.signal,
@@ -198,7 +210,11 @@ async function runStep(
   if (!step.id) {
     return
   }
-  context[step.id] = await runHttpExtract(response, step.extract)
+  context[step.id] = await runHttpExtract(
+    result,
+    step.extract,
+    step.extractHeaders
+  )
 }
 
 /** After parse, every Manifest pipeline field is normalized to this shape. */

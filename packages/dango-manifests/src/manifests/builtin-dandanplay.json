@@ -4,6 +4,18 @@
   "name": "DanDanPlay",
   "version": "1.0.0",
   "hosts": ["api.danmaku.weeblify.app"],
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "chConvert": {
+        "type": "integer",
+        "enum": [0, 1, 2],
+        "default": 0,
+        "title": "Chinese conversion",
+        "description": "0 = no conversion, 1 = convert to simplified, 2 = convert to traditional"
+      }
+    }
+  },
   "search": {
     "inputs": ["q"],
     "steps": [
@@ -43,10 +55,10 @@
         "request": {
           "method": "GET",
           "url": "'https://api.danmaku.weeblify.app/ddp/v1'",
-          "query": "{ 'path': '/v2/comment/' & $string(episodeId) & '?withRelated=false' }"
+          "query": "{ 'path': '/v2/comment/' & $string(episodeId) & '?' & $sortedQueryString({ 'withRelated': 'true', 'chConvert': chConvert ? $string(chConvert) : undefined }) }"
         }
       }
     ],
-    "output": "[comments.comments.{ 'cid': cid, 'p': p, 'm': m }]"
+    "output": "[comments.comments]"
   }
 }

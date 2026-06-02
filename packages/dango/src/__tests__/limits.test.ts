@@ -100,7 +100,7 @@ describe('http step extract requires id', () => {
           output: '[]',
         },
       })
-    ).toThrow(/requires `id` when `extract` is set/)
+    ).toThrow(/requires `id` when `extract` \/ `extractHeaders` is set/)
   })
 
   it('accepts http step with id and extract', () => {

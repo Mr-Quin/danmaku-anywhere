@@ -1,18 +1,8 @@
 import { z } from 'zod'
 import { stripHtml } from '../../../utils/index.js'
 import { zCommentEntity } from '../../comment/index.js'
-import {
-  type ByProvider,
-  DanmakuSourceType,
-  type DbEntity,
-  type RemoteDanmakuSourceType,
-} from '../../provider/provider.js'
-import {
-  type SeasonV1,
-  zBilibiliSeasonV1,
-  zDanDanPlaySeasonV1,
-  zTencentSeasonV1,
-} from '../../season/index.js'
+import { DanmakuSourceType, type DbEntity } from '../../provider/provider.js'
+import { type SeasonV1, zSeasonInsertV1 } from '../../season/index.js'
 
 /**
  * Custom episode schema
@@ -33,8 +23,12 @@ export type CustomEpisodeLiteV4 = Omit<CustomEpisodeV4, 'comments'>
 
 /**
  * Remote episode schema
+ *
+ * `providerIds` is shape-validated by the manifest that produced it, not by
+ * the storage schema. Stored as an opaque payload that the manifest's danmaku
+ * pipeline knows how to consume on refetch.
  */
-const zBaseEpisodeV4 = z.object({
+export const zEpisodeInsertV4 = z.object({
   // Episode title
   title: z.string().refine(stripHtml),
   // Episode number
@@ -46,6 +40,7 @@ const zBaseEpisodeV4 = z.object({
   // alternative title
   alternativeTitle: z.array(z.string()).optional(),
   provider: z.enum(DanmakuSourceType),
+  providerIds: z.record(z.string(), z.unknown()),
   // unique id within the provider for indexing
   indexedId: z.string(),
   // foreign key in the season table
@@ -55,105 +50,26 @@ const zBaseEpisodeV4 = z.object({
   schemaVersion: z.literal(4),
   // The last time we checked for updates
   lastChecked: z.number(),
+  // Free-form per-source params carried alongside refetch inputs.
+  // Manifests that need extra hints (e.g. dandanplay's chConvert / withRelated)
+  // stash them here.
+  params: z.record(z.string(), z.unknown()).optional(),
 })
-
-export const zDanDanPlayProviderIds = z.object({
-  episodeId: z.number(),
-})
-
-export const zDanDanPlayParams = z.object({
-  episodeId: z.number().optional(),
-  animeId: z.number().optional(),
-  withRelated: z.boolean().optional(),
-})
-
-export const zBilibiliProviderIds = z.object({
-  cid: z.number(),
-  epid: z.number().optional(),
-  aid: z.number().optional(),
-  bvid: z.string().optional(),
-})
-
-export const zTencentProviderIds = z.object({
-  vid: z.string(),
-})
-
-export const zDanDanPlayEpisodeV4 = zBaseEpisodeV4.extend({
-  provider: z.literal(DanmakuSourceType.DanDanPlay),
-  providerIds: zDanDanPlayProviderIds,
-  params: zDanDanPlayParams.optional(),
-})
-
-export const zBilibiliEpisodeV4 = zBaseEpisodeV4.extend({
-  provider: z.literal(DanmakuSourceType.Bilibili),
-  providerIds: zBilibiliProviderIds,
-})
-
-export const zTencentEpisodeV4 = zBaseEpisodeV4.extend({
-  provider: z.literal(DanmakuSourceType.Tencent),
-  providerIds: zTencentProviderIds,
-})
-
-export const zEpisodeInsertV4 = z.discriminatedUnion('provider', [
-  zDanDanPlayEpisodeV4,
-  zBilibiliEpisodeV4,
-  zTencentEpisodeV4,
-])
 
 export type EpisodeInsertV4 = z.infer<typeof zEpisodeInsertV4>
 
-export type EpisodeV4 = {
-  [K in RemoteDanmakuSourceType]: DbEntity<ByProvider<EpisodeInsertV4, K>>
-}[RemoteDanmakuSourceType]
+export type EpisodeV4 = DbEntity<EpisodeInsertV4>
 
-export type EpisodeLiteV4 = {
-  [K in RemoteDanmakuSourceType]: Omit<ByProvider<EpisodeV4, K>, 'comments'>
-}[RemoteDanmakuSourceType]
+export type EpisodeLiteV4 = Omit<EpisodeV4, 'comments'>
 
-export type EpisodeMetaV4 = {
-  [K in RemoteDanmakuSourceType]: Omit<
-    ByProvider<EpisodeInsertV4, K>,
-    'comments' | 'commentCount'
-  >
-}[RemoteDanmakuSourceType]
+export type EpisodeMetaV4 = Omit<EpisodeInsertV4, 'comments' | 'commentCount'>
 
-export type EpisodeImportV4 = {
-  [K in RemoteDanmakuSourceType]: Omit<
-    ByProvider<EpisodeInsertV4, K>,
-    'seasonId'
-  >
-}[RemoteDanmakuSourceType]
+export type EpisodeImportV4 = Omit<EpisodeInsertV4, 'seasonId'>
 
-const zBilibiliEpisodeV4WithSeasonV1 = zBilibiliEpisodeV4.extend({
-  season: zBilibiliSeasonV1,
+export const zEpisodeInsertV4WithSeasonV1 = zEpisodeInsertV4.extend({
+  season: zSeasonInsertV1,
 })
 
-const zDanDanPlayEpisodeV4WithSeasonV1 = zDanDanPlayEpisodeV4.extend({
-  season: zDanDanPlaySeasonV1,
-})
-
-const zTencentEpisodeV4WithSeasonV1 = zTencentEpisodeV4.extend({
-  season: zTencentSeasonV1,
-})
-
-export const zEpisodeInsertV4WithSeasonV1 = z.discriminatedUnion('provider', [
-  zBilibiliEpisodeV4WithSeasonV1,
-  zDanDanPlayEpisodeV4WithSeasonV1,
-  zTencentEpisodeV4WithSeasonV1,
-])
-
-type EpisodeV4SeasonMap = {
-  [DanmakuSourceType.DanDanPlay]: {
-    season: ByProvider<SeasonV1, DanmakuSourceType.DanDanPlay>
-  }
-  [DanmakuSourceType.Bilibili]: {
-    season: ByProvider<SeasonV1, DanmakuSourceType.Bilibili>
-  }
-  [DanmakuSourceType.Tencent]: {
-    season: ByProvider<SeasonV1, DanmakuSourceType.Tencent>
-  }
-}
-
-export type WithSeasonV1<T> = T extends { provider: RemoteDanmakuSourceType }
-  ? Readonly<T & EpisodeV4SeasonMap[T['provider']]>
-  : never
+export type WithSeasonV1<T extends { provider: DanmakuSourceType }> = Readonly<
+  T & { season: SeasonV1 }
+>

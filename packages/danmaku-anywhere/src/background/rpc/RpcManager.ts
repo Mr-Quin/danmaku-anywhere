@@ -1,4 +1,8 @@
 import {
+  DanmakuSourceType,
+  PROVIDER_TO_BUILTIN_ID,
+} from '@danmaku-anywhere/danmaku-converter'
+import {
   getDanmuicuConfig,
   getMaccmsConfig,
 } from '@danmaku-anywhere/danmaku-provider/config'
@@ -17,9 +21,7 @@ import { BookmarkService } from '@/background/services/persistence/BookmarkServi
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
-import { BilibiliService } from '@/background/services/providers/bilibili/BilibiliService'
 import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
-import { TencentService } from '@/background/services/providers/tencent/TencentService'
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import { AuthClientService } from '@/common/auth/AuthClientService'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
@@ -115,14 +117,32 @@ export class RpcManager {
         episodeMatch: async (data) => {
           return this.episodeMatchingService.findMatchingEpisodes(data)
         },
-        bilibiliSetCookies: async () => {
-          return BilibiliService.setCookies(this.logger)
-        },
         bilibiliGetLoginStatus: async () => {
-          return BilibiliService.getLoginStatus(this.logger)
+          try {
+            const isLogin = await this.providerService.probeLogin<boolean>(
+              PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]
+            )
+            return { isLogin: isLogin ?? false }
+          } catch (e) {
+            this.logger.error('bilibili loginProbe failed', e)
+            return { isLogin: false }
+          }
+        },
+        bilibiliSetCookies: async () => {
+          // Credentialed homepage GET lets bilibili's Set-Cookie response
+          // seed the anti-bot cookies the API host needs.
+          await fetch('https://www.bilibili.com', { credentials: 'include' })
         },
         tencentTestCookies: async () => {
-          return TencentService.testCookies(this.logger)
+          try {
+            const ok = await this.providerService.probeLogin<boolean>(
+              PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]
+            )
+            return ok ?? false
+          } catch (e) {
+            this.logger.error('tencent loginProbe failed', e)
+            return false
+          }
         },
         iconSet: async (data, sender) => {
           if (sender.tab?.id === undefined) {
