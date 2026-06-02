@@ -114,19 +114,29 @@ export class PlayerColumn {
 
   private bindOutputs(ref: ComponentRef<KazumiDetailPage>) {
     const instance = ref.instance
-    instance.episodeChange.subscribe((n: number) => {
-      this.store.setEpisode(n)
-    })
-    instance.sourceChange.subscribe((source: string) => {
-      this.store.setSource(source)
-    })
-    instance.openComments.subscribe((subjectId: number) => {
-      const title = this.store.playing()?.title ?? `#${subjectId}`
-      this.store.openComments(subjectId, title)
-    })
-    instance.openDetails.subscribe((subjectId: number) => {
-      const title = this.store.playing()?.title ?? `#${subjectId}`
-      this.store.openDetails(subjectId, title)
+    // These outputs belong to the long-lived host owned by PipTeleportManager,
+    // so they outlive this wrapper; unsubscribe on destroy to avoid leaking a
+    // subscription each time the player column is recreated.
+    const subscriptions = [
+      instance.episodeChange.subscribe((n: number) => {
+        this.store.setEpisode(n)
+      }),
+      instance.sourceChange.subscribe((source: string) => {
+        this.store.setSource(source)
+      }),
+      instance.openComments.subscribe((subjectId: number) => {
+        const title = this.store.playing()?.title ?? `#${subjectId}`
+        this.store.openComments(subjectId, title)
+      }),
+      instance.openDetails.subscribe((subjectId: number) => {
+        const title = this.store.playing()?.title ?? `#${subjectId}`
+        this.store.openDetails(subjectId, title)
+      }),
+    ]
+    this.destroyRef.onDestroy(() => {
+      for (const subscription of subscriptions) {
+        subscription.unsubscribe()
+      }
     })
   }
 }

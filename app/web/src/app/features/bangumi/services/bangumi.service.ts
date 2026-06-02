@@ -32,8 +32,7 @@ export class BangumiService {
       queryKey: queryKeys.bangumi.calendar(),
       queryFn: async (): Promise<BgmCalendar> => {
         const res = await this.bgmNext.GET('/p1/calendar')
-        // biome-ignore lint/style/noNonNullAssertion: checked in middleware
-        const weeks = Object.values(res.data!)
+        const weeks = Object.values(res.data ?? {})
         return weeks.map((day) => {
           return day.filter(
             (item) => item.subject.type === 2 && item.subject.nameCN !== ''

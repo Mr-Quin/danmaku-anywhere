@@ -35,7 +35,7 @@ export class SearchHistoryComponent {
   readonly openSearch = output<string>()
 
   historyEntries = computed(() =>
-    this.searchHistory.$entries().sort((a, b) => b.timestamp - a.timestamp)
+    this.searchHistory.$entries().toSorted((a, b) => b.timestamp - a.timestamp)
   )
 
   handleClick(entry: SearchHistoryEntry) {

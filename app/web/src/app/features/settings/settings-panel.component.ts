@@ -178,6 +178,7 @@ export class SettingsPanelComponent implements OnInit {
 
   protected onRouteClick(route: SettingsRoute) {
     if (route.children && route.children.length > 0) {
+      const wasExpanded = this.isRouteExpanded(route)
       this.$_expandedRoutes.update((expanded) => {
         const newExpanded = new Set(expanded)
         if (newExpanded.has(route.id)) {
@@ -189,7 +190,7 @@ export class SettingsPanelComponent implements OnInit {
       })
 
       if (
-        !this.isRouteExpanded(route) &&
+        !wasExpanded &&
         !route.children.some((child) => this.isChildRouteActive(route, child))
       ) {
         this.settingsService.navigateToChild(route, route.children[0])

@@ -40,7 +40,7 @@ Angular SPA for video discovery and playback using Kazumi rules. Requires the Da
 - Every test file has a 3-6 line JSDoc header after imports, before the first `describe`/`it`, naming what is exercised and asserted.
 - The deterministic fake backend lives in `src/app/core/backend/` (`implementations/` + `fixtures/`). Run the explorable build with `pnpm demo` (port 4300); e2e uses `pnpm serve:e2e` (port 4173).
 
-## Web e2e doctrine — assert real behavior, no mock theatre
+## Web e2e doctrine - assert real behavior, no mock theatre
 
 e2e specs live in `e2e/specs/**` and run against the **fake-backend build** (`ng serve --configuration fake`, port 4173) via `playwright.config.ts`. The fake backend is deterministic and in-memory; e2e exercises the *real* Angular app (lane store, components, theme, query layer). Only the extension/Bangumi/kazumi seam is faked.
 
