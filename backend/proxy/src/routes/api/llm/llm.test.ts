@@ -29,10 +29,13 @@ describe('LLM API', () => {
   const differentInput =
     '<meta name="description" content="Different anime content">\n<title>Different Anime Title</title>'
 
-  // The Miniflare cache persists across tests in this file and useLLMCache keys
-  // POST requests by a hash of the body, so each test must use a distinct input
-  // or a prior test's cached response masks the LLM call count.
-  const titleInput = (marker: string) => `<!--${marker}-->${extraTitleInput}`
+  // The Miniflare cache persists across tests (and across watch-mode re-runs)
+  // and useLLMCache keys POST requests by a hash of the body, so each test must
+  // use a distinct input or a prior cached response masks the LLM call count.
+  // The per-run id keeps keys unique across repeated local runs too.
+  const runId = Math.random().toString(36).slice(2, 8)
+  const titleInput = (marker: string) =>
+    `<!--${runId}-${marker}-->${extraTitleInput}`
 
   let fetchSpy: ReturnType<typeof vi.fn>
 
