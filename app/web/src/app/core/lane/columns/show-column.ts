@@ -20,15 +20,16 @@ import type { Column } from '../lane.types'
     'data-kind': 'show',
   },
   template: `
-    @let column = show();
-    <da-details-page
-      [id]="column.subjectId"
-      [tab]="column.tab ?? 'comments'"
-      (tabChange)="onTabChange($event)"
-      (startSearch)="onStartSearch($event)"
-      (goBack)="onGoBack()"
-      (openDetails)="onOpenDetails($event)"
-    />
+    @if (show(); as column) {
+      <da-details-page
+        [id]="column.subjectId"
+        [tab]="column.tab ?? 'comments'"
+        (tabChange)="onTabChange($event)"
+        (startSearch)="onStartSearch($event)"
+        (goBack)="onGoBack()"
+        (openDetails)="onOpenDetails($event)"
+      />
+    }
   `,
   styles: `
     :host {
@@ -42,12 +43,11 @@ export class ShowColumn {
 
   private readonly store = inject(LaneStore)
 
+  // Null (not throw) on a transient kind mismatch during NgComponentOutlet
+  // switching; the template @if then renders nothing instead of crashing.
   protected readonly show = computed(() => {
     const column = this.col()
-    if (column.kind !== 'show') {
-      throw new Error('ShowColumn requires a show column')
-    }
-    return column
+    return column.kind === 'show' ? column : null
   })
 
   onTabChange(tab: DetailsTab) {

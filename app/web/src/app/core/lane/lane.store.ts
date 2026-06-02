@@ -200,10 +200,16 @@ export const LaneStore = signalStore(
     },
 
     reorder(from: number, to: number) {
-      if (from === to) {
+      const next = [...store.columns()]
+      if (
+        from === to ||
+        from < 0 ||
+        from >= next.length ||
+        to < 0 ||
+        to >= next.length
+      ) {
         return
       }
-      const next = [...store.columns()]
       const [m] = next.splice(from, 1)
       next.splice(to, 0, m)
       patchState(store, { columns: next })

@@ -65,6 +65,10 @@ export class PlayerColumn {
     })
 
     effect(() => {
+      // Read the signals up front so the effect tracks them as dependencies
+      // even on the first run when the host ref is not mounted yet.
+      this.col()
+      this.store.playing()
       this.syncInputs()
     })
 
