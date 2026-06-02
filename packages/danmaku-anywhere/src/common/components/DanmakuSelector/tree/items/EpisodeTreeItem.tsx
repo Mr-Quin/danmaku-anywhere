@@ -27,6 +27,7 @@ const CommentCount = ({ count }: { count: number }) => {
     >
       <CommentCountIcon />
       <Typography
+        data-testid="comment-count"
         variant="caption"
         sx={{
           color: 'text.secondary',

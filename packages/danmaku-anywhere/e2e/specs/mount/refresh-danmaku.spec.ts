@@ -13,9 +13,9 @@ import { applyProfile } from '../../setup/profile'
 /**
  * Refresh Danmaku from an episode's context menu in the DanmakuTree.
  * Seeds an episode with zero comments, clicks the per-episode Refresh
- * action, mocks the bilibili XML danmaku endpoint, and asserts the user
- * sees the "Danmaku Refreshed" success toast and the episode's commentCount
- * in the DB bumps above zero.
+ * action, mocks the bilibili XML danmaku endpoint, and asserts the comment
+ * count rendered in the episode row leaves zero, with the DB commentCount
+ * bumping above zero.
  */
 
 const SEASON: SeasonInsert = {
@@ -75,7 +75,7 @@ test('mount tree: refresh danmaku fetches new comments for an episode', async ({
 
   await popup.mount.openItemMenu(episodeItem, 'refresh')
 
-  await popup.toast.expectSuccess(/Danmaku Refreshed|弹幕已刷新/)
+  await expect(popup.mount.episodeCommentCount(episode.id)).not.toHaveText('0')
 
   await expect
     .poll(async () => (await da.episode.get(episode.id))?.commentCount)
