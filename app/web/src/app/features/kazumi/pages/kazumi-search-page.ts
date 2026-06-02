@@ -259,6 +259,12 @@ export class KazumiSearchPage {
   }
 
   constructor() {
+    // Re-read the installed policies when the search opens. Onboarding seeds
+    // them into IndexedDB, but the cached query can still read empty in the
+    // same session; refetching here ensures the search reflects what was
+    // installed without needing a manual reload.
+    this.kazumiService.localPoliciesQuery.refetch()
+
     effect(() => {
       const query = this.query()
       if (query) {
