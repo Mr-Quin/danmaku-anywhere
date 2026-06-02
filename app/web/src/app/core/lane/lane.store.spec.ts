@@ -97,7 +97,7 @@ describe('LaneStore', () => {
       const playing = store.playing()
       expect(playing?.subjectId).toBe(1)
       expect(playing?.title).toBe('Show')
-      expect(playing?.episode).toBe(1)
+      expect(playing?.episode).toBe(0)
       expect(playing?.source).toBe('x')
     })
 
@@ -131,12 +131,12 @@ describe('LaneStore', () => {
       expect(store.playing()?.episode).toBe(8)
     })
 
-    it('resets episode to 1 for a different show', () => {
+    it('resets episode to 0 for a different show', () => {
       const store = createStore()
       store.openWatch({ subjectId: 5, title: 'S' })
       store.setEpisode(8)
       store.openWatch({ subjectId: 6, title: 'T' })
-      expect(store.playing()?.episode).toBe(1)
+      expect(store.playing()?.episode).toBe(0)
     })
 
     it('honors an explicit episode over the carry-over fallback', () => {

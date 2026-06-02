@@ -96,7 +96,8 @@ export const LaneStore = signalStore(
     }): string {
       const prev = store.playing()
       const sameShow = prev != null && prev.subjectId === opts.subjectId
-      const fallbackEpisode = sameShow && prev != null ? prev.episode : 1
+      // episode is a 0-based playlist index, so a fresh watch starts at 0
+      const fallbackEpisode = sameShow && prev != null ? prev.episode : 0
       const playing: Playing = {
         subjectId: opts.subjectId,
         title: opts.title,
