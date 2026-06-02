@@ -3,9 +3,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   input,
+  output,
   signal,
 } from '@angular/core'
-import { RouterLink } from '@angular/router'
 import { Button } from 'primeng/button'
 import { Tag } from 'primeng/tag'
 import { MaterialIcon } from '../../../../../shared/components/material-icon'
@@ -17,7 +17,6 @@ import type { BgmSubject } from '../../../types/bangumi.types'
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
-    RouterLink,
     Button,
     Tag,
     MaterialIcon,
@@ -140,8 +139,7 @@ import type { BgmSubject } from '../../../types/bangumi.types'
 
           <div class="flex gap-3 pt-2">
             <p-button
-              [routerLink]="['/kazumi/search']"
-              [queryParams]="{ q: subjectData.nameCN || subjectData.name, id: subjectData.id, type: 'bangumi' }"
+              (onClick)="startSearch.emit(subjectData)"
               label="立即观看"
               severity="primary"
               size="large"
@@ -152,7 +150,7 @@ import type { BgmSubject } from '../../../types/bangumi.types'
               label="返回"
               severity="secondary"
               size="large"
-              routerLink="/trending"
+              (onClick)="goBack.emit()"
             />
           </div>
         </div>
@@ -162,6 +160,10 @@ import type { BgmSubject } from '../../../types/bangumi.types'
 })
 export class SubjectHeader {
   subject = input.required<BgmSubject>()
+
+  readonly startSearch = output<BgmSubject>()
+  readonly goBack = output<void>()
+
   protected tagsExpanded = signal(false)
 
   protected toggleTagsExpanded() {

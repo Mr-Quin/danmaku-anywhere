@@ -3,10 +3,10 @@ import {
   Component,
   computed,
   inject,
+  output,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { InputTextModule } from 'primeng/inputtext'
-import { SearchService } from '../search.service'
 import type { SearchHistoryEntry } from '../search-model.type'
 import { SearchHistoryService } from './search-history.service'
 import { SearchHistoryEntryComponent } from './search-history-entry.component'
@@ -30,16 +30,16 @@ import { SearchHistoryEntryComponent } from './search-history-entry.component'
   },
 })
 export class SearchHistoryComponent {
-  protected readonly searchService = inject(SearchService)
-
   private searchHistory = inject(SearchHistoryService)
+
+  readonly openSearch = output<string>()
 
   historyEntries = computed(() =>
     this.searchHistory.$entries().sort((a, b) => b.timestamp - a.timestamp)
   )
 
   handleClick(entry: SearchHistoryEntry) {
-    this.searchService.search(entry)
+    this.openSearch.emit(entry.term)
   }
 
   handleRemove(index: number) {

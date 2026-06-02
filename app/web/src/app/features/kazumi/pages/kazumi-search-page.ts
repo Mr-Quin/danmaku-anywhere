@@ -7,10 +7,10 @@ import {
   inject,
   input,
   linkedSignal,
+  output,
   signal,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { ActivatedRoute, Router } from '@angular/router'
 import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
 import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
 import { AutoCompleteModule } from 'primeng/autocomplete'
@@ -76,6 +76,7 @@ import { KazumiService } from '../services/kazumi.service'
             <div class="md:w-xl flex gap-4 p-2 items-center">
               <div class="flex-1">
                 <input
+                  data-testid="kazumi-search-input"
                   [pAutoFocus]="true"
                   type="text"
                   class="w-full"
@@ -86,6 +87,7 @@ import { KazumiService } from '../services/kazumi.service'
                 />
               </div>
               <p-button
+                data-testid="kazumi-search-submit"
                 type="submit"
                 [severity]="!$canSearch() ? 'secondary' : 'primary'"
                 [disabled]="!$canSearch()"
@@ -171,12 +173,16 @@ import { KazumiService } from '../services/kazumi.service'
   `,
 })
 export class KazumiSearchPage {
-  // query param
-  q = input<string>()
+  readonly query = input<string>()
+  readonly queryChange = output<string>()
+  readonly openResult = output<{
+    query?: string
+    url: string
+    policyName: string
+    title?: string
+  }>()
 
   protected kazumiService = inject(KazumiService)
-  protected router = inject(Router)
-  protected route = inject(ActivatedRoute)
   private settingsService = inject(SettingsService)
   protected bangumiService = inject(BangumiService)
   private readonly trackingService = inject(TrackingService)
@@ -228,12 +234,7 @@ export class KazumiSearchPage {
         searchTerm,
       })
       this.kazumiService.updateQuery(searchTerm)
-      void this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { q: searchTerm },
-        queryParamsHandling: 'replace',
-        replaceUrl: true,
-      })
+      this.queryChange.emit(searchTerm)
       return
     }
   }
@@ -251,19 +252,17 @@ export class KazumiSearchPage {
       item,
       policy,
     })
-    void this.router.navigate(['/kazumi/detail'], {
-      queryParams: {
-        q: item.name,
-        url: item.url,
-        policyName: policy.name,
-      },
-      queryParamsHandling: 'merge',
+    this.openResult.emit({
+      query: item.name,
+      title: item.name,
+      url: item.url,
+      policyName: policy.name,
     })
   }
 
   constructor() {
     effect(() => {
-      const query = this.q()
+      const query = this.query()
       if (query) {
         this.kazumiService.updateQuery(query)
       }

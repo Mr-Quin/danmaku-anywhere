@@ -3,10 +3,9 @@ import { COLUMN_REGISTRY } from './registry'
 import { TrendingColumn } from './trending-column'
 
 /**
- * Verifies the column-body registry is the flat, single-source map fan-out
- * agents extend: trending and calendar resolve to their wrappers, every other
- * kind is intentionally unmapped (the body host falls back to the placeholder),
- * and the map exposes no surprise entries.
+ * Verifies the column-body registry resolves every column kind to a wrapper
+ * except onboarding (which is a route, not a column), so the body host only
+ * falls back to the placeholder for onboarding. Spot-checks two wrappers.
  */
 describe('COLUMN_REGISTRY', () => {
   it('maps trending and calendar to their wrappers', () => {
@@ -14,17 +13,28 @@ describe('COLUMN_REGISTRY', () => {
     expect(COLUMN_REGISTRY.calendar).toBe(CalendarColumn)
   })
 
-  it('leaves the not-yet-adapted kinds unmapped', () => {
-    expect(COLUMN_REGISTRY.show).toBeUndefined()
-    expect(COLUMN_REGISTRY.player).toBeUndefined()
-    expect(COLUMN_REGISTRY.search).toBeUndefined()
-    expect(COLUMN_REGISTRY.settings).toBeUndefined()
+  it('maps every column kind except onboarding', () => {
+    const mapped = Object.keys(COLUMN_REGISTRY).sort()
+    expect(mapped).toEqual(
+      [
+        'calendar',
+        'comments',
+        'debug-video',
+        'history',
+        'local',
+        'player',
+        'playground',
+        'rules',
+        'search',
+        'settings',
+        'show',
+        'showtab',
+        'trending',
+      ].sort()
+    )
   })
 
-  it('only exposes the two adapted exemplar kinds', () => {
-    expect(Object.keys(COLUMN_REGISTRY).sort()).toEqual([
-      'calendar',
-      'trending',
-    ])
+  it('does not map onboarding (handled by its own route)', () => {
+    expect(COLUMN_REGISTRY.onboarding).toBeUndefined()
   })
 })
