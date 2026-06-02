@@ -55,18 +55,40 @@ describe('Bangumi proxy', () => {
     expect(await forwarded.text()).toBe(body)
   })
 
-  it('strips cookies and sets a User-Agent on the upstream request', async () => {
+  it('forwards only allowlisted headers and sets a User-Agent', async () => {
     const fetchSpy = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
 
     const request = new Request(createTestUrl('/bangumi/next/p1/calendar'), {
-      headers: { cookie: 'session=secret' },
+      headers: {
+        cookie: 'session=secret',
+        authorization: 'Bearer leak-me',
+        accept: 'application/json',
+      },
     })
     await makeUnitTestRequest(request)
 
     const forwarded = fetchSpy.mock.calls[0][0] as Request
     expect(forwarded.headers.get('cookie')).toBeNull()
+    expect(forwarded.headers.get('authorization')).toBeNull()
+    expect(forwarded.headers.get('accept')).toBe('application/json')
     expect(forwarded.headers.get('user-agent')).toContain('danmaku-anywhere')
+  })
+
+  it.each([
+    '/bangumi/next//evil.com/x',
+    '/bangumi/api//evil.com/x',
+    '/bangumi/next/%2f%2fevil.com/x',
+  ])('keeps the upstream origin pinned for %s', async (path) => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response(JSON.stringify([]), { status: 200 }))
+
+    await makeUnitTestRequest(new Request(createTestUrl(path)))
+
+    const forwarded = fetchSpy.mock.calls[0][0] as Request
+    expect(new URL(forwarded.url).hostname).toMatch(/\.bgm\.tv$/)
+    expect(new URL(forwarded.url).hostname).not.toBe('evil.com')
   })
 })

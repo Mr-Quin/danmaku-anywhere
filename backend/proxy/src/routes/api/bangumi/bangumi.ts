@@ -5,6 +5,11 @@ import { factory } from '@/factory'
 const USER_AGENT =
   'danmaku-anywhere (https://github.com/Mr-Quin/danmaku-anywhere)'
 
+// Bangumi only serves public data, so we forward a minimal anonymous header
+// set. Dropping auth/cookie keeps every upstream call identical across users,
+// which is what makes the shared response cache safe.
+const FORWARDED_HEADERS = ['accept', 'accept-language', 'content-type']
+
 const proxyDescription = describeRoute({
   description:
     'Transparent proxy to the external Bangumi API. The request and response bodies are passed through to/from Bangumi, so the response schema is defined by the upstream Bangumi endpoint rather than this service.',
@@ -21,13 +26,20 @@ const proxyDescription = describeRoute({
 
 export function bangumiProxy(upstreamOrigin: string) {
   return factory.createHandlers(proxyDescription, async (c) => {
-    const path = c.req.param('path') ?? ''
-    const incoming = new URL(c.req.url)
-    const target = new URL(`/${path}${incoming.search}`, upstreamOrigin)
+    const path = c.req.param('path')
+
+    // Assigning pathname/search on the parsed origin keeps the host pinned to
+    // upstreamOrigin even when the captured path looks like `//evil.com`.
+    const target = new URL(upstreamOrigin)
+    target.pathname = `/${path}`
+    target.search = new URL(c.req.url).search
 
     const request = new Request(target, c.req.raw)
-    request.headers.delete('cookie')
-    request.headers.delete('host')
+    for (const name of [...request.headers.keys()]) {
+      if (!FORWARDED_HEADERS.includes(name)) {
+        request.headers.delete(name)
+      }
+    }
     request.headers.set('user-agent', USER_AGENT)
 
     return fetch(request)
