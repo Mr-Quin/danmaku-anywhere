@@ -41,9 +41,9 @@ export class CalendarColumn {
   }
 
   onOpenWatch(item: ShowCardData) {
-    this.store.openWatch({
-      subjectId: item.id,
-      title: item.title ?? item.altTitle,
-    })
+    // A bangumi subject has no direct source; watching means searching the
+    // kazumi rules for it, then picking an episode in the player.
+    const id = this.store.openApp('search')
+    this.store.setSearchQuery(id, item.title ?? item.altTitle)
   }
 }
