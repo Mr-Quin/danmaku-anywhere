@@ -45,6 +45,7 @@ export interface ShowCardData {
           <img
             [ngSrc]="showData.cover ?? ''"
             [alt]="showData.altTitle"
+            [priority]="priority()"
             class="object-cover cursor-pointer hover:opacity-80 transition-opacity"
             width="340"
             height="480"
@@ -121,6 +122,7 @@ export class ShowCard {
   readonly show = input.required<ShowCardData>()
   readonly hideAltTitle = input(false, { transform: booleanAttribute })
   readonly hideFooter = input(false, { transform: booleanAttribute })
+  readonly priority = input(false, { transform: booleanAttribute })
 
   readonly detailsClick = output<number>()
   readonly watchClick = output<ShowCardData>()

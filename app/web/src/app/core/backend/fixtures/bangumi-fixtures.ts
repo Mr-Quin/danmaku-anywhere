@@ -10,6 +10,11 @@ import type {
   LegacyBgmSubjectResponse,
 } from '../../../features/bangumi/types/bangumi.types'
 
+// Fake covers/avatars resolve to a tiny same-origin SVG served by the fake
+// build so NgOptimizedImage (which rejects data:/blob: srcs) stays happy and
+// the e2e network watcher sees only localhost requests, never api.bgm.tv.
+const FAKE_IMAGE = '/fake-cover.svg'
+
 type SlimSubject = NextComponents['schemas']['SlimSubject']
 type SubjectImages = NextComponents['schemas']['SubjectImages']
 type SubjectRating = NextComponents['schemas']['SubjectRating']
@@ -172,14 +177,13 @@ export const FAKE_BGM_SHOWS: FakeShow[] = [
   },
 ]
 
-function makeSubjectImages(id: number): SubjectImages {
-  const base = `https://fake.bgm/pic/cover/${id}`
+function makeSubjectImages(_id: number): SubjectImages {
   return {
-    common: `${base}/common.jpg`,
-    grid: `${base}/grid.jpg`,
-    large: `${base}/large.jpg`,
-    medium: `${base}/medium.jpg`,
-    small: `${base}/small.jpg`,
+    common: FAKE_IMAGE,
+    grid: FAKE_IMAGE,
+    large: FAKE_IMAGE,
+    medium: FAKE_IMAGE,
+    small: FAKE_IMAGE,
   }
 }
 
@@ -209,9 +213,9 @@ function makeSlimSubject(show: FakeShow): SlimSubject {
 function makeSlimUser(seed: number): SlimUser {
   return {
     avatar: {
-      large: `https://fake.bgm/avatar/${seed}/large.jpg`,
-      medium: `https://fake.bgm/avatar/${seed}/medium.jpg`,
-      small: `https://fake.bgm/avatar/${seed}/small.jpg`,
+      large: FAKE_IMAGE,
+      medium: FAKE_IMAGE,
+      small: FAKE_IMAGE,
     },
     group: 10,
     id: seed,
@@ -487,14 +491,13 @@ export function fakeCommentsPage(): BgmGetSubjectCommentResponse {
   return { data, total: data.length }
 }
 
-function makeLegacyImages(id: number): LegacyImages {
-  const base = `https://fake.bgm/pic/cover/${id}`
+function makeLegacyImages(_id: number): LegacyImages {
   return {
-    large: `${base}/large.jpg`,
-    common: `${base}/common.jpg`,
-    medium: `${base}/medium.jpg`,
-    small: `${base}/small.jpg`,
-    grid: `${base}/grid.jpg`,
+    large: FAKE_IMAGE,
+    common: FAKE_IMAGE,
+    medium: FAKE_IMAGE,
+    small: FAKE_IMAGE,
+    grid: FAKE_IMAGE,
   }
 }
 

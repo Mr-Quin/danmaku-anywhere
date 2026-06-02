@@ -28,6 +28,7 @@ export type VirtualGridItem =
   | {
       isSkeleton: false
       data: unknown
+      index: number
     }
 
 export type ColumnConfig = number | Partial<Record<ScreenSize, number>>
@@ -75,7 +76,7 @@ export type ColumnConfig = number | Partial<Record<ScreenSize, number>>
               @if (item.isSkeleton) {
                 <ng-container *ngTemplateOutlet="skeleton()"></ng-container>
               } @else {
-                <ng-container *ngTemplateOutlet="body(); context: { $implicit: item.data }"></ng-container>
+                <ng-container *ngTemplateOutlet="body(); context: { $implicit: item.data, index: item.index }"></ng-container>
               }
             }
           </div>
@@ -142,10 +143,11 @@ export class VirtualizedGrid {
     const rows: VirtualGridItem[][] = []
     for (let i = 0; i < data.length; i += columns) {
       rows.push(
-        data.slice(i, i + columns).map((item) => {
+        data.slice(i, i + columns).map((item, offset) => {
           return {
             isSkeleton: false,
             data: item,
+            index: i + offset,
           }
         })
       )

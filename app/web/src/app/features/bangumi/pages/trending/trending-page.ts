@@ -37,9 +37,10 @@ import { transformToShowCardData } from '../../utils/transform-to-show-card-data
           <da-show-card-skeleton />
         </ng-template>
 
-        <ng-template #body let-item="$implicit">
+        <ng-template #body let-item="$implicit" let-index="index">
           <da-show-card
             [show]="item"
+            [priority]="index === 0"
             (detailsClick)="openDetails.emit(item)"
             (watchClick)="openWatch.emit($event)"
           />

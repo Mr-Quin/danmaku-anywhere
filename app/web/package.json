@@ -9,6 +9,8 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test:ng": "ng test",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
     "lint": "biome check --fix",
     "lint:ci": "biome ci",
     "type-check": "tsgo --noEmit",
@@ -60,6 +62,7 @@
     "@angular/cli": "^21.0.0",
     "@angular/compiler-cli": "^21.0.0",
     "@angular/ssr": "^21.2.2",
+    "@playwright/test": "^1.59.1",
     "jsdom": "^28.1.0",
     "vitest": "^4.1.0",
     "wrangler": "^4.50.0"

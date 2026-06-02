@@ -1,0 +1,108 @@
+name: Web E2E Quality
+
+on:
+  pull_request:
+    paths:
+      - 'app/web/**'
+      - 'packages/bangumi-api/**'
+      - 'packages/danmaku-converter/**'
+      - 'packages/danmaku-provider/**'
+      - 'packages/result/**'
+      - 'packages/web-scraper/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - '.github/workflows/web-e2e.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  web-e2e:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24.x]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Cache built workspace packages
+        uses: actions/cache@v4
+        with:
+          path: packages/*/dist
+          key: built-packages-${{ runner.os }}-${{ hashFiles('packages/*/src/**', 'packages/*/package.json', 'packages/*/tsconfig*.json', 'tsconfig.base.json', 'tsconfig.json', 'pnpm-lock.yaml') }}
+          restore-keys: |
+            built-packages-${{ runner.os }}-
+
+      - name: Build packages
+        run: pnpm build:packages
+
+      # The debug overlay reads store internals and the call recorder; it must
+      # never reach a prod bootstrap path. main.ts is the only prod entrypoint.
+      - name: Guard — debug overlay not in prod bootstrap
+        run: |
+          if grep -rn "DebugOverlay" app/web/src/main.ts app/web/src/main.server.ts 2>/dev/null; then
+            echo "DebugOverlay must not be imported from a prod bootstrap path"
+            exit 1
+          fi
+
+      - name: Web unit tests
+        run: pnpm -F "@danmaku-anywhere/danmaku-somewhere" test:ng
+
+      # A build failure here surfaces as a clear step rather than an opaque
+      # Playwright webServer timeout later.
+      - name: Build web (fake backend)
+        working-directory: app/web
+        run: pnpm exec ng build --configuration fake
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-web-${{ hashFiles('app/web/package.json', 'pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-web-
+
+      - name: Install Playwright Chromium
+        working-directory: app/web
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Web E2E (fake backend)
+        id: e2e
+        working-directory: app/web
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report on failure
+        if: failure() && steps.e2e.conclusion == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-playwright-report
+          path: |
+            app/web/playwright-report
+            app/web/test-results
+          retention-days: 7

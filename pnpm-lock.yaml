@@ -153,6 +153,9 @@ importers:
       '@angular/ssr':
         specifier: ^21.2.2
         version: 21.2.12(6c1d8fbd066ef9f0d9e21b9b3aa62b26)
+      '@playwright/test':
+        specifier: ^1.59.1
+        version: 1.60.0
       jsdom:
         specifier: ^28.1.0
         version: 28.1.0(@noble/hashes@2.2.0)
