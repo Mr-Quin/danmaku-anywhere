@@ -2,6 +2,7 @@ import { factory } from '@/factory'
 import { tagService } from '@/middleware/tagService'
 import { authRouter } from './auth/router'
 import { backupRouter } from './backup/router'
+import { bangumiRouter } from './bangumi/router'
 import { configRouter } from './config/router'
 import { ddpRouter } from './ddp/router'
 import { filesRouter } from './files/router'
@@ -14,6 +15,7 @@ api.use(tagService)
 api.route('/auth', authRouter)
 api.route('/backup', backupRouter)
 api.route('/ddp', ddpRouter)
+api.route('/bangumi', bangumiRouter)
 api.route('/llm', llmRouter)
 api.route('/kazumi', kazumiRouter)
 api.route('/config', configRouter)

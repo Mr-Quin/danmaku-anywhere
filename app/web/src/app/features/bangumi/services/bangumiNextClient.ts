@@ -1,8 +1,9 @@
 import type { paths } from '@danmaku-anywhere/bangumi-api/next'
 import createClient from 'openapi-fetch'
+import { environment } from '../../../../environments/environment'
 
 export const bangumiNextClient = createClient<paths>({
-  baseUrl: 'https://next.bgm.tv/',
+  baseUrl: `${environment.apiRoot}/bangumi/next`,
 })
 
 bangumiNextClient.use({

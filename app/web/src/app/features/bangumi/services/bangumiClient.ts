@@ -1,8 +1,9 @@
 import type { paths } from '@danmaku-anywhere/bangumi-api'
 import createClient from 'openapi-fetch'
+import { environment } from '../../../../environments/environment'
 
 export const bangumiClient = createClient<paths>({
-  baseUrl: 'https://api.bgm.tv/',
+  baseUrl: `${environment.apiRoot}/bangumi/api`,
 })
 
 bangumiClient.use({
