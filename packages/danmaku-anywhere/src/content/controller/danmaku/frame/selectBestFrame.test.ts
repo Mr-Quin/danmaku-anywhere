@@ -1,8 +1,18 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FrameState, VideoInfo } from '@/content/controller/store/store'
 import { selectBestFrame } from './selectBestFrame'
 
 const GRACE_PERIOD_MS = 2000
+
+// Freeze the clock so the grace-period boundaries (which the source compares
+// against Date.now()) are deterministic rather than racing real wall-clock.
+beforeEach(() => {
+  vi.useFakeTimers({ now: 1_700_000_000_000 })
+})
+
+afterEach(() => {
+  vi.useRealTimers()
+})
 
 function makeFrame(
   frameId: number,

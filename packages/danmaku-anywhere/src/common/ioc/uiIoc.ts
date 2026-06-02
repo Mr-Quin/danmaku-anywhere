@@ -32,6 +32,7 @@ uiContainer
 
 uiContainer
   .bind<IMaskProviderFactory>(MaskProviderFactory)
+  // e2e uses a deterministic mock mask so specs don't load the real ML segmenter.
   .toFactory(IS_DA_E2E ? mockMaskProviderFactory : maskProviderFactory)
 
 uiContainer.bind<ILogger>(LoggerSymbol).toConstantValue(Logger)

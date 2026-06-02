@@ -15,6 +15,39 @@ describe('DanDanPlay API', () => {
   })
 
   describe('searchSearchEpisodes', () => {
+    it('should return the parsed animes on success', async () => {
+      mockFetchResponse({
+        errorCode: 0,
+        errorMessage: '',
+        success: true,
+        hasMore: false,
+        animes: [
+          {
+            animeId: 42,
+            animeTitle: 'MyGO!!!!!',
+            type: 'tvseries',
+            typeDescription: 'TV Series',
+            episodes: [{ episodeId: 4201, episodeTitle: 'Episode 1' }],
+          },
+        ],
+      })
+
+      const result = await searchSearchEpisodes({ anime: 'MyGO' })
+
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data).toEqual([
+          {
+            animeId: 42,
+            animeTitle: 'MyGO!!!!!',
+            type: 'tvseries',
+            typeDescription: 'TV Series',
+            episodes: [{ episodeId: 4201, episodeTitle: 'Episode 1' }],
+          },
+        ])
+      }
+    })
+
     it('should return error on API error', async () => {
       const mockResponse = {
         errorCode: 1,

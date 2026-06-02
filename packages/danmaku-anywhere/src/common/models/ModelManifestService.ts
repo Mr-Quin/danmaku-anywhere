@@ -66,6 +66,7 @@ export class ModelManifestService {
 
   private async fetchManifest(bypassCache: boolean): Promise<ModelManifest> {
     if (IS_DA_E2E) {
+      // e2e must not hit the network for the model manifest; use the shipped baseline.
       return BASELINE_MANIFEST
     }
     try {

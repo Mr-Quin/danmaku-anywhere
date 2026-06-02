@@ -75,7 +75,7 @@ Always prefer scripts defined in `package.json` over ad-hoc commands. Run `pnpm 
   - Nested ternaries beyond one level — flatten with early returns, a lookup, or an if/else cascade
 - **Decouple business logic**: keep logic decoupled from UI frameworks for testability — single source of truth over scattered state
 - **No sectional comments**: sectional comments in a class are a code smell — split the class instead
-- **Test header comment**: every test file has a 3-6 line JSDoc block immediately after imports describing what the test exercises and what it asserts. Goes before the first `test()`/`describe()` call
+- **Test header comment (e2e only)**: every e2e spec under `packages/danmaku-anywhere/e2e/` has a 3-6 line JSDoc block immediately after imports describing what the test exercises and what it asserts, before the first `test()`/`describe()` call. Unit and integration tests do not require this header.
 
 ## Comments
 

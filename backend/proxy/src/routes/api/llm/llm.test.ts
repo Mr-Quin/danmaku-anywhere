@@ -1,4 +1,3 @@
-import type { GoogleGenerativeAI } from '@google/generative-ai'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 import '@/test-utils/mockBindings'
@@ -6,38 +5,22 @@ import { createTestUrl } from '@/test-utils/createTestUrl'
 
 const IncomingRequest = Request
 
-// Mock the Google Generative AI package
-const mockSendMessage = vi.fn()
-const mockStartChat = vi.fn(() => ({
-  sendMessage: mockSendMessage,
-}))
-const mockGetGenerativeModel = vi.fn(() => ({
-  startChat: mockStartChat,
-}))
-const mockGoogleGenerativeAI = vi.hoisted(
-  () =>
-    vi.fn(() => ({
-      getGenerativeModel: mockGetGenerativeModel,
-    })) as unknown as typeof GoogleGenerativeAI
-)
-
-vi.mock(import('@google/generative-ai'), async (importOriginal) => {
-  const original = await importOriginal()
-
-  return {
-    ...original,
-    GoogleGenerativeAI: mockGoogleGenerativeAI,
-    GoogleGenerativeAIFetchError: class extends Error {
-      constructor(
-        message: string,
-        public status?: number,
-        public errorDetails?: any
-      ) {
-        super(message)
-      }
-    },
-  }
-})
+// The Gemini SDK posts to the AI gateway via the global `fetch`. Stubbing it
+// lets the real SDK parse a real generateContent payload, so we exercise the
+// service + controller + cache wiring instead of a hand-faked SDK chain.
+const geminiResponse = (text: string) =>
+  new Response(
+    JSON.stringify({
+      candidates: [
+        {
+          content: { parts: [{ text }], role: 'model' },
+          finishReason: 'STOP',
+          index: 0,
+        },
+      ],
+    }),
+    { status: 200, headers: { 'Content-Type': 'application/json' } }
+  )
 
 describe('LLM API', () => {
   const extraTitleInput =
@@ -46,25 +29,31 @@ describe('LLM API', () => {
   const differentInput =
     '<meta name="description" content="Different anime content">\n<title>Different Anime Title</title>'
 
+  // The Miniflare cache persists across tests in this file and useLLMCache keys
+  // POST requests by a hash of the body, so each test must use a distinct input
+  // or a prior test's cached response masks the LLM call count.
+  const titleInput = (marker: string) => `<!--${marker}-->${extraTitleInput}`
+
+  let fetchSpy: ReturnType<typeof vi.fn>
+
   beforeEach(() => {
-    // Clear cache before each test
-    vi.clearAllMocks()
-    vi.resetAllMocks()
+    fetchSpy = vi.fn(async () => geminiResponse('{}'))
+    vi.stubGlobal('fetch', fetchSpy)
   })
 
-  afterEach(() => {})
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
 
-  const mockLLMResponse = (response: any) => {
-    mockSendMessage.mockResolvedValue({
-      response: {
-        text: () => JSON.stringify(response),
-      },
-    })
+  // A Response body can only be read once, so return a fresh instance per call
+  // (the cache-miss test fetches twice).
+  const mockLLMResult = (result: unknown) => {
+    fetchSpy.mockImplementation(async () =>
+      geminiResponse(JSON.stringify(result))
+    )
   }
 
-  it.skip('extracts title from HTML v1', async () => {
-    mockLLMResponse({})
-
+  it('extracts title via the legacy /proxy/gemini route', async () => {
     const request = new IncomingRequest(
       'http://example.com/proxy/gemini/extractTitle',
       {
@@ -73,7 +62,7 @@ describe('LLM API', () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          input: extraTitleInput,
+          input: titleInput('legacy'),
         }),
       }
     )
@@ -82,11 +71,11 @@ describe('LLM API', () => {
     expect(response.status).toBe(200)
     const data = await response.json()
     expect(data).toHaveProperty('success', true)
-    expect(mockSendMessage).toHaveBeenCalledTimes(1)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
   })
 
-  it.skip('extracts title from HTML v2', async () => {
-    mockLLMResponse({
+  it('extracts title from HTML v2', async () => {
+    mockLLMResult({
       episode: 1,
       title: 'BanG Dream! Ave Mujica',
       isShow: true,
@@ -98,7 +87,7 @@ describe('LLM API', () => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        input: extraTitleInput,
+        input: titleInput('v2'),
       }),
     })
     const response = await makeUnitTestRequest(request)
@@ -112,22 +101,16 @@ describe('LLM API', () => {
       isShow: true,
     })
 
-    // Check caching headers
     const cacheControl = response.headers.get('Cache-Control')
-    expect(cacheControl).toBeDefined()
     expect(cacheControl).toContain('max-age=')
-    expect(mockSendMessage).toHaveBeenCalledTimes(1)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
   })
 
-  it.skip('cache works - cache hit', async () => {
-    // Mock response for the initial request
-    mockLLMResponse({})
-
+  it('cache works - cache hit', async () => {
     const requestBody = JSON.stringify({
-      input: extraTitleInput,
+      input: titleInput('cache-hit'),
     })
 
-    // First request - should call LLM
     const request1 = new IncomingRequest(
       createTestUrl('/llm/v1/extractTitle'),
       {
@@ -141,9 +124,9 @@ describe('LLM API', () => {
     const response1 = await makeUnitTestRequest(request1)
 
     expect(response1.status).toBe(200)
-    expect(mockSendMessage).toHaveBeenCalledTimes(1)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
 
-    // Second identical request - should hit cache, not call LLM again
+    // Second identical request - should hit cache, not call the LLM again
     const request2 = new IncomingRequest(
       createTestUrl('/llm/v1/extractTitle'),
       {
@@ -157,20 +140,16 @@ describe('LLM API', () => {
     const response2 = await makeUnitTestRequest(request2)
 
     expect(response2.status).toBe(200)
-
-    // Should be called once since the second request hits the cache
-    expect(mockSendMessage).toHaveBeenCalledTimes(1)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
   })
 
-  it.skip('cache works - cache miss', async () => {
-    // Mock responses for both requests
-    mockLLMResponse({
+  it('cache works - cache miss', async () => {
+    mockLLMResult({
       episode: 1,
       title: 'Title',
       isShow: true,
     })
 
-    // First request
     const request1 = new IncomingRequest(
       createTestUrl('/llm/v1/extractTitle'),
       {
@@ -179,7 +158,7 @@ describe('LLM API', () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          input: extraTitleInput,
+          input: titleInput('cache-miss-a'),
         }),
       }
     )
@@ -187,7 +166,7 @@ describe('LLM API', () => {
 
     expect(response1.status).toBe(200)
 
-    // Second request with different input
+    // Different input - distinct cache key, so the LLM is called again
     const request2 = new IncomingRequest(
       createTestUrl('/llm/v1/extractTitle'),
       {
@@ -203,9 +182,7 @@ describe('LLM API', () => {
     const response2 = await makeUnitTestRequest(request2)
 
     expect(response2.status).toBe(200)
-
-    // Should be called twice since inputs are different
-    expect(mockSendMessage).toHaveBeenCalledTimes(2)
+    expect(fetchSpy).toHaveBeenCalledTimes(2)
   })
 
   it.each([
@@ -261,6 +238,6 @@ describe('LLM API', () => {
       expect(data).toHaveProperty('success', false)
     }
 
-    expect(mockSendMessage).not.toHaveBeenCalled()
+    expect(fetchSpy).not.toHaveBeenCalled()
   })
 })

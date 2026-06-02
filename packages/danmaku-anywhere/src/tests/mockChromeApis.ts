@@ -23,7 +23,7 @@ interface MockChrome {
   }
 }
 
-const mockStorage: MockStorage = {
+const createMockStorage = (): MockStorage => ({
   get: vi.fn(),
   set: vi.fn(),
   remove: vi.fn(),
@@ -32,13 +32,13 @@ const mockStorage: MockStorage = {
     addListener: vi.fn(),
     removeListener: vi.fn(),
   },
-}
+})
 
 export const mockChrome: MockChrome = {
   storage: {
-    local: mockStorage,
-    sync: mockStorage,
-    session: mockStorage,
+    local: createMockStorage(),
+    sync: createMockStorage(),
+    session: createMockStorage(),
   },
   runtime: {
     getManifest: vi.fn(),
