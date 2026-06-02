@@ -12,7 +12,6 @@ describe('Cache Middleware', () => {
   // entries the previous tests stored in the file-scoped cache.
   beforeEach(async () => {
     let callCount = 0
-    app = new Hono()
     handlerSpy = vi.fn((c) => {
       callCount += 1
       return c.json({ data: 'test', n: callCount })

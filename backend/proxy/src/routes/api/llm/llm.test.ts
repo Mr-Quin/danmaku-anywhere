@@ -26,9 +26,6 @@ describe('LLM API', () => {
   const extraTitleInput =
     '<meta name="emotion-insertion-point" content="">\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no,viewport-fit=cover">\n<meta name="keywords" content="TV番组BanG Dream! Ave Mujica,BanG Dream! Ave Mujica第01集,BanG Dream! Ave Mujica在线观看,次元城动画 - 充满对另一个世界的无尽幻想！">\n<meta name="description" content="BanG Dream! Ave Mujica剧情介绍：「言ったでしょう？残りの人生、わたくしに下さいと」豊川祥子がメンバーを招き入れたバンド・Ave Mujicaは、ライブやメディア露出など、商業的な成功を収めていた。運命をともにする">\n<meta name="renderer" content="webkit">\n<meta http-equiv="X-UA-Compatible" content="IE=edge">\n<meta http-equiv="Cache-Control" content="no-siteapp">\n<meta name="referrer" content="no-referrer">\n<title>TV番组《BanG Dream! Ave Mujica》第01集在线观看-次元城动画 - 充满对另一个世界的无尽幻想!!</title>'
 
-  const differentInput =
-    '<meta name="description" content="Different anime content">\n<title>Different Anime Title</title>'
-
   // The Miniflare cache persists across tests (and across watch-mode re-runs)
   // and useLLMCache keys POST requests by a hash of the body, so each test must
   // use a distinct input or a prior cached response masks the LLM call count.
@@ -36,6 +33,7 @@ describe('LLM API', () => {
   const runId = Math.random().toString(36).slice(2, 8)
   const titleInput = (marker: string) =>
     `<!--${runId}-${marker}-->${extraTitleInput}`
+  const differentInput = `<!--${runId}-different-->\n<meta name="description" content="Different anime content">\n<title>Different Anime Title</title>`
 
   let fetchSpy: ReturnType<typeof vi.fn>
 

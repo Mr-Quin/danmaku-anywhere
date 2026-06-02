@@ -34,9 +34,9 @@ describe('DanDanPlay API', () => {
 
       const result = await searchSearchEpisodes({ anime: 'MyGO' })
 
-      expect(result.success).toBe(true)
-      if (result.success) {
-        expect(result.data).toEqual([
+      expect(result).toEqual({
+        success: true,
+        data: [
           {
             animeId: 42,
             animeTitle: 'MyGO!!!!!',
@@ -44,8 +44,8 @@ describe('DanDanPlay API', () => {
             typeDescription: 'TV Series',
             episodes: [{ episodeId: 4201, episodeTitle: 'Episode 1' }],
           },
-        ])
-      }
+        ],
+      })
     })
 
     it('should return error on API error', async () => {
