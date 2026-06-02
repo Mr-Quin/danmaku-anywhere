@@ -22,6 +22,7 @@ import { FontSelector } from './FontSelector'
 import { LabeledScrubber } from './LabeledScrubber'
 import { LabeledSlider } from './LabeledSlider'
 import { LabeledSwitch } from './LabeledSwitch'
+import { OcclusionModelManager } from './OcclusionModelManager'
 
 const opacityMarks = [
   {
@@ -688,49 +689,10 @@ export const DanmakuStylesForm = ({
                   name="occlusionModel"
                   control={control}
                   render={({ field }) => (
-                    <Stack
-                      spacing={2}
-                      direction="row"
-                      sx={{ alignItems: 'center' }}
-                    >
-                      <Box sx={{ flex: 1, minWidth: 0 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          {t('stylePage.occlusionModel', 'Model')}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          sx={{ color: 'text.secondary' }}
-                        >
-                          {t(
-                            'stylePage.tooltip.occlusionModel',
-                            'People works on live-action video. Anime targets animation but is heavier and experimental, and needs a WebGPU-capable browser.'
-                          )}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ flexShrink: 0, minWidth: 180 }}>
-                        <SegmentedTabs
-                          value={field.value}
-                          onChange={(v) => field.onChange(v)}
-                          color="secondary"
-                          items={[
-                            {
-                              value: 'people',
-                              label: t(
-                                'stylePage.occlusionModelPeople',
-                                'People'
-                              ),
-                            },
-                            {
-                              value: 'anime',
-                              label: t(
-                                'stylePage.occlusionModelAnime',
-                                'Anime'
-                              ),
-                            },
-                          ]}
-                        />
-                      </Box>
-                    </Stack>
+                    <OcclusionModelManager
+                      activeModelId={field.value}
+                      onSetActive={(id) => field.onChange(id)}
+                    />
                   )}
                 />
                 <Controller

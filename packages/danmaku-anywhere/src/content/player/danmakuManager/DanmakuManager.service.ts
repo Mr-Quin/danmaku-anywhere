@@ -5,12 +5,14 @@ import { createElement } from 'react'
 import ReactDOM from 'react-dom/client'
 import { uiContainer } from '@/common/ioc/uiIoc'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import type { ModelEntry } from '@/common/models/schema'
 import type {
   DanmakuOptions,
   OcclusionModel,
   OcclusionQuality,
 } from '@/common/options/danmakuOptions/constant'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type { SegmentationStats } from '@/common/rpcClient/background/types'
 import { injectCss } from '@/content/common/injectCss'
 import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
@@ -298,37 +300,50 @@ export class DanmakuManagerService {
       this.occlusionService.reset()
       return
     }
+    void this.configureOcclusion()
+  }
+
+  private async configureOcclusion() {
+    const modelId = this.occlusionModel
+    let descriptor: ModelEntry
+    try {
+      descriptor = (
+        await chromeRpcClient.occlusionResolveModel({ id: modelId })
+      ).data
+    } catch (e) {
+      // Resolution failed (transient background RPC error); stop rather than
+      // leave a stale model running while the UI shows a different one.
+      this.logger.error(e)
+      this.occlusionService.reset()
+      return
+    }
+    // A newer update may have superseded this resolve while it was in flight
+    // (model toggled, video removed, occlusion disabled); skip the stale config.
+    if (
+      this.occlusionModel !== modelId ||
+      !this.occlusion ||
+      !this.isMounted ||
+      !this.video
+    ) {
+      return
+    }
+    // Per-model capture tuning comes from the descriptor; the quality preset
+    // supplies the baseline and always governs the output resolution.
     const preset = OCCLUSION_QUALITY_PRESETS[this.occlusionQuality]
-    // The anime ISNet model is heavier and distortion-sensitive, so it gets an
-    // aspect-preserving capture (undistorted, a bit above the model input for
-    // clean downscaling) and a slower cadence than the lightweight people
-    // segmenter, to avoid saturating the GPU.
-    const tuned =
-      this.occlusionModel === 'anime'
-        ? {
-            captureSize: 512,
-            capturePreserveAspect: true,
-            minIntervalMs: Math.max(preset.minIntervalMs, 500),
-            outputMaxSide: preset.outputMaxSide,
-          }
-        : {
-            captureSize: preset.captureSize,
-            capturePreserveAspect: false,
-            minIntervalMs: preset.minIntervalMs,
-            outputMaxSide: preset.outputMaxSide,
-          }
+    const capture = descriptor.capture
     this.occlusionService.configure({
-      model: this.occlusionModel,
-      ...tuned,
+      descriptor,
+      captureSize: capture?.size ?? preset.captureSize,
+      capturePreserveAspect: capture?.preserveAspect ?? false,
+      minIntervalMs: capture?.minIntervalMs ?? preset.minIntervalMs,
+      outputMaxSide: preset.outputMaxSide,
       threshold: this.occlusionConfidence,
       edgeSoftness: this.occlusionEdgeSoftness,
       debug: this.debug,
       applyMask: (url) => this.setOcclusionMaskUrl(url),
       onStatus: (status) => this.occlusionStatusListener?.(status),
     })
-    if (this.video) {
-      this.occlusionService.start(this.video)
-    }
+    this.occlusionService.start(this.video)
   }
 
   resize() {

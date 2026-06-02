@@ -7,7 +7,9 @@ import type { Options } from '@/common/options/OptionsService/types'
 
 export type OcclusionQuality = 'low' | 'medium' | 'high'
 
-export type OcclusionModel = 'people' | 'anime'
+// A model id from the manifest, validated at use time with a fallback to the
+// default model when the saved id is absent.
+export type OcclusionModel = string
 
 export type DanmakuOptions = Omit<DanmakuEngineOptions, 'show'> & {
   readonly customCss: string

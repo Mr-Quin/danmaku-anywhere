@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   fetchAndCacheFile,
+  listCachedFiles,
   type OpfsAdapter,
   type OpfsFileCacheDeps,
+  removeCachedFile,
   resetOpfsFileCacheWarnings,
 } from './opfsFileCache'
 
@@ -11,7 +13,8 @@ import {
  * (no fetch), the cache miss (fetch then write), integrity-mismatch eviction
  * plus re-download, the integrity-failure rejection, the OPFS-unavailable
  * fallback (plain fetch, no caching, warns once), abort, and the no-sha256
- * path. Uses an in-memory fake OPFS adapter and a stubbed fetch.
+ * path, plus listing/eviction of cached files. Uses an in-memory fake OPFS
+ * adapter and a stubbed fetch.
  */
 
 const ID = 'asset.bin'
@@ -38,6 +41,12 @@ function createFakeOpfs(initial: Record<string, ArrayBuffer> = {}): FakeOpfs {
     remove: vi.fn(async (name: string) => {
       store.delete(name)
     }),
+    list: vi.fn(async () =>
+      [...store.entries()].map(([id, bytes]) => ({
+        id,
+        sizeBytes: bytes.byteLength,
+      }))
+    ),
   }
 }
 
@@ -183,5 +192,31 @@ describe('fetchAndCacheFile', () => {
 
     expect(decode(result)).toBe('unverified')
     expect(digest).not.toHaveBeenCalled()
+  })
+
+  it('lists cached files with sizes', async () => {
+    const opfs = createFakeOpfs({
+      anime: bytesFrom('1234'),
+      modnet: bytesFrom('12'),
+    })
+
+    const entries = await listCachedFiles(makeDeps({ opfs }))
+
+    expect(entries).toEqual([
+      { id: 'anime', sizeBytes: 4 },
+      { id: 'modnet', sizeBytes: 2 },
+    ])
+  })
+
+  it('returns an empty list when OPFS is unavailable', async () => {
+    expect(await listCachedFiles(makeDeps({ opfs: null }))).toEqual([])
+  })
+
+  it('evicts a cached file by id', async () => {
+    const opfs = createFakeOpfs({ anime: bytesFrom('1234') })
+
+    await removeCachedFile('anime', makeDeps({ opfs }))
+
+    expect(opfs.store.has('anime')).toBe(false)
   })
 })

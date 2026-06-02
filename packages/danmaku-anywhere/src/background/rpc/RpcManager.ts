@@ -12,6 +12,7 @@ import { IconService } from '@/background/services/IconService'
 import { ImageCacheService } from '@/background/services/ImageCache/ImageCache.service'
 import { KazumiService } from '@/background/services/KazumiService'
 import { LogService } from '@/background/services/Logging/Log.service'
+import { OcclusionModelService } from '@/background/services/OcclusionModelService'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
@@ -74,7 +75,9 @@ export class RpcManager {
     @inject(AuthClientService)
     private authClientService: AuthClientService,
     @inject(BookmarkService)
-    private bookmarkService: BookmarkService
+    private bookmarkService: BookmarkService,
+    @inject(OcclusionModelService)
+    private occlusionModelService: OcclusionModelService
   ) {
     this.logger = logger.sub('[RpcManager]')
   }
@@ -377,6 +380,21 @@ export class RpcManager {
         },
         bookmarkRefresh: async (data) => {
           return this.bookmarkService.refresh(data.id, this.providerService)
+        },
+        occlusionGetModels: async () => {
+          return this.occlusionModelService.getState()
+        },
+        occlusionRefreshModels: async () => {
+          return this.occlusionModelService.refresh()
+        },
+        occlusionResolveModel: async (data) => {
+          return this.occlusionModelService.resolveModel(data.id)
+        },
+        occlusionDownloadModel: async (data) => {
+          return this.occlusionModelService.download(data.id)
+        },
+        occlusionDeleteModel: async (data) => {
+          return this.occlusionModelService.delete(data.id)
         },
       },
       {

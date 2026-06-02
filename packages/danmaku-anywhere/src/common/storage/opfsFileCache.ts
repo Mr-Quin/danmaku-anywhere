@@ -14,11 +14,18 @@ export interface FetchAndCacheOptions {
   signal?: AbortSignal
 }
 
+export interface CachedFileInfo {
+  /** The cache id (OPFS file name). */
+  id: string
+  sizeBytes: number
+}
+
 /** Minimal OPFS surface used by the cache; tests inject a fake. */
 export interface OpfsAdapter {
   read(name: string): Promise<ArrayBuffer | null>
   write(name: string, bytes: ArrayBuffer): Promise<void>
   remove(name: string): Promise<void>
+  list(): Promise<CachedFileInfo[]>
 }
 
 export interface OpfsFileCacheDeps {
@@ -109,6 +116,23 @@ function createNavigatorOpfs(): OpfsAdapter | null {
       } catch {
         // A missing entry is the desired post-state, so treat removal as done.
       }
+    },
+    async list() {
+      const root = await getRoot()
+      const entries: CachedFileInfo[] = []
+      for await (const [name, handle] of root.entries()) {
+        if (handle.kind !== 'file') {
+          continue
+        }
+        try {
+          const file = await (handle as FileSystemFileHandle).getFile()
+          entries.push({ id: name, sizeBytes: file.size })
+        } catch {
+          // A file locked mid-download (or otherwise unreadable) should not
+          // break listing the rest.
+        }
+      }
+      return entries
     },
   }
 }
@@ -252,6 +276,29 @@ export async function fetchAndCacheFile(
     warnOpfsUnavailableOnce(reason)
   })
   return bytes
+}
+
+/**
+ * Lists the files currently cached in OPFS (id + size). Returns an empty list
+ * when OPFS is unavailable. Runs in an extension-origin context that shares the
+ * one unpartitioned OPFS root, so it sees exactly the files fetchAndCacheFile
+ * wrote from any such context.
+ */
+export async function listCachedFiles(
+  deps: OpfsFileCacheDeps = createDefaultDeps()
+): Promise<CachedFileInfo[]> {
+  if (!deps.opfs) {
+    return []
+  }
+  return deps.opfs.list().catch(() => [])
+}
+
+/** Evicts a cached file by id; a no-op when OPFS is unavailable or absent. */
+export async function removeCachedFile(
+  id: string,
+  deps: OpfsFileCacheDeps = createDefaultDeps()
+): Promise<void> {
+  await deps.opfs?.remove(id).catch(() => undefined)
 }
 
 /** Test-only: resets the "log once" latch between cases. */
