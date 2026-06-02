@@ -1,21 +1,21 @@
+import { bilibili as bilibiliProto } from '@danmaku-anywhere/danmaku-provider/bilibili-proto'
 import {
   ManifestRunner,
   type ProtoTypeOverrides,
   zManifest,
-} from '@danmaku-anywhere/dango'
-import builtinBilibili from '@danmaku-anywhere/dango-manifests/manifests/builtin-bilibili.json' with {
+} from '@mr-quin/dango'
+import builtinBilibili from '@mr-quin/dango-manifests/manifests/builtin-bilibili.json' with {
   type: 'json',
 }
-import builtinDandanplay from '@danmaku-anywhere/dango-manifests/manifests/builtin-dandanplay.json' with {
+import builtinDandanplay from '@mr-quin/dango-manifests/manifests/builtin-dandanplay.json' with {
   type: 'json',
 }
-import builtinDdpCompat from '@danmaku-anywhere/dango-manifests/manifests/builtin-ddp-compat.json' with {
+import builtinDdpCompat from '@mr-quin/dango-manifests/manifests/builtin-ddp-compat.json' with {
   type: 'json',
 }
-import builtinTencent from '@danmaku-anywhere/dango-manifests/manifests/builtin-tencent.json' with {
+import builtinTencent from '@mr-quin/dango-manifests/manifests/builtin-tencent.json' with {
   type: 'json',
 }
-import { bilibili as bilibiliProto } from '@danmaku-anywhere/danmaku-provider/bilibili-proto'
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { extensionFetchLike } from './extensionFetchLike'

@@ -14,3 +14,6 @@ allowBuilds:
   sharp: false
   spawn-sync: false
   workerd: false
+minimumReleaseAgeExclude:
+  - '@mr-quin/dango-manifests@0.1.0'
+  - '@mr-quin/dango@0.1.0'

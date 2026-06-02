@@ -1,4 +1,4 @@
-import type { FetchLike } from '@danmaku-anywhere/dango'
+import type { FetchLike } from '@mr-quin/dango'
 import { setSessionHeader } from '@/background/netRequest/setSessionHeader'
 
 // `fetch` silently drops forbidden request headers like Origin / Referer /
