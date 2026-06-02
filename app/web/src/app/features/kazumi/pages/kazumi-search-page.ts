@@ -65,15 +65,15 @@ import { KazumiService } from '../services/kazumi.service'
   `,
   template: `
     <div
-      class="max-w-6xl mx-auto mt-16 p-2 flex flex-col gap-4 items-center pt-[10vh] md:pt-[20vh] h-full transition-[padding] delay-150 duration-500"
+      class="w-full p-3 flex flex-col gap-4 items-center pt-[8vh] h-full transition-[padding] delay-150 duration-500"
       [class.!pt-0]="$hasQuery()"
     >
       @if (kazumiService.localPoliciesQuery.isPending()) {
         <p-progress-spinner />
       } @else if (kazumiService.$hasPolicies()) {
-        <p-card>
+        <p-card styleClass="w-full max-w-xl">
           <form (submit)="$event.preventDefault();triggerSearch()">
-            <div class="md:w-xl flex gap-4 p-2 items-center">
+            <div class="w-full flex gap-4 p-2 items-center">
               <div class="flex-1">
                 <input
                   data-testid="kazumi-search-input"

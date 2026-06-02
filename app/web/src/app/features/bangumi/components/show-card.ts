@@ -74,7 +74,7 @@ export interface ShowCardData {
       <ng-template #content>
         <div class="space-y-1">
           <h3
-            class="text-lg font-semibold overflow-hidden text-nowrap text-ellipsis cursor-pointer hover:underline"
+            class="card-title font-semibold overflow-hidden text-nowrap text-ellipsis cursor-pointer hover:underline"
             (click)="emitDetails(showData.id, 'title')"
             [title]="showData.title">
             {{ showData.title }}
@@ -89,7 +89,7 @@ export interface ShowCardData {
 
       @if (!hideFooter()) {
         <ng-template #footer>
-          <div class="flex justify-between">
+          <div class="flex flex-wrap gap-2 justify-between">
             <p-button
               (click)="emitDetails(showData.id, 'detailsButton')"
               label="详情"
@@ -115,6 +115,18 @@ export interface ShowCardData {
       :host {
           display: block;
           height: 100%;
+          container-type: inline-size;
+      }
+
+      .card-title {
+          font-size: 0.95rem;
+          line-height: 1.4;
+      }
+
+      @container (min-width: 200px) {
+          .card-title {
+              font-size: 1.125rem;
+          }
       }
   `,
 })

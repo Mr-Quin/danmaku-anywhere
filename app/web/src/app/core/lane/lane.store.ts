@@ -11,6 +11,8 @@ import {
   DEFAULT_LANDING,
   DEFAULT_WIDTH,
   EXT_REQUIRED_KINDS,
+  MAX_WIDTH,
+  MIN_WIDTH,
   WIDTH_STEPS,
 } from './lane.const'
 import type {
@@ -194,6 +196,20 @@ export const LaneStore = signalStore(
           const nextW = steps[(i + 1) % steps.length] ?? steps[0]
           return { ...c, width: nextW, full: false }
         }),
+      })
+    },
+
+    setWidth(id: string, width: number) {
+      const clamped = Math.max(
+        MIN_WIDTH,
+        Math.min(MAX_WIDTH, Math.round(width))
+      )
+      patchState(store, {
+        columns: store
+          .columns()
+          .map((c) =>
+            c.id === id ? { ...c, width: clamped, full: false } : c
+          ),
       })
     },
 

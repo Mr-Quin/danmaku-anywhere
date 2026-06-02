@@ -18,9 +18,9 @@ import { transformToShowCardData } from '../../utils/transform-to-show-card-data
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ShowCard, ShowCardSkeleton, VirtualizedGrid],
   template: `
-    <div class="container mx-auto p-4">
-      <div class="mb-6">
-        <h1 class="text-3xl font-bold mb-2">热门动画</h1>
+    <div class="w-full p-3">
+      <div class="mb-4">
+        <h1 class="text-2xl font-bold">热门动画</h1>
       </div>
 
       <da-virtualized-grid
@@ -30,7 +30,7 @@ import { transformToShowCardData } from '../../utils/transform-to-show-card-data
         isInfiniteScroll
         [isFetchingNext]="trendingQuery.isFetchingNextPage()"
         [pageSize]="20"
-        [columnConfig]="columnConfig"
+        [minColumnWidth]="180"
         (onLoadMore)="handleLoadMore()"
       >
         <ng-template #skeleton>
@@ -66,14 +66,6 @@ export class TrendingPage {
   readonly openWatch = output<ShowCardData>()
 
   protected bangumiService = inject(BangumiService)
-
-  protected columnConfig = {
-    xs: 2,
-    sm: 3,
-    md: 4,
-    lg: 5,
-    xl: 6,
-  }
 
   trendingQuery = injectInfiniteQuery(() => {
     return this.bangumiService.getTrendingInfiniteQueryOptions()

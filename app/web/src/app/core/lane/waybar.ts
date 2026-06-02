@@ -1,9 +1,12 @@
+import { isPlatformBrowser } from '@angular/common'
 import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
   output,
+  PLATFORM_ID,
   signal,
 } from '@angular/core'
 
@@ -55,8 +58,7 @@ interface PillView {
   template: `
     <div class="brand">
       <span class="logo"></span>
-      <span class="name">Kazumi</span>
-      <span class="badge">预览</span>
+      <span class="name">Danmaku Anywhere</span>
     </div>
     <span class="sep"></span>
 
@@ -102,7 +104,7 @@ interface PillView {
     >
       <span class="picon">⌕</span>
       <span class="ptext">搜索动画、资源…</span>
-      <kbd>⌘K</kbd>
+      <kbd>{{ shortcut }}</kbd>
     </button>
   `,
   styles: `
@@ -309,6 +311,10 @@ export class Waybar {
   readonly pillClose = output<string>()
   readonly reorder = output<{ from: number; to: number }>()
   readonly openPalette = output<void>()
+
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID))
+  readonly shortcut =
+    this.isBrowser && /Mac/i.test(navigator.userAgent) ? '⌘K' : 'Ctrl K'
 
   private readonly dragFrom = signal<number | null>(null)
   readonly overIndex = signal<number | null>(null)

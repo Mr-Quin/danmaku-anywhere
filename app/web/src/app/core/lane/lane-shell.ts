@@ -61,7 +61,7 @@ const FULL_MIN_WIDTH = 360
         (openSettings)="onOpenApp('settings')"
       />
 
-      <div #lane class="lane" data-testid="lane-container">
+      <div #lane class="lane kz-scroll" data-testid="lane-container">
         @for (col of columns(); track col.id) {
           <da-column-shell
             [col]="col"
@@ -69,9 +69,11 @@ const FULL_MIN_WIDTH = 360
             [width]="widthFor(col)"
             [pinnable]="isPinnable(col)"
             [pinned]="isPinned(col)"
+            (activate)="store.setActive(col.id)"
             (close)="store.close(col.id)"
             (pin)="onPin(col)"
             (resize)="store.resize(col.id)"
+            (widthChange)="store.setWidth(col.id, $event)"
             (toggleFull)="onToggleFull(col.id)"
           />
         }
@@ -290,7 +292,8 @@ export class LaneShell {
 
   onToggleFull(id: string) {
     this.store.toggleFull(id)
-    this.scrollToColumn(id)
+    this.store.setActive(id)
+    this.scrollToColumn(id, true)
   }
 
   onOpenApp(kind: ColumnKind) {
@@ -334,7 +337,7 @@ export class LaneShell {
     }
   }
 
-  private scrollToColumn(id: string) {
+  private scrollToColumn(id: string, center = false) {
     if (!this.isBrowser) {
       return
     }
@@ -347,10 +350,11 @@ export class LaneShell {
       if (!el) {
         return
       }
-      const delta =
-        el.getBoundingClientRect().left -
-        lane.getBoundingClientRect().left -
-        LEFT_INSET
+      const laneRect = lane.getBoundingClientRect()
+      const elRect = el.getBoundingClientRect()
+      const delta = center
+        ? elRect.left + elRect.width / 2 - (laneRect.left + laneRect.width / 2)
+        : elRect.left - laneRect.left - LEFT_INSET
       lane.scrollTo({ left: lane.scrollLeft + delta, behavior: 'smooth' })
     })
   }

@@ -30,16 +30,16 @@ export interface ShowCardGridItem {
     ShowCardSkeleton,
   ],
   template: `
-    <div class="hidden xl:block">
-      <div class="grid grid-cols-7">
+    <div class="wide">
+      <div class="week-columns">
         @for (weekday of weekdays(); track $index) {
           @if (weekday.length > 0) {
             <div>
               @let isToday = getTodayIndex() === $index;
-              <h3 class="text-2xl px-3 mb-4" [class.text-primary]="isToday">
+              <h3 class="text-xl px-2 mb-3" [class.text-primary]="isToday">
                 {{ WEEKDAYS[$index] }}
               </h3>
-              <div class="space-y-3 p-3 rounded" [class.bg-primary]="isToday">
+              <div class="space-y-3 p-2 rounded" [class.bg-primary]="isToday">
                 @for (item of weekday; track item.id; ) {
                   @if (item.isSkeleton) {
                     <da-show-card-skeleton hideFooter hideAltTitle />
@@ -60,7 +60,7 @@ export interface ShowCardGridItem {
       </div>
     </div>
 
-    <div class="xl:hidden">
+    <div class="narrow">
       <p-tabs
         [(value)]="activeTabValue"
         styleClass="calendar-tabs">
@@ -78,12 +78,18 @@ export interface ShowCardGridItem {
           @for (weekday of weekdays(); track $index) {
             @if (weekday.length > 0) {
               <p-tabpanel [value]="$index">
-                <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <div class="day-grid">
                   @for (item of weekday; track item.id; ) {
                     @if (item.isSkeleton) {
                       <da-show-card-skeleton hideFooter hideAltTitle />
                     } @else if (item.data) {
-                      <da-show-card [show]="item.data" hideFooter hideAltTitle />
+                      <da-show-card
+                        [show]="item.data"
+                        hideFooter
+                        hideAltTitle
+                        (detailsClick)="openDetails.emit(item.data)"
+                        (watchClick)="openWatch.emit($event)"
+                      />
                     }
                   }
                 </div>
@@ -93,7 +99,37 @@ export interface ShowCardGridItem {
         </p-tabpanels>
       </p-tabs>
     </div>
+  `,
+  styles: `
+    .wide {
+      display: none;
+    }
 
+    .narrow {
+      display: block;
+    }
+
+    .week-columns {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 0.5rem;
+    }
+
+    .day-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 1rem;
+    }
+
+    @container (min-width: 1100px) {
+      .wide {
+        display: block;
+      }
+
+      .narrow {
+        display: none;
+      }
+    }
   `,
 })
 export class ShowCalendarGrid {

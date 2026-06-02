@@ -54,6 +54,7 @@ const TITLE: Partial<Record<ColumnKind, string>> = {
     '[attr.data-active]': 'active()',
     '[style.width.px]': 'width()',
     '[class.active]': 'active()',
+    '(pointerdown)': 'activate.emit()',
   },
   template: `
     <header class="header">
@@ -90,12 +91,18 @@ const TITLE: Partial<Record<ColumnKind, string>> = {
         ✕
       </button>
     </header>
-    <div class="scroll" data-colscroll>
+    <div class="scroll kz-scroll" data-colscroll>
       <da-column-body-host [col]="col()" />
     </div>
+    <div
+      class="resizer"
+      title="拖动调整宽度"
+      (pointerdown)="onResizeStart($event)"
+    ></div>
   `,
   styles: `
     :host {
+      position: relative;
       flex-shrink: 0;
       height: 100%;
       display: flex;
@@ -195,6 +202,33 @@ const TITLE: Partial<Record<ColumnKind, string>> = {
       overflow-y: auto;
       overflow-x: hidden;
       min-height: 0;
+      container-type: inline-size;
+    }
+
+    .resizer {
+      position: absolute;
+      top: 36px;
+      right: 0;
+      bottom: 0;
+      width: 7px;
+      cursor: col-resize;
+      z-index: 5;
+      touch-action: none;
+    }
+
+    .resizer::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      width: 2px;
+      background: transparent;
+      transition: background 0.15s ease;
+    }
+
+    .resizer:hover::after {
+      background: var(--p-primary);
     }
   `,
 })
@@ -209,6 +243,27 @@ export class ColumnShell {
   readonly pin = output<void>()
   readonly resize = output<void>()
   readonly toggleFull = output<void>()
+  readonly activate = output<void>()
+  readonly widthChange = output<number>()
+
+  onResizeStart(event: PointerEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+    const handle = event.target as HTMLElement
+    const startX = event.clientX
+    const startWidth = this.width()
+    handle.setPointerCapture(event.pointerId)
+    const onMove = (move: PointerEvent) => {
+      this.widthChange.emit(startWidth + (move.clientX - startX))
+    }
+    const onUp = () => {
+      handle.releasePointerCapture(event.pointerId)
+      handle.removeEventListener('pointermove', onMove)
+      handle.removeEventListener('pointerup', onUp)
+    }
+    handle.addEventListener('pointermove', onMove)
+    handle.addEventListener('pointerup', onUp)
+  }
 
   readonly glyph = computed(() => GLYPH[this.col().kind] ?? '◦')
   readonly title = computed(() => TITLE[this.col().kind] ?? this.col().kind)

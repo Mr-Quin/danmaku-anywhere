@@ -49,7 +49,7 @@ import { isDetailsTab } from './details-tab'
     CommentsTab,
   ],
   template: `
-    <div class="max-w-7xl mx-auto p-4">
+    <div class="w-full p-3">
       @if (subjectDetailsQuery.isPending()) {
         <div class="flex justify-center items-center py-12">
           <p-progress-spinner />
