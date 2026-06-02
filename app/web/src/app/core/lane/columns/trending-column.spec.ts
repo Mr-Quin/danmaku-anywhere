@@ -5,9 +5,10 @@ import { TrendingColumn } from './trending-column'
 
 /**
  * Verifies the trending wrapper is the only place that translates the feature
- * body's intents into LaneStore ops: openDetails -> openDetails(id, title) and
- * openWatch -> openWatch({ subjectId, title }), each appending a focusable
- * column. The body itself stays store-free; only the wrapper touches the store.
+ * body's intents into LaneStore ops: openDetails opens a deduped show column,
+ * and openWatch opens a kazumi search column seeded with the show title (a
+ * bangumi subject has no direct source). The body stays store-free; only the
+ * wrapper touches the store.
  */
 describe('TrendingColumn', () => {
   function createWrapper() {
@@ -36,11 +37,23 @@ describe('TrendingColumn', () => {
     expect(store.columns().some((c) => c.kind === 'show')).toBe(true)
   })
 
-  it('openWatch opens the single player column with the subject', () => {
+  it('openWatch opens a kazumi search column seeded with the title', () => {
     const { store, wrapper } = createWrapper()
     wrapper.onOpenWatch({ id: 9, altTitle: 'Alt', title: 'Watch Me' })
-    expect(store.$playerColumnId()).not.toBe(null)
-    expect(store.playing()?.subjectId).toBe(9)
-    expect(store.playing()?.title).toBe('Watch Me')
+    const opened = store.columns()[store.columns().length - 1]
+    expect(opened.kind).toBe('search')
+    if (opened.kind === 'search') {
+      expect(opened.query).toBe('Watch Me')
+    }
+  })
+
+  it('openWatch falls back to altTitle when title is missing', () => {
+    const { store, wrapper } = createWrapper()
+    wrapper.onOpenWatch({ id: 5, altTitle: 'OnlyAlt' })
+    const opened = store.columns()[store.columns().length - 1]
+    expect(opened.kind).toBe('search')
+    if (opened.kind === 'search') {
+      expect(opened.query).toBe('OnlyAlt')
+    }
   })
 })

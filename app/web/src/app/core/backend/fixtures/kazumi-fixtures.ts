@@ -3,6 +3,7 @@ import {
   DanmakuSourceType,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { MediaInfo } from '@danmaku-anywhere/web-scraper'
+import { FAKE_MEDIA_DATA_URI } from './fake-media-data'
 
 interface FakeShow {
   id: number
@@ -64,8 +65,8 @@ export const fakeChapters: { name: string; url: string }[][] = [
 ]
 
 export const fakeMedia: MediaInfo = {
-  src: 'https://fake.cdn/x.m3u8',
-  contentType: 'application/vnd.apple.mpegurl',
+  src: FAKE_MEDIA_DATA_URI,
+  contentType: 'video/mp4',
   type: 'video',
 }
 
