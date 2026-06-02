@@ -2,6 +2,7 @@
 
 @import "primeicons/primeicons.css";
 @import "tailwindcss";
+@import "./styles/tokens.css";
 @import "material-symbols" layer(material-symbols);
 @plugin "tailwindcss-primeui";
 
