@@ -4,12 +4,15 @@ import {
   Component,
   computed,
   type ElementRef,
+  inject,
   output,
   signal,
   viewChild,
 } from '@angular/core'
+import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
 
-import { FAKE_BGM_SHOWS } from '../backend/fixtures/bangumi-fixtures'
+import { BangumiService } from '../../features/bangumi/services/bangumi.service'
+import { transformToShowCardData } from '../../features/bangumi/utils/transform-to-show-card-data'
 import type { ColumnKind } from './lane.types'
 
 interface ShowRow {
@@ -33,14 +36,6 @@ const APP_ROWS: AppRow[] = [
   { kind: 'rules', label: '规则', glyph: '☰' },
   { kind: 'history', label: '历史', glyph: '⟲' },
 ]
-
-const SHOW_ROWS: ShowRow[] = FAKE_BGM_SHOWS.map((s) => ({
-  id: s.id,
-  title: s.title,
-  short: s.short,
-  ja: s.ja,
-  rating: s.rating,
-}))
 
 export interface PaletteDetails {
   subjectId: number
@@ -245,8 +240,33 @@ export class Palette {
   readonly openWatch = output<PaletteWatch>()
 
   private readonly inputRef = viewChild<ElementRef<HTMLInputElement>>('input')
+  private readonly bangumi = inject(BangumiService)
 
   readonly query = signal('')
+
+  private readonly trendingQuery = injectInfiniteQuery(() =>
+    this.bangumi.getTrendingInfiniteQueryOptions()
+  )
+
+  private readonly showRows = computed<ShowRow[]>(() => {
+    if (!this.trendingQuery.isSuccess()) {
+      return []
+    }
+    return this.trendingQuery
+      .data()
+      .pages.flatMap((page) => page.data)
+      .map((item) => {
+        const card = transformToShowCardData(item.subject)
+        const title = card.title || card.altTitle
+        return {
+          id: card.id,
+          title,
+          short: title,
+          ja: card.altTitle,
+          rating: card.rating?.score ?? 0,
+        }
+      })
+  })
 
   readonly apps = computed<AppRow[]>(() => {
     const q = this.query().trim().toLowerCase()
@@ -257,11 +277,12 @@ export class Palette {
   })
 
   readonly shows = computed<ShowRow[]>(() => {
+    const rows = this.showRows()
     const q = this.query().trim().toLowerCase()
     if (!q) {
-      return SHOW_ROWS
+      return rows
     }
-    return SHOW_ROWS.filter((s) => {
+    return rows.filter((s) => {
       return (
         s.short.toLowerCase().includes(q) ||
         s.title.toLowerCase().includes(q) ||

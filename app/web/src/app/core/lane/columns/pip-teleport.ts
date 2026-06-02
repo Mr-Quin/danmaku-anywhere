@@ -25,6 +25,7 @@ export class PipTeleportManager {
 
   private ref: ComponentRef<KazumiDetailPage> | null = null
   private dock: HTMLElement | null = null
+  private pip: HTMLElement | null = null
 
   acquire(): ComponentRef<KazumiDetailPage> {
     if (!this.ref) {
@@ -44,10 +45,15 @@ export class PipTeleportManager {
     this.dock = dock
   }
 
+  // LaneShell registers its PiP slot element here so this manager does not have
+  // to reach into the DOM with a global query.
+  setPipSlot(pip: HTMLElement | null) {
+    this.pip = pip
+  }
+
   /**
    * Move the host node into the dock slot (floating === false) or the shell
-   * PiP slot (floating === true). The PiP slot is resolved from the DOM since
-   * it lives in LaneShell, outside this manager's component tree.
+   * PiP slot (floating === true).
    */
   teleport(floating: boolean) {
     if (!this.isBrowser) {
@@ -57,7 +63,7 @@ export class PipTeleportManager {
     if (!node) {
       return
     }
-    const target = floating ? this.pipSlot() : this.dock
+    const target = floating ? this.pip : this.dock
     if (!target) {
       return
     }
@@ -73,9 +79,5 @@ export class PipTeleportManager {
       this.ref = null
     }
     this.dock = null
-  }
-
-  private pipSlot(): HTMLElement | null {
-    return document.querySelector<HTMLElement>('[data-testid="pip-slot"]')
   }
 }

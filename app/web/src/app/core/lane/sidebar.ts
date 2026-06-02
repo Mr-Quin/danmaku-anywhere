@@ -62,6 +62,7 @@ const APPS: AppLauncher[] = [
             type="button"
             class="pin"
             [attr.data-key]="item.key"
+            [attr.aria-label]="item.title"
             (click)="openPinned.emit(item)"
           ></button>
           <span class="tip">{{ item.title }}</span>
