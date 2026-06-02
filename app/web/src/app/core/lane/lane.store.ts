@@ -167,14 +167,20 @@ export const LaneStore = signalStore(
     },
 
     close(id: string) {
-      const col = store.columns().find((c) => c.id === id)
-      if (col?.kind === 'player') {
+      const cols = store.columns()
+      const idx = cols.findIndex((c) => c.id === id)
+      if (cols[idx]?.kind === 'player') {
         patchState(store, { playing: null, floating: false })
       }
-      const next = store.columns().filter((c) => c.id !== id)
-      patchState(store, {
-        columns: next.length ? next : [makeColumn(DEFAULT_LANDING)],
-      })
+      const filtered = cols.filter((c) => c.id !== id)
+      const columns = filtered.length ? filtered : [makeColumn(DEFAULT_LANDING)]
+      let activeId = store.activeId()
+      if (id === activeId) {
+        // point active at the nearest remaining column so it doesn't dangle
+        const fallback = columns[Math.min(idx, columns.length - 1)]
+        activeId = fallback ? fallback.id : null
+      }
+      patchState(store, { columns, activeId })
     },
 
     resize(id: string) {

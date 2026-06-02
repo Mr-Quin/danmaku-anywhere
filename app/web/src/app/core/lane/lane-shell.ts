@@ -237,6 +237,10 @@ export class LaneShell {
       const ids = this.columns().map((c) => c.id)
       this.focusNewlyOpened(ids)
     })
+
+    this.destroyRef.onDestroy(() => {
+      this.pip.setPipSlot(null)
+    })
   }
 
   private focusNewlyOpened(ids: string[]) {
@@ -248,7 +252,10 @@ export class LaneShell {
     if (appended.length !== 1) {
       return
     }
-    this.focusColumn(appended[0])
+    // Defer out of the effect so the store write happens after this change
+    // detection pass and the new column is in the DOM before scrolling to it.
+    const id = appended[0]
+    setTimeout(() => this.focusColumn(id))
   }
 
   widthFor(col: Column): number {
@@ -474,6 +481,9 @@ export class LaneShell {
 
   private listenKeyboard() {
     const onKey = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) {
+        return
+      }
       const target = event.target as HTMLElement | null
       const tag = target?.tagName ?? ''
       const inField =

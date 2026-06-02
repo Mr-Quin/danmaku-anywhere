@@ -81,8 +81,9 @@ import { type SettingsRoute, SettingsService } from './settings.service'
         </div>
 
         <div class="flex-1 overflow-auto px-6">
-          @if (settingsService.$currentRoute()) {
-            @switch (settingsService.$currentRoute()?.id) {
+          @let currentRoute = settingsService.$currentRoute();
+          @if (currentRoute) {
+            @switch (currentRoute.id) {
               @case ('kazumi-manage') {
                 <da-kazumi-policy-manage />
               }

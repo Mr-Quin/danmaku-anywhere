@@ -257,12 +257,12 @@ export class Palette {
       .pages.flatMap((page) => page.data)
       .map((item) => {
         const card = transformToShowCardData(item.subject)
-        const title = card.title || card.altTitle
+        const title = card.title || card.altTitle || ''
         return {
           id: card.id,
           title,
           short: title,
-          ja: card.altTitle,
+          ja: card.altTitle ?? '',
           rating: card.rating?.score ?? 0,
         }
       })
