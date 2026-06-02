@@ -11,12 +11,11 @@ import {
 } from '@angular/core'
 import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'
-import { MaterialIcon } from '../../../../../shared/components/material-icon'
 
 @Component({
   selector: 'da-summary-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, Card, Button, MaterialIcon],
+  imports: [CommonModule, Card, Button],
   template: `
     @if (summary()) {
       <div class="mb-6">
@@ -32,10 +31,7 @@ import { MaterialIcon } from '../../../../../shared/components/material-icon'
                 size="small"
               >
                 <ng-template #icon>
-                  <da-mat-icon
-                    [icon]="summaryExpanded() ? 'expand_less' : 'expand_more'"
-                    size="lg"
-                  />
+                  <i class="pi text-lg {{ summaryExpanded() ? 'pi-chevron-up' : 'pi-chevron-down' }}"></i>
                 </ng-template>
               </p-button>
             }

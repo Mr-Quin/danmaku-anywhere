@@ -46,7 +46,6 @@
     "clarity-js": "^0.8.41",
     "dexie": "^4.2.1",
     "libass-wasm": "^4.1.0",
-    "material-symbols": "^0.40.0",
     "openapi-fetch": "^0.15.0",
     "postcss": "^8.5.6",
     "primeicons": "^7.0.0",

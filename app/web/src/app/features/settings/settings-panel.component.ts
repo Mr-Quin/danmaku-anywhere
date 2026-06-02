@@ -6,7 +6,6 @@ import {
   type OnInit,
   signal,
 } from '@angular/core'
-import { MaterialIcon } from '../../shared/components/material-icon'
 import { KazumiPolicyImport } from '../kazumi/components/kazumi-policy-import'
 import { KazumiPolicyManage } from '../kazumi/components/kazumi-policy-manage'
 import { type SettingsRoute, SettingsService } from './settings.service'
@@ -14,18 +13,18 @@ import { type SettingsRoute, SettingsService } from './settings.service'
 @Component({
   selector: 'da-settings-panel',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, MaterialIcon, KazumiPolicyManage, KazumiPolicyImport],
+  imports: [CommonModule, KazumiPolicyManage, KazumiPolicyImport],
   template: `
     <div class="flex flex-col h-full">
       <div class="flex items-center gap-3 px-6 py-4 border-b dark:border-surface-700">
-        <da-mat-icon icon="settings" />
+        <i class="pi pi-cog"></i>
         <span class="text-lg font-semibold">{{ getPageTitle() }}</span>
         @if (settingsService.$canGoBack()) {
           <button
             class="ml-auto p-2 rounded-lg hover:bg-surface-100 dark:hover:bg-surface-800"
             (click)="settingsService.goBack()"
           >
-            <da-mat-icon icon="arrow_back" size="xl" />
+            <i class="pi pi-arrow-left text-xl"></i>
           </button>
         }
       </div>
@@ -42,17 +41,16 @@ import { type SettingsRoute, SettingsService } from './settings.service'
                     : 'hover:bg-surface-100 dark:hover:bg-surface-800'"
                   (click)="onRouteClick(item)"
                 >
-                  <da-mat-icon [icon]="item.icon" />
+                  <i class="pi {{ item.icon }}"></i>
                   <span class="flex-1">{{ item.label }}</span>
                   @if (item.badge && settingsService.$showBadge()) {
                     <div class="w-2 h-2 bg-red-500 rounded-full"></div>
                   }
                   @if (item.children && item.children.length > 0) {
-                    <da-mat-icon
-                      icon="expand_more"
-                      class="transition-transform"
+                    <i
+                      class="pi pi-chevron-down transition-transform"
                       [class.rotate-180]="isRouteExpanded(item)"
-                    />
+                    ></i>
                   }
                 </button>
 
@@ -66,7 +64,7 @@ import { type SettingsRoute, SettingsService } from './settings.service'
                           : 'hover:bg-surface-100 dark:hover:bg-surface-800'"
                         (click)="onChildRouteClick(item, child)"
                       >
-                        <da-mat-icon [icon]="child.icon" size="sm" />
+                        <i class="pi text-sm {{ child.icon }}"></i>
                         <span>{{ child.label }}</span>
                         @if (child.badge && settingsService.$showBadge()) {
                           <div class="w-2 h-2 bg-red-500 rounded-full"></div>
@@ -121,30 +119,30 @@ export class SettingsPanelComponent implements OnInit {
       {
         id: 'general',
         label: '通用',
-        icon: 'settings',
+        icon: 'pi-cog',
       },
       {
         id: 'kazumi',
         label: 'Kazumi',
-        icon: 'extension',
+        icon: 'pi-box',
         badge: true,
         children: [
           {
             id: 'kazumi-manage',
             label: '管理规则',
-            icon: 'list',
+            icon: 'pi-list',
           },
           {
             id: 'kazumi-import',
             label: '导入规则',
-            icon: 'download',
+            icon: 'pi-download',
           },
         ],
       },
       {
         id: 'bangumi',
         label: 'Bangumi',
-        icon: 'movie',
+        icon: 'pi-video',
       },
     ])
   }

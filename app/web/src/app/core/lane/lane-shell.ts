@@ -78,7 +78,7 @@ const FULL_MIN_WIDTH = 360
           />
         }
         <div class="hint">
-          <span class="plus">＋</span>
+          <span class="plus"><i class="pi pi-plus"></i></span>
           点击海报或左侧应用<br />在此打开新的一列
         </div>
       </div>

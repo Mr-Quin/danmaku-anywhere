@@ -24,7 +24,7 @@ import { ThemeService } from '../../../core/theme/theme.service'
       title="调试面板"
       (click)="toggle()"
     >
-      ⛯
+      <i class="pi pi-cog"></i>
     </button>
 
     @if (open()) {

@@ -11,7 +11,6 @@ import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'
 import { Tag } from 'primeng/tag'
 import { TrackingService } from '../../../core/tracking.service'
-import { MaterialIcon } from '../../../shared/components/material-icon'
 import { IMAGE_PLACEHOLDER_DATA } from '../../../shared/placeholder-data'
 
 export interface ShowCardData {
@@ -32,7 +31,7 @@ export interface ShowCardData {
 @Component({
   selector: 'da-show-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, Card, Button, Tag, MaterialIcon, NgOptimizedImage],
+  imports: [CommonModule, Card, Button, Tag, NgOptimizedImage],
   host: {
     'data-testid': 'show-card',
     '[attr.data-subject-id]': 'show().id',
@@ -103,7 +102,7 @@ export interface ShowCardData {
               (click)="emitWatch(showData)"
             >
               <ng-template #icon>
-                <da-mat-icon size="sm" icon="play_arrow" />
+                <i class="pi pi-play text-sm"></i>
               </ng-template>
             </p-button>
           </div>

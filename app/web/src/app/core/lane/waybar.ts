@@ -9,22 +9,8 @@ import {
   PLATFORM_ID,
   signal,
 } from '@angular/core'
-
 import type { Column, ColumnKind } from './lane.types'
-
-const PILL_GLYPH: Partial<Record<ColumnKind, string>> = {
-  trending: '★',
-  calendar: '☷',
-  search: '⌕',
-  rules: '☰',
-  show: '◈',
-  player: '▶',
-  history: '⟲',
-  comments: '💬',
-  showtab: '◈',
-  settings: '⚙',
-  local: '▤',
-}
+import { iconFor } from './lane-icons'
 
 const PILL_TITLE: Partial<Record<ColumnKind, string>> = {
   trending: '热门',
@@ -44,7 +30,7 @@ interface PillView {
   id: string
   kind: ColumnKind
   title: string
-  glyph: string
+  icon: string
   active: boolean
   playing: boolean
 }
@@ -81,7 +67,7 @@ interface PillView {
           @if (pill.playing) {
             <span class="dot"></span>
           } @else {
-            <span class="pglyph">{{ pill.glyph }}</span>
+            <i class="pglyph pi {{ pill.icon }}"></i>
           }
           <span class="ptitle">{{ pill.title }}</span>
           <span
@@ -90,7 +76,7 @@ interface PillView {
             title="关闭"
             (click)="onClose($event, pill.id)"
           >
-            ✕
+            <i class="pi pi-times"></i>
           </span>
         </div>
       }
@@ -102,7 +88,7 @@ interface PillView {
       data-testid="search-trigger"
       (click)="openPalette.emit()"
     >
-      <span class="picon">⌕</span>
+      <i class="picon pi pi-search"></i>
       <span class="ptext">搜索动画、资源…</span>
       <kbd>{{ shortcut }}</kbd>
     </button>
@@ -326,7 +312,7 @@ export class Waybar {
       id: col.id,
       kind: col.kind,
       title: PILL_TITLE[col.kind] ?? col.kind,
-      glyph: PILL_GLYPH[col.kind] ?? '◦',
+      icon: iconFor(col.kind),
       active: col.id === activeId,
       playing: col.id === playingId,
     }))

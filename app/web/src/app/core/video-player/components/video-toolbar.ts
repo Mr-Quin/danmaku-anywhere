@@ -7,13 +7,12 @@ import { Button } from 'primeng/button'
 import { Popover } from 'primeng/popover'
 import { ScrollPanel } from 'primeng/scrollpanel'
 import { Toolbar } from 'primeng/toolbar'
-import { MaterialIcon } from '../../../shared/components/material-icon'
 import { DanmakuService } from '../../danmaku/danmaku.service'
 
 @Component({
   selector: 'da-video-toolbar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Toolbar, Button, ScrollPanel, MaterialIcon, Popover],
+  imports: [Toolbar, Button, ScrollPanel, Popover],
   template: `
     <p-toolbar>
       <ng-template #start>
@@ -23,7 +22,7 @@ import { DanmakuService } from '../../danmaku/danmaku.service'
           text
         >
           <ng-template #icon>
-            <da-mat-icon icon="format_list_bulleted" />
+            <i class="pi pi-list"></i>
           </ng-template>
         </p-button>
       </ng-template>
@@ -40,7 +39,7 @@ import { DanmakuService } from '../../danmaku/danmaku.service'
               text
             >
               <ng-template #icon>
-                <da-mat-icon icon="close" />
+                <i class="pi pi-times"></i>
               </ng-template>
             </p-button>
           </div>
