@@ -20,9 +20,9 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ShowCalendarGrid],
   template: `
-    <div class="container mx-auto p-4">
-      <div class="mb-6">
-        <h1 class="text-3xl font-bold mb-2">放送日历</h1>
+    <div class="w-full p-3">
+      <div class="mb-4">
+        <h1 class="text-2xl font-bold">放送日历</h1>
       </div>
 
       @if (calendarQuery.isPending()) {

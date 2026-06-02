@@ -1,5 +1,6 @@
-import { CommonModule } from '@angular/common'
+import { CommonModule, isPlatformBrowser } from '@angular/common'
 import {
+  afterNextRender,
   booleanAttribute,
   ChangeDetectionStrategy,
   Component,
@@ -9,7 +10,9 @@ import {
   effect,
   inject,
   input,
+  numberAttribute,
   output,
+  PLATFORM_ID,
   signal,
   type TemplateRef,
   viewChild,
@@ -33,11 +36,31 @@ export type VirtualGridItem =
 
 export type ColumnConfig = number | Partial<Record<ScreenSize, number>>
 
+function findScrollAncestor(start: Element | null): Element | null {
+  let el = start?.parentElement ?? null
+  while (el) {
+    if (el.hasAttribute('data-colscroll')) {
+      return el
+    }
+    el = el.parentElement
+  }
+  el = start?.parentElement ?? null
+  while (el) {
+    const overflowY = getComputedStyle(el).overflowY
+    if (overflowY === 'auto' || overflowY === 'scroll') {
+      return el
+    }
+    el = el.parentElement
+  }
+  return null
+}
+
 @Component({
   selector: 'da-virtualized-grid',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule],
   template: `
+    <div #root class="w-full">
     @if (isLoading()) {
       <div class="grid gap-4 w-full"
            [style.grid-template-columns]="'repeat('+$columns()+', minmax(0, 1fr))'">
@@ -83,10 +106,13 @@ export type ColumnConfig = number | Partial<Record<ScreenSize, number>>
         }
       </div>
     }
+    </div>
   `,
 })
 export class VirtualizedGrid {
   protected layoutService = inject(LayoutService)
+  private readonly platformId = inject(PLATFORM_ID)
+  private readonly isBrowser = isPlatformBrowser(this.platformId)
 
   skeleton = contentChild<TemplateRef<unknown>>('skeleton')
   error = contentChild<TemplateRef<unknown>>('error')
@@ -101,26 +127,37 @@ export class VirtualizedGrid {
   pageSize = input<number>(20)
   gap = input<number>(16)
   estimateHeight = input<number>(400)
-  columnConfig = input<ColumnConfig>(1)
-  windowVirtualizer = input(true, { transform: booleanAttribute })
+  columnConfig = input<ColumnConfig>()
+  minColumnWidth = input(180, { transform: numberAttribute })
+  windowVirtualizer = input(false, { transform: booleanAttribute })
   scrollElement = input<ElementRef<Element>>()
 
   onLoadMore = output<void | Promise<void>>()
 
+  protected $root = viewChild.required<ElementRef<HTMLDivElement>>('root')
   protected $container = viewChild<ElementRef<HTMLDivElement>>('container')
   protected $virtualItems =
     viewChildren<ElementRef<HTMLDivElement>>('virtualItem')
 
   protected $scrollMargin = signal(0)
+  private $containerWidth = signal(0)
+  private $resolvedScrollElement = signal<Element | null>(null)
 
   protected $columns = computed(() => {
     const columnConfig = this.columnConfig()
+    // an explicit config is a lock; callers that want fluid width-based
+    // columns leave it unset and rely on minColumnWidth instead
     if (typeof columnConfig === 'number') {
       return columnConfig
     }
-    const size = this.layoutService.$screenSize()
     if (columnConfig) {
+      const size = this.layoutService.$screenSize()
       return columnConfig[size] ?? columnConfig.xl ?? 1
+    }
+    const width = this.$containerWidth()
+    const minWidth = this.minColumnWidth()
+    if (width > 0 && minWidth > 0) {
+      return Math.max(1, Math.floor(width / minWidth))
     }
     return 1
   })
@@ -178,6 +215,14 @@ export class VirtualizedGrid {
     return rows
   })
 
+  private $scrollElementForVirtualizer = computed(() => {
+    const provided = this.scrollElement()
+    if (provided) {
+      return provided
+    }
+    return this.$resolvedScrollElement() ?? undefined
+  })
+
   rowWindowVirtualizer = injectWindowVirtualizer(() => {
     return {
       enabled: this.windowVirtualizer(),
@@ -191,7 +236,7 @@ export class VirtualizedGrid {
   rowNormalVirtualizer = injectVirtualizer(() => {
     return {
       enabled: !this.windowVirtualizer(),
-      scrollElement: this.scrollElement(),
+      scrollElement: this.$scrollElementForVirtualizer(),
       count: this.$rows().length,
       estimateSize: () => this.estimateHeight(),
       gap: this.gap(),
@@ -205,10 +250,33 @@ export class VirtualizedGrid {
       : this.rowNormalVirtualizer
   }
 
-  private $fetchedNext = signal(false)
+  private $loadMoreArmed = signal(true)
+  private lastItemCount = 0
+  private readonly loadMoreThreshold = 300
 
   constructor() {
-    // check scroll margin
+    afterNextRender(() => {
+      if (!this.isBrowser) {
+        return
+      }
+      const rootEl = this.$root().nativeElement
+      this.$containerWidth.set(rootEl.clientWidth)
+      const observer = new ResizeObserver((entries) => {
+        const entry = entries[0]
+        if (entry) {
+          this.$containerWidth.set(entry.contentRect.width)
+        }
+      })
+      observer.observe(rootEl)
+
+      if (!this.windowVirtualizer() && !this.scrollElement()) {
+        this.$resolvedScrollElement.set(findScrollAncestor(rootEl))
+      }
+
+      this.attachLoadMoreListener()
+    })
+
+    // window virtualizer needs the offset of the grid within the page
     effect(() => {
       const container = this.$container()
       if (!container || !this.windowVirtualizer()) {
@@ -227,31 +295,65 @@ export class VirtualizedGrid {
       })
     })
 
-    // fetch next page
+    // re-arm load-more only when a new page of items actually arrived, then
+    // top up if the content still does not fill the scroll container
     effect(() => {
-      if (!this.isInfiniteScroll() || this.isFetchingNext()) {
-        return
-      }
-
-      const lastItem =
-        this.rowVirtualizer.getVirtualItems()[
-          this.rowVirtualizer.getVirtualItems().length - 1
-        ]
-
-      if (!lastItem) {
-        return
-      }
-
-      if (lastItem.index >= this.$rows().length - 1 && !this.$fetchedNext()) {
-        this.$fetchedNext.set(true)
-        this.onLoadMore.emit()
-
-        // throttle for a little bit
-        setTimeout(() => {
-          this.$fetchedNext.set(false)
-        }, 100)
+      const count = this.items().length
+      if (count > this.lastItemCount) {
+        this.lastItemCount = count
+        this.$loadMoreArmed.set(true)
+        if (this.isInfiniteScroll() && !this.isFetchingNext()) {
+          this.maybeLoadMore()
+        }
       }
     })
+  }
+
+  private attachLoadMoreListener(): void {
+    const provided = this.scrollElement()?.nativeElement
+    const target: Element | Window =
+      provided ?? this.$resolvedScrollElement() ?? window
+    target.addEventListener(
+      'scroll',
+      () => {
+        if (this.isInfiniteScroll()) {
+          this.maybeLoadMore()
+        }
+      },
+      { passive: true }
+    )
+  }
+
+  private nearBottom(): boolean {
+    const provided = this.scrollElement()?.nativeElement
+    const el = provided ?? this.$resolvedScrollElement()
+    if (el) {
+      const remaining = el.scrollHeight - el.scrollTop - el.clientHeight
+      return remaining <= this.loadMoreThreshold
+    }
+    if (!this.isBrowser) {
+      return false
+    }
+    const doc = document.documentElement
+    const remaining = doc.scrollHeight - window.scrollY - window.innerHeight
+    return remaining <= this.loadMoreThreshold
+  }
+
+  private maybeLoadMore(): void {
+    if (
+      !this.isInfiniteScroll() ||
+      this.isFetchingNext() ||
+      !this.$loadMoreArmed()
+    ) {
+      return
+    }
+    if (this.items().length === 0) {
+      return
+    }
+    if (this.nearBottom()) {
+      this.$loadMoreArmed.set(false)
+      this.onLoadMore.emit()
+    }
   }
 
   protected getRowItems(rowIndex: number): VirtualGridItem[] {

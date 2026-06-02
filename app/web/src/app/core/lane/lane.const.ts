@@ -29,6 +29,10 @@ export const WIDTH_STEPS: Partial<Record<ColumnKind, number[]>> & {
   _: [380, 480, 640],
 }
 
+// Bounds for drag-resizing a column.
+export const MIN_WIDTH = 300
+export const MAX_WIDTH = 1400
+
 export const DEFAULT_LANDING: ColumnKind = 'trending'
 
 export const EXT_REQUIRED_KINDS = new Set<ColumnKind>([

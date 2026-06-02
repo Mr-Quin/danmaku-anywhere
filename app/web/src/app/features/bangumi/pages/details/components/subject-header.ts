@@ -25,20 +25,20 @@ import type { BgmSubject } from '../../../types/bangumi.types'
   template: `
     @let subjectData = subject();
     <div class="mb-6">
-      <div class="flex flex-col lg:flex-row gap-6">
+      <div class="header-layout">
         <div class="flex-shrink-0">
           <img
             [src]="subjectData.images?.large || subjectData.images?.common"
             [alt]="subjectData.name"
-            class="w-48 lg:w-56 aspect-[2/3] object-cover rounded-lg shadow-lg"
+            class="poster aspect-[2/3] object-cover rounded-lg shadow-lg"
           />
         </div>
 
-        <div class="flex-1 space-y-4">
-          <div class="flex justify-between items-start">
-            <div>
+        <div class="flex-1 space-y-4 min-w-0">
+          <div class="flex flex-wrap justify-between items-start gap-2">
+            <div class="min-w-0">
               <div class="flex items-baseline gap-4">
-                <h1 class="text-2xl lg:text-3xl font-bold mb-1">
+                <h1 class="text-2xl font-bold mb-1">
                   {{ subjectData.nameCN || subjectData.name }}
                 </h1>
                 @if (subjectData.rating.rank) {
@@ -48,7 +48,7 @@ import type { BgmSubject } from '../../../types/bangumi.types'
                 }
               </div>
               @if (subjectData.nameCN && subjectData.name !== subjectData.nameCN) {
-                <p class="text-lg lg:text-xl text-gray-600">
+                <p class="text-lg text-gray-600">
                   {{ subjectData.name }}
                 </p>
               }
@@ -93,7 +93,7 @@ import type { BgmSubject } from '../../../types/bangumi.types'
             </div>
           }
 
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 text-sm">
+          <div class="info-grid gap-4 text-sm">
             <div class="space-y-2">
               @if (subjectData.airtime.date) {
                 <p><strong>放送日期:</strong> {{ subjectData.airtime.date }}</p>
@@ -156,6 +156,36 @@ import type { BgmSubject } from '../../../types/bangumi.types'
         </div>
       </div>
     </div>
+  `,
+  styles: `
+    .header-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .poster {
+      width: 10rem;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+    }
+
+    @container (min-width: 640px) {
+      .header-layout {
+        flex-direction: row;
+      }
+
+      .poster {
+        width: 12rem;
+      }
+
+      .info-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
   `,
 })
 export class SubjectHeader {
