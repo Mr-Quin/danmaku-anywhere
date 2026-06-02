@@ -400,10 +400,26 @@ export class LaneShell {
       this.store.setFloating(ratio < 0.5)
     }
 
-    lane.addEventListener('scroll', recompute, { passive: true })
+    // Coalesce scroll handling into a single animation frame so the
+    // getBoundingClientRect reads do not thrash layout on every scroll event.
+    let frameId: number | null = null
+    const onScroll = () => {
+      if (frameId !== null) {
+        return
+      }
+      frameId = requestAnimationFrame(() => {
+        frameId = null
+        recompute()
+      })
+    }
+
+    lane.addEventListener('scroll', onScroll, { passive: true })
     const timer = setTimeout(recompute, 80)
     this.destroyRef.onDestroy(() => {
-      lane.removeEventListener('scroll', recompute)
+      lane.removeEventListener('scroll', onScroll)
+      if (frameId !== null) {
+        cancelAnimationFrame(frameId)
+      }
       clearTimeout(timer)
     })
   }

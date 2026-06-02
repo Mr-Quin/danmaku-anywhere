@@ -85,7 +85,7 @@ export interface PaletteWatch {
         }
         <div class="eyebrow">动画 · {{ shows().length }}</div>
         @for (show of shows(); track show.id) {
-          <button type="button" class="row" (click)="onDetails(show)">
+          <div class="row" (click)="onDetails(show)">
             <span class="swatch"></span>
             <span class="label">{{ show.short }}</span>
             <span class="hint">#{{ show.id }} · ★{{ show.rating.toFixed(1) }}</span>
@@ -96,7 +96,7 @@ export interface PaletteWatch {
             >
               ▶ 观看
             </span>
-          </button>
+          </div>
         }
         @if (!shows().length && !apps().length) {
           <div class="empty">无结果</div>
