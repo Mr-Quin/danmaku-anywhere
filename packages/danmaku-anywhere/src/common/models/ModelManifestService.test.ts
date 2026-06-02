@@ -1,17 +1,15 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { ILogger } from '@/common/Logger'
 import { BASELINE_MANIFEST } from './baseline'
-import {
-  type ModelManifestIo,
-  ModelManifestService,
-} from './ModelManifestService'
+import { ModelManifestService } from './ModelManifestService'
 
 /**
- * Exercises ModelManifestService resolution: a fresh cache short-circuits the
- * network, a stale or absent cache triggers a fetch, an HTTP error or invalid
- * payload falls back to the cached-then-baseline manifest, a successful fetch is
- * written back to the cache, and resolveModel falls back to the default id when
- * a saved id is missing. IO is faked so no real network or storage is touched.
+ * Exercises ModelManifestService resolution: a successful fetch validates and is
+ * served (and cached in memory for the session), a fetch error or invalid
+ * payload falls back to the baseline, a failed refresh keeps the manifest
+ * already resolved this session, resolveModel falls back to the default id, and
+ * lazy loads use the HTTP cache while refresh bypasses it. A fake fetch stands
+ * in for the network.
  */
 
 function makeLogger(): ILogger {
@@ -49,16 +47,6 @@ const remoteManifest = {
   ],
 }
 
-function makeIo(overrides: Partial<ModelManifestIo> = {}): ModelManifestIo {
-  return {
-    fetch: vi.fn(),
-    now: () => 1_000_000,
-    readCache: vi.fn().mockResolvedValue(null),
-    writeCache: vi.fn().mockResolvedValue(undefined),
-    ...overrides,
-  }
-}
-
 function jsonResponse(body: unknown): Response {
   return {
     ok: true,
@@ -67,142 +55,83 @@ function jsonResponse(body: unknown): Response {
   } as unknown as Response
 }
 
-let logger: ILogger
-
-beforeEach(() => {
-  logger = makeLogger()
-})
+function make(fetchFn: typeof fetch) {
+  return new ModelManifestService(makeLogger(), fetchFn)
+}
 
 describe('ModelManifestService', () => {
-  it('fetches and caches the remote manifest when no cache exists', async () => {
-    const io = makeIo({
-      fetch: vi.fn().mockResolvedValue(jsonResponse(remoteManifest)),
-    })
-    const service = new ModelManifestService(logger, io)
-
-    const models = await service.listModels()
-
-    expect(models.map((m) => m.id)).toEqual(['people', 'fast-anime'])
-    expect(io.fetch).toHaveBeenCalledTimes(1)
-    expect(io.writeCache).toHaveBeenCalledWith({
-      manifest: expect.objectContaining({ version: 2 }),
-      fetchedAt: 1_000_000,
-    })
-  })
-
-  it('bypasses the HTTP/CDN cache when fetching the manifest', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(remoteManifest))
-    const service = new ModelManifestService(
-      logger,
-      makeIo({ fetch: fetchMock })
+  it('fetches and validates the remote manifest', async () => {
+    const service = make(
+      vi.fn().mockResolvedValue(jsonResponse(remoteManifest))
     )
 
-    await service.listModels()
-
-    const [url, init] = fetchMock.mock.calls[0]
-    expect(url).toMatch(/\?t=/)
-    expect(init).toMatchObject({ cache: 'no-store' })
+    expect((await service.listModels()).map((m) => m.id)).toEqual([
+      'people',
+      'fast-anime',
+    ])
   })
 
-  it('uses a fresh cached manifest without fetching', async () => {
-    const io = makeIo({
-      fetch: vi.fn(),
-      now: () => 1_000_000,
-      readCache: vi
-        .fn()
-        .mockResolvedValue({ manifest: remoteManifest, fetchedAt: 999_000 }),
-    })
-    const service = new ModelManifestService(logger, io)
-
-    const models = await service.listModels()
-
-    expect(models.map((m) => m.id)).toEqual(['people', 'fast-anime'])
-    expect(io.fetch).not.toHaveBeenCalled()
-  })
-
-  it('refetches when the cached manifest is older than the TTL', async () => {
-    const io = makeIo({
-      fetch: vi.fn().mockResolvedValue(jsonResponse(remoteManifest)),
-      now: () => 100 * 60 * 60 * 1000,
-      readCache: vi
-        .fn()
-        .mockResolvedValue({ manifest: BASELINE_MANIFEST, fetchedAt: 0 }),
-    })
-    const service = new ModelManifestService(logger, io)
+  it('caches the manifest in memory for the session', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse(remoteManifest))
+    const service = make(fetchFn)
 
     await service.listModels()
+    await service.getModel('people')
 
-    expect(io.fetch).toHaveBeenCalledTimes(1)
+    expect(fetchFn).toHaveBeenCalledTimes(1)
   })
 
-  it('falls back to the baseline when the fetch fails and no cache exists', async () => {
-    const io = makeIo({
-      fetch: vi.fn().mockRejectedValue(new Error('offline')),
-    })
-    const service = new ModelManifestService(logger, io)
+  it('lazy loads ride the HTTP cache; refresh bypasses it', async () => {
+    const fetchFn = vi.fn().mockResolvedValue(jsonResponse(remoteManifest))
+    const service = make(fetchFn)
 
-    const models = await service.listModels()
+    await service.listModels()
+    expect(fetchFn.mock.calls[0][0]).toBe(
+      'https://assets.danmaku.weeblify.app/models/manifest.json'
+    )
+    expect(fetchFn.mock.calls[0][1]).toMatchObject({ cache: 'default' })
 
-    expect(models.map((m) => m.id)).toEqual(
+    await service.refresh()
+    expect(fetchFn.mock.calls[1][0]).toMatch(/\?t=\d+$/)
+    expect(fetchFn.mock.calls[1][1]).toMatchObject({ cache: 'no-store' })
+  })
+
+  it('falls back to the baseline when the fetch fails', async () => {
+    const service = make(vi.fn().mockRejectedValue(new Error('offline')))
+
+    expect((await service.listModels()).map((m) => m.id)).toEqual(
       BASELINE_MANIFEST.models.map((m) => m.id)
     )
   })
 
-  it('falls back to the stale cache when the fetch fails', async () => {
-    const io = makeIo({
-      fetch: vi.fn().mockRejectedValue(new Error('offline')),
-      now: () => 100 * 60 * 60 * 1000,
-      readCache: vi
-        .fn()
-        .mockResolvedValue({ manifest: remoteManifest, fetchedAt: 0 }),
-    })
-    const service = new ModelManifestService(logger, io)
+  it('falls back to the baseline when the payload is invalid', async () => {
+    const service = make(
+      vi.fn().mockResolvedValue(jsonResponse({ version: 1, models: [] }))
+    )
 
-    const models = await service.listModels()
-
-    expect(models.map((m) => m.id)).toEqual(['people', 'fast-anime'])
-  })
-
-  it('falls back to the baseline when the remote payload is invalid', async () => {
-    const io = makeIo({
-      fetch: vi
-        .fn()
-        .mockResolvedValue(jsonResponse({ version: 1, models: [] })),
-    })
-    const service = new ModelManifestService(logger, io)
-
-    const models = await service.listModels()
-
-    expect(models.map((m) => m.id)).toEqual(
+    expect((await service.listModels()).map((m) => m.id)).toEqual(
       BASELINE_MANIFEST.models.map((m) => m.id)
     )
+  })
+
+  it('keeps the session manifest when a refresh fails', async () => {
+    const fetchFn = vi
+      .fn()
+      .mockResolvedValueOnce(jsonResponse(remoteManifest))
+      .mockRejectedValueOnce(new Error('offline'))
+    const service = make(fetchFn)
+
+    await service.listModels()
+    const afterRefresh = await service.refresh()
+
+    expect(afterRefresh.map((m) => m.id)).toEqual(['people', 'fast-anime'])
   })
 
   it('resolves a missing id to the default model', async () => {
-    const io = makeIo({
-      fetch: vi.fn().mockResolvedValue(jsonResponse(remoteManifest)),
-    })
-    const service = new ModelManifestService(logger, io)
+    const service = make(
+      vi.fn().mockResolvedValue(jsonResponse(remoteManifest))
+    )
 
-    const resolved = await service.resolveModel('does-not-exist')
-
-    expect(resolved.id).toBe('people')
-  })
-
-  it('forces a re-fetch on refresh', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(jsonResponse(remoteManifest))
-    const io = makeIo({
-      fetch: fetchMock,
-      readCache: vi
-        .fn()
-        .mockResolvedValue({ manifest: remoteManifest, fetchedAt: 1_000_000 }),
-    })
-    const service = new ModelManifestService(logger, io)
-
-    await service.listModels()
-    expect(fetchMock).not.toHaveBeenCalled()
-
-    await service.refresh()
-    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect((await service.resolveModel('does-not-exist')).id).toBe('people')
   })
 })

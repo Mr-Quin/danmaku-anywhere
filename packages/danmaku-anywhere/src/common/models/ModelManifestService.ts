@@ -8,69 +8,29 @@ import {
   modelManifestSchema,
 } from './schema'
 
-const TTL_MS = 24 * 60 * 60 * 1000
-const CACHE_KEY = 'modelManifestCache'
-
-interface ManifestCacheRecord {
-  manifest: ModelManifest
-  fetchedAt: number
-}
-
-/** IO surface the service depends on; tests inject a fake. */
-export interface ModelManifestIo {
-  fetch: typeof fetch
-  now: () => number
-  readCache: () => Promise<unknown>
-  writeCache: (record: ManifestCacheRecord) => Promise<void>
-}
-
-export const ModelManifestIoSymbol = Symbol.for('ModelManifestIo')
-
-function createDefaultIo(): ModelManifestIo {
-  return {
-    fetch: globalThis.fetch.bind(globalThis),
-    now: () => Date.now(),
-    async readCache() {
-      const area = globalThis.chrome?.storage?.local
-      if (!area) {
-        return null
-      }
-      const res = await area.get(CACHE_KEY)
-      return res?.[CACHE_KEY] ?? null
-    },
-    async writeCache(record) {
-      const area = globalThis.chrome?.storage?.local
-      if (!area) {
-        return
-      }
-      await area.set({ [CACHE_KEY]: record })
-    },
-  }
-}
+/** Test seam: lets unit tests inject a fake fetch so no network is touched. */
+export const ModelManifestFetchSymbol = Symbol.for('ModelManifestFetch')
 
 /**
- * Single source of truth for the available segmentation models. Resolves the
- * hosted manifest (fetched from R2, validated, cached in chrome.storage.local
- * for ~24h) and falls back to the bundled baseline when the network or payload
- * is bad, so occlusion keeps working offline and before the manifest exists.
- * Replaces the old static descriptor map; OPFS-bound, so it lives in the
- * background worker and the rest of the extension reaches it over RPC.
+ * Single source of truth for the available segmentation models: fetches the
+ * hosted manifest from R2, validates it, and falls back to the bundled baseline
+ * when the network or payload is bad (so occlusion works offline and before the
+ * manifest is uploaded). Persistence across worker restarts is the browser HTTP
+ * cache's job, governed by the manifest's Cache-Control; the manual refresh
+ * bypasses that cache. Lives in the background worker; reached over RPC.
  */
 @injectable('Singleton')
 export class ModelManifestService {
   private readonly logger: ILogger
-  private readonly io: ModelManifestIo
+  private readonly fetchFn: typeof fetch
   private cache?: ModelManifest
-  // Coalesces concurrent first-time resolves (e.g. occlusion start + the
-  // settings UI opening at once) into a single storage read / network fetch.
-  private manifestPromise?: Promise<ModelManifest>
 
   constructor(
     @inject(LoggerSymbol) logger: ILogger,
-    @optional() @inject(ModelManifestIoSymbol) io?: ModelManifestIo
+    @optional() @inject(ModelManifestFetchSymbol) fetchFn?: typeof fetch
   ) {
     this.logger = logger.sub('[ModelManifestService]')
-    this.io = io ?? createDefaultIo()
+    this.fetchFn = fetchFn ?? globalThis.fetch.bind(globalThis)
   }
 
   async listModels(): Promise<ModelEntry[]> {
@@ -91,85 +51,42 @@ export class ModelManifestService {
     )
   }
 
-  /** Forces a re-fetch regardless of the cache TTL (the manual refresh button). */
+  /** Manual refresh: bypass the cache to pick up a just-uploaded manifest. */
   async refresh(): Promise<ModelEntry[]> {
-    // Let any in-flight first-load settle first so its later cache write cannot
-    // clobber the fresher manifest this fetch is about to store.
-    if (this.manifestPromise) {
-      await this.manifestPromise.catch(() => undefined)
-    }
-    this.cache = await this.fetchRemote(this.cache)
+    this.cache = await this.fetchManifest(true)
     return this.cache.models
   }
 
   private async getManifest(): Promise<ModelManifest> {
-    if (this.cache) {
-      return this.cache
+    if (!this.cache) {
+      this.cache = await this.fetchManifest(false)
     }
-    if (!this.manifestPromise) {
-      this.manifestPromise = this.loadManifest().finally(() => {
-        this.manifestPromise = undefined
-      })
-    }
-    return this.manifestPromise
-  }
-
-  private async loadManifest(): Promise<ModelManifest> {
-    const record = this.parseRecord(await this.io.readCache().catch(() => null))
-    if (record && this.io.now() - record.fetchedAt < TTL_MS) {
-      this.cache = record.manifest
-      return this.cache
-    }
-    this.cache = await this.fetchRemote(record?.manifest)
     return this.cache
   }
 
-  private async fetchRemote(
-    fallback: ModelManifest | undefined
-  ): Promise<ModelManifest> {
+  private async fetchManifest(bypassCache: boolean): Promise<ModelManifest> {
     if (IS_DA_E2E) {
-      return fallback ?? BASELINE_MANIFEST
+      return BASELINE_MANIFEST
     }
     try {
-      // The manifest is a mutable pointer, so bypass the HTTP/CDN cache: a
-      // unique query defeats a stale CDN edge copy and `no-store` skips the
-      // browser cache, so a fresh upload (and the manual refresh) is seen
-      // immediately. Our chrome.storage record is the intended cache layer.
-      // Time-box the fetch so a hanging connection falls back quickly instead
-      // of stalling occlusion startup.
-      const res = await this.io.fetch(`${MANIFEST_URL}?t=${this.io.now()}`, {
-        cache: 'no-store',
+      // Lazy loads ride the browser HTTP cache (the manifest's Cache-Control is
+      // the TTL). The manual refresh bypasses it with a unique query + no-store
+      // so a just-uploaded manifest is seen immediately even behind a CDN.
+      const url = bypassCache ? `${MANIFEST_URL}?t=${Date.now()}` : MANIFEST_URL
+      const res = await this.fetchFn(url, {
+        cache: bypassCache ? 'no-store' : 'default',
         signal: AbortSignal.timeout(5000),
       })
       if (!res.ok) {
         throw new Error(`manifest fetch failed (${res.status})`)
       }
-      const manifest = modelManifestSchema.parse(await res.json())
-      await this.io
-        .writeCache({ manifest, fetchedAt: this.io.now() })
-        .catch(() => undefined)
-      return manifest
+      return modelManifestSchema.parse(await res.json())
     } catch (e) {
       const detail = e instanceof Error ? e.message : String(e)
-      this.logger.debug(
-        `falling back to ${fallback ? 'cached' : 'baseline'} manifest: ${detail}`
-      )
-      return fallback ?? BASELINE_MANIFEST
+      this.logger.debug(`falling back to baseline manifest: ${detail}`)
+      // Keep a manifest already resolved this session; only cold-start failures
+      // land on the baseline.
+      return this.cache ?? BASELINE_MANIFEST
     }
-  }
-
-  private parseRecord(raw: unknown): ManifestCacheRecord | null {
-    if (!raw || typeof raw !== 'object') {
-      return null
-    }
-    const record = raw as { manifest?: unknown; fetchedAt?: unknown }
-    if (typeof record.fetchedAt !== 'number') {
-      return null
-    }
-    const parsed = modelManifestSchema.safeParse(record.manifest)
-    if (!parsed.success) {
-      return null
-    }
-    return { manifest: parsed.data, fetchedAt: record.fetchedAt }
   }
 }

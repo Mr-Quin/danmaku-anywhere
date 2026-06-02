@@ -6,38 +6,13 @@ import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
 /**
- * Model management UI in the occlusion settings: with a seeded manifest and a
- * fake model blob written into the extension-origin OPFS (shared with the
- * background worker), the popup lists the models, reflects the OPFS download
+ * Model management UI in the occlusion settings, against the bundled baseline
+ * (people + the hosted anime model) and the real background-worker OPFS. A fake
+ * model blob is written into the extension-origin OPFS the worker shares with
+ * the segmenter iframe; the popup then lists the models, reflects that download
  * state, switches the active model (persisting to danmakuOptions), and on delete
- * evicts the OPFS file and falls back to the default model. No real download or
- * manifest fetch happens; the manifest is seeded into the cache.
+ * actually evicts the OPFS file. No real model download or manifest fetch.
  */
-
-const MANIFEST = {
-  version: 99,
-  models: [
-    {
-      id: 'people',
-      label: { en: 'People', zh: '真人' },
-      runtime: 'mediapipe',
-      delivery: 'bundled',
-      inputSize: 256,
-      requiresWebGpu: false,
-    },
-    {
-      // Hosted but WebGPU-free so its picker radio is selectable in CI.
-      id: 'isnet-cpu',
-      label: { en: 'ISNet CPU', zh: '测试模型' },
-      runtime: 'ort',
-      delivery: 'hosted',
-      url: 'https://assets.danmaku.weeblify.app/models/isnet-cpu.onnx',
-      sha256: 'c'.repeat(64),
-      inputSize: 320,
-      requiresWebGpu: false,
-    },
-  ],
-}
 
 function seedModelFile(
   context: BrowserContext,
@@ -66,19 +41,17 @@ function modelFileSize(
     try {
       const root = await navigator.storage.getDirectory()
       const handle = await root.getFileHandle(name)
-      const file = await handle.getFile()
-      return file.size
+      return (await handle.getFile()).size
     } catch {
       return null
     }
   }, id)
 }
 
-async function activeModel(da: Awaited<ReturnType<typeof getDaClient>>) {
-  const stored = (await da.storage.get('sync', 'danmakuOptions')) as {
-    data: { occlusionModel: string }
-  }
-  return stored.data.occlusionModel
+function activeModel(da: Awaited<ReturnType<typeof getDaClient>>) {
+  return da.storage.get('sync', 'danmakuOptions').then((stored) => {
+    return (stored as { data: { occlusionModel: string } }).data.occlusionModel
+  })
 }
 
 test('occlusion models: lists, reflects OPFS state, switches active, and evicts on delete', async ({
@@ -89,47 +62,38 @@ test('occlusion models: lists, reflects OPFS state, switches active, and evicts 
   await applyProfile(context, da, {
     rawStorage: [
       {
-        area: 'local',
-        key: 'modelManifestCache',
-        value: { manifest: MANIFEST, fetchedAt: Date.now() },
-      },
-      {
         area: 'sync',
         key: 'danmakuOptions',
         value: {
-          data: { ...defaultDanmakuOptions, occlusion: true },
+          data: {
+            ...defaultDanmakuOptions,
+            occlusion: true,
+            occlusionModel: 'anime',
+          },
           version: 10,
         },
       },
     ],
   })
-  await seedModelFile(context, 'isnet-cpu', 4096)
+  // The anime model is hosted: pre-seed its OPFS file so it reads as downloaded.
+  await seedModelFile(context, 'anime', 4096)
 
   const page = await context.newPage()
   await Popup.open(page, extensionId, '/styles')
 
   // Direct testids rather than a POM: this is the only spec touching the model
-  // manager, and its rows expose stable data-testids, so a dedicated POM method
-  // per action would not earn its keep here.
-  const hostedRow = page.getByTestId('occlusion-model-isnet-cpu')
-  await expect(hostedRow).toBeVisible()
+  // manager and its rows expose stable data-testids.
+  await expect(page.getByTestId('occlusion-model-people')).toBeVisible()
   // A delete action is only offered for a downloaded hosted model.
-  await expect(
-    page.getByTestId('occlusion-model-delete-isnet-cpu')
-  ).toBeVisible()
-  await expect(
-    page.getByTestId('occlusion-model-people').getByRole('radio')
-  ).toBeChecked()
+  await expect(page.getByTestId('occlusion-model-delete-anime')).toBeVisible()
 
-  await hostedRow.getByRole('radio').check()
-  await expect.poll(() => activeModel(da)).toBe('isnet-cpu')
-
-  await page.getByTestId('occlusion-model-delete-isnet-cpu').click()
-  // The OPFS file is evicted and the row now offers a download instead.
-  await expect(
-    page.getByTestId('occlusion-model-download-isnet-cpu')
-  ).toBeVisible()
-  await expect.poll(() => modelFileSize(context, 'isnet-cpu')).toBeNull()
-  // Deleting the active model falls back to the default.
+  // Switch the active model (anime's radio is WebGPU-gated in CI; the people
+  // radio drives the switch) and confirm it persists to danmakuOptions.
+  await page.getByTestId('occlusion-model-people').getByRole('radio').check()
   await expect.poll(() => activeModel(da)).toBe('people')
+
+  // Delete evicts the OPFS file and the row flips to offering a download.
+  await page.getByTestId('occlusion-model-delete-anime').click()
+  await expect(page.getByTestId('occlusion-model-download-anime')).toBeVisible()
+  await expect.poll(() => modelFileSize(context, 'anime')).toBeNull()
 })
