@@ -17,10 +17,11 @@ import type { Column } from '../lane.types'
     'data-kind': 'comments',
   },
   template: `
-    @let column = comments();
-    <div class="p-4 h-full">
-      <da-comments-tab [subjectId]="column.subjectId" [visited]="true" />
-    </div>
+    @if (comments(); as column) {
+      <div class="p-4 h-full">
+        <da-comments-tab [subjectId]="column.subjectId" [visited]="true" />
+      </div>
+    }
   `,
   styles: `
     :host {
@@ -32,11 +33,11 @@ import type { Column } from '../lane.types'
 export class CommentsColumn {
   readonly col = input.required<Column>()
 
+  // Returns null (rather than throwing) when the dynamically-bound column is
+  // momentarily a different kind during NgComponentOutlet switching; the
+  // template @if then renders nothing instead of crashing change detection.
   protected readonly comments = computed(() => {
     const column = this.col()
-    if (column.kind !== 'comments') {
-      throw new Error('CommentsColumn requires a comments column')
-    }
-    return column
+    return column.kind === 'comments' ? column : null
   })
 }

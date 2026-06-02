@@ -456,8 +456,10 @@ export class LaneShell {
 
   private listenKeyboard() {
     const onKey = (event: KeyboardEvent) => {
-      const tag = (event.target as HTMLElement | null)?.tagName ?? ''
-      const inField = /input|textarea/i.test(tag)
+      const target = event.target as HTMLElement | null
+      const tag = target?.tagName ?? ''
+      const inField =
+        /input|textarea/i.test(tag) || target?.isContentEditable === true
 
       if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k') {
         event.preventDefault()

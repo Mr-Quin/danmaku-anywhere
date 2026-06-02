@@ -35,7 +35,7 @@ import type { Column } from '../lane.types'
     'data-kind': 'showtab',
   },
   template: `
-    @let column = showtab();
+    @if (showtab(); as column) {
     <div class="p-4">
       @switch (column.tab) {
         @case ('comments') {
@@ -72,6 +72,7 @@ import type { Column } from '../lane.types'
         }
       }
     </div>
+    }
   `,
   styles: `
     :host {
@@ -85,12 +86,11 @@ export class ShowtabColumn {
 
   private readonly store = inject(LaneStore)
 
+  // Null (not throw) on a transient kind mismatch during NgComponentOutlet
+  // switching; the template @if then renders nothing instead of crashing.
   protected readonly showtab = computed(() => {
     const column = this.col()
-    if (column.kind !== 'showtab') {
-      throw new Error('ShowtabColumn requires a showtab column')
-    }
-    return column
+    return column.kind === 'showtab' ? column : null
   })
 
   onOpenDetails(subjectId: number) {
