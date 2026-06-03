@@ -35,8 +35,6 @@ export interface IDanmakuProvider {
 
   getDanmaku(request: DanmakuFetchByMeta): Promise<CommentEntity[]>
 
-  preloadNextEpisode?(request: DanmakuFetchByMeta): Promise<void>
-
   findEpisode?(
     season: Season,
     episodeNumber: number
