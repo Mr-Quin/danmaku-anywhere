@@ -219,11 +219,16 @@ export class RpcManager {
           // or DB error does not bubble up as an unhandled RPC error.
           try {
             const { autoBookmark } = await this.extensionOptionsService.get()
-            await this.bookmarkService.preloadNextEpisode(
+            const bookmarked = await this.bookmarkService.preloadNextEpisode(
               data,
               this.providerService,
               autoBookmark
             )
+            // Auto-bookmark happens in the background, so refresh content
+            // scripts (incl. the playing tab) to update bookmark UI.
+            if (bookmarked) {
+              void invalidateContentScriptData()
+            }
           } catch (e) {
             this.logger.warn('Failed to preload next episode:', e)
           }

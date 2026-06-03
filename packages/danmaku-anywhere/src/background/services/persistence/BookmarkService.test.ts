@@ -60,7 +60,7 @@ describe('BookmarkService.preloadNextEpisode', () => {
   it('does nothing when not bookmarked and autoBookmark is off', async () => {
     vi.spyOn(service, 'getBySeason').mockResolvedValue(undefined)
     const add = vi.spyOn(service, 'add')
-    await run(false)
+    expect(await run(false)).toBe(false)
     expect(add).not.toHaveBeenCalled()
     expect(provider.getDanmaku).not.toHaveBeenCalled()
   })
@@ -71,7 +71,7 @@ describe('BookmarkService.preloadNextEpisode', () => {
       bookmark([stub('a', 1), stub('b', 2)])
     )
     vi.spyOn(service, 'isStale').mockReturnValue(false)
-    await run(true)
+    expect(await run(true)).toBe(true)
     expect(service.add).toHaveBeenCalledWith(7, provider)
     expect(provider.getDanmaku).toHaveBeenCalledWith({
       type: 'by-stub',
@@ -80,12 +80,12 @@ describe('BookmarkService.preloadNextEpisode', () => {
     })
   })
 
-  it('preloads the next stub for a bookmarked show', async () => {
+  it('preloads the next stub for a bookmarked show without reporting a new bookmark', async () => {
     vi.spyOn(service, 'getBySeason').mockResolvedValue(
       bookmark([stub('a', 1), stub('b', 2)])
     )
     vi.spyOn(service, 'isStale').mockReturnValue(false)
-    await run(false)
+    expect(await run(false)).toBe(false)
     expect(provider.getDanmaku).toHaveBeenCalledWith({
       type: 'by-stub',
       stub: stub('b', 2),

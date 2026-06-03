@@ -130,18 +130,24 @@ export class BookmarkService {
     return Date.now() - bookmark.lastRefreshed > BOOKMARK_REFRESH_TTL_MS
   }
 
+  /**
+   * Returns true when this call created a new bookmark (autoBookmark), so the
+   * caller can invalidate bookmark-dependent UI in other contexts.
+   */
   async preloadNextEpisode(
     current: WithSeason<EpisodeMeta>,
     providerService: ProviderService,
     autoBookmark: boolean
-  ): Promise<void> {
+  ): Promise<boolean> {
     const { seasonId } = current
     let bookmark = await this.getBySeason(seasonId)
+    let bookmarked = false
     if (!bookmark) {
       if (!autoBookmark) {
-        return
+        return false
       }
       bookmark = await this.add(seasonId, providerService)
+      bookmarked = true
     }
 
     let next = findNextStub(bookmark.episodes, current)
@@ -149,10 +155,14 @@ export class BookmarkService {
       bookmark = await this.refresh(bookmark.id, providerService)
       next = findNextStub(bookmark.episodes, current)
     }
-    if (!next) {
-      return
+    if (next) {
+      await providerService.getDanmaku({
+        type: 'by-stub',
+        stub: next,
+        seasonId,
+      })
     }
 
-    await providerService.getDanmaku({ type: 'by-stub', stub: next, seasonId })
+    return bookmarked
   }
 }
