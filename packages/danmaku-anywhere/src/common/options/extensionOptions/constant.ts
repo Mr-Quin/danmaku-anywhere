@@ -46,4 +46,5 @@ export const defaultExtensionOptions: ExtensionOptions = {
   id: undefined,
   restrictInitiatorDomain: true,
   showFloatingButton: true,
+  autoBookmark: false,
 }
