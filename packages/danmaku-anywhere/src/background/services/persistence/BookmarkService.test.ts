@@ -5,7 +5,7 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ProviderService } from '@/background/services/providers/ProviderService'
 import type { DanmakuAnywhereDb } from '@/common/db/db'
 import { BookmarkService } from './BookmarkService'
@@ -44,6 +44,10 @@ describe('BookmarkService.preloadNextEpisode', () => {
   beforeEach(() => {
     service = new BookmarkService({} as DanmakuAnywhereDb)
     provider = { getDanmaku: vi.fn(), fetchEpisodesBySeason: vi.fn() }
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   const run = (autoBookmark: boolean) =>

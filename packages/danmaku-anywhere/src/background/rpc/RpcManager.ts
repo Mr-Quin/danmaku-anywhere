@@ -215,12 +215,18 @@ export class RpcManager {
           return result
         },
         episodePreloadNext: async (data) => {
-          const { autoBookmark } = await this.extensionOptionsService.get()
-          await this.bookmarkService.preloadNextEpisode(
-            data,
-            this.providerService,
-            autoBookmark
-          )
+          // Best-effort background optimization: swallow failures so a network
+          // or DB error does not bubble up as an unhandled RPC error.
+          try {
+            const { autoBookmark } = await this.extensionOptionsService.get()
+            await this.bookmarkService.preloadNextEpisode(
+              data,
+              this.providerService,
+              autoBookmark
+            )
+          } catch (e) {
+            this.logger.warn('Failed to preload next episode:', e)
+          }
         },
         episodeImport: async (data, sender) => {
           const result = await this.danmakuService.import(data)
