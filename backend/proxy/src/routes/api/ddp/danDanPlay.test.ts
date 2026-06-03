@@ -112,4 +112,47 @@ describe('DanDanPlay API', () => {
     const forwardedRequest = fetchMock.mock.calls[0][0]
     expect(forwardedRequest.headers.get('da-authenticated')).toBeNull()
   })
+
+  it('transparent /api/* forwards the stripped path to the DDP service', async () => {
+    const request = new Request(
+      createTestUrl('/ddp/api/v2/search/anime', {
+        query: { keyword: 'nichijou' },
+      })
+    )
+    const response = await makeUnitTestRequest(request)
+
+    expect(response.status).toBe(200)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    const forwardedRequest = fetchMock.mock.calls[0][0]
+    expect(forwardedRequest.url).toBe(
+      'http://example.com/api/v2/search/anime?keyword=nichijou'
+    )
+  })
+
+  it('transparent route strips client-supplied da-authenticated header when not signed in', async () => {
+    const app = createAppWithUser(null)
+    const request = new Request(
+      createTestUrl('/ddp/api/v2/search/anime', {
+        query: { keyword: 'nichijou' },
+      }),
+      { headers: { 'da-authenticated': '1' } }
+    )
+    await makeUnitTestRequest(request, { app })
+
+    const forwardedRequest = fetchMock.mock.calls[0][0]
+    expect(forwardedRequest.headers.get('da-authenticated')).toBeNull()
+  })
+
+  it('transparent route sets da-authenticated when the user is signed in', async () => {
+    const app = createAppWithUser({ id: 'user-1' } as AuthUser)
+    const request = new Request(
+      createTestUrl('/ddp/api/v2/search/anime', {
+        query: { keyword: 'nichijou' },
+      })
+    )
+    await makeUnitTestRequest(request, { app })
+
+    const forwardedRequest = fetchMock.mock.calls[0][0]
+    expect(forwardedRequest.headers.get('da-authenticated')).toBe('1')
+  })
 })
