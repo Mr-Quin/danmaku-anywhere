@@ -129,6 +129,20 @@ describe('DanDanPlay API', () => {
     )
   })
 
+  it('transparent route strips client-supplied da-authenticated header when not signed in', async () => {
+    const app = createAppWithUser(null)
+    const request = new Request(
+      createTestUrl('/ddp/api/v2/search/anime', {
+        query: { keyword: 'nichijou' },
+      }),
+      { headers: { 'da-authenticated': '1' } }
+    )
+    await makeUnitTestRequest(request, { app })
+
+    const forwardedRequest = fetchMock.mock.calls[0][0]
+    expect(forwardedRequest.headers.get('da-authenticated')).toBeNull()
+  })
+
   it('transparent route sets da-authenticated when the user is signed in', async () => {
     const app = createAppWithUser({ id: 'user-1' } as AuthUser)
     const request = new Request(
