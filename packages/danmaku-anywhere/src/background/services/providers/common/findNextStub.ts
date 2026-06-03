@@ -4,11 +4,17 @@ function toEpisodeNumber(value: number | string | undefined): number | null {
   if (typeof value === 'number') {
     return Number.isFinite(value) ? value : null
   }
-  if (typeof value === 'string' && value.trim() !== '') {
-    const parsed = Number(value)
-    return Number.isFinite(parsed) ? parsed : null
+  if (typeof value !== 'string' || value.trim() === '') {
+    return null
   }
-  return null
+  const direct = Number(value)
+  if (Number.isFinite(direct)) {
+    return direct
+  }
+  // Providers often store the number with trailing text (e.g. "2 标题"), so
+  // fall back to the leading integer before giving up.
+  const leading = value.match(/^\s*(\d+)/)
+  return leading ? Number(leading[1]) : null
 }
 
 export function findNextStub(

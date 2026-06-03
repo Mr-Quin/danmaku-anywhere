@@ -30,6 +30,10 @@ export class MountPage {
     return this.episodeItem(episodeId).getByTestId('comment-count')
   }
 
+  episodeItems(): Locator {
+    return this.page.locator(SELECTORS.treeItemPrefix('episode-'))
+  }
+
   stubItem(seasonId: number, indexedId: string): Locator {
     return this.page.locator(
       SELECTORS.treeItem(`stub-${seasonId}-${indexedId}`)

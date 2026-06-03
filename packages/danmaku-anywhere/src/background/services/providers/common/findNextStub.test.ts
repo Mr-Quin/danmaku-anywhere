@@ -32,6 +32,11 @@ describe('findNextStub', () => {
     expect(findNextStub(gapped, stub('a', 1))?.indexedId).toBe('b')
   })
 
+  it('extracts a leading number from a stub title with trailing text', () => {
+    const titled = [stub('a', '1 第一集'), stub('b', '2 第二集')]
+    expect(findNextStub(titled, stub('a', '1 第一集'))?.indexedId).toBe('b')
+  })
+
   it('falls back to position when numbers are non-numeric', () => {
     const named = [stub('a', 'OVA'), stub('b', 'Special')]
     expect(findNextStub(named, named[0])?.indexedId).toBe('b')

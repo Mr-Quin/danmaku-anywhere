@@ -96,7 +96,7 @@ test('mount tree: bookmark-driven preload caches the next episode', async ({
   await expect(nextStub).toBeHidden()
   await expect(seasonItem).not.toContainText(/\+\d+/)
 
-  const episodeItems = page.locator('[data-testid^="tree-item-episode-"]')
+  const episodeItems = popup.mount.episodeItems()
   await expect(episodeItems).toHaveCount(2)
 
   const episodeIds = await episodeItems.evaluateAll((els) =>

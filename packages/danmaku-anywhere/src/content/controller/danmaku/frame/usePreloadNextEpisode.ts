@@ -14,14 +14,13 @@ export const usePreloadNextEpisode = () => {
       return
     }
     const episode = episodes[0]
-    // Custom (local) episodes have no season, so there is no bookmark to
-    // preload from. Provider-agnostic otherwise.
+    // Custom episodes have no season to preload from.
     if (!isNotCustom(episode)) {
       return
     }
-    // Best-effort background optimization: a failed preload should not surface
-    // an error to the user mid-playback.
-    await chromeRpcClient.episodePreloadNext(episode, { optional: true })
+    // Drop comments so the message stays small; preload is best-effort.
+    const { comments: _, ...meta } = episode
+    await chromeRpcClient.episodePreloadNext(meta, { optional: true })
   }
 
   return { canLoadNext, preloadNext }
