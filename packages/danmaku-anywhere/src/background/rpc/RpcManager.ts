@@ -27,6 +27,7 @@ import { AuthClientService } from '@/common/auth/AuthClientService'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
 import { DanmakuAnywhereDb } from '@/common/db/db'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
@@ -79,7 +80,9 @@ export class RpcManager {
     @inject(BookmarkService)
     private bookmarkService: BookmarkService,
     @inject(OcclusionModelService)
-    private occlusionModelService: OcclusionModelService
+    private occlusionModelService: OcclusionModelService,
+    @inject(ExtensionOptionsService)
+    private extensionOptionsService: ExtensionOptionsService
   ) {
     this.logger = logger.sub('[RpcManager]')
   }
@@ -211,8 +214,13 @@ export class RpcManager {
           void invalidateContentScriptData(sender.tab?.id)
           return result
         },
-        episodePreloadNext: async (data, sender) => {
-          return await this.providerService.preloadNextEpisode(data)
+        episodePreloadNext: async (data) => {
+          const { autoBookmark } = await this.extensionOptionsService.get()
+          await this.bookmarkService.preloadNextEpisode(
+            data,
+            this.providerService,
+            autoBookmark
+          )
         },
         episodeImport: async (data, sender) => {
           const result = await this.danmakuService.import(data)
