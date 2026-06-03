@@ -8,10 +8,12 @@ import {
   builtInBilibiliProvider,
   builtInDanDanPlayProvider,
   builtInTencentProvider,
-  DDP_COMPAT_MANIFEST_ID,
   defaultProviderConfigs,
+  PROXY_DDP_BASE_URL,
 } from './constant'
 import { type ProviderConfig, providerConfigSchema } from './schema'
+
+const DDP_COMPAT_MANIFEST_ID = 'builtin:ddp-compat'
 
 // Drop undefined-valued keys so manifest configSchema defaults can apply.
 function pruneUndefined(obj: Record<string, unknown>): Record<string, unknown> {
@@ -283,6 +285,27 @@ function inferTypeFromImpl(
     default:
       return undefined
   }
+}
+
+// Fold builtin:ddp-compat configs onto builtin:dandanplay (their baseUrl/auth
+// configValues carry the custom-server settings), and backfill the proxy
+// baseUrl onto the built-in DanDanPlay config.
+export function migrateDdpCompatToDandanplay(
+  data: ProviderConfig[]
+): ProviderConfig[] {
+  const dandanplayId = PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]
+  return data.map((config) => {
+    if (config.manifestId === DDP_COMPAT_MANIFEST_ID) {
+      return { ...config, manifestId: dandanplayId }
+    }
+    if (config.isBuiltIn && config.id === dandanplayId) {
+      return {
+        ...config,
+        configValues: { ...config.configValues, baseUrl: PROXY_DDP_BASE_URL },
+      }
+    }
+    return config
+  })
 }
 
 // Append any builtin whose id isn't already in the user's stored list.

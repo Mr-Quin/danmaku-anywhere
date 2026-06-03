@@ -1,19 +1,27 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import {
+  DanmakuSourceType,
+  PROVIDER_TO_BUILTIN_ID,
+} from '@danmaku-anywhere/danmaku-converter'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { describe, expect, it } from 'vitest'
 import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
+import { PROXY_DDP_BASE_URL } from './constant'
 import {
   migrateDanmakuSourcesToProviders,
+  migrateDdpCompatToDandanplay,
   migrateProviderConfigsToFlat,
 } from './migration'
+import type { ProviderConfig } from './schema'
 
 /**
- * Exercises both provider-config migrations:
+ * Exercises the provider-config migrations:
  * - `migrateDanmakuSourcesToProviders`: pre-v21 `danmakuSources` blob →
  *   flat ProviderConfig[].
  * - `migrateProviderConfigsToFlat`: v1 discriminated-union ProviderConfig
  *   records → flat shape (idempotent on already-flat input, drops
  *   corrupted records).
+ * - `migrateDdpCompatToDandanplay`: folds `builtin:ddp-compat` configs onto
+ *   `builtin:dandanplay` and backfills the proxy baseUrl on the built-in.
  */
 
 describe('migrateDanmakuSourcesToProviders', () => {
@@ -606,5 +614,72 @@ describe('migrateProviderConfigsToFlat', () => {
     // Corrupted record dropped, valid record preserved
     expect(flat).toHaveLength(1)
     expect(flat[0].id).toBe('builtin:dandanplay')
+  })
+})
+
+describe('migrateDdpCompatToDandanplay', () => {
+  const dandanplayId = PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]
+
+  it('rewrites ddp-compat configs to dandanplay, preserving baseUrl/auth', () => {
+    const input: ProviderConfig[] = [
+      {
+        id: 'compat-1',
+        manifestId: 'builtin:ddp-compat',
+        impl: DanmakuSourceType.DanDanPlay,
+        name: 'My DDP',
+        isBuiltIn: false,
+        enabled: true,
+        configValues: {
+          baseUrl: 'https://my-ddp.example',
+          auth: { enabled: true, headers: [{ key: 'X-A', value: '1' }] },
+        },
+      },
+    ]
+
+    const out = migrateDdpCompatToDandanplay(input)
+
+    expect(out[0].manifestId).toBe(dandanplayId)
+    expect(out[0].configValues.baseUrl).toBe('https://my-ddp.example')
+    expect(out[0].configValues.auth).toEqual({
+      enabled: true,
+      headers: [{ key: 'X-A', value: '1' }],
+    })
+  })
+
+  it('backfills the proxy baseUrl on the built-in DanDanPlay config', () => {
+    const input: ProviderConfig[] = [
+      {
+        id: dandanplayId,
+        manifestId: dandanplayId,
+        impl: DanmakuSourceType.DanDanPlay,
+        name: 'DanDanPlay',
+        isBuiltIn: true,
+        enabled: true,
+        configValues: { chConvert: DanDanChConvert.Simplified },
+      },
+    ]
+
+    const out = migrateDdpCompatToDandanplay(input)
+
+    expect(out[0].configValues.baseUrl).toBe(PROXY_DDP_BASE_URL)
+    expect(out[0].configValues.chConvert).toBe(DanDanChConvert.Simplified)
+  })
+
+  it('leaves unrelated configs untouched', () => {
+    const input: ProviderConfig[] = [
+      {
+        id: 'builtin:bilibili',
+        manifestId: 'builtin:bilibili',
+        impl: DanmakuSourceType.Bilibili,
+        name: 'Bilibili',
+        isBuiltIn: true,
+        enabled: true,
+        configValues: { danmakuFormat: 'xml' },
+      },
+    ]
+
+    const out = migrateDdpCompatToDandanplay(input)
+
+    expect(out[0]).toEqual(input[0])
   })
 })

@@ -109,7 +109,7 @@ export const DanDanPlayCompatibleProviderForm = ({
           errors.baseUrl?.message ||
           t(
             'providers.editor.helper.baseUrl',
-            'API endpoint URL for DanDanPlay-compatible server. Leave empty to use the proxy-backed DanDanPlay manifest.'
+            'API endpoint URL for DanDanPlay-compatible server'
           )
         }
         {...register('baseUrl')}

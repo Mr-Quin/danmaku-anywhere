@@ -7,7 +7,7 @@ import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { getRandomUUID } from '@/common/utils/utils'
 import type { ProviderConfig } from './schema'
 
-export const DDP_COMPAT_MANIFEST_ID = 'builtin:ddp-compat'
+export const PROXY_DDP_BASE_URL = `${import.meta.env.VITE_PROXY_URL}/ddp`
 
 export const builtInDanDanPlayProvider: ProviderConfig = {
   id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
@@ -17,6 +17,7 @@ export const builtInDanDanPlayProvider: ProviderConfig = {
   enabled: true,
   isBuiltIn: true,
   configValues: {
+    baseUrl: PROXY_DDP_BASE_URL,
     chConvert: DanDanChConvert.None,
   },
 }
@@ -61,7 +62,7 @@ export function createCustomDanDanPlayProvider(
   }
   return {
     id: input.id ?? getRandomUUID(),
-    manifestId: DDP_COMPAT_MANIFEST_ID,
+    manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
     name: input.name ?? 'DanDanPlay',
     impl: DanmakuSourceType.DanDanPlay,
     enabled: true,

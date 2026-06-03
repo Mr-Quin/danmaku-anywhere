@@ -13,6 +13,7 @@ import { isServiceWorker } from '@/common/utils/utils'
 import { defaultProviderConfigs } from './constant'
 import {
   ensureBuiltinProviders,
+  migrateDdpCompatToDandanplay,
   migrateProviderConfigsToFlat,
 } from './migration'
 import type { ProviderConfig } from './schema'
@@ -44,6 +45,19 @@ export class ProviderConfigService implements IStoreService {
         } catch (error) {
           console.error(
             '[providerConfig] migration failed, falling back to defaults:',
+            error
+          )
+          return [...defaultProviderConfigs]
+        }
+      },
+    })
+    this.options.version(3, {
+      upgrade: (data) => {
+        try {
+          return migrateDdpCompatToDandanplay(data as ProviderConfig[])
+        } catch (error) {
+          console.error(
+            '[providerConfig] ddp-compat migration failed, falling back to defaults:',
             error
           )
           return [...defaultProviderConfigs]

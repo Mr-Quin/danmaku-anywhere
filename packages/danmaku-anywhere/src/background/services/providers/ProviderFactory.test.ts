@@ -6,16 +6,15 @@ import {
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ILogger } from '@/common/Logger'
 import { LoggerSymbol } from '@/common/Logger'
-import { DDP_COMPAT_MANIFEST_ID } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ManifestRegistry } from './ManifestRegistry'
 
 /**
  * ProviderFactory dispatches on `config.manifestId` and constructs either
  * a ManifestProviderService configured for the source, or the legacy
- * MacCmsProviderService for `legacy:maccms` configs. Covers the
- * DDP-Compat fallback (empty baseUrl → proxy-backed dandanplay manifest)
- * and verifies the right manifest id is threaded to the runner.
+ * MacCmsProviderService for `legacy:maccms` configs. Custom DanDanPlay
+ * servers share the `builtin:dandanplay` manifest and thread their
+ * baseUrl/auth through configValues; there is no DDP-compat special case.
  */
 
 const mockRunner = {
@@ -64,15 +63,15 @@ async function buildFactory() {
   return danmakuProviderFactory(fakeContext())
 }
 
-function ddpCompat(opts: {
+function customDdp(opts: {
   baseUrl?: string
   auth?: { enabled?: boolean; headers?: { key: string; value: string }[] }
 }): ProviderConfig {
   return {
-    id: 'compat-1',
-    manifestId: DDP_COMPAT_MANIFEST_ID,
+    id: 'custom-1',
+    manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
     impl: DanmakuSourceType.DanDanPlay,
-    name: 'Compat',
+    name: 'Custom DDP',
     enabled: true,
     isBuiltIn: false,
     configValues: opts,
@@ -134,10 +133,10 @@ describe('ProviderFactory dispatch', () => {
     expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' })
   })
 
-  it('routes DDP-Compat with baseUrl to ddp-compat manifest with configValues threaded through', async () => {
+  it('routes a custom DanDanPlay server through the dandanplay manifest with configValues threaded through', async () => {
     const factory = await buildFactory()
     const service = factory(
-      ddpCompat({
+      customDdp({
         baseUrl: 'https://my-ddp.example',
         auth: { enabled: true, headers: [{ key: 'X-A', value: '1' }] },
       })
@@ -150,42 +149,6 @@ describe('ProviderFactory dispatch', () => {
       baseUrl: 'https://my-ddp.example',
       auth: { enabled: true, headers: [{ key: 'X-A', value: '1' }] },
     })
-  })
-
-  it('falls back DDP-Compat without baseUrl to the proxy-backed dandanplay manifest', async () => {
-    const factory = await buildFactory()
-    const service = factory(ddpCompat({ baseUrl: '' }))
-
-    expect(service.forProvider).toBe(DanmakuSourceType.DanDanPlay)
-    await service.search({ keyword: 'x' })
-    // configValues still threads through; the DDP manifest ignores the
-    // baseUrl/auth keys it doesn't declare as inputs.
-    expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x', baseUrl: '' })
-  })
-
-  it('logs a warning when DDP-Compat falls back with auth headers configured', async () => {
-    const warn = vi.fn()
-    const noisyLogger = {
-      debug: () => {},
-      info: () => {},
-      warn,
-      error: () => {},
-      sub: () => noisyLogger,
-    } as unknown as ILogger
-    const factory = (await import('./ProviderFactory')).danmakuProviderFactory(
-      fakeContext(noisyLogger)
-    )
-    const service = factory(
-      ddpCompat({
-        baseUrl: '',
-        auth: { enabled: true, headers: [{ key: 'X-Token', value: 'secret' }] },
-      })
-    )
-
-    await service.search({ keyword: 'x' })
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringMatching(/authHeaders.*baseUrl|authHeaders ignored/i)
-    )
   })
 
   it('routes legacy MacCMS to MacCmsProviderService (not ManifestProviderService)', async () => {
