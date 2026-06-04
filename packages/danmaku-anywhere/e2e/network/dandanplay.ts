@@ -8,23 +8,24 @@ export interface DandanplayFixtures {
 }
 
 // Path-only match — VITE_PROXY_URL host varies between local, CI, and prod.
-const PROXY_PATH = /\/ddp\/v1(\?|$)/
+// The built-in provider points baseUrl at {proxy}/ddp and the manifest hits
+// /api/v2/* on it, so the proxy passes the path through transparently.
+const PROXY_PATH = /\/ddp\/api\/v2\//
 
 export function mockDandanplay(fixtures: DandanplayFixtures): NetworkMock {
   return {
     pattern: PROXY_PATH,
     respond: async (route: Route) => {
-      const innerPath =
-        new URL(route.request().url()).searchParams.get('path') ?? ''
-      if (innerPath.startsWith('/v2/search/anime')) {
+      const innerPath = new URL(route.request().url()).pathname
+      if (innerPath.includes('/api/v2/search/anime')) {
         await route.fulfill({ json: fixtures.search })
         return
       }
-      if (innerPath.startsWith('/v2/bangumi/')) {
+      if (innerPath.includes('/api/v2/bangumi/')) {
         await route.fulfill({ json: fixtures.bangumi })
         return
       }
-      if (innerPath.startsWith('/v2/comment/')) {
+      if (innerPath.includes('/api/v2/comment/')) {
         await route.fulfill({ json: fixtures.comments })
         return
       }
@@ -36,28 +37,28 @@ export function mockDandanplay(fixtures: DandanplayFixtures): NetworkMock {
   }
 }
 
-export interface DandanplayCompatFixtures {
+export interface DandanplayCustomFixtures {
   baseUrl: string
   search: unknown
   bangumi: unknown
   comments: unknown
 }
 
-export function mockDandanplayCompat(
-  fixtures: DandanplayCompatFixtures
+export function mockDandanplayCustom(
+  fixtures: DandanplayCustomFixtures
 ): NetworkMock[] {
   const escaped = fixtures.baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
   return [
     {
-      pattern: new RegExp(`${escaped}/v2/search/anime`),
+      pattern: new RegExp(`${escaped}/api/v2/search/anime`),
       respond: (route) => route.fulfill({ json: fixtures.search }),
     },
     {
-      pattern: new RegExp(`${escaped}/v2/bangumi/`),
+      pattern: new RegExp(`${escaped}/api/v2/bangumi/`),
       respond: (route) => route.fulfill({ json: fixtures.bangumi }),
     },
     {
-      pattern: new RegExp(`${escaped}/v2/comment/`),
+      pattern: new RegExp(`${escaped}/api/v2/comment/`),
       respond: (route) => route.fulfill({ json: fixtures.comments }),
     },
   ]

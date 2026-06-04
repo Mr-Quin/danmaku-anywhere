@@ -1,10 +1,13 @@
-import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
+import {
+  LEGACY_MACCMS_ID,
+  PROVIDER_TO_BUILTIN_ID,
+} from '@danmaku-anywhere/danmaku-converter'
 import { Delete } from '@mui/icons-material'
 import { Switch } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
-import { DDP_COMPAT_MANIFEST_ID } from '@/common/options/providerConfig/constant'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import {
   useEditProviderConfig,
@@ -28,7 +31,11 @@ export const ProviderConfigList = ({
   }
 
   const getSecondaryText = (config: ProviderConfig) => {
-    if (config.manifestId === DDP_COMPAT_MANIFEST_ID) {
+    const isCustomDdp =
+      config.manifestId ===
+        PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay] &&
+      !config.isBuiltIn
+    if (isCustomDdp) {
       return (config.configValues.baseUrl as string) ?? ''
     }
     if (config.manifestId === LEGACY_MACCMS_ID) {

@@ -8,8 +8,8 @@ import {
   builtInBilibiliProvider,
   builtInDanDanPlayProvider,
   builtInTencentProvider,
-  DDP_COMPAT_MANIFEST_ID,
   defaultProviderConfigs,
+  PROXY_DDP_BASE_URL,
 } from './constant'
 import { type ProviderConfig, providerConfigSchema } from './schema'
 
@@ -65,6 +65,7 @@ export function migrateDanmakuSourcesToProviders(
             enabled: oldSources.dandanplay.enabled ?? true,
             isBuiltIn: true,
             configValues: pruneUndefined({
+              baseUrl: PROXY_DDP_BASE_URL,
               chConvert:
                 oldSources.dandanplay.chConvert ?? DanDanChConvert.None,
             }),
@@ -222,7 +223,10 @@ export function migrateProviderConfigsToFlat(
         out.push({
           ...base,
           manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-          configValues: pruneUndefined({ chConvert: options.chConvert }),
+          configValues: pruneUndefined({
+            baseUrl: PROXY_DDP_BASE_URL,
+            chConvert: options.chConvert,
+          }),
         })
         break
       case 'Bilibili':
@@ -242,9 +246,11 @@ export function migrateProviderConfigsToFlat(
         })
         break
       case 'DanDanPlayCompatible':
+        // A custom DDP server folds onto the unified DanDanPlay manifest; its
+        // options already carry the custom baseUrl/auth.
         out.push({
           ...base,
-          manifestId: DDP_COMPAT_MANIFEST_ID,
+          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
           configValues: pruneUndefined(options),
         })
         break

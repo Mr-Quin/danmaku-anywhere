@@ -34,10 +34,6 @@ export class ProviderConfigService implements IStoreService {
       defaultProviderConfigs,
       this.logger
     ).version(2, {
-      // One-shot upgrade from anything that came before (master's no-op v1,
-      // discriminated-union records, fresh-from-extensionOptions-v21 flat
-      // records). flatten is idempotent on already-flat input; ensure
-      // appends any missing builtin without disturbing user-edited entries.
       upgrade: (data) => {
         try {
           return ensureBuiltinProviders(migrateProviderConfigsToFlat(data))

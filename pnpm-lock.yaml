@@ -306,11 +306,11 @@ importers:
         specifier: 0.10.18
         version: 0.10.18
       '@mr-quin/dango':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
       '@mr-quin/dango-manifests':
-        specifier: ^0.1.0
-        version: 0.1.0
+        specifier: ^0.2.0
+        version: 0.2.0
       '@mui/icons-material':
         specifier: ^9.0.1
         version: 9.0.1(@mui/material@9.0.1(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.0))(@types/react@19.2.15)(react@19.2.0))(@types/react@19.2.15)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@types/react@19.2.15)(react@19.2.0)
@@ -1095,6 +1095,9 @@ packages:
   '@bramus/specificity@2.4.2':
     resolution: {integrity: sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==}
     hasBin: true
+
+  '@bufbuild/protobuf@2.12.0':
+    resolution: {integrity: sha512-B/XlCaFIP8LOwzo+bz5uFzATYokcwCKQcghqnlfwSmM5eX/qTkvDBnDPs+gXtX/RyjxJ4DRikECcPJbyALA8FA==}
 
   '@cloudflare/kv-asset-handler@0.4.2':
     resolution: {integrity: sha512-SIOD2DxrRRwQ+jgzlXCqoEFiKOFqaPjhnNTGKXSRLvp1HiOvapLaFG2kEr9dYQTYe8rKrd9uvDUzmAITeNyaHQ==}
@@ -2828,11 +2831,11 @@ packages:
       '@cfworker/json-schema':
         optional: true
 
-  '@mr-quin/dango-manifests@0.1.0':
-    resolution: {integrity: sha512-91pItO12xPzEbPI5QFZfCCDOk0znm2vMspqCpWCb6ZXhicknFigF07RdioT99TquiZJbpGgjp8/7cSJPuUMFNQ==}
+  '@mr-quin/dango-manifests@0.2.0':
+    resolution: {integrity: sha512-GsjLTFzo3PW2Ea9usdTn5ef7rYEU/9xHg1xVeGINpm5xF1f3oq7asnbCA4uzXvr4rOj/+7qTsL8NijX7e/DeYw==}
 
-  '@mr-quin/dango@0.1.0':
-    resolution: {integrity: sha512-u8BpMbMMbvusGmFQMwtYohKyKY9VbfOidORipF+Bn7ory/dlJ+Syey8UYYr8fti5iRzOaymFnA1FgZp4e2FSKw==}
+  '@mr-quin/dango@0.2.0':
+    resolution: {integrity: sha512-ppei1pNnxDjTJc2WxyQ77uZOTWndk9MA39kxHh8rTIy2QT5YVWRvb4OaXc5PJxKZSN6cXo4S1j/GjRMJ2toRcQ==}
     engines: {node: '>=20'}
 
   '@mr-quin/danmu@0.20.0-rc.4':
@@ -9130,6 +9133,8 @@ snapshots:
     dependencies:
       css-tree: 3.2.1
 
+  '@bufbuild/protobuf@2.12.0': {}
+
   '@cloudflare/kv-asset-handler@0.4.2': {}
 
   '@cloudflare/kv-asset-handler@0.5.0': {}
@@ -10407,14 +10412,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@mr-quin/dango-manifests@0.1.0': {}
+  '@mr-quin/dango-manifests@0.2.0': {}
 
-  '@mr-quin/dango@0.1.0':
+  '@mr-quin/dango@0.2.0':
     dependencies:
+      '@bufbuild/protobuf': 2.12.0
       fast-xml-parser: 4.5.6
       js-md5: 0.8.3
       jsonata: 2.2.1
-      protobufjs: 7.6.0
       zod: 4.4.3
 
   '@mr-quin/danmu@0.20.0-rc.4':

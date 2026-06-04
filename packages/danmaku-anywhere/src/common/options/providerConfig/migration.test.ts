@@ -2,18 +2,20 @@ import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { describe, expect, it } from 'vitest'
 import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
+import { PROXY_DDP_BASE_URL } from './constant'
 import {
   migrateDanmakuSourcesToProviders,
   migrateProviderConfigsToFlat,
 } from './migration'
 
 /**
- * Exercises both provider-config migrations:
+ * Exercises the provider-config migrations from the shipped releases:
  * - `migrateDanmakuSourcesToProviders`: pre-v21 `danmakuSources` blob →
  *   flat ProviderConfig[].
- * - `migrateProviderConfigsToFlat`: v1 discriminated-union ProviderConfig
- *   records → flat shape (idempotent on already-flat input, drops
- *   corrupted records).
+ * - `migrateProviderConfigsToFlat`: v1.4/v1.5 discriminated-union
+ *   ProviderConfig records → flat shape (idempotent on already-flat input,
+ *   drops corrupted records). DanDanPlayCompatible folds directly onto the
+ *   unified DanDanPlay manifest; the built-in DanDanPlay gets the proxy baseUrl.
  */
 
 describe('migrateDanmakuSourcesToProviders', () => {
@@ -87,6 +89,7 @@ describe('migrateDanmakuSourcesToProviders', () => {
       expect(ddp.manifestId).toBe('builtin:dandanplay')
       expect(ddp.impl).toBe(DanmakuSourceType.DanDanPlay)
       expect(ddp.enabled).toBe(true)
+      expect(ddp.configValues.baseUrl).toBe(PROXY_DDP_BASE_URL)
       expect(ddp.configValues.chConvert).toBe(1)
 
       const bili = providers[1]
@@ -444,6 +447,7 @@ describe('migrateProviderConfigsToFlat', () => {
     expect(flat).toHaveLength(5)
 
     expect(flat[0].manifestId).toBe('builtin:dandanplay')
+    expect(flat[0].configValues.baseUrl).toBe(PROXY_DDP_BASE_URL)
     expect(flat[0].configValues.chConvert).toBe(DanDanChConvert.Simplified)
 
     expect(flat[1].manifestId).toBe('builtin:bilibili')
@@ -453,7 +457,10 @@ describe('migrateProviderConfigsToFlat', () => {
     expect(flat[2].manifestId).toBe('builtin:tencent')
     expect(flat[2].configValues).toEqual({})
 
-    expect(flat[3].manifestId).toBe('builtin:ddp-compat')
+    // A custom DDP server (DanDanPlayCompatible) folds directly onto the
+    // unified DanDanPlay manifest, keeping its custom baseUrl.
+    expect(flat[3].manifestId).toBe('builtin:dandanplay')
+    expect(flat[3].isBuiltIn).toBe(false)
     expect(flat[3].configValues.baseUrl).toBe('https://compat.example')
 
     expect(flat[4].manifestId).toBe('legacy:maccms')

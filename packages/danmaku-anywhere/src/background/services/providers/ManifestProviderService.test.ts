@@ -87,9 +87,9 @@ describe('ManifestProviderService.search', () => {
     const runner = makeRunner({ search: [] })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'builtin:ddp-compat',
+        manifestId: 'builtin:dandanplay',
         provider: DanmakuSourceType.DanDanPlay,
-        providerConfigId: 'compat-1',
+        providerConfigId: 'custom-ddp-1',
         configValues: {
           baseUrl: 'https://compat.example',
           authHeaders: [],

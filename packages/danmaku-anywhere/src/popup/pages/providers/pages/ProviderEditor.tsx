@@ -6,7 +6,6 @@ import { Box } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { DDP_COMPAT_MANIFEST_ID } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
@@ -61,13 +60,18 @@ export const ProviderEditor = ({
     })
   }
 
+  const isCustomDdp =
+    provider.manifestId ===
+      PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay] &&
+    !provider.isBuiltIn
+
   const getTitle = () => {
     if (isEdit) {
       return t('providers.editor.title.edit', 'Edit Provider: {{name}}', {
         name: provider.name,
       })
     }
-    if (provider.manifestId === DDP_COMPAT_MANIFEST_ID) {
+    if (isCustomDdp) {
       return t(
         'providers.editor.title.addDanDanPlay',
         'Add DanDanPlay Compatible Provider'
@@ -80,6 +84,15 @@ export const ProviderEditor = ({
   }
 
   const renderForm = () => {
+    if (isCustomDdp) {
+      return (
+        <DanDanPlayCompatibleProviderForm
+          provider={provider}
+          onSubmit={handleSave}
+          isEdit={isEdit}
+        />
+      )
+    }
     switch (provider.manifestId) {
       case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]:
         return (
@@ -100,14 +113,6 @@ export const ProviderEditor = ({
       case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]:
         return (
           <TencentProviderForm
-            provider={provider}
-            onSubmit={handleSave}
-            isEdit={isEdit}
-          />
-        )
-      case DDP_COMPAT_MANIFEST_ID:
-        return (
-          <DanDanPlayCompatibleProviderForm
             provider={provider}
             onSubmit={handleSave}
             isEdit={isEdit}

@@ -8,6 +8,10 @@ import type { ProviderConfig } from '../../src/common/options/providerConfig/sch
 import type { StorageArea } from '../../src/devApi/namespaces/StorageNamespace'
 import type { DaClient } from './da-client'
 
+// The built-in DDP provider points baseUrl at the proxy's /ddp mount. The
+// network mock matches on the /ddp/api/v2 path, so the host is arbitrary here.
+const PROXY_DDP_BASE_URL = 'https://proxy.test.invalid/ddp'
+
 export interface BuiltInProvidersProfile {
   bilibili?: {
     enabled?: boolean
@@ -59,6 +63,7 @@ function buildBuiltInProviderConfigs(
       enabled: dandanplay.enabled ?? false,
       isBuiltIn: true,
       configValues: {
+        baseUrl: PROXY_DDP_BASE_URL,
         chConvert: DanDanChConvert.None,
         ...dandanplay.options,
       },

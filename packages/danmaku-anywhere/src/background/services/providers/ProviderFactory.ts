@@ -6,7 +6,6 @@ import type { ResolutionContext } from 'inversify'
 import type { IDanmakuProvider } from '@/background/services/providers/IDanmakuProvider'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
-import { DDP_COMPAT_MANIFEST_ID } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { MacCmsProviderService } from './MacCmsProviderService'
 import { ManifestProviderService } from './ManifestProviderService'
@@ -18,18 +17,12 @@ export type IDanmakuProviderFactory = (
 
 export const DanmakuProviderFactory = Symbol.for('DanmakuProviderFactory')
 
-interface DdpCompatConfig {
-  baseUrl?: string
-  auth?: { enabled?: boolean; headers?: { key: string; value: string }[] }
-}
-
 // Per-manifest dispatch metadata. The map only carries the canonical
 // `DanmakuSourceType` for each builtin; pipeline inputs flow through the
 // generic configValues path on ManifestProviderService.
 const builtinProvider: Record<string, DanmakuSourceType> = {
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]]:
     DanmakuSourceType.DanDanPlay,
-  [DDP_COMPAT_MANIFEST_ID]: DanmakuSourceType.DanDanPlay,
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]]:
     DanmakuSourceType.Bilibili,
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]]:
@@ -45,31 +38,13 @@ function createDanmakuProvider(
   if (config.manifestId === LEGACY_MACCMS_ID) {
     return new MacCmsProviderService(config, logger)
   }
-  // DDP-Compat with no baseUrl: fall back to the proxy DDP manifest.
-  // (A manifest-id rewrite, not an input transform — keeps living in code.)
-  let effectiveManifestId = config.manifestId
-  if (config.manifestId === DDP_COMPAT_MANIFEST_ID) {
-    const values = config.configValues as DdpCompatConfig
-    if (!values.baseUrl?.trim()) {
-      effectiveManifestId = PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]
-      const hasAuth =
-        values.auth?.enabled && (values.auth.headers?.length ?? 0) > 0
-      if (hasAuth) {
-        logger
-          .sub('[ProviderFactory]')
-          .warn(
-            `DDP-Compat config ${config.id} has authHeaders but empty baseUrl — falling back to proxy-backed DanDanPlay; authHeaders ignored.`
-          )
-      }
-    }
-  }
-  const provider = builtinProvider[effectiveManifestId]
+  const provider = builtinProvider[config.manifestId]
   if (provider === undefined) {
     throw new Error(`Unknown manifestId: ${config.manifestId}`)
   }
   return new ManifestProviderService(
     {
-      manifestId: effectiveManifestId,
+      manifestId: config.manifestId,
       provider,
       providerConfigId: config.id,
       configValues: config.configValues,
