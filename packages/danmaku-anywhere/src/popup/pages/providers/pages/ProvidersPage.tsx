@@ -1,7 +1,7 @@
 import { type ReactElement, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
-import { TabLayout } from '@/common/components/layout/TabLayout'
+import { ListPageLayout } from '@/common/components/layout/ListPageLayout'
 import { useToast } from '@/common/components/Toast/toastStore'
 import {
   createCustomDanDanPlayProvider,
@@ -9,8 +9,8 @@ import {
 } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import { ProviderAddMenu } from '../components/ProviderAddMenu'
 import { ProviderConfigList } from '../components/ProviderConfigList'
-import { ProviderToolbar } from '../components/ProviderToolbar'
 import { ProviderEditor } from './ProviderEditor'
 
 export const ProvidersPage = (): ReactElement => {
@@ -72,16 +72,20 @@ export const ProvidersPage = (): ReactElement => {
 
   return (
     <>
-      <TabLayout>
-        <ProviderToolbar
-          onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
-          onAddMacCmsProvider={handleAddMacCmsProvider}
-        />
+      <ListPageLayout
+        title={t('providers.name', 'Danmaku Providers')}
+        action={
+          <ProviderAddMenu
+            onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
+            onAddMacCmsProvider={handleAddMacCmsProvider}
+          />
+        }
+      >
         <ProviderConfigList
           onEdit={handleEditProvider}
           onDelete={handleDelete}
         />
-      </TabLayout>
+      </ListPageLayout>
 
       {editingProvider && mode && (
         <ProviderEditor

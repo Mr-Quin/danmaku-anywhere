@@ -1,0 +1,42 @@
+import { Box } from '@mui/material'
+import type { PropsWithChildren, ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
+import { ListAddButton } from '@/common/components/ListAddButton'
+import { TabLayout } from './TabLayout'
+import { TabToolbar } from './TabToolbar'
+
+type ListPageLayoutProps = {
+  title?: ReactNode
+  onAdd?: () => void
+  action?: ReactNode
+  gutters?: boolean
+} & PropsWithChildren
+
+export function ListPageLayout({
+  title,
+  onAdd,
+  action,
+  gutters = true,
+  children,
+}: ListPageLayoutProps) {
+  const { t } = useTranslation()
+
+  const renderAction = () => {
+    if (action) {
+      return action
+    }
+    if (onAdd) {
+      return (
+        <ListAddButton onClick={onAdd}>{t('common.add', 'Add')}</ListAddButton>
+      )
+    }
+    return null
+  }
+
+  return (
+    <TabLayout>
+      <TabToolbar title={title}>{renderAction()}</TabToolbar>
+      <Box sx={gutters ? { px: 2 } : undefined}>{children}</Box>
+    </TabLayout>
+  )
+}

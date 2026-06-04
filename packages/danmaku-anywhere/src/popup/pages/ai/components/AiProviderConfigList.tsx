@@ -1,5 +1,5 @@
 import { Delete } from '@mui/icons-material'
-import { Box, Chip, Switch } from '@mui/material'
+import { Chip, Switch } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
 import { ListItemPrimaryStack } from '@/common/components/ListItemPrimaryStack'
@@ -40,47 +40,45 @@ export const AiProviderConfigList = ({
   }
 
   return (
-    <Box sx={{ px: 2 }}>
-      <DraggableList<AiProviderConfig>
-        items={configs}
-        onEdit={onEdit}
-        onReorder={(sourceIndex, destinationIndex) => {
-          reorder.mutate({ sourceIndex, destinationIndex })
-        }}
-        renderPrimary={renderItem}
-        renderSecondary={(config) =>
-          config.provider === 'built-in' ? '' : config.settings.baseUrl
-        }
-        renderSecondaryAction={(config) => (
-          <>
-            {config.id !== BUILT_IN_AI_PROVIDER_ID && (
-              <>
-                <Switch
-                  onChange={(e) => handleToggle(config)}
-                  checked={config.enabled}
-                  disabled={toggle.isPending}
-                  onClick={(e) => e.stopPropagation()}
-                  size="small"
-                />
-                <DrilldownMenu
-                  BoxProps={{ sx: { display: 'inline' } }}
-                  ButtonProps={{ edge: 'end', size: 'small' }}
-                  dense
-                  items={[
-                    {
-                      id: 'delete',
-                      label: t('common.delete', 'Delete'),
-                      onClick: () => onDelete(config),
-                      icon: <Delete />,
-                      color: 'error',
-                    },
-                  ]}
-                />
-              </>
-            )}
-          </>
-        )}
-      />
-    </Box>
+    <DraggableList<AiProviderConfig>
+      items={configs}
+      onEdit={onEdit}
+      onReorder={(sourceIndex, destinationIndex) => {
+        reorder.mutate({ sourceIndex, destinationIndex })
+      }}
+      renderPrimary={renderItem}
+      renderSecondary={(config) =>
+        config.provider === 'built-in' ? '' : config.settings.baseUrl
+      }
+      renderSecondaryAction={(config) => (
+        <>
+          {config.id !== BUILT_IN_AI_PROVIDER_ID && (
+            <>
+              <Switch
+                onChange={(e) => handleToggle(config)}
+                checked={config.enabled}
+                disabled={toggle.isPending}
+                onClick={(e) => e.stopPropagation()}
+                size="small"
+              />
+              <DrilldownMenu
+                BoxProps={{ sx: { display: 'inline' } }}
+                ButtonProps={{ edge: 'end', size: 'small' }}
+                dense
+                items={[
+                  {
+                    id: 'delete',
+                    label: t('common.delete', 'Delete'),
+                    onClick: () => onDelete(config),
+                    icon: <Delete />,
+                    color: 'error',
+                  },
+                ]}
+              />
+            </>
+          )}
+        </>
+      )}
+    />
   )
 }
