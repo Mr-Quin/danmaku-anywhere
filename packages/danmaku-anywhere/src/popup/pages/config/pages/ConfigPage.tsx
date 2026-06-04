@@ -1,6 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { Outlet, useNavigate } from 'react-router'
-import { ListPageLayout } from '@/common/components/layout/ListPageLayout'
+import { TabBody } from '@/common/components/layout/TabBody'
+import { TabLayout } from '@/common/components/layout/TabLayout'
+import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfigInput } from '@/common/options/mountConfig/schema'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
@@ -39,12 +41,14 @@ export const ConfigPage = () => {
 
   return (
     <>
-      <ListPageLayout
-        title={t('configPage.name', 'Configs')}
-        action={<ConfigActions onAdd={handleAddConfig} />}
-      >
-        <MountConfigList onEdit={handleEditConfig} onAdd={handleAddConfig} />
-      </ListPageLayout>
+      <TabLayout>
+        <TabToolbar title={t('configPage.name', 'Configs')}>
+          <ConfigActions onAdd={handleAddConfig} />
+        </TabToolbar>
+        <TabBody>
+          <MountConfigList onEdit={handleEditConfig} onAdd={handleAddConfig} />
+        </TabBody>
+      </TabLayout>
       <Outlet />
     </>
   )

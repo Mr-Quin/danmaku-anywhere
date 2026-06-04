@@ -1,7 +1,9 @@
 import { type ReactElement, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
-import { ListPageLayout } from '@/common/components/layout/ListPageLayout'
+import { TabBody } from '@/common/components/layout/TabBody'
+import { TabLayout } from '@/common/components/layout/TabLayout'
+import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useToast } from '@/common/components/Toast/toastStore'
 import {
   createCustomDanDanPlayProvider,
@@ -72,20 +74,20 @@ export const ProvidersPage = (): ReactElement => {
 
   return (
     <>
-      <ListPageLayout
-        title={t('providers.name', 'Danmaku Providers')}
-        action={
+      <TabLayout>
+        <TabToolbar title={t('providers.name', 'Danmaku Providers')}>
           <ProviderAddMenu
             onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
             onAddMacCmsProvider={handleAddMacCmsProvider}
           />
-        }
-      >
-        <ProviderConfigList
-          onEdit={handleEditProvider}
-          onDelete={handleDelete}
-        />
-      </ListPageLayout>
+        </TabToolbar>
+        <TabBody>
+          <ProviderConfigList
+            onEdit={handleEditProvider}
+            onDelete={handleDelete}
+          />
+        </TabBody>
+      </TabLayout>
 
       {editingProvider && mode && (
         <ProviderEditor

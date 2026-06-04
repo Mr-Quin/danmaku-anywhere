@@ -2,8 +2,11 @@ import { Stack } from '@mui/material'
 import { type ReactElement, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
-import { ListPageLayout } from '@/common/components/layout/ListPageLayout'
+import { ListAddButton } from '@/common/components/ListAddButton'
 import { ScrollBox } from '@/common/components/layout/ScrollBox'
+import { TabBody } from '@/common/components/layout/TabBody'
+import { TabLayout } from '@/common/components/layout/TabLayout'
+import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type {
   AiProviderConfig,
@@ -121,14 +124,18 @@ export const AiProvidersPage = (): ReactElement => {
   }
 
   return (
-    <ListPageLayout
-      title={t('ai.providers', 'AI Providers')}
-      onAdd={handleAddProvider}
-    >
-      <AiProviderConfigList
-        onEdit={handleEditProvider}
-        onDelete={handleDelete}
-      />
-    </ListPageLayout>
+    <TabLayout>
+      <TabToolbar title={t('ai.providers', 'AI Providers')}>
+        <ListAddButton onClick={handleAddProvider}>
+          {t('common.add', 'Add')}
+        </ListAddButton>
+      </TabToolbar>
+      <TabBody>
+        <AiProviderConfigList
+          onEdit={handleEditProvider}
+          onDelete={handleDelete}
+        />
+      </TabBody>
+    </TabLayout>
   )
 }
