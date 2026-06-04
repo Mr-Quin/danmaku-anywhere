@@ -10,7 +10,13 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { type SyntheticEvent, useEffect, useMemo, useRef } from 'react'
+import {
+  forwardRef,
+  type SyntheticEvent,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { getScrollBarProps } from '@/common/components/layout/ScrollBox'
 import { formatHotkeyCombo } from '@/common/options/extensionOptions/hotkeys'
@@ -289,19 +295,22 @@ interface HistoryDropdownPaperProps
   hasEntries?: boolean
 }
 
-function HistoryDropdownPaper({
-  onClearHistory,
-  hasEntries,
-  children,
-  ...rest
-}: HistoryDropdownPaperProps) {
+const HistoryDropdownPaper = forwardRef<
+  HTMLDivElement,
+  HistoryDropdownPaperProps
+>(function HistoryDropdownPaper(
+  { onClearHistory, hasEntries, children, ...rest },
+  ref
+) {
   const { t } = useTranslation()
 
   return (
     <Box
+      ref={ref}
       {...rest}
       sx={(theme) => ({
         backgroundColor: theme.palette.background.paper,
+        color: theme.palette.text.primary,
         border: `1px solid ${theme.palette.divider}`,
         borderRadius: 1,
         boxShadow: '0 12px 32px -16px rgba(10,5,20,.25)',
@@ -352,4 +361,4 @@ function HistoryDropdownPaper({
       {children}
     </Box>
   )
-}
+})

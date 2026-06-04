@@ -24,7 +24,7 @@ const Chip = styled(ButtonBase, {
   padding: '0 9px',
   borderRadius: 999,
   flexShrink: 0,
-  fontFamily: 'inherit',
+  fontFamily: theme.typography.fontFamily,
   fontSize: 12,
   fontWeight: 600,
   letterSpacing: 0.1,

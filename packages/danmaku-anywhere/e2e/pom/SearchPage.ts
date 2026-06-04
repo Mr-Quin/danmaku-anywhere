@@ -41,6 +41,10 @@ export class SearchPage {
     return this.page.locator(`[data-testid="source-chip-${impl}"]`)
   }
 
+  historyOption(text: string): Locator {
+    return this.page.getByRole('option', { name: text })
+  }
+
   seasonCard(provider: string): Locator {
     return this.page.locator(SELECTORS.seasonCardForProvider(provider)).first()
   }
