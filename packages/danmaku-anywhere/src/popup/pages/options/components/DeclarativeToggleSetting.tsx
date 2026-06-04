@@ -1,5 +1,5 @@
 import type { ToggleSettingConfig } from '@/common/settings/settingConfigs'
-import { ToggleListItemButton } from './ToggleListItemButton'
+import { SettingsToggleRow } from './settings/SettingsGroup'
 
 interface DeclarativeToggleSettingProps<S> {
   config: ToggleSettingConfig<S>
@@ -14,19 +14,17 @@ export const DeclarativeToggleSetting = <S,>({
   onUpdate,
   isLoading,
 }: DeclarativeToggleSettingProps<S>) => {
-  const currentValue = config.getValue(state)
-
   const handleToggle = async (checked: boolean) => {
-    const update = config.createUpdate(state, checked)
-    await onUpdate(update)
+    await onUpdate(config.createUpdate(state, checked))
   }
 
   return (
-    <ToggleListItemButton
-      enabled={currentValue}
+    <SettingsToggleRow
+      title={config.label()}
+      subtitle={config.description?.()}
+      checked={config.getValue(state)}
       onToggle={handleToggle}
-      itemText={config.label()}
-      isLoading={isLoading}
+      loading={isLoading}
     />
   )
 }

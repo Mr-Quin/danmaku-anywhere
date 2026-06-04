@@ -1,19 +1,17 @@
-import {
-  Alert,
-  Box,
-  Button,
-  CircularProgress,
-  Link,
-  Typography,
-} from '@mui/material'
+import { CloudUpload, InfoOutlined, Person } from '@mui/icons-material'
+import { Alert, Box, Button, CircularProgress, Typography } from '@mui/material'
+import { alpha } from '@mui/material/styles'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useAuthSession } from '@/common/hooks/user/useAuthSession'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import {
+  SettingsGroup,
+  SettingsGroupLabel,
+} from '@/popup/pages/options/components/settings/SettingsGroup'
 import { CloudBackupList } from './CloudBackupList'
-import { SectionHeader } from './SectionHeader'
 
 export function CloudBackupSection({
   onRestoringChange,
@@ -104,82 +102,126 @@ export function CloudBackupSection({
   const isRestoring =
     importMutation.isPending || downloadCloudBackupMutation.isPending
 
-  return (
-    <div>
-      <SectionHeader
-        title={t('optionsPage.backup.cloudBackup', 'Cloud Backup')}
-        description={t(
-          'optionsPage.backup.cloudDescription',
-          'Sync your settings to the cloud. Up to 3 revisions are kept.'
-        )}
-      />
-      {!isSignedIn ? (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          <Typography variant="body2">
-            {t(
-              'optionsPage.backup.cloudSignInRequired',
-              'Sign in to use cloud backup.'
-            )}{' '}
-            <Link
-              component="button"
-              variant="body2"
-              onClick={() => navigate('/options/auth')}
-              sx={{ verticalAlign: 'baseline' }}
-            >
-              {t('optionsPage.backup.goToSignIn', 'Go to Sign In')}
-            </Link>
-          </Typography>
-        </Alert>
-      ) : (
-        <>
-          <Box sx={{ mb: 3 }}>
-            <Button
-              variant="contained"
-              onClick={() => createCloudBackupMutation.mutate()}
-              disabled={createCloudBackupMutation.isPending}
-            >
-              {createCloudBackupMutation.isPending ? (
-                <CircularProgress size={20} color="inherit" />
-              ) : (
-                t('optionsPage.backup.cloudBackupCreate', 'Create Cloud Backup')
-              )}
-            </Button>
-          </Box>
+  const cloudLabel = (
+    <SettingsGroupLabel>
+      {t('optionsPage.backup.cloudBackup', 'Cloud Backup')}
+    </SettingsGroupLabel>
+  )
 
-          {isLoadingBackups ? (
-            <Box sx={{ py: 2, display: 'flex', justifyContent: 'flex-start' }}>
-              <CircularProgress size={24} />
-            </Box>
-          ) : isBackupsError ? (
-            <Alert severity="error" sx={{ mb: 2 }}>
+  if (!isSignedIn) {
+    return (
+      <>
+        {cloudLabel}
+        <Box
+          sx={{
+            mx: 1.5,
+            p: 1.75,
+            borderRadius: 2,
+            border: 1,
+            borderColor: 'divider',
+            bgcolor: (theme) => alpha(theme.palette.info.main, 0.12),
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <InfoOutlined fontSize="small" sx={{ color: 'info.main' }} />
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
               {t(
-                'optionsPage.backup.cloudListError',
-                'Failed to load cloud backups.'
-              )}
-            </Alert>
-          ) : !backups || backups.length === 0 ? (
-            <Typography
-              variant="body2"
-              sx={{
-                color: 'text.secondary',
-                py: 1,
-              }}
-            >
-              {t(
-                'optionsPage.backup.noCloudBackups',
-                'No cloud backups yet. Create one to get started.'
+                'optionsPage.backup.cloudSignInTitle',
+                'Sign in to enable cloud backup'
               )}
             </Typography>
-          ) : (
-            <CloudBackupList
-              backups={backups}
-              isRestoring={isRestoring}
-              restoringId={downloadCloudBackupMutation.variables}
-              onRestore={(id) => downloadCloudBackupMutation.mutate(id)}
-            />
+          </Box>
+          <Typography
+            variant="caption"
+            sx={{ display: 'block', color: 'text.secondary', mb: 1.5 }}
+          >
+            {t(
+              'optionsPage.backup.cloudDescription',
+              'Sync your settings to the cloud. Up to 3 revisions are kept.'
+            )}
+          </Typography>
+          <Button
+            variant="contained"
+            startIcon={<Person />}
+            onClick={() => navigate('/options/auth')}
+          >
+            {t('optionsPage.backup.goToSignIn', 'Go to Sign In')}
+          </Button>
+        </Box>
+      </>
+    )
+  }
+
+  return (
+    <>
+      {cloudLabel}
+      <Box sx={{ mx: 1.5, mb: 1.25 }}>
+        <Button
+          fullWidth
+          variant="contained"
+          startIcon={
+            createCloudBackupMutation.isPending ? (
+              <CircularProgress size={16} color="inherit" />
+            ) : (
+              <CloudUpload />
+            )
+          }
+          onClick={() => createCloudBackupMutation.mutate()}
+          disabled={createCloudBackupMutation.isPending}
+        >
+          {t('optionsPage.backup.cloudBackupCreate', 'Create Cloud Backup')}
+        </Button>
+      </Box>
+
+      <Box
+        sx={{
+          px: 2,
+          pb: 0.75,
+          display: 'flex',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          {t('optionsPage.backup.cloudRevisions', 'Revisions')}
+        </Typography>
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          {t('optionsPage.backup.cloudKeepsLast', 'Keeps last 3')}
+        </Typography>
+      </Box>
+
+      {isLoadingBackups ? (
+        <Box sx={{ px: 2, py: 1 }}>
+          <CircularProgress size={24} />
+        </Box>
+      ) : isBackupsError ? (
+        <Box sx={{ mx: 1.5 }}>
+          <Alert severity="error">
+            {t(
+              'optionsPage.backup.cloudListError',
+              'Failed to load cloud backups.'
+            )}
+          </Alert>
+        </Box>
+      ) : !backups || backups.length === 0 ? (
+        <Typography
+          variant="body2"
+          sx={{ color: 'text.secondary', px: 2, py: 1 }}
+        >
+          {t(
+            'optionsPage.backup.noCloudBackups',
+            'No cloud backups yet. Create one to get started.'
           )}
-        </>
+        </Typography>
+      ) : (
+        <SettingsGroup>
+          <CloudBackupList
+            backups={backups}
+            isRestoring={isRestoring}
+            restoringId={downloadCloudBackupMutation.variables}
+            onRestore={(id) => downloadCloudBackupMutation.mutate(id)}
+          />
+        </SettingsGroup>
       )}
-    </div>
+    </>
   )
 }

@@ -159,6 +159,19 @@ export const About = () => {
             variant="outlined"
             sx={{ fontWeight: 'medium' }}
           />
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+              textAlign: 'center',
+              maxWidth: 320,
+            }}
+          >
+            {i18n.t(
+              'aboutPage.tagline',
+              'Bring scrolling comments to any video, anywhere on the web.'
+            )}
+          </Typography>
         </Stack>
 
         {/* Resources */}

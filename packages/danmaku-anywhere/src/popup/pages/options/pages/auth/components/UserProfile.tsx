@@ -1,7 +1,13 @@
-import { Box, Button, List, ListItem, ListItemText, Stack } from '@mui/material'
+import { Check, Mail, Person } from '@mui/icons-material'
+import { Box, Button, Chip, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import type { AuthUserInfo } from '@/common/auth/types'
 import { useSignOutMutation } from '@/common/hooks/user/useAuthMutations'
+import { Monogram } from '@/popup/pages/options/components/settings/Monogram'
+import {
+  SettingsGroup,
+  SettingsStaticRow,
+} from '@/popup/pages/options/components/settings/SettingsGroup'
 
 export const UserProfile = ({ user }: { user: AuthUserInfo }) => {
   const { t } = useTranslation()
@@ -9,28 +15,60 @@ export const UserProfile = ({ user }: { user: AuthUserInfo }) => {
 
   return (
     <Box>
-      <List>
-        <ListItem>
-          <ListItemText
-            primary={`${t('optionsPage.auth.name', 'Name')}: ${user.name}`}
-          />
-        </ListItem>
-        <ListItem>
-          <ListItemText
-            primary={`${t('optionsPage.auth.email', 'Email')}: ${user.email}`}
-          />
-        </ListItem>
-      </List>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 1,
+          pt: 3,
+          pb: 2,
+        }}
+      >
+        <Monogram name={user.name} size={64} />
+        <Typography variant="h4" sx={{ mt: 1 }}>
+          {user.name}
+        </Typography>
+        <Chip
+          label={t('optionsPage.account.cloudSyncActive', 'Cloud sync active')}
+          color="success"
+          icon={<Check />}
+        />
+      </Box>
 
-      <Stack direction="row" spacing={2} sx={{ px: 2 }}>
+      <SettingsGroup>
+        <SettingsStaticRow
+          icon={<Person fontSize="small" />}
+          title={t('optionsPage.auth.name', 'Name')}
+          right={
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              {user.name}
+            </Typography>
+          }
+        />
+        <SettingsStaticRow
+          icon={<Mail fontSize="small" />}
+          iconTone="secondary"
+          title={t('optionsPage.auth.email', 'Email')}
+          right={
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              {user.email}
+            </Typography>
+          }
+        />
+      </SettingsGroup>
+
+      <Box sx={{ px: 1.5, pt: 2 }}>
         <Button
-          variant="contained"
+          fullWidth
+          variant="outlined"
+          color="error"
           onClick={() => signOutMutation.mutate()}
           disabled={signOutMutation.isPending}
         >
           {t('optionsPage.auth.signOut', 'Sign Out')}
         </Button>
-      </Stack>
+      </Box>
     </Box>
   )
 }

@@ -1,4 +1,4 @@
-import { Box, Divider, Stack } from '@mui/material'
+import { Box } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
@@ -15,18 +15,11 @@ export function BackupPage() {
       <OptionsPageToolBar
         title={t('optionsPage.pages.backup', 'Backup & Restore')}
       />
-      <Box
-        sx={{
-          p: 2,
-        }}
-      >
-        <Stack spacing={2}>
-          <LocalBackupSection isRestoringExt={isRestoringCloud} />
-          <Divider />
-          <CloudBackupSection
-            onRestoringChange={(val) => setIsRestoringCloud(val)}
-          />
-        </Stack>
+      <Box sx={{ pb: 2 }}>
+        <LocalBackupSection isRestoringExt={isRestoringCloud} />
+        <CloudBackupSection
+          onRestoringChange={(val) => setIsRestoringCloud(val)}
+        />
       </Box>
     </OptionsPageLayout>
   )
