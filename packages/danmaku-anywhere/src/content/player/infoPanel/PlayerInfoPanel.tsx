@@ -18,18 +18,18 @@ import { panelView } from './panelView'
 
 const DEFAULT_OFFSET: DragOffset = { x: 16, y: 16 }
 
-const HEADLINE: Record<PanelSubstate, [key: string, fallback: string]> = {
-  loading: ['infoPanel.state.loading', 'Searching'],
-  matched: ['infoPanel.state.matched', 'Matched'],
-  mounted: ['infoPanel.state.mounted', 'Mounted'],
-  noMatch: ['infoPanel.state.noMatch', 'No match'],
-  error: ['infoPanel.state.error', 'Error'],
-  disconnected: ['infoPanel.state.disconnected', 'Disconnected'],
+// Literal keys per substate so the i18n extractor can find them statically.
+const HEADLINE: Record<PanelSubstate, () => string> = {
+  loading: () => i18n.t('infoPanel.state.loading', 'Searching'),
+  matched: () => i18n.t('infoPanel.state.matched', 'Matched'),
+  mounted: () => i18n.t('infoPanel.state.mounted', 'Mounted'),
+  noMatch: () => i18n.t('infoPanel.state.noMatch', 'No match'),
+  error: () => i18n.t('infoPanel.state.error', 'Error'),
+  disconnected: () => i18n.t('infoPanel.state.disconnected', 'Disconnected'),
 }
 
 function stateHeadline(state: PanelSubstate): string {
-  const [key, fallback] = HEADLINE[state]
-  return i18n.t(key, fallback)
+  return HEADLINE[state]()
 }
 
 function episodeLabel(media: PanelMediaInfo): string | null {

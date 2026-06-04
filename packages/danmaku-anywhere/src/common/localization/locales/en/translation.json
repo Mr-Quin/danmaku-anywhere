@@ -323,6 +323,17 @@
     "willImport_one": "Will import {{count}} file",
     "willImport_other": "Will import {{count}} files"
   },
+  "infoPanel": {
+    "comments": "comments",
+    "state": {
+      "disconnected": "Disconnected",
+      "error": "Error",
+      "loading": "Searching",
+      "matched": "Matched",
+      "mounted": "Mounted",
+      "noMatch": "No match"
+    }
+  },
   "integration": {
     "ai": {
       "cannotEditBuiltIn": "Settings for the built-in provider cannot be changed. To use custom prompts, change to another AI provider.",

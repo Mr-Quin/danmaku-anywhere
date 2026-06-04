@@ -312,6 +312,17 @@
     },
     "willImport_other": "将导入{{count}}个文件"
   },
+  "infoPanel": {
+    "comments": "弹幕",
+    "state": {
+      "disconnected": "已断开",
+      "error": "错误",
+      "loading": "匹配中",
+      "matched": "已匹配",
+      "mounted": "已加载",
+      "noMatch": "无匹配"
+    }
+  },
   "integration": {
     "ai": {
       "cannotEditBuiltIn": "内置AI源不可编辑。要使用自定义提示词，请添加并切换至别的AI源",
