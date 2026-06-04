@@ -37,12 +37,12 @@ const Chip = styled(ButtonBase, {
   padding: '0 9px',
   borderRadius: 999,
   flexShrink: 0,
-  fontFamily: 'inherit',
   fontSize: 12,
   fontWeight: 600,
   letterSpacing: 0.1,
   border: 'none',
   cursor: 'pointer',
+  fontFamily: theme.typography.fontFamily,
   transition: 'background-color 120ms ease, color 120ms ease',
   backgroundColor: active ? theme.palette.primary.main : theme.palette.paperAlt,
   color: active
@@ -121,14 +121,19 @@ export function SourceFilterChips({
       return
     }
     setContainerWidth(el.clientWidth)
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width)
-      }
+    const observer = new ResizeObserver(() => {
+      setContainerWidth(el.clientWidth)
     })
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
+
+  // SearchForm rebuilds `states` on every render (useQueries returns a fresh
+  // array), so depend on a signature of only the width-affecting fields to
+  // keep typing in the search box from re-measuring the DOM each keystroke.
+  const statesSignature = providers
+    .map((p) => `${p.id}:${states[p.id]?.isPending}:${states[p.id]?.count}`)
+    .join('|')
 
   useLayoutEffect(() => {
     const el = measureRef.current
@@ -147,7 +152,7 @@ export function SourceFilterChips({
     )
     setWidths(next)
     setOverflowWidth(overflowNode?.offsetWidth ?? 0)
-  }, [providers, states, activeId])
+  }, [statesSignature])
 
   const { visible, overflow } = useMemo(
     () =>
@@ -205,8 +210,9 @@ export function SourceFilterChips({
           items={overflowItems}
           dense
           BoxProps={{ sx: { flexShrink: 0, display: 'inline-flex' } }}
-          renderButton={({ onClick }) => (
+          renderButton={({ onClick, buttonId }) => (
             <Chip
+              id={buttonId}
               active={false}
               onClick={onClick}
               aria-haspopup="menu"
