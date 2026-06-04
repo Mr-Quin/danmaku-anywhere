@@ -20,6 +20,7 @@ function usePanelStateSnapshot(): PanelStateSnapshot {
       isMounted,
       commentCount: comments.length,
       provider: episodes?.[0]?.provider,
+      mountedEpisodes: episodes,
       integration: {
         active: integration.active,
         errorMessage: integration.errorMessage,

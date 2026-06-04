@@ -333,7 +333,9 @@ export type PanelSubstate =
 export interface PanelMediaInfo {
   title: string
   seasonDecorator?: string
-  episode: number
+  // Auto-match always yields a numeric episode; manually-mounted episodes may
+  // carry a string label (or none) since their numbering is free-form.
+  episode?: number | string
   episodeTitle?: string
   originalTitle?: string
 }
