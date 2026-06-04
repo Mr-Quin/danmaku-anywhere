@@ -21,10 +21,8 @@ export const ProviderAddMenu = ({
   return (
     <DrilldownMenu
       dense
-      renderButton={({ onClick }) => (
-        <ListAddButton onClick={onClick}>
-          {t('common.add', 'Add')}
-        </ListAddButton>
+      renderButton={(props) => (
+        <ListAddButton {...props}>{t('common.add', 'Add')}</ListAddButton>
       )}
       items={[
         {
