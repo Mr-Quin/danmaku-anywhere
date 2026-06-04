@@ -1,51 +1,208 @@
-.da-info-panel {
-  position: fixed;
-  top: 16px;
-  left: 16px;
-  z-index: 2147483647;
+.da-ip {
+  box-sizing: border-box;
   display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  max-width: 320px;
-  font:
-    12px / 1.4 system-ui,
-    sans-serif;
-  color: #fff;
-  background: rgba(20, 20, 24, 0.78);
-  border-radius: 999px;
-  pointer-events: none;
+  flex-direction: column;
+  max-width: 280px;
+  font-family: var(--da-font);
+  color: var(--da-text);
+  background: color-mix(in srgb, var(--da-surface) 88%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid var(--da-divider);
+  border-radius: var(--da-radius-control);
+  box-shadow: 0 18px 36px -20px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
   opacity: 0;
-  transition: opacity 0.2s ease;
+  transform: translateY(-2px);
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    border-radius 0.2s ease;
+  pointer-events: none;
+}
+
+.da-ip--visible {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.da-ip--expanded {
+  border-radius: var(--da-radius-card);
+}
+
+.da-ip-header {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+}
+
+.da-ip--expanded .da-ip-header {
+  padding: 9px 11px 8px;
+  border-bottom: 1px solid var(--da-divider);
+}
+
+.da-ip-dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.da-ip[data-sev="info"] .da-ip-dot {
+  background: var(--da-info);
+}
+
+.da-ip[data-sev="success"] .da-ip-dot {
+  background: var(--da-success);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--da-success) 70%, transparent);
+}
+
+.da-ip[data-sev="danger"] .da-ip-dot {
+  background: var(--da-danger);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--da-danger) 70%, transparent);
+}
+
+.da-ip-dot--pulse {
+  animation: da-ip-pulse 1.4s ease-in-out infinite;
+}
+
+.da-ip-headline {
+  font-size: var(--da-fs-overline);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.da-ip[data-sev="info"] .da-ip-headline {
+  color: var(--da-info-ink);
+}
+
+.da-ip[data-sev="success"] .da-ip-headline {
+  color: var(--da-success-ink);
+}
+
+.da-ip[data-sev="danger"] .da-ip-headline {
+  color: var(--da-danger-ink);
+}
+
+.da-ip-grip {
+  flex: 0 0 auto;
+  margin-left: auto;
+  width: 14px;
+  height: 14px;
+  cursor: grab;
+  color: rgba(255, 255, 255, 0.35);
+  background-image: radial-gradient(currentColor 1px, transparent 1px);
+  background-size: 4px 4px;
+  background-position: center;
+}
+
+.da-ip-collapsed {
+  padding: 0 10px 8px;
+}
+
+.da-ip-episode {
+  font-size: var(--da-fs-caption);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.da-ip-body {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 11px 11px;
+}
+
+.da-ip-media {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.da-ip-title {
+  font-size: var(--da-fs-body2);
+  font-weight: 600;
+  color: var(--da-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.da-info-panel.is-visible {
-  opacity: 1;
+.da-ip-season {
+  margin-left: 6px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
 }
 
-.da-info-panel-dot {
-  flex-shrink: 0;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #888;
-}
-
-.da-info-panel[data-da-info-state="matched"] .da-info-panel-dot {
-  background: #fbbf24;
-}
-.da-info-panel[data-da-info-state="mounted"] .da-info-panel-dot {
-  background: #34d399;
-}
-.da-info-panel[data-da-info-state="error"] .da-info-panel-dot,
-.da-info-panel[data-da-info-state="disconnected"] .da-info-panel-dot {
-  background: #f87171;
-}
-
-.da-info-panel-label {
+.da-ip-epline {
+  font-size: var(--da-fs-caption);
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.da-ip-ep {
+  font-weight: 600;
+  color: var(--da-text);
+}
+
+.da-ip-eptitle {
+  margin-left: 6px;
+}
+
+.da-ip-eptitle::before {
+  content: "· ";
+}
+
+.da-ip-count {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--da-divider);
+}
+
+.da-ip-count-num {
+  font-size: var(--da-fs-body2);
+  font-weight: 700;
+  color: var(--da-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.da-ip-count-label {
+  font-size: var(--da-fs-meta);
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.da-ip-source {
+  display: inline-flex;
+  align-items: center;
+  margin-left: auto;
+  padding: 2px 7px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  font-size: var(--da-fs-meta);
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+@keyframes da-ip-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
 }
