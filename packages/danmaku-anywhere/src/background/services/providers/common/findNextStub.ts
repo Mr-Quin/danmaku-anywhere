@@ -11,8 +11,7 @@ function toEpisodeNumber(value: number | string | undefined): number | null {
   if (Number.isFinite(direct)) {
     return direct
   }
-  // Providers often store the number with trailing text (e.g. "2 标题"), so
-  // fall back to the leading integer before giving up.
+  // Try to extract a number from the episode
   const leading = value.match(/^\s*(\d+)/)
   return leading ? Number(leading[1]) : null
 }
