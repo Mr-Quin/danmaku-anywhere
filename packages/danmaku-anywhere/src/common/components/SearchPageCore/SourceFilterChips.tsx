@@ -129,10 +129,15 @@ export function SourceFilterChips({
   }, [])
 
   // SearchForm rebuilds `states` on every render (useQueries returns a fresh
-  // array), so depend on a signature of only the width-affecting fields to
-  // keep typing in the search box from re-measuring the DOM each keystroke.
-  const statesSignature = providers
-    .map((p) => `${p.id}:${states[p.id]?.isPending}:${states[p.id]?.count}`)
+  // array), so depend on a signature of only the width-affecting inputs (label
+  // text, pending spinner, count) to keep typing in the search box from
+  // re-measuring the DOM each keystroke, while still re-measuring when a label
+  // changes (e.g. locale switch).
+  const measureSignature = providers
+    .map(
+      (p) =>
+        `${p.id}:${providerLabel(p)}:${states[p.id]?.isPending}:${states[p.id]?.count}`
+    )
     .join('|')
 
   useLayoutEffect(() => {
@@ -152,7 +157,7 @@ export function SourceFilterChips({
     )
     setWidths(next)
     setOverflowWidth(overflowNode?.offsetWidth ?? 0)
-  }, [statesSignature])
+  }, [measureSignature])
 
   const { visible, overflow } = useMemo(
     () =>
