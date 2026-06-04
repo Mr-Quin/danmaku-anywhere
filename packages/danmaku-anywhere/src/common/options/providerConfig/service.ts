@@ -13,7 +13,6 @@ import { isServiceWorker } from '@/common/utils/utils'
 import { defaultProviderConfigs } from './constant'
 import {
   ensureBuiltinProviders,
-  migrateDdpCompatToDandanplay,
   migrateProviderConfigsToFlat,
 } from './migration'
 import type { ProviderConfig } from './schema'
@@ -35,29 +34,16 @@ export class ProviderConfigService implements IStoreService {
       defaultProviderConfigs,
       this.logger
     ).version(2, {
-      // One-shot upgrade from anything that came before (master's no-op v1,
-      // discriminated-union records, fresh-from-extensionOptions-v21 flat
-      // records). flatten is idempotent on already-flat input; ensure
-      // appends any missing builtin without disturbing user-edited entries.
+      // One-shot upgrade from the previous releases (v1.4/v1.5
+      // discriminated-union records) to the flat manifest shape. flatten is
+      // idempotent on already-flat input; ensure appends any missing builtin
+      // without disturbing user-edited entries.
       upgrade: (data) => {
         try {
           return ensureBuiltinProviders(migrateProviderConfigsToFlat(data))
         } catch (error) {
           console.error(
             '[providerConfig] migration failed, falling back to defaults:',
-            error
-          )
-          return [...defaultProviderConfigs]
-        }
-      },
-    })
-    this.options.version(3, {
-      upgrade: (data) => {
-        try {
-          return migrateDdpCompatToDandanplay(data as ProviderConfig[])
-        } catch (error) {
-          console.error(
-            '[providerConfig] ddp-compat migration failed, falling back to defaults:',
             error
           )
           return [...defaultProviderConfigs]
