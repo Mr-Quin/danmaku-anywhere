@@ -1,10 +1,11 @@
-import { Box, Divider, Tab, Tabs, Typography } from '@mui/material'
+import { Divider, Tab, Tabs, Typography } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ImportResultDialog,
   type ImportResultRenderParams,
 } from '@/common/components/ImportPageCore/ImportResultDialog'
+import { TabBody } from '@/common/components/layout/TabBody'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useInjectService } from '@/common/hooks/useInjectService'
@@ -170,17 +171,13 @@ export const ImportConfigPage = () => {
       </Tabs>
       <Divider />
       {tabValue === 'upload' && (
-        <Box
-          sx={{
-            p: 2,
-          }}
-        >
+        <TabBody sx={{ py: 2 }}>
           <FileUpload
             onFilesSelected={handleSelectFiles}
             accept=".json"
             multiple={true}
           />
-        </Box>
+        </TabBody>
       )}
       {tabValue === 'presets' && <PresetsList />}
       <ImportResultDialog

@@ -1,9 +1,10 @@
 import { Delete } from '@mui/icons-material'
-import { Box, Chip, IconButton, Tooltip } from '@mui/material'
+import { Chip, IconButton, Tooltip } from '@mui/material'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
 import { ListItemPrimaryStack } from '@/common/components/ListItemPrimaryStack'
+import { TabBody } from '@/common/components/layout/TabBody'
 import type { SeasonMap } from '@/common/seasonMap/SeasonMap'
 
 type TitleMappingListProps = {
@@ -35,7 +36,7 @@ export const TitleMappingList = ({
   )
 
   return (
-    <Box sx={{ px: 2 }}>
+    <TabBody>
       <DraggableList<DraggableSeasonMap>
         items={items}
         clickable
@@ -61,6 +62,6 @@ export const TitleMappingList = ({
           </Tooltip>
         )}
       />
-    </Box>
+    </TabBody>
   )
 }

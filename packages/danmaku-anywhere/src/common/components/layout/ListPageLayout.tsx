@@ -1,7 +1,7 @@
-import { Box } from '@mui/material'
 import type { PropsWithChildren, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ListAddButton } from '@/common/components/ListAddButton'
+import { TabBody } from './TabBody'
 import { TabLayout } from './TabLayout'
 import { TabToolbar } from './TabToolbar'
 
@@ -36,7 +36,7 @@ export function ListPageLayout({
   return (
     <TabLayout>
       <TabToolbar title={title}>{renderAction()}</TabToolbar>
-      <Box sx={{ px: gutters }}>{children}</Box>
+      <TabBody gutters={gutters}>{children}</TabBody>
     </TabLayout>
   )
 }
