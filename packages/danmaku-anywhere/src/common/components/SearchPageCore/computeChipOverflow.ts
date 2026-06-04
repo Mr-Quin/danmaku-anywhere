@@ -27,10 +27,8 @@ function fitCount(widths: number[], available: number, gap: number): number {
 }
 
 /**
- * Greedily fits chips into a single row in order. When they overflow, reserves
- * room for a trailing overflow chip and collapses the rest. If the active chip
- * lands in the overflow set, it is swapped into the last visible slot so the
- * current selection is always shown.
+ * If the active chip lands in the overflow set, it is swapped into the last
+ * visible slot so the current selection is always shown.
  */
 export function computeChipOverflow<T extends { id: string }>({
   items,

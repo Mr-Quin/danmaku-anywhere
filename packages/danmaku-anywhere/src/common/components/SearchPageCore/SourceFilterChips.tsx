@@ -176,6 +176,7 @@ export function SourceFilterChips({
     <Box
       ref={containerRef}
       sx={{
+        position: 'relative',
         display: 'flex',
         alignItems: 'center',
         gap: `${GAP}px`,

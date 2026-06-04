@@ -277,7 +277,7 @@ export function SearchForm({
           <SourceFilterChips
             providers={enabledProviders}
             states={chipStates}
-            activeId={activeProviderId ?? enabledProviders[0]?.id ?? ''}
+            activeId={activeProviderId ?? ''}
             onChange={onProviderIdChange}
           />
         )}
