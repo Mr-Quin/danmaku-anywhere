@@ -1,12 +1,22 @@
-import { useState } from 'react'
+import { useDrag } from '@use-gesture/react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { i18n } from '@/common/localization/i18n'
 import type {
   PanelMediaInfo,
   PanelStateSnapshot,
   PanelSubstate,
 } from '@/common/rpcClient/background/types'
+import {
+  clampOffset,
+  type OffsetBounds,
+} from '@/content/common/hooks/clampOffset'
+import { usePersistedPosition } from '@/content/common/hooks/usePersistedPosition'
+import type { DragOffset } from '@/content/controller/ui/components/dragOffset'
+import { computePanelBounds } from './panelBounds'
 import { usePanelStateStore } from './panelStateStore'
 import { panelView } from './panelView'
+
+const DEFAULT_OFFSET: DragOffset = { x: 16, y: 16 }
 
 const HEADLINE: Record<PanelSubstate, [key: string, fallback: string]> = {
   loading: ['infoPanel.state.loading', 'Searching'],
@@ -78,28 +88,87 @@ function shouldRender(snapshot: PanelStateSnapshot | undefined): boolean {
 export function PlayerInfoPanel() {
   const snapshot = usePanelStateStore((s) => s.snapshot)
   const active = usePanelStateStore((s) => s.active)
-  const [expanded, setExpanded] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const [dragging, setDragging] = useState(false)
+
+  const panelRef = useRef<HTMLDivElement>(null)
+  const { initialOffset, persistOffset } = usePersistedPosition(
+    'infoPanelOffset',
+    DEFAULT_OFFSET
+  )
+  const [offset, setOffset] = useState<DragOffset>(initialOffset)
+  const offsetRef = useRef(offset)
+
+  const applyOffset = useCallback((next: DragOffset) => {
+    offsetRef.current = next
+    setOffset(next)
+  }, [])
+
+  const currentBounds = useCallback((): OffsetBounds | undefined => {
+    const el = panelRef.current
+    const parent = el?.offsetParent as HTMLElement | null
+    if (!el || !parent) {
+      return undefined
+    }
+    return computePanelBounds(
+      { width: parent.clientWidth, height: parent.clientHeight },
+      { width: el.offsetWidth, height: el.offsetHeight }
+    )
+  }, [])
+
+  const bind = useDrag(({ first, last, movement: [mx, my], memo }) => {
+    const start = (memo as DragOffset | undefined) ?? offsetRef.current
+    if (first) {
+      setDragging(true)
+    }
+    const next = clampOffset(
+      { x: start.x + mx, y: start.y + my },
+      currentBounds()
+    )
+    applyOffset(next)
+    if (last) {
+      setDragging(false)
+      persistOffset(next)
+    }
+    return start
+  })
+
+  useEffect(() => {
+    const parent = panelRef.current?.offsetParent as HTMLElement | null
+    if (!parent) {
+      return
+    }
+    const observer = new ResizeObserver(() => {
+      applyOffset(clampOffset(offsetRef.current, currentBounds()))
+    })
+    observer.observe(parent)
+    return () => observer.disconnect()
+  }, [applyOffset, currentBounds])
 
   if (!shouldRender(snapshot) || !snapshot) {
     return null
   }
 
   const view = panelView(snapshot.state)
+  const expanded = hovered || dragging
   const visible = active || expanded
   const className = [
     'da-ip',
     expanded ? 'da-ip--expanded' : '',
     visible ? 'da-ip--visible' : '',
+    dragging ? 'da-ip--dragging' : '',
   ]
     .filter(Boolean)
     .join(' ')
 
   return (
     <div
+      ref={panelRef}
       className={className}
       data-sev={view.severity}
-      onPointerEnter={() => setExpanded(true)}
-      onPointerLeave={() => setExpanded(false)}
+      style={{ left: `${offset.x}px`, top: `${offset.y}px` }}
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
     >
       <div className="da-ip-header">
         <span
@@ -107,7 +176,12 @@ export function PlayerInfoPanel() {
         />
         <span className="da-ip-headline">{stateHeadline(snapshot.state)}</span>
         {expanded ? (
-          <span className="da-ip-grip" data-da-ip-grip aria-hidden="true" />
+          <span
+            {...bind()}
+            className="da-ip-grip"
+            data-da-ip-grip
+            aria-hidden="true"
+          />
         ) : null}
       </div>
 

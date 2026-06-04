@@ -1,4 +1,5 @@
 .da-ip {
+  position: absolute;
   box-sizing: border-box;
   display: inline-flex;
   flex-direction: column;
@@ -29,6 +30,13 @@
 
 .da-ip--expanded {
   border-radius: var(--da-radius-card);
+}
+
+.da-ip--dragging {
+  cursor: grabbing;
+  box-shadow:
+    0 28px 56px -18px rgba(0, 0, 0, 0.7),
+    0 0 0 1px var(--da-primary-soft);
 }
 
 .da-ip-header {
@@ -96,10 +104,15 @@
   width: 14px;
   height: 14px;
   cursor: grab;
+  touch-action: none;
   color: rgba(255, 255, 255, 0.35);
   background-image: radial-gradient(currentColor 1px, transparent 1px);
   background-size: 4px 4px;
   background-position: center;
+}
+
+.da-ip-grip:active {
+  cursor: grabbing;
 }
 
 .da-ip-collapsed {

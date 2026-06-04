@@ -88,7 +88,7 @@ export class PlayerCommandHandler {
       danmakuComponentCss,
       infoPanelCss,
     ])
-    this.infoPanel.mount(shadowRoot)
+    this.infoPanel.mount()
   }
 
   private wireLifecycleEvents() {
