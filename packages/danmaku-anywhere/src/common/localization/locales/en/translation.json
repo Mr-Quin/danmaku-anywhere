@@ -636,6 +636,7 @@
       "clear": "Clear",
       "recent": "Recent"
     },
+    "moreSources": "More sources",
     "parse": {
       "alert": {
         "importSuccess": "Import successful",

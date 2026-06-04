@@ -36,6 +36,7 @@ export const SearchPage = (): React.ReactElement | null => {
   const [selectedProvider, setSelectedProvider] = useState<
     ProviderConfig | undefined
   >()
+  const [providerId, setProviderId] = useState<string>()
 
   const showAddSeasonMapDialog = useShowAddSeasonMapDialog()
 
@@ -113,6 +114,8 @@ export const SearchPage = (): React.ReactElement | null => {
     <SearchPageCore
       searchTerm={searchTitle}
       onSearchTermChange={setSearchTitle}
+      providerId={providerId}
+      onProviderIdChange={setProviderId}
       onSeasonClick={handleSeasonClick}
       onImportSuccess={(episode) => mountDanmaku([episode])}
       dragOverlayPortal={highlighterPortal}

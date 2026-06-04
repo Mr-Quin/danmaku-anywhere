@@ -31,6 +31,8 @@ type SeasonOrInsert = Season | SeasonInsert | CustomSeason
 interface SearchFormProps {
   searchTerm: string
   onSearchTermChange: (term: string) => void
+  providerId?: string
+  onProviderIdChange: (id: string) => void
   onSeasonClick: (season: SeasonOrInsert, provider: ProviderConfig) => void
   onImportSuccess?: (episode: WithSeason<Episode>) => void
   focusToken?: number
@@ -39,6 +41,8 @@ interface SearchFormProps {
 export function SearchForm({
   searchTerm,
   onSearchTermChange,
+  providerId,
+  onProviderIdChange,
   onSeasonClick,
   onImportSuccess,
   focusToken,
@@ -55,14 +59,13 @@ export function SearchForm({
   )
 
   const [committedSearchTerm, setCommittedSearchTerm] = useState(searchTerm)
-  const [providerIdOverride, setProviderIdOverride] = useState<string>()
   const [parseSubmitToken, setParseSubmitToken] = useState(0)
   const [committedParseUrl, setCommittedParseUrl] = useState('')
 
   const isUrl = isParseableUrl(searchTerm)
 
   const activeProviderId =
-    enabledProviders.find((p) => p.id === providerIdOverride)?.id ??
+    enabledProviders.find((p) => p.id === providerId)?.id ??
     enabledProviders[0]?.id
 
   const unknownErrorMessage = t('error.unknown', 'Something went wrong.')
@@ -275,7 +278,7 @@ export function SearchForm({
             providers={enabledProviders}
             states={chipStates}
             activeId={activeProviderId ?? enabledProviders[0]?.id ?? ''}
-            onChange={setProviderIdOverride}
+            onChange={onProviderIdChange}
           />
         )}
 

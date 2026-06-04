@@ -17,6 +17,8 @@ export const SearchPage = () => {
       ref={layoutRef}
       searchTerm={search.keyword}
       onSearchTermChange={search.setKeyword}
+      providerId={search.providerId}
+      onProviderIdChange={search.setProviderId}
       onSeasonClick={(season, provider) => {
         upsertSeason.mutate(season, {
           onSuccess: (persisted) => {

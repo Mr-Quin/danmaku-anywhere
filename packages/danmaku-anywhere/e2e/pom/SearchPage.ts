@@ -41,6 +41,17 @@ export class SearchPage {
     return this.page.locator(`[data-testid="source-chip-${impl}"]`)
   }
 
+  get overflowChip(): Locator {
+    return this.page.locator('[data-testid="source-chip-overflow"]')
+  }
+
+  // `providerId` is the config id, e.g. 'builtin:tencent'.
+  overflowMenuItem(providerId: string): Locator {
+    return this.page.locator(
+      `[data-testid="drilldown-menu-item-${providerId}"]`
+    )
+  }
+
   historyOption(text: string): Locator {
     return this.page.getByRole('option', { name: text })
   }

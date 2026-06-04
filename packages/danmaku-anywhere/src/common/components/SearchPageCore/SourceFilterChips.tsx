@@ -1,6 +1,19 @@
-import { ButtonBase, CircularProgress, Stack, styled } from '@mui/material'
+import { Box, ButtonBase, CircularProgress, styled } from '@mui/material'
+import {
+  type ReactNode,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
+import { useTranslation } from 'react-i18next'
+import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
+import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { computeChipOverflow } from './computeChipOverflow'
+
+const GAP = 6
 
 export interface SourceChipState {
   isPending: boolean
@@ -24,7 +37,7 @@ const Chip = styled(ButtonBase, {
   padding: '0 9px',
   borderRadius: 999,
   flexShrink: 0,
-  fontFamily: theme.typography.fontFamily,
+  fontFamily: 'inherit',
   fontSize: 12,
   fontWeight: 600,
   letterSpacing: 0.1,
@@ -59,29 +72,120 @@ function providerLabel(provider: ProviderConfig): string {
   return provider.name
 }
 
+function chipBody(
+  provider: ProviderConfig,
+  active: boolean,
+  state: SourceChipState | undefined
+): ReactNode {
+  if (state?.isPending) {
+    return (
+      <>
+        {providerLabel(provider)}
+        <CircularProgress
+          size={9}
+          thickness={6}
+          sx={{
+            color: active ? 'primary.contrastText' : 'text.secondary',
+            ml: 0.25,
+          }}
+        />
+      </>
+    )
+  }
+  return (
+    <>
+      {providerLabel(provider)}
+      {typeof state?.count === 'number' ? (
+        <CountText active={active}>· {state.count}</CountText>
+      ) : null}
+    </>
+  )
+}
+
 export function SourceFilterChips({
   providers,
   states,
   activeId,
   onChange,
 }: SourceFilterChipsProps) {
+  const { t } = useTranslation()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const measureRef = useRef<HTMLDivElement>(null)
+  const [containerWidth, setContainerWidth] = useState(0)
+  const [widths, setWidths] = useState<Record<string, number>>({})
+  const [overflowWidth, setOverflowWidth] = useState(0)
+
+  useLayoutEffect(() => {
+    const el = containerRef.current
+    if (!el) {
+      return
+    }
+    setContainerWidth(el.clientWidth)
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setContainerWidth(entry.contentRect.width)
+      }
+    })
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
+
+  useLayoutEffect(() => {
+    const el = measureRef.current
+    if (!el) {
+      return
+    }
+    const next: Record<string, number> = {}
+    el.querySelectorAll<HTMLElement>('[data-measure-id]').forEach((node) => {
+      const id = node.dataset.measureId
+      if (id) {
+        next[id] = node.offsetWidth
+      }
+    })
+    const overflowNode = el.querySelector<HTMLElement>(
+      '[data-measure-overflow]'
+    )
+    setWidths(next)
+    setOverflowWidth(overflowNode?.offsetWidth ?? 0)
+  }, [providers, states, activeId])
+
+  const { visible, overflow } = useMemo(
+    () =>
+      computeChipOverflow({
+        items: providers,
+        activeId,
+        widths,
+        containerWidth,
+        overflowWidth,
+        gap: GAP,
+      }),
+    [providers, activeId, widths, containerWidth, overflowWidth]
+  )
+
+  const overflowItems = useMemo((): DAMenuItemConfig[] => {
+    return overflow.map((provider) => ({
+      kind: 'item',
+      id: provider.id,
+      icon: null,
+      label: providerLabel(provider),
+      onClick: () => onChange(provider.id),
+    }))
+  }, [overflow, onChange])
+
   return (
-    <Stack
-      direction="row"
-      spacing={0.75}
+    <Box
+      ref={containerRef}
       sx={{
+        display: 'flex',
         alignItems: 'center',
-        overflowX: 'auto',
+        gap: `${GAP}px`,
+        overflow: 'hidden',
         pb: 0.25,
-        '&::-webkit-scrollbar': { display: 'none' },
-        scrollbarWidth: 'none',
+        minWidth: 0,
       }}
     >
-      {providers.map((provider) => {
+      {visible.map((provider) => {
         const active = provider.id === activeId
-        const state = states[provider.id]
-        const count = state?.count
-        const label = providerLabel(provider)
         return (
           <Chip
             key={provider.id}
@@ -90,22 +194,61 @@ export function SourceFilterChips({
             aria-pressed={active}
             data-testid={`source-chip-${provider.impl}`}
           >
-            {label}
-            {state?.isPending ? (
-              <CircularProgress
-                size={9}
-                thickness={6}
-                sx={{
-                  color: active ? 'primary.contrastText' : 'text.secondary',
-                  ml: 0.25,
-                }}
-              />
-            ) : typeof count === 'number' ? (
-              <CountText active={active}>· {count}</CountText>
-            ) : null}
+            {chipBody(provider, active, states[provider.id])}
           </Chip>
         )
       })}
-    </Stack>
+
+      {overflow.length > 0 && (
+        <DrilldownMenu
+          items={overflowItems}
+          dense
+          BoxProps={{ sx: { flexShrink: 0, display: 'inline-flex' } }}
+          renderButton={({ onClick }) => (
+            <Chip
+              active={false}
+              onClick={onClick}
+              aria-haspopup="menu"
+              aria-label={t('searchPage.moreSources', 'More sources')}
+              data-testid="source-chip-overflow"
+            >
+              +{overflow.length}
+            </Chip>
+          )}
+        />
+      )}
+
+      <Box
+        ref={measureRef}
+        aria-hidden
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          visibility: 'hidden',
+          pointerEvents: 'none',
+          display: 'flex',
+          gap: `${GAP}px`,
+          width: 'max-content',
+        }}
+      >
+        {providers.map((provider) => {
+          const active = provider.id === activeId
+          return (
+            <Chip
+              key={provider.id}
+              active={active}
+              tabIndex={-1}
+              data-measure-id={provider.id}
+            >
+              {chipBody(provider, active, states[provider.id])}
+            </Chip>
+          )
+        })}
+        <Chip active={false} tabIndex={-1} data-measure-overflow>
+          +{providers.length}
+        </Chip>
+      </Box>
+    </Box>
   )
 }

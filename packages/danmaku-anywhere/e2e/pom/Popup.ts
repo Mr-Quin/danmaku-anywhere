@@ -29,10 +29,14 @@ export class Popup {
   static async open(
     page: Page,
     extensionId: string,
-    hashRoute = '/search'
+    hashRoute = '/search',
+    opts: { detached?: boolean } = {}
   ): Promise<Popup> {
+    // detached=1 makes the popup fill the viewport instead of its fixed 500px
+    // box, so a narrow viewport can exercise width-dependent layout.
+    const query = opts.detached ? '?detached=1' : ''
     await page.goto(
-      `chrome-extension://${extensionId}/pages/popup.html#${hashRoute}`
+      `chrome-extension://${extensionId}/pages/popup.html${query}#${hashRoute}`
     )
     await page.locator('#root').waitFor({ state: 'visible' })
     return new Popup(page)
