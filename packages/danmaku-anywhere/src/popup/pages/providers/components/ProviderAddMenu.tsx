@@ -1,4 +1,6 @@
-import { Add, AddCircle } from '@mui/icons-material'
+import { Add } from '@mui/icons-material'
+import { useTranslation } from 'react-i18next'
+import { ListAddButton } from '@/common/components/ListAddButton'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import {
   DanmakuSourceType,
@@ -14,11 +16,16 @@ export const ProviderAddMenu = ({
   onAddDanDanPlayProvider,
   onAddMacCmsProvider,
 }: ProviderAddMenuProps) => {
+  const { t } = useTranslation()
+
   return (
     <DrilldownMenu
-      icon={<AddCircle />}
-      ButtonProps={{ color: 'primary', size: 'small' }}
       dense
+      renderButton={({ onClick }) => (
+        <ListAddButton onClick={onClick}>
+          {t('common.add', 'Add')}
+        </ListAddButton>
+      )}
       items={[
         {
           id: 'add-dandanplay',
