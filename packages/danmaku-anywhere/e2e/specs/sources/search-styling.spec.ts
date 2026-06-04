@@ -93,7 +93,7 @@ test('search history dropdown text is readable in dark mode', async ({
 
   await popup.search.input.click()
 
-  const option = page.getByRole('option', { name: 'frieren' })
+  const option = popup.search.historyOption('frieren')
   await expect(option).toBeVisible()
 
   const color = await option.evaluate((el) => getComputedStyle(el).color)
