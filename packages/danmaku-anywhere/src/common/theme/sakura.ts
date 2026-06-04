@@ -6,6 +6,13 @@ import {
   type ThemeOptions,
 } from '@mui/material/styles'
 import type * as React from 'react'
+import {
+  type SakuraPalette,
+  sakuraDark,
+  sakuraFontFamily,
+  sakuraLight,
+  sakuraMonoFontFamily,
+} from '@/common/theme/sakuraTokens'
 
 type SeverityKey = 'success' | 'warning' | 'info' | 'error'
 
@@ -54,101 +61,75 @@ declare module '@mui/material/Typography' {
   }
 }
 
-const SAKURA_LIGHT: PaletteOptions = {
-  mode: 'light',
-  primary: {
-    main: '#E86A8E',
-    dark: '#D9567C',
-    light: '#FCE5EC',
-    contrastText: '#FFFFFF',
-  },
-  secondary: {
-    main: '#7A6CE0',
-    dark: '#6957D3',
-    light: '#E7E3FC',
-    contrastText: '#FFFFFF',
-  },
-  error: { main: '#DC2626', dark: '#991B1B', light: '#FEE2E2' },
-  warning: { main: '#E9A23B', dark: '#9A6A1E', light: '#FBE9CC' },
-  info: { main: '#5AA7E8', dark: '#2F6FAF', light: '#E0EEF9' },
-  success: { main: '#2FAE78', dark: '#1E7E58', light: '#D6F0E4' },
-  background: { default: '#FFF8F5', paper: '#FFFFFF' },
-  text: {
-    primary: '#2A1B24',
-    secondary: '#7A6A74',
-    disabled: 'rgba(42,27,36,0.40)',
-  },
-  divider: 'rgba(42,27,36,0.09)',
-  action: {
-    hover: 'rgba(42,27,36,0.04)',
-    selected: '#FCE5EC',
-    focus: 'rgba(232,106,142,0.20)',
-  },
-  paperAlt: '#FBEFEA',
-  primaryInk: '#B14267',
-  secondaryInk: '#4A3CB8',
-  severityInk: {
-    success: '#1E7E58',
-    warning: '#9A6A1E',
-    info: '#2F6FAF',
-    error: '#991B1B',
-  },
-  actionActive: 'rgba(232,106,142,0.08)',
-  tooltipBg: '#2A1B24',
-  tooltipFg: '#FFFFFF',
+function toPaletteOptions(
+  mode: 'light' | 'dark',
+  t: SakuraPalette
+): PaletteOptions {
+  // MUI uses palette[color].dark for emphasis (e.g. contained-button hover).
+  // The original palettes used the severity ink in light mode and the severity
+  // main in dark mode; preserve that so hover states don't shift.
+  const severityDark = (s: SakuraPalette['success']) =>
+    mode === 'light' ? s.ink : s.main
+  return {
+    mode,
+    primary: {
+      main: t.primary.main,
+      dark: t.primary.hover,
+      light: t.primary.soft,
+      contrastText: t.primary.on,
+    },
+    secondary: {
+      main: t.secondary.main,
+      dark: t.secondary.hover,
+      light: t.secondary.soft,
+      contrastText: t.secondary.on,
+    },
+    error: {
+      main: t.danger.main,
+      dark: severityDark(t.danger),
+      light: t.danger.soft,
+    },
+    warning: {
+      main: t.warning.main,
+      dark: severityDark(t.warning),
+      light: t.warning.soft,
+    },
+    info: { main: t.info.main, dark: severityDark(t.info), light: t.info.soft },
+    success: {
+      main: t.success.main,
+      dark: severityDark(t.success),
+      light: t.success.soft,
+    },
+    background: { default: t.bg, paper: t.paper },
+    text: {
+      primary: t.text,
+      secondary: t.textMuted,
+      disabled: t.textDisabled,
+    },
+    divider: t.divider,
+    action: {
+      hover: t.actionHover,
+      selected: t.actionSelected,
+      focus: t.actionFocus,
+    },
+    paperAlt: t.paperAlt,
+    primaryInk: t.primary.ink,
+    secondaryInk: t.secondary.ink,
+    severityInk: {
+      success: t.success.ink,
+      warning: t.warning.ink,
+      info: t.info.ink,
+      error: t.danger.ink,
+    },
+    actionActive: t.actionActive,
+    tooltipBg: t.tooltipBg,
+    tooltipFg: t.tooltipFg,
+  }
 }
 
-const SAKURA_DARK: PaletteOptions = {
-  mode: 'dark',
-  primary: {
-    main: '#F48FB1',
-    dark: '#F06292',
-    light: 'rgba(244,143,177,0.18)',
-    contrastText: '#2A0F1A',
-  },
-  secondary: {
-    main: '#B39CF5',
-    dark: '#9F86F0',
-    light: 'rgba(179,156,245,0.18)',
-    contrastText: '#1A1330',
-  },
-  error: { main: '#F87171', dark: '#991B1B', light: 'rgba(248,113,113,0.18)' },
-  warning: {
-    main: '#F5C26B',
-    dark: '#F5C26B',
-    light: 'rgba(245,194,107,0.16)',
-  },
-  info: { main: '#7FC0F0', dark: '#7FC0F0', light: 'rgba(127,192,240,0.16)' },
-  success: {
-    main: '#6DD7A6',
-    dark: '#6DD7A6',
-    light: 'rgba(109,215,166,0.16)',
-  },
-  background: { default: '#15101A', paper: '#1D1623' },
-  text: {
-    primary: '#F6E8EE',
-    secondary: '#A89AA6',
-    disabled: 'rgba(246,232,238,0.40)',
-  },
-  divider: 'rgba(246,232,238,0.09)',
-  action: {
-    hover: 'rgba(246,232,238,0.05)',
-    selected: 'rgba(244,143,177,0.18)',
-    focus: 'rgba(244,143,177,0.28)',
-  },
-  paperAlt: '#241C2C',
-  primaryInk: '#F8BBD0',
-  secondaryInk: '#C8B6F7',
-  severityInk: {
-    success: '#9CEAC4',
-    warning: '#F5D699',
-    info: '#A8D4F5',
-    error: '#FCA5A5',
-  },
-  actionActive: 'rgba(244,143,177,0.10)',
-  tooltipBg: '#3A2E3A',
-  tooltipFg: '#F6E8EE',
-}
+const SAKURA_LIGHT: PaletteOptions = toPaletteOptions('light', sakuraLight)
+
+const SAKURA_DARK: PaletteOptions = toPaletteOptions('dark', sakuraDark)
 
 const severityKeys: readonly SeverityKey[] = [
   'success',
@@ -490,8 +471,7 @@ function buildSakuraComponents(
   }
 }
 
-export const MONOSPACE_FONT_FAMILY =
-  'ui-monospace, SFMono-Regular, Menlo, monospace'
+export const MONOSPACE_FONT_FAMILY = sakuraMonoFontFamily
 
 /** Sakura design system: AppBar / TabToolbar / WindowToolbar height in px. */
 export const TOOLBAR_MIN_HEIGHT = 44
@@ -500,7 +480,7 @@ function buildSakuraTypography(
   pxToRem: (px: number) => string
 ): ThemeOptions['typography'] {
   return {
-    fontFamily: `'Plus Jakarta Sans Variable', 'Noto Sans SC Variable', 'Noto Sans TC Variable', 'Noto Sans JP Variable', system-ui, sans-serif`,
+    fontFamily: sakuraFontFamily,
     h1: { fontWeight: 700, fontSize: pxToRem(22), lineHeight: 1.3 },
     h2: { fontWeight: 700, fontSize: pxToRem(18), lineHeight: 1.3 },
     h3: { fontWeight: 700, fontSize: pxToRem(16), lineHeight: 1.3 },
