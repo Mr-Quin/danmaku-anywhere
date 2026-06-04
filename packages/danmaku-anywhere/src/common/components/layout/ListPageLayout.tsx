@@ -9,14 +9,14 @@ type ListPageLayoutProps = {
   title?: ReactNode
   onAdd?: () => void
   action?: ReactNode
-  gutters?: boolean
+  gutters?: number
 } & PropsWithChildren
 
 export function ListPageLayout({
   title,
   onAdd,
   action,
-  gutters = true,
+  gutters = 2,
   children,
 }: ListPageLayoutProps) {
   const { t } = useTranslation()
@@ -36,7 +36,7 @@ export function ListPageLayout({
   return (
     <TabLayout>
       <TabToolbar title={title}>{renderAction()}</TabToolbar>
-      <Box sx={gutters ? { px: 2 } : undefined}>{children}</Box>
+      <Box sx={{ px: gutters }}>{children}</Box>
     </TabLayout>
   )
 }
