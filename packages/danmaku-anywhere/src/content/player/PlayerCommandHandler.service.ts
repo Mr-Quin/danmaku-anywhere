@@ -17,6 +17,7 @@ import densityPlotCss from '@/content/player/densityPlot/DanmakuDensityChart.css
 import { PlayerIdleService } from '@/content/player/idle/PlayerIdle.service'
 import { InfoPanelService } from '@/content/player/infoPanel/InfoPanel.service'
 import infoPanelCss from '@/content/player/infoPanel/PlayerInfoPanel.css?inline'
+import { buildSakuraCssVars } from '@/content/player/infoPanel/sakuraCssVars'
 import { createPipWindow, moveElement } from '@/content/player/pipUtils'
 import { VideoEventService } from '@/content/player/videoEvent/VideoEvent.service'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
@@ -81,6 +82,7 @@ export class PlayerCommandHandler {
 
     this.manager.setParent(shadowRoot)
     injectCss(shadowRoot, [
+      buildSakuraCssVars(),
       skipButtonCss,
       densityPlotCss,
       danmakuComponentCss,
