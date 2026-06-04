@@ -151,4 +151,25 @@ export class IntegrationPage {
     }
     return this.page.locator(selector)
   }
+
+  private inPlayer(selector: string): Locator {
+    const full = `#danmaku-anywhere-player ${selector}`
+    if (this.iframeSelector) {
+      return this.page.frameLocator(this.iframeSelector).locator(full)
+    }
+    return this.page.locator(full)
+  }
+
+  // The in-video info panel and its parts, inside the player shadow root.
+  infoPanel(): Locator {
+    return this.inPlayer('.da-ip')
+  }
+
+  infoPanelHeadline(): Locator {
+    return this.inPlayer('.da-ip-headline')
+  }
+
+  infoPanelCount(): Locator {
+    return this.inPlayer('.da-ip-count-num')
+  }
 }
