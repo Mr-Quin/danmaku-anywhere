@@ -1,4 +1,4 @@
-import { Box, Typography } from '@mui/material'
+import { Typography } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ImportResultContent } from '@/common/components/ImportPageCore/ImportResultContent'
@@ -7,6 +7,7 @@ import {
   useDanmakuImport,
   VALID_EXTENSIONS,
 } from '@/common/components/ImportPageCore/useDanmakuImport'
+import { TabBody } from '@/common/components/layout/TabBody'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { FileUpload } from '@/popup/component/FileUpload'
@@ -31,11 +32,7 @@ export const ImportPageCore = () => {
   return (
     <TabLayout>
       <TabToolbar title={t('importPage.import', 'Import Danmaku')} />
-      <Box
-        sx={{
-          p: 2,
-        }}
-      >
+      <TabBody sx={{ py: 2 }}>
         <Typography variant="subtitle2" gutterBottom>
           {t(
             'importPage.importDesc',
@@ -47,7 +44,7 @@ export const ImportPageCore = () => {
           accept={VALID_EXTENSIONS.join(',')}
           multiple={true}
         />
-      </Box>
+      </TabBody>
       <ImportResultDialog
         open={showDialog}
         title={t('importPage.import', 'Import Danmaku')}

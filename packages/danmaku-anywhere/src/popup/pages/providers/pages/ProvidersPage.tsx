@@ -1,7 +1,9 @@
 import { type ReactElement, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
+import { TabBody } from '@/common/components/layout/TabBody'
 import { TabLayout } from '@/common/components/layout/TabLayout'
+import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useToast } from '@/common/components/Toast/toastStore'
 import {
   createCustomDanDanPlayProvider,
@@ -9,8 +11,8 @@ import {
 } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import { ProviderAddMenu } from '../components/ProviderAddMenu'
 import { ProviderConfigList } from '../components/ProviderConfigList'
-import { ProviderToolbar } from '../components/ProviderToolbar'
 import { ProviderEditor } from './ProviderEditor'
 
 export const ProvidersPage = (): ReactElement => {
@@ -73,14 +75,18 @@ export const ProvidersPage = (): ReactElement => {
   return (
     <>
       <TabLayout>
-        <ProviderToolbar
-          onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
-          onAddMacCmsProvider={handleAddMacCmsProvider}
-        />
-        <ProviderConfigList
-          onEdit={handleEditProvider}
-          onDelete={handleDelete}
-        />
+        <TabToolbar title={t('providers.name', 'Danmaku Providers')}>
+          <ProviderAddMenu
+            onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
+            onAddMacCmsProvider={handleAddMacCmsProvider}
+          />
+        </TabToolbar>
+        <TabBody>
+          <ProviderConfigList
+            onEdit={handleEditProvider}
+            onDelete={handleDelete}
+          />
+        </TabBody>
       </TabLayout>
 
       {editingProvider && mode && (

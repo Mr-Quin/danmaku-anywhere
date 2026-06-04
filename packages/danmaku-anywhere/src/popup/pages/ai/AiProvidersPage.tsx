@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { ListAddButton } from '@/common/components/ListAddButton'
 import { ScrollBox } from '@/common/components/layout/ScrollBox'
+import { TabBody } from '@/common/components/layout/TabBody'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useToast } from '@/common/components/Toast/toastStore'
@@ -129,10 +130,12 @@ export const AiProvidersPage = (): ReactElement => {
           {t('common.add', 'Add')}
         </ListAddButton>
       </TabToolbar>
-      <AiProviderConfigList
-        onEdit={handleEditProvider}
-        onDelete={handleDelete}
-      />
+      <TabBody>
+        <AiProviderConfigList
+          onEdit={handleEditProvider}
+          onDelete={handleDelete}
+        />
+      </TabBody>
     </TabLayout>
   )
 }

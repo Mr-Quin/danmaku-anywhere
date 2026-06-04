@@ -5,11 +5,11 @@ import type {
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined'
 import TuneOutlinedIcon from '@mui/icons-material/TuneOutlined'
 import UnfoldLessOutlinedIcon from '@mui/icons-material/UnfoldLessOutlined'
-import { Box } from '@mui/material'
 import type { Draft } from 'immer'
 import { produce } from 'immer'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { TabBody } from '@/common/components/layout/TabBody'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { SegmentedTabs } from '@/common/components/SegmentedTabs'
@@ -70,7 +70,7 @@ export function DanmakuSettingsPageCore() {
       <TabToolbar title={t('stylePage.name', 'Danmaku Settings')}>
         <SaveStatusIndicator status={saveStatus} />
       </TabToolbar>
-      <Box sx={{ px: 2, pb: 0.5 }}>
+      <TabBody sx={{ pb: 0.5 }}>
         <SegmentedTabs
           value={segment}
           onChange={(v) => setSegment(v as Segment)}
@@ -92,8 +92,8 @@ export function DanmakuSettingsPageCore() {
             },
           ]}
         />
-      </Box>
-      <Box sx={{ px: 2, pt: 0.5, pb: 2 }}>
+      </TabBody>
+      <TabBody sx={{ pt: 0.5, pb: 2 }}>
         {segment === 'style' && (
           <DanmakuStylesForm onSaveStatusChange={setSaveStatus} />
         )}
@@ -121,7 +121,7 @@ export function DanmakuSettingsPageCore() {
             }
           />
         )}
-      </Box>
+      </TabBody>
     </TabLayout>
   )
 }
