@@ -17,7 +17,7 @@ import { applyProfile } from '../../setup/profile'
 
 function relativeLuminance(color: string): number {
   const match = color.match(/\d+(\.\d+)?/g)
-  if (!match) {
+  if (!match || match.length < 3) {
     throw new Error(`unparseable color: ${color}`)
   }
   const [r, g, b] = match.slice(0, 3).map((c) => {
