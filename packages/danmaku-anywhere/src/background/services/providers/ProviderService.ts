@@ -130,23 +130,6 @@ export class ProviderService {
     }
   }
 
-  async preloadNextEpisode(request: DanmakuFetchRequest): Promise<void> {
-    const resolved = await this.resolveMeta(request)
-    const config = await this.providerConfigService.mustGet(
-      resolved.meta.season.providerConfigId
-    )
-
-    const service = this.danmakuProviderFactory(config)
-
-    if (service.preloadNextEpisode) {
-      return service.preloadNextEpisode(resolved)
-    }
-
-    this.logger.warn(
-      `Preloading next episode is not supported for provider: ${config.impl}`
-    )
-  }
-
   private async resolveMeta(
     request: DanmakuFetchRequest
   ): Promise<DanmakuFetchByMeta> {

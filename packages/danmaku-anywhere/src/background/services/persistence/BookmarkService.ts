@@ -5,6 +5,7 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
+import { findNextStub } from '@/background/services/providers/common/findNextStub'
 import type { ProviderService } from '@/background/services/providers/ProviderService'
 import { BOOKMARK_REFRESH_TTL_MS } from '@/common/bookmark/constants'
 import { DanmakuAnywhereDb } from '@/common/db/db'
@@ -127,5 +128,41 @@ export class BookmarkService {
 
   isStale(bookmark: Bookmark): boolean {
     return Date.now() - bookmark.lastRefreshed > BOOKMARK_REFRESH_TTL_MS
+  }
+
+  /**
+   * Returns true when this call created a new bookmark (autoBookmark), so the
+   * caller can invalidate bookmark-dependent UI in other contexts.
+   */
+  async preloadNextEpisode(
+    current: WithSeason<EpisodeMeta>,
+    providerService: ProviderService,
+    autoBookmark: boolean
+  ): Promise<boolean> {
+    const { seasonId } = current
+    let bookmark = await this.getBySeason(seasonId)
+    let bookmarked = false
+    if (!bookmark) {
+      if (!autoBookmark) {
+        return false
+      }
+      bookmark = await this.add(seasonId, providerService)
+      bookmarked = true
+    }
+
+    let next = findNextStub(bookmark.episodes, current)
+    if (!next && this.isStale(bookmark)) {
+      bookmark = await this.refresh(bookmark.id, providerService)
+      next = findNextStub(bookmark.episodes, current)
+    }
+    if (next) {
+      await providerService.getDanmaku({
+        type: 'by-stub',
+        stub: next,
+        seasonId,
+      })
+    }
+
+    return bookmarked
   }
 }

@@ -152,6 +152,12 @@ export const extensionOptionsSchema = z.object({
    * Whether to show the floating action button on video pages
    */
   showFloatingButton: z.boolean(),
+
+  /**
+   * Auto-bookmark a show when preloading its next episode, so non-bookmarked
+   * shows can preload. Off by default.
+   */
+  autoBookmark: z.boolean(),
 })
 
 export type ExtensionOptions = z.infer<typeof extensionOptionsSchema>

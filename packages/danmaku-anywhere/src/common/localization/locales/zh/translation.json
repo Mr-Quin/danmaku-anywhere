@@ -455,6 +455,7 @@
       "signUp": "注册",
       "signUpSuccess": "注册成功"
     },
+    "autoBookmark": "预加载时自动关注剧集",
     "backup": {
       "alert": {
         "exportSuccess": "成功导出备份",

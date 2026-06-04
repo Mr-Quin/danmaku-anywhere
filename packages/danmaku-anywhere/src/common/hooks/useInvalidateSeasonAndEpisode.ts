@@ -2,6 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 import { publishDataChange } from '@/common/messaging/dataChangeChannel'
 import {
+  bookmarkQueryKeys,
   customEpisodeQueryKeys,
   episodeQueryKeys,
   seasonQueryKeys,
@@ -15,6 +16,7 @@ export const useInvalidateSeasonAndEpisode = () => {
       seasonQueryKeys.all(),
       episodeQueryKeys.all(),
       customEpisodeQueryKeys.all(),
+      bookmarkQueryKeys.all(),
     ]
     for (const key of keys) {
       void queryClient.invalidateQueries({ queryKey: key })

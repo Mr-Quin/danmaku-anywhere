@@ -122,7 +122,7 @@ export type BackgroundMethods = {
   episodeFilterLite: RPCDef<EpisodeQueryFilter, WithSeason<EpisodeLite>[]>
   episodeFilter: RPCDef<EpisodeQueryFilter, WithSeason<Episode>[]>
   episodeFetch: RPCDef<DanmakuFetchDto, WithSeason<Episode>>
-  episodePreloadNext: RPCDef<DanmakuFetchDto, void>
+  episodePreloadNext: RPCDef<WithSeason<EpisodeMeta>, void>
   episodeDelete: RPCDef<EpisodeQueryFilter, void>
   episodeFilterCustom: RPCDef<CustomEpisodeQueryFilter, CustomEpisode[]>
   episodeFilterCustomLite: RPCDef<CustomEpisodeQueryFilter, CustomEpisodeLite[]>

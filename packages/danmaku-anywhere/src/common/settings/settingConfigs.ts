@@ -110,6 +110,15 @@ const advancedSettings: SettingConfig<ExtensionOptions>[] = [
     getValue: (options) => options.showFloatingButton,
     createUpdate: (_, newValue) => ({ showFloatingButton: newValue }),
   },
+  {
+    id: 'toggle.autoBookmark',
+    label: () =>
+      i18n.t('optionsPage.autoBookmark', 'Auto bookmark shows when preloading'),
+    category: 'advanced',
+    type: 'toggle',
+    getValue: (options) => options.autoBookmark,
+    createUpdate: (_, newValue) => ({ autoBookmark: newValue }),
+  },
 ]
 
 const playerSettings: SettingConfig<ExtensionOptions>[] = [

@@ -470,6 +470,7 @@
       "signUp": "Sign Up",
       "signUpSuccess": "Sign up successful"
     },
+    "autoBookmark": "Auto bookmark shows when preloading",
     "backup": {
       "alert": {
         "exportSuccess": "Export success",
