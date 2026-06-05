@@ -67,6 +67,19 @@ describe('computeChipOverflow', () => {
     expect(ids(layout.overflow)).toEqual(['b', 'c', 'd'])
   })
 
+  it('falls back to natural layout when activeId is not in items', () => {
+    const layout = computeChipOverflow({
+      items,
+      activeId: 'non-existent',
+      widths: uniformWidths,
+      containerWidth: 150,
+      overflowWidth: 30,
+      gap: 6,
+    })
+    expect(ids(layout.visible)).toEqual(['a', 'b'])
+    expect(ids(layout.overflow)).toEqual(['c', 'd', 'e'])
+  })
+
   it('returns empty layout for no items', () => {
     const layout = computeChipOverflow({
       items: [],

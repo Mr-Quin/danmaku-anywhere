@@ -121,8 +121,11 @@ export function SourceFilterChips({
       return
     }
     setContainerWidth(el.getBoundingClientRect().width)
-    const observer = new ResizeObserver(() => {
-      setContainerWidth(el.getBoundingClientRect().width)
+    const observer = new ResizeObserver((entries) => {
+      const entry = entries[0]
+      if (entry) {
+        setContainerWidth(entry.contentRect.width)
+      }
     })
     observer.observe(el)
     return () => observer.disconnect()

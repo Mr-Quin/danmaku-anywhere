@@ -63,7 +63,7 @@ export function computeChipOverflow<T extends { id: string }>({
   )
 
   const activeIndex = items.findIndex((item) => item.id === activeId)
-  if (activeIndex < naturalCount) {
+  if (activeIndex === -1 || activeIndex < naturalCount) {
     return {
       visible: items.slice(0, naturalCount),
       overflow: items.slice(naturalCount),
