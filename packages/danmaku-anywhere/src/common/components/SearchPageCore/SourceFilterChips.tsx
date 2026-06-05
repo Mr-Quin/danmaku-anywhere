@@ -120,9 +120,9 @@ export function SourceFilterChips({
     if (!el) {
       return
     }
-    setContainerWidth(el.clientWidth)
+    setContainerWidth(el.getBoundingClientRect().width)
     const observer = new ResizeObserver(() => {
-      setContainerWidth(el.clientWidth)
+      setContainerWidth(el.getBoundingClientRect().width)
     })
     observer.observe(el)
     return () => observer.disconnect()
@@ -149,14 +149,14 @@ export function SourceFilterChips({
     el.querySelectorAll<HTMLElement>('[data-measure-id]').forEach((node) => {
       const id = node.dataset.measureId
       if (id) {
-        next[id] = node.offsetWidth
+        next[id] = node.getBoundingClientRect().width
       }
     })
     const overflowNode = el.querySelector<HTMLElement>(
       '[data-measure-overflow]'
     )
     setWidths(next)
-    setOverflowWidth(overflowNode?.offsetWidth ?? 0)
+    setOverflowWidth(overflowNode?.getBoundingClientRect().width ?? 0)
   }, [measureSignature])
 
   const { visible, overflow } = useMemo(
