@@ -36,34 +36,44 @@ enum ResourceType {
 
 const selfDomain = getSelfDomain()
 
-const rules: chrome.declarativeNetRequest.Rule[] = [
-  {
-    id: 3, // keep old id
-    action: {
-      type: RuleActionType.MODIFY_HEADERS,
-      requestHeaders: [
-        {
-          header: 'Origin',
-          operation: HeaderOperation.SET,
-          value: import.meta.env.VITE_PROXY_ORIGIN,
-        },
-        {
-          header: 'Referer',
-          operation: HeaderOperation.SET,
-          value: selfDomain,
-        },
-        {
-          header: 'Cookie',
-          operation: HeaderOperation.REMOVE,
-        },
-      ],
+// declarativeNetRequest rejects the whole update if any header SET op carries
+// an undefined value, so only emit headers whose value is present and skip the
+// rule entirely when the proxy is not configured.
+function buildProxyRules(): chrome.declarativeNetRequest.Rule[] {
+  const proxyUrl = import.meta.env.VITE_PROXY_URL
+  if (!proxyUrl) {
+    return []
+  }
+  const proxyOrigin = import.meta.env.VITE_PROXY_ORIGIN
+  const requestHeaders: chrome.declarativeNetRequest.ModifyHeaderInfo[] = []
+  if (proxyOrigin) {
+    requestHeaders.push({
+      header: 'Origin',
+      operation: HeaderOperation.SET,
+      value: proxyOrigin,
+    })
+  }
+  if (selfDomain) {
+    requestHeaders.push({
+      header: 'Referer',
+      operation: HeaderOperation.SET,
+      value: selfDomain,
+    })
+  }
+  requestHeaders.push({ header: 'Cookie', operation: HeaderOperation.REMOVE })
+  return [
+    {
+      id: 3, // keep old id
+      action: { type: RuleActionType.MODIFY_HEADERS, requestHeaders },
+      condition: {
+        urlFilter: `|${proxyUrl}`,
+        resourceTypes: [ResourceType.XMLHTTPREQUEST],
+      },
     },
-    condition: {
-      urlFilter: `|${import.meta.env.VITE_PROXY_URL}`,
-      resourceTypes: [ResourceType.XMLHTTPREQUEST],
-    },
-  },
-]
+  ]
+}
+
+const rules: chrome.declarativeNetRequest.Rule[] = buildProxyRules()
 
 @injectable('Singleton')
 export class NetRequestManager {

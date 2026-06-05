@@ -11,12 +11,6 @@ import { applyProfile } from '../../setup/profile'
  * A failing probe surfaces the per-source warning icon.
  */
 
-// A dynamic net-request rule the probe flow registers logs this on the
-// service worker; it predates this spec and is orthogonal to the warning UX.
-test.use({
-  expectedConsoleErrors: [/Failed to update net request dynamic rules/],
-})
-
 const NAV_URL = /api\.bilibili\.com\/x\/web-interface\/nav/
 const TENCENT_DETAILS_URL =
   /pbaccess\.video\.qq\.com\/.*page_server_rpc\.PageServer\/GetPageData/
