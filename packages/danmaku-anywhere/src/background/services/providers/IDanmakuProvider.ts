@@ -40,7 +40,7 @@ export interface IDanmakuProvider {
     episodeNumber: number
   ): Promise<WithSeason<EpisodeMeta> | null>
 
-  canParse?(url: string): Promise<boolean>
+  canParse?(url: string): boolean
 
   parseUrl?(url: string): Promise<ParseUrlResult | null>
 }

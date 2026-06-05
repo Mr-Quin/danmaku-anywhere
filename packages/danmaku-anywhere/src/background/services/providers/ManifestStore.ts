@@ -50,8 +50,7 @@ export class ManifestStore implements IManifestStore {
   set(id: string, entry: ManifestEntry): Promise<void> {
     return this.writeLock.runExclusive(async () => {
       const record = await this.getAll()
-      record[id] = entry
-      await this.storage.set(record)
+      await this.storage.set({ ...record, [id]: entry })
     })
   }
 
@@ -68,8 +67,10 @@ export class ManifestStore implements IManifestStore {
       if (!(id in record)) {
         return
       }
-      delete record[id]
-      await this.storage.set(record)
+      const next = Object.fromEntries(
+        Object.entries(record).filter(([key]) => key !== id)
+      )
+      await this.storage.set(next)
     })
   }
 }

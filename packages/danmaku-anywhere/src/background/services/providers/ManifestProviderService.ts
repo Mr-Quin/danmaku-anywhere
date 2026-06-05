@@ -95,7 +95,7 @@ export class ManifestProviderService implements IDanmakuProvider {
 
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
     this.logger.debug('Search via manifest', this.config.manifestId, params)
-    const runner = await this.registry.getRunner(this.config.manifestId)
+    const runner = this.registry.getRunner(this.config.manifestId)
     const inputs = this.resolveInputs(runner, { q: params.keyword })
     const rows = await runner.runSearch<ManifestSearchRow[]>(inputs)
     return rows.map((row) => ({
@@ -115,7 +115,7 @@ export class ManifestProviderService implements IDanmakuProvider {
       this.config.manifestId,
       seasonRemoteIds
     )
-    const runner = await this.registry.getRunner(this.config.manifestId)
+    const runner = this.registry.getRunner(this.config.manifestId)
     if (!runner.hasSeason()) {
       return null
     }
@@ -141,7 +141,7 @@ export class ManifestProviderService implements IDanmakuProvider {
       this.config.manifestId,
       seasonRemoteIds
     )
-    const runner = await this.registry.getRunner(this.config.manifestId)
+    const runner = this.registry.getRunner(this.config.manifestId)
     const inputs = this.resolveInputs(runner, seasonRemoteIds)
     const rows = await runner.runEpisodes<ManifestEpisodeRow[]>(inputs)
     const now = Date.now()
@@ -161,7 +161,7 @@ export class ManifestProviderService implements IDanmakuProvider {
       this.config.manifestId,
       meta.providerIds
     )
-    const runner = await this.registry.getRunner(this.config.manifestId)
+    const runner = this.registry.getRunner(this.config.manifestId)
     // meta.params holds per-episode hints stashed at search/episodes time
     // (e.g. chConvert/withRelated). providerIds take precedence on key collision.
     const inputs = this.resolveInputs(runner, {
@@ -187,14 +187,13 @@ export class ManifestProviderService implements IDanmakuProvider {
     }
   }
 
-  async canParse(url: string): Promise<boolean> {
-    const runner = await this.registry.getRunner(this.config.manifestId)
-    return runner.canParse(url)
+  canParse(url: string): boolean {
+    return this.registry.getRunner(this.config.manifestId).canParse(url)
   }
 
   async parseUrl(url: string): Promise<ParseUrlResult | null> {
     this.logger.debug('Parse URL via manifest', this.config.manifestId, url)
-    const runner = await this.registry.getRunner(this.config.manifestId)
+    const runner = this.registry.getRunner(this.config.manifestId)
     const result = await runner.runParseUrl<ManifestParseUrlOutput>(url)
     if (result === null) {
       return null

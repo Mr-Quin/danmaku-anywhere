@@ -10,6 +10,7 @@ import builtinTencent from '@mr-quin/dango-manifests/manifests/builtin-tencent.j
 }
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import { invariant } from '@/common/utils/utils'
 import { extensionFetchLike } from './extensionFetchLike'
 import {
   type IManifestStore,
@@ -29,6 +30,7 @@ export class ManifestRegistry {
   private readonly runners = new Map<string, ManifestRunner>()
   private readonly log: ILogger
   private readonly store: IManifestStore
+  private initialized = false
   readonly ready: Promise<void>
 
   constructor(
@@ -40,8 +42,11 @@ export class ManifestRegistry {
     this.ready = this.init()
   }
 
-  async getRunner(manifestId: string): Promise<ManifestRunner> {
-    await this.ready
+  // Synchronous: callers gate on `ready` once at the boundary (see
+  // ProviderService), so by the time a runner is resolved the store has
+  // already hydrated into the in-memory map.
+  getRunner(manifestId: string): ManifestRunner {
+    invariant(this.initialized, 'ManifestRegistry accessed before ready')
     const runner = this.runners.get(manifestId)
     if (!runner) {
       throw new Error(`no manifest registered with id: ${manifestId}`)
@@ -49,8 +54,8 @@ export class ManifestRegistry {
     return runner
   }
 
-  async list(): Promise<string[]> {
-    await this.ready
+  list(): string[] {
+    invariant(this.initialized, 'ManifestRegistry accessed before ready')
     return [...this.runners.keys()]
   }
 
@@ -85,11 +90,12 @@ export class ManifestRegistry {
     const record = await this.store.getAll()
     if (Object.keys(record).length === 0) {
       await this.seed()
-      return
+    } else {
+      for (const [id, entry] of Object.entries(record)) {
+        this.loadEntry(id, entry)
+      }
     }
-    for (const [id, entry] of Object.entries(record)) {
-      this.loadEntry(id, entry)
-    }
+    this.initialized = true
   }
 
   private async seed(): Promise<void> {

@@ -72,7 +72,7 @@ describe('ManifestRegistry', () => {
     expect(ids.length).toBeGreaterThan(0)
     for (const id of ids) {
       expect(record[id].kind).toBe('preinstalled')
-      expect(await registry.getRunner(id)).toBeDefined()
+      expect(registry.getRunner(id)).toBeDefined()
     }
   })
 
@@ -85,8 +85,8 @@ describe('ManifestRegistry', () => {
     await registry.ready
 
     expect(setMany).not.toHaveBeenCalled()
-    expect(await registry.list()).toEqual(['test:one'])
-    expect(await registry.getRunner('test:one')).toBeDefined()
+    expect(registry.list()).toEqual(['test:one'])
+    expect(registry.getRunner('test:one')).toBeDefined()
   })
 
   it('getRunner throws for an unknown manifest id', async () => {
@@ -96,7 +96,7 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     await registry.ready
 
-    await expect(registry.getRunner('missing')).rejects.toThrow(
+    expect(() => registry.getRunner('missing')).toThrow(
       /no manifest registered/
     )
   })
@@ -114,7 +114,7 @@ describe('ManifestRegistry', () => {
       manifest: makeManifest('test:two'),
       kind: 'user',
     })
-    expect(await registry.getRunner('test:two')).toBeDefined()
+    expect(registry.getRunner('test:two')).toBeDefined()
   })
 
   it('unregister removes the manifest from store and runners', async () => {
@@ -127,7 +127,7 @@ describe('ManifestRegistry', () => {
     await registry.unregister('test:one')
 
     expect(await store.has('test:one')).toBe(false)
-    await expect(registry.getRunner('test:one')).rejects.toThrow()
+    expect(() => registry.getRunner('test:one')).toThrow()
   })
 
   it('skips a manifest that fails safeParse without taking the registry down', async () => {
@@ -138,8 +138,8 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     await registry.ready
 
-    expect(await registry.getRunner('good:one')).toBeDefined()
-    await expect(registry.getRunner('bad:one')).rejects.toThrow()
-    expect(await registry.list()).toEqual(['good:one'])
+    expect(registry.getRunner('good:one')).toBeDefined()
+    expect(() => registry.getRunner('bad:one')).toThrow()
+    expect(registry.list()).toEqual(['good:one'])
   })
 })
