@@ -1,3 +1,5 @@
+import { Mutex } from 'async-mutex'
+import { injectable } from 'inversify'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
 
 export type ManifestKind = 'preinstalled' | 'user'
@@ -20,10 +22,15 @@ export interface IManifestStore {
 
 const STORAGE_KEY = 'manifests'
 
+@injectable('Singleton')
 export class ManifestStore implements IManifestStore {
   private storage = new ExtStorageService<ManifestRecord>(STORAGE_KEY, {
     storageType: 'local',
   })
+
+  // chrome.storage has no atomic read-modify-write, so concurrent writes can
+  // clobber each other. Serialize them.
+  private writeLock = new Mutex()
 
   async getAll(): Promise<ManifestRecord> {
     const record = await this.storage.read()
@@ -40,23 +47,29 @@ export class ManifestStore implements IManifestStore {
     return id in record
   }
 
-  async set(id: string, entry: ManifestEntry): Promise<void> {
-    const record = await this.getAll()
-    record[id] = entry
-    await this.storage.set(record)
+  set(id: string, entry: ManifestEntry): Promise<void> {
+    return this.writeLock.runExclusive(async () => {
+      const record = await this.getAll()
+      record[id] = entry
+      await this.storage.set(record)
+    })
   }
 
-  async setMany(entries: ManifestRecord): Promise<void> {
-    const record = await this.getAll()
-    await this.storage.set({ ...record, ...entries })
+  setMany(entries: ManifestRecord): Promise<void> {
+    return this.writeLock.runExclusive(async () => {
+      const record = await this.getAll()
+      await this.storage.set({ ...record, ...entries })
+    })
   }
 
-  async remove(id: string): Promise<void> {
-    const record = await this.getAll()
-    if (!(id in record)) {
-      return
-    }
-    delete record[id]
-    await this.storage.set(record)
+  remove(id: string): Promise<void> {
+    return this.writeLock.runExclusive(async () => {
+      const record = await this.getAll()
+      if (!(id in record)) {
+        return
+      }
+      delete record[id]
+      await this.storage.set(record)
+    })
   }
 }

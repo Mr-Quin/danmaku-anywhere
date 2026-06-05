@@ -33,7 +33,7 @@ export class ManifestRegistry {
 
   constructor(
     @inject(LoggerSymbol) logger: ILogger,
-    store: IManifestStore = new ManifestStore()
+    @inject(ManifestStore) store: IManifestStore
   ) {
     this.log = logger.sub('[ManifestRegistry]')
     this.store = store
@@ -117,7 +117,7 @@ export class ManifestRegistry {
       this.log.error('Failed to load manifest:', id, parsed.error.issues)
       return
     }
-    this.runners.set(parsed.data.id, this.buildRunner(parsed.data))
+    this.runners.set(id, this.buildRunner(parsed.data))
   }
 
   private buildRunner(manifest: Manifest): ManifestRunner {
