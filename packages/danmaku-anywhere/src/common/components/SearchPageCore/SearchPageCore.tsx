@@ -24,6 +24,8 @@ export interface SearchPageCoreProps {
   onImportSuccess?: (episode: WithSeason<Episode>) => void
   searchTerm: string
   onSearchTermChange: (term: string) => void
+  providerId?: string
+  onProviderIdChange: (id: string) => void
   dragOverlayPortal?: HTMLElement | null
   ref?: RefObject<HTMLDivElement | null>
   focusToken?: number
@@ -34,6 +36,8 @@ export function SearchPageCore({
   onImportSuccess,
   searchTerm,
   onSearchTermChange,
+  providerId,
+  onProviderIdChange,
   dragOverlayPortal,
   ref,
   focusToken,
@@ -66,6 +70,8 @@ export function SearchPageCore({
       <SearchForm
         searchTerm={searchTerm}
         onSearchTermChange={onSearchTermChange}
+        providerId={providerId}
+        onProviderIdChange={onProviderIdChange}
         onSeasonClick={onSeasonClick}
         onImportSuccess={onImportSuccess}
         focusToken={focusToken}

@@ -112,6 +112,7 @@ export const MountPageBottomBar = ({
                 dense
                 renderButton={(props) => (
                   <Button
+                    id={props.id}
                     variant="contained"
                     startIcon={<Download />}
                     onClick={props.onClick}

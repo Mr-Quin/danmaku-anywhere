@@ -23,6 +23,8 @@ interface StoreState {
     setSearchParams: (params?: SearchEpisodesQuery) => void
     keyword: string
     setKeyword: (keyword: string) => void
+    providerId?: string
+    setProviderId: (providerId: string) => void
     season?: Season | CustomSeason
     setSeason: (season: Season | CustomSeason) => void
     provider?: ProviderConfig
@@ -81,6 +83,12 @@ const useStoreBase = create<StoreState>()(
       setKeyword: (keyword: string) => {
         set((state) => {
           state.search.keyword = keyword
+        })
+      },
+      providerId: undefined,
+      setProviderId: (providerId: string) => {
+        set((state) => {
+          state.search.providerId = providerId
         })
       },
       season: undefined,

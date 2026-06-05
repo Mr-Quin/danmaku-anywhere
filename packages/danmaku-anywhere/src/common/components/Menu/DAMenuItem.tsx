@@ -80,9 +80,11 @@ export const DAMenuItem = ({ item, onClose }: DAMenuItemProps) => {
           color={item.color}
           data-testid={`drilldown-menu-item-${item.id}`}
         >
-          <ListItemIcon>
-            {item.loading ? <CircularProgress size={24} /> : item.icon}
-          </ListItemIcon>
+          {item.loading || item.icon ? (
+            <ListItemIcon>
+              {item.loading ? <CircularProgress size={24} /> : item.icon}
+            </ListItemIcon>
+          ) : null}
           <ListItemText>{item.label}</ListItemText>
         </StyledMenuItem>
       </div>

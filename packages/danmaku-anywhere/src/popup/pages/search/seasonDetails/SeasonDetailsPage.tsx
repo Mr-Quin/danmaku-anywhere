@@ -44,7 +44,7 @@ export const SeasonDetailsPage = () => {
       <TabToolbar title={season.title} showBackButton onGoBack={goBack}>
         <BookmarkToggleButton season={season} />
       </TabToolbar>
-      <Stack spacing={0.75} sx={{ px: 1.25, pt: 1, pb: 0.5, flexShrink: 0 }}>
+      <Stack spacing={0.75} sx={{ px: 2, pb: 0.5, flexShrink: 0 }}>
         <TextField
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
@@ -82,7 +82,7 @@ export const SeasonDetailsPage = () => {
         </Typography>
       </Stack>
       <ScrollBox
-        sx={{ overflow: 'auto', flex: 1, minHeight: 0, px: 0.5, pb: 1 }}
+        sx={{ overflow: 'auto', flex: 1, minHeight: 0, px: 1.25, pb: 1.5 }}
       >
         <ErrorBoundary
           fallbackRender={({ error }) => (

@@ -619,6 +619,7 @@
       "clear": "清除",
       "recent": "最近"
     },
+    "moreSources": "更多来源",
     "parse": {
       "alert": {
         "importSuccess": "导入成功",
