@@ -9,10 +9,15 @@ interface ProviderConfigListItemProps {
   config: ProviderConfig
 }
 
+function manifestTestId(manifestId: string): string {
+  const [, suffix] = manifestId.split(':')
+  return suffix ?? manifestId
+}
+
 export const ProviderConfigListItem = ({
   config,
 }: ProviderConfigListItemProps) => {
-  const { showWarning, warningType } = useProviderWarning(config)
+  const { showWarning, cookieSet } = useProviderWarning(config)
 
   return (
     <ListItemPrimaryStack
@@ -20,7 +25,12 @@ export const ProviderConfigListItem = ({
         config.isBuiltIn ? localizedDanmakuSourceType(config.impl) : config.name
       }
     >
-      {showWarning && <ProviderWarningIcon warningType={warningType} />}
+      {showWarning ? (
+        <ProviderWarningIcon
+          testId={manifestTestId(config.manifestId)}
+          cookieSet={cookieSet}
+        />
+      ) : null}
       <ProviderConfigChip config={config} />
     </ListItemPrimaryStack>
   )

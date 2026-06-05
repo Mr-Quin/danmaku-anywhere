@@ -99,8 +99,7 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     mediaParseUrl: () =>
       null as unknown as BackgroundMethods['mediaParseUrl']['output'],
     danmakuPurgeCache: () => 0,
-    bilibiliGetLoginStatus: () => ({ isLogin: true }),
-    tencentTestCookies: () => true,
+    providerProbeLogin: () => ({ hasLoginProbe: false, ok: true }),
     fetchImage: ({ src }) => src,
     getActiveTabUrl: () => 'https://example.com',
     getFrameId: () => 0,

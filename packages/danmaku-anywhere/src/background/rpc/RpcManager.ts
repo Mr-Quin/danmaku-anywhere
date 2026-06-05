@@ -1,8 +1,4 @@
 import {
-  DanmakuSourceType,
-  PROVIDER_TO_BUILTIN_ID,
-} from '@danmaku-anywhere/danmaku-converter'
-import {
   getDanmuicuConfig,
   getMaccmsConfig,
 } from '@danmaku-anywhere/danmaku-provider/config'
@@ -120,32 +116,13 @@ export class RpcManager {
         episodeMatch: async (data) => {
           return this.episodeMatchingService.findMatchingEpisodes(data)
         },
-        bilibiliGetLoginStatus: async () => {
-          try {
-            const isLogin = await this.providerService.probeLogin<boolean>(
-              PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]
-            )
-            return { isLogin: isLogin ?? false }
-          } catch (e) {
-            this.logger.error('bilibili loginProbe failed', e)
-            return { isLogin: false }
-          }
+        providerProbeLogin: async ({ manifestId }) => {
+          return this.providerService.getLoginStatus(manifestId)
         },
         bilibiliSetCookies: async () => {
           // Credentialed homepage GET lets bilibili's Set-Cookie response
           // seed the anti-bot cookies the API host needs.
           await fetch('https://www.bilibili.com', { credentials: 'include' })
-        },
-        tencentTestCookies: async () => {
-          try {
-            const ok = await this.providerService.probeLogin<boolean>(
-              PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]
-            )
-            return ok ?? false
-          } catch (e) {
-            this.logger.error('tencent loginProbe failed', e)
-            return false
-          }
         },
         iconSet: async (data, sender) => {
           if (sender.tab?.id === undefined) {

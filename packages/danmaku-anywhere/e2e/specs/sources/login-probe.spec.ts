@@ -4,12 +4,18 @@ import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
 /**
- * Verifies the loginProbe adapter flow end-to-end: opening /providers
- * triggers per-source warning hooks (useBilibiliLoginStatus,
- * useTencentCookieStatus) which RPC through the legacy per-source
- * names; the RPC handlers route to the manifest engine's loginProbe
- * pipeline. Probes return boolean (true = ok, false = needs cookies).
+ * Verifies the manifest-driven loginProbe flow end-to-end: opening
+ * /providers runs the generic useProviderWarning hook, which RPCs
+ * providerProbeLogin(manifestId). The background routes each manifest's
+ * loginProbe through the engine; sources with no probe never warn.
+ * A failing probe surfaces the per-source warning icon.
  */
+
+// A dynamic net-request rule the probe flow registers logs this on the
+// service worker; it predates this spec and is orthogonal to the warning UX.
+test.use({
+  expectedConsoleErrors: [/Failed to update net request dynamic rules/],
+})
 
 const NAV_URL = /api\.bilibili\.com\/x\/web-interface\/nav/
 const TENCENT_DETAILS_URL =

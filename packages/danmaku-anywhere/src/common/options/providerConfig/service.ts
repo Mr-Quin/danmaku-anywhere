@@ -1,4 +1,4 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import { produce } from 'immer'
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
@@ -108,11 +108,9 @@ export class ProviderConfigService implements IStoreService {
   }
 
   supportsAutomaticMode(config: ProviderConfig): boolean {
-    return (
-      config.impl === DanmakuSourceType.DanDanPlay ||
-      config.impl === DanmakuSourceType.Bilibili ||
-      config.impl === DanmakuSourceType.Tencent
-    )
+    // Manifest-driven sources support automatic mode implicitly. Legacy MacCMS
+    // has no manifest and is search-only, so it stays opt-out.
+    return config.manifestId !== LEGACY_MACCMS_ID
   }
 
   async update<T extends ProviderConfig>(

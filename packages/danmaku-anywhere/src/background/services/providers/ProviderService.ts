@@ -18,6 +18,7 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { isProvider } from '@/common/danmaku/utils'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import type { ProviderLoginStatus } from '@/common/rpcClient/background/types'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { OmitSeasonId } from './IDanmakuProvider'
 import { ManifestRegistry } from './ManifestRegistry'
@@ -230,6 +231,23 @@ export class ProviderService {
   async probeLogin<T = unknown>(manifestId: string): Promise<T | null> {
     await this.manifestRegistry.ready
     return this.manifestRegistry.getRunner(manifestId).runLoginProbe<T>()
+  }
+
+  // Resolves whether a manifest-driven source needs a login/cookie action so
+  // the popup can render the warning without source-specific switches. A
+  // source without a loginProbe is always considered ok.
+  async getLoginStatus(manifestId: string): Promise<ProviderLoginStatus> {
+    const { hasLoginProbe, cookieSet } = await this.getManifestSpec(manifestId)
+    if (!hasLoginProbe) {
+      return { hasLoginProbe: false, cookieSet, ok: true }
+    }
+    try {
+      const ok = await this.probeLogin<boolean>(manifestId)
+      return { hasLoginProbe: true, cookieSet, ok: ok ?? false }
+    } catch (e) {
+      this.logger.error('loginProbe failed', manifestId, e)
+      return { hasLoginProbe: true, cookieSet, ok: false }
+    }
   }
 
   // Surfaces the host-relevant subset of a manifest so the popup can render

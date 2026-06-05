@@ -1,31 +1,24 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import { useQuery } from '@tanstack/react-query'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
-import { useBilibiliLoginStatus } from './useBilibiliLoginStatus'
-import { useTencentCookieStatus } from './useTencentCookieStatus'
+import { sourceQueryKeys } from '@/common/queries/queryKeys'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export const useProviderWarning = (config: ProviderConfig) => {
-  const bilibiliStatus = useBilibiliLoginStatus(config)
-  const tencentStatus = useTencentCookieStatus(config)
+  const query = useQuery({
+    queryFn: () =>
+      chromeRpcClient.providerProbeLogin({ manifestId: config.manifestId }),
+    select: (res) => res.data,
+    queryKey: sourceQueryKeys.loginStatus(config.manifestId),
+    enabled: config.enabled,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+  })
 
-  if (config.impl === DanmakuSourceType.Bilibili) {
-    return {
-      showWarning: !bilibiliStatus.isLoggedIn,
-      isLoading: bilibiliStatus.isLoading,
-      warningType: 'bilibili' as const,
-    }
-  }
-
-  if (config.impl === DanmakuSourceType.Tencent) {
-    return {
-      showWarning: !tencentStatus.hasCookies,
-      isLoading: tencentStatus.isLoading,
-      warningType: 'tencent' as const,
-    }
-  }
+  const status = query.data
 
   return {
-    showWarning: false,
-    isLoading: false,
-    warningType: null,
+    showWarning: status?.hasLoginProbe === true && status.ok === false,
+    cookieSet: status?.cookieSet,
+    isLoading: query.isLoading,
   }
 }
