@@ -93,6 +93,7 @@ export class ManifestProviderService implements IDanmakuProvider {
   }
 
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
+    await this.registry.ready
     this.logger.debug('Search via manifest', this.config.manifestId, params)
     const runner = this.registry.getRunner(this.config.manifestId)
     const inputs = this.resolveInputs({ q: params.keyword })
@@ -109,6 +110,7 @@ export class ManifestProviderService implements IDanmakuProvider {
   async getSeason(
     seasonRemoteIds: Season['providerIds']
   ): Promise<SeasonInsert | null> {
+    await this.registry.ready
     this.logger.debug(
       'Get season via manifest',
       this.config.manifestId,
@@ -135,6 +137,7 @@ export class ManifestProviderService implements IDanmakuProvider {
   async getEpisodes(
     seasonRemoteIds: Season['providerIds']
   ): Promise<OmitSeasonId<EpisodeMeta>[]> {
+    await this.registry.ready
     this.logger.debug(
       'Get episodes via manifest',
       this.config.manifestId,
@@ -155,6 +158,7 @@ export class ManifestProviderService implements IDanmakuProvider {
 
   async getDanmaku(request: DanmakuFetchByMeta): Promise<CommentEntity[]> {
     const { meta } = request
+    await this.registry.ready
     this.logger.debug(
       'Get danmaku via manifest',
       this.config.manifestId,
@@ -188,6 +192,7 @@ export class ManifestProviderService implements IDanmakuProvider {
   }
 
   async parseUrl(url: string): Promise<ParseUrlResult | null> {
+    await this.registry.ready
     this.logger.debug('Parse URL via manifest', this.config.manifestId, url)
     const runner = this.registry.getRunner(this.config.manifestId)
     const result = await runner.runParseUrl<ManifestParseUrlOutput>(url)

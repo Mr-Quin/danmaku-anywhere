@@ -202,6 +202,7 @@ export class ProviderService {
     // any pasted URL regardless of which sources the user has toggled on.
     // Disabling Bilibili would otherwise make a recognized bilibili.com
     // URL fail with "No provider found".
+    await this.manifestRegistry.ready
     const configs = await this.providerConfigService.getAll()
     for (const config of configs) {
       const service = this.danmakuProviderFactory(config)
@@ -223,13 +224,15 @@ export class ProviderService {
   }
 
   async probeLogin<T = unknown>(manifestId: string): Promise<T | null> {
+    await this.manifestRegistry.ready
     return this.manifestRegistry.getRunner(manifestId).runLoginProbe<T>()
   }
 
   // Surfaces the host-relevant subset of a manifest so the popup can render
   // generic affordances (warning icon, cookieSet link, config form) without
   // bundling source-specific switches.
-  getManifestSpec(manifestId: string): ManifestSpec {
+  async getManifestSpec(manifestId: string): Promise<ManifestSpec> {
+    await this.manifestRegistry.ready
     const { manifest } = this.manifestRegistry.getRunner(manifestId)
     return {
       name: manifest.name,
