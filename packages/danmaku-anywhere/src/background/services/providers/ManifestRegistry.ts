@@ -40,7 +40,8 @@ export class ManifestRegistry {
     this.ready = this.init()
   }
 
-  getRunner(manifestId: string): ManifestRunner {
+  async getRunner(manifestId: string): Promise<ManifestRunner> {
+    await this.ready
     const runner = this.runners.get(manifestId)
     if (!runner) {
       throw new Error(`no manifest registered with id: ${manifestId}`)
@@ -48,11 +49,13 @@ export class ManifestRegistry {
     return runner
   }
 
-  list(): string[] {
+  async list(): Promise<string[]> {
+    await this.ready
     return [...this.runners.keys()]
   }
 
   async register(manifest: unknown, kind: ManifestKind): Promise<void> {
+    await this.ready
     const parsed = zManifest.safeParse(manifest)
     if (!parsed.success) {
       throw new Error(
@@ -64,11 +67,13 @@ export class ManifestRegistry {
   }
 
   async unregister(manifestId: string): Promise<void> {
+    await this.ready
     await this.store.remove(manifestId)
     this.runners.delete(manifestId)
   }
 
   async refresh(): Promise<void> {
+    await this.ready
     const record = await this.store.getAll()
     this.runners.clear()
     for (const [id, entry] of Object.entries(record)) {

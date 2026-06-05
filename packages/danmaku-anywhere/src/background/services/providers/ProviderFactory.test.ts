@@ -25,7 +25,7 @@ const mockRunner = {
 }
 
 const fakeRegistry = {
-  getRunner: () => mockRunner,
+  getRunner: async () => mockRunner,
 } as unknown as ManifestRegistry
 
 vi.mock('./MacCmsProviderService', () => ({

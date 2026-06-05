@@ -8,6 +8,7 @@ import {
   stripHtml,
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
+import type { ManifestRunner } from '@mr-quin/dango'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ILogger } from '@/common/Logger'
@@ -84,19 +85,18 @@ export class ManifestProviderService implements IDanmakuProvider {
   // Precedence (low to high): configSchema defaults, user-configured
   // values, per-call inputs (providerIds / meta.params).
   private resolveInputs(
+    runner: ManifestRunner,
     inputs: Record<string, unknown>
   ): Record<string, unknown> {
-    const runner = this.registry.getRunner(this.config.manifestId)
     const defaults = runner.configDefaults()
     const configValues = stripUndefined(this.config.configValues ?? {})
     return { ...defaults, ...configValues, ...inputs }
   }
 
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
-    await this.registry.ready
     this.logger.debug('Search via manifest', this.config.manifestId, params)
-    const runner = this.registry.getRunner(this.config.manifestId)
-    const inputs = this.resolveInputs({ q: params.keyword })
+    const runner = await this.registry.getRunner(this.config.manifestId)
+    const inputs = this.resolveInputs(runner, { q: params.keyword })
     const rows = await runner.runSearch<ManifestSearchRow[]>(inputs)
     return rows.map((row) => ({
       ...row,
@@ -110,17 +110,16 @@ export class ManifestProviderService implements IDanmakuProvider {
   async getSeason(
     seasonRemoteIds: Season['providerIds']
   ): Promise<SeasonInsert | null> {
-    await this.registry.ready
     this.logger.debug(
       'Get season via manifest',
       this.config.manifestId,
       seasonRemoteIds
     )
-    const runner = this.registry.getRunner(this.config.manifestId)
+    const runner = await this.registry.getRunner(this.config.manifestId)
     if (!runner.hasSeason()) {
       return null
     }
-    const inputs = this.resolveInputs(seasonRemoteIds)
+    const inputs = this.resolveInputs(runner, seasonRemoteIds)
     const row = await runner.runSeason<ManifestSearchRow | null>(inputs)
     if (row === null) {
       return null
@@ -137,14 +136,13 @@ export class ManifestProviderService implements IDanmakuProvider {
   async getEpisodes(
     seasonRemoteIds: Season['providerIds']
   ): Promise<OmitSeasonId<EpisodeMeta>[]> {
-    await this.registry.ready
     this.logger.debug(
       'Get episodes via manifest',
       this.config.manifestId,
       seasonRemoteIds
     )
-    const runner = this.registry.getRunner(this.config.manifestId)
-    const inputs = this.resolveInputs(seasonRemoteIds)
+    const runner = await this.registry.getRunner(this.config.manifestId)
+    const inputs = this.resolveInputs(runner, seasonRemoteIds)
     const rows = await runner.runEpisodes<ManifestEpisodeRow[]>(inputs)
     const now = Date.now()
     return rows.map((row) => ({
@@ -158,16 +156,18 @@ export class ManifestProviderService implements IDanmakuProvider {
 
   async getDanmaku(request: DanmakuFetchByMeta): Promise<CommentEntity[]> {
     const { meta } = request
-    await this.registry.ready
     this.logger.debug(
       'Get danmaku via manifest',
       this.config.manifestId,
       meta.providerIds
     )
-    const runner = this.registry.getRunner(this.config.manifestId)
+    const runner = await this.registry.getRunner(this.config.manifestId)
     // meta.params holds per-episode hints stashed at search/episodes time
     // (e.g. chConvert/withRelated). providerIds take precedence on key collision.
-    const inputs = this.resolveInputs({ ...meta.params, ...meta.providerIds })
+    const inputs = this.resolveInputs(runner, {
+      ...meta.params,
+      ...meta.providerIds,
+    })
     return runner.runDanmaku<CommentEntity[]>(inputs)
   }
 
@@ -187,14 +187,14 @@ export class ManifestProviderService implements IDanmakuProvider {
     }
   }
 
-  canParse(url: string): boolean {
-    return this.registry.getRunner(this.config.manifestId).canParse(url)
+  async canParse(url: string): Promise<boolean> {
+    const runner = await this.registry.getRunner(this.config.manifestId)
+    return runner.canParse(url)
   }
 
   async parseUrl(url: string): Promise<ParseUrlResult | null> {
-    await this.registry.ready
     this.logger.debug('Parse URL via manifest', this.config.manifestId, url)
-    const runner = this.registry.getRunner(this.config.manifestId)
+    const runner = await this.registry.getRunner(this.config.manifestId)
     const result = await runner.runParseUrl<ManifestParseUrlOutput>(url)
     if (result === null) {
       return null

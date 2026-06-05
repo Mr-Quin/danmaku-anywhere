@@ -33,7 +33,7 @@ function makeRunner(returns: Record<string, unknown>): ManifestRunner {
 
 function makeRegistry(runner: ManifestRunner): ManifestRegistry {
   return {
-    getRunner: vi.fn(() => runner),
+    getRunner: vi.fn(async () => runner),
   } as unknown as ManifestRegistry
 }
 
