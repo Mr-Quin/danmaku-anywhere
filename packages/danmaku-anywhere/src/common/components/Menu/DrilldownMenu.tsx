@@ -26,7 +26,7 @@ type DrilldownMenuProps = PropsWithChildren & {
   dense?: boolean
   renderButton?: (props: {
     onClick: (event: MouseEvent<HTMLButtonElement>) => void
-    buttonId: string
+    id: string
   }) => ReactElement
 }
 
@@ -56,7 +56,7 @@ export const DrilldownMenu = ({
 
   const renderButton = () => {
     if (renderButtonProp) {
-      return renderButtonProp({ onClick: handleClick, buttonId })
+      return renderButtonProp({ onClick: handleClick, id: buttonId })
     }
     return (
       <IconButton

@@ -215,9 +215,9 @@ export function SourceFilterChips({
           items={overflowItems}
           dense
           BoxProps={{ sx: { flexShrink: 0, display: 'inline-flex' } }}
-          renderButton={({ onClick, buttonId }) => (
+          renderButton={({ onClick, id }) => (
             <Chip
-              id={buttonId}
+              id={id}
               active={false}
               onClick={onClick}
               aria-haspopup="menu"
