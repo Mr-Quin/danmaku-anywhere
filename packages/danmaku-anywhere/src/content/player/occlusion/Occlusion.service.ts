@@ -1,6 +1,7 @@
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ModelEntry } from '@/common/models/schema'
+import { CrossOriginCapture, isVideoOriginClean } from './crossOriginCapture'
 import { buildAlphaMask } from './maskGeometry'
 import {
   type IMaskProviderFactory,
@@ -106,6 +107,11 @@ export class OcclusionService {
   private lastError: string | null = null
   private lastStatusReason?: OcclusionStatusReason
   private lastAppliedTs = 0
+  // The element frames are read from: the live video when origin-clean, or a
+  // CORS-bypassed clone when the live video is cross-origin-tainted.
+  private captureEl: HTMLVideoElement | null = null
+  private crossOriginCapture: CrossOriginCapture | null = null
+  private captureResolved = false
 
   constructor(
     @inject(MaskProviderFactory)
@@ -212,6 +218,10 @@ export class OcclusionService {
     this.appliedOnce = false
     this.fps = null
     this.lastAppliedTs = 0
+    this.crossOriginCapture?.dispose()
+    this.crossOriginCapture = null
+    this.captureEl = null
+    this.captureResolved = false
     this.applyMask(undefined)
     this.debugView?.remove()
     this.debugView = undefined
@@ -317,6 +327,15 @@ export class OcclusionService {
       return
     }
 
+    if (!this.captureResolved) {
+      await this.resolveCaptureSource(video)
+      if (!this.running || this.video !== video || !this.captureEl) {
+        return
+      }
+    }
+    const source = this.captureEl ?? video
+    this.crossOriginCapture?.sync()
+
     const t0 = performance.now()
     let resizeWidth = this.captureSize
     let resizeHeight = this.captureSize
@@ -335,23 +354,17 @@ export class OcclusionService {
     let frame: ImageBitmap
     try {
       // Resize on the GPU during decode; avoids a main-thread canvas draw.
-      frame = await createImageBitmap(video, {
+      frame = await createImageBitmap(source, {
         resizeWidth,
         resizeHeight,
         resizeQuality: 'medium',
       })
     } catch (e) {
-      // Cross-origin-without-CORS or DRM/EME video taints the canvas; reading it
-      // back is impossible, so disable for this video instead of retrying.
+      // A tainted canvas can still surface here on engines where
+      // createImageBitmap enforces origin-clean; the upfront probe normally
+      // catches it first, so this is a fallback.
       if (e instanceof DOMException && e.name === 'SecurityError') {
-        this.debugView?.showDisabled('disabled (tainted canvas)')
-        // status() must run after stop(): stop clears running/fps but the status
-        // sets lastError, which must survive.
-        this.stop()
-        this.status(
-          'taint',
-          'disabled: video canvas is tainted (cross-origin/DRM)'
-        )
+        this.disableForTaint()
         return
       }
       this.log(`capture failed: ${e instanceof Error ? e.message : e}`)
@@ -443,6 +456,39 @@ export class OcclusionService {
     if (this.debug) {
       this.renderDebug(video, mask, result.maskSize, performance.now() - t0)
     }
+  }
+
+  // Pick the element to read frames from, once per video. An origin-clean video
+  // is captured directly; a cross-origin-tainted one with an http(s) source is
+  // recovered through a CORS-bypassed clone. Anything else (blob/DRM) disables.
+  private async resolveCaptureSource(video: HTMLVideoElement): Promise<void> {
+    this.captureResolved = true
+    if (isVideoOriginClean(video)) {
+      this.captureEl = video
+      return
+    }
+    const recovery = new CrossOriginCapture(video)
+    const clone = await recovery.setup()
+    if (!this.running || this.video !== video) {
+      recovery.dispose()
+      return
+    }
+    if (clone && isVideoOriginClean(clone)) {
+      this.crossOriginCapture = recovery
+      this.captureEl = clone
+      this.log('cross-origin video recovered via CORS-bypassed clone')
+      return
+    }
+    recovery.dispose()
+    this.disableForTaint()
+  }
+
+  private disableForTaint(): void {
+    this.debugView?.showDisabled('disabled (tainted canvas)')
+    // status() must run after stop(): stop clears running/fps but the status
+    // sets lastError, which must survive.
+    this.stop()
+    this.status('taint', 'disabled: video canvas is tainted (cross-origin/DRM)')
   }
 
   private renderDebug(

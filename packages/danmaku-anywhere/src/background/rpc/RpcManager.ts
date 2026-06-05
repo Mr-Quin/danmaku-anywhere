@@ -5,6 +5,8 @@ import {
 import { setRequestHeaderRule } from '@danmaku-anywhere/web-scraper'
 import { inject, injectable } from 'inversify'
 import { match } from 'ts-pattern'
+import { removeSessionRule } from '@/background/netRequest/sessionRules'
+import { setMediaCorsRule } from '@/background/netRequest/setMediaCorsRule'
 import { BackupService } from '@/background/services/Backup/BackupService.service'
 import { DataManagementService } from '@/background/services/DataManagementService'
 import { GenAIService } from '@/background/services/GenAIService'
@@ -414,6 +416,13 @@ export class RpcManager {
         },
         occlusionDeleteModel: async (data) => {
           return this.occlusionModelService.delete(data.id)
+        },
+        occlusionAddCorsRule: async (data) => {
+          const { ruleId } = await setMediaCorsRule(data.url)
+          return ruleId
+        },
+        occlusionRemoveCorsRule: async (data) => {
+          await removeSessionRule(data.ruleId)
         },
       },
       {
