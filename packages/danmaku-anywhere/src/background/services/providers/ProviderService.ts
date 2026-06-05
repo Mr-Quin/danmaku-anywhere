@@ -63,6 +63,7 @@ export class ProviderService {
   async searchSeason(
     params: SeasonSearchRequest
   ): Promise<(Season | SeasonInsert)[] | CustomSeason[]> {
+    await this.manifestRegistry.ready
     const providerConfig = await this.providerConfigService.mustGet(
       params.providerConfigId
     )
@@ -94,6 +95,7 @@ export class ProviderService {
   async fetchEpisodesBySeason(
     seasonId: number
   ): Promise<WithSeason<EpisodeMeta>[]> {
+    await this.manifestRegistry.ready
     const season = await this.seasonService.mustGetById(seasonId)
 
     const providerConfig = await this.providerConfigService.mustGet(
@@ -110,6 +112,7 @@ export class ProviderService {
   }
 
   async refreshSeason(filter: SeasonQueryFilter) {
+    await this.manifestRegistry.ready
     const [season] = await this.seasonService.filter(filter)
 
     const providerConfig = await this.providerConfigService.mustGet(
@@ -149,6 +152,7 @@ export class ProviderService {
   }
 
   async getDanmaku(request: DanmakuFetchRequest): Promise<WithSeason<Episode>> {
+    await this.manifestRegistry.ready
     const resolved = await this.resolveMeta(request)
     const { options = {} } = resolved
     const provider = resolved.meta.provider
@@ -202,6 +206,7 @@ export class ProviderService {
     // any pasted URL regardless of which sources the user has toggled on.
     // Disabling Bilibili would otherwise make a recognized bilibili.com
     // URL fail with "No provider found".
+    await this.manifestRegistry.ready
     const configs = await this.providerConfigService.getAll()
     for (const config of configs) {
       const service = this.danmakuProviderFactory(config)
@@ -223,13 +228,15 @@ export class ProviderService {
   }
 
   async probeLogin<T = unknown>(manifestId: string): Promise<T | null> {
+    await this.manifestRegistry.ready
     return this.manifestRegistry.getRunner(manifestId).runLoginProbe<T>()
   }
 
   // Surfaces the host-relevant subset of a manifest so the popup can render
   // generic affordances (warning icon, cookieSet link, config form) without
   // bundling source-specific switches.
-  getManifestSpec(manifestId: string): ManifestSpec {
+  async getManifestSpec(manifestId: string): Promise<ManifestSpec> {
+    await this.manifestRegistry.ready
     const { manifest } = this.manifestRegistry.getRunner(manifestId)
     return {
       name: manifest.name,
