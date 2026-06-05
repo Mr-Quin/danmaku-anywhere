@@ -6,6 +6,16 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 30_000,
   retries: 0,
+  // Real static server for specs that need genuine cross-origin network (e.g.
+  // cross-origin video taint + DNR recovery), which route-fulfilled `.invalid`
+  // origins cannot exercise. Other specs ignore it.
+  webServer: {
+    command: 'node e2e/harness/serve.mjs --port 8889',
+    port: 8889,
+    reuseExistingServer: !isCI,
+    stdout: 'ignore',
+    stderr: 'pipe',
+  },
   reporter: isCI
     ? [
         ['list'],

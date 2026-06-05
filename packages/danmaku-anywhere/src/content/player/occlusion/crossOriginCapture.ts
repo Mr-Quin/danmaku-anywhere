@@ -48,32 +48,40 @@ export class CrossOriginCapture {
       return null
     }
 
-    this.ruleId = (
-      await chromeRpcClient.occlusionAddCorsRule({ url: src })
-    ).data
-    if (this.disposed) {
-      void this.removeRule()
-      return null
-    }
+    try {
+      this.ruleId = (
+        await chromeRpcClient.occlusionAddCorsRule({ url: src })
+      ).data
+      if (this.disposed) {
+        this.dispose()
+        return null
+      }
 
-    const clone = document.createElement('video')
-    clone.crossOrigin = 'anonymous'
-    clone.muted = true
-    clone.playsInline = true
-    clone.preload = 'auto'
-    clone.style.cssText =
-      'position:fixed;width:1px;height:1px;top:-9999px;left:-9999px;opacity:0;pointer-events:none;'
-    clone.src = src
-    document.body.appendChild(clone)
-    this.clone = clone
+      const clone = document.createElement('video')
+      clone.crossOrigin = 'anonymous'
+      clone.muted = true
+      clone.playsInline = true
+      clone.preload = 'auto'
+      clone.style.cssText =
+        'position:fixed;width:1px;height:1px;top:-9999px;left:-9999px;opacity:0;pointer-events:none;'
+      clone.src = src
+      document.body.appendChild(clone)
+      this.clone = clone
 
-    const ready = await this.waitReady(clone)
-    if (!ready || this.disposed) {
+      const ready = await this.waitReady(clone)
+      if (!ready || this.disposed) {
+        this.dispose()
+        return null
+      }
+      this.sync()
+      return clone
+    } catch {
+      // A failed RPC / rule install must not leave capture half-resolved; give
+      // up cleanly so the caller falls through to the tainted-canvas status
+      // instead of capturing the unrecovered (tainted) original forever.
       this.dispose()
       return null
     }
-    this.sync()
-    return clone
   }
 
   // Keep the clone aligned with the live element so the captured frame matches

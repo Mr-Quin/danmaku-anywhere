@@ -112,6 +112,8 @@ export class OcclusionService {
   private captureEl: HTMLVideoElement | null = null
   private crossOriginCapture: CrossOriginCapture | null = null
   private captureResolved = false
+  // currentSrc the capture source was resolved against; a change means re-resolve.
+  private resolvedSrc: string | null = null
 
   constructor(
     @inject(MaskProviderFactory)
@@ -222,6 +224,7 @@ export class OcclusionService {
     this.crossOriginCapture = null
     this.captureEl = null
     this.captureResolved = false
+    this.resolvedSrc = null
     this.applyMask(undefined)
     this.debugView?.remove()
     this.debugView = undefined
@@ -327,13 +330,27 @@ export class OcclusionService {
       return
     }
 
+    // The player can swap src on the same element (next episode, quality
+    // change). start() no-ops for an unchanged element, so detect it here: a
+    // changed source invalidates a clone bound to the old URL and any prior
+    // origin-clean decision, forcing a re-resolve.
+    if (this.captureResolved && this.resolvedSrc !== video.currentSrc) {
+      this.crossOriginCapture?.dispose()
+      this.crossOriginCapture = null
+      this.captureEl = null
+      this.captureResolved = false
+    }
+
     if (!this.captureResolved) {
       await this.resolveCaptureSource(video)
-      if (!this.running || this.video !== video || !this.captureEl) {
+      if (!this.running || this.video !== video) {
         return
       }
     }
-    const source = this.captureEl ?? video
+    const source = this.captureEl
+    if (!source) {
+      return
+    }
     this.crossOriginCapture?.sync()
 
     const t0 = performance.now()
@@ -461,8 +478,11 @@ export class OcclusionService {
   // Pick the element to read frames from, once per video. An origin-clean video
   // is captured directly; a cross-origin-tainted one with an http(s) source is
   // recovered through a CORS-bypassed clone. Anything else (blob/DRM) disables.
+  // Reached synchronously from onFrame's readyState >= 2 gate, so the probe
+  // always has a decoded frame to test (an unready video would read as clean).
   private async resolveCaptureSource(video: HTMLVideoElement): Promise<void> {
     this.captureResolved = true
+    this.resolvedSrc = video.currentSrc
     if (isVideoOriginClean(video)) {
       this.captureEl = video
       return
