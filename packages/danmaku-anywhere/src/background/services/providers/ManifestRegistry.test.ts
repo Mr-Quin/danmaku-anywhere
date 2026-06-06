@@ -8,12 +8,12 @@ import type {
 } from './ManifestStore'
 
 /**
- * ManifestRegistry is storage-backed: on init it seeds the backend `/manifest`
- * catalog into an empty store and builds a runner per stored manifest.
- * Verifies catalog seeding only on empty stores, apiVersion gating, a fetch
- * failure leaving the store empty without throwing, getRunner resolution,
- * register / unregister mutating both store and runner map, that an invalid
- * stored manifest is skipped rather than fatal, and idempotent init.
+ * ManifestRegistry is storage-backed: init only hydrates runners from the
+ * store (no network), while seedIfEmpty fetches the backend `/manifest`
+ * catalog into an empty store. Verifies hydrate-without-fetch, seedIfEmpty's
+ * catalog seeding / apiVersion gating / fetch-failure-leaves-empty / no-op on
+ * a populated store, getRunner resolution, register / unregister mutating both
+ * store and runner map, and an invalid stored manifest being skipped.
  */
 
 const silentLogger = {
@@ -40,28 +40,44 @@ interface CatalogEntry {
   file: string
 }
 
-function jsonResponse(body: unknown) {
+function makeResponse(status: number, body: unknown) {
   return {
-    status: 200,
+    status,
     headers: { forEach: () => {} },
-    text: async () => JSON.stringify(body),
+    text: async () => (typeof body === 'string' ? body : JSON.stringify(body)),
   }
+}
+
+function stubFetch(
+  respond: (url: string) => { status: number; body: unknown }
+) {
+  const fetchMock = vi.fn(async (input: unknown) => {
+    const { status, body } = respond(String(input))
+    return makeResponse(status, body)
+  })
+  vi.stubGlobal('fetch', fetchMock)
+  return fetchMock
+}
+
+function fileParam(url: string): string {
+  return new URL(url, 'http://x').searchParams.get('file') ?? ''
 }
 
 function stubCatalogFetch(
   entries: CatalogEntry[],
-  files: Record<string, unknown>
+  files: Record<string, unknown>,
+  fileStatus: Record<string, number> = {}
 ) {
-  const fetchMock = vi.fn(async (input: unknown) => {
-    const url = String(input)
+  return stubFetch((url) => {
     if (url.includes('/manifest/file')) {
-      const file = new URL(url, 'http://x').searchParams.get('file') ?? ''
-      return jsonResponse(files[file])
+      const file = fileParam(url)
+      return { status: fileStatus[file] ?? 200, body: files[file] }
     }
-    return jsonResponse({ packageVersion: '0.0.0', manifests: entries })
+    return {
+      status: 200,
+      body: { packageVersion: '0.0.0', manifests: entries },
+    }
   })
-  vi.stubGlobal('fetch', fetchMock)
-  return fetchMock
 }
 
 afterEach(() => {
@@ -98,7 +114,20 @@ class InMemoryStore implements IManifestStore {
 }
 
 describe('ManifestRegistry', () => {
-  it('seeds the backend catalog into an empty store as preinstalled', async () => {
+  it('hydrates runners from a populated store without fetching', async () => {
+    const fetchMock = stubCatalogFetch([], {})
+    const store = new InMemoryStore({
+      'test:one': { manifest: makeManifest('test:one'), kind: 'preinstalled' },
+      'test:two': { manifest: makeManifest('test:two'), kind: 'user' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(registry.list().sort()).toEqual(['test:one', 'test:two'])
+  })
+
+  it('seedIfEmpty seeds the backend catalog into an empty store as preinstalled', async () => {
     stubCatalogFetch(
       [
         { id: 'one', apiVersion: 1, file: 'src/manifests/one.json' },
@@ -111,7 +140,7 @@ describe('ManifestRegistry', () => {
     )
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
+    await registry.seedIfEmpty()
 
     const record = await store.getAll()
     expect(Object.keys(record).sort()).toEqual(['one', 'two'])
@@ -121,7 +150,7 @@ describe('ManifestRegistry', () => {
     }
   })
 
-  it('skips catalog entries whose apiVersion is unsupported', async () => {
+  it('seedIfEmpty skips catalog entries whose apiVersion is unsupported', async () => {
     const fetchMock = stubCatalogFetch(
       [
         { id: 'good', apiVersion: 1, file: 'src/manifests/good.json' },
@@ -131,7 +160,7 @@ describe('ManifestRegistry', () => {
     )
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
+    await registry.seedIfEmpty()
 
     expect(registry.list()).toEqual(['good'])
     const fetchedFiles = fetchMock.mock.calls
@@ -140,24 +169,85 @@ describe('ManifestRegistry', () => {
     expect(fetchedFiles.some((url) => url.includes('future'))).toBe(false)
   })
 
-  it('leaves the store empty without throwing when the catalog fetch fails', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => ({
-        status: 503,
-        headers: { forEach: () => {} },
-        text: async () => 'unavailable',
-      }))
-    )
+  it('seedIfEmpty leaves the store empty without throwing when the index fetch fails', async () => {
+    stubFetch(() => ({ status: 503, body: 'unavailable' }))
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await expect(registry.ready).resolves.toBeUndefined()
+    await expect(registry.seedIfEmpty()).resolves.toBeUndefined()
 
     expect(await store.getAll()).toEqual({})
     expect(registry.list()).toEqual([])
   })
 
-  it('does not reseed when the store is already populated', async () => {
+  it('seedIfEmpty leaves the store empty when the index body is malformed', async () => {
+    stubFetch((url) =>
+      url.includes('/manifest/file')
+        ? { status: 200, body: makeManifest('x') }
+        : { status: 200, body: { packageVersion: '0.0.0' } }
+    )
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    await expect(registry.seedIfEmpty()).resolves.toBeUndefined()
+
+    expect(await store.getAll()).toEqual({})
+    expect(registry.list()).toEqual([])
+  })
+
+  it('seedIfEmpty skips a catalog file that fails schema validation', async () => {
+    stubCatalogFetch(
+      [
+        { id: 'good', apiVersion: 1, file: 'src/manifests/good.json' },
+        { id: 'bad', apiVersion: 1, file: 'src/manifests/bad.json' },
+      ],
+      {
+        'src/manifests/good.json': makeManifest('good'),
+        // Valid JSON, invalid manifest (missing name/version/hosts).
+        'src/manifests/bad.json': { apiVersion: 1, id: 'bad' },
+      }
+    )
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.seedIfEmpty()
+
+    expect(registry.list()).toEqual(['good'])
+    expect(Object.keys(await store.getAll())).toEqual(['good'])
+  })
+
+  it('seedIfEmpty aborts the whole seed when one catalog file fails to fetch', async () => {
+    stubCatalogFetch(
+      [
+        { id: 'good', apiVersion: 1, file: 'src/manifests/good.json' },
+        { id: 'broken', apiVersion: 1, file: 'src/manifests/broken.json' },
+      ],
+      { 'src/manifests/good.json': makeManifest('good') },
+      { 'src/manifests/broken.json': 500 }
+    )
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    await expect(registry.seedIfEmpty()).resolves.toBeUndefined()
+
+    // All-or-nothing: the valid `good` is not persisted when a sibling fails.
+    expect(await store.getAll()).toEqual({})
+    expect(registry.list()).toEqual([])
+  })
+
+  it('seedIfEmpty is single-flighted across concurrent calls', async () => {
+    const fetchMock = stubCatalogFetch(
+      [{ id: 'one', apiVersion: 1, file: 'src/manifests/one.json' }],
+      { 'src/manifests/one.json': makeManifest('one') }
+    )
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    await Promise.all([registry.seedIfEmpty(), registry.seedIfEmpty()])
+
+    const indexFetches = fetchMock.mock.calls
+      .map(([url]) => String(url))
+      .filter((url) => url.endsWith('/manifest'))
+    expect(indexFetches).toHaveLength(1)
+    expect(registry.list()).toEqual(['one'])
+  })
+
+  it('seedIfEmpty does not fetch or reseed when the store is already populated', async () => {
     const fetchMock = stubCatalogFetch([], {})
     const store = new InMemoryStore({
       'test:one': { manifest: makeManifest('test:one'), kind: 'user' },
@@ -165,6 +255,7 @@ describe('ManifestRegistry', () => {
     const setMany = vi.spyOn(store, 'setMany')
     const registry = new ManifestRegistry(silentLogger, store)
     await registry.ready
+    await registry.seedIfEmpty()
 
     expect(fetchMock).not.toHaveBeenCalled()
     expect(setMany).not.toHaveBeenCalled()
@@ -198,6 +289,21 @@ describe('ManifestRegistry', () => {
       kind: 'user',
     })
     expect(registry.getRunner('test:two')).toBeDefined()
+  })
+
+  it('register rejects an invalid manifest and leaves state unchanged', async () => {
+    const store = new InMemoryStore({
+      'test:one': { manifest: makeManifest('test:one'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(
+      registry.register({ apiVersion: 1, id: 'bad' }, 'user')
+    ).rejects.toThrow(/invalid manifest/)
+
+    expect(await store.has('bad')).toBe(false)
+    expect(registry.list()).toEqual(['test:one'])
   })
 
   it('unregister removes the manifest from store and runners', async () => {

@@ -34,7 +34,7 @@ container.get(NetRequestManager).setup()
 container.get(AlarmManager).setup()
 container.get(PortsManager).setup()
 
-void container.get(ManifestRegistry).ready
+container.get(ManifestRegistry).setup()
 
 setLogService(container.get(LogService))
 

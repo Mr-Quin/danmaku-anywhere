@@ -34,6 +34,7 @@ export class ManifestRegistry {
   private readonly log: ILogger
   private readonly store: IManifestStore
   private initialized = false
+  private seeding?: Promise<void>
   readonly ready: Promise<void>
 
   constructor(
@@ -45,9 +46,9 @@ export class ManifestRegistry {
     this.ready = this.init()
   }
 
-  // Synchronous: callers gate on `ready` once at the boundary (see
-  // ProviderService), so by the time a runner is resolved the store has
-  // already hydrated into the in-memory map.
+  // Synchronous: callers gate on `ready`, which guarantees the stored set has
+  // hydrated into the map. The install-time catalog seed runs separately, so a
+  // freshly installed profile may briefly resolve no runner until it lands.
   getRunner(manifestId: string): ManifestRunner {
     invariant(this.initialized, 'ManifestRegistry accessed before ready')
     const runner = this.runners.get(manifestId)
@@ -89,14 +90,38 @@ export class ManifestRegistry {
     }
   }
 
+  setup(): void {
+    chrome.runtime.onInstalled.addListener(() => {
+      void this.seedIfEmpty()
+    })
+    // Fallback in case the onInstalled seed failed (e.g. offline at install).
+    chrome.runtime.onStartup.addListener(() => {
+      void this.seedIfEmpty()
+    })
+  }
+
+  // Pre-install the catalog set once, on install. A populated store is left
+  // untouched; refreshing it with newer compatible manifests is a separate
+  // path. Single-flighted so onInstalled and onStartup firing together don't
+  // fetch the catalog twice.
+  seedIfEmpty(): Promise<void> {
+    this.seeding ??= this.seedIfEmptyOnce()
+    return this.seeding
+  }
+
+  private async seedIfEmptyOnce(): Promise<void> {
+    await this.ready
+    const record = await this.store.getAll()
+    if (Object.keys(record).length > 0) {
+      return
+    }
+    await this.seed()
+  }
+
   private async init(): Promise<void> {
     const record = await this.store.getAll()
-    if (Object.keys(record).length === 0) {
-      await this.seed()
-    } else {
-      for (const [id, entry] of Object.entries(record)) {
-        this.loadEntry(id, entry)
-      }
+    for (const [id, entry] of Object.entries(record)) {
+      this.loadEntry(id, entry)
     }
     this.initialized = true
   }
@@ -106,16 +131,18 @@ export class ManifestRegistry {
     try {
       catalog = await this.fetchCatalog()
     } catch (e) {
-      // Leave the store empty so the next init / service-worker wake retries.
+      // Leave the store empty so the next onStartup / install seed retries.
       this.log.error('Failed to seed manifests from catalog:', e)
       return
     }
     const seeded: Record<string, ManifestEntry> = {}
     for (const { raw, parsed } of catalog) {
       seeded[parsed.id] = { manifest: raw, kind: 'preinstalled' }
-      this.runners.set(parsed.id, this.buildRunner(parsed))
     }
     await this.store.setMany(seeded)
+    for (const { parsed } of catalog) {
+      this.runners.set(parsed.id, this.buildRunner(parsed))
+    }
   }
 
   private async fetchCatalog(): Promise<CatalogManifest[]> {
