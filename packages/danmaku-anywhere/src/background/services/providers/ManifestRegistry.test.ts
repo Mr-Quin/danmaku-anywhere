@@ -246,6 +246,21 @@ describe('ManifestRegistry', () => {
     expect(registry.list()).toEqual(['one'])
   })
 
+  it('seedIfEmpty clears its cached attempt when a write throws, allowing retry', async () => {
+    stubCatalogFetch(
+      [{ id: 'one', apiVersion: 1, file: 'src/manifests/one.json' }],
+      { 'src/manifests/one.json': makeManifest('one') }
+    )
+    const store = new InMemoryStore()
+    vi.spyOn(store, 'setMany').mockRejectedValueOnce(new Error('write boom'))
+    const registry = new ManifestRegistry(silentLogger, store)
+    await expect(registry.seedIfEmpty()).resolves.toBeUndefined()
+    expect(registry.list()).toEqual([])
+
+    await registry.seedIfEmpty()
+    expect(registry.list()).toEqual(['one'])
+  })
+
   it('seedIfEmpty is single-flighted across concurrent calls', async () => {
     const fetchMock = stubCatalogFetch(
       [{ id: 'one', apiVersion: 1, file: 'src/manifests/one.json' }],

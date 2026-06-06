@@ -110,16 +110,21 @@ export class ManifestRegistry {
   }
 
   private async seedIfEmptyOnce(): Promise<void> {
-    await this.ready
-    const record = await this.store.getAll()
-    if (Object.keys(record).length > 0) {
-      return
+    try {
+      await this.ready
+      const record = await this.store.getAll()
+      if (Object.keys(record).length > 0) {
+        return
+      }
+      if (await this.seed()) {
+        return
+      }
+    } catch (e) {
+      this.log.error('Failed to seed manifests from catalog:', e)
     }
-    const seeded = await this.seed()
-    if (!seeded) {
-      // Drop the cached attempt so a later install / startup seed can retry.
-      this.seeding = undefined
-    }
+    // Reached only when nothing was seeded; drop the cached attempt so a later
+    // install / startup seed can retry.
+    this.seeding = undefined
   }
 
   private async init(): Promise<void> {
