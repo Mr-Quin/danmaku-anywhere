@@ -1,10 +1,8 @@
 import {
   DanmakuSourceType,
-  LEGACY_MACCMS_ID,
   PROVIDER_TO_BUILTIN_ID,
 } from '@danmaku-anywhere/danmaku-converter'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
-import { getRandomUUID } from '@/common/utils/utils'
 import type { ProviderConfig } from './schema'
 
 export const PROXY_DDP_BASE_URL = `${import.meta.env.VITE_PROXY_URL}/ddp`
