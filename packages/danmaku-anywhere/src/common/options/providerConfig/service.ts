@@ -224,7 +224,10 @@ export class ProviderConfigService implements IStoreService {
     const ordered = orderedIds
       .map((id) => byId.get(id))
       .filter((config): config is ProviderConfig => config !== undefined)
-    if (ordered.length !== configs.length) {
+    if (
+      ordered.length !== configs.length ||
+      new Set(orderedIds).size !== configs.length
+    ) {
       throw new Error('setOrder must list every provider config exactly once')
     }
     await this.options.set(ordered)

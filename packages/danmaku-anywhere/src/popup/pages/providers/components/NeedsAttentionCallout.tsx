@@ -69,7 +69,7 @@ export const NeedsAttentionCallout = ({
                 size="small"
                 variant="outlined"
                 disabled={!canSignIn}
-                onClick={() => window.open(url, '_blank', 'noreferrer')}
+                onClick={() => chrome.tabs.create({ url })}
               >
                 {t('providers.attention.signIn', 'Sign in')}
               </Button>
