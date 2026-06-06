@@ -10,11 +10,8 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
-import { BilibiliProviderForm } from '../components/forms/BilibiliProviderForm'
-import { DanDanPlayCompatibleProviderForm } from '../components/forms/DanDanPlayCompatibleProviderForm'
-import { DanDanPlayProviderForm } from '../components/forms/DanDanPlayProviderForm'
 import { MacCmsProviderForm } from '../components/forms/MacCmsProviderForm'
-import { TencentProviderForm } from '../components/forms/TencentProviderForm'
+import { ProviderConfigForm } from '../components/forms/ProviderConfigForm'
 
 interface ProviderEditorProps {
   mode: 'add' | 'edit'
@@ -84,51 +81,22 @@ export const ProviderEditor = ({
   }
 
   const renderForm = () => {
-    if (isCustomDdp) {
+    if (provider.manifestId === LEGACY_MACCMS_ID) {
       return (
-        <DanDanPlayCompatibleProviderForm
+        <MacCmsProviderForm
           provider={provider}
           onSubmit={handleSave}
           isEdit={isEdit}
         />
       )
     }
-    switch (provider.manifestId) {
-      case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]:
-        return (
-          <DanDanPlayProviderForm
-            provider={provider}
-            onSubmit={handleSave}
-            isEdit={isEdit}
-          />
-        )
-      case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]:
-        return (
-          <BilibiliProviderForm
-            provider={provider}
-            onSubmit={handleSave}
-            isEdit={isEdit}
-          />
-        )
-      case PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]:
-        return (
-          <TencentProviderForm
-            provider={provider}
-            onSubmit={handleSave}
-            isEdit={isEdit}
-          />
-        )
-      case LEGACY_MACCMS_ID:
-        return (
-          <MacCmsProviderForm
-            provider={provider}
-            onSubmit={handleSave}
-            isEdit={isEdit}
-          />
-        )
-      default:
-        return null
-    }
+    return (
+      <ProviderConfigForm
+        provider={provider}
+        onSubmit={handleSave}
+        isEdit={isEdit}
+      />
+    )
   }
 
   return (

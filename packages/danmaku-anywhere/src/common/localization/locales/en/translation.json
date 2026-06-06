@@ -494,23 +494,7 @@
       "restoreConfirmDesc": "Restoring this backup will overwrite your current settings. Are you sure you want to proceed?",
       "restoreConfirmTitle": "Restore Settings?"
     },
-    "chConvert": {
-      "name": "Simplified/Traditional Conversion",
-      "none": "No conversion",
-      "simplified": "Convert to simplified",
-      "traditional": "Convert to traditional"
-    },
     "danmakuSource": {
-      "bilibili": {
-        "danmakuTypePreference": "Danmaku Type Preference",
-        "help": {
-          "danmakuTypePreferenceProtobuf": "optionsPage.danmakuSource.bilibili.help.danmakuTypePreferenceProtobuf",
-          "danmakuTypePreferenceXML": "optionsPage.danmakuSource.bilibili.help.danmakuTypePreferenceXML"
-        }
-      },
-      "dandanplay": {
-        "apiUrl": "API URL"
-      },
       "macCms": {
         "baseUrl": "Mac CMS API Base URL",
         "baseUrlHelper": "The options in the list may stop working at any time. You can also enter the URL manually.",
@@ -598,16 +582,7 @@
       "title": "Delete Provider"
     },
     "editor": {
-      "addHeader": "Add Header",
-      "authEnabled": "Enable Authentication",
-      "authHeaders": "Custom Headers",
-      "headerKey": "Header Key",
-      "headerValue": "Header Value",
-      "helper": {
-        "authHeaders": "Custom headers to send with each request (e.g., Authorization, X-AppSecret)",
-        "baseUrl": "API endpoint URL for DanDanPlay-compatible server",
-        "builtInName": "Built-in provider names cannot be changed"
-      },
+      "addItem": "Add",
       "name": "Name",
       "title": {
         "add": "Add Provider",

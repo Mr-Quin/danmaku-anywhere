@@ -100,6 +100,7 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
       null as unknown as BackgroundMethods['mediaParseUrl']['output'],
     danmakuPurgeCache: () => 0,
     providerProbeLogin: () => ({ hasLoginProbe: false, ok: true }),
+    providerGetManifestSpec: () => ({ name: '', hasLoginProbe: false }),
     fetchImage: ({ src }) => src,
     getActiveTabUrl: () => 'https://example.com',
     getFrameId: () => 0,

@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test'
 import { ConfirmDialog } from './ConfirmDialog'
 import { ImportResultDialog } from './ImportResultDialog'
 import { MountPage } from './MountPage'
+import { ProvidersPage } from './ProvidersPage'
 import { SearchPage } from './SearchPage'
 import { SeasonDetailsPage } from './SeasonDetailsPage'
 import { Toast } from './Toast'
@@ -11,6 +12,7 @@ export class Popup {
   readonly mount: MountPage
   readonly search: SearchPage
   readonly seasonDetails: SeasonDetailsPage
+  readonly providers: ProvidersPage
   readonly toast: Toast
   readonly dialog: ConfirmDialog
   readonly urlImport: UrlImportDialog
@@ -20,6 +22,7 @@ export class Popup {
     this.mount = new MountPage(page)
     this.search = new SearchPage(page)
     this.seasonDetails = new SeasonDetailsPage(page)
+    this.providers = new ProvidersPage(page)
     this.toast = new Toast(page)
     this.dialog = new ConfirmDialog(page)
     this.urlImport = new UrlImportDialog(page)

@@ -18,7 +18,10 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { isProvider } from '@/common/danmaku/utils'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import type { ProviderLoginStatus } from '@/common/rpcClient/background/types'
+import type {
+  ProviderLoginStatus,
+  ProviderManifestSpec,
+} from '@/common/rpcClient/background/types'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { OmitSeasonId } from './IDanmakuProvider'
 import { ManifestRegistry } from './ManifestRegistry'
@@ -237,7 +240,7 @@ export class ProviderService {
   // the popup can render the warning without source-specific switches. A
   // source without a loginProbe is always considered ok.
   async getLoginStatus(manifestId: string): Promise<ProviderLoginStatus> {
-    let spec: ManifestSpec
+    let spec: ProviderManifestSpec
     try {
       spec = await this.getManifestSpec(manifestId)
     } catch {
@@ -261,21 +264,20 @@ export class ProviderService {
   // Surfaces the host-relevant subset of a manifest so the popup can render
   // generic affordances (warning icon, cookieSet link, config form) without
   // bundling source-specific switches.
-  async getManifestSpec(manifestId: string): Promise<ManifestSpec> {
+  async getManifestSpec(manifestId: string): Promise<ProviderManifestSpec> {
     await this.manifestRegistry.ready
-    const { manifest } = this.manifestRegistry.getRunner(manifestId)
-    return {
-      name: manifest.name,
-      hasLoginProbe: manifest.loginProbe !== undefined,
-      cookieSet: manifest.cookieSet,
-      configSchema: manifest.configSchema,
+    try {
+      const { manifest } = this.manifestRegistry.getRunner(manifestId)
+      return {
+        name: manifest.name,
+        hasLoginProbe: manifest.loginProbe !== undefined,
+        cookieSet: manifest.cookieSet,
+        configSchema: manifest.configSchema,
+      }
+    } catch {
+      // Unknown id (legacy:maccms) or a catalog miss: report a minimal spec so
+      // the popup degrades to a name-only form instead of rejecting the RPC.
+      return { name: '', hasLoginProbe: false }
     }
   }
-}
-
-export interface ManifestSpec {
-  name: string
-  hasLoginProbe: boolean
-  cookieSet?: { url: string; title?: string }
-  configSchema?: unknown
 }
