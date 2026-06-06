@@ -156,11 +156,6 @@ export function SearchForm({
     }
   }
 
-  const activeCount =
-    activeQuery?.data?.success === true
-      ? activeQuery.data.data.length
-      : undefined
-
   const renderResultCount = (): ReactNode => {
     if (activeQuery?.isFetching) {
       return (
@@ -171,9 +166,10 @@ export function SearchForm({
         />
       )
     }
-    if (activeCount !== undefined) {
+    const result = activeQuery?.data
+    if (result?.success) {
       return t('searchPage.resultsCount', '{{count}} results', {
-        count: activeCount,
+        count: result.data.length,
       })
     }
     return ' '
