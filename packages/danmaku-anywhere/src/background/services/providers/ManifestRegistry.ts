@@ -58,8 +58,6 @@ export class ManifestRegistry {
     this.ready = this.init()
   }
 
-  // Sync: `ready` guarantees the stored set hydrated. The reconcile runs
-  // separately, so a fresh install can briefly resolve no runner yet.
   getRunner(manifestId: string): ManifestRunner {
     invariant(this.initialized, 'ManifestRegistry accessed before ready')
     const runner = this.runners.get(manifestId)
