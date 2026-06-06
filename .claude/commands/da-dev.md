@@ -25,13 +25,50 @@ Pick a `hint` — 2-4 kebab-case words describing the task (e.g. `dev-workflow`,
 node scripts/da-bootstrap.mjs --task DA-XXX --hint <hint> --type <extension|app|proxy|chore|docs>
 ```
 
-That handles `git fetch`, `git worktree add`, env copy, `pnpm install`, `pnpm build:packages`, and writes task notes to `~/.claude/da-tasks/DA-XXX.md` (outside the repo, survives `/da-cleanup`). On success it prints a trailing `READY` block with `worktree=...`, `branch=...`, `task_file=...`, `title=...`. Parse those and launch a new Claude session in the worktree:
+That handles `git fetch`, `git worktree add`, env copy, `pnpm install`, `pnpm build:packages`, and writes task notes to `~/.claude/da-tasks/DA-XXX.md` (outside the repo, survives `/da-cleanup`). On success it prints a trailing `READY` block with `worktree=...`, `branch=...`, `task_file=...`, `title=...`. Parse those and open a new terminal tab in the worktree running:
 
 ```bash
-wt new-tab --title '<title>' -d '<worktree>' -- powershell -NoExit -Command "claude --permission-mode acceptEdits --add-dir . -- 'Read <task_file> and follow the instructions'"
+claude --permission-mode acceptEdits --add-dir . -- "Read <task_file> and follow the instructions"
 ```
 
-(On non-Windows hosts, open a terminal in `<worktree>` and run the `claude ...` portion directly.) The new session reads `<task_file>` and starts from step 3. **Stop the current session here.**
+How you open that tab depends on your terminal:
+
+- **Warp (any OS):** write a tab config, then open it by deeplink. Tab configs live in `~/.local/share/warp-terminal/tab_configs/` (Linux), `~/.warp/tab_configs/` (macOS), or `%APPDATA%\warp\Warp\data\tab_configs\` (Windows). Write `DA-XXX.toml` with two side-by-side panes both in the worktree, claude on the left and a free terminal on the right:
+
+  ```toml
+  name = "<title>"
+  title = "<title>"
+
+  [[panes]]
+  id = "root"
+  split = "horizontal"
+  children = ["left", "right"]
+
+  [[panes]]
+  id = "left"
+  type = "terminal"
+  directory = "<worktree>"
+  commands = ['claude --permission-mode acceptEdits --add-dir . -- "Read <task_file> and follow the instructions"']
+  is_focused = true
+
+  [[panes]]
+  id = "right"
+  type = "terminal"
+  directory = "<worktree>"
+  ```
+
+  Then fire `warp://tab_config/DA-XXX`. On macOS use `open '<uri>'`; on Windows use `start <uri>`. On Linux the Warp launcher drops the deeplink, so hand it to the app over D-Bus:
+
+  ```bash
+  gdbus call --session --dest dev.warp.Warp --object-path /dev/warp/Warp \
+    --method org.freedesktop.Application.Open "['warp://tab_config/DA-XXX']" "{}"
+  ```
+
+- **Windows Terminal (no Warp):** `wt new-tab --title '<title>' -d '<worktree>' -- powershell -NoExit -Command "claude --permission-mode acceptEdits --add-dir . -- 'Read <task_file> and follow the instructions'"`
+
+- **Other terminals:** open a tab in `<worktree>` and run the `claude ...` line yourself.
+
+The new session reads `<task_file>` and starts from step 3. **Stop the current session here.**
 
 For trivial changes (CLAUDE.md / docs / config-only): branch directly without a worktree:
 

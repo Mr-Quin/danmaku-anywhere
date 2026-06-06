@@ -19,13 +19,16 @@ git worktree list
 
 3. **Check each task's status** in ClickUp via `clickup_get_task`. If the task status is "complete" or "closed", the worktree is eligible for cleanup.
 
-4. **For each completed task**, remove the worktree, the local branch, and the task notes file:
+4. **For each completed task**, remove the worktree, the local branch, the task notes file, and the Warp tab config from step 2 (if present):
 
 ```bash
 git worktree remove <worktree-path>
 git branch -d DA-XXX_<hint>
 rm -f ~/.claude/da-tasks/DA-XXX.md
+rm -f ~/.local/share/warp-terminal/tab_configs/DA-XXX.toml
 ```
+
+The tab config path is platform-specific (macOS `~/.warp/tab_configs/`, Windows `%APPDATA%\warp\Warp\data\tab_configs\`); skip it if you don't use Warp.
 
 Remote branches are auto-deleted by GitHub's "delete branch after merge" setting.
 
