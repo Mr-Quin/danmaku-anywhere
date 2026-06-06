@@ -66,6 +66,7 @@ function stubCatalogFetch(
 
 afterEach(() => {
   vi.unstubAllGlobals()
+  vi.restoreAllMocks()
 })
 
 class InMemoryStore implements IManifestStore {

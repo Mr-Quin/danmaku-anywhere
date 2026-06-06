@@ -26,6 +26,8 @@ const zCatalogIndex = z.object({
   ),
 })
 
+type CatalogManifest = { raw: unknown; parsed: Manifest }
+
 @injectable('Singleton')
 export class ManifestRegistry {
   private readonly runners = new Map<string, ManifestRunner>()
@@ -100,7 +102,7 @@ export class ManifestRegistry {
   }
 
   private async seed(): Promise<void> {
-    let catalog: { raw: unknown; parsed: Manifest }[]
+    let catalog: CatalogManifest[]
     try {
       catalog = await this.fetchCatalog()
     } catch (e) {
@@ -116,35 +118,46 @@ export class ManifestRegistry {
     await this.store.setMany(seeded)
   }
 
-  private async fetchCatalog(): Promise<{ raw: unknown; parsed: Manifest }[]> {
+  private async fetchCatalog(): Promise<CatalogManifest[]> {
     const baseUrl = import.meta.env.VITE_PROXY_URL
     const index = zCatalogIndex.parse(
       await this.fetchJson(`${baseUrl}/manifest`)
     )
-    const result: { raw: unknown; parsed: Manifest }[] = []
-    for (const entry of index.manifests) {
-      if (!SUPPORTED_API_VERSIONS.has(entry.apiVersion)) {
-        continue
-      }
-      const raw = await this.fetchJson(
-        `${baseUrl}/manifest/file?file=${encodeURIComponent(entry.file)}`
+    const supported = index.manifests.filter((entry) =>
+      SUPPORTED_API_VERSIONS.has(entry.apiVersion)
+    )
+    const fetched = await Promise.all(
+      supported.map((entry) =>
+        this.fetchManifest(baseUrl, entry.file, entry.id)
       )
-      const parsed = zManifest.safeParse(raw)
-      if (!parsed.success) {
-        this.log.error(
-          'Skipping invalid catalog manifest:',
-          entry.id,
-          parsed.error.issues
-        )
-        continue
-      }
-      result.push({ raw, parsed: parsed.data })
+    )
+    return fetched.filter((entry) => entry !== null)
+  }
+
+  private async fetchManifest(
+    baseUrl: string,
+    file: string,
+    id: string
+  ): Promise<CatalogManifest | null> {
+    const raw = await this.fetchJson(
+      `${baseUrl}/manifest/file?file=${encodeURIComponent(file)}`
+    )
+    const parsed = zManifest.safeParse(raw)
+    if (!parsed.success) {
+      this.log.error(
+        'Skipping invalid catalog manifest:',
+        id,
+        parsed.error.issues
+      )
+      return null
     }
-    return result
+    return { raw, parsed: parsed.data }
   }
 
   private async fetchJson(url: string): Promise<unknown> {
-    const res = await extensionFetchLike(url)
+    const res = await extensionFetchLike(url, {
+      signal: AbortSignal.timeout(5000),
+    })
     if (res.status !== 200) {
       throw new Error(`catalog fetch failed (${res.status}): ${url}`)
     }
