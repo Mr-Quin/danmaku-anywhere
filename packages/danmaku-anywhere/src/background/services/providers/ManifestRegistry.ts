@@ -1,5 +1,4 @@
 import {
-  type ConfigSchema,
   type Manifest,
   ManifestRunner,
   SUPPORTED_API_VERSIONS,
@@ -8,6 +7,7 @@ import {
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { invariant } from '@/common/utils/utils'
 import { extensionFetchLike } from './extensionFetchLike'
 import {
@@ -30,13 +30,6 @@ const zCatalogIndex = z.object({
 
 type CatalogEntry = z.infer<typeof zCatalogEntry>
 type CatalogManifest = { raw: unknown; parsed: Manifest }
-
-export interface RegisteredManifest {
-  id: string
-  name: string
-  version: string
-  configSchema?: ConfigSchema
-}
 
 function storedVersion(manifest: unknown): unknown {
   if (
@@ -80,7 +73,7 @@ export class ManifestRegistry {
     return [...this.runners.keys()]
   }
 
-  listManifests(): RegisteredManifest[] {
+  listManifests(): ProviderManifestInfo[] {
     invariant(this.initialized, 'ManifestRegistry accessed before ready')
     return [...this.runners.values()].map(({ manifest }) => ({
       id: manifest.id,
