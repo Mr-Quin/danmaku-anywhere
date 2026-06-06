@@ -153,6 +153,9 @@ Before pushing, run reviews using **clean subagents** (no prior context). They h
 - Always run `/review`
 - Always run `/simplify` for a KISS / YAGNI pass, then re-read the diff yourself with the same lens. `/simplify` catches obvious dead code but routinely misses subtler bloat: fallback chains where only the first branch fires (`?? a ?? b`), constants/helpers used in one place, defensive guards for inputs the caller or type system already guarantees, conditional branches whose other side never executes, parameters that are always passed the same value. If you spot one, fix it even when `/simplify` was silent.
 - Run `/security-review` when the change touches user input, auth, APIs, or data storage
+- When the change carries runtime behavior, data contracts, migrations, non-trivial logic, or new-or-changed tests, also do a manual pass on two axes the commands above don't cover (skip for config/docs/types-only changes). Each axis has to end in a named failure; "the structure looks fine" is not a finding.
+  - **Architecture / pattern fit**: does the change sit at the right seam, the way the codebase already solves this? Look for a new coupling that other code now silently depends on, an invariant the types don't enforce (so a future caller can break it unnoticed), or an abstraction that duplicates one already in the tree. Name the specific seam or invariant at risk.
+  - **Test gaps & theatre**: for each new or changed test, mentally invert its guard or mutate the value under assertion; if the test would still pass, it protects nothing. Then find the behavior this PR changed that no test would catch if it regressed. Name the test that would survive its own breakage, or the behavior left unasserted.
 
 Fix any issues found, then add a commit. Never include Co-Authored-By or AI attribution.
 
