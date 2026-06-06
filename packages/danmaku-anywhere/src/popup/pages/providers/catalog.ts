@@ -48,9 +48,10 @@ export type InstalledUnit =
   | { type: 'single'; id: string; config: ProviderConfig }
   | { type: 'group'; id: string; manifestId: string; configs: ProviderConfig[] }
 
-// Configs sharing a multi-instance manifestId collapse into one group, anchored
-// at the first member's position so drag-order (search priority) is per-manifest.
-// A lone instance stays a flat row.
+// A multi-instance manifest always renders as a group (collapsible), even with
+// a single config, so the Add instance affordance is always reachable. The
+// group is anchored at the first member's position so drag-order (search
+// priority) is per-manifest.
 export function groupInstalled(configs: ProviderConfig[]): InstalledUnit[] {
   const units: InstalledUnit[] = []
   const grouped = new Set<string>()
@@ -63,17 +64,12 @@ export function groupInstalled(configs: ProviderConfig[]): InstalledUnit[] {
       continue
     }
     grouped.add(config.manifestId)
-    const members = configs.filter((c) => c.manifestId === config.manifestId)
-    if (members.length < 2) {
-      units.push({ type: 'single', id: config.id, config })
-    } else {
-      units.push({
-        type: 'group',
-        id: `group:${config.manifestId}`,
-        manifestId: config.manifestId,
-        configs: members,
-      })
-    }
+    units.push({
+      type: 'group',
+      id: `group:${config.manifestId}`,
+      manifestId: config.manifestId,
+      configs: configs.filter((c) => c.manifestId === config.manifestId),
+    })
   }
   return units
 }

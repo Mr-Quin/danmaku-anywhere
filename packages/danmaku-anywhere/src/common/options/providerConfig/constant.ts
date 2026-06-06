@@ -12,7 +12,9 @@ export const PROXY_DDP_BASE_URL = `${import.meta.env.VITE_PROXY_URL}/ddp`
 export const builtInDanDanPlayProvider: ProviderConfig = {
   id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
   manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-  name: 'DanDanPlay',
+  // Distinguishes the hosted proxy instance from user-added DanDanPlay servers
+  // once they group under the shared manifest.
+  name: 'DanDanPlay (Built-in)',
   impl: DanmakuSourceType.DanDanPlay,
   enabled: true,
   configValues: {

@@ -577,10 +577,6 @@
       "signIn": "Sign in",
       "title": "Needs attention"
     },
-    "caps": {
-      "comments": "comments",
-      "search": "Search"
-    },
     "catalog": {
       "checked": {
         "days_one": "checked {{count}}d ago",

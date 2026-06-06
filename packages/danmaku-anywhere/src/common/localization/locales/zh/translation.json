@@ -561,10 +561,6 @@
       "signIn": "登录",
       "title": "需要处理"
     },
-    "caps": {
-      "comments": "弹幕",
-      "search": "搜索"
-    },
     "catalog": {
       "checked": {
         "days_other": "{{count}} 天前检查",

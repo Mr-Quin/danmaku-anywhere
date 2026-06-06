@@ -24,7 +24,6 @@ const manifest: ProviderManifestInfo = {
   id: 'iqiyi',
   name: 'iQIYI',
   version: '0.3.0',
-  capabilities: { search: true, comments: true },
 }
 
 describe('createConfigFromManifest', () => {
@@ -112,10 +111,10 @@ describe('groupInstalled', () => {
     expect(units.map((u) => u.type)).toEqual(['single', 'single'])
   })
 
-  it('keeps a lone dandanplay config flat', () => {
+  it('groups a multi-instance manifest even with a single config', () => {
     const units = groupInstalled([cfg('proxy', 'dandanplay')])
     expect(units).toHaveLength(1)
-    expect(units[0].type).toBe('single')
+    expect(units[0].type).toBe('group')
   })
 
   it('groups multiple dandanplay configs anchored at the first position', () => {

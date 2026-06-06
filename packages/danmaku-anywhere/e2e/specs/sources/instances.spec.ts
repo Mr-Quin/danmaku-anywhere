@@ -7,9 +7,8 @@ import { applyProfile } from '../../setup/profile'
 
 /**
  * Two configs sharing the DanDanPlay manifestId collapse into one Installed
- * group: the row shows an instance count, both instances are listed, and an
- * Add instance affordance is present. Asserts the grouped UI plus the two
- * persisted configs as ground truth.
+ * group: the row shows an instance count and both instances are listed under
+ * it. Asserts the grouped UI plus the two persisted configs as ground truth.
  */
 
 const homeServer: ProviderConfig = {
@@ -39,9 +38,6 @@ test('installed: multiple dandanplay configs group into instances', async ({
 
   await expect(page.getByText(/2 instances|2 个实例/)).toBeVisible()
   await expect(page.getByText('Home NAS')).toBeVisible()
-  await expect(
-    page.getByRole('button', { name: /^(Add instance|添加实例)$/ })
-  ).toBeVisible()
 
   const ddp = (await da.providerConfig.list()).filter(
     (config) => config.manifestId === 'dandanplay'

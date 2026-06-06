@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { matchesQuery } from '../catalog'
 import { useNeedsAttention } from '../hooks/useNeedsAttention'
-import { ProviderAvatar } from './ProviderAvatar'
 import { SectionHeader } from './SectionHeader'
 
 interface NeedsAttentionCalloutProps {
@@ -55,11 +54,6 @@ export const NeedsAttentionCallout = ({
                 borderColor: 'divider',
               }}
             >
-              <ProviderAvatar
-                seed={item.config.manifestId}
-                name={item.config.name}
-                size={22}
-              />
               <Stack sx={{ flex: 1, minWidth: 0 }}>
                 <Typography variant="body2" noWrap>
                   {item.config.name}
