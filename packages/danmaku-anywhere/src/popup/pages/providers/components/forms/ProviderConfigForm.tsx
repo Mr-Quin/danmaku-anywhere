@@ -59,6 +59,7 @@ function ConfigForm({
     <FormProvider {...methods}>
       <Stack
         component="form"
+        noValidate
         onSubmit={handleFormSubmit}
         direction="column"
         spacing={2}

@@ -14,21 +14,17 @@ import {
 } from '@mui/material'
 import { Controller, useFieldArray, useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { buildDefaultValues, getFieldKind, getObjectFields } from './schemaForm'
+import {
+  buildDefaultValues,
+  getFieldKind,
+  getObjectFields,
+  toNumberOrUndefined,
+} from './schemaForm'
 
 interface SchemaFieldProps {
   name: string
   schema: ConfigSchema
-}
-
-// Empty/invalid number inputs become undefined rather than NaN, which would
-// otherwise serialize to null when merged into configValues.
-function toNumberOrUndefined(value: unknown): number | undefined {
-  if (value === '' || value === null || value === undefined) {
-    return undefined
-  }
-  const parsed = Number(value)
-  return Number.isNaN(parsed) ? undefined : parsed
+  required?: boolean
 }
 
 function fieldLabel(name: string, schema: ConfigSchema): string {
@@ -54,43 +50,62 @@ export function SchemaObjectFields({
           key={field.key}
           name={`${path}.${field.key}`}
           schema={field.schema}
+          required={field.required}
         />
       ))}
     </>
   )
 }
 
-function ScalarField({ name, schema }: SchemaFieldProps) {
-  const { register } = useFormContext()
+function ScalarField({ name, schema, required }: SchemaFieldProps) {
+  const { control } = useFormContext()
   const kind = getFieldKind(schema)
   return (
-    <TextField
-      label={fieldLabel(name, schema)}
-      size="small"
-      helperText={schema.description}
-      {...register(
-        name,
-        kind === 'number' ? { setValueAs: toNumberOrUndefined } : {}
+    <Controller
+      name={name}
+      control={control}
+      rules={{ required }}
+      render={({ field: { ref, onChange, value, ...field }, fieldState }) => (
+        <TextField
+          {...field}
+          value={value ?? ''}
+          onChange={(e) =>
+            onChange(
+              kind === 'number'
+                ? toNumberOrUndefined(e.target.value)
+                : e.target.value
+            )
+          }
+          inputRef={ref}
+          label={fieldLabel(name, schema)}
+          size="small"
+          type={kind === 'number' ? 'number' : 'text'}
+          required={required}
+          error={!!fieldState.error}
+          helperText={schema.description}
+          fullWidth
+        />
       )}
-      type={kind === 'number' ? 'number' : 'text'}
-      fullWidth
     />
   )
 }
 
-function SelectField({ name, schema }: SchemaFieldProps) {
+function SelectField({ name, schema, required }: SchemaFieldProps) {
   const { control } = useFormContext()
   const options = schema.enum ?? []
   return (
     <Controller
       name={name}
       control={control}
-      render={({ field: { ref, ...field } }) => (
+      rules={{ required }}
+      render={({ field: { ref, ...field }, fieldState }) => (
         <TextField
           {...field}
           label={fieldLabel(name, schema)}
           size="small"
           select
+          required={required}
+          error={!!fieldState.error}
           inputRef={ref}
           helperText={schema.description}
           fullWidth
@@ -210,10 +225,10 @@ function ArrayField({ name, schema }: SchemaFieldProps) {
   )
 }
 
-export function SchemaField({ name, schema }: SchemaFieldProps) {
+export function SchemaField({ name, schema, required }: SchemaFieldProps) {
   switch (getFieldKind(schema)) {
     case 'select':
-      return <SelectField name={name} schema={schema} />
+      return <SelectField name={name} schema={schema} required={required} />
     case 'boolean':
       return <BooleanField name={name} schema={schema} />
     case 'object':
@@ -222,7 +237,7 @@ export function SchemaField({ name, schema }: SchemaFieldProps) {
       return <ArrayField name={name} schema={schema} />
     case 'number':
     case 'text':
-      return <ScalarField name={name} schema={schema} />
+      return <ScalarField name={name} schema={schema} required={required} />
     default:
       return null
   }

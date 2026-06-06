@@ -42,6 +42,13 @@ export class ProvidersPage {
       .click()
   }
 
+  async addArrayItem(): Promise<void> {
+    await this.page
+      .locator('form')
+      .getByRole('button', { name: /^(Add|添加)$/ })
+      .click()
+  }
+
   async save(): Promise<void> {
     await this.page.getByRole('button', { name: SAVE_BUTTON }).click()
   }

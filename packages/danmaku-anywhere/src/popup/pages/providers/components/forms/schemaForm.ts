@@ -13,6 +13,17 @@ export interface FieldDescriptor {
   key: string
   schema: ConfigSchema
   kind: FieldKind
+  required: boolean
+}
+
+// Empty/invalid number inputs become undefined rather than NaN, which would
+// otherwise serialize to null when merged into configValues.
+export function toNumberOrUndefined(value: unknown): number | undefined {
+  if (value === '' || value === null || value === undefined) {
+    return undefined
+  }
+  const parsed = Number(value)
+  return Number.isNaN(parsed) ? undefined : parsed
 }
 
 export function getFieldKind(schema: ConfigSchema): FieldKind {
@@ -42,10 +53,12 @@ export function getObjectFields(
   if (!schema?.properties) {
     return []
   }
+  const required = new Set(schema.required ?? [])
   return Object.entries(schema.properties).map(([key, propSchema]) => ({
     key,
     schema: propSchema,
     kind: getFieldKind(propSchema),
+    required: required.has(key),
   }))
 }
 
@@ -90,6 +103,13 @@ function buildFieldDefault(schema: ConfigSchema, value: unknown): unknown {
       }
       return typeof schema.default === 'boolean' ? schema.default : false
     case 'select':
+      if (hasStoredValue(value)) {
+        return value
+      }
+      if (schema.default !== undefined) {
+        return schema.default
+      }
+      return schema.enum?.[0] ?? ''
     case 'number':
       if (hasStoredValue(value)) {
         return value

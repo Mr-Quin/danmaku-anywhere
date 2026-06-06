@@ -11,6 +11,8 @@ import { applyProfile } from '../../setup/profile'
  * provider forms. Drives the editor for a custom DanDanPlay-compatible server
  * and the built-in Bilibili provider, asserting the schema-driven fields show,
  * a save toast appears, and the edited values land in stored configValues.
+ * Also asserts the schema's `required` constraint blocks saving an empty
+ * auth header until it is filled.
  */
 
 const NAV_URL = /api\.bilibili\.com\/x\/web-interface\/nav/
@@ -51,6 +53,37 @@ test('renders configSchema fields and saves a custom DanDanPlay server', async (
   const saved = await da.providerConfig.get('custom-ddp-form')
   expect(saved?.configValues.baseUrl).toBe('https://compat.example.invalid')
   expect(saved?.configValues.chConvert).toBe(2)
+})
+
+test('enforces the schema required constraint on auth headers', async ({
+  context,
+  page,
+  extensionId,
+}) => {
+  const da = await getDaClient(context)
+  await applyProfile(context, da, { customProviders: [customDdp] })
+
+  const popup = await Popup.open(page, extensionId, '/providers')
+  await popup.providers.edit('My DDP Server')
+
+  await popup.providers.addArrayItem()
+  await popup.providers.save()
+
+  await expect(popup.providers.field('Header name')).toHaveAttribute(
+    'aria-invalid',
+    'true'
+  )
+
+  await popup.providers.fillField('Header name', 'X-Token')
+  await popup.providers.fillField('Value', 'secret')
+  await popup.providers.save()
+
+  await popup.toast.expectSuccess(/Provider updated|弹幕源已更新/)
+
+  const saved = await da.providerConfig.get('custom-ddp-form')
+  expect(saved?.configValues.auth).toMatchObject({
+    headers: [{ key: 'X-Token', value: 'secret' }],
+  })
 })
 
 test('edits the built-in Bilibili provider via the generic form', async ({

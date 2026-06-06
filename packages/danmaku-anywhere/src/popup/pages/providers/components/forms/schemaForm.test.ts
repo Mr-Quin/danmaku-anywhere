@@ -1,6 +1,11 @@
 import type { ConfigSchema } from '@mr-quin/dango'
 import { describe, expect, it } from 'vitest'
-import { buildDefaultValues, getFieldKind, getObjectFields } from './schemaForm'
+import {
+  buildDefaultValues,
+  getFieldKind,
+  getObjectFields,
+  toNumberOrUndefined,
+} from './schemaForm'
 
 /**
  * Pure helpers that translate a manifest's JSON-schema `configSchema` into the
@@ -96,6 +101,27 @@ describe('getObjectFields', () => {
       'select',
     ])
   })
+
+  it('marks fields listed in the schema required array', () => {
+    const headerItem = ddpSchema.properties?.auth?.properties?.headers?.items
+    const fields = getObjectFields(headerItem)
+    expect(fields.map((f) => ({ key: f.key, required: f.required }))).toEqual([
+      { key: 'key', required: true },
+      { key: 'value', required: true },
+    ])
+    expect(getObjectFields(ddpSchema).every((f) => !f.required)).toBe(true)
+  })
+})
+
+describe('toNumberOrUndefined', () => {
+  it('returns undefined for empty/invalid input and a number otherwise', () => {
+    expect(toNumberOrUndefined('')).toBeUndefined()
+    expect(toNumberOrUndefined(null)).toBeUndefined()
+    expect(toNumberOrUndefined(undefined)).toBeUndefined()
+    expect(toNumberOrUndefined('abc')).toBeUndefined()
+    expect(toNumberOrUndefined('12')).toBe(12)
+    expect(toNumberOrUndefined(3)).toBe(3)
+  })
 })
 
 describe('buildDefaultValues', () => {
@@ -136,6 +162,16 @@ describe('buildDefaultValues', () => {
       },
       chConvert: 2,
     })
+  })
+
+  it('falls back to the first enum option when a select has no default', () => {
+    const schema: ConfigSchema = {
+      type: 'object',
+      properties: {
+        mode: { type: 'string', enum: ['a', 'b'] },
+      },
+    }
+    expect(buildDefaultValues(schema, {})).toEqual({ mode: 'a' })
   })
 
   it('falls back to the default when a stored number is NaN', () => {
