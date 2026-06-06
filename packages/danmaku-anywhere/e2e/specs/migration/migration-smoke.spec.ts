@@ -12,6 +12,7 @@ import packageJson from '../../../package.json' with { type: 'json' }
 import { DANMAKU_DB_NAME } from '../../../src/common/db/db'
 import migrationConfig from '../../migration.config.json' with { type: 'json' }
 import { MigrationLegacyPopup } from '../../poms/legacy/v1.5.0/MigrationLegacyPopup'
+import { mockCatalog } from '../../network/catalog'
 import { attachConsoleWatcher } from '../../setup/console-watcher'
 import { MIGRATION_EXTENSION_ID } from '../../setup/extensionKey'
 import {
@@ -83,6 +84,10 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   const context = await launchExtension(userDataDir, priorExt)
   const consoleWatcher = attachConsoleWatcher(context)
   await stubReleaseNotes(context)
+  // The prior build predates the manifest store, so the swapped-in current
+  // build boots with an empty store and seeds from the catalog.
+  const catalog = mockCatalog()
+  await context.route(catalog.pattern, catalog.respond)
 
   const popup = await MigrationLegacyPopup.open(context, MIGRATION_EXTENSION_ID)
   await popup.restoreBackup(backupPath)
