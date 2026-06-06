@@ -7,8 +7,9 @@ import { ManifestStore } from './ManifestStore'
  * ManifestStore persists a single `manifests` record in chrome.storage.local
  * keyed by manifest id. Verifies getAll defaults to an empty record, that
  * get/has/set/setMany/remove read and mutate the stored record without
- * clobbering sibling entries, and that the write mutex serializes concurrent
- * read-modify-write so no write is lost.
+ * clobbering sibling entries, that lastCheckedAt round-trips through its own
+ * storage key, and that the write mutex serializes concurrent read-modify-write
+ * so no write is lost.
  */
 
 function backStorageWith(record: ManifestRecord | undefined) {
@@ -87,6 +88,25 @@ describe('ManifestStore', () => {
     mockChrome.storage.local.set.mockClear()
     await store.remove('missing')
     expect(mockChrome.storage.local.set).not.toHaveBeenCalled()
+  })
+
+  it('lastCheckedAt defaults to null and round-trips through its own key', async () => {
+    mockChrome.storage.local.get.mockImplementation(async () => ({}))
+    const store = new ManifestStore()
+    expect(await store.getLastCheckedAt()).toBeNull()
+
+    await store.setLastCheckedAt(1234)
+    expect(mockChrome.storage.local.set).toHaveBeenCalledWith({
+      manifestsLastChecked: 1234,
+    })
+  })
+
+  it('lastCheckedAt reads back the stored timestamp', async () => {
+    mockChrome.storage.local.get.mockImplementation(async () => ({
+      manifestsLastChecked: 9999,
+    }))
+    const store = new ManifestStore()
+    expect(await store.getLastCheckedAt()).toBe(9999)
   })
 
   it('serializes concurrent writes so none clobber each other', async () => {

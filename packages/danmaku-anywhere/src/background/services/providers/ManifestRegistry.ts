@@ -6,8 +6,12 @@ import {
 } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
+import { alarmKeys } from '@/common/alarms/constants'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
-import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
+import type {
+  ManifestUpdate,
+  ProviderManifestInfo,
+} from '@/common/rpcClient/background/types'
 import { invariant } from '@/common/utils/utils'
 import { extensionFetchLike } from './extensionFetchLike'
 import {
@@ -47,6 +51,7 @@ export class ManifestRegistry {
   private readonly runners = new Map<string, ManifestRunner>()
   private readonly log: ILogger
   private readonly store: IManifestStore
+  private readonly baseUrl = import.meta.env.VITE_PROXY_URL
   private initialized = false
   readonly ready: Promise<void>
 
@@ -120,28 +125,116 @@ export class ManifestRegistry {
         this.log.error('Manifest update failed:', e)
       })
     })
+
+    void this.createRefreshAlarm()
+
+    if (!chrome.alarms.onAlarm.hasListener(this.handleRefreshAlarm)) {
+      chrome.alarms.onAlarm.addListener(this.handleRefreshAlarm)
+    }
   }
 
-  // Reconcile the stored set against the catalog: add missing, replace changed
-  // preinstalled, leave user imports alone. Seeding is just the empty-store case.
+  // Add catalog manifests the store is missing, leaving existing entries (and
+  // user imports) untouched. Empty-store seeding is just the all-missing case;
+  // changed preinstalled manifests are surfaced via getPendingUpdates, not
+  // replaced here.
   async update(): Promise<void> {
     await this.ready
-    const baseUrl = import.meta.env.VITE_PROXY_URL
-    let entries: CatalogEntry[]
-    try {
-      entries = await this.fetchIndex(baseUrl)
-    } catch (e) {
-      this.log.error('Failed to fetch manifest catalog:', e)
+    const entries = await this.loadIndex()
+    if (!entries) {
       return
     }
     await this.store.setLastCheckedAt(Date.now())
     const stored = await this.store.getAll()
-    const stale = entries.filter((entry) =>
-      this.shouldFetch(entry, stored[entry.id])
-    )
+    const missing = entries.filter((entry) => !stored[entry.id])
+    await this.fetchAndStore(missing)
+  }
+
+  // Cheap, index-only diff: which preinstalled manifests have a newer catalog
+  // version than the stored copy. No file fetch, no apply. Records the check
+  // time so the UI can show "checked Nm ago".
+  async getPendingUpdates(): Promise<ManifestUpdate[]> {
+    await this.ready
+    const entries = await this.loadIndex()
+    if (!entries) {
+      return []
+    }
+    await this.store.setLastCheckedAt(Date.now())
+    const stored = await this.store.getAll()
+    const updates: ManifestUpdate[] = []
+    for (const entry of entries) {
+      const existing = stored[entry.id]
+      if (!existing || existing.kind === 'user') {
+        continue
+      }
+      const fromVersion = storedVersion(existing.manifest)
+      if (typeof fromVersion === 'string' && fromVersion !== entry.version) {
+        updates.push({
+          manifestId: entry.id,
+          fromVersion,
+          toVersion: entry.version,
+        })
+      }
+    }
+    return updates
+  }
+
+  // Fetch + validate + replace the named manifests and rebuild their runners.
+  // Ids not in the catalog are ignored; per-file failures are skipped.
+  async applyUpdates(manifestIds: string[]): Promise<void> {
+    await this.ready
+    const entries = await this.loadIndex()
+    if (!entries) {
+      return
+    }
+    const wanted = new Set(manifestIds)
+    const targets = entries.filter((entry) => wanted.has(entry.id))
+    await this.fetchAndStore(targets)
+  }
+
+  getLastCheckedAt(): Promise<number | null> {
+    return this.store.getLastCheckedAt()
+  }
+
+  private async init(): Promise<void> {
+    const record = await this.store.getAll()
+    for (const [id, entry] of Object.entries(record)) {
+      this.loadEntry(id, entry)
+    }
+    this.initialized = true
+  }
+
+  private async createRefreshAlarm(): Promise<void> {
+    const existing = await chrome.alarms.get(alarmKeys.REFRESH_MANIFESTS)
+    if (existing) {
+      return
+    }
+    this.log.debug('Creating manifest refresh alarm')
+    await chrome.alarms.create(alarmKeys.REFRESH_MANIFESTS, {
+      periodInMinutes: 60 * 12,
+      delayInMinutes: 60,
+    })
+  }
+
+  // Recover a store left empty by a failed install seed, then record a check.
+  // Detection is surfacing-only: getPendingUpdates does not auto-apply.
+  private handleRefreshAlarm = async (
+    alarm: chrome.alarms.Alarm
+  ): Promise<void> => {
+    if (alarm.name !== alarmKeys.REFRESH_MANIFESTS) {
+      return
+    }
+    await this.update()
+    const pending = await this.getPendingUpdates()
+    this.log.debug('Manifest refresh: pending updates', pending.length)
+  }
+
+  // Fetch + validate the given catalog entries, store them as preinstalled, and
+  // rebuild their runners. Per-file failures are skipped so one bad file does
+  // not block the rest.
+  private async fetchAndStore(entries: CatalogEntry[]): Promise<void> {
     const fetched = (
       await Promise.all(
-        stale.map((entry) => this.fetchManifest(baseUrl, entry.file, entry.id))
+        entries.map((entry) => this.fetchManifest(entry.file, entry.id))
       )
     ).filter((manifest) => manifest !== null)
     if (fetched.length === 0) {
@@ -157,30 +250,18 @@ export class ManifestRegistry {
     }
   }
 
-  private shouldFetch(
-    entry: CatalogEntry,
-    existing: ManifestEntry | undefined
-  ): boolean {
-    if (!existing) {
-      return true
+  private async loadIndex(): Promise<CatalogEntry[] | null> {
+    try {
+      return await this.fetchIndex()
+    } catch (e) {
+      this.log.error('Failed to fetch manifest catalog:', e)
+      return null
     }
-    if (existing.kind === 'user') {
-      return false
-    }
-    return storedVersion(existing.manifest) !== entry.version
   }
 
-  private async init(): Promise<void> {
-    const record = await this.store.getAll()
-    for (const [id, entry] of Object.entries(record)) {
-      this.loadEntry(id, entry)
-    }
-    this.initialized = true
-  }
-
-  private async fetchIndex(baseUrl: string): Promise<CatalogEntry[]> {
+  private async fetchIndex(): Promise<CatalogEntry[]> {
     const index = zCatalogIndex.parse(
-      await this.fetchJson(`${baseUrl}/manifest`)
+      await this.fetchJson(`${this.baseUrl}/manifest`)
     )
     return index.manifests.filter((entry) =>
       SUPPORTED_API_VERSIONS.has(entry.apiVersion)
@@ -190,14 +271,13 @@ export class ManifestRegistry {
   // Skip (null) on any per-manifest failure so one bad file doesn't block the
   // rest; the next reconcile retries whatever is still missing.
   private async fetchManifest(
-    baseUrl: string,
     file: string,
     id: string
   ): Promise<CatalogManifest | null> {
     let raw: unknown
     try {
       raw = await this.fetchJson(
-        `${baseUrl}/manifest/file?file=${encodeURIComponent(file)}`
+        `${this.baseUrl}/manifest/file?file=${encodeURIComponent(file)}`
       )
     } catch (e) {
       this.log.error('Failed to fetch catalog manifest:', id, e)

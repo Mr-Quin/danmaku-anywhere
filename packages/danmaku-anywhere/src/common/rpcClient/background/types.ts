@@ -127,6 +127,12 @@ export interface ProviderManifestList {
   lastCheckedAt: number | null
 }
 
+export interface ManifestUpdate {
+  manifestId: string
+  fromVersion: string
+  toVersion: string
+}
+
 export type BackgroundMethods = {
   iconSet: RPCDef<IconSetDto, void>
   authGetSession: RPCDef<void, AuthSessionState | null>
@@ -170,6 +176,9 @@ export type BackgroundMethods = {
   providerGetManifestSpec: RPCDef<{ manifestId: string }, ProviderManifestSpec>
   providerListManifests: RPCDef<void, ProviderManifestList>
   providerRefreshCatalog: RPCDef<void, ProviderManifestList>
+  providerGetPendingUpdates: RPCDef<void, ManifestUpdate[]>
+  providerApplyUpdates: RPCDef<{ manifestIds: string[] }, void>
+  providerGetLastCheckedAt: RPCDef<void, number | null>
   fetchImage: RPCDef<{ src: string }, string | null>
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>

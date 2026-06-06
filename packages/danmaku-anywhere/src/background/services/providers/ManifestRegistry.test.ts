@@ -9,10 +9,12 @@ import type {
 
 /**
  * ManifestRegistry hydrates runners from storage on init (no network) and
- * reconciles against the backend `/manifest` catalog via update(). Covers the
- * reconcile (seed empty, add missing, replace changed preinstalled by version,
- * skip unchanged, leave user imports), skipping a bad/failed file, index
- * failures, and register / unregister / hydrate-skip-invalid.
+ * reconciles against the backend `/manifest` catalog. Covers update() add-only
+ * seeding (seed empty, add missing, never replace a changed preinstalled, leave
+ * user imports), detect-vs-apply (getPendingUpdates diffs versions without
+ * fetching files or applying; applyUpdates replaces only the named ids and
+ * records lastCheckedAt), skipping a bad/failed file, index failures,
+ * register / unregister / hydrate-skip-invalid, and refresh-alarm registration.
  */
 
 const silentLogger = {
@@ -114,6 +116,14 @@ class InMemoryStore implements IManifestStore {
 
   async getAll() {
     return { ...this.record }
+  }
+
+  async getLastCheckedAt() {
+    return this.lastCheckedAt
+  }
+
+  async setLastCheckedAt(timestamp: number) {
+    this.lastCheckedAt = timestamp
   }
 
   async get(id: string) {
@@ -288,8 +298,8 @@ describe('ManifestRegistry', () => {
     expect(setMany).not.toHaveBeenCalled()
   })
 
-  it('update replaces a preinstalled manifest when its catalog version changed', async () => {
-    stubCatalogFetch([catalogEntry('one', '2.0.0')], {
+  it('update does not replace a preinstalled manifest whose catalog version changed', async () => {
+    const fetchMock = stubCatalogFetch([catalogEntry('one', '2.0.0')], {
       [manifestPath('one')]: makeManifest('one', 1, '2.0.0'),
     })
     const store = new InMemoryStore({
@@ -300,8 +310,130 @@ describe('ManifestRegistry', () => {
     await registry.update()
 
     expect((await store.get('one'))?.manifest).toMatchObject({
+      version: '1.0.0',
+    })
+    expect(fileFetches(fetchMock)).toEqual([])
+  })
+
+  it('getPendingUpdates surfaces a changed preinstalled version without fetching files or applying', async () => {
+    const fetchMock = stubCatalogFetch([catalogEntry('one', '2.0.0')], {
+      [manifestPath('one')]: makeManifest('one', 1, '2.0.0'),
+    })
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    const pending = await registry.getPendingUpdates()
+
+    expect(pending).toEqual([
+      { manifestId: 'one', fromVersion: '1.0.0', toVersion: '2.0.0' },
+    ])
+    expect(fileFetches(fetchMock)).toEqual([])
+    expect((await store.get('one'))?.manifest).toMatchObject({
+      version: '1.0.0',
+    })
+  })
+
+  it('getPendingUpdates ignores unchanged entries and user imports', async () => {
+    stubCatalogFetch(
+      [catalogEntry('one', '1.0.0'), catalogEntry('two', '2.0.0')],
+      {}
+    )
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+      two: { manifest: makeManifest('two', 1, '1.0.0'), kind: 'user' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(await registry.getPendingUpdates()).toEqual([])
+  })
+
+  it('getPendingUpdates records lastCheckedAt and returns it', async () => {
+    stubCatalogFetch([catalogEntry('one', '1.0.0')], {})
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+    expect(await registry.getLastCheckedAt()).toBeNull()
+
+    await registry.getPendingUpdates()
+
+    expect(await registry.getLastCheckedAt()).toBeGreaterThan(0)
+  })
+
+  it('getPendingUpdates returns nothing when the index fetch fails', async () => {
+    stubFetch(() => ({ status: 503, body: 'unavailable' }))
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(await registry.getPendingUpdates()).toEqual([])
+    expect(await registry.getLastCheckedAt()).toBeNull()
+  })
+
+  it('applyUpdates replaces only the named ids and rebuilds their runners', async () => {
+    stubCatalogFetch(
+      [catalogEntry('one', '2.0.0'), catalogEntry('two', '2.0.0')],
+      {
+        [manifestPath('one')]: makeManifest('one', 1, '2.0.0'),
+        [manifestPath('two')]: makeManifest('two', 1, '2.0.0'),
+      }
+    )
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+      two: { manifest: makeManifest('two', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.applyUpdates(['one'])
+
+    expect((await store.get('one'))?.manifest).toMatchObject({
       version: '2.0.0',
     })
+    expect((await store.get('two'))?.manifest).toMatchObject({
+      version: '1.0.0',
+    })
+  })
+
+  it('applyUpdates skips a file that fails to fetch', async () => {
+    stubCatalogFetch(
+      [catalogEntry('one', '2.0.0')],
+      {},
+      { [manifestPath('one')]: 500 }
+    )
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.applyUpdates(['one'])
+
+    expect((await store.get('one'))?.manifest).toMatchObject({
+      version: '1.0.0',
+    })
+  })
+
+  it('setup registers a recurring refresh alarm and an onAlarm listener', async () => {
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    registry.setup()
+    await Promise.resolve()
+
+    expect(chrome.alarms.create).toHaveBeenCalledWith(
+      'refresh-manifests',
+      expect.objectContaining({ periodInMinutes: expect.any(Number) })
+    )
+    expect(chrome.alarms.onAlarm.addListener).toHaveBeenCalled()
   })
 
   it('update leaves a user import untouched even when the catalog lists the same id', async () => {
