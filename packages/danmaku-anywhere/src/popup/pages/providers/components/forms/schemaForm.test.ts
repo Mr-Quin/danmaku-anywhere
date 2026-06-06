@@ -138,6 +138,11 @@ describe('buildDefaultValues', () => {
     })
   })
 
+  it('falls back to the default when a stored number is NaN', () => {
+    const result = buildDefaultValues(ddpSchema, { chConvert: Number.NaN })
+    expect(result.chConvert).toBe(0)
+  })
+
   it('coerces malformed array items into the item shape', () => {
     const result = buildDefaultValues(ddpSchema, {
       auth: { enabled: true, headers: [{ key: 'only-key' }] },

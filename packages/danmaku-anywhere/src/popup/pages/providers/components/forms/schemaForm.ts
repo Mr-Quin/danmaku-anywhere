@@ -53,6 +53,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
+// NaN (e.g. from a cleared number input) is not a usable stored value, so it
+// falls back to the schema default like a missing value.
+function hasStoredValue(value: unknown): boolean {
+  if (value === undefined || value === null) {
+    return false
+  }
+  return !(typeof value === 'number' && Number.isNaN(value))
+}
+
 function buildFieldDefault(schema: ConfigSchema, value: unknown): unknown {
   switch (getFieldKind(schema)) {
     case 'object': {
@@ -82,12 +91,12 @@ function buildFieldDefault(schema: ConfigSchema, value: unknown): unknown {
       return typeof schema.default === 'boolean' ? schema.default : false
     case 'select':
     case 'number':
-      if (value !== undefined && value !== null) {
+      if (hasStoredValue(value)) {
         return value
       }
       return schema.default ?? ''
     default:
-      if (value !== undefined && value !== null) {
+      if (hasStoredValue(value)) {
         return value
       }
       return schema.default ?? ''

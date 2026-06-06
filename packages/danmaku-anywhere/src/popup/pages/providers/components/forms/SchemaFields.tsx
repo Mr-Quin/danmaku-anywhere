@@ -21,6 +21,16 @@ interface SchemaFieldProps {
   schema: ConfigSchema
 }
 
+// Empty/invalid number inputs become undefined rather than NaN, which would
+// otherwise serialize to null when merged into configValues.
+function toNumberOrUndefined(value: unknown): number | undefined {
+  if (value === '' || value === null || value === undefined) {
+    return undefined
+  }
+  const parsed = Number(value)
+  return Number.isNaN(parsed) ? undefined : parsed
+}
+
 function fieldLabel(name: string, schema: ConfigSchema): string {
   if (typeof schema.title === 'string' && schema.title.length > 0) {
     return schema.title
@@ -58,7 +68,10 @@ function ScalarField({ name, schema }: SchemaFieldProps) {
       label={fieldLabel(name, schema)}
       size="small"
       helperText={schema.description}
-      {...register(name, kind === 'number' ? { valueAsNumber: true } : {})}
+      {...register(
+        name,
+        kind === 'number' ? { setValueAs: toNumberOrUndefined } : {}
+      )}
       type={kind === 'number' ? 'number' : 'text'}
       fullWidth
     />
