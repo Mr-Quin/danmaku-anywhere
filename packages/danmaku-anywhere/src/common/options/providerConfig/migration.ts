@@ -2,6 +2,7 @@ import {
   DanmakuSourceType,
   LEGACY_MACCMS_ID,
   PROVIDER_TO_BUILTIN_ID,
+  stripBuiltinPrefix,
 } from '@danmaku-anywhere/danmaku-converter'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import {
@@ -289,6 +290,77 @@ function inferTypeFromImpl(
     default:
       return undefined
   }
+}
+
+// Strip the `builtin:` prefix from stored `id`/`manifestId`. Stripping `id`
+// can collide a user's own built-in record with a default that an earlier
+// migration appended; de-dupe by id keeping the user's record but merging in
+// any configValues keys it lacks (e.g. a pinned default format). Corrupt
+// records are skipped so one bad entry can't abort the whole migration.
+export function migrateBuiltinPrefixedProviderIds(
+  data: ProviderConfig[]
+): ProviderConfig[] {
+  const byId = new Map<string, ProviderConfig>()
+  const order: string[] = []
+  for (const config of data) {
+    if (
+      config === null ||
+      typeof config !== 'object' ||
+      typeof config.id !== 'string'
+    ) {
+      console.warn('Skipping invalid provider record during migration:', config)
+      continue
+    }
+    const id = stripBuiltinPrefix(config.id)
+    const manifestId =
+      typeof config.manifestId === 'string'
+        ? stripBuiltinPrefix(config.manifestId)
+        : config.manifestId
+    const existing = byId.get(id)
+    if (existing) {
+      existing.configValues = {
+        ...config.configValues,
+        ...existing.configValues,
+      }
+      continue
+    }
+    byId.set(id, { ...config, id, manifestId })
+    order.push(id)
+  }
+  // biome-ignore lint/style/noNonNullAssertion: ids in `order` were just set
+  return order.map((id) => byId.get(id)!)
+}
+
+const DDP_API_SUFFIX = /\/api\/?$/
+
+// Custom DanDanPlay servers used to require the `/api` path in baseUrl; the
+// manifest now appends `/api/v2/...` itself, so a stored `/api` suffix doubles
+// the path. Strip a trailing `/api` from custom DanDanPlay configs.
+export function migrateDanDanPlayApiBaseUrl(
+  data: ProviderConfig[]
+): ProviderConfig[] {
+  const ddpManifestId = PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]
+  return data.map((config) => {
+    if (
+      config === null ||
+      typeof config !== 'object' ||
+      config.isBuiltIn ||
+      config.manifestId !== ddpManifestId
+    ) {
+      return config
+    }
+    const baseUrl = (config.configValues as { baseUrl?: unknown })?.baseUrl
+    if (typeof baseUrl !== 'string' || !DDP_API_SUFFIX.test(baseUrl)) {
+      return config
+    }
+    return {
+      ...config,
+      configValues: {
+        ...config.configValues,
+        baseUrl: baseUrl.replace(DDP_API_SUFFIX, ''),
+      },
+    }
+  })
 }
 
 // Append any builtin whose id isn't already in the user's stored list.

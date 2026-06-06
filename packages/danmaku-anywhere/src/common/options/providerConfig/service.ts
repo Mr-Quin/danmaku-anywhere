@@ -13,6 +13,8 @@ import { isServiceWorker } from '@/common/utils/utils'
 import { defaultProviderConfigs } from './constant'
 import {
   ensureBuiltinProviders,
+  migrateBuiltinPrefixedProviderIds,
+  migrateDanDanPlayApiBaseUrl,
   migrateProviderConfigsToFlat,
 } from './migration'
 import type { ProviderConfig } from './schema'
@@ -33,19 +35,48 @@ export class ProviderConfigService implements IStoreService {
       'providerConfig',
       defaultProviderConfigs,
       this.logger
-    ).version(2, {
-      upgrade: (data) => {
-        try {
-          return ensureBuiltinProviders(migrateProviderConfigsToFlat(data))
-        } catch (error) {
-          console.error(
-            '[providerConfig] migration failed, falling back to defaults:',
-            error
-          )
-          return [...defaultProviderConfigs]
-        }
-      },
-    })
+    )
+      .version(2, {
+        upgrade: (data) => {
+          try {
+            return ensureBuiltinProviders(migrateProviderConfigsToFlat(data))
+          } catch (error) {
+            console.error(
+              '[providerConfig] migration failed, falling back to defaults:',
+              error
+            )
+            return [...defaultProviderConfigs]
+          }
+        },
+      })
+      .version(3, {
+        upgrade: (data) => {
+          try {
+            return migrateBuiltinPrefixedProviderIds(data)
+          } catch (error) {
+            console.error(
+              '[providerConfig] builtin-prefix migration failed, falling back to defaults:',
+              error
+            )
+            return [...defaultProviderConfigs]
+          }
+        },
+      })
+      .version(4, {
+        upgrade: (data) => {
+          try {
+            return migrateDanDanPlayApiBaseUrl(data)
+          } catch (error) {
+            // A baseUrl tweak should never cost the user their configs, so
+            // leave the data untouched rather than reset to defaults.
+            console.error(
+              '[providerConfig] DanDanPlay baseUrl migration failed, leaving configs unchanged:',
+              error
+            )
+            return data
+          }
+        },
+      })
   }
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {
     const configs = await this.options.get()

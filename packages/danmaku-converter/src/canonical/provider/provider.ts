@@ -9,11 +9,21 @@ export enum DanmakuSourceType {
 export const LEGACY_MACCMS_ID = 'legacy:maccms'
 
 export const PROVIDER_TO_BUILTIN_ID = {
-  [DanmakuSourceType.DanDanPlay]: 'builtin:dandanplay',
-  [DanmakuSourceType.Bilibili]: 'builtin:bilibili',
-  [DanmakuSourceType.Tencent]: 'builtin:tencent',
+  [DanmakuSourceType.DanDanPlay]: 'dandanplay',
+  [DanmakuSourceType.Bilibili]: 'bilibili',
+  [DanmakuSourceType.Tencent]: 'tencent',
   [DanmakuSourceType.MacCMS]: LEGACY_MACCMS_ID, // not built-in, but used for migrations to indicate this is a migrated option
 } as const satisfies Record<DanmakuSourceType, string>
+
+const BUILTIN_ID_PREFIX = 'builtin:'
+
+// Strip the `builtin:` id prefix. Ids without it (e.g. legacy:maccms) are
+// returned unchanged.
+export function stripBuiltinPrefix(id: string): string {
+  return id.startsWith(BUILTIN_ID_PREFIX)
+    ? id.slice(BUILTIN_ID_PREFIX.length)
+    : id
+}
 
 export type RemoteDanmakuSourceType = Exclude<
   DanmakuSourceType,

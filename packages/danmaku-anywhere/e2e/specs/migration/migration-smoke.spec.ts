@@ -5,6 +5,7 @@ import path from 'node:path'
 import { pipeline } from 'node:stream/promises'
 import { fileURLToPath } from 'node:url'
 import { createGunzip } from 'node:zlib'
+import { stripBuiltinPrefix } from '@danmaku-anywhere/danmaku-converter'
 import type { BrowserContext, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import packageJson from '../../../package.json' with { type: 'json' }
@@ -106,6 +107,7 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   const probe = await openProbePage(context)
   const postSync = await readSyncSnapshot(probe)
   const postIdb = await readIdbCounts(probe)
+  const postCustomDdpBaseUrl = await readCustomDdpBaseUrl(probe)
   const postManifest = await probe.evaluate(
     () => chrome.runtime.getManifest().version
   )
@@ -125,8 +127,13 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
     migrationConfig.baselinePriorTag.replace(/^v/, '')
   )
   expect(postLastVersion?.lastVersion).toBe(packageJson.version)
-  expect(postSync.providerConfigIds, 'provider IDs preserved').toEqual(
-    seededSync.providerConfigIds
+  // The upgrade strips the `builtin:` prefix from stored provider config ids,
+  // so the seeded ids are expected to migrate to bare.
+  const expectedProviderConfigIds = seededSync.providerConfigIds
+    .map(stripBuiltinPrefix)
+    .sort()
+  expect(postSync.providerConfigIds, 'provider IDs migrated to bare').toEqual(
+    expectedProviderConfigIds
   )
   expect(postSync.aiProviderConfigIds, 'AI provider IDs preserved').toEqual(
     seededSync.aiProviderConfigIds
@@ -141,6 +148,12 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
     postIdb.customEpisodes,
     'customEpisode count preserved'
   ).toBeGreaterThanOrEqual(seededIdb.customEpisodes)
+  // The seeded custom DanDanPlay server stored baseUrl `.../api`; the manifest
+  // now appends `/api/v2`, so the migration must drop the redundant suffix.
+  expect(
+    postCustomDdpBaseUrl,
+    'custom DanDanPlay baseUrl had its /api suffix stripped'
+  ).toBe('https://api.dandanplay.net')
 
   return context
 }
@@ -211,6 +224,25 @@ async function readSyncSnapshot(page: Page): Promise<SyncSnapshot> {
       providerConfigIds: (pc?.data ?? []).map((p) => p.id ?? '?').sort(),
       aiProviderConfigIds: (ai?.data ?? []).map((p) => p.id ?? '?').sort(),
     }
+  })
+}
+
+async function readCustomDdpBaseUrl(page: Page): Promise<string | undefined> {
+  return page.evaluate(async () => {
+    const sync = await chrome.storage.sync.get('providerConfig')
+    const pc = sync.providerConfig as
+      | {
+          data?: Array<{
+            isBuiltIn?: boolean
+            manifestId?: string
+            configValues?: { baseUrl?: string }
+          }>
+        }
+      | undefined
+    const custom = (pc?.data ?? []).find(
+      (p) => p.isBuiltIn === false && p.manifestId === 'dandanplay'
+    )
+    return custom?.configValues?.baseUrl
   })
 }
 

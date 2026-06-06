@@ -62,9 +62,9 @@ describe('ManifestProviderService.search', () => {
     })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'builtin:bilibili',
+        manifestId: 'bilibili',
         provider: DanmakuSourceType.Bilibili,
-        providerConfigId: 'builtin:bilibili',
+        providerConfigId: 'bilibili',
       },
       makeRegistry(runner),
       silentLogger
@@ -77,7 +77,7 @@ describe('ManifestProviderService.search', () => {
       providerIds: { seasonId: 123 },
       title: 'Frieren',
       provider: DanmakuSourceType.Bilibili,
-      providerConfigId: 'builtin:bilibili',
+      providerConfigId: 'bilibili',
       schemaVersion: SEASON_SCHEMA_VERSION,
     })
     expect(runner.runSearch).toHaveBeenCalledWith({ q: 'frieren' })
@@ -87,7 +87,7 @@ describe('ManifestProviderService.search', () => {
     const runner = makeRunner({ search: [] })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'builtin:dandanplay',
+        manifestId: 'dandanplay',
         provider: DanmakuSourceType.DanDanPlay,
         providerConfigId: 'custom-ddp-1',
         configValues: {
@@ -114,9 +114,9 @@ describe('ManifestProviderService.getSeason', () => {
     const runner = makeRunner({})
     const svc = new ManifestProviderService(
       {
-        manifestId: 'builtin:tencent',
+        manifestId: 'tencent',
         provider: DanmakuSourceType.Tencent,
-        providerConfigId: 'builtin:tencent',
+        providerConfigId: 'tencent',
       },
       makeRegistry(runner),
       silentLogger
@@ -137,9 +137,9 @@ describe('ManifestProviderService.getSeason', () => {
     })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'builtin:bilibili',
+        manifestId: 'bilibili',
         provider: DanmakuSourceType.Bilibili,
-        providerConfigId: 'builtin:bilibili',
+        providerConfigId: 'bilibili',
       },
       makeRegistry(runner),
       silentLogger
@@ -149,7 +149,7 @@ describe('ManifestProviderService.getSeason', () => {
       providerIds: { seasonId: 41410 },
       title: '新标题',
       provider: DanmakuSourceType.Bilibili,
-      providerConfigId: 'builtin:bilibili',
+      providerConfigId: 'bilibili',
       schemaVersion: SEASON_SCHEMA_VERSION,
     })
     expect(runner.runSeason).toHaveBeenCalledWith({ seasonId: 41410 })
@@ -159,9 +159,9 @@ describe('ManifestProviderService.getSeason', () => {
     const runner = makeRunner({ season: null })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'builtin:bilibili',
+        manifestId: 'bilibili',
         provider: DanmakuSourceType.Bilibili,
-        providerConfigId: 'builtin:bilibili',
+        providerConfigId: 'bilibili',
       },
       makeRegistry(runner),
       silentLogger
@@ -183,9 +183,9 @@ describe('ManifestProviderService.getEpisodes', () => {
     })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'builtin:bilibili',
+        manifestId: 'bilibili',
         provider: DanmakuSourceType.Bilibili,
-        providerConfigId: 'builtin:bilibili',
+        providerConfigId: 'bilibili',
       },
       makeRegistry(runner),
       silentLogger
@@ -229,9 +229,9 @@ describe('ManifestProviderService.getDanmaku', () => {
     const runner = makeRunner({ danmaku: raw })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'builtin:dandanplay',
+        manifestId: 'dandanplay',
         provider: DanmakuSourceType.DanDanPlay,
-        providerConfigId: 'builtin:dandanplay',
+        providerConfigId: 'dandanplay',
       },
       makeRegistry(runner),
       silentLogger

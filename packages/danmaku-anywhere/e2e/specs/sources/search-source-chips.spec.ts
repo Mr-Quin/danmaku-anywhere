@@ -104,7 +104,7 @@ test('source chips: overflow collapses into a +N menu that activates hidden sour
   await expect(popup.search.overflowChip).toBeVisible()
 
   await popup.search.overflowChip.click()
-  await popup.search.overflowMenuItem('builtin:tencent').click()
+  await popup.search.overflowMenuItem('tencent').click()
 
   await expect(popup.search.sourceChip('Tencent')).toHaveAttribute(
     'aria-pressed',
