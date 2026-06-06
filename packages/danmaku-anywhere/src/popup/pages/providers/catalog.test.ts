@@ -1,10 +1,13 @@
 import type { ConfigSchema } from '@mr-quin/dango'
 import { describe, expect, it } from 'vitest'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import {
   checkedAgo,
   createConfigFromManifest,
+  flattenUnits,
+  groupInstalled,
   manifestNeedsConfigForm,
   matchesQuery,
 } from './catalog'
@@ -21,6 +24,7 @@ const manifest: ProviderManifestInfo = {
   id: 'iqiyi',
   name: 'iQIYI',
   version: '0.3.0',
+  capabilities: { search: true, comments: true },
 }
 
 describe('createConfigFromManifest', () => {
@@ -30,7 +34,6 @@ describe('createConfigFromManifest', () => {
     expect(config.name).toBe('iQIYI')
     expect(config.impl).toBe(DanmakuSourceType.DanDanPlay)
     expect(config.impl).not.toBe(DanmakuSourceType.Custom)
-    expect(config.isBuiltIn).toBe(false)
     expect(config.enabled).toBe(true)
     expect(config.id).toBeTruthy()
   })
@@ -89,6 +92,54 @@ describe('manifestNeedsConfigForm', () => {
       required: ['baseUrl'],
     }
     expect(manifestNeedsConfigForm(schema)).toBe(true)
+  })
+})
+
+function cfg(id: string, manifestId: string): ProviderConfig {
+  return {
+    id,
+    manifestId,
+    name: id,
+    impl: DanmakuSourceType.DanDanPlay,
+    enabled: true,
+    configValues: {},
+  }
+}
+
+describe('groupInstalled', () => {
+  it('keeps single-config manifests as flat rows', () => {
+    const units = groupInstalled([cfg('a', 'bilibili'), cfg('b', 'tencent')])
+    expect(units.map((u) => u.type)).toEqual(['single', 'single'])
+  })
+
+  it('keeps a lone dandanplay config flat', () => {
+    const units = groupInstalled([cfg('proxy', 'dandanplay')])
+    expect(units).toHaveLength(1)
+    expect(units[0].type).toBe('single')
+  })
+
+  it('groups multiple dandanplay configs anchored at the first position', () => {
+    const units = groupInstalled([
+      cfg('proxy', 'dandanplay'),
+      cfg('bili', 'bilibili'),
+      cfg('home', 'dandanplay'),
+    ])
+    expect(units.map((u) => u.type)).toEqual(['group', 'single'])
+    const group = units[0]
+    if (group.type !== 'group') {
+      throw new Error('expected a group')
+    }
+    expect(group.configs.map((c) => c.id)).toEqual(['proxy', 'home'])
+  })
+
+  it('flattenUnits restores a flat config list in display order', () => {
+    const configs = [
+      cfg('proxy', 'dandanplay'),
+      cfg('bili', 'bilibili'),
+      cfg('home', 'dandanplay'),
+    ]
+    const flat = flattenUnits(groupInstalled(configs)).map((c) => c.id)
+    expect(flat).toEqual(['proxy', 'home', 'bili'])
   })
 })
 

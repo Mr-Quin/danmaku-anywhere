@@ -10,7 +10,6 @@ import {
 import { Fragment, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeasonsSuspense'
-import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import type { NamingRule } from '@/common/options/localMatchingRule/schema'
 import { useNamingRules } from '@/common/options/localMatchingRule/useLocalMatchingRule'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
@@ -96,11 +95,7 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
 
           return (
             <Fragment key={config.id}>
-              <Typography variant="body2">
-                {config.isBuiltIn
-                  ? localizedDanmakuSourceType(config.impl)
-                  : config.name}
-              </Typography>
+              <Typography variant="body2">{config.name}</Typography>
 
               <Autocomplete<Season>
                 options={options}

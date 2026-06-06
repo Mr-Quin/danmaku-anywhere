@@ -2,7 +2,6 @@ import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import { Favorite, Folder } from '@mui/icons-material'
 import { Chip, Skeleton, Stack, styled, Typography } from '@mui/material'
 import { type ReactElement, Suspense } from 'react'
-import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import { isNotCustom } from '@/common/danmaku/utils'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { SuspenseImage } from '../../../image/SuspenseImage'
@@ -127,14 +126,9 @@ export const SeasonTreeItem = ({
           </Typography>
           {provider && (
             <ProviderChip
-              label={
-                provider.isBuiltIn
-                  ? localizedDanmakuSourceType(provider.impl)
-                  : provider.name
-              }
+              label={provider.name}
               size="small"
               variant="outlined"
-              color={provider.isBuiltIn ? 'primary' : 'default'}
             />
           )}
           {renderCounts()}

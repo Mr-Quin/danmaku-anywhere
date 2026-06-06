@@ -86,10 +86,6 @@ export class ProviderConfigService implements IStoreService {
   async create(input: unknown) {
     const config = await providerConfigSchema.parseAsync(input)
 
-    if (config.isBuiltIn) {
-      throw new Error('Cannot create built-in providers')
-    }
-
     const configs = await this.options.get()
 
     // Check if ID already exists
@@ -189,10 +185,6 @@ export class ProviderConfigService implements IStoreService {
       throw new Error(`Provider not found: "${id}" when deleting`)
     }
 
-    if (config.isBuiltIn) {
-      throw new Error('Cannot delete built-in providers')
-    }
-
     const newData = produce(configs, (draft) => {
       const index = draft.findIndex((item) => item.id === id)
       draft.splice(index, 1)
@@ -222,5 +214,19 @@ export class ProviderConfigService implements IStoreService {
     })
 
     await this.options.set(newData)
+  }
+
+  // Persist an explicit ordering. Used when the displayed list groups configs
+  // (instances), so a single drag moves a block that index math can't express.
+  async setOrder(orderedIds: string[]) {
+    const configs = await this.options.get()
+    const byId = new Map(configs.map((config) => [config.id, config]))
+    const ordered = orderedIds
+      .map((id) => byId.get(id))
+      .filter((config): config is ProviderConfig => config !== undefined)
+    if (ordered.length !== configs.length) {
+      throw new Error('setOrder must list every provider config exactly once')
+    }
+    await this.options.set(ordered)
   }
 }

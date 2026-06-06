@@ -1,4 +1,4 @@
-import { Public, Refresh } from '@mui/icons-material'
+import { Refresh } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -6,7 +6,6 @@ import {
   IconButton,
   List,
   ListItem,
-  ListItemIcon,
   ListItemText,
   Tooltip,
   Typography,
@@ -16,6 +15,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { type CheckedAgo, checkedAgo, matchesQuery } from '../catalog'
 import { useManifestList, useRefreshCatalog } from '../hooks/useManifestList'
+import { ProviderAvatar } from './ProviderAvatar'
 import { SectionHeader } from './SectionHeader'
 
 interface CatalogSectionProps {
@@ -120,9 +120,9 @@ export const CatalogSection = ({
               </Button>
             }
           >
-            <ListItemIcon sx={{ minWidth: 36 }}>
-              <Public />
-            </ListItemIcon>
+            <Box sx={{ mr: 1.5 }}>
+              <ProviderAvatar seed={manifest.id} name={manifest.name} />
+            </Box>
             <ListItemText
               primary={manifest.name}
               secondary={t('providers.catalog.version', 'v{{version}}', {

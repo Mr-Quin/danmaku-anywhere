@@ -36,7 +36,4 @@ test('fresh install: default options seeded, no console errors', async ({
   const providers = await da.providerConfig.list()
   const ids = providers.map((p) => p.id).sort()
   expect(ids).toEqual([...BUILTIN_PROVIDER_IDS].sort())
-  for (const p of providers) {
-    expect(p.isBuiltIn).toBe(true)
-  }
 })

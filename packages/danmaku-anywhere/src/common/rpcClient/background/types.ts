@@ -115,11 +115,17 @@ export interface ProviderManifestSpec {
   configSchema?: ConfigSchema
 }
 
+export interface ProviderManifestCapabilities {
+  search: boolean
+  comments: boolean
+}
+
 export interface ProviderManifestInfo {
   id: string
   name: string
   version: string
   configSchema?: ConfigSchema
+  capabilities: ProviderManifestCapabilities
 }
 
 export interface ProviderManifestList {

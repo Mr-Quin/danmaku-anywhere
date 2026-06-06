@@ -10,7 +10,10 @@ export const providerConfigSchema = z.object({
   manifestId: z.string(),
   impl: z.enum(DanmakuSourceType),
   name: z.string().min(1),
-  isBuiltIn: z.boolean(),
+  // Deprecated: there is no built-in concept anymore, the seeded defaults are
+  // ordinary auto-imported configs. Kept optional so stored data still parses;
+  // nothing reads it.
+  isBuiltIn: z.boolean().optional(),
   enabled: z.boolean(),
   configValues: z.record(z.string(), z.unknown()),
 })

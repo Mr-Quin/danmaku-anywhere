@@ -80,6 +80,10 @@ export class ManifestRegistry {
       name: manifest.name,
       version: manifest.version,
       configSchema: manifest.configSchema,
+      capabilities: {
+        search: manifest.search !== undefined,
+        comments: manifest.danmaku !== undefined,
+      },
     }))
   }
 

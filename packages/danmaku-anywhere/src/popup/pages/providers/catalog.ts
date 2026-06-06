@@ -1,3 +1,4 @@
+import { PROVIDER_TO_BUILTIN_ID } from '@danmaku-anywhere/danmaku-converter'
 import type { ConfigSchema } from '@mr-quin/dango'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
@@ -21,7 +22,6 @@ export function createConfigFromManifest(
     name: manifest.name,
     impl: DanmakuSourceType.DanDanPlay,
     enabled: true,
-    isBuiltIn: false,
     configValues: buildDefaultValues(manifest.configSchema, {}),
   }
 }
@@ -31,6 +31,58 @@ export function createConfigFromManifest(
 export function manifestNeedsConfigForm(configSchema?: ConfigSchema): boolean {
   return getObjectFields(configSchema).some(
     (field) => field.required && field.schema.default === undefined
+  )
+}
+
+// No manifest field declares multi-instance support yet, so the one source
+// that takes several configs (the DanDanPlay-compatible servers, including the
+// hosted proxy) is hardcoded. Replace with a manifest capability when one lands.
+const DDP_MANIFEST_ID = PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]
+const MULTI_INSTANCE_MANIFEST_IDS = new Set<string>([DDP_MANIFEST_ID])
+
+export function supportsInstances(manifestId: string): boolean {
+  return MULTI_INSTANCE_MANIFEST_IDS.has(manifestId)
+}
+
+export type InstalledUnit =
+  | { type: 'single'; id: string; config: ProviderConfig }
+  | { type: 'group'; id: string; manifestId: string; configs: ProviderConfig[] }
+
+// Configs sharing a multi-instance manifestId collapse into one group, anchored
+// at the first member's position so drag-order (search priority) is per-manifest.
+// A lone instance stays a flat row.
+export function groupInstalled(configs: ProviderConfig[]): InstalledUnit[] {
+  const units: InstalledUnit[] = []
+  const grouped = new Set<string>()
+  for (const config of configs) {
+    if (!supportsInstances(config.manifestId)) {
+      units.push({ type: 'single', id: config.id, config })
+      continue
+    }
+    if (grouped.has(config.manifestId)) {
+      continue
+    }
+    grouped.add(config.manifestId)
+    const members = configs.filter((c) => c.manifestId === config.manifestId)
+    if (members.length < 2) {
+      units.push({ type: 'single', id: config.id, config })
+    } else {
+      units.push({
+        type: 'group',
+        id: `group:${config.manifestId}`,
+        manifestId: config.manifestId,
+        configs: members,
+      })
+    }
+  }
+  return units
+}
+
+// Flatten a reordered unit list back to the persisted config order, keeping each
+// group's instances in their existing relative order.
+export function flattenUnits(units: InstalledUnit[]): ProviderConfig[] {
+  return units.flatMap((unit) =>
+    unit.type === 'single' ? [unit.config] : unit.configs
   )
 }
 

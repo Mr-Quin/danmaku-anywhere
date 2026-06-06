@@ -4,12 +4,15 @@ import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
 /**
- * Verifies the manifest-driven loginProbe flow end-to-end: opening
- * /providers runs the generic useProviderWarning hook, which RPCs
- * providerProbeLogin(manifestId). The background routes each manifest's
- * loginProbe through the engine; sources with no probe never warn.
- * A failing probe surfaces the per-source warning icon.
+ * Verifies the manifest-driven loginProbe flow end-to-end: opening /providers
+ * probes each enabled source via providerProbeLogin(manifestId). The background
+ * routes each manifest's loginProbe through the engine; sources reporting
+ * logged-out surface in the "Needs attention" callout with a Sign in action,
+ * and the callout is absent when every probe reports logged-in.
  */
+
+const ATTENTION = /Needs attention|需要处理/
+const SIGN_IN = /^(Sign in|登录)$/
 
 const NAV_URL = /api\.bilibili\.com\/x\/web-interface\/nav/
 const TENCENT_DETAILS_URL =
@@ -51,8 +54,8 @@ test('hides warnings when both probes return logged-in / cookies-present', async
 
   await expect.poll(() => calls.nav, { timeout: 5000 }).toBeGreaterThan(0)
   await expect.poll(() => calls.tencent, { timeout: 5000 }).toBeGreaterThan(0)
-  await expect(page.getByTestId('provider-warning-bilibili')).toHaveCount(0)
-  await expect(page.getByTestId('provider-warning-tencent')).toHaveCount(0)
+  await expect(page.getByText(ATTENTION)).toHaveCount(0)
+  await expect(page.getByRole('button', { name: SIGN_IN })).toHaveCount(0)
 })
 
 test('surfaces warning icons when probes report logged-out / no cookies', async ({
@@ -88,6 +91,6 @@ test('surfaces warning icons when probes report logged-out / no cookies', async 
 
   await Popup.open(page, extensionId, '/providers')
 
-  await expect(page.getByTestId('provider-warning-bilibili')).toHaveCount(1)
-  await expect(page.getByTestId('provider-warning-tencent')).toHaveCount(1)
+  await expect(page.getByText(ATTENTION)).toBeVisible()
+  await expect(page.getByRole('button', { name: SIGN_IN })).toHaveCount(2)
 })

@@ -252,11 +252,6 @@
   "danmakuPage": {
     "confirmDeleteMessage": "确定要删除选中的弹幕吗？"
   },
-  "danmakuSource": {
-    "tooltip": {
-      "loginRequired": "此来源可能需要登录或刷新 Cookie，否则获取的剧集信息和弹幕可能受限。"
-    }
-  },
   "debugPage": {
     "segmentation": {
       "active": "运行中",
@@ -561,7 +556,15 @@
       "deleted": "弹幕源已删除",
       "updated": "弹幕源已更新"
     },
-    "builtin": "内置",
+    "attention": {
+      "loginRequired": "需要登录才能获取",
+      "signIn": "登录",
+      "title": "需要处理"
+    },
+    "caps": {
+      "comments": "弹幕",
+      "search": "搜索"
+    },
     "catalog": {
       "checked": {
         "days_other": "{{count}} 天前检查",
@@ -595,7 +598,10 @@
       "placeholder": "筛选弹幕源"
     },
     "installed": {
+      "addInstance": "添加实例",
       "empty": "没有匹配的弹幕源",
+      "instances_other": "{{count}} 个实例",
+      "none": "未安装弹幕源",
       "title": "已安装"
     },
     "name": "弹幕源"

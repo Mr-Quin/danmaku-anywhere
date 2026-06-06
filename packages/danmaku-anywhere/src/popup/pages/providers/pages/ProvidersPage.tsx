@@ -1,6 +1,6 @@
 import { Clear, Search } from '@mui/icons-material'
 import { IconButton, InputAdornment, Stack, TextField } from '@mui/material'
-import { type ReactElement, useState } from 'react'
+import { type ReactElement, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { TabBody } from '@/common/components/layout/TabBody'
@@ -19,13 +19,16 @@ import {
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import {
   createConfigFromManifest,
+  groupInstalled,
   manifestNeedsConfigForm,
   matchesQuery,
 } from '../catalog'
 import { CatalogSection } from '../components/CatalogSection'
+import { InstalledList } from '../components/InstalledList'
+import { NeedsAttentionCallout } from '../components/NeedsAttentionCallout'
 import { ProviderAddMenu } from '../components/ProviderAddMenu'
-import { ProviderConfigList } from '../components/ProviderConfigList'
 import { SectionHeader } from '../components/SectionHeader'
+import { useManifestList } from '../hooks/useManifestList'
 import { ProviderEditor } from './ProviderEditor'
 
 export const ProvidersPage = (): ReactElement => {
@@ -34,6 +37,7 @@ export const ProvidersPage = (): ReactElement => {
   const dialog = useDialog()
   const { configs } = useProviderConfig()
   const { create, remove } = useEditProviderConfig()
+  const { data: manifestData } = useManifestList()
   const [mode, setMode] = useState<'add' | 'edit' | null>(null)
   const [filter, setFilter] = useState('')
 
@@ -41,14 +45,21 @@ export const ProvidersPage = (): ReactElement => {
     null
   )
 
+  const manifestById = useMemo(
+    () => new Map((manifestData?.manifests ?? []).map((m) => [m.id, m])),
+    [manifestData]
+  )
+
   const installedManifestIds = new Set(
     configs.map((config) => config.manifestId)
   )
-  const installedCount = configs.filter((config) =>
+  const visibleConfigs = configs.filter((config) =>
     matchesQuery(filter, config.name, config.manifestId)
-  ).length
+  )
+  const installedCount = groupInstalled(visibleConfigs).length
+  const filterActive = filter.trim() !== ''
 
-  const handleEditProvider = (provider: ProviderConfig) => {
+  const handleEdit = (provider: ProviderConfig) => {
     setEditingProvider(provider)
     setMode('edit')
   }
@@ -60,6 +71,11 @@ export const ProvidersPage = (): ReactElement => {
 
   const handleAddMacCmsProvider = () => {
     setEditingProvider(createCustomMacCmsProvider())
+    setMode('add')
+  }
+
+  const handleAddInstance = () => {
+    setEditingProvider(createCustomDanDanPlayProvider())
     setMode('add')
   }
 
@@ -95,10 +111,9 @@ export const ProvidersPage = (): ReactElement => {
       ),
       confirmText: t('common.delete', 'Delete'),
       onConfirm: async () => {
-        if (!provider.id || provider.isBuiltIn) {
+        if (!provider.id) {
           return
         }
-
         await remove.mutateAsync(provider.id, {
           onSuccess: () => {
             toast.success(t('providers.alert.deleted', 'Provider deleted'))
@@ -121,7 +136,7 @@ export const ProvidersPage = (): ReactElement => {
           />
         </TabToolbar>
         <TabBody>
-          <Stack direction="column">
+          <Stack direction="column" sx={{ pb: 1.5 }}>
             <TextField
               size="small"
               fullWidth
@@ -145,14 +160,19 @@ export const ProvidersPage = (): ReactElement => {
                 },
               }}
             />
+            <NeedsAttentionCallout configs={configs} filter={filter} />
             <SectionHeader
               title={t('providers.installed.title', 'Installed')}
               count={installedCount}
             />
-            <ProviderConfigList
-              filter={filter}
-              onEdit={handleEditProvider}
+            <InstalledList
+              configs={visibleConfigs}
+              manifestById={manifestById}
+              reorderable={!filterActive}
+              filterActive={filterActive}
+              onEdit={handleEdit}
               onDelete={handleDelete}
+              onAddInstance={handleAddInstance}
             />
             <CatalogSection
               filter={filter}

@@ -259,11 +259,6 @@
   "danmakuPage": {
     "confirmDeleteMessage": "Are you sure to delete the selected Danmaku?"
   },
-  "danmakuSource": {
-    "tooltip": {
-      "loginRequired": "This source may need you to sign in or refresh cookies. Episode and danmaku results can be limited until then."
-    }
-  },
   "debugPage": {
     "segmentation": {
       "active": "Active",
@@ -577,7 +572,15 @@
       "deleted": "Provider deleted",
       "updated": "Provider updated"
     },
-    "builtin": "Built-in",
+    "attention": {
+      "loginRequired": "Login required to fetch",
+      "signIn": "Sign in",
+      "title": "Needs attention"
+    },
+    "caps": {
+      "comments": "comments",
+      "search": "Search"
+    },
     "catalog": {
       "checked": {
         "days_one": "checked {{count}}d ago",
@@ -614,7 +617,11 @@
       "placeholder": "Filter sources"
     },
     "installed": {
+      "addInstance": "Add instance",
       "empty": "No matching sources",
+      "instances_one": "{{count}} instances",
+      "instances_other": "{{count}} instances",
+      "none": "No sources installed",
       "title": "Installed"
     },
     "name": "Danmaku Providers"
