@@ -16,9 +16,19 @@ export interface AttentionItem {
 export const useNeedsAttention = (
   configs: ProviderConfig[]
 ): AttentionItem[] => {
-  const probeable = configs.filter(
-    (config) => config.enabled && config.manifestId !== LEGACY_MACCMS_ID
-  )
+  // Login state is per manifest (host), so probe each manifestId once even when
+  // it has several instances, and surface one callout row per manifest.
+  const seen = new Set<string>()
+  const probeable = configs.filter((config) => {
+    if (!config.enabled || config.manifestId === LEGACY_MACCMS_ID) {
+      return false
+    }
+    if (seen.has(config.manifestId)) {
+      return false
+    }
+    seen.add(config.manifestId)
+    return true
+  })
 
   const results = useQueries({
     queries: probeable.map((config) => ({

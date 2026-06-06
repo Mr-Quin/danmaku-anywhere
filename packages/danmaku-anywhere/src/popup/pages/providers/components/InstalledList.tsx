@@ -206,6 +206,11 @@ export const InstalledList = ({
   )
 
   const handleDragEnd = (event: DragEndEvent) => {
+    // Reorder is disabled while filtering: `units` is then a subset and a
+    // persisted order would drop the hidden configs.
+    if (!reorderable) {
+      return
+    }
     const { active, over } = event
     if (!over || active.id === over.id) {
       return
