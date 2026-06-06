@@ -53,9 +53,14 @@ export const ProvidersPage = (): ReactElement => {
   const installedManifestIds = new Set(
     configs.map((config) => config.manifestId)
   )
-  const visibleConfigs = configs.filter((config) =>
-    matchesQuery(filter, config.name, config.manifestId)
-  )
+  const matchesConfig = (config: ProviderConfig) =>
+    matchesQuery(
+      filter,
+      config.name,
+      config.manifestId,
+      manifestById.get(config.manifestId)?.name ?? ''
+    )
+  const visibleConfigs = configs.filter(matchesConfig)
   const installedCount = groupInstalled(visibleConfigs).length
   const filterActive = filter.trim() !== ''
 

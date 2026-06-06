@@ -109,8 +109,11 @@ function SortableUnit({
     isDragging,
   } = useSortable({ id: unit.id, disabled: !reorderable })
 
+  // dnd-kit keyboard support needs attributes (role/tabIndex) and listeners on
+  // the same focusable element, so both live on the handle, not the container.
   const dragHandle = reorderable ? (
     <Box
+      {...attributes}
       {...listeners}
       sx={{
         display: 'flex',
@@ -159,7 +162,7 @@ function SortableUnit({
   if (unit.type === 'single') {
     const config = unit.config
     return (
-      <Box ref={setNodeRef} style={wrapperStyle} sx={cardSx} {...attributes}>
+      <Box ref={setNodeRef} style={wrapperStyle} sx={cardSx}>
         <ListItem
           disablePadding
           secondaryAction={
@@ -192,7 +195,7 @@ function SortableUnit({
   const groupSubtitle = manifest ? `${count} · v${manifest.version}` : count
 
   return (
-    <Box ref={setNodeRef} style={wrapperStyle} sx={cardSx} {...attributes}>
+    <Box ref={setNodeRef} style={wrapperStyle} sx={cardSx}>
       <ListItem
         disablePadding
         secondaryAction={
