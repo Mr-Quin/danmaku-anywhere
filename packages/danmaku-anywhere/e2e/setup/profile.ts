@@ -56,8 +56,8 @@ function buildBuiltInProviderConfigs(
 
   return [
     {
-      id: 'builtin:dandanplay',
-      manifestId: 'builtin:dandanplay',
+      id: 'dandanplay',
+      manifestId: 'dandanplay',
       name: 'DanDanPlay',
       impl: DanmakuSourceType.DanDanPlay,
       enabled: dandanplay.enabled ?? false,
@@ -69,8 +69,8 @@ function buildBuiltInProviderConfigs(
       },
     },
     {
-      id: 'builtin:bilibili',
-      manifestId: 'builtin:bilibili',
+      id: 'bilibili',
+      manifestId: 'bilibili',
       name: 'Bilibili',
       impl: DanmakuSourceType.Bilibili,
       enabled: bilibili.enabled ?? false,
@@ -81,8 +81,8 @@ function buildBuiltInProviderConfigs(
       },
     },
     {
-      id: 'builtin:tencent',
-      manifestId: 'builtin:tencent',
+      id: 'tencent',
+      manifestId: 'tencent',
       name: 'Tencent',
       impl: DanmakuSourceType.Tencent,
       enabled: tencent.enabled ?? false,

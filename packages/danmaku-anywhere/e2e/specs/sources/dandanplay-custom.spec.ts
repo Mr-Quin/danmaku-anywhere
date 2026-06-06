@@ -8,7 +8,7 @@ import { loadJsonFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
 
 /**
- * A custom DanDanPlay server: a builtin:dandanplay provider config pointed at
+ * A custom DanDanPlay server: a dandanplay provider config pointed at
  * an arbitrary baseUrl with no built-ins enabled. Confirms the request hits
  * the custom host directly (not the proxy) and renders under the canonical
  * DanDanPlay testid.
@@ -18,7 +18,7 @@ const CUSTOM_BASE_URL = 'https://compat.example.invalid'
 
 const customConfig: ProviderConfig = {
   id: 'custom-ddp-1',
-  manifestId: 'builtin:dandanplay',
+  manifestId: 'dandanplay',
   name: 'CustomDdp',
   impl: DanmakuSourceType.DanDanPlay,
   enabled: true,

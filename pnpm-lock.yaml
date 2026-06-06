@@ -306,11 +306,11 @@ importers:
         specifier: 0.10.18
         version: 0.10.18
       '@mr-quin/dango':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       '@mr-quin/dango-manifests':
-        specifier: ^0.2.0
-        version: 0.2.0
+        specifier: ^0.3.0
+        version: 0.3.0
       '@mui/icons-material':
         specifier: ^9.0.1
         version: 9.0.1(@mui/material@9.0.1(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.0))(@types/react@19.2.15)(react@19.2.0))(@types/react@19.2.15)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@types/react@19.2.15)(react@19.2.0)
@@ -2831,11 +2831,11 @@ packages:
       '@cfworker/json-schema':
         optional: true
 
-  '@mr-quin/dango-manifests@0.2.0':
-    resolution: {integrity: sha512-GsjLTFzo3PW2Ea9usdTn5ef7rYEU/9xHg1xVeGINpm5xF1f3oq7asnbCA4uzXvr4rOj/+7qTsL8NijX7e/DeYw==}
+  '@mr-quin/dango-manifests@0.3.0':
+    resolution: {integrity: sha512-ZU4vWzaYKr4NsZ6rBYxDVJM5EaFwYQVAXMotlswkwOaoStarJGoa9UNfhr+SXLDRw6inLt/eummasg3WE7pnqw==}
 
-  '@mr-quin/dango@0.2.0':
-    resolution: {integrity: sha512-ppei1pNnxDjTJc2WxyQ77uZOTWndk9MA39kxHh8rTIy2QT5YVWRvb4OaXc5PJxKZSN6cXo4S1j/GjRMJ2toRcQ==}
+  '@mr-quin/dango@0.3.0':
+    resolution: {integrity: sha512-8AWHbqt3f9PoVeHUtd7L0QQto3wxO8zVobDkZNoXV47ciI7u1fsiumXsfbj+AATc8YAMKJOjr7rX+gTMoaOVpg==}
     engines: {node: '>=20'}
 
   '@mr-quin/danmu@0.20.0-rc.4':
@@ -10412,9 +10412,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@mr-quin/dango-manifests@0.2.0': {}
+  '@mr-quin/dango-manifests@0.3.0': {}
 
-  '@mr-quin/dango@0.2.0':
+  '@mr-quin/dango@0.3.0':
     dependencies:
       '@bufbuild/protobuf': 2.12.0
       fast-xml-parser: 4.5.6

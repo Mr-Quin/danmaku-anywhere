@@ -13,6 +13,7 @@ import { isServiceWorker } from '@/common/utils/utils'
 import { defaultProviderConfigs } from './constant'
 import {
   ensureBuiltinProviders,
+  migrateBuiltinPrefixedProviderIds,
   migrateProviderConfigsToFlat,
 } from './migration'
 import type { ProviderConfig } from './schema'
@@ -33,19 +34,33 @@ export class ProviderConfigService implements IStoreService {
       'providerConfig',
       defaultProviderConfigs,
       this.logger
-    ).version(2, {
-      upgrade: (data) => {
-        try {
-          return ensureBuiltinProviders(migrateProviderConfigsToFlat(data))
-        } catch (error) {
-          console.error(
-            '[providerConfig] migration failed, falling back to defaults:',
-            error
-          )
-          return [...defaultProviderConfigs]
-        }
-      },
-    })
+    )
+      .version(2, {
+        upgrade: (data) => {
+          try {
+            return ensureBuiltinProviders(migrateProviderConfigsToFlat(data))
+          } catch (error) {
+            console.error(
+              '[providerConfig] migration failed, falling back to defaults:',
+              error
+            )
+            return [...defaultProviderConfigs]
+          }
+        },
+      })
+      .version(3, {
+        upgrade: (data) => {
+          try {
+            return migrateBuiltinPrefixedProviderIds(data)
+          } catch (error) {
+            console.error(
+              '[providerConfig] builtin-prefix migration failed, falling back to defaults:',
+              error
+            )
+            return [...defaultProviderConfigs]
+          }
+        },
+      })
   }
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {
     const configs = await this.options.get()

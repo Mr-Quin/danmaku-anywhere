@@ -2,6 +2,7 @@ import {
   DanmakuSourceType,
   LEGACY_MACCMS_ID,
   PROVIDER_TO_BUILTIN_ID,
+  stripBuiltinPrefix,
 } from '@danmaku-anywhere/danmaku-converter'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import {
@@ -289,6 +290,30 @@ function inferTypeFromImpl(
     default:
       return undefined
   }
+}
+
+// Strip the `builtin:` prefix from stored `id`/`manifestId`. Stripping `id`
+// can collide a user's own built-in record with a default that an earlier
+// migration appended, so de-dupe by id keeping the first (the user's record,
+// which carries their settings).
+export function migrateBuiltinPrefixedProviderIds(
+  data: ProviderConfig[]
+): ProviderConfig[] {
+  const seen = new Set<string>()
+  const out: ProviderConfig[] = []
+  for (const config of data) {
+    const id = stripBuiltinPrefix(config.id)
+    if (seen.has(id)) {
+      continue
+    }
+    seen.add(id)
+    out.push({
+      ...config,
+      id,
+      manifestId: stripBuiltinPrefix(config.manifestId),
+    })
+  }
+  return out
 }
 
 // Append any builtin whose id isn't already in the user's stored list.

@@ -9,6 +9,7 @@ import {
   PROVIDER_TO_BUILTIN_ID,
   type Season,
   type SeasonV1,
+  stripBuiltinPrefix,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Dexie } from 'dexie'
 import { injectable } from 'inversify'
@@ -372,6 +373,59 @@ export class DanmakuAnywhereDb extends Dexie {
       seasonMap: 'key, *seasonIds',
       bookmark: '++id, &seasonId, providerConfigId',
     })
+
+    /**
+     * Strip the `builtin:` prefix from stored provider config ids. Remaps
+     * season/bookmark.providerConfigId and the seasonMap.seasons keys so they
+     * keep matching the bare config ids.
+     */
+    this.version(14)
+      .stores({
+        episode:
+          '++id, provider, indexedId, &[seasonId+indexedId], seasonId, timeUpdated, lastChecked',
+        season:
+          '++id, provider, providerConfigId, indexedId, &[providerConfigId+indexedId]',
+        customEpisode: '++id, title',
+        seasonMap: 'key, *seasonIds',
+        bookmark: '++id, &seasonId, providerConfigId',
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table('season')
+          .toCollection()
+          .modify((season) => {
+            if (typeof season.providerConfigId === 'string') {
+              season.providerConfigId = stripBuiltinPrefix(
+                season.providerConfigId
+              )
+            }
+          })
+
+        await tx
+          .table('bookmark')
+          .toCollection()
+          .modify((bookmark) => {
+            if (typeof bookmark.providerConfigId === 'string') {
+              bookmark.providerConfigId = stripBuiltinPrefix(
+                bookmark.providerConfigId
+              )
+            }
+          })
+
+        await tx
+          .table('seasonMap')
+          .toCollection()
+          .modify((entry) => {
+            if (!entry.seasons || typeof entry.seasons !== 'object') {
+              return
+            }
+            const remapped: Record<string, number> = {}
+            for (const [configId, seasonId] of Object.entries(entry.seasons)) {
+              remapped[stripBuiltinPrefix(configId)] = seasonId as number
+            }
+            entry.seasons = remapped
+          })
+      })
 
     this.open()
   }

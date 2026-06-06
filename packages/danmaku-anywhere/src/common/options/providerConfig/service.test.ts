@@ -15,7 +15,8 @@ import { ProviderConfigService } from './service'
 
 function makeService(): ProviderConfigService {
   const logger = { sub: () => logger, error: vi.fn() } as never
-  const factory = (() => ({ version: () => ({}) })) as never
+  const options = { version: () => options }
+  const factory = (() => options) as never
   return new ProviderConfigService(logger, factory)
 }
 

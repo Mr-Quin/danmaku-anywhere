@@ -1,11 +1,11 @@
 import { type Manifest, ManifestRunner, zManifest } from '@mr-quin/dango'
-import builtinBilibili from '@mr-quin/dango-manifests/manifests/builtin-bilibili.json' with {
+import builtinBilibili from '@mr-quin/dango-manifests/manifests/bilibili.json' with {
   type: 'json',
 }
-import builtinDandanplay from '@mr-quin/dango-manifests/manifests/builtin-dandanplay.json' with {
+import builtinDandanplay from '@mr-quin/dango-manifests/manifests/dandanplay.json' with {
   type: 'json',
 }
-import builtinTencent from '@mr-quin/dango-manifests/manifests/builtin-tencent.json' with {
+import builtinTencent from '@mr-quin/dango-manifests/manifests/tencent.json' with {
   type: 'json',
 }
 import { inject, injectable } from 'inversify'

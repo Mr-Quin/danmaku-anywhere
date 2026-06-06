@@ -5,6 +5,7 @@ import path from 'node:path'
 import { pipeline } from 'node:stream/promises'
 import { fileURLToPath } from 'node:url'
 import { createGunzip } from 'node:zlib'
+import { stripBuiltinPrefix } from '@danmaku-anywhere/danmaku-converter'
 import type { BrowserContext, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import packageJson from '../../../package.json' with { type: 'json' }
@@ -125,8 +126,13 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
     migrationConfig.baselinePriorTag.replace(/^v/, '')
   )
   expect(postLastVersion?.lastVersion).toBe(packageJson.version)
-  expect(postSync.providerConfigIds, 'provider IDs preserved').toEqual(
-    seededSync.providerConfigIds
+  // The upgrade strips the `builtin:` prefix from stored provider config ids,
+  // so the seeded ids are expected to migrate to bare.
+  const expectedProviderConfigIds = seededSync.providerConfigIds
+    .map(stripBuiltinPrefix)
+    .sort()
+  expect(postSync.providerConfigIds, 'provider IDs migrated to bare').toEqual(
+    expectedProviderConfigIds
   )
   expect(postSync.aiProviderConfigIds, 'AI provider IDs preserved').toEqual(
     seededSync.aiProviderConfigIds

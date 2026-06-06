@@ -13,7 +13,7 @@ import type { ManifestRegistry } from './ManifestRegistry'
  * ProviderFactory dispatches on `config.manifestId` and constructs either
  * a ManifestProviderService configured for the source, or the legacy
  * MacCmsProviderService for `legacy:maccms` configs. Custom DanDanPlay
- * servers share the `builtin:dandanplay` manifest and thread their
+ * servers share the `dandanplay` manifest and thread their
  * baseUrl/auth through configValues; there is no DDP-compat special case.
  */
 
@@ -172,7 +172,7 @@ describe('ProviderFactory dispatch', () => {
     expect(() =>
       factory({
         id: 'x',
-        manifestId: 'builtin:nonexistent',
+        manifestId: 'nonexistent',
         impl: DanmakuSourceType.DanDanPlay,
         name: 'X',
         enabled: true,

@@ -45,7 +45,7 @@ export class SearchPage {
     return this.page.locator('[data-testid="source-chip-overflow"]')
   }
 
-  // `providerId` is the config id, e.g. 'builtin:tencent'.
+  // `providerId` is the config id, e.g. 'tencent'.
   overflowMenuItem(providerId: string): Locator {
     return this.page.locator(
       `[data-testid="drilldown-menu-item-${providerId}"]`
