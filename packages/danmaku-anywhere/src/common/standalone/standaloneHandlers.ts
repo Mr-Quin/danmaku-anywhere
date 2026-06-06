@@ -1,3 +1,13 @@
+import type { ConfigSchema } from '@mr-quin/dango'
+import builtinBilibili from '@mr-quin/dango-manifests/manifests/builtin-bilibili.json' with {
+  type: 'json',
+}
+import builtinDandanplay from '@mr-quin/dango-manifests/manifests/builtin-dandanplay.json' with {
+  type: 'json',
+}
+import builtinTencent from '@mr-quin/dango-manifests/manifests/builtin-tencent.json' with {
+  type: 'json',
+}
 import type { MatchEpisodeResult } from '@/common/anime/dto'
 import type { AuthSessionState } from '@/common/auth/types'
 import type { BackupData, BackupRestoreResult } from '@/common/backup/dto'
@@ -6,6 +16,7 @@ import type {
   BackgroundMethods,
   PlayerRelayCommands,
   PlayerRelayEvents,
+  ProviderManifestSpec,
 } from '@/common/rpcClient/background/types'
 import type { ControllerMethods } from '@/common/rpcClient/controller/types'
 import type { MountConfig } from '../options/mountConfig/schema'
@@ -14,6 +25,34 @@ import type { StandaloneRpcHandlers } from './createStandaloneRpcClient'
 const standaloneBaseUrlConfig: BaseUrlConfig = {
   baseUrls: ['https://example.com'],
 }
+
+// Standalone has no manifest registry, so the config form's schema comes
+// straight from the bundled manifests (mirrors ManifestRegistry's seeded set).
+interface BundledManifest {
+  id: string
+  name: string
+  configSchema?: ConfigSchema
+  loginProbe?: unknown
+  cookieSet?: { url: string; title?: string }
+}
+
+const bundledManifests = [
+  builtinDandanplay,
+  builtinBilibili,
+  builtinTencent,
+] as unknown as BundledManifest[]
+
+const standaloneManifestSpecs = new Map<string, ProviderManifestSpec>(
+  bundledManifests.map((manifest) => [
+    manifest.id,
+    {
+      name: manifest.name,
+      hasLoginProbe: manifest.loginProbe !== undefined,
+      cookieSet: manifest.cookieSet,
+      configSchema: manifest.configSchema,
+    },
+  ])
+)
 
 const standaloneBackupData: BackupData = {
   meta: {
@@ -100,7 +139,11 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
       null as unknown as BackgroundMethods['mediaParseUrl']['output'],
     danmakuPurgeCache: () => 0,
     providerProbeLogin: () => ({ hasLoginProbe: false, ok: true }),
-    providerGetManifestSpec: () => ({ name: '', hasLoginProbe: false }),
+    providerGetManifestSpec: ({ manifestId }) =>
+      standaloneManifestSpecs.get(manifestId) ?? {
+        name: '',
+        hasLoginProbe: false,
+      },
     fetchImage: ({ src }) => src,
     getActiveTabUrl: () => 'https://example.com',
     getFrameId: () => 0,
