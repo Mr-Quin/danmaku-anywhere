@@ -171,7 +171,7 @@ export function SearchForm({
         />
       )
     }
-    if (typeof activeCount === 'number') {
+    if (activeCount !== undefined) {
       return t('searchPage.resultsCount', '{{count}} results', {
         count: activeCount,
       })
