@@ -56,10 +56,6 @@ const StyledListItem = styled(ListItem)(({ theme }) => {
     border: `1px solid ${theme.palette.divider}`,
     borderRadius: theme.shape.borderRadius,
     backgroundColor: theme.palette.background.paper,
-    marginBottom: theme.spacing(0.5),
-    '&:last-of-type': {
-      marginBottom: 0,
-    },
     '.MuiListItemButton-root': {
       paddingRight: theme.spacing(12), // make room for action buttons
     },
@@ -341,7 +337,11 @@ export function DraggableList<T extends DraggableItem>({
         strategy={verticalListSortingStrategy}
       >
         <ScrollBox sx={{ overflow: 'auto' }}>
-          <List dense disablePadding>
+          <List
+            dense
+            disablePadding
+            sx={{ display: 'flex', flexDirection: 'column', gap: 1, pb: 1.5 }}
+          >
             {orderedItems.map((item) => (
               <SortableItem
                 key={item.id}
