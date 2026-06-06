@@ -225,6 +225,7 @@ export class ProviderConfigService implements IStoreService {
       .map((id) => byId.get(id))
       .filter((config): config is ProviderConfig => config !== undefined)
     if (
+      orderedIds.length !== configs.length ||
       ordered.length !== configs.length ||
       new Set(orderedIds).size !== configs.length
     ) {

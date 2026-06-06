@@ -36,6 +36,7 @@ import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { NothingHere } from '@/common/components/NothingHere'
+import { useToast } from '@/common/components/Toast/toastStore'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
@@ -263,6 +264,7 @@ export const InstalledList = ({
   onAddInstance,
 }: InstalledListProps) => {
   const { t } = useTranslation()
+  const toast = useToast.use.toast()
   const { toggle, reorderAll } = useEditProviderConfig()
 
   const [units, setUnits] = useState<InstalledUnit[]>(() =>
@@ -296,7 +298,14 @@ export const InstalledList = ({
     }
     const next = arrayMove(units, oldIndex, newIndex)
     setUnits(next)
-    reorderAll.mutate(flattenUnits(next).map((config) => config.id))
+    reorderAll.mutate(
+      flattenUnits(next).map((config) => config.id),
+      {
+        onError: (error) => {
+          toast.error(error.message)
+        },
+      }
+    )
   }
 
   const toggleExpand = (id: string) => {
