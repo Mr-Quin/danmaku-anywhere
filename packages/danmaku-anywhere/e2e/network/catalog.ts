@@ -14,22 +14,25 @@ function manifestFile(id: string): string {
   return `src/manifests/${id}.json`
 }
 
-function loadManifest(id: string): unknown {
+function loadManifest(id: string): { apiVersion: number; version: string } {
   const resolved = nodeRequire.resolve(
     `@mr-quin/dango-manifests/manifests/${id}.json`
   )
   return JSON.parse(readFileSync(resolved, 'utf-8'))
 }
 
+const MANIFESTS = CATALOG_IDS.map((id) => ({ id, manifest: loadManifest(id) }))
+
 const FILES: Record<string, unknown> = Object.fromEntries(
-  CATALOG_IDS.map((id) => [manifestFile(id), loadManifest(id)])
+  MANIFESTS.map(({ id, manifest }) => [manifestFile(id), manifest])
 )
 
+// Derive the index from the served files so apiVersion/version can't drift.
 const INDEX = {
-  manifests: CATALOG_IDS.map((id) => ({
+  manifests: MANIFESTS.map(({ id, manifest }) => ({
     id,
-    apiVersion: 1,
-    version: '0.3.0',
+    apiVersion: manifest.apiVersion,
+    version: manifest.version,
     file: manifestFile(id),
   })),
 }
