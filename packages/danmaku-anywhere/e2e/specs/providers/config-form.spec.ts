@@ -19,7 +19,7 @@ const NAV_URL = /api\.bilibili\.com\/x\/web-interface\/nav/
 
 const customDdp: ProviderConfig = {
   id: 'custom-ddp-form',
-  manifestId: 'builtin:dandanplay',
+  manifestId: 'dandanplay',
   name: 'My DDP Server',
   impl: DanmakuSourceType.DanDanPlay,
   enabled: true,
@@ -117,7 +117,7 @@ test('edits the built-in Bilibili provider via the generic form', async ({
 
   await popup.toast.expectSuccess(/Provider updated|弹幕源已更新/)
 
-  const saved = await da.providerConfig.get('builtin:bilibili')
+  const saved = await da.providerConfig.get('bilibili')
   expect(saved?.name).toBe('Bilibili Custom')
   expect(saved?.configValues.danmakuFormat).toBe('protobuf')
 })

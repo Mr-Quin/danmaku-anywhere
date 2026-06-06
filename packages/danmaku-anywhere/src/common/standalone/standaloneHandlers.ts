@@ -6,7 +6,6 @@ import type {
   BackgroundMethods,
   PlayerRelayCommands,
   PlayerRelayEvents,
-  ProviderManifestSpec,
 } from '@/common/rpcClient/background/types'
 import type { ControllerMethods } from '@/common/rpcClient/controller/types'
 import type { MountConfig } from '../options/mountConfig/schema'
@@ -14,19 +13,6 @@ import type { StandaloneRpcHandlers } from './createStandaloneRpcClient'
 
 const standaloneBaseUrlConfig: BaseUrlConfig = {
   baseUrls: ['https://example.com'],
-}
-
-// Standalone has no manifest registry, so the config form's schema comes from
-// the bundled manifests. Gated on VITE_STANDALONE and loaded dynamically so the
-// extension build (which never resolves these specs) drops the dango-manifests
-// JSON entirely instead of failing to resolve it.
-const standaloneManifestSpecs = new Map<string, ProviderManifestSpec>()
-if (import.meta.env.VITE_STANDALONE) {
-  void import('./standaloneManifestSpecs').then((module) => {
-    for (const [id, spec] of module.standaloneManifestSpecs) {
-      standaloneManifestSpecs.set(id, spec)
-    }
-  })
 }
 
 const standaloneBackupData: BackupData = {
@@ -114,11 +100,7 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
       null as unknown as BackgroundMethods['mediaParseUrl']['output'],
     danmakuPurgeCache: () => 0,
     providerProbeLogin: () => ({ hasLoginProbe: false, ok: true }),
-    providerGetManifestSpec: ({ manifestId }) =>
-      standaloneManifestSpecs.get(manifestId) ?? {
-        name: '',
-        hasLoginProbe: false,
-      },
+    providerGetManifestSpec: () => ({ name: '', hasLoginProbe: false }),
     fetchImage: ({ src }) => src,
     getActiveTabUrl: () => 'https://example.com',
     getFrameId: () => 0,
