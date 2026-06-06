@@ -1,0 +1,6 @@
+{
+  "enabledPlugins": {
+    "cloudflare@claude-plugins-official": true
+  },
+  "enabledMcpjsonServers": ["chrome-devtools-ext", "context7"]
+}
