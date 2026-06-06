@@ -101,7 +101,9 @@ export class ManifestRegistry {
 
   setup(): void {
     chrome.runtime.onInstalled.addListener(() => {
-      void this.update()
+      this.update().catch((e) => {
+        this.log.error('Manifest update failed:', e)
+      })
     })
   }
 
