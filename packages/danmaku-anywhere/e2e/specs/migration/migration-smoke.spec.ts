@@ -92,6 +92,7 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   const seededProbe = await openProbePage(context)
   const seededSync = await readSyncSnapshot(seededProbe)
   const seededIdb = await readIdbCounts(seededProbe)
+  const seededSeasonConfigIds = await readSeasonConfigIds(seededProbe)
   await seededProbe.close()
   expect(
     seededIdb.episodes + seededIdb.customEpisodes,
@@ -101,12 +102,19 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
     seededIdb.seasons,
     'fixture should import at least one season'
   ).toBeGreaterThan(0)
+  // The prior release backfills season.providerConfigId with `builtin:*`, so
+  // there is something for the v14 DB migration to strip.
+  expect(
+    seededSeasonConfigIds.some((id) => id.startsWith('builtin:')),
+    'seeded seasons should carry builtin: provider ids'
+  ).toBe(true)
 
   await swapExtension(context, currentExt)
 
   const probe = await openProbePage(context)
   const postSync = await readSyncSnapshot(probe)
   const postIdb = await readIdbCounts(probe)
+  const postSeasonConfigIds = await readSeasonConfigIds(probe)
   const postCustomDdpBaseUrl = await readCustomDdpBaseUrl(probe)
   const postManifest = await probe.evaluate(
     () => chrome.runtime.getManifest().version
@@ -154,6 +162,19 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
     postCustomDdpBaseUrl,
     'custom DanDanPlay baseUrl had its /api suffix stripped'
   ).toBe('https://api.dandanplay.net')
+  // The v14 DB migration must strip `builtin:` from season.providerConfigId,
+  // and every season must still point at a provider config that exists.
+  expect(
+    postSeasonConfigIds.some((id) => id.startsWith('builtin:')),
+    'no season retains a builtin: provider id'
+  ).toBe(false)
+  const configIds = new Set(postSync.providerConfigIds)
+  for (const id of postSeasonConfigIds) {
+    expect(
+      configIds.has(id),
+      `season provider id ${id} resolves to a config`
+    ).toBe(true)
+  }
 
   return context
 }
@@ -244,6 +265,37 @@ async function readCustomDdpBaseUrl(page: Page): Promise<string | undefined> {
     )
     return custom?.configValues?.baseUrl
   })
+}
+
+async function readSeasonConfigIds(page: Page): Promise<string[]> {
+  return page.evaluate(
+    (dbName) =>
+      new Promise<string[]>((resolve, reject) => {
+        const req = indexedDB.open(dbName)
+        req.onerror = () => reject(req.error)
+        req.onsuccess = () => {
+          const db = req.result
+          try {
+            const tx = db.transaction(['season'], 'readonly')
+            const getAll = tx.objectStore('season').getAll()
+            tx.oncomplete = () => {
+              db.close()
+              const ids = (
+                getAll.result as Array<{ providerConfigId?: string }>
+              )
+                .map((s) => s.providerConfigId)
+                .filter((id): id is string => typeof id === 'string')
+              resolve([...new Set(ids)].sort())
+            }
+            tx.onerror = () => reject(tx.error)
+          } catch (e) {
+            db.close()
+            reject(e)
+          }
+        }
+      }),
+    DANMAKU_DB_NAME
+  )
 }
 
 interface IdbCounts {
