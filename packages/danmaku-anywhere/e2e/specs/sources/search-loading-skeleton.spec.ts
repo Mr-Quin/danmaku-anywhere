@@ -50,7 +50,7 @@ test('loading shows a result-count skeleton, then the result count', async ({
 
   await expect(popup.search.seasonCard('DanDanPlay')).toBeVisible()
   await expect(popup.search.resultCountSkeleton).toBeHidden()
-  await expect(page.getByText(/2 results|2 个结果/)).toBeVisible()
+  await expect(popup.search.resultCount(2)).toBeVisible()
 })
 
 // The retry path deliberately drives a failed search; the RPC layer logs the

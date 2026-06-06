@@ -77,4 +77,11 @@ export class SearchPage {
   get retryButton(): Locator {
     return this.page.locator('[data-testid="search-retry"]')
   }
+
+  // Anchored so a count like 2 doesn't match 12/22; matches both locales.
+  resultCount(count: number): Locator {
+    return this.page.getByText(
+      new RegExp(`^(${count} results|${count} 个结果)$`)
+    )
+  }
 }
