@@ -6,7 +6,7 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Download, Search } from '@mui/icons-material'
-import { Box, Button, Stack, Typography } from '@mui/material'
+import { Box, Button, Skeleton, Stack, Typography } from '@mui/material'
 import { useQueries } from '@tanstack/react-query'
 import { type ReactNode, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -161,6 +161,24 @@ export function SearchForm({
       ? activeQuery.data.data.length
       : undefined
 
+  const renderResultCount = (): ReactNode => {
+    if (activeQuery?.isFetching) {
+      return (
+        <Skeleton
+          variant="text"
+          width={56}
+          data-testid="search-result-count-skeleton"
+        />
+      )
+    }
+    if (typeof activeCount === 'number') {
+      return t('searchPage.resultsCount', '{{count}} results', {
+        count: activeCount,
+      })
+    }
+    return ' '
+  }
+
   const renderBody = (): ReactNode => {
     if (isUrl) {
       return (
@@ -196,7 +214,7 @@ export function SearchForm({
     if (committedSearchTerm && activeProvider && activeQuery) {
       return (
         <SeasonResultsList
-          isLoading={activeQuery.isPending}
+          isLoading={activeQuery.isFetching}
           data={activeQuery.data?.success ? activeQuery.data.data : null}
           error={
             activeQuery.data?.success === false
@@ -291,11 +309,7 @@ export function SearchForm({
               lineHeight: '16px',
             }}
           >
-            {typeof activeCount === 'number'
-              ? t('searchPage.resultsCount', '{{count}} results', {
-                  count: activeCount,
-                })
-              : ' '}
+            {renderResultCount()}
           </Typography>
         )}
       </Stack>

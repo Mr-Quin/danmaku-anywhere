@@ -117,6 +117,7 @@ export function SeasonResultRow({ season, onClick }: SeasonResultRowProps) {
 export function SeasonResultRowSkeleton() {
   return (
     <Box
+      data-testid="season-result-skeleton"
       sx={{
         width: '100%',
         minWidth: 0,
