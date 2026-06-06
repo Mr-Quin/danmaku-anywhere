@@ -266,12 +266,18 @@ export class ProviderService {
   // bundling source-specific switches.
   async getManifestSpec(manifestId: string): Promise<ProviderManifestSpec> {
     await this.manifestRegistry.ready
-    const { manifest } = this.manifestRegistry.getRunner(manifestId)
-    return {
-      name: manifest.name,
-      hasLoginProbe: manifest.loginProbe !== undefined,
-      cookieSet: manifest.cookieSet,
-      configSchema: manifest.configSchema,
+    try {
+      const { manifest } = this.manifestRegistry.getRunner(manifestId)
+      return {
+        name: manifest.name,
+        hasLoginProbe: manifest.loginProbe !== undefined,
+        cookieSet: manifest.cookieSet,
+        configSchema: manifest.configSchema,
+      }
+    } catch {
+      // Unknown id (legacy:maccms) or a catalog miss: report a minimal spec so
+      // the popup degrades to a name-only form instead of rejecting the RPC.
+      return { name: '', hasLoginProbe: false }
     }
   }
 }

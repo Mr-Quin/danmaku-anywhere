@@ -4,6 +4,7 @@ import {
   buildDefaultValues,
   getFieldKind,
   getObjectFields,
+  mergeConfigValues,
   toNumberOrUndefined,
 } from './schemaForm'
 
@@ -94,12 +95,6 @@ describe('getObjectFields', () => {
       'auth',
       'chConvert',
     ])
-    expect(fields.map((f) => f.kind)).toEqual([
-      'text',
-      'text',
-      'object',
-      'select',
-    ])
   })
 
   it('marks fields listed in the schema required array', () => {
@@ -180,6 +175,11 @@ describe('buildDefaultValues', () => {
     expect(result.chConvert).toBe(0)
   })
 
+  it('ignores a stored select value that is not one of the enum options', () => {
+    const result = buildDefaultValues(ddpSchema, { chConvert: 5 })
+    expect(result.chConvert).toBe(0)
+  })
+
   it('coerces malformed array items into the item shape', () => {
     const result = buildDefaultValues(ddpSchema, {
       auth: { enabled: true, headers: [{ key: 'only-key' }] },
@@ -188,5 +188,28 @@ describe('buildDefaultValues', () => {
       enabled: true,
       headers: [{ key: 'only-key', value: '' }],
     })
+  })
+})
+
+describe('mergeConfigValues', () => {
+  it('drops empty schema fields and keeps falsy non-empty values', () => {
+    const result = mergeConfigValues(
+      {},
+      { baseUrl: '', chConvert: 0, enabled: false, appId: undefined }
+    )
+    expect(result).toEqual({ chConvert: 0, enabled: false })
+  })
+
+  it('preserves stored keys the form did not touch', () => {
+    const result = mergeConfigValues(
+      { legacyOnly: 'keep', baseUrl: 'old' },
+      { baseUrl: 'new' }
+    )
+    expect(result).toEqual({ legacyOnly: 'keep', baseUrl: 'new' })
+  })
+
+  it('does not resurrect a stored value that was cleared in the form', () => {
+    const result = mergeConfigValues({ baseUrl: 'old' }, { baseUrl: '' })
+    expect(result).toEqual({})
   })
 })

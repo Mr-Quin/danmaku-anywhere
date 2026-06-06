@@ -12,7 +12,6 @@ export type FieldKind =
 export interface FieldDescriptor {
   key: string
   schema: ConfigSchema
-  kind: FieldKind
   required: boolean
 }
 
@@ -61,7 +60,6 @@ export function getObjectFields(
   return Object.entries(schema.properties).map(([key, propSchema]) => ({
     key,
     schema: propSchema,
-    kind: getFieldKind(propSchema),
     required: required.has(key),
   }))
 }
@@ -106,14 +104,16 @@ function buildFieldDefault(schema: ConfigSchema, value: unknown): unknown {
         return value
       }
       return typeof schema.default === 'boolean' ? schema.default : false
-    case 'select':
-      if (hasStoredValue(value)) {
+    case 'select': {
+      const options = schema.enum ?? []
+      if (hasStoredValue(value) && options.includes(value)) {
         return value
       }
       if (schema.default !== undefined) {
         return schema.default
       }
-      return schema.enum?.[0] ?? ''
+      return options[0] ?? ''
+    }
     case 'number':
       if (hasStoredValue(value)) {
         return value
@@ -138,6 +138,27 @@ export function buildDefaultValues(
   const out: Record<string, unknown> = {}
   for (const [key, propSchema] of Object.entries(schema.properties)) {
     out[key] = buildFieldDefault(propSchema, safeValues[key])
+  }
+  return out
+}
+
+// Schema fields fully replace their stored values, but stored keys the schema
+// does not know about are preserved. Empty optional fields are dropped so the
+// manifest's own defaults stay authoritative instead of persisting ''.
+export function mergeConfigValues(
+  stored: Record<string, unknown>,
+  config: Record<string, unknown>
+): Record<string, unknown> {
+  const out: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(stored)) {
+    if (!(key in config)) {
+      out[key] = value
+    }
+  }
+  for (const [key, value] of Object.entries(config)) {
+    if (value !== '' && value !== undefined) {
+      out[key] = value
+    }
   }
   return out
 }

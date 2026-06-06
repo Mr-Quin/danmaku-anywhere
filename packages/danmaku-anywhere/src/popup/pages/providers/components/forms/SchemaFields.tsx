@@ -92,15 +92,19 @@ function ScalarField({ name, schema, required }: SchemaFieldProps) {
 
 function SelectField({ name, schema, required }: SchemaFieldProps) {
   const { control } = useFormContext()
-  const options = schema.enum ?? []
+  const options = (schema.enum ?? []).filter(
+    (option): option is string | number =>
+      typeof option === 'string' || typeof option === 'number'
+  )
   return (
     <Controller
       name={name}
       control={control}
       rules={{ required }}
-      render={({ field: { ref, ...field }, fieldState }) => (
+      render={({ field: { ref, value, ...field }, fieldState }) => (
         <TextField
           {...field}
+          value={value ?? ''}
           label={fieldLabel(name, schema)}
           size="small"
           select
@@ -111,7 +115,7 @@ function SelectField({ name, schema, required }: SchemaFieldProps) {
           fullWidth
         >
           {options.map((option) => (
-            <MenuItem key={String(option)} value={option as string | number}>
+            <MenuItem key={String(option)} value={option}>
               {String(option)}
             </MenuItem>
           ))}

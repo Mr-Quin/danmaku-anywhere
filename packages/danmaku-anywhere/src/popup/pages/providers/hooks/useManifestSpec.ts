@@ -7,6 +7,7 @@ export const useManifestSpec = (manifestId: string) => {
     queryFn: () => chromeRpcClient.providerGetManifestSpec({ manifestId }),
     select: (res) => res.data,
     queryKey: sourceQueryKeys.manifestSpec(manifestId),
+    retry: false,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   })

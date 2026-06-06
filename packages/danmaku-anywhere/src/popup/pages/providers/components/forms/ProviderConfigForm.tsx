@@ -6,7 +6,7 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useManifestSpec } from '../../hooks/useManifestSpec'
 import { FormActions } from './FormActions'
 import { SchemaObjectFields } from './SchemaFields'
-import { buildDefaultValues } from './schemaForm'
+import { buildDefaultValues, mergeConfigValues } from './schemaForm'
 import type { ProviderFormProps } from './types'
 
 interface FormValues {
@@ -45,7 +45,7 @@ function ConfigForm({
     const next: ProviderConfig = {
       ...provider,
       name: data.name,
-      configValues: { ...provider.configValues, ...data.config },
+      configValues: mergeConfigValues(provider.configValues, data.config),
     }
     await onSubmit(next)
   })
