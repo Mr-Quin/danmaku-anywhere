@@ -1,13 +1,3 @@
-import type { ConfigSchema } from '@mr-quin/dango'
-import builtinBilibili from '@mr-quin/dango-manifests/manifests/builtin-bilibili.json' with {
-  type: 'json',
-}
-import builtinDandanplay from '@mr-quin/dango-manifests/manifests/builtin-dandanplay.json' with {
-  type: 'json',
-}
-import builtinTencent from '@mr-quin/dango-manifests/manifests/builtin-tencent.json' with {
-  type: 'json',
-}
 import type { MatchEpisodeResult } from '@/common/anime/dto'
 import type { AuthSessionState } from '@/common/auth/types'
 import type { BackupData, BackupRestoreResult } from '@/common/backup/dto'
@@ -26,33 +16,18 @@ const standaloneBaseUrlConfig: BaseUrlConfig = {
   baseUrls: ['https://example.com'],
 }
 
-// Standalone has no manifest registry, so the config form's schema comes
-// straight from the bundled manifests (mirrors ManifestRegistry's seeded set).
-interface BundledManifest {
-  id: string
-  name: string
-  configSchema?: ConfigSchema
-  loginProbe?: unknown
-  cookieSet?: { url: string; title?: string }
+// Standalone has no manifest registry, so the config form's schema comes from
+// the bundled manifests. Gated on VITE_STANDALONE and loaded dynamically so the
+// extension build (which never resolves these specs) drops the dango-manifests
+// JSON entirely instead of failing to resolve it.
+const standaloneManifestSpecs = new Map<string, ProviderManifestSpec>()
+if (import.meta.env.VITE_STANDALONE) {
+  void import('./standaloneManifestSpecs').then((module) => {
+    for (const [id, spec] of module.standaloneManifestSpecs) {
+      standaloneManifestSpecs.set(id, spec)
+    }
+  })
 }
-
-const bundledManifests = [
-  builtinDandanplay,
-  builtinBilibili,
-  builtinTencent,
-] as unknown as BundledManifest[]
-
-const standaloneManifestSpecs = new Map<string, ProviderManifestSpec>(
-  bundledManifests.map((manifest) => [
-    manifest.id,
-    {
-      name: manifest.name,
-      hasLoginProbe: manifest.loginProbe !== undefined,
-      cookieSet: manifest.cookieSet,
-      configSchema: manifest.configSchema,
-    },
-  ])
-)
 
 const standaloneBackupData: BackupData = {
   meta: {
