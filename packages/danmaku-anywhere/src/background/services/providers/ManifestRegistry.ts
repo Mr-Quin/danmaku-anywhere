@@ -133,10 +133,9 @@ export class ManifestRegistry {
     }
   }
 
-  // Add catalog manifests the store is missing, leaving existing entries (and
-  // user imports) untouched. Empty-store seeding is just the all-missing case;
-  // changed preinstalled manifests are surfaced via getPendingUpdates, not
-  // replaced here.
+  // Add-only reconcile: seed the manifests the store is missing (an empty store
+  // seeds all). Changed preinstalled manifests surface via getPendingUpdates
+  // instead of being replaced here.
   async update(): Promise<void> {
     await this.ready
     const entries = await this.loadIndex()
@@ -149,9 +148,8 @@ export class ManifestRegistry {
     await this.fetchAndStore(missing)
   }
 
-  // Cheap, index-only diff: which preinstalled manifests have a newer catalog
-  // version than the stored copy. No file fetch, no apply. Records the check
-  // time so the UI can show "checked Nm ago".
+  // Index-only: diff stored versions against the catalog without fetching files
+  // or applying. Records the check time for the UI's "checked Nm ago".
   async getPendingUpdates(): Promise<ManifestUpdate[]> {
     await this.ready
     const entries = await this.loadIndex()
@@ -178,8 +176,8 @@ export class ManifestRegistry {
     return updates
   }
 
-  // Fetch + validate + replace the named manifests and rebuild their runners.
-  // Ids not in the catalog are ignored; per-file failures are skipped.
+  // Replace only the named manifests with their current catalog version. Ids
+  // absent from the catalog are ignored.
   async applyUpdates(manifestIds: string[]): Promise<void> {
     await this.ready
     const entries = await this.loadIndex()
@@ -215,8 +213,8 @@ export class ManifestRegistry {
     })
   }
 
-  // Recover a store left empty by a failed install seed, then record a check.
-  // Detection is surfacing-only: getPendingUpdates does not auto-apply.
+  // Periodic catalog refresh: recover a store emptied by a failed seed and
+  // record a check. Never auto-applies; updates are surfaced, not installed.
   private handleRefreshAlarm = async (
     alarm: chrome.alarms.Alarm
   ): Promise<void> => {
@@ -228,9 +226,6 @@ export class ManifestRegistry {
     this.log.debug('Manifest refresh: pending updates', pending.length)
   }
 
-  // Fetch + validate the given catalog entries, store them as preinstalled, and
-  // rebuild their runners. Per-file failures are skipped so one bad file does
-  // not block the rest.
   private async fetchAndStore(entries: CatalogEntry[]): Promise<void> {
     const fetched = (
       await Promise.all(
