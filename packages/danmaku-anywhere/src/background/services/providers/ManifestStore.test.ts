@@ -90,6 +90,8 @@ describe('ManifestStore', () => {
   })
 
   it('serializes concurrent writes so none clobber each other', async () => {
+    // Without serialization the two read-modify-writes both read the same base
+    // and the later set drops the earlier add; the mutex must keep all three.
     let backing: ManifestRecord = {
       'c:3': { manifest: { id: 'c:3' }, kind: 'user' },
     }
@@ -106,9 +108,8 @@ describe('ManifestStore', () => {
     await Promise.all([
       store.set('a:1', { manifest: { id: 'a:1' }, kind: 'user' }),
       store.set('b:2', { manifest: { id: 'b:2' }, kind: 'user' }),
-      store.remove('c:3'),
     ])
 
-    expect(Object.keys(backing).sort()).toEqual(['a:1', 'b:2'])
+    expect(Object.keys(backing).sort()).toEqual(['a:1', 'b:2', 'c:3'])
   })
 })

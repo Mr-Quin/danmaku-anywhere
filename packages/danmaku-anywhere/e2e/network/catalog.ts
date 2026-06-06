@@ -29,6 +29,7 @@ const INDEX = {
   manifests: CATALOG_IDS.map((id) => ({
     id,
     apiVersion: 1,
+    version: '0.3.0',
     file: manifestFile(id),
   })),
 }

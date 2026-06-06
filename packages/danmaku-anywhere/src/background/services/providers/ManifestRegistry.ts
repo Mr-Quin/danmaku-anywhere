@@ -16,17 +16,30 @@ import {
   ManifestStore,
 } from './ManifestStore'
 
-const zCatalogIndex = z.object({
-  manifests: z.array(
-    z.object({
-      id: z.string(),
-      apiVersion: z.number(),
-      file: z.string(),
-    })
-  ),
+const zCatalogEntry = z.object({
+  id: z.string(),
+  apiVersion: z.number(),
+  version: z.string(),
+  file: z.string(),
 })
 
+const zCatalogIndex = z.object({
+  manifests: z.array(zCatalogEntry),
+})
+
+type CatalogEntry = z.infer<typeof zCatalogEntry>
 type CatalogManifest = { raw: unknown; parsed: Manifest }
+
+function storedVersion(manifest: unknown): unknown {
+  if (
+    manifest !== null &&
+    typeof manifest === 'object' &&
+    'version' in manifest
+  ) {
+    return (manifest as { version: unknown }).version
+  }
+  return undefined
+}
 
 @injectable('Singleton')
 export class ManifestRegistry {
@@ -34,7 +47,6 @@ export class ManifestRegistry {
   private readonly log: ILogger
   private readonly store: IManifestStore
   private initialized = false
-  private seeding?: Promise<void>
   readonly ready: Promise<void>
 
   constructor(
@@ -46,9 +58,8 @@ export class ManifestRegistry {
     this.ready = this.init()
   }
 
-  // Synchronous: callers gate on `ready`, which guarantees the stored set has
-  // hydrated into the map. The install-time catalog seed runs separately, so a
-  // freshly installed profile may briefly resolve no runner until it lands.
+  // Sync: `ready` guarantees the stored set hydrated. The reconcile runs
+  // separately, so a fresh install can briefly resolve no runner yet.
   getRunner(manifestId: string): ManifestRunner {
     invariant(this.initialized, 'ManifestRegistry accessed before ready')
     const runner = this.runners.get(manifestId)
@@ -92,39 +103,54 @@ export class ManifestRegistry {
 
   setup(): void {
     chrome.runtime.onInstalled.addListener(() => {
-      void this.seedIfEmpty()
-    })
-    // Fallback in case the onInstalled seed failed (e.g. offline at install).
-    chrome.runtime.onStartup.addListener(() => {
-      void this.seedIfEmpty()
+      void this.update()
     })
   }
 
-  // Pre-install the catalog set once, on install. A populated store is left
-  // untouched; refreshing it with newer compatible manifests is a separate
-  // path. Single-flighted so onInstalled and onStartup firing together don't
-  // fetch the catalog twice.
-  seedIfEmpty(): Promise<void> {
-    this.seeding ??= this.seedIfEmptyOnce()
-    return this.seeding
-  }
-
-  private async seedIfEmptyOnce(): Promise<void> {
+  // Reconcile the stored set against the catalog: add missing, replace changed
+  // preinstalled, leave user imports alone. Seeding is just the empty-store case.
+  async update(): Promise<void> {
+    const baseUrl = import.meta.env.VITE_PROXY_URL
+    let entries: CatalogEntry[]
     try {
-      await this.ready
-      const record = await this.store.getAll()
-      if (Object.keys(record).length > 0) {
-        return
-      }
-      if (await this.seed()) {
-        return
-      }
+      entries = await this.fetchIndex(baseUrl)
     } catch (e) {
-      this.log.error('Failed to seed manifests from catalog:', e)
+      this.log.error('Failed to fetch manifest catalog:', e)
+      return
     }
-    // Reached only when nothing was seeded; drop the cached attempt so a later
-    // install / startup seed can retry.
-    this.seeding = undefined
+    const stored = await this.store.getAll()
+    const stale = entries.filter((entry) =>
+      this.shouldFetch(entry, stored[entry.id])
+    )
+    const fetched = (
+      await Promise.all(
+        stale.map((entry) => this.fetchManifest(baseUrl, entry.file, entry.id))
+      )
+    ).filter((manifest) => manifest !== null)
+    if (fetched.length === 0) {
+      return
+    }
+    const updates: Record<string, ManifestEntry> = {}
+    for (const { raw, parsed } of fetched) {
+      updates[parsed.id] = { manifest: raw, kind: 'preinstalled' }
+    }
+    await this.store.setMany(updates)
+    for (const { parsed } of fetched) {
+      this.runners.set(parsed.id, this.buildRunner(parsed))
+    }
+  }
+
+  private shouldFetch(
+    entry: CatalogEntry,
+    existing: ManifestEntry | undefined
+  ): boolean {
+    if (!existing) {
+      return true
+    }
+    if (existing.kind === 'user') {
+      return false
+    }
+    return storedVersion(existing.manifest) !== entry.version
   }
 
   private async init(): Promise<void> {
@@ -135,49 +161,31 @@ export class ManifestRegistry {
     this.initialized = true
   }
 
-  private async seed(): Promise<boolean> {
-    let catalog: CatalogManifest[]
-    try {
-      catalog = await this.fetchCatalog()
-    } catch (e) {
-      this.log.error('Failed to seed manifests from catalog:', e)
-      return false
-    }
-    const seeded: Record<string, ManifestEntry> = {}
-    for (const { raw, parsed } of catalog) {
-      seeded[parsed.id] = { manifest: raw, kind: 'preinstalled' }
-    }
-    await this.store.setMany(seeded)
-    for (const { parsed } of catalog) {
-      this.runners.set(parsed.id, this.buildRunner(parsed))
-    }
-    return true
-  }
-
-  private async fetchCatalog(): Promise<CatalogManifest[]> {
-    const baseUrl = import.meta.env.VITE_PROXY_URL
+  private async fetchIndex(baseUrl: string): Promise<CatalogEntry[]> {
     const index = zCatalogIndex.parse(
       await this.fetchJson(`${baseUrl}/manifest`)
     )
-    const supported = index.manifests.filter((entry) =>
+    return index.manifests.filter((entry) =>
       SUPPORTED_API_VERSIONS.has(entry.apiVersion)
     )
-    const fetched = await Promise.all(
-      supported.map((entry) =>
-        this.fetchManifest(baseUrl, entry.file, entry.id)
-      )
-    )
-    return fetched.filter((entry) => entry !== null)
   }
 
+  // Skip (null) on any per-manifest failure so one bad file doesn't block the
+  // rest; the next reconcile retries whatever is still missing.
   private async fetchManifest(
     baseUrl: string,
     file: string,
     id: string
   ): Promise<CatalogManifest | null> {
-    const raw = await this.fetchJson(
-      `${baseUrl}/manifest/file?file=${encodeURIComponent(file)}`
-    )
+    let raw: unknown
+    try {
+      raw = await this.fetchJson(
+        `${baseUrl}/manifest/file?file=${encodeURIComponent(file)}`
+      )
+    } catch (e) {
+      this.log.error('Failed to fetch catalog manifest:', id, e)
+      return null
+    }
     const parsed = zManifest.safeParse(raw)
     if (!parsed.success) {
       this.log.error(
