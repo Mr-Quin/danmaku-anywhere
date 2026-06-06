@@ -115,7 +115,11 @@ export class ManifestRegistry {
     if (Object.keys(record).length > 0) {
       return
     }
-    await this.seed()
+    const seeded = await this.seed()
+    if (!seeded) {
+      // Drop the cached attempt so a later install / startup seed can retry.
+      this.seeding = undefined
+    }
   }
 
   private async init(): Promise<void> {
@@ -126,14 +130,13 @@ export class ManifestRegistry {
     this.initialized = true
   }
 
-  private async seed(): Promise<void> {
+  private async seed(): Promise<boolean> {
     let catalog: CatalogManifest[]
     try {
       catalog = await this.fetchCatalog()
     } catch (e) {
-      // Leave the store empty so the next onStartup / install seed retries.
       this.log.error('Failed to seed manifests from catalog:', e)
-      return
+      return false
     }
     const seeded: Record<string, ManifestEntry> = {}
     for (const { raw, parsed } of catalog) {
@@ -143,6 +146,7 @@ export class ManifestRegistry {
     for (const { parsed } of catalog) {
       this.runners.set(parsed.id, this.buildRunner(parsed))
     }
+    return true
   }
 
   private async fetchCatalog(): Promise<CatalogManifest[]> {

@@ -231,6 +231,21 @@ describe('ManifestRegistry', () => {
     expect(registry.list()).toEqual([])
   })
 
+  it('seedIfEmpty retries on a later call after a failed seed', async () => {
+    stubFetch(() => ({ status: 503, body: 'down' }))
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.seedIfEmpty()
+    expect(registry.list()).toEqual([])
+
+    stubCatalogFetch(
+      [{ id: 'one', apiVersion: 1, file: 'src/manifests/one.json' }],
+      { 'src/manifests/one.json': makeManifest('one') }
+    )
+    await registry.seedIfEmpty()
+    expect(registry.list()).toEqual(['one'])
+  })
+
   it('seedIfEmpty is single-flighted across concurrent calls', async () => {
     const fetchMock = stubCatalogFetch(
       [{ id: 'one', apiVersion: 1, file: 'src/manifests/one.json' }],
