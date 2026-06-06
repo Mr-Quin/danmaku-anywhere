@@ -21,33 +21,35 @@ function loadManifest(id: string): { apiVersion: number; version: string } {
   return JSON.parse(readFileSync(resolved, 'utf-8'))
 }
 
-const MANIFESTS = CATALOG_IDS.map((id) => ({ id, manifest: loadManifest(id) }))
+// Defaults to the built-in three. Pass extra ids to seed catalog-only sources
+// (registered but unconfigured) so a spec can exercise the import flow.
+export function mockCatalog(ids: readonly string[] = CATALOG_IDS): NetworkMock {
+  const manifests = ids.map((id) => ({ id, manifest: loadManifest(id) }))
 
-const FILES: Record<string, unknown> = Object.fromEntries(
-  MANIFESTS.map(({ id, manifest }) => [manifestFile(id), manifest])
-)
+  const files: Record<string, unknown> = Object.fromEntries(
+    manifests.map(({ id, manifest }) => [manifestFile(id), manifest])
+  )
 
-// Derive the index from the served files so apiVersion/version can't drift.
-const INDEX = {
-  manifests: MANIFESTS.map(({ id, manifest }) => ({
-    id,
-    apiVersion: manifest.apiVersion,
-    version: manifest.version,
-    file: manifestFile(id),
-  })),
-}
+  // Derive the index from the served files so apiVersion/version can't drift.
+  const index = {
+    manifests: manifests.map(({ id, manifest }) => ({
+      id,
+      apiVersion: manifest.apiVersion,
+      version: manifest.version,
+      file: manifestFile(id),
+    })),
+  }
 
-export function mockCatalog(): NetworkMock {
   return {
     pattern: /\/manifest(\/file)?(\?|$)/,
     respond: async (route: Route) => {
       const url = new URL(route.request().url())
       if (url.pathname.endsWith('/manifest/file')) {
         const file = url.searchParams.get('file') ?? ''
-        await route.fulfill({ json: FILES[file] })
+        await route.fulfill({ json: files[file] })
         return
       }
-      await route.fulfill({ json: INDEX })
+      await route.fulfill({ json: index })
     },
   }
 }

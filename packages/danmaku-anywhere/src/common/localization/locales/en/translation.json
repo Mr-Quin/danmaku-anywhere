@@ -95,6 +95,7 @@
     "name": "Name",
     "next": "Next",
     "pip": "Picture-in-Picture",
+    "refresh": "Refresh",
     "regexShort": "Regex",
     "reset": "Reset",
     "restore": "Restore",
@@ -577,6 +578,23 @@
       "updated": "Provider updated"
     },
     "builtin": "Built-in",
+    "catalog": {
+      "checked": {
+        "days_one": "checked {{count}}d ago",
+        "days_other": "checked {{count}}d ago",
+        "hours_one": "checked {{count}}h ago",
+        "hours_other": "checked {{count}}h ago",
+        "justNow": "checked just now",
+        "minutes_one": "checked {{count}}m ago",
+        "minutes_other": "checked {{count}}m ago",
+        "never": "not checked yet"
+      },
+      "empty": "All sources are installed",
+      "import": "Import",
+      "noMatch": "No matching sources",
+      "title": "Catalog",
+      "version": "v{{version}}"
+    },
     "delete": {
       "message": "Are you sure you want to delete \"{{name}}\"? Once a provider is deleted, the season and episodes associated with it will no longer be able to be refreshed.",
       "title": "Delete Provider"
@@ -590,6 +608,13 @@
         "addMacCms": "Add MacCMS Provider",
         "edit": "Edit Provider: {{name}}"
       }
+    },
+    "filter": {
+      "placeholder": "Filter sources"
+    },
+    "installed": {
+      "empty": "No matching sources",
+      "title": "Installed"
     },
     "name": "Danmaku Providers"
   },

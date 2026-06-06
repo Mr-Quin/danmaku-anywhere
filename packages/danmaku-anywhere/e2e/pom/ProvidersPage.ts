@@ -16,6 +16,28 @@ export class ProvidersPage {
     await this.row(name).first().click()
   }
 
+  filter(query: string): Promise<void> {
+    return this.page.getByPlaceholder(/Filter sources|筛选/).fill(query)
+  }
+
+  catalogRow(name: string | RegExp): Locator {
+    return this.page.getByRole('listitem').filter({ hasText: name })
+  }
+
+  importButton(name: string | RegExp): Locator {
+    return this.catalogRow(name).getByRole('button', {
+      name: /^(Import|导入)$/,
+    })
+  }
+
+  async import(name: string | RegExp): Promise<void> {
+    await this.importButton(name).click()
+  }
+
+  async refreshCatalog(): Promise<void> {
+    await this.page.getByRole('button', { name: /^(Refresh|刷新)$/ }).click()
+  }
+
   field(label: string | RegExp): Locator {
     return this.page.getByLabel(label)
   }

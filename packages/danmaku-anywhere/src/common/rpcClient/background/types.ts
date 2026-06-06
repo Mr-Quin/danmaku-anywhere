@@ -115,6 +115,18 @@ export interface ProviderManifestSpec {
   configSchema?: ConfigSchema
 }
 
+export interface ProviderManifestInfo {
+  id: string
+  name: string
+  version: string
+  configSchema?: ConfigSchema
+}
+
+export interface ProviderManifestList {
+  manifests: ProviderManifestInfo[]
+  lastCheckedAt: number | null
+}
+
 export type BackgroundMethods = {
   iconSet: RPCDef<IconSetDto, void>
   authGetSession: RPCDef<void, AuthSessionState | null>
@@ -156,6 +168,8 @@ export type BackgroundMethods = {
   bilibiliSetCookies: RPCDef<void, void>
   providerProbeLogin: RPCDef<{ manifestId: string }, ProviderLoginStatus>
   providerGetManifestSpec: RPCDef<{ manifestId: string }, ProviderManifestSpec>
+  providerListManifests: RPCDef<void, ProviderManifestList>
+  providerRefreshCatalog: RPCDef<void, ProviderManifestList>
   fetchImage: RPCDef<{ src: string }, string | null>
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>

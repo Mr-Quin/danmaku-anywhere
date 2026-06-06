@@ -122,6 +122,12 @@ export class RpcManager {
         providerGetManifestSpec: async ({ manifestId }) => {
           return this.providerService.getManifestSpec(manifestId)
         },
+        providerListManifests: async () => {
+          return this.providerService.listManifests()
+        },
+        providerRefreshCatalog: async () => {
+          return this.providerService.refreshCatalog()
+        },
         bilibiliSetCookies: async () => {
           // Credentialed homepage GET lets bilibili's Set-Cookie response
           // seed the anti-bot cookies the API host needs.

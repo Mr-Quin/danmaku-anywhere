@@ -1,3 +1,5 @@
+import { Clear, Search } from '@mui/icons-material'
+import { IconButton, InputAdornment, Stack, TextField } from '@mui/material'
 import { type ReactElement, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
@@ -10,21 +12,41 @@ import {
   createCustomMacCmsProvider,
 } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
-import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import {
+  useEditProviderConfig,
+  useProviderConfig,
+} from '@/common/options/providerConfig/useProviderConfig'
+import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
+import {
+  createConfigFromManifest,
+  manifestNeedsConfigForm,
+  matchesQuery,
+} from '../catalog'
+import { CatalogSection } from '../components/CatalogSection'
 import { ProviderAddMenu } from '../components/ProviderAddMenu'
 import { ProviderConfigList } from '../components/ProviderConfigList'
+import { SectionHeader } from '../components/SectionHeader'
 import { ProviderEditor } from './ProviderEditor'
 
 export const ProvidersPage = (): ReactElement => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
   const dialog = useDialog()
-  const { remove } = useEditProviderConfig()
+  const { configs } = useProviderConfig()
+  const { create, remove } = useEditProviderConfig()
   const [mode, setMode] = useState<'add' | 'edit' | null>(null)
+  const [filter, setFilter] = useState('')
 
   const [editingProvider, setEditingProvider] = useState<ProviderConfig | null>(
     null
   )
+
+  const installedManifestIds = new Set(
+    configs.map((config) => config.manifestId)
+  )
+  const installedCount = configs.filter((config) =>
+    matchesQuery(filter, config.name, config.manifestId)
+  ).length
 
   const handleEditProvider = (provider: ProviderConfig) => {
     setEditingProvider(provider)
@@ -44,6 +66,23 @@ export const ProvidersPage = (): ReactElement => {
   const handleCloseEditor = () => {
     setEditingProvider(null)
     setMode(null)
+  }
+
+  const handleImport = (manifest: ProviderManifestInfo) => {
+    const config = createConfigFromManifest(manifest)
+    if (manifestNeedsConfigForm(manifest.configSchema)) {
+      setEditingProvider(config)
+      setMode('add')
+      return
+    }
+    create.mutate(config, {
+      onSuccess: () => {
+        toast.success(t('providers.alert.created', 'Provider created'))
+      },
+      onError: (error) => {
+        toast.error(error.message)
+      },
+    })
   }
 
   const handleDelete = (provider: ProviderConfig) => {
@@ -82,10 +121,45 @@ export const ProvidersPage = (): ReactElement => {
           />
         </TabToolbar>
         <TabBody>
-          <ProviderConfigList
-            onEdit={handleEditProvider}
-            onDelete={handleDelete}
-          />
+          <Stack direction="column">
+            <TextField
+              size="small"
+              fullWidth
+              value={filter}
+              onChange={(e) => setFilter(e.target.value)}
+              placeholder={t('providers.filter.placeholder', 'Filter sources')}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search fontSize="small" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: filter ? (
+                    <InputAdornment position="end">
+                      <IconButton size="small" onClick={() => setFilter('')}>
+                        <Clear fontSize="small" />
+                      </IconButton>
+                    </InputAdornment>
+                  ) : null,
+                },
+              }}
+            />
+            <SectionHeader
+              title={t('providers.installed.title', 'Installed')}
+              count={installedCount}
+            />
+            <ProviderConfigList
+              filter={filter}
+              onEdit={handleEditProvider}
+              onDelete={handleDelete}
+            />
+            <CatalogSection
+              filter={filter}
+              installedManifestIds={installedManifestIds}
+              onImport={handleImport}
+            />
+          </Stack>
         </TabBody>
       </TabLayout>
 

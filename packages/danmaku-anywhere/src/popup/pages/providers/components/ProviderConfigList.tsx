@@ -7,24 +7,33 @@ import { Switch } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
+import { NothingHere } from '@/common/components/NothingHere'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import {
   useEditProviderConfig,
   useProviderConfig,
 } from '@/common/options/providerConfig/useProviderConfig'
+import { matchesQuery } from '../catalog'
 import { ProviderConfigListItem } from './ProviderConfigListItem'
 
 export const ProviderConfigList = ({
+  filter,
   onEdit,
   onDelete,
 }: {
+  filter: string
   onEdit: (config: ProviderConfig) => void
   onDelete: (config: ProviderConfig) => void
 }) => {
   const { t } = useTranslation()
   const { configs } = useProviderConfig()
   const { reorder, toggle } = useEditProviderConfig()
+
+  const isFiltered = filter.trim() !== ''
+  const visibleConfigs = configs.filter((config) =>
+    matchesQuery(filter, config.name, config.manifestId)
+  )
 
   function handleToggle(config: ProviderConfig) {
     toggle.mutate({ id: config.id })
@@ -46,7 +55,14 @@ export const ProviderConfigList = ({
 
   return (
     <DraggableList
-      items={configs}
+      items={visibleConfigs}
+      disableReorder={isFiltered}
+      renderEmpty={() => (
+        <NothingHere
+          message={t('providers.installed.empty', 'No matching sources')}
+          size={160}
+        />
+      )}
       onEdit={onEdit}
       onReorder={(sourceIndex, destinationIndex) => {
         reorder.mutate({ sourceIndex, destinationIndex })

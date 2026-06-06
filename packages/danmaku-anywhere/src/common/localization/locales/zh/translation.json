@@ -94,6 +94,7 @@
     "name": "名称",
     "next": "下一步",
     "pip": "画中画",
+    "refresh": "刷新",
     "regexShort": "正则",
     "reset": "重置",
     "restore": "恢复",
@@ -561,6 +562,20 @@
       "updated": "弹幕源已更新"
     },
     "builtin": "内置",
+    "catalog": {
+      "checked": {
+        "days_other": "{{count}} 天前检查",
+        "hours_other": "{{count}} 小时前检查",
+        "justNow": "刚刚检查",
+        "minutes_other": "{{count}} 分钟前检查",
+        "never": "尚未检查"
+      },
+      "empty": "所有弹幕源均已安装",
+      "import": "导入",
+      "noMatch": "没有匹配的弹幕源",
+      "title": "弹幕源目录",
+      "version": "v{{version}}"
+    },
     "delete": {
       "message": "确定要删除 \"{{name}}\" 吗？删除后，与此弹幕源相关的所有番剧将无法刷新。",
       "title": "删除弹幕源"
@@ -574,6 +589,13 @@
         "addMacCms": "添加MacCMS弹幕源",
         "edit": "编辑弹幕源: {{name}}"
       }
+    },
+    "filter": {
+      "placeholder": "筛选弹幕源"
+    },
+    "installed": {
+      "empty": "没有匹配的弹幕源",
+      "title": "已安装"
     },
     "name": "弹幕源"
   },

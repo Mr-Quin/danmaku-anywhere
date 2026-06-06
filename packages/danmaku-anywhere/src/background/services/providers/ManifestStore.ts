@@ -18,13 +18,20 @@ export interface IManifestStore {
   set(id: string, entry: ManifestEntry): Promise<void>
   setMany(entries: ManifestRecord): Promise<void>
   remove(id: string): Promise<void>
+  getLastCheckedAt(): Promise<number | null>
+  setLastCheckedAt(timestamp: number): Promise<void>
 }
 
 const STORAGE_KEY = 'manifests'
+const LAST_CHECKED_KEY = 'manifestsLastChecked'
 
 @injectable('Singleton')
 export class ManifestStore implements IManifestStore {
   private storage = new ExtStorageService<ManifestRecord>(STORAGE_KEY, {
+    storageType: 'local',
+  })
+
+  private lastChecked = new ExtStorageService<number>(LAST_CHECKED_KEY, {
     storageType: 'local',
   })
 
@@ -67,5 +74,13 @@ export class ManifestStore implements IManifestStore {
       delete record[id]
       await this.storage.set(record)
     })
+  }
+
+  async getLastCheckedAt(): Promise<number | null> {
+    return (await this.lastChecked.read()) ?? null
+  }
+
+  setLastCheckedAt(timestamp: number): Promise<void> {
+    return this.lastChecked.set(timestamp)
   }
 }

@@ -1,4 +1,5 @@
 import {
+  type ConfigSchema,
   type Manifest,
   ManifestRunner,
   SUPPORTED_API_VERSIONS,
@@ -29,6 +30,13 @@ const zCatalogIndex = z.object({
 
 type CatalogEntry = z.infer<typeof zCatalogEntry>
 type CatalogManifest = { raw: unknown; parsed: Manifest }
+
+export interface RegisteredManifest {
+  id: string
+  name: string
+  version: string
+  configSchema?: ConfigSchema
+}
 
 function storedVersion(manifest: unknown): unknown {
   if (
@@ -70,6 +78,20 @@ export class ManifestRegistry {
   list(): string[] {
     invariant(this.initialized, 'ManifestRegistry accessed before ready')
     return [...this.runners.keys()]
+  }
+
+  listManifests(): RegisteredManifest[] {
+    invariant(this.initialized, 'ManifestRegistry accessed before ready')
+    return [...this.runners.values()].map(({ manifest }) => ({
+      id: manifest.id,
+      name: manifest.name,
+      version: manifest.version,
+      configSchema: manifest.configSchema,
+    }))
+  }
+
+  getLastCheckedAt(): Promise<number | null> {
+    return this.store.getLastCheckedAt()
   }
 
   async register(manifest: unknown, kind: ManifestKind): Promise<void> {
@@ -119,6 +141,7 @@ export class ManifestRegistry {
       this.log.error('Failed to fetch manifest catalog:', e)
       return
     }
+    await this.store.setLastCheckedAt(Date.now())
     const stored = await this.store.getAll()
     const stale = entries.filter((entry) =>
       this.shouldFetch(entry, stored[entry.id])
