@@ -197,7 +197,11 @@ function ArrayField({ name, schema }: SchemaFieldProps) {
             spacing={1}
             sx={{ alignItems: 'flex-start' }}
           >
-            <IconButton onClick={() => remove(index)} size="small">
+            <IconButton
+              onClick={() => remove(index)}
+              size="small"
+              aria-label={t('common.delete', 'Delete')}
+            >
               <Remove />
             </IconButton>
             <Stack spacing={1} sx={{ flex: 1 }}>

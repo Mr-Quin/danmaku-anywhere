@@ -19,10 +19,14 @@ export interface FieldDescriptor {
 // Empty/invalid number inputs become undefined rather than NaN, which would
 // otherwise serialize to null when merged into configValues.
 export function toNumberOrUndefined(value: unknown): number | undefined {
-  if (value === '' || value === null || value === undefined) {
+  if (value === null || value === undefined) {
     return undefined
   }
-  const parsed = Number(value)
+  const trimmed = typeof value === 'string' ? value.trim() : value
+  if (trimmed === '') {
+    return undefined
+  }
+  const parsed = Number(trimmed)
   return Number.isNaN(parsed) ? undefined : parsed
 }
 
@@ -125,14 +129,15 @@ function buildFieldDefault(schema: ConfigSchema, value: unknown): unknown {
 
 export function buildDefaultValues(
   schema: ConfigSchema | undefined,
-  values: Record<string, unknown>
+  values: Record<string, unknown> | undefined
 ): Record<string, unknown> {
   if (!schema?.properties) {
     return {}
   }
+  const safeValues = values ?? {}
   const out: Record<string, unknown> = {}
   for (const [key, propSchema] of Object.entries(schema.properties)) {
-    out[key] = buildFieldDefault(propSchema, values[key])
+    out[key] = buildFieldDefault(propSchema, safeValues[key])
   }
   return out
 }

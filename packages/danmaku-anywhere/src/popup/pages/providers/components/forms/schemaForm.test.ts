@@ -119,6 +119,7 @@ describe('toNumberOrUndefined', () => {
     expect(toNumberOrUndefined(null)).toBeUndefined()
     expect(toNumberOrUndefined(undefined)).toBeUndefined()
     expect(toNumberOrUndefined('abc')).toBeUndefined()
+    expect(toNumberOrUndefined('   ')).toBeUndefined()
     expect(toNumberOrUndefined('12')).toBe(12)
     expect(toNumberOrUndefined(3)).toBe(3)
   })
