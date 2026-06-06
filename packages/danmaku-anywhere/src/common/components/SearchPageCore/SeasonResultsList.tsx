@@ -63,7 +63,7 @@ export function SeasonResultsList({
           message={error}
           size={160}
           beforeContent={
-            <Button onClick={onRetry} variant="text">
+            <Button onClick={onRetry} variant="text" data-testid="search-retry">
               {t('searchPage.retrySearch', 'Retry')}
             </Button>
           }

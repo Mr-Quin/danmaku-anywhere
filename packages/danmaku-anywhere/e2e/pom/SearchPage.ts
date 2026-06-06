@@ -65,4 +65,23 @@ export class SearchPage {
     await expect(card).toBeVisible({ timeout })
     await card.locator(SELECTORS.seasonCardAction).click()
   }
+
+  get resultCountSkeleton(): Locator {
+    return this.page.locator('[data-testid="search-result-count-skeleton"]')
+  }
+
+  get resultRowSkeleton(): Locator {
+    return this.page.locator('[data-testid="season-result-skeleton"]').first()
+  }
+
+  get retryButton(): Locator {
+    return this.page.locator('[data-testid="search-retry"]')
+  }
+
+  // Anchored so a count like 2 doesn't match 12/22; matches both locales.
+  resultCount(count: number): Locator {
+    return this.page.getByText(
+      new RegExp(`^(${count} results|${count} 个结果)$`)
+    )
+  }
 }
