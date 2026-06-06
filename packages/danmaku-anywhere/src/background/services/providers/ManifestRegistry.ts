@@ -176,8 +176,9 @@ export class ManifestRegistry {
     return updates
   }
 
-  // Replace only the named manifests with their current catalog version. Ids
-  // absent from the catalog are ignored.
+  // Replace only the named manifests that are already stored as preinstalled.
+  // User imports and ids not already seeded are left untouched, so an apply
+  // can never clobber a user manifest or install a brand-new source.
   async applyUpdates(manifestIds: string[]): Promise<void> {
     await this.ready
     const entries = await this.loadIndex()
@@ -185,7 +186,11 @@ export class ManifestRegistry {
       return
     }
     const wanted = new Set(manifestIds)
-    const targets = entries.filter((entry) => wanted.has(entry.id))
+    const stored = await this.store.getAll()
+    const targets = entries.filter((entry) => {
+      const existing = stored[entry.id]
+      return wanted.has(entry.id) && existing?.kind === 'preinstalled'
+    })
     await this.fetchAndStore(targets)
   }
 
@@ -214,7 +219,8 @@ export class ManifestRegistry {
   }
 
   // Periodic catalog refresh: recover a store emptied by a failed seed and
-  // record a check. Never auto-applies; updates are surfaced, not installed.
+  // record a check. Detection stays on-demand (getPendingUpdates); the alarm
+  // never auto-applies.
   private handleRefreshAlarm = async (
     alarm: chrome.alarms.Alarm
   ): Promise<void> => {
@@ -222,8 +228,6 @@ export class ManifestRegistry {
       return
     }
     await this.update()
-    const pending = await this.getPendingUpdates()
-    this.log.debug('Manifest refresh: pending updates', pending.length)
   }
 
   private async fetchAndStore(entries: CatalogEntry[]): Promise<void> {

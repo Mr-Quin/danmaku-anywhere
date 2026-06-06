@@ -12,8 +12,9 @@ import type {
  * reconciles against the backend `/manifest` catalog. Covers update() add-only
  * seeding (seed empty, add missing, never replace a changed preinstalled, leave
  * user imports), detect-vs-apply (getPendingUpdates diffs versions without
- * fetching files or applying; applyUpdates replaces only the named ids and
- * records lastCheckedAt), skipping a bad/failed file, index failures,
+ * fetching files or applying; applyUpdates replaces only the named preinstalled
+ * ids, never a user import or an unseeded id), skipping a bad/failed file,
+ * index failures,
  * register / unregister / hydrate-skip-invalid, and refresh-alarm registration.
  */
 
@@ -400,6 +401,30 @@ describe('ManifestRegistry', () => {
     expect((await store.get('two'))?.manifest).toMatchObject({
       version: '1.0.0',
     })
+  })
+
+  it('applyUpdates leaves a user import and an unseeded id untouched', async () => {
+    const fetchMock = stubCatalogFetch(
+      [catalogEntry('mine', '2.0.0'), catalogEntry('fresh', '1.0.0')],
+      {
+        [manifestPath('mine')]: makeManifest('mine', 1, '2.0.0'),
+        [manifestPath('fresh')]: makeManifest('fresh', 1, '1.0.0'),
+      }
+    )
+    const store = new InMemoryStore({
+      mine: { manifest: makeManifest('mine', 1, '1.0.0'), kind: 'user' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.applyUpdates(['mine', 'fresh'])
+
+    expect(await store.get('mine')).toEqual({
+      manifest: makeManifest('mine', 1, '1.0.0'),
+      kind: 'user',
+    })
+    expect(await store.has('fresh')).toBe(false)
+    expect(fileFetches(fetchMock)).toEqual([])
   })
 
   it('applyUpdates skips a file that fails to fetch', async () => {
