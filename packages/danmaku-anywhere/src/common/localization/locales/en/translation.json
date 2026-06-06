@@ -590,6 +590,7 @@
         "never": "not checked yet"
       },
       "empty": "All sources are installed",
+      "error": "Failed to load catalog",
       "import": "Import",
       "noMatch": "No matching sources",
       "title": "Catalog",

@@ -158,6 +158,7 @@ export const ProvidersPage = (): ReactElement => {
               filter={filter}
               installedManifestIds={installedManifestIds}
               onImport={handleImport}
+              isImporting={create.isPending}
             />
           </Stack>
         </TabBody>

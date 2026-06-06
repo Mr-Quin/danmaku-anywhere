@@ -6,6 +6,7 @@ import {
   checkedAgo,
   createConfigFromManifest,
   manifestNeedsConfigForm,
+  matchesQuery,
 } from './catalog'
 
 /**
@@ -88,6 +89,22 @@ describe('manifestNeedsConfigForm', () => {
       required: ['baseUrl'],
     }
     expect(manifestNeedsConfigForm(schema)).toBe(true)
+  })
+})
+
+describe('matchesQuery', () => {
+  it('matches everything when the query is empty or whitespace', () => {
+    expect(matchesQuery('', 'iQIYI', 'iqiyi')).toBe(true)
+    expect(matchesQuery('   ', 'iQIYI', 'iqiyi')).toBe(true)
+  })
+
+  it('matches case-insensitively against any field', () => {
+    expect(matchesQuery('IQIYI', 'iQIYI', 'iqiyi')).toBe(true)
+    expect(matchesQuery('iqi', 'Some Name', 'iqiyi')).toBe(true)
+  })
+
+  it('is false when no field contains the query', () => {
+    expect(matchesQuery('bilibili', 'iQIYI', 'iqiyi')).toBe(false)
   })
 })
 

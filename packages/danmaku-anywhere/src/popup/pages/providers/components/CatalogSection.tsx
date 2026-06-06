@@ -12,6 +12,7 @@ import {
   Typography,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
+import { useToast } from '@/common/components/Toast/toastStore'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { type CheckedAgo, checkedAgo, matchesQuery } from '../catalog'
 import { useManifestList, useRefreshCatalog } from '../hooks/useManifestList'
@@ -21,6 +22,7 @@ interface CatalogSectionProps {
   filter: string
   installedManifestIds: Set<string>
   onImport: (manifest: ProviderManifestInfo) => void
+  isImporting: boolean
 }
 
 function useCheckedAgoLabel(lastCheckedAt: number | null): string {
@@ -50,9 +52,11 @@ export const CatalogSection = ({
   filter,
   installedManifestIds,
   onImport,
+  isImporting,
 }: CatalogSectionProps) => {
   const { t } = useTranslation()
-  const { data, isLoading } = useManifestList()
+  const toast = useToast.use.toast()
+  const { data, isLoading, isError } = useManifestList()
   const refresh = useRefreshCatalog()
 
   const checkedLabel = useCheckedAgoLabel(data?.lastCheckedAt ?? null)
@@ -70,6 +74,13 @@ export const CatalogSection = ({
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
           <CircularProgress size={24} />
         </Box>
+      )
+    }
+    if (isError) {
+      return (
+        <Typography variant="body2" color="error" sx={{ py: 1 }}>
+          {t('providers.catalog.error', 'Failed to load catalog')}
+        </Typography>
       )
     }
     if (visible.length === 0) {
@@ -103,6 +114,7 @@ export const CatalogSection = ({
                 size="small"
                 variant="outlined"
                 onClick={() => onImport(manifest)}
+                disabled={isImporting}
               >
                 {t('providers.catalog.import', 'Import')}
               </Button>
@@ -138,7 +150,13 @@ export const CatalogSection = ({
               size="small"
               edge="end"
               aria-label={t('common.refresh', 'Refresh')}
-              onClick={() => refresh.mutate()}
+              onClick={() =>
+                refresh.mutate(undefined, {
+                  onError: (error) => {
+                    toast.error(error.message)
+                  },
+                })
+              }
               disabled={refresh.isPending}
             >
               {refresh.isPending ? <CircularProgress size={16} /> : <Refresh />}
