@@ -1,14 +1,11 @@
-import { type Manifest, ManifestRunner, zManifest } from '@mr-quin/dango'
-import builtinBilibili from '@mr-quin/dango-manifests/manifests/bilibili.json' with {
-  type: 'json',
-}
-import builtinDandanplay from '@mr-quin/dango-manifests/manifests/dandanplay.json' with {
-  type: 'json',
-}
-import builtinTencent from '@mr-quin/dango-manifests/manifests/tencent.json' with {
-  type: 'json',
-}
+import {
+  type Manifest,
+  ManifestRunner,
+  SUPPORTED_API_VERSIONS,
+  zManifest,
+} from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
+import { z } from 'zod'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { invariant } from '@/common/utils/utils'
 import { extensionFetchLike } from './extensionFetchLike'
@@ -19,11 +16,15 @@ import {
   ManifestStore,
 } from './ManifestStore'
 
-const builtinManifests: unknown[] = [
-  builtinDandanplay,
-  builtinBilibili,
-  builtinTencent,
-]
+const zCatalogIndex = z.object({
+  manifests: z.array(
+    z.object({
+      id: z.string(),
+      apiVersion: z.number(),
+      file: z.string(),
+    })
+  ),
+})
 
 @injectable('Singleton')
 export class ManifestRegistry {
@@ -99,21 +100,55 @@ export class ManifestRegistry {
   }
 
   private async seed(): Promise<void> {
+    let catalog: { raw: unknown; parsed: Manifest }[]
+    try {
+      catalog = await this.fetchCatalog()
+    } catch (e) {
+      // Leave the store empty so the next init / service-worker wake retries.
+      this.log.error('Failed to seed manifests from catalog:', e)
+      return
+    }
     const seeded: Record<string, ManifestEntry> = {}
-    for (const manifest of builtinManifests) {
-      const parsed = zManifest.safeParse(manifest)
+    for (const { raw, parsed } of catalog) {
+      seeded[parsed.id] = { manifest: raw, kind: 'preinstalled' }
+      this.runners.set(parsed.id, this.buildRunner(parsed))
+    }
+    await this.store.setMany(seeded)
+  }
+
+  private async fetchCatalog(): Promise<{ raw: unknown; parsed: Manifest }[]> {
+    const baseUrl = import.meta.env.VITE_PROXY_URL
+    const index = zCatalogIndex.parse(
+      await this.fetchJson(`${baseUrl}/manifest`)
+    )
+    const result: { raw: unknown; parsed: Manifest }[] = []
+    for (const entry of index.manifests) {
+      if (!SUPPORTED_API_VERSIONS.has(entry.apiVersion)) {
+        continue
+      }
+      const raw = await this.fetchJson(
+        `${baseUrl}/manifest/file?file=${encodeURIComponent(entry.file)}`
+      )
+      const parsed = zManifest.safeParse(raw)
       if (!parsed.success) {
         this.log.error(
-          'Failed to load built-in manifest:',
-          (manifest as { id?: string }).id ?? '<unknown>',
+          'Skipping invalid catalog manifest:',
+          entry.id,
           parsed.error.issues
         )
         continue
       }
-      seeded[parsed.data.id] = { manifest, kind: 'preinstalled' }
-      this.runners.set(parsed.data.id, this.buildRunner(parsed.data))
+      result.push({ raw, parsed: parsed.data })
     }
-    await this.store.setMany(seeded)
+    return result
+  }
+
+  private async fetchJson(url: string): Promise<unknown> {
+    const res = await extensionFetchLike(url)
+    if (res.status !== 200) {
+      throw new Error(`catalog fetch failed (${res.status}): ${url}`)
+    }
+    return JSON.parse(await res.text())
   }
 
   private loadEntry(id: string, entry: ManifestEntry): void {
