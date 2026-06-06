@@ -108,6 +108,7 @@ export class ManifestRegistry {
   // Reconcile the stored set against the catalog: add missing, replace changed
   // preinstalled, leave user imports alone. Seeding is just the empty-store case.
   async update(): Promise<void> {
+    await this.ready
     const baseUrl = import.meta.env.VITE_PROXY_URL
     let entries: CatalogEntry[]
     try {
