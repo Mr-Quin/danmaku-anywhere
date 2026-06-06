@@ -19,6 +19,7 @@ import type {
   KazumiSearchResult,
   SetHeaderRule,
 } from '@danmaku-anywhere/web-scraper'
+import type { ConfigSchema } from '@mr-quin/dango'
 import type {
   GenericVodSearchData,
   MatchEpisodeInput,
@@ -107,6 +108,13 @@ export interface ProviderLoginStatus {
   ok: boolean
 }
 
+export interface ProviderManifestSpec {
+  name: string
+  hasLoginProbe: boolean
+  cookieSet?: ProviderCookieSet
+  configSchema?: ConfigSchema
+}
+
 export type BackgroundMethods = {
   iconSet: RPCDef<IconSetDto, void>
   authGetSession: RPCDef<void, AuthSessionState | null>
@@ -147,6 +155,7 @@ export type BackgroundMethods = {
   danmakuPurgeCache: RPCDef<number, number>
   bilibiliSetCookies: RPCDef<void, void>
   providerProbeLogin: RPCDef<{ manifestId: string }, ProviderLoginStatus>
+  providerGetManifestSpec: RPCDef<{ manifestId: string }, ProviderManifestSpec>
   fetchImage: RPCDef<{ src: string }, string | null>
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>

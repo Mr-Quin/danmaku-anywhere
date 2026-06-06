@@ -479,23 +479,7 @@
       "restoreConfirmDesc": "恢复此备份将覆盖您当前的设置。确定要继续吗？",
       "restoreConfirmTitle": "恢复设置？"
     },
-    "chConvert": {
-      "name": "简繁转换",
-      "none": "不转换",
-      "simplified": "转换成简体",
-      "traditional": "转换成繁体"
-    },
     "danmakuSource": {
-      "bilibili": {
-        "danmakuTypePreference": "弹幕获取方式",
-        "help": {
-          "danmakuTypePreferenceProtobuf": "Protobuf：获取速度较慢，但是弹幕数量多，每分钟可达1000条。视频越长，速度越慢。",
-          "danmakuTypePreferenceXML": "XML：获取速度快，但是弹幕数量较少。根据视频类型，500-10000条不等。"
-        }
-      },
-      "dandanplay": {
-        "apiUrl": "API 地址"
-      },
       "macCms": {
         "baseUrl": "MacCMS API地址",
         "baseUrlHelper": "列表中的选项可能随时失效。你也可以手动输入地址。",
@@ -582,16 +566,7 @@
       "title": "删除弹幕源"
     },
     "editor": {
-      "addHeader": "添加请求头",
-      "authEnabled": "启用身份验证",
-      "authHeaders": "自定义请求头",
-      "headerKey": "请求头键名",
-      "headerValue": "请求头值",
-      "helper": {
-        "authHeaders": "随每个请求发送的自定义请求头 (例如 Authorization、X-AppSecret)",
-        "baseUrl": "弹弹play或兼容弹弹play的API地址",
-        "builtInName": "内置弹幕源的名称不可更改"
-      },
+      "addItem": "添加",
       "name": "名称",
       "title": {
         "add": "添加弹幕源",

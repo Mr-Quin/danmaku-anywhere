@@ -64,6 +64,8 @@ export const customEpisodeQueryKeys = {
 export const sourceQueryKeys = {
   loginStatus: (manifestId: string) =>
     [{ scope: 'source', kind: 'loginStatus', manifestId }] as const,
+  manifestSpec: (manifestId: string) =>
+    [{ scope: 'source', kind: 'manifestSpec', manifestId }] as const,
 }
 
 export const tabQueryKeys = {
