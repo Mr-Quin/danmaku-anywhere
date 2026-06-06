@@ -260,8 +260,7 @@
   },
   "danmakuSource": {
     "tooltip": {
-      "bilibiliNotLoggedIn": "<0></0>",
-      "tencentCookieMissing": "<0></0>"
+      "loginRequired": "This source may need you to sign in or refresh cookies. Episode and danmaku results can be limited until then."
     }
   },
   "debugPage": {

@@ -11,7 +11,6 @@ import type {
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { BilibiliUserInfo } from '@danmaku-anywhere/danmaku-provider/bilibili'
 import type { ExtractTitleResponse } from '@danmaku-anywhere/danmaku-provider/genAi'
 import type {
   KazumiChapterPayload,
@@ -97,6 +96,17 @@ export type TestAiProviderResponse =
       message: string
     }
 
+export interface ProviderCookieSet {
+  url: string
+  title?: string
+}
+
+export interface ProviderLoginStatus {
+  hasLoginProbe: boolean
+  cookieSet?: ProviderCookieSet
+  ok: boolean
+}
+
 export type BackgroundMethods = {
   iconSet: RPCDef<IconSetDto, void>
   authGetSession: RPCDef<void, AuthSessionState | null>
@@ -136,8 +146,7 @@ export type BackgroundMethods = {
   seasonMapGetAll: RPCDef<void, SeasonMapSnapshot[]>
   danmakuPurgeCache: RPCDef<number, number>
   bilibiliSetCookies: RPCDef<void, void>
-  bilibiliGetLoginStatus: RPCDef<void, BilibiliUserInfo>
-  tencentTestCookies: RPCDef<void, boolean>
+  providerProbeLogin: RPCDef<{ manifestId: string }, ProviderLoginStatus>
   fetchImage: RPCDef<{ src: string }, string | null>
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>

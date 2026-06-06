@@ -1,59 +1,50 @@
 import { Warning } from '@mui/icons-material'
 import { Tooltip, Typography } from '@mui/material'
-import { Trans } from 'react-i18next'
+import { useTranslation } from 'react-i18next'
 import { ExternalLink } from '@/common/components/ExternalLink'
+import type { ProviderCookieSet } from '@/common/rpcClient/background/types'
 
 interface ProviderWarningIconProps {
-  warningType: 'bilibili' | 'tencent' | null
+  testId: string
+  cookieSet?: ProviderCookieSet
 }
 
 export const ProviderWarningIcon = ({
-  warningType,
+  testId,
+  cookieSet,
 }: ProviderWarningIconProps) => {
-  if (!warningType) return null
+  const { t } = useTranslation()
 
-  const getTooltipContent = () => {
-    if (warningType === 'bilibili') {
-      return (
-        <Typography variant="caption">
-          {/* @ts-ignore */}
-          <Trans i18nKey="danmakuSource.tooltip.bilibiliNotLoggedIn">
-            <ExternalLink
-              color="primary"
-              to="https://www.bilibili.com"
-              target="_blank"
-              rel="noreferrer"
-            />
-          </Trans>
-        </Typography>
-      )
-    }
+  // cookieSet.url comes from a manifest (including user-registered ones); only
+  // render it as a link when it is a real web URL, not a javascript:/data: scheme.
+  const linkUrl =
+    cookieSet && /^https?:\/\//i.test(cookieSet.url) ? cookieSet.url : undefined
 
-    if (warningType === 'tencent') {
-      return (
-        <Typography variant="caption">
-          {/* @ts-ignore */}
-          <Trans i18nKey="danmakuSource.tooltip.tencentCookieMissing">
-            <ExternalLink
-              color="primary"
-              to="https://v.qq.com"
-              target="_blank"
-              rel="noreferrer"
-            />
-          </Trans>
-        </Typography>
-      )
-    }
-
-    return null
-  }
+  const tooltip = (
+    <Typography variant="caption">
+      {t('danmakuSource.tooltip.loginRequired')}
+      {linkUrl ? (
+        <>
+          {' '}
+          <ExternalLink
+            color="primary"
+            to={linkUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {cookieSet?.title ?? linkUrl}
+          </ExternalLink>
+        </>
+      ) : null}
+    </Typography>
+  )
 
   return (
-    <Tooltip title={getTooltipContent()} placement="top">
+    <Tooltip title={tooltip} placement="top">
       <Warning
         fontSize="small"
         color="warning"
-        data-testid={`provider-warning-${warningType}`}
+        data-testid={`provider-warning-${testId}`}
       />
     </Tooltip>
   )
