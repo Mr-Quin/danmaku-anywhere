@@ -1,6 +1,7 @@
 import { type BrowserContext, test as base, chromium } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { mockCatalog } from '../network/catalog'
 import { attachConsoleWatcher, type ConsoleWatcher } from './console-watcher'
 import {
   type AllowedNetworkPattern,
@@ -51,6 +52,10 @@ export const test = base.extend<{
       context,
       () => allowedNetworkOrigins
     )
+    // Registered after the watcher so it wins (newest handler first), and
+    // before the SW boots so the registry's catalog seed is mocked.
+    const catalog = mockCatalog()
+    await context.route(catalog.pattern, catalog.respond)
     watchersByContext.set(context, {
       console: consoleWatcher,
       network: networkWatcher,

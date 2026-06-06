@@ -5,9 +5,10 @@ import { ManifestStore } from './ManifestStore'
 
 /**
  * ManifestStore persists a single `manifests` record in chrome.storage.local
- * keyed by manifest id. Verifies getAll defaults to an empty record, and that
- * get/has/set/remove read and mutate the stored record without clobbering
- * sibling entries.
+ * keyed by manifest id. Verifies getAll defaults to an empty record, that
+ * get/has/set/setMany/remove read and mutate the stored record without
+ * clobbering sibling entries, and that the write mutex serializes concurrent
+ * read-modify-write so no write is lost.
  */
 
 function backStorageWith(record: ManifestRecord | undefined) {
@@ -53,6 +54,25 @@ describe('ManifestStore', () => {
     })
   })
 
+  it('setMany merges entries and overwrites only colliding ids', async () => {
+    backStorageWith({
+      'a:1': { manifest: { id: 'a:1' }, kind: 'preinstalled' },
+      'b:2': { manifest: { id: 'b:2' }, kind: 'user' },
+    })
+    const store = new ManifestStore()
+    await store.setMany({
+      'b:2': { manifest: { id: 'b:2', v: 2 }, kind: 'preinstalled' },
+      'c:3': { manifest: { id: 'c:3' }, kind: 'user' },
+    })
+    expect(mockChrome.storage.local.set).toHaveBeenCalledWith({
+      manifests: {
+        'a:1': { manifest: { id: 'a:1' }, kind: 'preinstalled' },
+        'b:2': { manifest: { id: 'b:2', v: 2 }, kind: 'preinstalled' },
+        'c:3': { manifest: { id: 'c:3' }, kind: 'user' },
+      },
+    })
+  })
+
   it('remove drops a single entry and is a no-op when absent', async () => {
     backStorageWith({
       'a:1': { manifest: { id: 'a:1' }, kind: 'preinstalled' },
@@ -67,5 +87,29 @@ describe('ManifestStore', () => {
     mockChrome.storage.local.set.mockClear()
     await store.remove('missing')
     expect(mockChrome.storage.local.set).not.toHaveBeenCalled()
+  })
+
+  it('serializes concurrent writes so none clobber each other', async () => {
+    // Without serialization the two read-modify-writes both read the same base
+    // and the later set drops the earlier add; the mutex must keep all three.
+    let backing: ManifestRecord = {
+      'c:3': { manifest: { id: 'c:3' }, kind: 'user' },
+    }
+    mockChrome.storage.local.get.mockImplementation(async () => {
+      await Promise.resolve()
+      return { manifests: { ...backing } }
+    })
+    mockChrome.storage.local.set.mockImplementation(async (items) => {
+      await Promise.resolve()
+      backing = (items as { manifests: ManifestRecord }).manifests
+    })
+    const store = new ManifestStore()
+
+    await Promise.all([
+      store.set('a:1', { manifest: { id: 'a:1' }, kind: 'user' }),
+      store.set('b:2', { manifest: { id: 'b:2' }, kind: 'user' }),
+    ])
+
+    expect(Object.keys(backing).sort()).toEqual(['a:1', 'b:2', 'c:3'])
   })
 })
