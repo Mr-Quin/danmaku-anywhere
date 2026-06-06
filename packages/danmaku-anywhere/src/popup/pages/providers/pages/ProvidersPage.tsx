@@ -5,13 +5,8 @@ import { TabBody } from '@/common/components/layout/TabBody'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useToast } from '@/common/components/Toast/toastStore'
-import {
-  createCustomDanDanPlayProvider,
-  createCustomMacCmsProvider,
-} from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
-import { ProviderAddMenu } from '../components/ProviderAddMenu'
 import { ProviderConfigList } from '../components/ProviderConfigList'
 import { ProviderEditor } from './ProviderEditor'
 
@@ -20,7 +15,6 @@ export const ProvidersPage = (): ReactElement => {
   const toast = useToast.use.toast()
   const dialog = useDialog()
   const { remove } = useEditProviderConfig()
-  const [mode, setMode] = useState<'add' | 'edit' | null>(null)
 
   const [editingProvider, setEditingProvider] = useState<ProviderConfig | null>(
     null
@@ -28,22 +22,10 @@ export const ProvidersPage = (): ReactElement => {
 
   const handleEditProvider = (provider: ProviderConfig) => {
     setEditingProvider(provider)
-    setMode('edit')
-  }
-
-  const handleAddDanDanPlayProvider = () => {
-    setEditingProvider(createCustomDanDanPlayProvider())
-    setMode('add')
-  }
-
-  const handleAddMacCmsProvider = () => {
-    setEditingProvider(createCustomMacCmsProvider())
-    setMode('add')
   }
 
   const handleCloseEditor = () => {
     setEditingProvider(null)
-    setMode(null)
   }
 
   const handleDelete = (provider: ProviderConfig) => {
@@ -75,12 +57,7 @@ export const ProvidersPage = (): ReactElement => {
   return (
     <>
       <TabLayout>
-        <TabToolbar title={t('providers.name', 'Danmaku Providers')}>
-          <ProviderAddMenu
-            onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
-            onAddMacCmsProvider={handleAddMacCmsProvider}
-          />
-        </TabToolbar>
+        <TabToolbar title={t('providers.name', 'Danmaku Providers')} />
         <TabBody>
           <ProviderConfigList
             onEdit={handleEditProvider}
@@ -89,9 +66,9 @@ export const ProvidersPage = (): ReactElement => {
         </TabBody>
       </TabLayout>
 
-      {editingProvider && mode && (
+      {editingProvider && (
         <ProviderEditor
-          mode={mode}
+          mode="edit"
           provider={editingProvider}
           onClose={handleCloseEditor}
         />
