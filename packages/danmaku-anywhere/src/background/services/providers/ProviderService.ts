@@ -237,7 +237,15 @@ export class ProviderService {
   // the popup can render the warning without source-specific switches. A
   // source without a loginProbe is always considered ok.
   async getLoginStatus(manifestId: string): Promise<ProviderLoginStatus> {
-    const { hasLoginProbe, cookieSet } = await this.getManifestSpec(manifestId)
+    let spec: ManifestSpec
+    try {
+      spec = await this.getManifestSpec(manifestId)
+    } catch {
+      // No manifest registered for this id (e.g. legacy:maccms): nothing to
+      // probe, so report ok rather than rejecting the RPC.
+      return { hasLoginProbe: false, ok: true }
+    }
+    const { hasLoginProbe, cookieSet } = spec
     if (!hasLoginProbe) {
       return { hasLoginProbe: false, cookieSet, ok: true }
     }

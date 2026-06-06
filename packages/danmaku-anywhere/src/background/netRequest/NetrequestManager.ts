@@ -36,6 +36,8 @@ enum ResourceType {
 
 const selfDomain = getSelfDomain()
 
+const PROXY_RULE_ID = 3 // keep old id
+
 // declarativeNetRequest rejects the whole update if any header SET op carries
 // an undefined value, so only emit headers whose value is present and skip the
 // rule entirely when the proxy is not configured.
@@ -63,7 +65,7 @@ function buildProxyRules(): chrome.declarativeNetRequest.Rule[] {
   requestHeaders.push({ header: 'Cookie', operation: HeaderOperation.REMOVE })
   return [
     {
-      id: 3, // keep old id
+      id: PROXY_RULE_ID,
       action: { type: RuleActionType.MODIFY_HEADERS, requestHeaders },
       condition: {
         urlFilter: `|${proxyUrl}`,
@@ -87,7 +89,7 @@ export class NetRequestManager {
     chrome.runtime.onInstalled.addListener(async () => {
       try {
         await chrome.declarativeNetRequest.updateDynamicRules({
-          removeRuleIds: rules.map((r) => r.id),
+          removeRuleIds: [PROXY_RULE_ID],
           addRules: rules,
         })
         this.logger.debug('Updated net request dynamic rules')

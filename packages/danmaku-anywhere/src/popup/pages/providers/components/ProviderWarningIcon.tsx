@@ -15,19 +15,24 @@ export const ProviderWarningIcon = ({
 }: ProviderWarningIconProps) => {
   const { t } = useTranslation()
 
+  // cookieSet.url comes from a manifest (including user-registered ones); only
+  // render it as a link when it is a real web URL, not a javascript:/data: scheme.
+  const linkUrl =
+    cookieSet && /^https?:\/\//i.test(cookieSet.url) ? cookieSet.url : undefined
+
   const tooltip = (
     <Typography variant="caption">
       {t('danmakuSource.tooltip.loginRequired')}
-      {cookieSet ? (
+      {linkUrl ? (
         <>
           {' '}
           <ExternalLink
             color="primary"
-            to={cookieSet.url}
+            to={linkUrl}
             target="_blank"
             rel="noreferrer"
           >
-            {cookieSet.title ?? cookieSet.url}
+            {cookieSet?.title ?? linkUrl}
           </ExternalLink>
         </>
       ) : null}
