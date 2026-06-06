@@ -416,7 +416,11 @@ export class DanmakuAnywhereDb extends Dexie {
           .table('seasonMap')
           .toCollection()
           .modify((entry) => {
-            if (!entry.seasons || typeof entry.seasons !== 'object') {
+            if (
+              !entry.seasons ||
+              typeof entry.seasons !== 'object' ||
+              Array.isArray(entry.seasons)
+            ) {
               return
             }
             const remapped: Record<string, number> = {}

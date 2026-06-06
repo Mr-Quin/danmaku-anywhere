@@ -5,6 +5,7 @@ import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
 import { PROXY_DDP_BASE_URL } from './constant'
 import {
   migrateBuiltinPrefixedProviderIds,
+  migrateDanDanPlayApiBaseUrl,
   migrateDanmakuSourcesToProviders,
   migrateProviderConfigsToFlat,
 } from './migration'
@@ -729,5 +730,131 @@ describe('migrateBuiltinPrefixedProviderIds', () => {
 
     expect(out.map((c) => c.id)).toEqual(['tencent', 'dandanplay'])
     expect(out[1].enabled).toBe(false)
+  })
+
+  it('merges configValues keys the kept record lacks from the dropped duplicate', () => {
+    const userBuiltin = {
+      ...builtin('bilibili'),
+      enabled: false,
+      configValues: {},
+    }
+    const appendedDefault = {
+      ...builtin('bilibili'),
+      configValues: { danmakuFormat: 'xml' },
+    }
+
+    const out = migrateBuiltinPrefixedProviderIds([
+      userBuiltin,
+      appendedDefault,
+    ])
+
+    expect(out).toHaveLength(1)
+    expect(out[0].enabled).toBe(false)
+    // The pinned default format is preserved rather than silently dropped.
+    expect(out[0].configValues.danmakuFormat).toBe('xml')
+  })
+
+  it('skips corrupt records without aborting the whole migration', () => {
+    const out = migrateBuiltinPrefixedProviderIds([
+      null as never,
+      { manifestId: 'builtin:bilibili' } as never, // missing id
+      'a string' as never,
+      builtin('tencent'),
+    ])
+
+    expect(out).toHaveLength(1)
+    expect(out[0].id).toBe('tencent')
+  })
+
+  it('leaves a non-string manifestId intact instead of throwing', () => {
+    const out = migrateBuiltinPrefixedProviderIds([
+      { ...builtin('tencent'), manifestId: undefined as never },
+    ])
+
+    expect(out[0].id).toBe('tencent')
+    expect(out[0].manifestId).toBeUndefined()
+  })
+})
+
+describe('migrateDanDanPlayApiBaseUrl', () => {
+  const customDdp = (baseUrl: string) => ({
+    id: 'custom-ddp-1',
+    manifestId: 'dandanplay',
+    name: 'My DDP',
+    impl: DanmakuSourceType.DanDanPlay,
+    enabled: true,
+    isBuiltIn: false,
+    configValues: { baseUrl, auth: { enabled: false, headers: [] } },
+  })
+
+  it('strips a trailing /api from a custom DanDanPlay baseUrl', () => {
+    const out = migrateDanDanPlayApiBaseUrl([
+      customDdp('https://api.dandanplay.net/api'),
+    ])
+    expect(out[0].configValues.baseUrl).toBe('https://api.dandanplay.net')
+    // Other configValues are preserved.
+    expect(out[0].configValues.auth).toEqual({ enabled: false, headers: [] })
+  })
+
+  it('strips a trailing /api/ with a slash', () => {
+    const out = migrateDanDanPlayApiBaseUrl([
+      customDdp('https://x.example/api/'),
+    ])
+    expect(out[0].configValues.baseUrl).toBe('https://x.example')
+  })
+
+  it('leaves a baseUrl without an /api suffix unchanged', () => {
+    const out = migrateDanDanPlayApiBaseUrl([customDdp('https://x.example')])
+    expect(out[0].configValues.baseUrl).toBe('https://x.example')
+  })
+
+  it('does not strip /api that is not a trailing path segment', () => {
+    const out = migrateDanDanPlayApiBaseUrl([
+      customDdp('https://x.example/myapi'),
+    ])
+    expect(out[0].configValues.baseUrl).toBe('https://x.example/myapi')
+  })
+
+  it('leaves the built-in DanDanPlay (proxy) config untouched', () => {
+    const builtinDdp = {
+      id: 'dandanplay',
+      manifestId: 'dandanplay',
+      name: 'DanDanPlay',
+      impl: DanmakuSourceType.DanDanPlay,
+      enabled: true,
+      isBuiltIn: true,
+      configValues: { baseUrl: 'https://proxy.example/ddp' },
+    }
+    const out = migrateDanDanPlayApiBaseUrl([builtinDdp])
+    expect(out[0]).toBe(builtinDdp)
+  })
+
+  it('ignores non-DanDanPlay providers', () => {
+    const maccms = {
+      id: 'legacy:maccms',
+      manifestId: 'legacy:maccms',
+      name: 'MacCMS',
+      impl: DanmakuSourceType.MacCMS,
+      enabled: true,
+      isBuiltIn: false,
+      configValues: { danmakuBaseUrl: 'https://m.example/api' },
+    }
+    const out = migrateDanDanPlayApiBaseUrl([maccms])
+    expect(out[0]).toBe(maccms)
+  })
+
+  it('handles a missing baseUrl without throwing', () => {
+    const out = migrateDanDanPlayApiBaseUrl([
+      {
+        id: 'custom-ddp-2',
+        manifestId: 'dandanplay',
+        name: 'My DDP',
+        impl: DanmakuSourceType.DanDanPlay,
+        enabled: true,
+        isBuiltIn: false,
+        configValues: {},
+      },
+    ])
+    expect(out[0].configValues.baseUrl).toBeUndefined()
   })
 })

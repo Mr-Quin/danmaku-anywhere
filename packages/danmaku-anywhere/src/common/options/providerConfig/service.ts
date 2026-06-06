@@ -14,6 +14,7 @@ import { defaultProviderConfigs } from './constant'
 import {
   ensureBuiltinProviders,
   migrateBuiltinPrefixedProviderIds,
+  migrateDanDanPlayApiBaseUrl,
   migrateProviderConfigsToFlat,
 } from './migration'
 import type { ProviderConfig } from './schema'
@@ -58,6 +59,21 @@ export class ProviderConfigService implements IStoreService {
               error
             )
             return [...defaultProviderConfigs]
+          }
+        },
+      })
+      .version(4, {
+        upgrade: (data) => {
+          try {
+            return migrateDanDanPlayApiBaseUrl(data)
+          } catch (error) {
+            // A baseUrl tweak should never cost the user their configs, so
+            // leave the data untouched rather than reset to defaults.
+            console.error(
+              '[providerConfig] DanDanPlay baseUrl migration failed, leaving configs unchanged:',
+              error
+            )
+            return data
           }
         },
       })

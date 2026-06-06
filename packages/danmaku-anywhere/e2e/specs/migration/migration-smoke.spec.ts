@@ -107,6 +107,7 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   const probe = await openProbePage(context)
   const postSync = await readSyncSnapshot(probe)
   const postIdb = await readIdbCounts(probe)
+  const postCustomDdpBaseUrl = await readCustomDdpBaseUrl(probe)
   const postManifest = await probe.evaluate(
     () => chrome.runtime.getManifest().version
   )
@@ -147,6 +148,12 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
     postIdb.customEpisodes,
     'customEpisode count preserved'
   ).toBeGreaterThanOrEqual(seededIdb.customEpisodes)
+  // The seeded custom DanDanPlay server stored baseUrl `.../api`; the manifest
+  // now appends `/api/v2`, so the migration must drop the redundant suffix.
+  expect(
+    postCustomDdpBaseUrl,
+    'custom DanDanPlay baseUrl had its /api suffix stripped'
+  ).toBe('https://api.dandanplay.net')
 
   return context
 }
@@ -217,6 +224,25 @@ async function readSyncSnapshot(page: Page): Promise<SyncSnapshot> {
       providerConfigIds: (pc?.data ?? []).map((p) => p.id ?? '?').sort(),
       aiProviderConfigIds: (ai?.data ?? []).map((p) => p.id ?? '?').sort(),
     }
+  })
+}
+
+async function readCustomDdpBaseUrl(page: Page): Promise<string | undefined> {
+  return page.evaluate(async () => {
+    const sync = await chrome.storage.sync.get('providerConfig')
+    const pc = sync.providerConfig as
+      | {
+          data?: Array<{
+            isBuiltIn?: boolean
+            manifestId?: string
+            configValues?: { baseUrl?: string }
+          }>
+        }
+      | undefined
+    const custom = (pc?.data ?? []).find(
+      (p) => p.isBuiltIn === false && p.manifestId === 'dandanplay'
+    )
+    return custom?.configValues?.baseUrl
   })
 }
 
