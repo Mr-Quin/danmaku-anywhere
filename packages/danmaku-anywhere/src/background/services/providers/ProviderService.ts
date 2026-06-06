@@ -6,6 +6,7 @@ import type {
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
+import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
@@ -14,8 +15,6 @@ import type {
   DanmakuFetchByMeta,
   DanmakuFetchRequest,
 } from '@/common/danmaku/dto'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { isProvider } from '@/common/danmaku/utils'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import type {
@@ -76,10 +75,7 @@ export class ProviderService {
 
     const seasonInserts = await service.search(params)
     // TODO: fix this once we fold custom seasons into the season insert
-    if (
-      seasonInserts[0] &&
-      isProvider(seasonInserts[0], DanmakuSourceType.MacCMS)
-    ) {
+    if (providerConfig.manifestId === LEGACY_MACCMS_ID) {
       return seasonInserts as CustomSeason[]
     }
     // Surface existing ids so bookmark / cache indicators still resolve.
@@ -105,12 +101,12 @@ export class ProviderService {
     const providerConfig = await this.providerConfigService.mustGet(
       season.providerConfigId
     )
-    const service = this.danmakuProviderFactory(providerConfig)
 
-    if (service.forProvider === DanmakuSourceType.MacCMS) {
+    if (providerConfig.manifestId === LEGACY_MACCMS_ID) {
       throw new Error('MacCMS does not support fetching episodes')
     }
 
+    const service = this.danmakuProviderFactory(providerConfig)
     const episodes = await service.getEpisodes(season.providerIds)
     return episodes.map((episode) => enrichEpisode(episode, season))
   }
@@ -158,14 +154,9 @@ export class ProviderService {
   async getDanmaku(request: DanmakuFetchRequest): Promise<WithSeason<Episode>> {
     await this.manifestRegistry.ready
     const resolved = await this.resolveMeta(request)
-    const { options = {} } = resolved
-    const provider = resolved.meta.provider
+    const { options = {}, meta } = resolved
+    const provider = meta.provider
 
-    if (provider === DanmakuSourceType.MacCMS) {
-      throw new Error('MacCMS episodes are not refetchable')
-    }
-
-    const { meta } = resolved
     const [existingDanmaku] = await this.danmakuService.filter({
       provider,
       indexedId: meta.indexedId,
@@ -186,6 +177,11 @@ export class ProviderService {
     const config = await this.providerConfigService.mustGet(
       meta.season.providerConfigId
     )
+
+    if (config.manifestId === LEGACY_MACCMS_ID) {
+      throw new Error('MacCMS episodes are not refetchable')
+    }
+
     const service = this.danmakuProviderFactory(config)
 
     const comments = await service.getDanmaku(resolved)

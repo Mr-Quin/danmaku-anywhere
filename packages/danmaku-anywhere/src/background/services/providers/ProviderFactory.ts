@@ -1,12 +1,12 @@
 import {
+  DanmakuSourceType,
   LEGACY_MACCMS_ID,
-  PROVIDER_TO_BUILTIN_ID,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { ResolutionContext } from 'inversify'
 import type { IDanmakuProvider } from '@/background/services/providers/IDanmakuProvider'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { invariant } from '@/common/utils/utils'
 import { MacCmsProviderService } from './MacCmsProviderService'
 import { ManifestProviderService } from './ManifestProviderService'
 import { ManifestRegistry } from './ManifestRegistry'
@@ -17,35 +17,26 @@ export type IDanmakuProviderFactory = (
 
 export const DanmakuProviderFactory = Symbol.for('DanmakuProviderFactory')
 
-// Per-manifest dispatch metadata. The map only carries the canonical
-// `DanmakuSourceType` for each builtin; pipeline inputs flow through the
-// generic configValues path on ManifestProviderService.
-const builtinProvider: Record<string, DanmakuSourceType> = {
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]]:
-    DanmakuSourceType.DanDanPlay,
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]]:
-    DanmakuSourceType.Bilibili,
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]]:
-    DanmakuSourceType.Tencent,
-}
-
 function createDanmakuProvider(
   config: ProviderConfig,
   registry: ManifestRegistry,
   logger: ILogger
 ): IDanmakuProvider {
-  // MacCMS still uses the legacy service until a template manifest ships.
+  // MacCMS has no manifest; it resolves through the legacy service.
   if (config.manifestId === LEGACY_MACCMS_ID) {
     return new MacCmsProviderService(config, logger)
   }
-  const provider = builtinProvider[config.manifestId]
-  if (provider === undefined) {
-    throw new Error(`Unknown manifestId: ${config.manifestId}`)
-  }
+  // The Custom impl shares MacCMS's enum value; a manifest source carrying it
+  // would be read as custom danmaku by `isNotCustom` consumers. Identity is the
+  // manifestId, so impl is only the persisted provider tag and must stay real.
+  invariant(
+    config.impl !== DanmakuSourceType.Custom,
+    `Provider config ${config.id} (${config.manifestId}) cannot use the Custom impl`
+  )
   return new ManifestProviderService(
     {
       manifestId: config.manifestId,
-      provider,
+      provider: config.impl,
       providerConfigId: config.id,
       configValues: config.configValues,
     },

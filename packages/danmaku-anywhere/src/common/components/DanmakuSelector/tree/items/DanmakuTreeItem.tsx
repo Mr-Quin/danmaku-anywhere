@@ -20,6 +20,7 @@ import { useDanmakuTreeContext } from '@/common/components/DanmakuSelector/tree/
 import { EpisodeTreeItem } from '@/common/components/DanmakuSelector/tree/items/EpisodeTreeItem'
 import { SeasonTreeItem } from '@/common/components/DanmakuSelector/tree/items/SeasonTreeItem'
 import { DanmakuContextMenu } from '@/common/components/DanmakuSelector/tree/menus/DanmakuContextMenu'
+import { isProvider } from '@/common/danmaku/utils'
 import { useLongPress } from '@/common/hooks/useLongPress'
 import { FolderTreeItem } from './FolderTreeItem'
 import { StubEpisodeTreeItem } from './StubEpisodeTreeItem'
@@ -71,7 +72,7 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
   const item = itemMap.get(itemId)
   const isSeason = item?.kind === 'season'
   const isCustomSeason = isSeason
-    ? item.data.provider === DanmakuSourceType.MacCMS
+    ? isProvider(item.data, DanmakuSourceType.MacCMS)
     : false
 
   function handleMouseEnter() {
