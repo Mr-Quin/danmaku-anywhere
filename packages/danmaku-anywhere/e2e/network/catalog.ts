@@ -21,22 +21,17 @@ function loadManifest(id: string): unknown {
   return JSON.parse(readFileSync(resolved, 'utf-8'))
 }
 
-function buildIndex() {
-  return {
-    packageVersion: '0.3.0',
-    manifests: CATALOG_IDS.map((id) => ({
-      id,
-      name: id,
-      version: '0.3.0',
-      apiVersion: 1,
-      file: manifestFile(id),
-    })),
-  }
-}
-
 const FILES: Record<string, unknown> = Object.fromEntries(
   CATALOG_IDS.map((id) => [manifestFile(id), loadManifest(id)])
 )
+
+const INDEX = {
+  manifests: CATALOG_IDS.map((id) => ({
+    id,
+    apiVersion: 1,
+    file: manifestFile(id),
+  })),
+}
 
 export function mockCatalog(): NetworkMock {
   return {
@@ -45,18 +40,10 @@ export function mockCatalog(): NetworkMock {
       const url = new URL(route.request().url())
       if (url.pathname.endsWith('/manifest/file')) {
         const file = url.searchParams.get('file') ?? ''
-        const manifest = FILES[file]
-        if (!manifest) {
-          await route.fulfill({
-            status: 404,
-            body: `unknown manifest file: ${file}`,
-          })
-          return
-        }
-        await route.fulfill({ json: manifest })
+        await route.fulfill({ json: FILES[file] })
         return
       }
-      await route.fulfill({ json: buildIndex() })
+      await route.fulfill({ json: INDEX })
     },
   }
 }
