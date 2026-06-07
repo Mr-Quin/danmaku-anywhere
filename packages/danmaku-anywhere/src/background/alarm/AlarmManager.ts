@@ -40,13 +40,12 @@ export class AlarmManager {
     void this.createManifestRefreshAlarm()
 
     const handleDanmakuPurgeAlarm = this.createHandleDanmakuPurgeAlarm()
-    const handleManifestRefreshAlarm = this.createHandleManifestRefreshAlarm()
 
     if (!chrome.alarms.onAlarm.hasListener(handleDanmakuPurgeAlarm)) {
       chrome.alarms.onAlarm.addListener(handleDanmakuPurgeAlarm)
     }
-    if (!chrome.alarms.onAlarm.hasListener(handleManifestRefreshAlarm)) {
-      chrome.alarms.onAlarm.addListener(handleManifestRefreshAlarm)
+    if (!chrome.alarms.onAlarm.hasListener(this.handleManifestRefreshAlarm)) {
+      chrome.alarms.onAlarm.addListener(this.handleManifestRefreshAlarm)
     }
   }
 
@@ -108,12 +107,12 @@ export class AlarmManager {
     })
   }
 
-  private createHandleManifestRefreshAlarm =
-    () => async (alarm: chrome.alarms.Alarm) => {
-      if (alarm.name !== alarmKeys.REFRESH_MANIFESTS) {
-        return
-      }
-
-      await this.providerService.syncCatalog()
+  // Stable reference so the hasListener guard in setup actually dedupes.
+  private handleManifestRefreshAlarm = async (alarm: chrome.alarms.Alarm) => {
+    if (alarm.name !== alarmKeys.REFRESH_MANIFESTS) {
+      return
     }
+
+    await this.providerService.syncCatalog()
+  }
 }
