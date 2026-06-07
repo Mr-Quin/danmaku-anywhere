@@ -290,7 +290,12 @@ export class ProviderService {
   // list. lastCheckedAt is recorded here, so "checked Nm ago" only advances when
   // the catalog is actually brought current, never on a bare detection.
   async syncCatalog(): Promise<void> {
-    await this.manifestRegistry.update()
+    const fetched = await this.manifestRegistry.update()
+    if (!fetched) {
+      // Offline / catalog unreachable: don't record a check, so the UI keeps
+      // showing the last time the catalog was actually brought current.
+      return
+    }
     const pending = await this.manifestRegistry.getPendingUpdates()
     const configs = await this.providerConfigService.getAll()
     const installed = new Set(configs.map((config) => config.manifestId))

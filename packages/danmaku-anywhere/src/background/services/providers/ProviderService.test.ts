@@ -258,7 +258,7 @@ describe('ProviderService.refreshCatalog', () => {
     const recordChecked = vi.fn(async () => {})
     const registry = {
       ready: Promise.resolve(true),
-      update: vi.fn(async () => {}),
+      update: vi.fn(async () => true),
       getPendingUpdates: vi.fn(async () => opts.pending),
       applyUpdates,
       recordChecked,
@@ -322,6 +322,33 @@ describe('ProviderService.refreshCatalog', () => {
     await service.refreshCatalog()
 
     expect(recordChecked).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not record a check when the catalog index fetch fails', async () => {
+    const recordChecked = vi.fn(async () => {})
+    const getPendingUpdates = vi.fn(async () => [])
+    const registry = {
+      ready: Promise.resolve(true),
+      update: vi.fn(async () => false),
+      getPendingUpdates,
+      applyUpdates: vi.fn(async () => {}),
+      recordChecked,
+      listManifests: vi.fn(() => []),
+      getLastCheckedAt: vi.fn(async () => 0),
+    } as unknown as ManifestRegistry
+    const service = new ProviderService(
+      {} as unknown as DanmakuService,
+      {} as unknown as SeasonService,
+      {} as unknown as ProviderConfigService,
+      vi.fn(),
+      registry,
+      silentLogger
+    )
+
+    await service.refreshCatalog()
+
+    expect(getPendingUpdates).not.toHaveBeenCalled()
+    expect(recordChecked).not.toHaveBeenCalled()
   })
 })
 

@@ -226,7 +226,7 @@ describe('ManifestRegistry', () => {
     stubFetch(() => ({ status: 503, body: 'unavailable' }))
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await expect(registry.update()).resolves.toBeUndefined()
+    await expect(registry.update()).resolves.toBe(false)
 
     expect(await store.getAll()).toEqual({})
     expect(registry.list()).toEqual([])
@@ -240,7 +240,7 @@ describe('ManifestRegistry', () => {
     )
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await expect(registry.update()).resolves.toBeUndefined()
+    await expect(registry.update()).resolves.toBe(false)
 
     expect(await store.getAll()).toEqual({})
     expect(registry.list()).toEqual([])

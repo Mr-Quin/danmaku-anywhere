@@ -126,16 +126,18 @@ export class ManifestRegistry {
 
   // Add-only reconcile: seed the manifests the store is missing (an empty store
   // seeds all). Changed preinstalled manifests surface via getPendingUpdates
-  // instead of being replaced here.
-  async update(): Promise<void> {
+  // instead of being replaced here. Returns false when the catalog index could
+  // not be fetched, so callers can avoid recording a successful check.
+  async update(): Promise<boolean> {
     await this.ready
     const entries = await this.loadIndex()
     if (!entries) {
-      return
+      return false
     }
     const stored = await this.store.getAll()
     const missing = entries.filter((entry) => !stored[entry.id])
     await this.fetchAndStore(missing)
+    return true
   }
 
   // Index-only: diff stored versions against the catalog without fetching files

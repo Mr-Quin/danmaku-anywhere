@@ -52,34 +52,39 @@ export const UpdatesSection = ({
         ) : null}
       </SectionHeader>
       <Stack sx={{ gap: 1 }}>
-        {updates.map((update) => (
-          <Box key={update.manifestId} sx={sourceCardSx}>
-            <ProviderRow
-              avatarSeed={update.manifestId}
-              primary={
-                manifestById.get(update.manifestId)?.name ?? update.manifestId
-              }
-              secondary={t('providers.updates.version', 'v{{from}} → v{{to}}', {
-                from: update.fromVersion,
-                to: update.toVersion,
-              })}
-              action={
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => runApply([update.manifestId])}
-                  disabled={apply.isPending}
-                >
-                  {apply.isPending ? (
-                    <CircularProgress size={16} />
-                  ) : (
-                    t('providers.updates.update', 'Update')
-                  )}
-                </Button>
-              }
-            />
-          </Box>
-        ))}
+        {updates.map((update) => {
+          const updatingThis =
+            apply.isPending && apply.variables?.includes(update.manifestId)
+          return (
+            <Box key={update.manifestId} sx={sourceCardSx}>
+              <ProviderRow
+                avatarSeed={update.manifestId}
+                primary={
+                  manifestById.get(update.manifestId)?.name ?? update.manifestId
+                }
+                secondary={t(
+                  'providers.updates.version',
+                  'v{{from}} → v{{to}}',
+                  { from: update.fromVersion, to: update.toVersion }
+                )}
+                action={
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => runApply([update.manifestId])}
+                    disabled={apply.isPending}
+                  >
+                    {updatingThis ? (
+                      <CircularProgress size={16} />
+                    ) : (
+                      t('providers.updates.update', 'Update')
+                    )}
+                  </Button>
+                }
+              />
+            </Box>
+          )
+        })}
       </Stack>
     </Box>
   )
