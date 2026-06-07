@@ -79,7 +79,6 @@ export const InstalledList = ({
     return (
       <DraggableList
         items={configs}
-        clickable={false}
         onReorder={(source, destination) => {
           reorderAll.mutate(
             arrayMove(configs, source, destination).map((c) => c.id),

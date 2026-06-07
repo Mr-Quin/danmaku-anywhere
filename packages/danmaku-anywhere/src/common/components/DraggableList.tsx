@@ -51,15 +51,19 @@ const DraggableItemIcon = styled(ListItemIcon)(({ theme }) => {
   }
 })
 
-const StyledListItem = styled(ListItem)(({ theme }) => {
+const StyledListItem = styled(ListItem, {
+  shouldForwardProp: (prop) => prop !== 'hasAction',
+})<{ hasAction?: boolean }>(({ theme, hasAction }) => {
   return {
     border: `1px solid ${theme.palette.divider}`,
     borderRadius: theme.shape.borderRadius,
     backgroundColor: theme.palette.background.paper,
     userSelect: 'none',
-    '.MuiListItemButton-root': {
-      paddingRight: theme.spacing(12), // make room for action buttons
-    },
+    // Reserve room for the action buttons only when there are any, otherwise
+    // the row keeps the default padding like every other list item.
+    ...(hasAction
+      ? { '.MuiListItemButton-root': { paddingRight: theme.spacing(12) } }
+      : {}),
   }
 })
 
@@ -152,6 +156,7 @@ function SortableItem<T extends DraggableItem>({
       ref={setNodeRef}
       style={style}
       key={item.id}
+      hasAction={!multiselect && renderSecondaryAction !== undefined}
       secondaryAction={
         multiselect
           ? null
