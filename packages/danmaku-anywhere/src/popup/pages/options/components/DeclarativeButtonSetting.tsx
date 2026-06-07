@@ -1,11 +1,9 @@
-import {
-  CircularProgress,
-  ListItem,
-  ListItemButton,
-  ListItemText,
-} from '@mui/material'
+import { FileUpload } from '@mui/icons-material'
+import { Button, CircularProgress } from '@mui/material'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { ButtonSettingConfig } from '@/common/settings/settingConfigs'
+import { SettingsStaticRow } from './settings/SettingsGroup'
 
 interface DeclarativeButtonSettingProps {
   config: ButtonSettingConfig
@@ -16,6 +14,7 @@ export const DeclarativeButtonSetting = ({
   config,
   isLoading: isLoadingProp,
 }: DeclarativeButtonSettingProps) => {
+  const { t } = useTranslation()
   const [isLoadingState, setIsLoading] = useState(false)
 
   async function handleClick() {
@@ -30,11 +29,22 @@ export const DeclarativeButtonSetting = ({
   const isLoading = isLoadingState || isLoadingProp
 
   return (
-    <ListItem disablePadding>
-      <ListItemButton onClick={handleClick} disabled={isLoading}>
-        <ListItemText primary={config.label()} />
-        {isLoading && <CircularProgress size={24} />}
-      </ListItemButton>
-    </ListItem>
+    <SettingsStaticRow
+      title={config.label()}
+      subtitle={config.description?.()}
+      right={
+        <Button
+          variant="soft"
+          onClick={handleClick}
+          disabled={isLoading}
+          aria-label={config.label()}
+          startIcon={
+            isLoading ? <CircularProgress size={14} /> : <FileUpload />
+          }
+        >
+          {t('optionsPage.submit', 'Submit')}
+        </Button>
+      }
+    />
   )
 }

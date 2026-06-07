@@ -436,6 +436,15 @@
     "title": "标题"
   },
   "optionsPage": {
+    "account": {
+      "signInDescription": "将配置与弹幕备份到云端",
+      "signInToSync": "登录以同步"
+    },
+    "advanced": {
+      "behavior": "行为",
+      "diagnostics": "诊断",
+      "privacy": "隐私"
+    },
     "auth": {
       "confirmPassword": "确认密码",
       "email": "电子邮箱",
@@ -444,7 +453,6 @@
       "nameHelper": "别的用户可以看到你的昵称",
       "password": "密码",
       "passwordHelper": "长度至少为6个字符",
-      "signedInAs": "已登录",
       "signIn": "登录",
       "signOut": "退出登录",
       "signUp": "注册",
@@ -462,15 +470,20 @@
       "cloudCreateSuccess": "云备份已创建",
       "cloudDescription": "将设置同步到云端。最多保留3个版本。",
       "cloudDownloadError": "下载云备份失败：{{message}}",
+      "cloudKeepsLast": "保留最近 3 个",
       "cloudListError": "加载云备份失败。",
-      "cloudSignInRequired": "登录后即可使用云备份。",
+      "cloudRevisions": "历史版本",
+      "cloudSignInTitle": "登录以启用云备份",
+      "export": "导出",
+      "exportRowDesc": "将设置保存为 JSON 文件",
       "exportToFile": "保存到文件",
       "goToSignIn": "前往登录",
+      "import": "导入",
       "importError": "导入失败",
       "importFromFile": "从文件恢复",
+      "importRowDesc": "从 JSON 文件恢复设置",
       "latestRevision": "最新",
       "localBackup": "本地备份",
-      "localDescription": "将设置保存为JSON文件，或从文件恢复。",
       "noCloudBackups": "暂无云备份。创建一个开始使用。",
       "restoreConfirmDesc": "恢复此备份将覆盖您当前的设置。确定要继续吗？",
       "restoreConfirmTitle": "恢复设置？"
@@ -487,21 +500,28 @@
       }
     },
     "dataManagement": {
+      "dangerZone": "危险操作",
       "wipeDanmakuData": "清空弹幕库",
       "wipeData": {
         "confirm1": "确定要清空所有弹幕，剧集，映射吗？此操作无法恢复。",
         "confirm2": "此操作无法恢复，确定要继续吗？",
+        "description": "永久删除所有已存储的弹幕，此操作无法撤销。",
         "includeCustomEpisodes": "同时清空本地弹幕"
       }
     },
+    "debugLogging": "调试日志",
+    "debugLoggingDesc": "在开发者控制台输出详细日志。",
     "enableAnalytics": "匿名数据收集",
+    "enableAnalyticsDesc": "自愿分享使用统计以帮助改进。",
     "enableFullscreenInteraction": "全屏时启用交互",
+    "enableFullscreenInteractionDesc": "在全屏时仍可使用弹幕控制。",
     "help": {
       "feedback": "提交意见或建议",
       "reportBug": "报告Bug"
     },
     "hotkeys": {
       "addHotkey": "添加快捷键",
+      "banner": "点击某个快捷键，然后按下新的组合键。",
       "enterKey": "输入快捷键",
       "openSearchPanel": "打开搜索面板",
       "refreshComments": "刷新弹幕",
@@ -511,6 +531,20 @@
     },
     "language": "语言",
     "matchLocalDanmaku": "匹配本地弹幕",
+    "matchLocalDanmakuDesc": "自动匹配本地文件中的弹幕。",
+    "menu": {
+      "aboutSubtitle": "帮助、致谢、许可",
+      "aboutSupport": "关于与支持",
+      "advancedSubtitle": "诊断、实验性选项",
+      "cloudReady": "云同步已就绪",
+      "data": "数据",
+      "general": "通用",
+      "localOnly": "本地备份",
+      "playback": "播放",
+      "retentionDays_other": "保留：{{count}} 天",
+      "retentionOff": "未启用保留",
+      "shortcutsBound_other": "已绑定 {{count}} 个快捷键"
+    },
     "name": "设置",
     "pages": {
       "advanced": "高级设置",
@@ -522,24 +556,32 @@
       "player": "播放设置"
     },
     "player": {
+      "inPlayerControls": "播放器内控制",
       "showDanmakuTimeline": "显示弹幕密度",
-      "showSkipButton": "显示跳过按钮（OP/ED）"
+      "showDanmakuTimelineDesc": "在进度条上方叠加弹幕密度时间轴。",
+      "showSkipButton": "显示跳过按钮（OP/ED）",
+      "showSkipButtonDesc": "在片头和片尾显示一键跳过按钮。"
     },
     "restrictInitiatorDomain": "限制DNR至发起自扩展的请求",
+    "restrictInitiatorDomainDesc": "将网络规则范围限制在本扩展。",
     "retentionPolicy": {
       "alert": {
         "nDanmakuDeleted_other": "已删除{{count}}条弹幕"
       },
       "deleteCommentsAfter": "弹幕保留时间",
       "enabled": "启用自动删除",
+      "enabledDesc": "自动清除早于下方期限的弹幕。",
       "purgeNow": "立即清理",
+      "title": "保留策略",
       "tooltip": {
-        "deleteCommentsAfter": "超过指定天数的弹幕将被删除。0表示从不删除。",
         "nextPurge": "下次清理时间：{{time}}"
       }
     },
     "searchUsingSimplified": "使用简体中文搜索",
+    "searchUsingSimplifiedDesc": "搜索时将繁体转换为简体。",
     "showFloatingButton": "显示浮动按钮",
+    "showFloatingButtonDesc": "在视频页面显示快捷操作按钮。",
+    "submit": "提交",
     "theme": {
       "colorMode": {
         "dark": "深色",
@@ -548,6 +590,7 @@
       }
     },
     "uploadDebugData": "提交调试数据",
+    "uploadDebugDataDesc": "上传诊断数据并复制参考 ID。",
     "uploadDebugDataSuccess": "提交成功 {{ id }}"
   },
   "providers": {

@@ -451,6 +451,15 @@
     "title": "Title"
   },
   "optionsPage": {
+    "account": {
+      "signInDescription": "Back up configs and danmaku to the cloud",
+      "signInToSync": "Sign in to sync"
+    },
+    "advanced": {
+      "behavior": "Behavior",
+      "diagnostics": "Diagnostics",
+      "privacy": "Privacy"
+    },
     "auth": {
       "confirmPassword": "Confirm Password",
       "email": "Email",
@@ -459,7 +468,6 @@
       "nameHelper": "The user name is public and does not need to be unique",
       "password": "Password",
       "passwordHelper": "Must be at least 6 characters",
-      "signedInAs": "Signed in as",
       "signIn": "Sign In",
       "signOut": "Sign Out",
       "signUp": "Sign Up",
@@ -477,15 +485,20 @@
       "cloudCreateSuccess": "Cloud backup created",
       "cloudDescription": "Sync your settings to the cloud. Up to 3 revisions are kept.",
       "cloudDownloadError": "Failed to download cloud backup: {{message}}",
+      "cloudKeepsLast": "Keeps last 3",
       "cloudListError": "Failed to load cloud backups.",
-      "cloudSignInRequired": "Sign in to use cloud backup.",
+      "cloudRevisions": "Revisions",
+      "cloudSignInTitle": "Sign in to enable cloud backup",
+      "export": "Export",
+      "exportRowDesc": "Save settings to a JSON file",
       "exportToFile": "Save to File",
       "goToSignIn": "Go to Sign In",
+      "import": "Import",
       "importError": "Import failed",
       "importFromFile": "Restore from File",
+      "importRowDesc": "Restore settings from a JSON file",
       "latestRevision": "Latest",
       "localBackup": "Local Backup",
-      "localDescription": "Save and restore your settings as a JSON file.",
       "noCloudBackups": "No cloud backups yet. Create one to get started.",
       "restoreConfirmDesc": "Restoring this backup will overwrite your current settings. Are you sure you want to proceed?",
       "restoreConfirmTitle": "Restore Settings?"
@@ -502,21 +515,28 @@
       }
     },
     "dataManagement": {
+      "dangerZone": "Danger zone",
       "wipeDanmakuData": "Wipe Danmaku Data",
       "wipeData": {
         "confirm1": "Are you sure you want to wipe all danmaku, seasons, and mapping data? This action cannot be undone.",
         "confirm2": "Are you sure? This action cannot be undone.",
+        "description": "Permanently delete all stored danmaku. This cannot be undone.",
         "includeCustomEpisodes": "Include custom episodes"
       }
     },
+    "debugLogging": "Debug logging",
+    "debugLoggingDesc": "Verbose logs in the developer console.",
     "enableAnalytics": "Enable anonymous analytics",
+    "enableAnalyticsDesc": "Share opt-in usage stats to guide development.",
     "enableFullscreenInteraction": "Enable fullscreen interaction",
+    "enableFullscreenInteractionDesc": "Keep danmaku controls reachable in fullscreen.",
     "help": {
       "feedback": "Provide feedback",
       "reportBug": "Report Bug"
     },
     "hotkeys": {
       "addHotkey": "Add Hotkey",
+      "banner": "Click a shortcut, then press the new key combination.",
       "enterKey": "Enter key",
       "openSearchPanel": "Open search panel",
       "refreshComments": "Refresh comments",
@@ -526,21 +546,41 @@
     },
     "language": "Language",
     "matchLocalDanmaku": "Enable matching local Danmaku",
-    "name": "Options",
+    "matchLocalDanmakuDesc": "Auto-match comments from local files on disk.",
+    "menu": {
+      "aboutSubtitle": "Help, credits, licenses",
+      "aboutSupport": "About & Support",
+      "advancedSubtitle": "Diagnostics, experimental flags",
+      "cloudReady": "Cloud sync ready",
+      "data": "Data",
+      "general": "General",
+      "localOnly": "Local backup",
+      "playback": "Playback",
+      "retentionDays_one": "Retention: {{count}} day",
+      "retentionDays_other": "Retention: {{count}} days",
+      "retentionOff": "Retention off",
+      "shortcutsBound_one": "{{count}} shortcut bound",
+      "shortcutsBound_other": "{{count}} shortcuts bound"
+    },
+    "name": "Settings",
     "pages": {
       "advanced": "Advanced",
       "auth": "Account",
       "backup": "Backup & Restore",
       "dataManagement": "Data Management",
-      "help": "关于",
+      "help": "About",
       "hotkeys": "Hotkeys",
       "player": "Player Settings"
     },
     "player": {
+      "inPlayerControls": "In-player controls",
       "showDanmakuTimeline": "Show danmaku density",
-      "showSkipButton": "Show skip button (OP/ED)"
+      "showDanmakuTimelineDesc": "Overlay a comment-density timeline above the scrubber.",
+      "showSkipButton": "Show skip button (OP/ED)",
+      "showSkipButtonDesc": "Surface a one-tap skip during intro and outro segments."
     },
     "restrictInitiatorDomain": "Limit DNR initiator domains to this extension",
+    "restrictInitiatorDomainDesc": "Restrict network-rule scope to this extension.",
     "retentionPolicy": {
       "alert": {
         "nDanmakuDeleted_one": "{{count}} danmaku deleted",
@@ -548,14 +588,18 @@
       },
       "deleteCommentsAfter": "Delete comments older than",
       "enabled": "Enable Retention Policy",
+      "enabledDesc": "Automatically purge comments older than the limit below.",
       "purgeNow": "Purge Now",
+      "title": "Retention policy",
       "tooltip": {
-        "deleteCommentsAfter": "optionsPage.retentionPolicy.tooltip.deleteCommentsAfter",
         "nextPurge": "Next purge at {{time}}"
       }
     },
     "searchUsingSimplified": "Search using simplified Chinese",
+    "searchUsingSimplifiedDesc": "Convert Traditional to Simplified when searching.",
     "showFloatingButton": "Show floating button",
+    "showFloatingButtonDesc": "Show the quick-action button on video pages.",
+    "submit": "Submit",
     "theme": {
       "colorMode": {
         "dark": "Dark",
@@ -564,6 +608,7 @@
       }
     },
     "uploadDebugData": "Submit Debug Data",
+    "uploadDebugDataDesc": "Upload diagnostics and copy a reference ID.",
     "uploadDebugDataSuccess": "Submitted {{ id }}"
   },
   "providers": {

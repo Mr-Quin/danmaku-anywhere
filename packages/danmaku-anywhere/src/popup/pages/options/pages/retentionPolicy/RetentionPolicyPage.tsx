@@ -1,19 +1,14 @@
 import { standardSchemaResolver } from '@hookform/resolvers/standard-schema'
-import { ExpandMore } from '@mui/icons-material'
+import { DeleteOutlined, ExpandMore, WarningAmber } from '@mui/icons-material'
 import {
   AccordionDetails,
   AccordionSummary,
   Box,
   Button,
   Checkbox,
-  Divider,
   FormControlLabel,
   InputAdornment,
-  List,
-  ListItem,
-  ListItemText,
   Stack,
-  Switch,
   TextField,
   Typography,
 } from '@mui/material'
@@ -39,6 +34,11 @@ import {
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
+import {
+  SettingsGroup,
+  SettingsGroupLabel,
+  SettingsToggleRow,
+} from '@/popup/pages/options/components/settings/SettingsGroup'
 
 function useWipeDanmakuStorage() {
   return useMutation({
@@ -200,169 +200,143 @@ export const RetentionPolicyPage = () => {
         <OptionsPageToolBar
           title={t('optionsPage.pages.dataManagement', 'Data Management')}
         />
-        <Box
-          sx={{
-            px: 2,
-          }}
-        >
-          <List>
-            <ListItem disablePadding>
-              <ListItemText
-                primary={
-                  <Stack
-                    direction="row"
-                    sx={{
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <>
-                      {t(
-                        'optionsPage.retentionPolicy.enabled',
-                        'Enable Retention Policy'
-                      )}
-                    </>
-                    <Controller
-                      name="enabled"
-                      control={control}
-                      render={({ field: { onChange, value } }) => {
-                        return <Switch checked={value} onChange={onChange} />
-                      }}
-                    />
-                  </Stack>
-                }
+
+        <SettingsGroupLabel>
+          {t('optionsPage.retentionPolicy.title', 'Retention policy')}
+        </SettingsGroupLabel>
+        <SettingsGroup>
+          <Controller
+            name="enabled"
+            control={control}
+            render={({ field: { onChange, value } }) => (
+              <SettingsToggleRow
+                title={t(
+                  'optionsPage.retentionPolicy.enabled',
+                  'Enable Retention Policy'
+                )}
+                subtitle={t(
+                  'optionsPage.retentionPolicy.enabledDesc',
+                  'Automatically purge comments older than the limit below.'
+                )}
+                checked={value}
+                onToggle={onChange}
               />
-            </ListItem>
-            <Divider />
-            <ListItem disablePadding>
-              <ListItemText
-                primary={
-                  <Stack
-                    direction="row"
-                    sx={{
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <>
-                      {t(
-                        'optionsPage.retentionPolicy.deleteCommentsAfter',
-                        'Delete comments older than'
-                      )}
-                    </>
-                    <Controller
-                      name="deleteCommentsAfter"
-                      control={control}
-                      render={({ field }) => {
-                        return (
-                          <TextField
-                            {...field}
-                            sx={{ width: 150 }}
-                            size="small"
-                            autoComplete="off"
-                            slotProps={{
-                              input: {
-                                endAdornment: (
-                                  <InputAdornment position="end">
-                                    {t('common.duration.day', {
-                                      count: Number.parseInt(`${field.value}`),
-                                    })}
-                                  </InputAdornment>
-                                ),
-                              },
-                            }}
-                            type="number"
-                            error={!!errors.deleteCommentsAfter}
-                            helperText={errors.deleteCommentsAfter?.message}
-                          />
-                        )
-                      }}
-                    />
-                  </Stack>
-                }
-                secondary={
-                  <>
-                    <>
-                      {t(
-                        'optionsPage.retentionPolicy.tooltip.deleteCommentsAfter'
-                      )}
-                    </>
-                    {retentionPolicy.enabled && nextPurgeTime && (
-                      <>
-                        {t(
-                          'optionsPage.retentionPolicy.tooltip.nextPurge',
-                          'Next purge at {{time}}',
-                          {
-                            time: nextPurgeTime,
-                          }
-                        )}
-                      </>
-                    )}
-                  </>
-                }
+            )}
+          />
+        </SettingsGroup>
+
+        <Box sx={{ px: 2, mt: 1.75 }}>
+          <Typography
+            variant="overline"
+            sx={{ display: 'block', color: 'text.secondary', mb: 0.5 }}
+          >
+            {t(
+              'optionsPage.retentionPolicy.deleteCommentsAfter',
+              'Delete comments older than'
+            )}
+          </Typography>
+          <Controller
+            name="deleteCommentsAfter"
+            control={control}
+            render={({ field }) => (
+              <TextField
+                {...field}
+                fullWidth
+                size="small"
+                autoComplete="off"
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        {t('common.duration.day', {
+                          count: Number.parseInt(`${field.value}`),
+                        })}
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+                type="number"
+                error={!!errors.deleteCommentsAfter}
+                helperText={errors.deleteCommentsAfter?.message}
               />
-            </ListItem>
-          </List>
-          <Stack direction="row">
+            )}
+          />
+          {retentionPolicy.enabled && nextPurgeTime && (
+            <Typography
+              variant="caption"
+              sx={{ display: 'block', color: 'text.secondary', mt: 0.5 }}
+            >
+              {t(
+                'optionsPage.retentionPolicy.tooltip.nextPurge',
+                'Next purge at {{time}}',
+                { time: nextPurgeTime }
+              )}
+            </Typography>
+          )}
+
+          <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
             <Button
               onClick={handleSubmit((update) => handleApply(update))}
               loading={isPending}
               variant="contained"
               disabled={!isDirty}
+              sx={{ flex: 1 }}
             >
               {t('common.apply', 'Apply')}
             </Button>
             <Button
               onClick={() => purgeDanmaku()}
               loading={isPurgingDanmaku}
-              variant="contained"
+              variant="outlined"
               color="error"
-              sx={{ ml: 'auto' }}
               disabled={isDirty}
+              startIcon={<DeleteOutlined />}
+              sx={{ flex: 1 }}
             >
               {t('optionsPage.retentionPolicy.purgeNow', 'Purge Now')}
             </Button>
           </Stack>
+        </Box>
 
-          <Box
-            sx={{
-              mt: 4,
-            }}
+        <Box sx={{ px: 1.5, mt: 2.5, pb: 2 }}>
+          <OutlineAccordion
+            disableGutters
+            elevation={0}
+            sx={{ borderColor: 'error.main' }}
           >
-            <OutlineAccordion disableGutters elevation={0}>
-              <AccordionSummary expandIcon={<ExpandMore />}>
-                <Typography>{t('common.advanced', 'Advanced')}</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Stack
-                  direction="row"
-                  sx={{
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <Typography variant="body2">
-                    {t(
-                      'optionsPage.dataManagement.wipeDanmakuData',
-                      'Wipe Danmaku Data'
-                    )}
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    color="error"
-                    onClick={handleWipeData}
-                    loading={isWiping}
-                  >
-                    {t(
-                      'optionsPage.dataManagement.wipeDanmakuData',
-                      'Wipe Danmaku Data'
-                    )}
-                  </Button>
-                </Stack>
-              </AccordionDetails>
-            </OutlineAccordion>
-          </Box>
+            <AccordionSummary expandIcon={<ExpandMore />}>
+              <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                <WarningAmber color="error" fontSize="small" />
+                <Typography sx={{ fontWeight: 600, color: 'error.main' }}>
+                  {t('optionsPage.dataManagement.dangerZone', 'Danger zone')}
+                </Typography>
+              </Stack>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Typography
+                variant="body2"
+                sx={{ color: 'text.secondary', mb: 1.5 }}
+              >
+                {t(
+                  'optionsPage.dataManagement.wipeData.description',
+                  'Permanently delete all stored danmaku. This cannot be undone.'
+                )}
+              </Typography>
+              <Button
+                fullWidth
+                variant="contained"
+                color="error"
+                onClick={handleWipeData}
+                loading={isWiping}
+                startIcon={<DeleteOutlined />}
+              >
+                {t(
+                  'optionsPage.dataManagement.wipeDanmakuData',
+                  'Wipe Danmaku Data'
+                )}
+              </Button>
+            </AccordionDetails>
+          </OutlineAccordion>
         </Box>
       </OptionsPageLayout>
       <Outlet />

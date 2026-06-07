@@ -1,5 +1,5 @@
-import { Clear } from '@mui/icons-material'
-import { Button, IconButton, TextField } from '@mui/material'
+import { Add, Clear } from '@mui/icons-material'
+import { Box, Button, IconButton, TextField } from '@mui/material'
 import type { KeyboardEvent } from 'react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -12,10 +12,38 @@ interface HotkeyInputProps {
   value?: string
 }
 
+const Kbd = ({ children }: { children: string }) => {
+  return (
+    <Box
+      component="span"
+      sx={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minWidth: 24,
+        height: 26,
+        px: 1,
+        borderRadius: 1,
+        bgcolor: 'background.paper',
+        border: 1,
+        borderBottomWidth: 2,
+        borderColor: 'divider',
+        fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+        fontSize: 12,
+        fontWeight: 700,
+      }}
+    >
+      {children}
+    </Box>
+  )
+}
+
 export const HotkeyInput = ({ onKeyChange, value }: HotkeyInputProps) => {
   const { t } = useTranslation()
   const [key, setKey] = useState(value ?? '')
   const [editing, setEditing] = useState(false)
+
+  const isMacOs = getOS() === 'MacOS'
 
   const handleKeyChange = (key: string) => {
     onKeyChange?.(key)
@@ -56,16 +84,32 @@ export const HotkeyInput = ({ onKeyChange, value }: HotkeyInputProps) => {
     }
   }
 
-  const displayKey = formatHotkeyCombo(key, { isMacOs: getOS() === 'MacOS' })
+  if (editing) {
+    return (
+      <TextField
+        value={formatHotkeyCombo(key, { isMacOs })}
+        onKeyDown={handleKeyDown}
+        onBlur={() => setEditing(false)}
+        placeholder={t('optionsPage.hotkeys.enterKey', 'Enter key')}
+        autoComplete="off"
+        autoFocus
+        size="small"
+        fullWidth={false}
+        sx={{
+          width: 180,
+          '& .MuiInputBase-root': { height: 28 },
+          '& .MuiInputBase-input': { py: 0 },
+        }}
+      />
+    )
+  }
 
-  if (!editing && !key) {
+  if (!key) {
     return (
       <Button
-        onClick={() => {
-          setEditing(true)
-        }}
-        variant="outlined"
-        color="inherit"
+        onClick={() => setEditing(true)}
+        variant="soft"
+        startIcon={<Add />}
       >
         {t('optionsPage.hotkeys.addHotkey', 'Add Hotkey')}
       </Button>
@@ -73,28 +117,28 @@ export const HotkeyInput = ({ onKeyChange, value }: HotkeyInputProps) => {
   }
 
   return (
-    <TextField
-      value={displayKey}
-      onKeyDown={handleKeyDown}
-      placeholder={t('optionsPage.hotkeys.enterKey', 'Enter key')}
-      autoComplete="off"
-      size="small"
-      fullWidth={false}
-      sx={{ width: 180 }}
-      slotProps={{
-        input: {
-          endAdornment: [
-            <IconButton
-              key="clear"
-              onClick={() => {
-                handleKeyChange('')
-              }}
-            >
-              <Clear />
-            </IconButton>,
-          ],
-        },
-      }}
-    />
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+      <Box
+        component="button"
+        type="button"
+        onClick={() => setEditing(true)}
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          border: 'none',
+          background: 'none',
+          p: 0,
+          cursor: 'pointer',
+        }}
+      >
+        {key.split('+').map((part, i) => (
+          <Kbd key={`${part}-${i}`}>{formatHotkeyCombo(part, { isMacOs })}</Kbd>
+        ))}
+      </Box>
+      <IconButton size="small" onClick={() => handleKeyChange('')}>
+        <Clear fontSize="small" />
+      </IconButton>
+    </Box>
   )
 }

@@ -1,4 +1,5 @@
-import { Button, CircularProgress, Stack } from '@mui/material'
+import { Download, Upload } from '@mui/icons-material'
+import { Button, CircularProgress } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import { useMutation } from '@tanstack/react-query'
 import { type ChangeEvent, useRef } from 'react'
@@ -6,7 +7,12 @@ import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { createDownload } from '@/common/utils/utils'
-import { SectionHeader } from './SectionHeader'
+import {
+  SettingsGroup,
+  SettingsGroupLabel,
+  SettingsStaticRow,
+} from '@/popup/pages/options/components/settings/SettingsGroup'
+import { useBackupImport } from '../useBackupImport'
 
 const HiddenInput = styled('input')({
   display: 'none',
@@ -42,25 +48,7 @@ export function LocalBackupSection({
     },
   })
 
-  const importMutation = useMutation({
-    mutationFn: async (data: unknown) => {
-      return await chromeRpcClient.backupImport(data)
-    },
-    onSuccess: () => {
-      toast.success(
-        t(
-          'optionsPage.backup.alert.importSuccess',
-          'Backup imported successfully'
-        )
-      )
-    },
-    onError: (error) => {
-      toast.error(
-        t('optionsPage.backup.importError', 'Import failed') +
-          `: ${error.message}`
-      )
-    },
-  })
+  const importMutation = useBackupImport()
 
   const handleImportClick = () => {
     fileInputRef.current?.click()
@@ -85,38 +73,58 @@ export function LocalBackupSection({
   const isRestoring = importMutation.isPending || isRestoringExt
 
   return (
-    <div>
-      <SectionHeader
-        title={t('optionsPage.backup.localBackup', 'Local Backup')}
-        description={t(
-          'optionsPage.backup.localDescription',
-          'Save and restore your settings as a JSON file.'
-        )}
-      />
-      <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
-        <Button
-          variant="contained"
-          onClick={() => exportMutation.mutate()}
-          disabled={exportMutation.isPending}
-        >
-          {exportMutation.isPending ? (
-            <CircularProgress size={20} color="inherit" />
-          ) : (
-            t('optionsPage.backup.exportToFile', 'Save to File')
+    <>
+      <SettingsGroupLabel>
+        {t('optionsPage.backup.localBackup', 'Local Backup')}
+      </SettingsGroupLabel>
+      <SettingsGroup>
+        <SettingsStaticRow
+          icon={<Download fontSize="small" />}
+          title={t('optionsPage.backup.exportToFile', 'Save to File')}
+          subtitle={t(
+            'optionsPage.backup.exportRowDesc',
+            'Save settings to a JSON file'
           )}
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={handleImportClick}
-          disabled={isRestoring}
-        >
-          {importMutation.isPending ? (
-            <CircularProgress size={20} />
-          ) : (
-            t('optionsPage.backup.importFromFile', 'Restore from File')
+          right={
+            <Button
+              variant="soft"
+              onClick={() => exportMutation.mutate()}
+              disabled={exportMutation.isPending}
+              startIcon={
+                exportMutation.isPending ? (
+                  <CircularProgress size={14} />
+                ) : undefined
+              }
+            >
+              {t('optionsPage.backup.export', 'Export')}
+            </Button>
+          }
+        />
+        <SettingsStaticRow
+          icon={<Upload fontSize="small" />}
+          iconTone="secondary"
+          title={t('optionsPage.backup.importFromFile', 'Restore from File')}
+          subtitle={t(
+            'optionsPage.backup.importRowDesc',
+            'Restore settings from a JSON file'
           )}
-        </Button>
-      </Stack>
+          right={
+            <Button
+              variant="soft"
+              color="secondary"
+              onClick={handleImportClick}
+              disabled={isRestoring}
+              startIcon={
+                importMutation.isPending ? (
+                  <CircularProgress size={14} />
+                ) : undefined
+              }
+            >
+              {t('optionsPage.backup.import', 'Import')}
+            </Button>
+          }
+        />
+      </SettingsGroup>
 
       <HiddenInput
         type="file"
@@ -124,6 +132,6 @@ export function LocalBackupSection({
         accept=".json"
         onChange={handleFileChange}
       />
-    </div>
+    </>
   )
 }

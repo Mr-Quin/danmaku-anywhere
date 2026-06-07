@@ -1,11 +1,4 @@
-import {
-  Button,
-  Chip,
-  CircularProgress,
-  List,
-  ListItem,
-  ListItemText,
-} from '@mui/material'
+import { Box, Button, Chip, CircularProgress, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import type { CloudBackupItem } from '@/common/backup/dto'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
@@ -61,7 +54,7 @@ export function CloudBackupList({
   }
 
   return (
-    <List disablePadding>
+    <>
       {backups.map((backup, index) => (
         <CloudBackupListItem
           key={backup.id}
@@ -72,7 +65,7 @@ export function CloudBackupList({
           onRestore={() => handleRestore(backup.id)}
         />
       ))}
-    </List>
+    </>
   )
 }
 
@@ -93,44 +86,46 @@ function CloudBackupListItem({
   const timeAgo = useTimeAgo(backup.createdAt)
 
   return (
-    <ListItem
-      disablePadding
-      sx={{ mb: 1.5 }}
-      secondaryAction={
-        <Button size="small" disabled={isRestoring} onClick={onRestore}>
-          {isRestoring && restoringId === backup.id ? (
-            <CircularProgress size={18} />
-          ) : (
-            t('common.restore', 'Restore')
-          )}
-        </Button>
-      }
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1.25,
+        px: 1.75,
+        py: 1.25,
+      }}
     >
-      <ListItemText
-        primary={
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span>
-              {new Date(backup.createdAt).toLocaleString(i18n.language)}
-            </span>
-            {backup.extensionVersion && (
-              <Chip
-                label={`v${backup.extensionVersion}`}
-                size="small"
-                variant="outlined"
-              />
-            )}
-            {index === 0 && (
-              <Chip
-                label={t('optionsPage.backup.latestRevision', 'Latest')}
-                size="small"
-                color="primary"
-                variant="outlined"
-              />
-            )}
-          </div>
-        }
-        secondary={timeAgo}
-      />
-    </ListItem>
+      <Box sx={{ flex: 1, minWidth: 0 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            {new Date(backup.createdAt).toLocaleString(i18n.language)}
+          </Typography>
+          {index === 0 && (
+            <Chip
+              label={t('optionsPage.backup.latestRevision', 'Latest')}
+              size="small"
+              color="primary"
+            />
+          )}
+        </Box>
+        <Box
+          sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.25 }}
+        >
+          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            {timeAgo}
+          </Typography>
+          {backup.extensionVersion && (
+            <Chip label={`v${backup.extensionVersion}`} size="small" />
+          )}
+        </Box>
+      </Box>
+      <Button size="small" disabled={isRestoring} onClick={onRestore}>
+        {isRestoring && restoringId === backup.id ? (
+          <CircularProgress size={18} />
+        ) : (
+          t('common.restore', 'Restore')
+        )}
+      </Button>
+    </Box>
   )
 }
