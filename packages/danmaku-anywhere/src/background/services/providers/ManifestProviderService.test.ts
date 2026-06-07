@@ -8,7 +8,10 @@ import type { ManifestRunner } from '@mr-quin/dango'
 import { describe, expect, it, vi } from 'vitest'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { ILogger } from '@/common/Logger'
-import { ManifestProviderService } from './ManifestProviderService'
+import {
+  MANIFEST_RUN_OPTIONS,
+  ManifestProviderService,
+} from './ManifestProviderService'
 import type { ManifestRegistry } from './ManifestRegistry'
 
 /**
@@ -18,10 +21,7 @@ import type { ManifestRegistry } from './ManifestRegistry'
  * the caller. Input precedence is exercised via the configValues path.
  */
 
-// Manifest sources may target self-hosted local endpoints, so every runner
-// call opts into private hosts; the manifest `hosts` allowlist still gates
-// requests.
-const RUN_OPTS = { allowPrivateHosts: true }
+const RUN_OPTS = MANIFEST_RUN_OPTIONS
 
 function makeRunner(returns: Record<string, unknown>): ManifestRunner {
   return {

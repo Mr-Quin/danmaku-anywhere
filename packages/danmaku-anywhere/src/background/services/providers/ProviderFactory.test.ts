@@ -7,7 +7,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ILogger } from '@/common/Logger'
 import { LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
-import { ManifestProviderService } from './ManifestProviderService'
+import {
+  MANIFEST_RUN_OPTIONS,
+  ManifestProviderService,
+} from './ManifestProviderService'
 import type { ManifestRegistry } from './ManifestRegistry'
 
 /**
@@ -20,7 +23,7 @@ import type { ManifestRegistry } from './ManifestRegistry'
  * configValues; there is no DDP-compat special case.
  */
 
-const RUN_OPTS = { allowPrivateHosts: true }
+const RUN_OPTS = MANIFEST_RUN_OPTIONS
 
 const mockRunner = {
   runSearch: vi.fn(async () => []),

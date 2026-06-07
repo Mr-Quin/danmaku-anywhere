@@ -177,14 +177,8 @@ export type BackgroundMethods = {
     { manifestId: string; locale?: string },
     ProviderManifestSpec
   >
-  providerListManifests: RPCDef<
-    { locale?: string } | void,
-    ProviderManifestList
-  >
-  providerRefreshCatalog: RPCDef<
-    { locale?: string } | void,
-    ProviderManifestList
-  >
+  providerListManifests: RPCDef<{ locale?: string }, ProviderManifestList>
+  providerRefreshCatalog: RPCDef<{ locale?: string }, ProviderManifestList>
   providerGetPendingUpdates: RPCDef<void, ManifestUpdate[]>
   providerApplyUpdates: RPCDef<{ manifestIds: string[] }, void>
   fetchImage: RPCDef<{ src: string }, string | null>

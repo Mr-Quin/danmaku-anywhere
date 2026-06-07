@@ -11,6 +11,7 @@ import type { ILogger } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderConfigService } from '@/common/options/providerConfig/service'
 import type { IDanmakuProvider } from './IDanmakuProvider'
+import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
 import type { ManifestRegistry } from './ManifestRegistry'
 import { ProviderService } from './ProviderService'
 
@@ -120,9 +121,7 @@ describe('ProviderService.probeLogin', () => {
 
     await service.probeLogin('dandanplay')
 
-    expect(runLoginProbe).toHaveBeenCalledWith(undefined, {
-      allowPrivateHosts: true,
-    })
+    expect(runLoginProbe).toHaveBeenCalledWith(undefined, MANIFEST_RUN_OPTIONS)
   })
 })
 
