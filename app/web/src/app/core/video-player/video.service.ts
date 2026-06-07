@@ -134,6 +134,7 @@ export class VideoService {
   private controls: ComponentOption[] = []
   private controlNames = new Set<string>()
   private subtitleRenderer: InstanceType<typeof SubtitlesOctopus> | null = null
+  private corsRetryPending = false
 
   private $player = signal<Artplayer | null>(null)
   private $container = signal<ElementRef<HTMLDivElement> | null>(null)
@@ -198,6 +199,8 @@ export class VideoService {
       airplay: false,
       lang: 'zh-cn',
       theme: '#f472b6',
+      // CORS-clean so occlusion can read frames; falls back to no-cors on error
+      moreVideoAttr: { crossOrigin: 'anonymous' },
     })
 
     this.setupEventListeners(player)
@@ -220,6 +223,9 @@ export class VideoService {
       if (!url) {
         this.updateState({ isVideoReady: false })
       } else {
+        // re-arm CORS per source after a previous no-cors fallback
+        this.corsRetryPending = false
+        player.video.crossOrigin = 'anonymous'
         void player.switchUrl(url)
       }
     }
@@ -404,7 +410,19 @@ export class VideoService {
       this.updateState({ isFullscreenWeb })
     })
 
+    // CORS rejected: drop crossorigin so the reconnect reloads no-cors
+    player.on('video:error', () => {
+      if (player.video.crossOrigin) {
+        this.corsRetryPending = true
+        player.video.removeAttribute('crossorigin')
+      }
+    })
+
     player.on('error', (e: unknown) => {
+      if (this.corsRetryPending) {
+        this.corsRetryPending = false
+        return
+      }
       this.messageService.add({
         severity: 'error',
         summary: '视频加载错误',

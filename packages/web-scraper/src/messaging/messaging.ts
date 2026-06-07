@@ -142,6 +142,9 @@ export type SetHeaderRule = {
   headers?: HTTPHeader[]
   url: string
   referer: string
+  // rewrites request Origin to this and forces Access-Control-Allow-Origin: *,
+  // so a CDN that only allowlists the source origin serves the CORS request
+  origin?: string
 }
 
 export const setRequestHeaderRule = async (headerRule: SetHeaderRule) => {
@@ -209,21 +212,40 @@ export const setRequestHeaderRule = async (headerRule: SetHeaderRule) => {
       }
     ) ?? []
 
+  const requestHeaders: chrome.declarativeNetRequest.ModifyHeaderInfo[] = [
+    ...headersToSet,
+    {
+      header: 'Referer',
+      operation: 'set',
+      value: headerRule.referer,
+    },
+  ]
+
+  const action: chrome.declarativeNetRequest.RuleAction = {
+    type: 'modifyHeaders',
+    requestHeaders,
+  }
+
+  if (headerRule.origin) {
+    requestHeaders.push({
+      header: 'Origin',
+      operation: 'set',
+      value: headerRule.origin,
+    })
+    action.responseHeaders = [
+      {
+        header: 'Access-Control-Allow-Origin',
+        operation: 'set',
+        value: '*',
+      },
+    ]
+  }
+
   await chrome.declarativeNetRequest.updateSessionRules({
     addRules: [
       {
         id: lastId + 1,
-        action: {
-          type: 'modifyHeaders',
-          requestHeaders: [
-            ...headersToSet,
-            {
-              header: 'Referer',
-              operation: 'set',
-              value: headerRule.referer,
-            },
-          ],
-        },
+        action,
         condition: {
           urlFilter: `|${headerRule.url}`,
           resourceTypes: resourceTypes,
