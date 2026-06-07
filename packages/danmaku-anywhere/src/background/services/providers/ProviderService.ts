@@ -269,8 +269,22 @@ export class ProviderService {
     }
   }
 
+  // A catalog refresh keeps uninstalled sources current: their newer versions
+  // are applied in place so the catalog shows (and imports) the latest. Updates
+  // to installed sources are left for the user to apply from the Updates list.
   async refreshCatalog(): Promise<ProviderManifestList> {
     await this.manifestRegistry.update()
+    const pending = await this.manifestRegistry.getPendingUpdates()
+    if (pending.length > 0) {
+      const configs = await this.providerConfigService.getAll()
+      const installed = new Set(configs.map((config) => config.manifestId))
+      const uninstalled = pending
+        .filter((update) => !installed.has(update.manifestId))
+        .map((update) => update.manifestId)
+      if (uninstalled.length > 0) {
+        await this.manifestRegistry.applyUpdates(uninstalled)
+      }
+    }
     return this.listManifests()
   }
 

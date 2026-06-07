@@ -244,3 +244,70 @@ describe('ProviderService legacy-maccms decoupling', () => {
     })
   })
 })
+
+describe('ProviderService.refreshCatalog', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  function buildForRefresh(opts: {
+    pending: { manifestId: string; fromVersion: string; toVersion: string }[]
+    installedManifestIds: string[]
+  }) {
+    const applyUpdates = vi.fn(async () => {})
+    const registry = {
+      ready: Promise.resolve(true),
+      update: vi.fn(async () => {}),
+      getPendingUpdates: vi.fn(async () => opts.pending),
+      applyUpdates,
+      listManifests: vi.fn(() => []),
+      getLastCheckedAt: vi.fn(async () => 0),
+    } as unknown as ManifestRegistry
+
+    const providerConfigService = {
+      getAll: vi.fn(async () =>
+        opts.installedManifestIds.map((manifestId) =>
+          makeConfig(manifestId, DanmakuSourceType.DanDanPlay)
+        )
+      ),
+    } as unknown as ProviderConfigService
+
+    const service = new ProviderService(
+      {} as unknown as DanmakuService,
+      {} as unknown as SeasonService,
+      providerConfigService,
+      vi.fn(),
+      registry,
+      silentLogger
+    )
+
+    return { service, applyUpdates }
+  }
+
+  it('auto-applies updates for uninstalled manifests only', async () => {
+    const { service, applyUpdates } = buildForRefresh({
+      pending: [
+        { manifestId: 'bilibili', fromVersion: '1.0.0', toVersion: '2.0.0' },
+        { manifestId: 'iqiyi', fromVersion: '1.0.0', toVersion: '2.0.0' },
+      ],
+      installedManifestIds: ['bilibili'],
+    })
+
+    await service.refreshCatalog()
+
+    expect(applyUpdates).toHaveBeenCalledWith(['iqiyi'])
+  })
+
+  it('does not apply anything when every pending update is installed', async () => {
+    const { service, applyUpdates } = buildForRefresh({
+      pending: [
+        { manifestId: 'bilibili', fromVersion: '1.0.0', toVersion: '2.0.0' },
+      ],
+      installedManifestIds: ['bilibili'],
+    })
+
+    await service.refreshCatalog()
+
+    expect(applyUpdates).not.toHaveBeenCalled()
+  })
+})
