@@ -6,9 +6,10 @@ describe('toManifestLocale', () => {
     expect(toManifestLocale('zh')).toBe('zh-CN')
   })
 
-  it('maps any zh variant to zh-CN', () => {
+  it('maps any zh variant to zh-CN, case-insensitively', () => {
     expect(toManifestLocale('zh-TW')).toBe('zh-CN')
     expect(toManifestLocale('zh-HK')).toBe('zh-CN')
+    expect(toManifestLocale('ZH-CN')).toBe('zh-CN')
   })
 
   it('passes other language codes through unchanged', () => {
