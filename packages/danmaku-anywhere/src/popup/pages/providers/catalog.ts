@@ -10,8 +10,8 @@ import {
   getObjectFields,
 } from './components/forms/schemaForm'
 
-// impl is a non-load-bearing tag here, but it must not be Custom, which the
-// provider factory rejects for non-maccms configs.
+// impl is just a label on imported configs, but it can't be Custom: the
+// provider factory rejects Custom for anything that isn't maccms.
 export function createConfigFromManifest(
   manifest: ProviderManifestInfo
 ): ProviderConfig {
