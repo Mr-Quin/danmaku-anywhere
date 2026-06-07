@@ -416,7 +416,7 @@ export class VideoService {
     // drop crossorigin so Artplayer's reconnect reloads it no-cors, keeping
     // playback alive (occlusion just stays off for this source)
     player.on('video:error', () => {
-      if (player.video.crossOrigin && !this.corsRetryPending) {
+      if (player.video.crossOrigin) {
         this.corsRetryPending = true
         player.video.removeAttribute('crossorigin')
       }

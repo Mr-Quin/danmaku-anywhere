@@ -50,6 +50,9 @@ describe('setRequestHeaderRule', () => {
     })
 
     const { action } = getAddedRule()
+    expect(findHeader(action.requestHeaders, 'Referer')?.value).toBe(
+      'https://source.example.com'
+    )
     expect(findHeader(action.requestHeaders, 'Origin')?.value).toBe(
       'https://source.example.com'
     )
