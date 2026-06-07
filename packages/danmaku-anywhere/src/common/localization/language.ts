@@ -9,7 +9,7 @@ export function toManifestLocale(language?: string): string {
   if (!language) {
     return Language.en
   }
-  if (language === Language.zh) {
+  if (language.startsWith('zh')) {
     return 'zh-CN'
   }
   return language
