@@ -255,11 +255,13 @@ describe('ProviderService.refreshCatalog', () => {
     installedManifestIds: string[]
   }) {
     const applyUpdates = vi.fn(async () => {})
+    const recordChecked = vi.fn(async () => {})
     const registry = {
       ready: Promise.resolve(true),
       update: vi.fn(async () => {}),
       getPendingUpdates: vi.fn(async () => opts.pending),
       applyUpdates,
+      recordChecked,
       listManifests: vi.fn(() => []),
       getLastCheckedAt: vi.fn(async () => 0),
     } as unknown as ManifestRegistry
@@ -281,7 +283,7 @@ describe('ProviderService.refreshCatalog', () => {
       silentLogger
     )
 
-    return { service, applyUpdates }
+    return { service, applyUpdates, recordChecked }
   }
 
   it('auto-applies updates for uninstalled manifests only', async () => {
@@ -309,5 +311,45 @@ describe('ProviderService.refreshCatalog', () => {
     await service.refreshCatalog()
 
     expect(applyUpdates).not.toHaveBeenCalled()
+  })
+
+  it('stamps lastCheckedAt after bringing the catalog current', async () => {
+    const { service, recordChecked } = buildForRefresh({
+      pending: [],
+      installedManifestIds: [],
+    })
+
+    await service.refreshCatalog()
+
+    expect(recordChecked).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('ProviderService.setup', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('registers the refresh alarm and an onAlarm listener', async () => {
+    const registry = {
+      ready: Promise.resolve(true),
+    } as unknown as ManifestRegistry
+    const service = new ProviderService(
+      {} as unknown as DanmakuService,
+      {} as unknown as SeasonService,
+      {} as unknown as ProviderConfigService,
+      vi.fn(),
+      registry,
+      silentLogger
+    )
+
+    service.setup()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(chrome.alarms.create).toHaveBeenCalledWith(
+      'refresh-manifests',
+      expect.objectContaining({ periodInMinutes: expect.any(Number) })
+    )
+    expect(chrome.alarms.onAlarm.addListener).toHaveBeenCalled()
   })
 })

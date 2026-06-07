@@ -10,6 +10,7 @@ import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
+import { alarmKeys } from '@/common/alarms/constants'
 import type { SeasonQueryFilter, SeasonSearchRequest } from '@/common/anime/dto'
 import type {
   DanmakuFetchByMeta,
@@ -269,23 +270,65 @@ export class ProviderService {
     }
   }
 
-  // A catalog refresh keeps uninstalled sources current: their newer versions
-  // are applied in place so the catalog shows (and imports) the latest. Updates
-  // to installed sources are left for the user to apply from the Updates list.
+  // Register the install seed + periodic catalog refresh. Kept here (not in the
+  // registry) because bringing the catalog current needs the installed set.
+  setup(): void {
+    chrome.runtime.onInstalled.addListener(() => {
+      this.syncCatalog().catch((e) => {
+        this.logger.error('Catalog sync failed:', e)
+      })
+    })
+
+    void this.createRefreshAlarm()
+
+    if (!chrome.alarms.onAlarm.hasListener(this.handleRefreshAlarm)) {
+      chrome.alarms.onAlarm.addListener(this.handleRefreshAlarm)
+    }
+  }
+
   async refreshCatalog(): Promise<ProviderManifestList> {
+    await this.syncCatalog()
+    return this.listManifests()
+  }
+
+  // Bring the catalog current: seed missing manifests, apply pending updates for
+  // sources the user has not installed (no config / user data to disturb), then
+  // stamp the check time. Installed-source updates stay manual via the Updates
+  // list. lastCheckedAt is recorded here, so "checked Nm ago" only advances when
+  // the catalog is actually brought current, never on a bare detection.
+  private async syncCatalog(): Promise<void> {
     await this.manifestRegistry.update()
     const pending = await this.manifestRegistry.getPendingUpdates()
-    if (pending.length > 0) {
-      const configs = await this.providerConfigService.getAll()
-      const installed = new Set(configs.map((config) => config.manifestId))
-      const uninstalled = pending
-        .filter((update) => !installed.has(update.manifestId))
-        .map((update) => update.manifestId)
-      if (uninstalled.length > 0) {
-        await this.manifestRegistry.applyUpdates(uninstalled)
-      }
+    const configs = await this.providerConfigService.getAll()
+    const installed = new Set(configs.map((config) => config.manifestId))
+    const uninstalled = pending
+      .filter((update) => !installed.has(update.manifestId))
+      .map((update) => update.manifestId)
+    if (uninstalled.length > 0) {
+      await this.manifestRegistry.applyUpdates(uninstalled)
     }
-    return this.listManifests()
+    await this.manifestRegistry.recordChecked()
+  }
+
+  private async createRefreshAlarm(): Promise<void> {
+    const existing = await chrome.alarms.get(alarmKeys.REFRESH_MANIFESTS)
+    if (existing) {
+      return
+    }
+    this.logger.debug('Creating manifest refresh alarm')
+    await chrome.alarms.create(alarmKeys.REFRESH_MANIFESTS, {
+      periodInMinutes: 60 * 12,
+      delayInMinutes: 60,
+    })
+  }
+
+  private handleRefreshAlarm = async (
+    alarm: chrome.alarms.Alarm
+  ): Promise<void> => {
+    if (alarm.name !== alarmKeys.REFRESH_MANIFESTS) {
+      return
+    }
+    await this.syncCatalog()
   }
 
   // Surfaces the host-relevant subset of a manifest so the popup can render

@@ -6,7 +6,6 @@ import {
 } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
-import { alarmKeys } from '@/common/alarms/constants'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type {
   ManifestUpdate,
@@ -92,6 +91,12 @@ export class ManifestRegistry {
     return this.store.getLastCheckedAt()
   }
 
+  // Stamp the catalog as freshly synced; the caller owns deciding when the
+  // catalog is actually current (e.g. after applying uninstalled updates).
+  recordChecked(): Promise<void> {
+    return this.store.setLastCheckedAt(Date.now())
+  }
+
   async register(manifest: unknown, kind: ManifestKind): Promise<void> {
     await this.ready
     const parsed = zManifest.safeParse(manifest)
@@ -119,20 +124,6 @@ export class ManifestRegistry {
     }
   }
 
-  setup(): void {
-    chrome.runtime.onInstalled.addListener(() => {
-      this.update().catch((e) => {
-        this.log.error('Manifest update failed:', e)
-      })
-    })
-
-    void this.createRefreshAlarm()
-
-    if (!chrome.alarms.onAlarm.hasListener(this.handleRefreshAlarm)) {
-      chrome.alarms.onAlarm.addListener(this.handleRefreshAlarm)
-    }
-  }
-
   // Add-only reconcile: seed the manifests the store is missing (an empty store
   // seeds all). Changed preinstalled manifests surface via getPendingUpdates
   // instead of being replaced here.
@@ -142,21 +133,19 @@ export class ManifestRegistry {
     if (!entries) {
       return
     }
-    await this.store.setLastCheckedAt(Date.now())
     const stored = await this.store.getAll()
     const missing = entries.filter((entry) => !stored[entry.id])
     await this.fetchAndStore(missing)
   }
 
   // Index-only: diff stored versions against the catalog without fetching files
-  // or applying. Records the check time for the UI's "checked Nm ago".
+  // or applying.
   async getPendingUpdates(): Promise<ManifestUpdate[]> {
     await this.ready
     const entries = await this.loadIndex()
     if (!entries) {
       return []
     }
-    await this.store.setLastCheckedAt(Date.now())
     const stored = await this.store.getAll()
     const updates: ManifestUpdate[] = []
     for (const entry of entries) {
@@ -200,30 +189,6 @@ export class ManifestRegistry {
       this.loadEntry(id, entry)
     }
     this.initialized = true
-  }
-
-  private async createRefreshAlarm(): Promise<void> {
-    const existing = await chrome.alarms.get(alarmKeys.REFRESH_MANIFESTS)
-    if (existing) {
-      return
-    }
-    this.log.debug('Creating manifest refresh alarm')
-    await chrome.alarms.create(alarmKeys.REFRESH_MANIFESTS, {
-      periodInMinutes: 60 * 12,
-      delayInMinutes: 60,
-    })
-  }
-
-  // Periodic catalog refresh: recover a store emptied by a failed seed and
-  // record a check. Detection stays on-demand (getPendingUpdates); the alarm
-  // never auto-applies.
-  private handleRefreshAlarm = async (
-    alarm: chrome.alarms.Alarm
-  ): Promise<void> => {
-    if (alarm.name !== alarmKeys.REFRESH_MANIFESTS) {
-      return
-    }
-    await this.update()
   }
 
   private async fetchAndStore(entries: CatalogEntry[]): Promise<void> {

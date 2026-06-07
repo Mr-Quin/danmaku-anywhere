@@ -6,7 +6,7 @@ import { PortsManager } from '@/background/ports/PortsManager'
 import { RpcManager } from '@/background/rpc/RpcManager'
 import { MountConfigTabReloader } from '@/background/scripting/MountConfigTabReloader'
 import { ScriptingManager } from '@/background/scripting/ScriptingManager'
-import { ManifestRegistry } from '@/background/services/providers/ManifestRegistry'
+import { ProviderService } from '@/background/services/providers/ProviderService'
 import { OptionsManager } from '@/background/syncOptions/OptionsManager'
 import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
 import { generateId } from '@/background/utils/generateId'
@@ -34,7 +34,7 @@ container.get(NetRequestManager).setup()
 container.get(AlarmManager).setup()
 container.get(PortsManager).setup()
 
-container.get(ManifestRegistry).setup()
+container.get(ProviderService).setup()
 
 setLogService(container.get(LogService))
 

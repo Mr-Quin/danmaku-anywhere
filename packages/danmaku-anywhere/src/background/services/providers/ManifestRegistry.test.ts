@@ -14,8 +14,9 @@ import type {
  * user imports), detect-vs-apply (getPendingUpdates diffs versions without
  * fetching files or applying; applyUpdates replaces only the named preinstalled
  * ids, never a user import or an unseeded id), skipping a bad/failed file,
- * index failures,
- * register / unregister / hydrate-skip-invalid, and refresh-alarm registration.
+ * index failures, that neither update() nor getPendingUpdates stamps
+ * lastCheckedAt (only recordChecked does), and
+ * register / unregister / hydrate-skip-invalid.
  */
 
 const silentLogger = {
@@ -192,16 +193,18 @@ describe('ManifestRegistry', () => {
     ])
   })
 
-  it('update records a lastCheckedAt timestamp on a successful index fetch', async () => {
+  it('update does not stamp lastCheckedAt; recordChecked does', async () => {
     stubCatalogFetch([catalogEntry('one')], {
       [manifestPath('one')]: makeManifest('one'),
     })
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    expect(await registry.getLastCheckedAt()).toBeNull()
 
     await registry.update()
-    expect(await registry.getLastCheckedAt()).not.toBeNull()
+    expect(await registry.getLastCheckedAt()).toBeNull()
+
+    await registry.recordChecked()
+    expect(await registry.getLastCheckedAt()).toBeGreaterThan(0)
   })
 
   it('update skips entries whose apiVersion is unsupported', async () => {
@@ -344,18 +347,17 @@ describe('ManifestRegistry', () => {
     expect(await registry.getPendingUpdates()).toEqual([])
   })
 
-  it('getPendingUpdates records lastCheckedAt and returns it', async () => {
-    stubCatalogFetch([catalogEntry('one', '1.0.0')], {})
+  it('getPendingUpdates does not stamp lastCheckedAt (detection is not a sync)', async () => {
+    stubCatalogFetch([catalogEntry('one', '2.0.0')], {})
     const store = new InMemoryStore({
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
     await registry.ready
-    expect(await registry.getLastCheckedAt()).toBeNull()
 
     await registry.getPendingUpdates()
 
-    expect(await registry.getLastCheckedAt()).toBeGreaterThan(0)
+    expect(await registry.getLastCheckedAt()).toBeNull()
   })
 
   it('getPendingUpdates returns nothing when the index fetch fails', async () => {
@@ -367,7 +369,6 @@ describe('ManifestRegistry', () => {
     await registry.ready
 
     expect(await registry.getPendingUpdates()).toEqual([])
-    expect(await registry.getLastCheckedAt()).toBeNull()
   })
 
   it('applyUpdates replaces only the named ids and rebuilds their runners', async () => {
@@ -436,21 +437,6 @@ describe('ManifestRegistry', () => {
     expect((await store.get('one'))?.manifest).toMatchObject({
       version: '1.0.0',
     })
-  })
-
-  it('setup registers a recurring refresh alarm and an onAlarm listener', async () => {
-    const store = new InMemoryStore()
-    const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
-
-    registry.setup()
-    await Promise.resolve()
-
-    expect(chrome.alarms.create).toHaveBeenCalledWith(
-      'refresh-manifests',
-      expect.objectContaining({ periodInMinutes: expect.any(Number) })
-    )
-    expect(chrome.alarms.onAlarm.addListener).toHaveBeenCalled()
   })
 
   it('update leaves a user import untouched even when the catalog lists the same id', async () => {
