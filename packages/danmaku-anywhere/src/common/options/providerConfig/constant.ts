@@ -9,54 +9,88 @@ import type { ProviderConfig } from './schema'
 
 export const PROXY_DDP_BASE_URL = `${import.meta.env.VITE_PROXY_URL}/ddp`
 
-export const builtInDanDanPlayProvider: ProviderConfig = {
-  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-  name: 'DanDanPlay',
-  impl: DanmakuSourceType.DanDanPlay,
-  enabled: true,
-  configValues: {
-    baseUrl: PROXY_DDP_BASE_URL,
-    chConvert: DanDanChConvert.None,
+// The preloaded set, kept lean: identity (manifestId) plus the few config
+// overrides that differ from the manifest's own defaults. The display name is
+// resolved from the manifest at seed time so it localizes; `fallbackName` only
+// applies where no manifest is available (legacy migrations, offline reset).
+export interface AutoImportProvider {
+  manifestId: string
+  impl: DanmakuSourceType
+  fallbackName: string
+  enabled: boolean
+  configValues: Record<string, unknown>
+}
+
+export const AUTO_IMPORT_PROVIDERS: AutoImportProvider[] = [
+  {
+    manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
+    impl: DanmakuSourceType.DanDanPlay,
+    fallbackName: 'DanDanPlay',
+    enabled: true,
+    configValues: {
+      baseUrl: PROXY_DDP_BASE_URL,
+      chConvert: DanDanChConvert.None,
+    },
   },
-}
-
-export const builtInBilibiliProvider: ProviderConfig = {
-  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
-  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
-  name: 'Bilibili',
-  impl: DanmakuSourceType.Bilibili,
-  enabled: true,
-  // Pin xml explicitly so the user-visible default matches master. The
-  // manifest defaults to protobuf, which is the better long-term endpoint
-  // but would silently switch the format for existing users on upgrade.
-  configValues: {
-    danmakuFormat: 'xml',
+  {
+    manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
+    impl: DanmakuSourceType.Bilibili,
+    fallbackName: 'Bilibili',
+    enabled: true,
+    // Pin xml explicitly so the user-visible default matches master. The
+    // manifest defaults to protobuf, which is the better long-term endpoint
+    // but would silently switch the format for existing users on upgrade.
+    configValues: {
+      danmakuFormat: 'xml',
+    },
   },
-}
-
-export const builtInTencentProvider: ProviderConfig = {
-  id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
-  manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
-  name: 'Tencent',
-  impl: DanmakuSourceType.Tencent,
-  enabled: true,
-  configValues: {},
-}
-
-export const defaultProviderConfigs: ProviderConfig[] = [
-  builtInDanDanPlayProvider,
-  builtInBilibiliProvider,
-  builtInTencentProvider,
+  {
+    manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
+    impl: DanmakuSourceType.Tencent,
+    fallbackName: 'Tencent',
+    enabled: true,
+    configValues: {},
+  },
 ]
 
+// Built-in instances key their config id to the manifest id; season
+// providerConfigId references depend on this equality.
+export function autoImportToProviderConfig(
+  entry: AutoImportProvider,
+  name: string
+): ProviderConfig {
+  return {
+    id: entry.manifestId,
+    manifestId: entry.manifestId,
+    name,
+    impl: entry.impl,
+    enabled: entry.enabled,
+    configValues: { ...entry.configValues },
+  }
+}
+
+// Full configs carrying the hardcoded fallback names. Used only where no
+// manifest is available: legacy-data migrations for existing users and the
+// offline reset fallback. Fresh installs seed from the manifest instead so the
+// preloaded names localize (see ProviderService.seedDefaultProviders).
+export const defaultProviderConfigs: ProviderConfig[] =
+  AUTO_IMPORT_PROVIDERS.map((entry) =>
+    autoImportToProviderConfig(entry, entry.fallbackName)
+  )
+
+export const builtInDanDanPlayProvider = defaultProviderConfigs[0]
+export const builtInBilibiliProvider = defaultProviderConfigs[1]
+export const builtInTencentProvider = defaultProviderConfigs[2]
+
 export function createDefaultProviderConfig(
-  manifestId: string
+  manifestId: string,
+  name?: string
 ): ProviderConfig | undefined {
-  const config = defaultProviderConfigs.find((c) => c.manifestId === manifestId)
-  return config
-    ? { ...config, configValues: { ...config.configValues } }
-    : undefined
+  const entry = AUTO_IMPORT_PROVIDERS.find((e) => e.manifestId === manifestId)
+  if (!entry) {
+    return undefined
+  }
+  return autoImportToProviderConfig(entry, name ?? entry.fallbackName)
 }
 
 export function createCustomDanDanPlayProvider(

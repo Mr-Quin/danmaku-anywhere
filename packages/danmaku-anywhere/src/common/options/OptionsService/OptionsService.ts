@@ -119,6 +119,26 @@ export class OptionsService<T extends OptionsSchema> {
     })
   }
 
+  // Atomically replace the stored data only when `shouldWrite` returns true for
+  // the current value. Runs inside the write queue so it can't race a
+  // concurrent set(), and writes at the latest version so it also works on an
+  // unset store (fresh install). Returns whether it wrote.
+  async setIf(shouldWrite: (current: T | undefined) => boolean, data: T) {
+    await this.readinessService.waitUntilReady()
+
+    return this.queueOperation(async () => {
+      const options = await this.storageService.read()
+      if (!shouldWrite(options?.data)) {
+        return false
+      }
+      await this.storageService.set({
+        data,
+        version: this.getLatestVersion().version,
+      })
+      return true
+    })
+  }
+
   // allow partial update
   async update(data: Partial<T>) {
     await this.readinessService.waitUntilReady()

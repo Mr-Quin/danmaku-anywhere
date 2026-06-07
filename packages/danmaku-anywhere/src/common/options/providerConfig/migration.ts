@@ -59,12 +59,8 @@ export function migrateDanmakuSourcesToProviders(
             return builtInDanDanPlayProvider
           }
           return {
-            id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-            manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-            name: 'DanDanPlay',
-            impl: DanmakuSourceType.DanDanPlay,
+            ...builtInDanDanPlayProvider,
             enabled: oldSources.dandanplay.enabled ?? true,
-            isBuiltIn: true,
             configValues: pruneUndefined({
               baseUrl: PROXY_DDP_BASE_URL,
               chConvert:
@@ -84,11 +80,7 @@ export function migrateDanmakuSourcesToProviders(
             return builtInBilibiliProvider
           }
           return {
-            id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
-            manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
-            name: 'Bilibili',
-            impl: DanmakuSourceType.Bilibili,
-            isBuiltIn: true,
+            ...builtInBilibiliProvider,
             enabled: oldSources.bilibili.enabled ?? false,
             configValues: pruneUndefined({
               danmakuFormat: oldSources.bilibili.danmakuTypePreference,
@@ -107,11 +99,7 @@ export function migrateDanmakuSourcesToProviders(
             return builtInTencentProvider
           }
           return {
-            id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
-            manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
-            name: 'Tencent',
-            impl: DanmakuSourceType.Tencent,
-            isBuiltIn: true,
+            ...builtInTencentProvider,
             enabled: oldSources.tencent.enabled ?? false,
             configValues: {},
           }

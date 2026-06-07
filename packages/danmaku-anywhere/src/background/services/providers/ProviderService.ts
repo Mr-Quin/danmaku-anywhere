@@ -17,6 +17,12 @@ import type {
   DanmakuFetchRequest,
 } from '@/common/danmaku/dto'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import { toManifestLocale } from '@/common/localization/language'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import {
+  AUTO_IMPORT_PROVIDERS,
+  autoImportToProviderConfig,
+} from '@/common/options/providerConfig/constant'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import type {
   ProviderLoginStatus,
@@ -57,7 +63,9 @@ export class ProviderService {
     private danmakuProviderFactory: IDanmakuProviderFactory,
     @inject(ManifestRegistry)
     private manifestRegistry: ManifestRegistry,
-    @inject(LoggerSymbol) logger: ILogger
+    @inject(LoggerSymbol) logger: ILogger,
+    @inject(ExtensionOptionsService)
+    private extensionOptions: ExtensionOptionsService
   ) {
     invariant(
       isServiceWorker(),
@@ -273,14 +281,27 @@ export class ProviderService {
     }
   }
 
-  // Seed the catalog on install. The periodic refresh is scheduled by
-  // AlarmManager, which calls syncCatalog when the alarm fires.
+  // Seed the catalog (and the preloaded provider configs) on install. The
+  // periodic refresh is scheduled by AlarmManager, which calls syncCatalog when
+  // the alarm fires.
   setup(): void {
-    chrome.runtime.onInstalled.addListener(() => {
-      this.syncCatalog().catch((e) => {
-        this.logger.error('Catalog sync failed:', e)
+    chrome.runtime.onInstalled.addListener((details) => {
+      return this.onInstalled(details.reason).catch((e) => {
+        this.logger.error('Install handling failed:', e)
       })
     })
+  }
+
+  private async onInstalled(reason: string): Promise<void> {
+    if (reason === 'update') {
+      // An extension update is an existing install: lock the seed flag before
+      // any catalog work can seed, so its configs survive verbatim even if the
+      // user deleted them all. A fresh install ('install') seeds; a browser
+      // update ('chrome_update') leaves the flag to the normal seed path so an
+      // install that was offline at first run can still seed once reachable.
+      await this.providerConfigService.markSeeded()
+    }
+    await this.syncCatalog()
   }
 
   async refreshCatalog(locale?: string): Promise<ProviderManifestList> {
@@ -313,6 +334,33 @@ export class ProviderService {
       }
     }
     await this.manifestRegistry.recordChecked()
+    await this.seedDefaultProviders()
+  }
+
+  // Seed the preloaded provider configs once, after the catalog has loaded so
+  // each name derives (and localizes) from its manifest. The one-shot flag and
+  // the empty-store guard together keep an existing user's configs untouched;
+  // a fresh install with an unreachable catalog stays unseeded and retries on
+  // the next sync.
+  async seedDefaultProviders(): Promise<void> {
+    if (await this.providerConfigService.hasSeeded()) {
+      return
+    }
+    await this.manifestRegistry.ready
+    const { lang } = await this.extensionOptions.get()
+    const locale = toManifestLocale(lang)
+    const names = new Map(
+      this.manifestRegistry.listManifests(locale).map((m) => [m.id, m.name])
+    )
+    const configs = AUTO_IMPORT_PROVIDERS.flatMap((entry) => {
+      const name = names.get(entry.manifestId)
+      return name === undefined ? [] : [autoImportToProviderConfig(entry, name)]
+    })
+    if (configs.length === 0) {
+      return
+    }
+    await this.providerConfigService.seedIfEmpty(configs)
+    await this.providerConfigService.markSeeded()
   }
 
   // Surfaces the host-relevant subset of a manifest so the popup can render

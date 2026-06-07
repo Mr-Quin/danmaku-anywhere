@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { SeasonService } from '@/background/services/persistence/SeasonService'
 import type { ILogger } from '@/common/Logger'
+import type { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderConfigService } from '@/common/options/providerConfig/service'
 import type { IDanmakuProvider } from './IDanmakuProvider'
@@ -30,6 +31,10 @@ const silentLogger = {
   error: () => {},
   sub: () => silentLogger,
 } as unknown as ILogger
+
+const silentExtensionOptions = {
+  get: async () => ({ lang: 'zh' }),
+} as unknown as ExtensionOptionsService
 
 function makeConfig(
   manifestId: string,
@@ -97,7 +102,8 @@ function build(
     providerConfigService,
     factory,
     registry,
-    silentLogger
+    silentLogger,
+    silentExtensionOptions
   )
 
   return { service, provider, danmakuService, seasonService }
@@ -116,7 +122,8 @@ describe('ProviderService.probeLogin', () => {
       {} as unknown as ProviderConfigService,
       vi.fn(() => makeProvider()),
       registry,
-      silentLogger
+      silentLogger,
+      silentExtensionOptions
     )
 
     await service.probeLogin('dandanplay')
@@ -137,7 +144,8 @@ describe('ProviderService.getManifestSpec', () => {
       {} as unknown as ProviderConfigService,
       vi.fn(() => makeProvider()),
       registry,
-      silentLogger
+      silentLogger,
+      silentExtensionOptions
     )
   }
 
@@ -352,6 +360,7 @@ describe('ProviderService.refreshCatalog', () => {
           makeConfig(manifestId, DanmakuSourceType.DanDanPlay)
         )
       ),
+      hasSeeded: vi.fn(async () => true),
     } as unknown as ProviderConfigService
 
     const service = new ProviderService(
@@ -360,7 +369,8 @@ describe('ProviderService.refreshCatalog', () => {
       providerConfigService,
       vi.fn(),
       registry,
-      silentLogger
+      silentLogger,
+      silentExtensionOptions
     )
 
     return { service, applyUpdates, recordChecked }
@@ -422,7 +432,8 @@ describe('ProviderService.refreshCatalog', () => {
       {} as unknown as ProviderConfigService,
       vi.fn(),
       registry,
-      silentLogger
+      silentLogger,
+      silentExtensionOptions
     )
 
     await service.refreshCatalog()
@@ -447,11 +458,180 @@ describe('ProviderService.setup', () => {
       {} as unknown as ProviderConfigService,
       vi.fn(),
       registry,
-      silentLogger
+      silentLogger,
+      silentExtensionOptions
     )
 
     service.setup()
 
     expect(chrome.runtime.onInstalled.addListener).toHaveBeenCalled()
+  })
+})
+
+describe('ProviderService.seedDefaultProviders', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  const DEFAULT_MANIFESTS = [
+    { id: 'dandanplay', name: '弹弹play' },
+    { id: 'bilibili', name: 'B站' },
+    { id: 'tencent', name: '腾讯视频' },
+  ]
+
+  function buildForSeed(opts: {
+    seeded?: boolean
+    storeEmpty?: boolean
+    manifests?: { id: string; name: string }[]
+    lang?: string
+  }) {
+    let seeded = opts.seeded ?? false
+    const seedIfEmpty = vi.fn(async () => opts.storeEmpty ?? true)
+    const markSeeded = vi.fn(async () => {
+      seeded = true
+    })
+    const hasSeeded = vi.fn(async () => seeded)
+    const providerConfigService = {
+      seedIfEmpty,
+      markSeeded,
+      hasSeeded,
+      getAll: vi.fn(async () => []),
+    } as unknown as ProviderConfigService
+
+    const listManifests = vi.fn(() => opts.manifests ?? DEFAULT_MANIFESTS)
+    const registry = {
+      ready: Promise.resolve(true),
+      update: vi.fn(async () => true),
+      getPendingUpdates: vi.fn(async () => []),
+      recordChecked: vi.fn(async () => {}),
+      listManifests,
+    } as unknown as ManifestRegistry
+
+    const extensionOptions = {
+      get: async () => ({ lang: opts.lang ?? 'zh' }),
+    } as unknown as ExtensionOptionsService
+
+    const service = new ProviderService(
+      {} as unknown as DanmakuService,
+      {} as unknown as SeasonService,
+      providerConfigService,
+      vi.fn(),
+      registry,
+      silentLogger,
+      extensionOptions
+    )
+
+    return { service, seedIfEmpty, markSeeded, hasSeeded, listManifests }
+  }
+
+  it('seeds the preloaded set with manifest-derived names on a fresh install', async () => {
+    const { service, seedIfEmpty, markSeeded } = buildForSeed({})
+
+    await service.seedDefaultProviders()
+
+    expect(seedIfEmpty).toHaveBeenCalledTimes(1)
+    const configs = seedIfEmpty.mock.calls[0][0] as ProviderConfig[]
+    expect(configs.map((c) => c.manifestId)).toEqual([
+      'dandanplay',
+      'bilibili',
+      'tencent',
+    ])
+    // Built-in instances key their id to the manifest id.
+    expect(configs.map((c) => c.id)).toEqual([
+      'dandanplay',
+      'bilibili',
+      'tencent',
+    ])
+    // Names derive from the manifest, not a hardcoded English label.
+    expect(configs.map((c) => c.name)).toEqual(['弹弹play', 'B站', '腾讯视频'])
+    expect(markSeeded).toHaveBeenCalledTimes(1)
+  })
+
+  it('resolves names in the active UI language', async () => {
+    const { service, listManifests, seedIfEmpty } = buildForSeed({
+      lang: 'en',
+      manifests: [
+        { id: 'dandanplay', name: 'DanDanPlay' },
+        { id: 'bilibili', name: 'Bilibili' },
+        { id: 'tencent', name: 'Tencent Video' },
+      ],
+    })
+
+    await service.seedDefaultProviders()
+
+    expect(listManifests).toHaveBeenCalledWith('en')
+    const configs = seedIfEmpty.mock.calls[0][0] as ProviderConfig[]
+    expect(configs.find((c) => c.manifestId === 'tencent')?.name).toBe(
+      'Tencent Video'
+    )
+  })
+
+  it('maps the bare zh language to its manifest locale tag', async () => {
+    const { service, listManifests } = buildForSeed({ lang: 'zh' })
+
+    await service.seedDefaultProviders()
+
+    expect(listManifests).toHaveBeenCalledWith('zh-CN')
+  })
+
+  it('never double-seeds once the flag is set', async () => {
+    const { service, seedIfEmpty, markSeeded } = buildForSeed({ seeded: true })
+
+    await service.seedDefaultProviders()
+
+    expect(seedIfEmpty).not.toHaveBeenCalled()
+    expect(markSeeded).not.toHaveBeenCalled()
+  })
+
+  it('leaves an existing user untouched: the empty-store guard no-ops the write but still locks the flag', async () => {
+    const { service, seedIfEmpty, markSeeded } = buildForSeed({
+      storeEmpty: false,
+    })
+
+    await service.seedDefaultProviders()
+
+    // seedIfEmpty is asked to write but its guard reports a non-empty store, so
+    // the existing configs are preserved verbatim. The flag is still set so we
+    // never re-evaluate.
+    expect(seedIfEmpty).toHaveBeenCalledTimes(1)
+    expect(markSeeded).toHaveBeenCalledTimes(1)
+  })
+
+  it('stays unseeded for a later retry when the catalog has no manifests yet', async () => {
+    const { service, seedIfEmpty, markSeeded } = buildForSeed({ manifests: [] })
+
+    await service.seedDefaultProviders()
+
+    expect(seedIfEmpty).not.toHaveBeenCalled()
+    expect(markSeeded).not.toHaveBeenCalled()
+  })
+
+  it('locks the flag without seeding when an existing install updates', async () => {
+    const { service, seedIfEmpty, markSeeded, hasSeeded } = buildForSeed({})
+
+    service.setup()
+    const calls = vi.mocked(chrome.runtime.onInstalled.addListener).mock.calls
+    const listener = calls.at(-1)?.[0] as (details: {
+      reason: string
+    }) => Promise<void>
+    await listener({ reason: 'update' })
+
+    expect(markSeeded).toHaveBeenCalled()
+    expect(seedIfEmpty).not.toHaveBeenCalled()
+    expect(hasSeeded).toHaveBeenCalled()
+  })
+
+  it('seeds when a brand-new install fires onInstalled', async () => {
+    const { service, seedIfEmpty, markSeeded } = buildForSeed({})
+
+    service.setup()
+    const calls = vi.mocked(chrome.runtime.onInstalled.addListener).mock.calls
+    const listener = calls.at(-1)?.[0] as (details: {
+      reason: string
+    }) => Promise<void>
+    await listener({ reason: 'install' })
+
+    expect(seedIfEmpty).toHaveBeenCalledTimes(1)
+    expect(markSeeded).toHaveBeenCalledTimes(1)
   })
 })

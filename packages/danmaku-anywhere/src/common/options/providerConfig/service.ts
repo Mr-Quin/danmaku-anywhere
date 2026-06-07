@@ -9,6 +9,7 @@ import {
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { isServiceWorker } from '@/common/utils/utils'
 import { defaultProviderConfigs } from './constant'
 import {
@@ -25,6 +26,13 @@ export class ProviderConfigService implements IStoreService {
   public readonly name = 'providerConfig'
   public readonly options: OptionsService<ProviderConfig[]>
 
+  // One-shot guard: seeding the preloaded providers runs once per install, so a
+  // user who deletes every config is never re-seeded on a later boot.
+  private readonly seededFlag = new ExtStorageService<boolean>(
+    'providerConfigSeeded',
+    { storageType: 'local' }
+  )
+
   constructor(
     @inject(LoggerSymbol)
     private readonly logger: ILogger,
@@ -33,7 +41,10 @@ export class ProviderConfigService implements IStoreService {
   ) {
     this.options = this.optionServiceFactory<ProviderConfig[]>(
       'providerConfig',
-      defaultProviderConfigs,
+      // Fresh installs start empty; the preloaded set is seeded after the
+      // manifest catalog loads so its names derive (and localize) from the
+      // manifest. defaultProviderConfigs stays the offline fallback below.
+      [],
       this.logger
     )
       .version(2, {
@@ -78,6 +89,24 @@ export class ProviderConfigService implements IStoreService {
         },
       })
   }
+
+  async hasSeeded(): Promise<boolean> {
+    return (await this.seededFlag.read()) === true
+  }
+
+  async markSeeded(): Promise<void> {
+    await this.seededFlag.set(true)
+  }
+
+  // Write the preloaded set only while the store is still empty, atomically, so
+  // it can never overwrite configs an existing user already has.
+  async seedIfEmpty(configs: ProviderConfig[]): Promise<boolean> {
+    return this.options.setIf(
+      (current) => current === undefined || current.length === 0,
+      configs
+    )
+  }
+
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {
     const configs = await this.options.get()
     return !configs.some((item) => item.id === id && item.id !== excludeId)
