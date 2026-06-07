@@ -9,10 +9,14 @@ import type {
 
 /**
  * ManifestRegistry hydrates runners from storage on init (no network) and
- * reconciles against the backend `/manifest` catalog via update(). Covers the
- * reconcile (seed empty, add missing, replace changed preinstalled by version,
- * skip unchanged, leave user imports), skipping a bad/failed file, index
- * failures, and register / unregister / hydrate-skip-invalid.
+ * reconciles against the backend `/manifest` catalog. Covers update() add-only
+ * seeding (seed empty, add missing, never replace a changed preinstalled, leave
+ * user imports), detect-vs-apply (getPendingUpdates diffs versions without
+ * fetching files or applying; applyUpdates replaces only the named preinstalled
+ * ids, never a user import or an unseeded id), skipping a bad/failed file,
+ * index failures, that neither update() nor getPendingUpdates stamps
+ * lastCheckedAt (only recordChecked does), and
+ * register / unregister / hydrate-skip-invalid.
  */
 
 const silentLogger = {
@@ -116,6 +120,14 @@ class InMemoryStore implements IManifestStore {
     return { ...this.record }
   }
 
+  async getLastCheckedAt() {
+    return this.lastCheckedAt
+  }
+
+  async setLastCheckedAt(timestamp: number) {
+    this.lastCheckedAt = timestamp
+  }
+
   async get(id: string) {
     return this.record[id]
   }
@@ -134,14 +146,6 @@ class InMemoryStore implements IManifestStore {
 
   async remove(id: string) {
     delete this.record[id]
-  }
-
-  async getLastCheckedAt() {
-    return this.lastCheckedAt
-  }
-
-  async setLastCheckedAt(timestamp: number) {
-    this.lastCheckedAt = timestamp
   }
 }
 
@@ -189,16 +193,18 @@ describe('ManifestRegistry', () => {
     ])
   })
 
-  it('update records a lastCheckedAt timestamp on a successful index fetch', async () => {
+  it('update does not stamp lastCheckedAt; recordChecked does', async () => {
     stubCatalogFetch([catalogEntry('one')], {
       [manifestPath('one')]: makeManifest('one'),
     })
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    expect(await registry.getLastCheckedAt()).toBeNull()
 
     await registry.update()
-    expect(await registry.getLastCheckedAt()).not.toBeNull()
+    expect(await registry.getLastCheckedAt()).toBeNull()
+
+    await registry.recordChecked()
+    expect(await registry.getLastCheckedAt()).toBeGreaterThan(0)
   })
 
   it('update skips entries whose apiVersion is unsupported', async () => {
@@ -220,7 +226,7 @@ describe('ManifestRegistry', () => {
     stubFetch(() => ({ status: 503, body: 'unavailable' }))
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await expect(registry.update()).resolves.toBeUndefined()
+    await expect(registry.update()).resolves.toBe(false)
 
     expect(await store.getAll()).toEqual({})
     expect(registry.list()).toEqual([])
@@ -234,7 +240,7 @@ describe('ManifestRegistry', () => {
     )
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await expect(registry.update()).resolves.toBeUndefined()
+    await expect(registry.update()).resolves.toBe(false)
 
     expect(await store.getAll()).toEqual({})
     expect(registry.list()).toEqual([])
@@ -250,6 +256,18 @@ describe('ManifestRegistry', () => {
     await registry.update()
 
     expect(registry.list()).toEqual(['good'])
+    expect(Object.keys(await store.getAll())).toEqual(['good'])
+  })
+
+  it('update skips a manifest whose id does not match the catalog entry', async () => {
+    stubCatalogFetch([catalogEntry('good'), catalogEntry('mismatch')], {
+      [manifestPath('good')]: makeManifest('good'),
+      [manifestPath('mismatch')]: makeManifest('something-else'),
+    })
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.update()
+
     expect(Object.keys(await store.getAll())).toEqual(['good'])
   })
 
@@ -288,8 +306,8 @@ describe('ManifestRegistry', () => {
     expect(setMany).not.toHaveBeenCalled()
   })
 
-  it('update replaces a preinstalled manifest when its catalog version changed', async () => {
-    stubCatalogFetch([catalogEntry('one', '2.0.0')], {
+  it('update does not replace a preinstalled manifest whose catalog version changed', async () => {
+    const fetchMock = stubCatalogFetch([catalogEntry('one', '2.0.0')], {
       [manifestPath('one')]: makeManifest('one', 1, '2.0.0'),
     })
     const store = new InMemoryStore({
@@ -300,8 +318,152 @@ describe('ManifestRegistry', () => {
     await registry.update()
 
     expect((await store.get('one'))?.manifest).toMatchObject({
+      version: '1.0.0',
+    })
+    expect(fileFetches(fetchMock)).toEqual([])
+  })
+
+  it('getPendingUpdates surfaces a changed preinstalled version without fetching files or applying', async () => {
+    const fetchMock = stubCatalogFetch([catalogEntry('one', '2.0.0')], {
+      [manifestPath('one')]: makeManifest('one', 1, '2.0.0'),
+    })
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    const pending = await registry.getPendingUpdates()
+
+    expect(pending).toEqual([
+      { manifestId: 'one', fromVersion: '1.0.0', toVersion: '2.0.0' },
+    ])
+    expect(fileFetches(fetchMock)).toEqual([])
+    expect((await store.get('one'))?.manifest).toMatchObject({
+      version: '1.0.0',
+    })
+  })
+
+  it('getPendingUpdates ignores unchanged entries and user imports', async () => {
+    stubCatalogFetch(
+      [catalogEntry('one', '1.0.0'), catalogEntry('two', '2.0.0')],
+      {}
+    )
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+      two: { manifest: makeManifest('two', 1, '1.0.0'), kind: 'user' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(await registry.getPendingUpdates()).toEqual([])
+  })
+
+  it('getPendingUpdates does not stamp lastCheckedAt (detection is not a sync)', async () => {
+    stubCatalogFetch([catalogEntry('one', '2.0.0')], {})
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.getPendingUpdates()
+
+    expect(await registry.getLastCheckedAt()).toBeNull()
+  })
+
+  it('getPendingUpdates returns nothing when the index fetch fails', async () => {
+    stubFetch(() => ({ status: 503, body: 'unavailable' }))
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(await registry.getPendingUpdates()).toEqual([])
+  })
+
+  it('applyUpdates replaces only the named ids and rebuilds their runners', async () => {
+    stubCatalogFetch(
+      [catalogEntry('one', '2.0.0'), catalogEntry('two', '2.0.0')],
+      {
+        [manifestPath('one')]: makeManifest('one', 1, '2.0.0'),
+        [manifestPath('two')]: makeManifest('two', 1, '2.0.0'),
+      }
+    )
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+      two: { manifest: makeManifest('two', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.applyUpdates(['one'])
+
+    expect((await store.get('one'))?.manifest).toMatchObject({
       version: '2.0.0',
     })
+    expect((await store.get('two'))?.manifest).toMatchObject({
+      version: '1.0.0',
+    })
+  })
+
+  it('applyUpdates leaves a user import and an unseeded id untouched', async () => {
+    const fetchMock = stubCatalogFetch(
+      [catalogEntry('mine', '2.0.0'), catalogEntry('fresh', '1.0.0')],
+      {
+        [manifestPath('mine')]: makeManifest('mine', 1, '2.0.0'),
+        [manifestPath('fresh')]: makeManifest('fresh', 1, '1.0.0'),
+      }
+    )
+    const store = new InMemoryStore({
+      mine: { manifest: makeManifest('mine', 1, '1.0.0'), kind: 'user' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.applyUpdates(['mine', 'fresh'])
+
+    expect(await store.get('mine')).toEqual({
+      manifest: makeManifest('mine', 1, '1.0.0'),
+      kind: 'user',
+    })
+    expect(await store.has('fresh')).toBe(false)
+    expect(fileFetches(fetchMock)).toEqual([])
+  })
+
+  it('applyUpdates throws and leaves the manifest unchanged when a file fails to fetch', async () => {
+    stubCatalogFetch(
+      [catalogEntry('one', '2.0.0')],
+      {},
+      { [manifestPath('one')]: 500 }
+    )
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(registry.applyUpdates(['one'])).rejects.toThrow(
+      /Failed to apply updates/
+    )
+
+    expect((await store.get('one'))?.manifest).toMatchObject({
+      version: '1.0.0',
+    })
+  })
+
+  it('applyUpdates throws when the catalog index is unreachable', async () => {
+    stubFetch(() => ({ status: 503, body: 'unavailable' }))
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(registry.applyUpdates(['one'])).rejects.toThrow(
+      /Failed to fetch the manifest catalog/
+    )
   })
 
   it('update leaves a user import untouched even when the catalog lists the same id', async () => {

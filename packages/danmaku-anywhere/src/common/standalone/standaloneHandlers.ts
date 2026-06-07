@@ -101,6 +101,8 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     danmakuPurgeCache: () => 0,
     providerProbeLogin: () => ({ hasLoginProbe: false, ok: true }),
     providerGetManifestSpec: () => ({ name: '', hasLoginProbe: false }),
+    providerGetPendingUpdates: () => [],
+    providerApplyUpdates: () => undefined,
     fetchImage: ({ src }) => src,
     getActiveTabUrl: () => 'https://example.com',
     getFrameId: () => 0,

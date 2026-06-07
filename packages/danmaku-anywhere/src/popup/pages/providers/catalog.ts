@@ -79,6 +79,15 @@ export function flattenUnits(units: InstalledUnit[]): ProviderConfig[] {
   )
 }
 
+// Keep only updates for sources the user installed; a catalog-only manifest is
+// not something to prompt an update for.
+export function installedUpdates<T extends { manifestId: string }>(
+  updates: T[],
+  installedManifestIds: Set<string>
+): T[] {
+  return updates.filter((update) => installedManifestIds.has(update.manifestId))
+}
+
 export function matchesQuery(query: string, ...fields: string[]): boolean {
   const trimmed = query.trim().toLowerCase()
   if (trimmed === '') {

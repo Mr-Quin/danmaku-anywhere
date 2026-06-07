@@ -17,6 +17,10 @@ export const useRefreshCatalog = () => {
     mutationFn: () => chromeRpcClient.providerRefreshCatalog(),
     onSuccess: (res) => {
       queryClient.setQueryData(sourceQueryKeys.manifestList(), res)
+      // A refresh re-checks the catalog, which can change the pending set.
+      void queryClient.invalidateQueries({
+        queryKey: sourceQueryKeys.pendingUpdates(),
+      })
     },
   })
 }

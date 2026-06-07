@@ -1,5 +1,6 @@
 import { inject, injectable } from 'inversify'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
+import { ProviderService } from '@/background/services/providers/ProviderService'
 import { alarmKeys } from '@/common/alarms/constants'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
@@ -13,6 +14,8 @@ export class AlarmManager {
     private danmakuService: DanmakuService,
     @inject(ExtensionOptionsService)
     private extensionOptionsService: ExtensionOptionsService,
+    @inject(ProviderService)
+    private providerService: ProviderService,
     @inject(LoggerSymbol) logger: ILogger
   ) {
     this.logger = logger.sub('[AlarmManager]')
@@ -34,11 +37,15 @@ export class AlarmManager {
     // doc says to check for alarms on script start because alarms are not guaranteed to be persistent
     // if this happens, we may miss an alarm
     void this.createDanmakuPurgeAlarm()
+    void this.createManifestRefreshAlarm()
 
     const handleDanmakuPurgeAlarm = this.createHandleDanmakuPurgeAlarm()
 
     if (!chrome.alarms.onAlarm.hasListener(handleDanmakuPurgeAlarm)) {
       chrome.alarms.onAlarm.addListener(handleDanmakuPurgeAlarm)
+    }
+    if (!chrome.alarms.onAlarm.hasListener(this.handleManifestRefreshAlarm)) {
+      chrome.alarms.onAlarm.addListener(this.handleManifestRefreshAlarm)
     }
   }
 
@@ -85,4 +92,31 @@ export class AlarmManager {
 
       await this.danmakuService.purgeOlderThan(days)
     }
+
+  private async createManifestRefreshAlarm() {
+    const alarm = await chrome.alarms.get(alarmKeys.REFRESH_MANIFESTS)
+
+    if (alarm) {
+      return
+    }
+
+    this.logger.debug('Creating manifest refresh alarm')
+    await chrome.alarms.create(alarmKeys.REFRESH_MANIFESTS, {
+      periodInMinutes: 60 * 12,
+      delayInMinutes: 60,
+    })
+  }
+
+  // Stable reference so the hasListener guard in setup actually dedupes.
+  private handleManifestRefreshAlarm = async (alarm: chrome.alarms.Alarm) => {
+    if (alarm.name !== alarmKeys.REFRESH_MANIFESTS) {
+      return
+    }
+
+    try {
+      await this.providerService.syncCatalog()
+    } catch (e) {
+      this.logger.error('Periodic manifest refresh failed:', e)
+    }
+  }
 }

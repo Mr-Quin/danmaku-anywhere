@@ -20,6 +20,7 @@ import { DanmakuService } from '@/background/services/persistence/DanmakuService
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
 import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
+import { ManifestRegistry } from '@/background/services/providers/ManifestRegistry'
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import { AuthClientService } from '@/common/auth/AuthClientService'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
@@ -80,7 +81,9 @@ export class RpcManager {
     @inject(OcclusionModelService)
     private occlusionModelService: OcclusionModelService,
     @inject(ExtensionOptionsService)
-    private extensionOptionsService: ExtensionOptionsService
+    private extensionOptionsService: ExtensionOptionsService,
+    @inject(ManifestRegistry)
+    private manifestRegistry: ManifestRegistry
   ) {
     this.logger = logger.sub('[RpcManager]')
   }
@@ -129,6 +132,12 @@ export class RpcManager {
         },
         providerRefreshCatalog: async () => {
           return this.providerService.refreshCatalog()
+        },
+        providerGetPendingUpdates: async () => {
+          return this.manifestRegistry.getPendingUpdates()
+        },
+        providerApplyUpdates: async ({ manifestIds }) => {
+          await this.manifestRegistry.applyUpdates(manifestIds)
         },
         bilibiliSetCookies: async () => {
           // Credentialed homepage GET lets bilibili's Set-Cookie response

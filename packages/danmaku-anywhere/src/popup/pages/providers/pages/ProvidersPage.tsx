@@ -35,6 +35,7 @@ import { InstalledList } from '../components/InstalledList'
 import { NeedsAttentionCallout } from '../components/NeedsAttentionCallout'
 import { ProviderAddMenu } from '../components/ProviderAddMenu'
 import { SectionHeader } from '../components/SectionHeader'
+import { UpdatesSection } from '../components/UpdatesSection'
 import { useManifestList } from '../hooks/useManifestList'
 import { ProviderEditor } from './ProviderEditor'
 
@@ -210,6 +211,10 @@ export const ProvidersPage = (): ReactElement => {
                     ) : null,
                   },
                 }}
+              />
+              <UpdatesSection
+                installedManifestIds={installedManifestIds}
+                manifestById={manifestById}
               />
               <NeedsAttentionCallout configs={configs} filter={filter} />
               <SectionHeader

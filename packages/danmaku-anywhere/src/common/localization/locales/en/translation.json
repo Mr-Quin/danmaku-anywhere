@@ -624,7 +624,13 @@
       "reorderDone": "Done",
       "title": "Installed"
     },
-    "name": "Danmaku Providers"
+    "name": "Danmaku Providers",
+    "updates": {
+      "title": "Updates available",
+      "update": "Update",
+      "updateAll": "Update all",
+      "version": "v{{from}} → v{{to}}"
+    }
   },
   "searchPage": {
     "alert": {

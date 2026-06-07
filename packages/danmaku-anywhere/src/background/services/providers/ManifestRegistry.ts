@@ -7,7 +7,10 @@ import {
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
-import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
+import type {
+  ManifestUpdate,
+  ProviderManifestInfo,
+} from '@/common/rpcClient/background/types'
 import { invariant } from '@/common/utils/utils'
 import { extensionFetchLike } from './extensionFetchLike'
 import {
@@ -47,6 +50,7 @@ export class ManifestRegistry {
   private readonly runners = new Map<string, ManifestRunner>()
   private readonly log: ILogger
   private readonly store: IManifestStore
+  private readonly baseUrl = import.meta.env.VITE_PROXY_URL
   private initialized = false
   readonly ready: Promise<void>
 
@@ -87,6 +91,11 @@ export class ManifestRegistry {
     return this.store.getLastCheckedAt()
   }
 
+  // Stamp the catalog as freshly synced; the caller decides when it is current.
+  recordChecked(): Promise<void> {
+    return this.store.setLastCheckedAt(Date.now())
+  }
+
   async register(manifest: unknown, kind: ManifestKind): Promise<void> {
     await this.ready
     const parsed = zManifest.safeParse(manifest)
@@ -114,60 +123,72 @@ export class ManifestRegistry {
     }
   }
 
-  setup(): void {
-    chrome.runtime.onInstalled.addListener(() => {
-      this.update().catch((e) => {
-        this.log.error('Manifest update failed:', e)
-      })
-    })
-  }
-
-  // Reconcile the stored set against the catalog: add missing, replace changed
-  // preinstalled, leave user imports alone. Seeding is just the empty-store case.
-  async update(): Promise<void> {
+  // Add-only: seeds only manifests absent from the store; a changed preinstalled
+  // manifest surfaces via getPendingUpdates instead of being replaced here.
+  // Returns false when the catalog index could not be fetched.
+  async update(): Promise<boolean> {
     await this.ready
-    const baseUrl = import.meta.env.VITE_PROXY_URL
-    let entries: CatalogEntry[]
-    try {
-      entries = await this.fetchIndex(baseUrl)
-    } catch (e) {
-      this.log.error('Failed to fetch manifest catalog:', e)
-      return
-    }
-    await this.store.setLastCheckedAt(Date.now())
-    const stored = await this.store.getAll()
-    const stale = entries.filter((entry) =>
-      this.shouldFetch(entry, stored[entry.id])
-    )
-    const fetched = (
-      await Promise.all(
-        stale.map((entry) => this.fetchManifest(baseUrl, entry.file, entry.id))
-      )
-    ).filter((manifest) => manifest !== null)
-    if (fetched.length === 0) {
-      return
-    }
-    const updates: Record<string, ManifestEntry> = {}
-    for (const { raw, parsed } of fetched) {
-      updates[parsed.id] = { manifest: raw, kind: 'preinstalled' }
-    }
-    await this.store.setMany(updates)
-    for (const { parsed } of fetched) {
-      this.runners.set(parsed.id, this.buildRunner(parsed))
-    }
-  }
-
-  private shouldFetch(
-    entry: CatalogEntry,
-    existing: ManifestEntry | undefined
-  ): boolean {
-    if (!existing) {
-      return true
-    }
-    if (existing.kind === 'user') {
+    const entries = await this.loadIndex()
+    if (!entries) {
       return false
     }
-    return storedVersion(existing.manifest) !== entry.version
+    const stored = await this.store.getAll()
+    const missing = entries.filter((entry) => !stored[entry.id])
+    await this.fetchAndStore(missing)
+    return true
+  }
+
+  // Index-only: diff stored versions against the catalog without fetching files
+  // or applying.
+  async getPendingUpdates(): Promise<ManifestUpdate[]> {
+    await this.ready
+    const entries = await this.loadIndex()
+    if (!entries) {
+      return []
+    }
+    const stored = await this.store.getAll()
+    const updates: ManifestUpdate[] = []
+    for (const entry of entries) {
+      const existing = stored[entry.id]
+      if (!existing || existing.kind === 'user') {
+        continue
+      }
+      const fromVersion = storedVersion(existing.manifest)
+      if (typeof fromVersion === 'string' && fromVersion !== entry.version) {
+        updates.push({
+          manifestId: entry.id,
+          fromVersion,
+          toVersion: entry.version,
+        })
+      }
+    }
+    return updates
+  }
+
+  // Replace only the named manifests that are already stored as preinstalled.
+  // User imports and ids not already seeded are left untouched, so an apply
+  // can never clobber a user manifest or install a brand-new source. Throws on
+  // failure (unreachable catalog or a file that did not apply) so a user-driven
+  // update surfaces the error instead of silently no-op'ing.
+  async applyUpdates(manifestIds: string[]): Promise<void> {
+    await this.ready
+    const entries = await this.loadIndex()
+    if (!entries) {
+      throw new Error('Failed to fetch the manifest catalog')
+    }
+    const wanted = new Set(manifestIds)
+    const stored = await this.store.getAll()
+    const targets = entries.filter((entry) => {
+      const existing = stored[entry.id]
+      return wanted.has(entry.id) && existing?.kind === 'preinstalled'
+    })
+    const applied = await this.fetchAndStore(targets)
+    if (applied.length < targets.length) {
+      const failed = targets
+        .map((entry) => entry.id)
+        .filter((id) => !applied.includes(id))
+      throw new Error(`Failed to apply updates: ${failed.join(', ')}`)
+    }
   }
 
   private async init(): Promise<void> {
@@ -178,9 +199,40 @@ export class ManifestRegistry {
     this.initialized = true
   }
 
-  private async fetchIndex(baseUrl: string): Promise<CatalogEntry[]> {
+  // Returns the ids actually stored; the caller can compare against what it
+  // asked for to tell a partial failure from a complete one.
+  private async fetchAndStore(entries: CatalogEntry[]): Promise<string[]> {
+    const fetched = (
+      await Promise.all(
+        entries.map((entry) => this.fetchManifest(entry.file, entry.id))
+      )
+    ).filter((manifest) => manifest !== null)
+    if (fetched.length === 0) {
+      return []
+    }
+    const updates: Record<string, ManifestEntry> = {}
+    for (const { raw, parsed } of fetched) {
+      updates[parsed.id] = { manifest: raw, kind: 'preinstalled' }
+    }
+    await this.store.setMany(updates)
+    for (const { parsed } of fetched) {
+      this.runners.set(parsed.id, this.buildRunner(parsed))
+    }
+    return fetched.map(({ parsed }) => parsed.id)
+  }
+
+  private async loadIndex(): Promise<CatalogEntry[] | null> {
+    try {
+      return await this.fetchIndex()
+    } catch (e) {
+      this.log.error('Failed to fetch manifest catalog:', e)
+      return null
+    }
+  }
+
+  private async fetchIndex(): Promise<CatalogEntry[]> {
     const index = zCatalogIndex.parse(
-      await this.fetchJson(`${baseUrl}/manifest`)
+      await this.fetchJson(`${this.baseUrl}/manifest`)
     )
     return index.manifests.filter((entry) =>
       SUPPORTED_API_VERSIONS.has(entry.apiVersion)
@@ -190,14 +242,13 @@ export class ManifestRegistry {
   // Skip (null) on any per-manifest failure so one bad file doesn't block the
   // rest; the next reconcile retries whatever is still missing.
   private async fetchManifest(
-    baseUrl: string,
     file: string,
     id: string
   ): Promise<CatalogManifest | null> {
     let raw: unknown
     try {
       raw = await this.fetchJson(
-        `${baseUrl}/manifest/file?file=${encodeURIComponent(file)}`
+        `${this.baseUrl}/manifest/file?file=${encodeURIComponent(file)}`
       )
     } catch (e) {
       this.log.error('Failed to fetch catalog manifest:', id, e)
@@ -209,6 +260,16 @@ export class ManifestRegistry {
         'Skipping invalid catalog manifest:',
         id,
         parsed.error.issues
+      )
+      return null
+    }
+    // The store keys by the manifest's own id; a mismatch with the catalog id
+    // would store it under the wrong key and loop as a never-resolving update.
+    if (parsed.data.id !== id) {
+      this.log.error(
+        'Skipping catalog manifest with mismatched id:',
+        id,
+        parsed.data.id
       )
       return null
     }

@@ -244,3 +244,134 @@ describe('ProviderService legacy-maccms decoupling', () => {
     })
   })
 })
+
+describe('ProviderService.refreshCatalog', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  function buildForRefresh(opts: {
+    pending: { manifestId: string; fromVersion: string; toVersion: string }[]
+    installedManifestIds: string[]
+  }) {
+    const applyUpdates = vi.fn(async () => {})
+    const recordChecked = vi.fn(async () => {})
+    const registry = {
+      ready: Promise.resolve(true),
+      update: vi.fn(async () => true),
+      getPendingUpdates: vi.fn(async () => opts.pending),
+      applyUpdates,
+      recordChecked,
+      listManifests: vi.fn(() => []),
+      getLastCheckedAt: vi.fn(async () => 0),
+    } as unknown as ManifestRegistry
+
+    const providerConfigService = {
+      getAll: vi.fn(async () =>
+        opts.installedManifestIds.map((manifestId) =>
+          makeConfig(manifestId, DanmakuSourceType.DanDanPlay)
+        )
+      ),
+    } as unknown as ProviderConfigService
+
+    const service = new ProviderService(
+      {} as unknown as DanmakuService,
+      {} as unknown as SeasonService,
+      providerConfigService,
+      vi.fn(),
+      registry,
+      silentLogger
+    )
+
+    return { service, applyUpdates, recordChecked }
+  }
+
+  it('auto-applies updates for uninstalled manifests only', async () => {
+    const { service, applyUpdates } = buildForRefresh({
+      pending: [
+        { manifestId: 'bilibili', fromVersion: '1.0.0', toVersion: '2.0.0' },
+        { manifestId: 'iqiyi', fromVersion: '1.0.0', toVersion: '2.0.0' },
+      ],
+      installedManifestIds: ['bilibili'],
+    })
+
+    await service.refreshCatalog()
+
+    expect(applyUpdates).toHaveBeenCalledWith(['iqiyi'])
+  })
+
+  it('does not apply anything when every pending update is installed', async () => {
+    const { service, applyUpdates } = buildForRefresh({
+      pending: [
+        { manifestId: 'bilibili', fromVersion: '1.0.0', toVersion: '2.0.0' },
+      ],
+      installedManifestIds: ['bilibili'],
+    })
+
+    await service.refreshCatalog()
+
+    expect(applyUpdates).not.toHaveBeenCalled()
+  })
+
+  it('stamps lastCheckedAt after bringing the catalog current', async () => {
+    const { service, recordChecked } = buildForRefresh({
+      pending: [],
+      installedManifestIds: [],
+    })
+
+    await service.refreshCatalog()
+
+    expect(recordChecked).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not record a check when the catalog index fetch fails', async () => {
+    const recordChecked = vi.fn(async () => {})
+    const getPendingUpdates = vi.fn(async () => [])
+    const registry = {
+      ready: Promise.resolve(true),
+      update: vi.fn(async () => false),
+      getPendingUpdates,
+      applyUpdates: vi.fn(async () => {}),
+      recordChecked,
+      listManifests: vi.fn(() => []),
+      getLastCheckedAt: vi.fn(async () => 0),
+    } as unknown as ManifestRegistry
+    const service = new ProviderService(
+      {} as unknown as DanmakuService,
+      {} as unknown as SeasonService,
+      {} as unknown as ProviderConfigService,
+      vi.fn(),
+      registry,
+      silentLogger
+    )
+
+    await service.refreshCatalog()
+
+    expect(getPendingUpdates).not.toHaveBeenCalled()
+    expect(recordChecked).not.toHaveBeenCalled()
+  })
+})
+
+describe('ProviderService.setup', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('registers an onInstalled listener to seed the catalog', () => {
+    const registry = {
+      ready: Promise.resolve(true),
+    } as unknown as ManifestRegistry
+    const service = new ProviderService(
+      {} as unknown as DanmakuService,
+      {} as unknown as SeasonService,
+      {} as unknown as ProviderConfigService,
+      vi.fn(),
+      registry,
+      silentLogger
+    )
+
+    service.setup()
+
+    expect(chrome.runtime.onInstalled.addListener).toHaveBeenCalled()
+  })
+})

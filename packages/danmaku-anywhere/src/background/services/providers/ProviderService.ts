@@ -269,9 +269,46 @@ export class ProviderService {
     }
   }
 
+  // Seed the catalog on install. The periodic refresh is scheduled by
+  // AlarmManager, which calls syncCatalog when the alarm fires.
+  setup(): void {
+    chrome.runtime.onInstalled.addListener(() => {
+      this.syncCatalog().catch((e) => {
+        this.logger.error('Catalog sync failed:', e)
+      })
+    })
+  }
+
   async refreshCatalog(): Promise<ProviderManifestList> {
-    await this.manifestRegistry.update()
+    await this.syncCatalog()
     return this.listManifests()
+  }
+
+  // Bring the catalog current: updates for uninstalled sources (no config or
+  // user data to disturb) are applied here, while installed-source updates stay
+  // manual via the Updates list. Records the check only on a real sync, so
+  // "checked Nm ago" never advances on a bare detection.
+  async syncCatalog(): Promise<void> {
+    const fetched = await this.manifestRegistry.update()
+    if (!fetched) {
+      return
+    }
+    const pending = await this.manifestRegistry.getPendingUpdates()
+    const configs = await this.providerConfigService.getAll()
+    const installed = new Set(configs.map((config) => config.manifestId))
+    const uninstalled = pending
+      .filter((update) => !installed.has(update.manifestId))
+      .map((update) => update.manifestId)
+    if (uninstalled.length > 0) {
+      try {
+        await this.manifestRegistry.applyUpdates(uninstalled)
+      } catch (e) {
+        // Best-effort: a failed background apply retries next sync and must not
+        // block recording the check or the rest of the refresh.
+        this.logger.warn('Failed to auto-apply catalog updates:', e)
+      }
+    }
+    await this.manifestRegistry.recordChecked()
   }
 
   // Surfaces the host-relevant subset of a manifest so the popup can render
