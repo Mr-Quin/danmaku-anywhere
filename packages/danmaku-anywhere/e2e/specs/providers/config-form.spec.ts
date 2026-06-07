@@ -12,7 +12,8 @@ import { applyProfile } from '../../setup/profile'
  * and the built-in Bilibili provider, asserting the schema-driven fields show,
  * a save toast appears, and the edited values land in stored configValues.
  * Also asserts the schema's `required` constraint blocks saving an empty
- * auth header until it is filled.
+ * auth header until it is filled. Field titles localize with the UI language,
+ * so they are matched against both the English source and the zh override.
  */
 
 const NAV_URL = /api\.bilibili\.com\/x\/web-interface\/nav/
@@ -41,11 +42,14 @@ test('renders configSchema fields and saves a custom DanDanPlay server', async (
   const popup = await Popup.open(page, extensionId, '/providers')
   await popup.providers.edit('My DDP Server')
 
-  await popup.providers.expectFieldVisible('Base URL')
-  await popup.providers.expectFieldVisible('Chinese conversion')
+  await popup.providers.expectFieldVisible(/Base URL|基础地址/)
+  await popup.providers.expectFieldVisible(/Chinese conversion|中文转换/)
 
-  await popup.providers.fillField('Base URL', 'https://compat.example.invalid')
-  await popup.providers.selectOption('Chinese conversion', '2')
+  await popup.providers.fillField(
+    /Base URL|基础地址/,
+    'https://compat.example.invalid'
+  )
+  await popup.providers.selectOption(/Chinese conversion|中文转换/, '2')
   await popup.providers.save()
 
   await popup.toast.expectSuccess(/Provider updated|弹幕源已更新/)
@@ -69,13 +73,13 @@ test('enforces the schema required constraint on auth headers', async ({
   await popup.providers.addArrayItem()
   await popup.providers.save()
 
-  await expect(popup.providers.field('Header name')).toHaveAttribute(
+  await expect(popup.providers.field(/Header name|请求头名称/)).toHaveAttribute(
     'aria-invalid',
     'true'
   )
 
-  await popup.providers.fillField('Header name', 'X-Token')
-  await popup.providers.fillField('Value', 'secret')
+  await popup.providers.fillField(/Header name|请求头名称/, 'X-Token')
+  await popup.providers.fillField(/Value|值/, 'secret')
   await popup.providers.save()
 
   await popup.toast.expectSuccess(/Provider updated|弹幕源已更新/)
@@ -108,11 +112,11 @@ test('edits the built-in Bilibili provider via the generic form', async ({
   const popup = await Popup.open(page, extensionId, '/providers')
   await popup.providers.edit(/Bilibili|B站/)
 
-  await popup.providers.expectFieldVisible('Danmaku format')
+  await popup.providers.expectFieldVisible(/Danmaku format|弹幕格式/)
   await expect(popup.providers.nameField()).toBeEnabled()
 
   await popup.providers.nameField().fill('Bilibili Custom')
-  await popup.providers.selectOption('Danmaku format', 'protobuf')
+  await popup.providers.selectOption(/Danmaku format|弹幕格式/, 'protobuf')
   await popup.providers.save()
 
   await popup.toast.expectSuccess(/Provider updated|弹幕源已更新/)

@@ -1,4 +1,5 @@
 import {
+  getDisplayStrings,
   type Manifest,
   ManifestRunner,
   SUPPORTED_API_VERSIONS,
@@ -77,14 +78,17 @@ export class ManifestRegistry {
     return [...this.runners.keys()]
   }
 
-  listManifests(): ProviderManifestInfo[] {
+  listManifests(locale?: string): ProviderManifestInfo[] {
     invariant(this.initialized, 'ManifestRegistry accessed before ready')
-    return [...this.runners.values()].map(({ manifest }) => ({
-      id: manifest.id,
-      name: manifest.name,
-      version: manifest.version,
-      configSchema: manifest.configSchema,
-    }))
+    return [...this.runners.values()].map(({ manifest }) => {
+      const display = getDisplayStrings(manifest, locale)
+      return {
+        id: manifest.id,
+        name: display.name,
+        version: manifest.version,
+        configSchema: display.configSchema,
+      }
+    })
   }
 
   getLastCheckedAt(): Promise<number | null> {

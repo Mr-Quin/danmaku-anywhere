@@ -7,6 +7,7 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
+import { getDisplayStrings } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
@@ -24,6 +25,7 @@ import type {
 } from '@/common/rpcClient/background/types'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { OmitSeasonId } from './IDanmakuProvider'
+import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
 import { ManifestRegistry } from './ManifestRegistry'
 import {
   DanmakuProviderFactory,
@@ -230,7 +232,9 @@ export class ProviderService {
 
   async probeLogin<T = unknown>(manifestId: string): Promise<T | null> {
     await this.manifestRegistry.ready
-    return this.manifestRegistry.getRunner(manifestId).runLoginProbe<T>()
+    return this.manifestRegistry
+      .getRunner(manifestId)
+      .runLoginProbe<T>(undefined, MANIFEST_RUN_OPTIONS)
   }
 
   // Resolves whether a manifest-driven source needs a login/cookie action so
@@ -261,10 +265,10 @@ export class ProviderService {
   // Lists every registered manifest plus the last catalog-check timestamp so
   // the popup can render the catalog section (registered manifests the user
   // has no config for) without bundling the manifest set itself.
-  async listManifests(): Promise<ProviderManifestList> {
+  async listManifests(locale?: string): Promise<ProviderManifestList> {
     await this.manifestRegistry.ready
     return {
-      manifests: this.manifestRegistry.listManifests(),
+      manifests: this.manifestRegistry.listManifests(locale),
       lastCheckedAt: await this.manifestRegistry.getLastCheckedAt(),
     }
   }
@@ -279,9 +283,9 @@ export class ProviderService {
     })
   }
 
-  async refreshCatalog(): Promise<ProviderManifestList> {
+  async refreshCatalog(locale?: string): Promise<ProviderManifestList> {
     await this.syncCatalog()
-    return this.listManifests()
+    return this.listManifests(locale)
   }
 
   // Bring the catalog current: updates for uninstalled sources (no config or
@@ -313,16 +317,22 @@ export class ProviderService {
 
   // Surfaces the host-relevant subset of a manifest so the popup can render
   // generic affordances (warning icon, cookieSet link, config form) without
-  // bundling source-specific switches.
-  async getManifestSpec(manifestId: string): Promise<ProviderManifestSpec> {
+  // bundling source-specific switches. Display strings resolve into `locale`.
+  async getManifestSpec(
+    manifestId: string,
+    locale?: string
+  ): Promise<ProviderManifestSpec> {
     await this.manifestRegistry.ready
     try {
       const { manifest } = this.manifestRegistry.getRunner(manifestId)
+      const display = getDisplayStrings(manifest, locale)
       return {
-        name: manifest.name,
+        name: display.name,
         hasLoginProbe: manifest.loginProbe !== undefined,
-        cookieSet: manifest.cookieSet,
-        configSchema: manifest.configSchema,
+        cookieSet: manifest.cookieSet
+          ? { url: manifest.cookieSet.url, title: display.cookieSet?.title }
+          : undefined,
+        configSchema: display.configSchema,
       }
     } catch {
       // Unknown id (legacy:maccms) or a catalog miss: report a minimal spec so

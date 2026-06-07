@@ -11,6 +11,7 @@ import type { ILogger } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderConfigService } from '@/common/options/providerConfig/service'
 import type { IDanmakuProvider } from './IDanmakuProvider'
+import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
 import type { ManifestRegistry } from './ManifestRegistry'
 import { ProviderService } from './ProviderService'
 
@@ -101,6 +102,85 @@ function build(
 
   return { service, provider, danmakuService, seasonService }
 }
+
+describe('ProviderService.probeLogin', () => {
+  it('runs the login probe with the private-host opt-in', async () => {
+    const runLoginProbe = vi.fn(async () => true)
+    const registry = {
+      ready: Promise.resolve(true),
+      getRunner: vi.fn(() => ({ runLoginProbe })),
+    } as unknown as ManifestRegistry
+    const service = new ProviderService(
+      {} as unknown as DanmakuService,
+      {} as unknown as SeasonService,
+      {} as unknown as ProviderConfigService,
+      vi.fn(() => makeProvider()),
+      registry,
+      silentLogger
+    )
+
+    await service.probeLogin('dandanplay')
+
+    expect(runLoginProbe).toHaveBeenCalledWith(undefined, MANIFEST_RUN_OPTIONS)
+  })
+})
+
+describe('ProviderService.getManifestSpec', () => {
+  function buildWithManifest(manifest: Record<string, unknown>) {
+    const registry = {
+      ready: Promise.resolve(true),
+      getRunner: vi.fn(() => ({ manifest })),
+    } as unknown as ManifestRegistry
+    return new ProviderService(
+      {} as unknown as DanmakuService,
+      {} as unknown as SeasonService,
+      {} as unknown as ProviderConfigService,
+      vi.fn(() => makeProvider()),
+      registry,
+      silentLogger
+    )
+  }
+
+  it('resolves name, configSchema, and cookieSet title into the locale', async () => {
+    const service = buildWithManifest({
+      id: 'dandanplay',
+      name: 'DanDanPlay',
+      cookieSet: { url: 'https://ddp.example/login', title: 'Sign in' },
+      configSchema: {
+        type: 'object',
+        properties: { baseUrl: { type: 'string', title: 'Base URL' } },
+      },
+      locales: {
+        'zh-CN': {
+          name: '弹弹play',
+          'cookieSet.title': '登录',
+          'configSchema.properties.baseUrl.title': '基础地址',
+        },
+      },
+    })
+
+    const spec = await service.getManifestSpec('dandanplay', 'zh-CN')
+
+    expect(spec.name).toBe('弹弹play')
+    expect(spec.cookieSet).toEqual({
+      url: 'https://ddp.example/login',
+      title: '登录',
+    })
+    expect(spec.configSchema?.properties?.baseUrl.title).toBe('基础地址')
+  })
+
+  it('falls back to source strings when no locale is given', async () => {
+    const service = buildWithManifest({
+      id: 'dandanplay',
+      name: 'DanDanPlay',
+      locales: { 'zh-CN': { name: '弹弹play' } },
+    })
+
+    const spec = await service.getManifestSpec('dandanplay')
+
+    expect(spec.name).toBe('DanDanPlay')
+  })
+})
 
 describe('ProviderService legacy-maccms decoupling', () => {
   beforeEach(() => {

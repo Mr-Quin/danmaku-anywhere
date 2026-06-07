@@ -18,7 +18,8 @@ export const useApplyUpdates = () => {
       chromeRpcClient.providerApplyUpdates({ manifestIds }),
     onSuccess: () => {
       // Applying changes stored versions, so both the pending list and the
-      // manifest list (used for the version subtitles) need to refetch.
+      // manifest list (used for the version subtitles) need to refetch. The
+      // version is locale-independent, so invalidate every locale's list.
       void queryClient.invalidateQueries({
         queryKey: sourceQueryKeys.pendingUpdates(),
       })

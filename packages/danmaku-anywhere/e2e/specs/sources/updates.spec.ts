@@ -68,15 +68,20 @@ test('updates: an uninstalled catalog source updates in place on refresh, not as
 
   const popup = await Popup.open(page, extensionId, '/providers')
 
+  // The catalog name localizes with the UI language (iQIYI -> 爱奇艺).
+  const iqiyiName = /iQIYI|爱奇艺/
+
   // Seeded stale with no runner yet, so it only surfaces once the refresh
   // applies its update in place.
-  await expect(popup.providers.importButton('iQIYI')).toBeHidden()
+  await expect(popup.providers.importButton(iqiyiName)).toBeHidden()
   await expect(page.getByText(/Updates available|有可用更新/)).toBeHidden()
 
   await popup.providers.refreshCatalog()
 
-  await expect(popup.providers.catalogRow('iQIYI')).toContainText(`v${BUMPED}`)
-  await expect(popup.providers.importButton('iQIYI')).toBeVisible()
+  await expect(popup.providers.catalogRow(iqiyiName)).toContainText(
+    `v${BUMPED}`
+  )
+  await expect(popup.providers.importButton(iqiyiName)).toBeVisible()
   await expect(page.getByText(/Updates available|有可用更新/)).toBeHidden()
 
   const stored = (await da.storage.get('local', 'manifests')) as StoredManifests

@@ -3,6 +3,17 @@ export enum Language {
   zh = 'zh',
 }
 
+// Map the app's bare language code to a BCP-47 locale tag (e.g. `zh` -> `zh-CN`).
+export function toManifestLocale(language?: string): string {
+  if (!language) {
+    return Language.en
+  }
+  if (language.toLowerCase().startsWith('zh')) {
+    return 'zh-CN'
+  }
+  return language
+}
+
 export const LanguageList = [
   {
     value: Language.en,
