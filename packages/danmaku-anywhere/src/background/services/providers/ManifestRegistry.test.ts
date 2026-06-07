@@ -259,6 +259,18 @@ describe('ManifestRegistry', () => {
     expect(Object.keys(await store.getAll())).toEqual(['good'])
   })
 
+  it('update skips a manifest whose id does not match the catalog entry', async () => {
+    stubCatalogFetch([catalogEntry('good'), catalogEntry('mismatch')], {
+      [manifestPath('good')]: makeManifest('good'),
+      [manifestPath('mismatch')]: makeManifest('something-else'),
+    })
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.update()
+
+    expect(Object.keys(await store.getAll())).toEqual(['good'])
+  })
+
   it('update skips a file that fails to fetch and re-fetches it next run', async () => {
     stubCatalogFetch(
       [catalogEntry('good'), catalogEntry('broken')],

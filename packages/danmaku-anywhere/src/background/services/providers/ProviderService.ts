@@ -292,8 +292,6 @@ export class ProviderService {
   async syncCatalog(): Promise<void> {
     const fetched = await this.manifestRegistry.update()
     if (!fetched) {
-      // Offline / catalog unreachable: don't record a check, so the UI keeps
-      // showing the last time the catalog was actually brought current.
       return
     }
     const pending = await this.manifestRegistry.getPendingUpdates()

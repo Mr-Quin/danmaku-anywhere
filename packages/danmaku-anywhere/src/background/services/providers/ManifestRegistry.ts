@@ -254,6 +254,16 @@ export class ManifestRegistry {
       )
       return null
     }
+    // The store keys by the manifest's own id; a mismatch with the catalog id
+    // would store it under the wrong key and loop as a never-resolving update.
+    if (parsed.data.id !== id) {
+      this.log.error(
+        'Skipping catalog manifest with mismatched id:',
+        id,
+        parsed.data.id
+      )
+      return null
+    }
     return { raw, parsed: parsed.data }
   }
 
