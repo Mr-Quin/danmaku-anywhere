@@ -1,4 +1,5 @@
 import type { Page } from '@playwright/test'
+import { BackupPage } from './BackupPage'
 import { ConfirmDialog } from './ConfirmDialog'
 import { ImportResultDialog } from './ImportResultDialog'
 import { MountPage } from './MountPage'
@@ -15,6 +16,7 @@ export class Popup {
   readonly seasonDetails: SeasonDetailsPage
   readonly providers: ProvidersPage
   readonly options: OptionsPage
+  readonly backup: BackupPage
   readonly toast: Toast
   readonly dialog: ConfirmDialog
   readonly urlImport: UrlImportDialog
@@ -26,6 +28,7 @@ export class Popup {
     this.seasonDetails = new SeasonDetailsPage(page)
     this.providers = new ProvidersPage(page)
     this.options = new OptionsPage(page)
+    this.backup = new BackupPage(page)
     this.toast = new Toast(page)
     this.dialog = new ConfirmDialog(page)
     this.urlImport = new UrlImportDialog(page)

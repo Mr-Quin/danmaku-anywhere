@@ -110,7 +110,7 @@ export const ImportResultContent = ({
         <Stack spacing={2}>
           {(totalImportedCount > 0 || totalSkipped > 0) && (
             <>
-              <Alert severity="success">
+              <Alert severity="success" data-testid="import-result-success">
                 {t('importPage.importSuccess', {
                   count: totalImportedCount,
                 })}

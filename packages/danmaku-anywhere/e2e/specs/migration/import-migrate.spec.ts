@@ -2,7 +2,7 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gunzipSync } from 'node:zlib'
-import { ImportResultDialog } from '../../pom/ImportResultDialog'
+import { ImportPage } from '../../pom/ImportPage'
 import { Popup } from '../../pom/Popup'
 import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
@@ -48,26 +48,17 @@ test('current build migrates an imported v1.5.0 backup and danmaku export', asyn
   const popup = await Popup.open(page, extensionId, '/options/backup')
 
   const backup = gunzipSync(await readFile(BACKUP_GZ))
-  await page.locator('input[type="file"][accept=".json"]').setInputFiles({
+  await popup.backup.restoreFromFile({
     name: 'backup.json',
     mimeType: 'application/json',
     buffer: backup,
   })
   await popup.toast.expectSuccess(/Import success|成功导入备份/)
 
-  await page.goto(
-    `chrome-extension://${extensionId}/pages/popup.html?detached=1#/import`
-  )
-  await page.locator('#root').waitFor({ state: 'visible' })
-  await page.locator('input[type="file"][accept]').setInputFiles(DANMAKU_ZIP)
-  await new ImportResultDialog(page).confirm()
-  // The danmaku fixture carries a ~2MB comment file that is parsed and
-  // migrated before the success alert renders, so allow more than the default.
-  await expect(
-    page
-      .locator('[role="alert"]')
-      .filter({ hasText: /Successfully imported|成功导入/ })
-  ).toBeVisible({ timeout: 15_000 })
+  const importPage = await ImportPage.open(page, extensionId)
+  await importPage.selectFiles(DANMAKU_ZIP)
+  await importPage.result.confirm()
+  await importPage.result.expectSuccess()
 
   const da = await getDaClient(context)
 

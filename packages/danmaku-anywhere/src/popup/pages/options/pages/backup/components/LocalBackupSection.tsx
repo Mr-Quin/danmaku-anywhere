@@ -131,6 +131,7 @@ export function LocalBackupSection({
         ref={fileInputRef}
         accept=".json"
         onChange={handleFileChange}
+        data-testid="backup-restore-input"
       />
     </>
   )
