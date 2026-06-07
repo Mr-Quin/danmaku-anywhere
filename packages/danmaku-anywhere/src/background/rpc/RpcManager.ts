@@ -139,9 +139,6 @@ export class RpcManager {
         providerApplyUpdates: async ({ manifestIds }) => {
           await this.manifestRegistry.applyUpdates(manifestIds)
         },
-        providerGetLastCheckedAt: async () => {
-          return this.manifestRegistry.getLastCheckedAt()
-        },
         bilibiliSetCookies: async () => {
           // Credentialed homepage GET lets bilibili's Set-Cookie response
           // seed the anti-bot cookies the API host needs.

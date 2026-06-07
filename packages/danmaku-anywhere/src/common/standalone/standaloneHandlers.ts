@@ -103,7 +103,6 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     providerGetManifestSpec: () => ({ name: '', hasLoginProbe: false }),
     providerGetPendingUpdates: () => [],
     providerApplyUpdates: () => undefined,
-    providerGetLastCheckedAt: () => null,
     fetchImage: ({ src }) => src,
     getActiveTabUrl: () => 'https://example.com',
     getFrameId: () => 0,

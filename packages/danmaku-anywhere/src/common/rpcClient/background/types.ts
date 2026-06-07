@@ -178,7 +178,6 @@ export type BackgroundMethods = {
   providerRefreshCatalog: RPCDef<void, ProviderManifestList>
   providerGetPendingUpdates: RPCDef<void, ManifestUpdate[]>
   providerApplyUpdates: RPCDef<{ manifestIds: string[] }, void>
-  providerGetLastCheckedAt: RPCDef<void, number | null>
   fetchImage: RPCDef<{ src: string }, string | null>
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>
