@@ -42,8 +42,9 @@ export const AccountCard = () => {
           display: 'flex',
           alignItems: 'center',
           gap: 1.5,
-          background: (theme) =>
-            `linear-gradient(135deg, ${theme.palette.primary.light}, ${alpha(theme.palette.secondary.light, 0.6)})`,
+          bgcolor: 'background.paper',
+          backgroundImage: (theme) =>
+            `linear-gradient(135deg, ${alpha(theme.palette.primary.main, 0.1)}, ${alpha(theme.palette.secondary.main, 0.04)})`,
         }}
       >
         <Box
@@ -64,7 +65,7 @@ export const AccountCard = () => {
           <Person />
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+          <Typography variant="body2" sx={{ fontWeight: 600 }}>
             {t('optionsPage.account.signInToSync', 'Sign in to sync')}
           </Typography>
           <Typography
@@ -77,7 +78,7 @@ export const AccountCard = () => {
             )}
           </Typography>
         </Box>
-        <Button variant="contained" onClick={goToAuth}>
+        <Button variant="soft" onClick={goToAuth}>
           {t('optionsPage.auth.signIn', 'Sign In')}
         </Button>
       </Box>

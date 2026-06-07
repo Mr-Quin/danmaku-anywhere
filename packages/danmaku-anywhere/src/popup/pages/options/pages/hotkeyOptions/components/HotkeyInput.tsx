@@ -95,7 +95,11 @@ export const HotkeyInput = ({ onKeyChange, value }: HotkeyInputProps) => {
         autoFocus
         size="small"
         fullWidth={false}
-        sx={{ width: 180 }}
+        sx={{
+          width: 180,
+          '& .MuiInputBase-root': { height: 28 },
+          '& .MuiInputBase-input': { py: 0 },
+        }}
       />
     )
   }
