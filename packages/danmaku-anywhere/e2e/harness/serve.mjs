@@ -82,8 +82,23 @@ function sendRange(req, res, filePath, size, type) {
   createReadStream(filePath, { start, end }).pipe(res)
 }
 
+// Media served under this prefix rejects the crossorigin clone's CORS request
+// (it carries an Origin header) so the occlusion DNR ACAO rule can't rescue it,
+// while the plain <video> request (no Origin) still plays and taints.
+const CORS_FAIL_PREFIX = '/cors-fail/'
+
 function handle(req, res) {
-  const filePath = resolvePath(req.url)
+  let urlPath = req.url
+  const corsFail = urlPath.startsWith(CORS_FAIL_PREFIX)
+  if (corsFail) {
+    urlPath = `/${urlPath.slice(CORS_FAIL_PREFIX.length)}`
+    if (req.headers.origin) {
+      res.writeHead(403)
+      res.end('Forbidden')
+      return
+    }
+  }
+  const filePath = resolvePath(urlPath)
   if (!filePath) {
     res.writeHead(403)
     res.end('Forbidden')
