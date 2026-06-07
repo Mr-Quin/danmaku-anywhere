@@ -70,7 +70,9 @@ describe('MaskCompositor', () => {
     })
 
     expect(result?.url).toBe('data:image/png;base64,AAAA')
-    expect(result?.mask.width).toBeGreaterThan(0)
+    // box 100x100 capped at outputMaxSide 64 => outputScale 0.64 => 64x64.
+    expect(result?.mask.width).toBe(64)
+    expect(result?.mask.height).toBe(64)
     const [maskCanvas, rawMaskCanvas] = canvases
     expect(rawMaskCanvas.ctx.putImageData).toHaveBeenCalled()
     expect(maskCanvas.ctx.drawImage).toHaveBeenCalled()
