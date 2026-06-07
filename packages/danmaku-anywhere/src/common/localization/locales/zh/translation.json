@@ -557,9 +557,9 @@
       "updated": "弹幕源已更新"
     },
     "attention": {
-      "loginRequired": "需要登录才能获取",
       "signIn": "登录",
-      "title": "需要处理"
+      "signInHint": "登录以获取完整弹幕",
+      "title": "建议登录"
     },
     "catalog": {
       "checked": {

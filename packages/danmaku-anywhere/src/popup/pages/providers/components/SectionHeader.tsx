@@ -17,11 +17,7 @@ export const SectionHeader = ({
       direction="row"
       sx={{ alignItems: 'center', gap: 1, pt: 1, pb: 0.5 }}
     >
-      <Typography
-        variant="overline"
-        color="text.secondary"
-        sx={{ flexGrow: 1, lineHeight: 1.5 }}
-      >
+      <Typography variant="overline" sx={{ flexGrow: 1 }}>
         {title} ({count})
       </Typography>
       {children}

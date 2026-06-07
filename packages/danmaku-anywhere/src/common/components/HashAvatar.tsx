@@ -59,6 +59,7 @@ export const HashAvatar = ({ seed, label, size = 28 }: HashAvatarProps) => {
           fontSize: size > 30 ? 13 : 11,
           fontWeight: 700,
           lineHeight: 1,
+          userSelect: 'none',
           bgcolor: `oklch(${tint.l} ${tint.c} ${h})`,
           color: `oklch(${ink.l} ${ink.c} ${h})`,
         }

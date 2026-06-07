@@ -56,6 +56,7 @@ const StyledListItem = styled(ListItem)(({ theme }) => {
     border: `1px solid ${theme.palette.divider}`,
     borderRadius: theme.shape.borderRadius,
     backgroundColor: theme.palette.background.paper,
+    userSelect: 'none',
     '.MuiListItemButton-root': {
       paddingRight: theme.spacing(12), // make room for action buttons
     },
@@ -74,6 +75,7 @@ interface SortableItemProps<T extends DraggableItem> {
   selected?: boolean
   onEdit?: (item: T) => void
   onToggleSelect?: (item: T) => void
+  renderLeading?: (item: T) => ReactNode
   renderPrimary: (item: T) => ReactNode
   renderSecondary?: (item: T) => ReactNode
   renderSecondaryAction?: (item: T) => ReactNode
@@ -87,6 +89,7 @@ function SortableItem<T extends DraggableItem>({
   selected,
   onEdit,
   onToggleSelect,
+  renderLeading,
   renderPrimary,
   renderSecondary,
   renderSecondaryAction,
@@ -139,6 +142,7 @@ function SortableItem<T extends DraggableItem>({
           <DragIndicator />
         </DraggableItemIcon>
       ) : null}
+      {renderLeading?.(item)}
       <ListItemText {...listItemTextProps} />
     </>
   )
@@ -206,6 +210,7 @@ export interface DraggableListProps<T extends DraggableItem> {
   onSelectionChange?: (ids: string[]) => void
   onEdit?: (item: T) => void
   onReorder?: (sourceIndex: number, destinationIndex: number) => void
+  renderLeading?: (item: T) => ReactNode
   renderPrimary: (item: T) => ReactNode
   renderSecondary?: (item: T) => ReactNode
   renderSecondaryAction?: (item: T) => ReactNode
@@ -225,6 +230,7 @@ export function DraggableList<T extends DraggableItem>({
   onEdit,
   onReorder,
   renderEmpty,
+  renderLeading,
   renderPrimary,
   renderSecondary,
   renderSecondaryAction,
@@ -352,6 +358,7 @@ export function DraggableList<T extends DraggableItem>({
                 selected={selectedIdSet.has(item.id)}
                 onEdit={onEdit}
                 onToggleSelect={handleToggleSelect}
+                renderLeading={renderLeading}
                 renderPrimary={renderPrimary}
                 renderSecondary={renderSecondary}
                 renderSecondaryAction={renderSecondaryAction}

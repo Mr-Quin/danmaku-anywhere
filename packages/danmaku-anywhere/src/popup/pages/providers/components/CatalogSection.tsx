@@ -4,18 +4,16 @@ import {
   Button,
   CircularProgress,
   IconButton,
-  List,
-  ListItem,
-  ListItemText,
+  Stack,
   Tooltip,
   Typography,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { HashAvatar } from '@/common/components/HashAvatar'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { type CheckedAgo, checkedAgo, matchesQuery } from '../catalog'
 import { useManifestList, useRefreshCatalog } from '../hooks/useManifestList'
+import { ProviderRow, sourceCardSx } from './ProviderRow'
 import { SectionHeader } from './SectionHeader'
 
 interface CatalogSectionProps {
@@ -95,42 +93,29 @@ export const CatalogSection = ({
       )
     }
     return (
-      <List
-        dense
-        disablePadding
-        sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}
-      >
+      <Stack sx={{ gap: 1 }}>
         {visible.map((manifest) => (
-          <ListItem
-            key={manifest.id}
-            sx={{
-              border: 1,
-              borderColor: 'divider',
-              borderRadius: 1,
-              bgcolor: 'background.paper',
-            }}
-            secondaryAction={
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => onImport(manifest)}
-                disabled={isImporting}
-              >
-                {t('providers.catalog.import', 'Import')}
-              </Button>
-            }
-          >
-            <HashAvatar seed={manifest.id} label={manifest.name} />
-            <ListItemText
-              sx={{ ml: 1.5 }}
+          <Box key={manifest.id} sx={sourceCardSx}>
+            <ProviderRow
+              avatarSeed={manifest.id}
               primary={manifest.name}
               secondary={t('providers.catalog.version', 'v{{version}}', {
                 version: manifest.version,
               })}
+              action={
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => onImport(manifest)}
+                  disabled={isImporting}
+                >
+                  {t('providers.catalog.import', 'Import')}
+                </Button>
+              }
             />
-          </ListItem>
+          </Box>
         ))}
-      </List>
+      </Stack>
     )
   }
 

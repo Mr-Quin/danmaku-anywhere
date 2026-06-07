@@ -142,14 +142,30 @@ export const ProvidersPage = (): ReactElement => {
     <>
       <TabLayout>
         <TabToolbar title={t('providers.name', 'Danmaku Providers')}>
-          <ProviderAddMenu
-            onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
-            onAddMacCmsProvider={handleAddMacCmsProvider}
-          />
+          {reorderMode ? (
+            <Button size="small" onClick={() => setReorderMode(false)}>
+              {t('providers.installed.reorderDone', 'Done')}
+            </Button>
+          ) : (
+            <ProviderAddMenu
+              onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
+              onAddMacCmsProvider={handleAddMacCmsProvider}
+            />
+          )}
         </TabToolbar>
         <TabBody>
-          <Stack direction="column" sx={{ pb: 1.5 }}>
-            {reorderMode ? null : (
+          {reorderMode ? (
+            <InstalledList
+              configs={configs}
+              manifestById={manifestById}
+              reorderMode
+              filterActive={false}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onAddInstance={handleAddInstance}
+            />
+          ) : (
+            <Stack direction="column" sx={{ pb: 1.5 }}>
               <TextField
                 size="small"
                 fullWidth
@@ -176,46 +192,38 @@ export const ProvidersPage = (): ReactElement => {
                   },
                 }}
               />
-            )}
-            {reorderMode ? null : (
               <NeedsAttentionCallout configs={configs} filter={filter} />
-            )}
-            <SectionHeader
-              title={t('providers.installed.title', 'Installed')}
-              count={reorderMode ? configs.length : installedCount}
-            >
-              {reorderMode ? (
-                <Button size="small" onClick={() => setReorderMode(false)}>
-                  {t('providers.installed.reorderDone', 'Done')}
-                </Button>
-              ) : configs.length > 1 && !filterActive ? (
-                <Button
-                  size="small"
-                  startIcon={<SwapVert fontSize="small" />}
-                  onClick={() => setReorderMode(true)}
-                >
-                  {t('providers.installed.reorder', 'Reorder')}
-                </Button>
-              ) : null}
-            </SectionHeader>
-            <InstalledList
-              configs={reorderMode ? configs : visibleConfigs}
-              manifestById={manifestById}
-              reorderMode={reorderMode}
-              filterActive={filterActive}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onAddInstance={handleAddInstance}
-            />
-            {reorderMode ? null : (
+              <SectionHeader
+                title={t('providers.installed.title', 'Installed')}
+                count={installedCount}
+              >
+                {configs.length > 1 && !filterActive ? (
+                  <Button
+                    size="small"
+                    startIcon={<SwapVert fontSize="small" />}
+                    onClick={() => setReorderMode(true)}
+                  >
+                    {t('providers.installed.reorder', 'Reorder')}
+                  </Button>
+                ) : null}
+              </SectionHeader>
+              <InstalledList
+                configs={visibleConfigs}
+                manifestById={manifestById}
+                reorderMode={false}
+                filterActive={filterActive}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onAddInstance={handleAddInstance}
+              />
               <CatalogSection
                 filter={filter}
                 installedManifestIds={installedManifestIds}
                 onImport={handleImport}
                 isImporting={create.isPending}
               />
-            )}
-          </Stack>
+            </Stack>
+          )}
         </TabBody>
       </TabLayout>
 

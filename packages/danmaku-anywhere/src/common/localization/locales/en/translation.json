@@ -573,8 +573,8 @@
       "updated": "Provider updated"
     },
     "attention": {
-      "loginRequired": "Login required to fetch",
       "signIn": "Sign in",
+      "signInHint": "Sign in for complete danmaku",
       "title": "Needs attention"
     },
     "catalog": {

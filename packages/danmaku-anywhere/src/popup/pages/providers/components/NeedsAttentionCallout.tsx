@@ -1,9 +1,9 @@
-import { Box, Button, Stack, Typography } from '@mui/material'
+import { Box, Button } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { HashAvatar } from '@/common/components/HashAvatar'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { matchesQuery } from '../catalog'
 import { useNeedsAttention } from '../hooks/useNeedsAttention'
+import { ProviderRow } from './ProviderRow'
 import { SectionHeader } from './SectionHeader'
 
 interface NeedsAttentionCalloutProps {
@@ -27,7 +27,7 @@ export const NeedsAttentionCallout = ({
   return (
     <Box sx={{ pb: 0.5 }}>
       <SectionHeader
-        title={t('providers.attention.title', 'Needs attention')}
+        title={t('providers.attention.title', 'Sign in suggested')}
         count={attention.length}
       />
       <Box
@@ -35,51 +35,33 @@ export const NeedsAttentionCallout = ({
           border: 1,
           borderColor: 'divider',
           borderRadius: 1,
-          bgcolor: 'action.hover',
+          bgcolor: (theme) => theme.palette.paperAlt,
           overflow: 'hidden',
         }}
       >
-        {attention.map((item, index) => {
+        {attention.map((item) => {
           const url = item.cookieSet?.url
           const canSignIn = url ? /^https?:\/\//i.test(url) : false
           return (
-            <Stack
+            <ProviderRow
               key={item.config.id}
-              direction="row"
-              sx={{
-                alignItems: 'center',
-                gap: 1,
-                px: 1,
-                py: 0.75,
-                borderTop: index > 0 ? 1 : 0,
-                borderColor: 'divider',
-              }}
-            >
-              <HashAvatar
-                seed={item.config.manifestId}
-                label={item.config.name}
-                size={22}
-              />
-              <Stack sx={{ flex: 1, minWidth: 0 }}>
-                <Typography variant="body2" noWrap>
-                  {item.config.name}
-                </Typography>
-                <Typography variant="caption" color="warning.main" noWrap>
-                  {t(
-                    'providers.attention.loginRequired',
-                    'Login required to fetch'
-                  )}
-                </Typography>
-              </Stack>
-              <Button
-                size="small"
-                variant="outlined"
-                disabled={!canSignIn}
-                onClick={() => chrome.tabs.create({ url })}
-              >
-                {t('providers.attention.signIn', 'Sign in')}
-              </Button>
-            </Stack>
+              avatarSeed={item.config.manifestId}
+              primary={item.config.name}
+              secondary={t(
+                'providers.attention.signInHint',
+                'Sign in for complete danmaku'
+              )}
+              action={
+                <Button
+                  size="small"
+                  variant="outlined"
+                  disabled={!canSignIn}
+                  onClick={() => chrome.tabs.create({ url })}
+                >
+                  {t('providers.attention.signIn', 'Sign in')}
+                </Button>
+              }
+            />
           )
         })}
       </Box>
