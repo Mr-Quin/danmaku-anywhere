@@ -11,7 +11,7 @@ import { applyProfile } from '../../setup/profile'
  * and the callout is absent when every probe reports logged-in.
  */
 
-const ATTENTION = /Sign in suggested|建议登录/
+const ATTENTION = /Needs attention|存在问题/
 const SIGN_IN = /^(Sign in|登录)$/
 
 const NAV_URL = /api\.bilibili\.com\/x\/web-interface\/nav/

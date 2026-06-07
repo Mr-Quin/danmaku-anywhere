@@ -388,7 +388,6 @@ function buildSakuraComponents(
         },
       },
       styleOverrides: {
-        // Section labels read as muted secondary text by default.
         overline: ({ theme }) => ({ color: theme.palette.text.secondary }),
       },
     },

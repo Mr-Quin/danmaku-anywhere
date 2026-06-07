@@ -9,8 +9,6 @@ import {
 import type { ReactNode } from 'react'
 import { HashAvatar } from '@/common/components/HashAvatar'
 
-// The bordered card every top-level source row sits in, matching the
-// DraggableList look so the static and draggable lists are consistent.
 export const sourceCardSx: SxProps<Theme> = {
   border: 1,
   borderColor: 'divider',
@@ -29,9 +27,6 @@ interface ProviderRowProps {
   action?: ReactNode
 }
 
-// A single source row: leading avatar, name + subtitle, and a trailing action
-// area (toggle / menu / button) rendered as the ListItem secondaryAction so it
-// stays on the clickable surface and never overlaps the truncated text.
 export const ProviderRow = ({
   avatarSeed,
   primary,
@@ -48,6 +43,7 @@ export const ProviderRow = ({
         </Box>
       ) : null}
       <ListItemText
+        sx={{ minWidth: 0, my: 0 }}
         primary={primary}
         secondary={secondary}
         slotProps={{

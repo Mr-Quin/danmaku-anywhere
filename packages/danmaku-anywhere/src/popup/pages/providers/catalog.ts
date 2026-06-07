@@ -1,6 +1,7 @@
 import { PROVIDER_TO_BUILTIN_ID } from '@danmaku-anywhere/danmaku-converter'
 import type { ConfigSchema } from '@mr-quin/dango'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
+import { PROXY_DDP_BASE_URL } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { getRandomUUID } from '@/common/utils/utils'
@@ -42,6 +43,15 @@ const MULTI_INSTANCE_MANIFEST_IDS = new Set<string>([DDP_MANIFEST_ID])
 
 export function supportsInstances(manifestId: string): boolean {
   return MULTI_INSTANCE_MANIFEST_IDS.has(manifestId)
+}
+
+// The DanDanPlay instance pointed at our hosted proxy, as opposed to a
+// user-added server.
+export function isHostedDanDanPlay(config: ProviderConfig): boolean {
+  return (
+    config.manifestId === DDP_MANIFEST_ID &&
+    config.configValues.baseUrl === PROXY_DDP_BASE_URL
+  )
 }
 
 export type InstalledUnit =

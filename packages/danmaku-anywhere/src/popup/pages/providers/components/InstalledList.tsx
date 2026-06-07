@@ -1,5 +1,11 @@
 import { arrayMove } from '@dnd-kit/sortable'
-import { Add, Delete, ExpandLess, ExpandMore } from '@mui/icons-material'
+import {
+  Add,
+  Delete,
+  ExpandLess,
+  ExpandMore,
+  Restore,
+} from '@mui/icons-material'
 import { Box, Collapse, Stack, Switch } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -11,7 +17,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
-import { groupInstalled } from '../catalog'
+import { groupInstalled, isHostedDanDanPlay } from '../catalog'
 import { ProviderRow, sourceCardSx } from './ProviderRow'
 
 interface InstalledListProps {
@@ -22,6 +28,7 @@ interface InstalledListProps {
   onEdit: (config: ProviderConfig) => void
   onDelete: (config: ProviderConfig) => void
   onAddInstance: (manifestId: string) => void
+  onAddDefaultInstance: (manifestId: string) => void
 }
 
 function versionSubtitle(
@@ -46,11 +53,17 @@ export const InstalledList = ({
   onEdit,
   onDelete,
   onAddInstance,
+  onAddDefaultInstance,
 }: InstalledListProps) => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
   const { toggle, reorderAll } = useEditProviderConfig()
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+
+  const displayName = (config: ProviderConfig) =>
+    isHostedDanDanPlay(config)
+      ? `${config.name} (${t('providers.installed.builtIn', 'Built-in')})`
+      : config.name
 
   if (configs.length === 0) {
     return (
@@ -85,7 +98,7 @@ export const InstalledList = ({
             <HashAvatar seed={config.manifestId} label={config.name} />
           </Box>
         )}
-        renderPrimary={(config) => config.name}
+        renderPrimary={(config) => displayName(config)}
         renderSecondary={(config) =>
           (config.configValues.baseUrl as string) ??
           versionSubtitle(config, manifestById.get(config.manifestId))
@@ -141,7 +154,7 @@ export const InstalledList = ({
             <Box key={unit.id} sx={sourceCardSx}>
               <ProviderRow
                 avatarSeed={config.manifestId}
-                primary={config.name}
+                primary={displayName(config)}
                 secondary={versionSubtitle(
                   config,
                   manifestById.get(config.manifestId)
@@ -168,6 +181,26 @@ export const InstalledList = ({
           }
         )
         const isOpen = !collapsed.has(unit.id)
+        const menuItems = [
+          {
+            id: 'add-instance',
+            label: t('providers.installed.addInstance', 'Add instance'),
+            onClick: () => onAddInstance(unit.manifestId),
+            icon: <Add />,
+          },
+        ]
+        // Offer to restore the hosted default once it has been removed.
+        if (!unit.configs.some(isHostedDanDanPlay)) {
+          menuItems.push({
+            id: 'add-default',
+            label: t(
+              'providers.installed.addDefaultInstance',
+              'Add default instance'
+            ),
+            onClick: () => onAddDefaultInstance(unit.manifestId),
+            icon: <Restore />,
+          })
+        }
         return (
           <Box key={unit.id} sx={sourceCardSx}>
             <ProviderRow
@@ -186,27 +219,17 @@ export const InstalledList = ({
                     BoxProps={{ sx: { display: 'inline' } }}
                     ButtonProps={{ edge: 'end', size: 'small' }}
                     dense
-                    items={[
-                      {
-                        id: 'add-instance',
-                        label: t(
-                          'providers.installed.addInstance',
-                          'Add instance'
-                        ),
-                        onClick: () => onAddInstance(unit.manifestId),
-                        icon: <Add />,
-                      },
-                    ]}
+                    items={menuItems}
                   />
                 </Stack>
               }
             />
             <Collapse in={isOpen} unmountOnExit>
-              <Box sx={{ bgcolor: (theme) => theme.palette.paperAlt }}>
+              <Box sx={{ bgcolor: (theme) => theme.palette.paperAlt, pl: 2 }}>
                 {unit.configs.map((config) => (
                   <ProviderRow
                     key={config.id}
-                    primary={config.name}
+                    primary={displayName(config)}
                     secondary={(config.configValues.baseUrl as string) ?? ''}
                     mono
                     onClick={() => onEdit(config)}

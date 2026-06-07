@@ -125,9 +125,7 @@ export const CatalogSection = ({
         title={t('providers.catalog.title', 'Catalog')}
         count={visible.length}
       >
-        <Typography variant="caption" color="text.secondary">
-          {checkedLabel}
-        </Typography>
+        <Typography variant="overline">{checkedLabel}</Typography>
         <Tooltip title={t('common.refresh', 'Refresh')}>
           <span>
             <IconButton

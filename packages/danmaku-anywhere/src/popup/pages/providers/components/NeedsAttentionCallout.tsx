@@ -27,7 +27,7 @@ export const NeedsAttentionCallout = ({
   return (
     <Box sx={{ pb: 0.5 }}>
       <SectionHeader
-        title={t('providers.attention.title', 'Sign in suggested')}
+        title={t('providers.attention.title', 'Needs attention')}
         count={attention.length}
       />
       <Box

@@ -613,7 +613,9 @@
       "placeholder": "Filter sources"
     },
     "installed": {
+      "addDefaultInstance": "Add default instance",
       "addInstance": "Add instance",
+      "builtIn": "Built-in",
       "empty": "No matching sources",
       "instances_one": "{{count}} instances",
       "instances_other": "{{count}} instances",

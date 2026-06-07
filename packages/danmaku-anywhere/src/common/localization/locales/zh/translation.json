@@ -559,7 +559,7 @@
     "attention": {
       "signIn": "登录",
       "signInHint": "登录以获取完整弹幕",
-      "title": "建议登录"
+      "title": "存在问题"
     },
     "catalog": {
       "checked": {
@@ -594,7 +594,9 @@
       "placeholder": "筛选弹幕源"
     },
     "installed": {
+      "addDefaultInstance": "添加默认实例",
       "addInstance": "添加实例",
+      "builtIn": "内置",
       "empty": "没有匹配的弹幕源",
       "instances_other": "{{count}} 个实例",
       "none": "未安装弹幕源",

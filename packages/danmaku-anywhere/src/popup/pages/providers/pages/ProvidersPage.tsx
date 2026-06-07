@@ -16,6 +16,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import {
   createCustomDanDanPlayProvider,
   createCustomMacCmsProvider,
+  createDefaultProviderConfig,
 } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import {
@@ -96,13 +97,7 @@ export const ProvidersPage = (): ReactElement => {
     setMode(null)
   }
 
-  const handleImport = (manifest: ProviderManifestInfo) => {
-    const config = createConfigFromManifest(manifest)
-    if (manifestNeedsConfigForm(manifest.configSchema)) {
-      setEditingProvider(config)
-      setMode('add')
-      return
-    }
+  const createConfig = (config: ProviderConfig) => {
     create.mutate(config, {
       onSuccess: () => {
         toast.success(t('providers.alert.created', 'Provider created'))
@@ -111,6 +106,28 @@ export const ProvidersPage = (): ReactElement => {
         toast.error(error.message)
       },
     })
+  }
+
+  const handleImport = (manifest: ProviderManifestInfo) => {
+    const seeded = createDefaultProviderConfig(manifest.id)
+    if (seeded) {
+      createConfig(seeded)
+      return
+    }
+    const config = createConfigFromManifest(manifest)
+    if (manifestNeedsConfigForm(manifest.configSchema)) {
+      setEditingProvider(config)
+      setMode('add')
+      return
+    }
+    createConfig(config)
+  }
+
+  const handleAddDefaultInstance = (manifestId: string) => {
+    const seeded = createDefaultProviderConfig(manifestId)
+    if (seeded) {
+      createConfig(seeded)
+    }
   }
 
   const handleDelete = (provider: ProviderConfig) => {
@@ -163,6 +180,7 @@ export const ProvidersPage = (): ReactElement => {
               onEdit={handleEdit}
               onDelete={handleDelete}
               onAddInstance={handleAddInstance}
+              onAddDefaultInstance={handleAddDefaultInstance}
             />
           ) : (
             <Stack direction="column" sx={{ pb: 1.5 }}>
@@ -215,6 +233,7 @@ export const ProvidersPage = (): ReactElement => {
                 onEdit={handleEdit}
                 onDelete={handleDelete}
                 onAddInstance={handleAddInstance}
+                onAddDefaultInstance={handleAddDefaultInstance}
               />
               <CatalogSection
                 filter={filter}
