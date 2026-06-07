@@ -349,6 +349,7 @@ export class KazumiService {
           await this.setHeadersMutation.mutateAsync({
             url: videoUrl.origin,
             referer: origin,
+            origin,
           })
         }),
         // convert stream to emit an array
