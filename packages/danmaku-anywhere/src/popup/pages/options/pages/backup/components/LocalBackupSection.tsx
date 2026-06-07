@@ -12,6 +12,7 @@ import {
   SettingsGroupLabel,
   SettingsStaticRow,
 } from '@/popup/pages/options/components/settings/SettingsGroup'
+import { useBackupImport } from '../useBackupImport'
 
 const HiddenInput = styled('input')({
   display: 'none',
@@ -47,25 +48,7 @@ export function LocalBackupSection({
     },
   })
 
-  const importMutation = useMutation({
-    mutationFn: async (data: unknown) => {
-      return await chromeRpcClient.backupImport(data)
-    },
-    onSuccess: () => {
-      toast.success(
-        t(
-          'optionsPage.backup.alert.importSuccess',
-          'Backup imported successfully'
-        )
-      )
-    },
-    onError: (error) => {
-      toast.error(
-        t('optionsPage.backup.importError', 'Import failed') +
-          `: ${error.message}`
-      )
-    },
-  })
+  const importMutation = useBackupImport()
 
   const handleImportClick = () => {
     fileInputRef.current?.click()

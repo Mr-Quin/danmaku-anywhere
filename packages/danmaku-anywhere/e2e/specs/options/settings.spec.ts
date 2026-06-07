@@ -6,9 +6,8 @@ import { expect, test } from '../../setup/fixtures'
 /**
  * Settings menu (/options) redesign: the grouped menu surfaces an account
  * card plus status subtitles wired to live extension options. Asserts the
- * signed-out account card and seeded retention/player subtitles render, and
- * that opening Player Settings, toggling a switch, persists the option and
- * updates the menu's "N of 2 enabled" subtitle on return.
+ * signed-out account card and the seeded retention subtitle render, and that
+ * opening Player Settings and toggling a switch persists the option.
  */
 
 // The account card reads the auth session, which better-auth resolves over
@@ -43,11 +42,10 @@ test('settings menu shows the account card and live status subtitles', async ({
   const popup = await Popup.open(page, extensionId, '/options')
 
   await expect(popup.options.subtitle('Sign in to sync')).toBeVisible()
-  await expect(popup.options.subtitle('0 of 2 enabled')).toBeVisible()
   await expect(popup.options.subtitle('Retention: 7 days')).toBeVisible()
 })
 
-test('toggling a player option persists and updates the menu subtitle', async ({
+test('toggling a player option persists the option', async ({
   context,
   page,
   extensionId,
@@ -64,7 +62,6 @@ test('toggling a player option persists and updates the menu subtitle', async ({
   })
 
   const popup = await Popup.open(page, extensionId, '/options')
-  await expect(popup.options.subtitle('0 of 2 enabled')).toBeVisible()
 
   await popup.options.openSubPage(/Player Settings/)
   await expect(page).toHaveURL(/#\/options\/player$/)
@@ -83,5 +80,4 @@ test('toggling a player option persists and updates the menu subtitle', async ({
 
   await page.goBack()
   await expect(page).toHaveURL(/#\/options$/)
-  await expect(popup.options.subtitle('1 of 2 enabled')).toBeVisible()
 })

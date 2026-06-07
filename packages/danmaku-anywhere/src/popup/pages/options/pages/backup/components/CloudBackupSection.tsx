@@ -11,6 +11,7 @@ import {
   SettingsGroup,
   SettingsGroupLabel,
 } from '@/popup/pages/options/components/settings/SettingsGroup'
+import { useBackupImport } from '../useBackupImport'
 import { CloudBackupList } from './CloudBackupList'
 
 export function CloudBackupSection({
@@ -37,24 +38,7 @@ export function CloudBackupSection({
     enabled: isSignedIn,
   })
 
-  const importMutation = useMutation({
-    mutationFn: async (data: unknown) => {
-      return await chromeRpcClient.backupImport(data)
-    },
-    onSuccess: () => {
-      toast.success(
-        t(
-          'optionsPage.backup.alert.importSuccess',
-          'Backup imported successfully'
-        )
-      )
-    },
-    onError: (error) => {
-      toast.error(
-        t('optionsPage.backup.importError', 'Import failed') +
-          `: ${error.message}`
-      )
-    },
+  const importMutation = useBackupImport({
     onSettled: () => {
       onRestoringChange?.(false)
     },
@@ -101,6 +85,51 @@ export function CloudBackupSection({
 
   const isRestoring =
     importMutation.isPending || downloadCloudBackupMutation.isPending
+
+  const renderBackups = () => {
+    if (isLoadingBackups) {
+      return (
+        <Box sx={{ px: 2, py: 1 }}>
+          <CircularProgress size={24} />
+        </Box>
+      )
+    }
+    if (isBackupsError) {
+      return (
+        <Box sx={{ mx: 1.5 }}>
+          <Alert severity="error">
+            {t(
+              'optionsPage.backup.cloudListError',
+              'Failed to load cloud backups.'
+            )}
+          </Alert>
+        </Box>
+      )
+    }
+    if (!backups || backups.length === 0) {
+      return (
+        <Typography
+          variant="body2"
+          sx={{ color: 'text.secondary', px: 2, py: 1 }}
+        >
+          {t(
+            'optionsPage.backup.noCloudBackups',
+            'No cloud backups yet. Create one to get started.'
+          )}
+        </Typography>
+      )
+    }
+    return (
+      <SettingsGroup>
+        <CloudBackupList
+          backups={backups}
+          isRestoring={isRestoring}
+          restoringId={downloadCloudBackupMutation.variables}
+          onRestore={(id) => downloadCloudBackupMutation.mutate(id)}
+        />
+      </SettingsGroup>
+    )
+  }
 
   const cloudLabel = (
     <SettingsGroupLabel>
@@ -189,39 +218,7 @@ export function CloudBackupSection({
         </Typography>
       </Box>
 
-      {isLoadingBackups ? (
-        <Box sx={{ px: 2, py: 1 }}>
-          <CircularProgress size={24} />
-        </Box>
-      ) : isBackupsError ? (
-        <Box sx={{ mx: 1.5 }}>
-          <Alert severity="error">
-            {t(
-              'optionsPage.backup.cloudListError',
-              'Failed to load cloud backups.'
-            )}
-          </Alert>
-        </Box>
-      ) : !backups || backups.length === 0 ? (
-        <Typography
-          variant="body2"
-          sx={{ color: 'text.secondary', px: 2, py: 1 }}
-        >
-          {t(
-            'optionsPage.backup.noCloudBackups',
-            'No cloud backups yet. Create one to get started.'
-          )}
-        </Typography>
-      ) : (
-        <SettingsGroup>
-          <CloudBackupList
-            backups={backups}
-            isRestoring={isRestoring}
-            restoringId={downloadCloudBackupMutation.variables}
-            onRestore={(id) => downloadCloudBackupMutation.mutate(id)}
-          />
-        </SettingsGroup>
-      )}
+      {renderBackups()}
     </>
   )
 }

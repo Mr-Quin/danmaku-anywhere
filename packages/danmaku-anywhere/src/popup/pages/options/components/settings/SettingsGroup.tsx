@@ -137,6 +137,7 @@ const RowBody = ({
 
 const rowSx: SxProps<Theme> = {
   width: '100%',
+  boxSizing: 'border-box',
   display: 'flex',
   alignItems: 'center',
   gap: 1.25,

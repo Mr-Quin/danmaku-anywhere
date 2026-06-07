@@ -2,8 +2,8 @@ import { Check, Mail, Person } from '@mui/icons-material'
 import { Box, Button, Chip, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import type { AuthUserInfo } from '@/common/auth/types'
+import { HashAvatar } from '@/common/components/HashAvatar'
 import { useSignOutMutation } from '@/common/hooks/user/useAuthMutations'
-import { Monogram } from '@/popup/pages/options/components/settings/Monogram'
 import {
   SettingsGroup,
   SettingsStaticRow,
@@ -25,7 +25,7 @@ export const UserProfile = ({ user }: { user: AuthUserInfo }) => {
           pb: 2,
         }}
       >
-        <Monogram name={user.name} size={64} />
+        <HashAvatar seed={user.id} label={user.name} size={64} />
         <Typography variant="h4" sx={{ mt: 1 }}>
           {user.name}
         </Typography>

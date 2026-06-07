@@ -10,8 +10,8 @@ import {
 import { alpha } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
+import { HashAvatar } from '@/common/components/HashAvatar'
 import { useAuthSession } from '@/common/hooks/user/useAuthSession'
-import { Monogram } from './Monogram'
 
 export const AccountCard = () => {
   const { t } = useTranslation()
@@ -103,7 +103,7 @@ export const AccountCard = () => {
         '&:hover': { bgcolor: 'action.hover' },
       }}
     >
-      <Monogram name={session.user.name} />
+      <HashAvatar seed={session.user.id} label={session.user.name} size={42} />
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
           <Typography sx={{ fontWeight: 700 }} noWrap>

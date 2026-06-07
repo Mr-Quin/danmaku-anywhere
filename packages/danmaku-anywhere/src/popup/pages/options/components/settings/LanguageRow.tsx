@@ -46,6 +46,9 @@ export const LanguageRow = () => {
         anchorEl={anchorEl}
         open={!!anchorEl}
         onClose={() => setAnchorEl(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+        slotProps={{ paper: { sx: { width: anchorEl?.offsetWidth } } }}
       >
         {LanguageList.map((lang) => (
           <MenuItem

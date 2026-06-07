@@ -541,7 +541,6 @@
       "advancedSubtitle": "诊断、实验性选项",
       "cloudReady": "云同步已就绪",
       "data": "数据",
-      "enabledCount_other": "已启用 {{count}}/{{total}}",
       "general": "通用",
       "localOnly": "本地备份",
       "playback": "播放",

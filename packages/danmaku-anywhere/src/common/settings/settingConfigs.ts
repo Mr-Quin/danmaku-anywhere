@@ -35,10 +35,48 @@ export type ButtonSettingConfig = CommonSettingConfig & {
   handler: () => void | Promise<void>
 }
 
-// Union type for all setting configs
-export type SettingConfig<S> = ToggleSettingConfig<S>
+export type SettingConfig<S> = ToggleSettingConfig<S> | ButtonSettingConfig
 
-const advancedSettings: SettingConfig<ExtensionOptions>[] = [
+// Every Advanced-page config must declare a group so it lands in a section.
+type AdvancedSettingConfig = SettingConfig<ExtensionOptions> & {
+  group: AdvancedGroup
+}
+
+const uploadDebugDataButton: AdvancedSettingConfig = {
+  id: 'button.uploadDebugData',
+  label: () => i18n.t('optionsPage.uploadDebugData', 'Submit Debug Data'),
+  description: () =>
+    i18n.t(
+      'optionsPage.uploadDebugDataDesc',
+      'Upload diagnostics and copy a reference ID.'
+    ),
+  category: 'advanced',
+  group: 'diagnostics',
+  type: 'button',
+  handler: async () => {
+    const [result, error] = await tryCatch(() =>
+      chromeRpcClient.exportDebugData()
+    )
+    if (error) {
+      useToast.getState().toast.error(error.message)
+    } else {
+      useToast.getState().toast.success(
+        i18n.t('optionsPage.uploadDebugDataSuccess', 'Submitted {{ id }}', {
+          id: result.data.id,
+        }),
+        {
+          actionFn: () => {
+            copyToClipboard(result.data.id)
+          },
+          actionLabel: i18n.t('common.copy', 'Copy'),
+          duration: 10000,
+        }
+      )
+    }
+  },
+}
+
+const advancedSettings: AdvancedSettingConfig[] = [
   {
     id: 'toggle.player.enableFullscreenInteraction',
     label: () =>
@@ -162,13 +200,15 @@ const advancedSettings: SettingConfig<ExtensionOptions>[] = [
     label: () =>
       i18n.t('optionsPage.autoBookmark', 'Auto bookmark shows when preloading'),
     category: 'advanced',
+    group: 'behavior',
     type: 'toggle',
     getValue: (options) => options.autoBookmark,
     createUpdate: (_, newValue) => ({ autoBookmark: newValue }),
   },
+  uploadDebugDataButton,
 ]
 
-const playerSettings: SettingConfig<ExtensionOptions>[] = [
+const playerSettings: ToggleSettingConfig<ExtensionOptions>[] = [
   {
     id: 'toggle.player.showSkipButton',
     label: () =>
@@ -208,40 +248,6 @@ const playerSettings: SettingConfig<ExtensionOptions>[] = [
     }),
   },
 ]
-
-export const UPLOAD_DEBUG_DATA_BUTTON: ButtonSettingConfig = {
-  id: 'button.uploadDebugData',
-  label: () => i18n.t('optionsPage.uploadDebugData', 'Submit Debug Data'),
-  description: () =>
-    i18n.t(
-      'optionsPage.uploadDebugDataDesc',
-      'Upload diagnostics and copy a reference ID.'
-    ),
-  category: 'advanced',
-  group: 'diagnostics',
-  type: 'button',
-  handler: async () => {
-    const [result, error] = await tryCatch(() =>
-      chromeRpcClient.exportDebugData()
-    )
-    if (error) {
-      useToast.getState().toast.error(error.message)
-    } else {
-      useToast.getState().toast.success(
-        i18n.t('optionsPage.uploadDebugDataSuccess', 'Submitted {{ id }}', {
-          id: result.data.id,
-        }),
-        {
-          actionFn: () => {
-            copyToClipboard(result.data.id)
-          },
-          actionLabel: i18n.t('common.copy', 'Copy'),
-          duration: 10000,
-        }
-      )
-    }
-  },
-}
 
 export const settingConfigs = {
   advanced: advancedSettings,

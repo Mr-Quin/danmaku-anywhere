@@ -69,11 +69,6 @@ export const Options = () => {
   const { data } = useExtensionOptions()
   const { data: session } = useAuthSession()
 
-  const playerEnabledCount = [
-    data.playerOptions.showSkipButton,
-    data.playerOptions.showDanmakuTimeline,
-  ].filter(Boolean).length
-
   const boundHotkeyCount = ALL_HOTKEYS.filter(
     (id) => data.hotkeys[id]?.key
   ).length
@@ -108,11 +103,6 @@ export const Options = () => {
               <SettingsRow
                 icon={<PlayArrow fontSize="small" />}
                 title={t('optionsPage.pages.player', 'Player Settings')}
-                subtitle={t(
-                  'optionsPage.menu.enabledCount',
-                  '{{count}} of {{total}} enabled',
-                  { count: playerEnabledCount, total: 2 }
-                )}
                 onClick={() => navigate('player')}
               />
               <SettingsRow
