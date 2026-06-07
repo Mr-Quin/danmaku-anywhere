@@ -66,8 +66,12 @@ export const sourceQueryKeys = {
     [{ scope: 'source', kind: 'loginStatus', manifestId }] as const,
   manifestSpec: (manifestId: string, locale: string) =>
     [{ scope: 'source', kind: 'manifestSpec', manifestId, locale }] as const,
-  manifestList: (locale: string) =>
-    [{ scope: 'source', kind: 'manifestList', locale }] as const,
+  // Omit locale for a family-prefix key that matches every locale's list
+  // (used to invalidate all cached lists at once).
+  manifestList: (locale?: string) =>
+    locale === undefined
+      ? ([{ scope: 'source', kind: 'manifestList' }] as const)
+      : ([{ scope: 'source', kind: 'manifestList', locale }] as const),
   pendingUpdates: () => [{ scope: 'source', kind: 'pendingUpdates' }] as const,
 }
 
