@@ -91,8 +91,7 @@ export class ManifestRegistry {
     return this.store.getLastCheckedAt()
   }
 
-  // Stamp the catalog as freshly synced; the caller owns deciding when the
-  // catalog is actually current (e.g. after applying uninstalled updates).
+  // Stamp the catalog as freshly synced; the caller decides when it is current.
   recordChecked(): Promise<void> {
     return this.store.setLastCheckedAt(Date.now())
   }
@@ -124,10 +123,9 @@ export class ManifestRegistry {
     }
   }
 
-  // Add-only reconcile: seed the manifests the store is missing (an empty store
-  // seeds all). Changed preinstalled manifests surface via getPendingUpdates
-  // instead of being replaced here. Returns false when the catalog index could
-  // not be fetched, so callers can avoid recording a successful check.
+  // Add-only: seeds only manifests absent from the store; a changed preinstalled
+  // manifest surfaces via getPendingUpdates instead of being replaced here.
+  // Returns false when the catalog index could not be fetched.
   async update(): Promise<boolean> {
     await this.ready
     const entries = await this.loadIndex()

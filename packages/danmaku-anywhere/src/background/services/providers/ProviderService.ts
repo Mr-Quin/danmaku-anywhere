@@ -284,11 +284,10 @@ export class ProviderService {
     return this.listManifests()
   }
 
-  // Bring the catalog current: seed missing manifests, apply pending updates for
-  // sources the user has not installed (no config / user data to disturb), then
-  // stamp the check time. Installed-source updates stay manual via the Updates
-  // list. lastCheckedAt is recorded here, so "checked Nm ago" only advances when
-  // the catalog is actually brought current, never on a bare detection.
+  // Bring the catalog current: updates for uninstalled sources (no config or
+  // user data to disturb) are applied here, while installed-source updates stay
+  // manual via the Updates list. Records the check only on a real sync, so
+  // "checked Nm ago" never advances on a bare detection.
   async syncCatalog(): Promise<void> {
     const fetched = await this.manifestRegistry.update()
     if (!fetched) {

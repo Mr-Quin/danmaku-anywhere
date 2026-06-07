@@ -79,8 +79,8 @@ export function flattenUnits(units: InstalledUnit[]): ProviderConfig[] {
   )
 }
 
-// Updates are surfaced only for sources the user actually installed; a pending
-// update on a catalog-only manifest belongs to the Catalog section, not here.
+// Keep only updates for sources the user installed; a catalog-only manifest is
+// not something to prompt an update for.
 export function installedUpdates<T extends { manifestId: string }>(
   updates: T[],
   installedManifestIds: Set<string>
