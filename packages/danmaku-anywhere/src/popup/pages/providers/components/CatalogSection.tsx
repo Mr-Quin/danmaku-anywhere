@@ -11,11 +11,11 @@ import {
   Typography,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
+import { HashAvatar } from '@/common/components/HashAvatar'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { type CheckedAgo, checkedAgo, matchesQuery } from '../catalog'
 import { useManifestList, useRefreshCatalog } from '../hooks/useManifestList'
-import { ProviderAvatar } from './ProviderAvatar'
 import { SectionHeader } from './SectionHeader'
 
 interface CatalogSectionProps {
@@ -120,7 +120,7 @@ export const CatalogSection = ({
               </Button>
             }
           >
-            <ProviderAvatar seed={manifest.id} name={manifest.name} />
+            <HashAvatar seed={manifest.id} label={manifest.name} />
             <ListItemText
               sx={{ ml: 1.5 }}
               primary={manifest.name}

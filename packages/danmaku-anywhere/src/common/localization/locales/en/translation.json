@@ -618,6 +618,8 @@
       "instances_one": "{{count}} instances",
       "instances_other": "{{count}} instances",
       "none": "No sources installed",
+      "reorder": "Reorder",
+      "reorderDone": "Done",
       "title": "Installed"
     },
     "name": "Danmaku Providers"

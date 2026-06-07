@@ -1,5 +1,11 @@
-import { Clear, Search } from '@mui/icons-material'
-import { IconButton, InputAdornment, Stack, TextField } from '@mui/material'
+import { Clear, Search, SwapVert } from '@mui/icons-material'
+import {
+  Button,
+  IconButton,
+  InputAdornment,
+  Stack,
+  TextField,
+} from '@mui/material'
 import { type ReactElement, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
@@ -40,6 +46,7 @@ export const ProvidersPage = (): ReactElement => {
   const { data: manifestData } = useManifestList()
   const [mode, setMode] = useState<'add' | 'edit' | null>(null)
   const [filter, setFilter] = useState('')
+  const [reorderMode, setReorderMode] = useState(false)
 
   const [editingProvider, setEditingProvider] = useState<ProviderConfig | null>(
     null
@@ -142,49 +149,72 @@ export const ProvidersPage = (): ReactElement => {
         </TabToolbar>
         <TabBody>
           <Stack direction="column" sx={{ pb: 1.5 }}>
-            <TextField
-              size="small"
-              fullWidth
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
-              placeholder={t('providers.filter.placeholder', 'Filter sources')}
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Search fontSize="small" />
-                    </InputAdornment>
-                  ),
-                  endAdornment: filter ? (
-                    <InputAdornment position="end">
-                      <IconButton size="small" onClick={() => setFilter('')}>
-                        <Clear fontSize="small" />
-                      </IconButton>
-                    </InputAdornment>
-                  ) : null,
-                },
-              }}
-            />
-            <NeedsAttentionCallout configs={configs} filter={filter} />
+            {reorderMode ? null : (
+              <TextField
+                size="small"
+                fullWidth
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                placeholder={t(
+                  'providers.filter.placeholder',
+                  'Filter sources'
+                )}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search fontSize="small" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: filter ? (
+                      <InputAdornment position="end">
+                        <IconButton size="small" onClick={() => setFilter('')}>
+                          <Clear fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    ) : null,
+                  },
+                }}
+              />
+            )}
+            {reorderMode ? null : (
+              <NeedsAttentionCallout configs={configs} filter={filter} />
+            )}
             <SectionHeader
               title={t('providers.installed.title', 'Installed')}
-              count={installedCount}
-            />
+              count={reorderMode ? configs.length : installedCount}
+            >
+              {reorderMode ? (
+                <Button size="small" onClick={() => setReorderMode(false)}>
+                  {t('providers.installed.reorderDone', 'Done')}
+                </Button>
+              ) : configs.length > 1 && !filterActive ? (
+                <Button
+                  size="small"
+                  startIcon={<SwapVert fontSize="small" />}
+                  onClick={() => setReorderMode(true)}
+                >
+                  {t('providers.installed.reorder', 'Reorder')}
+                </Button>
+              ) : null}
+            </SectionHeader>
             <InstalledList
-              configs={visibleConfigs}
+              configs={reorderMode ? configs : visibleConfigs}
               manifestById={manifestById}
-              reorderable={!filterActive}
+              reorderMode={reorderMode}
               filterActive={filterActive}
               onEdit={handleEdit}
               onDelete={handleDelete}
               onAddInstance={handleAddInstance}
             />
-            <CatalogSection
-              filter={filter}
-              installedManifestIds={installedManifestIds}
-              onImport={handleImport}
-              isImporting={create.isPending}
-            />
+            {reorderMode ? null : (
+              <CatalogSection
+                filter={filter}
+                installedManifestIds={installedManifestIds}
+                onImport={handleImport}
+                isImporting={create.isPending}
+              />
+            )}
           </Stack>
         </TabBody>
       </TabLayout>

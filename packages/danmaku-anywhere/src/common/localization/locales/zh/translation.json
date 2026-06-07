@@ -598,6 +598,8 @@
       "empty": "没有匹配的弹幕源",
       "instances_other": "{{count}} 个实例",
       "none": "未安装弹幕源",
+      "reorder": "排序",
+      "reorderDone": "完成",
       "title": "已安装"
     },
     "name": "弹幕源"
