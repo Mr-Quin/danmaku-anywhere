@@ -1,12 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
-import { toManifestLocale } from '@/common/localization/language'
 import { sourceQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { useManifestLocale } from './useManifestLocale'
 
 export const useManifestList = () => {
-  const { i18n } = useTranslation()
-  const locale = toManifestLocale(i18n.language)
+  const locale = useManifestLocale()
   return useQuery({
     queryFn: () => chromeRpcClient.providerListManifests({ locale }),
     select: (res) => res.data,
@@ -17,8 +15,7 @@ export const useManifestList = () => {
 
 export const useRefreshCatalog = () => {
   const queryClient = useQueryClient()
-  const { i18n } = useTranslation()
-  const locale = toManifestLocale(i18n.language)
+  const locale = useManifestLocale()
   return useMutation({
     mutationFn: () => chromeRpcClient.providerRefreshCatalog({ locale }),
     onSuccess: (res) => {

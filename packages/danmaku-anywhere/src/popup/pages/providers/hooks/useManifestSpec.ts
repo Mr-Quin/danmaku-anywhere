@@ -1,12 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
-import { toManifestLocale } from '@/common/localization/language'
 import { sourceQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { useManifestLocale } from './useManifestLocale'
 
 export const useManifestSpec = (manifestId: string) => {
-  const { i18n } = useTranslation()
-  const locale = toManifestLocale(i18n.language)
+  const locale = useManifestLocale()
   return useQuery({
     queryFn: () =>
       chromeRpcClient.providerGetManifestSpec({ manifestId, locale }),
