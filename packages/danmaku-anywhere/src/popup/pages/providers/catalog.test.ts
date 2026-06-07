@@ -9,6 +9,7 @@ import {
   createConfigFromManifest,
   flattenUnits,
   groupInstalled,
+  installedUpdates,
   isHostedDanDanPlay,
   manifestNeedsConfigForm,
   matchesQuery,
@@ -204,5 +205,28 @@ describe('checkedAgo', () => {
       unit: 'days',
       count: 2,
     })
+  })
+})
+
+describe('installedUpdates', () => {
+  const update = (manifestId: string) => ({
+    manifestId,
+    fromVersion: '1.0.0',
+    toVersion: '2.0.0',
+  })
+
+  it('keeps only updates whose manifest is installed', () => {
+    const updates = [update('bilibili'), update('iqiyi'), update('tencent')]
+    const installed = new Set(['bilibili', 'tencent'])
+    expect(installedUpdates(updates, installed)).toEqual([
+      update('bilibili'),
+      update('tencent'),
+    ])
+  })
+
+  it('returns nothing when no update targets an installed source', () => {
+    expect(installedUpdates([update('iqiyi')], new Set(['bilibili']))).toEqual(
+      []
+    )
   })
 })

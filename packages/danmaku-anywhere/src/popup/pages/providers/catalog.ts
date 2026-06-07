@@ -79,6 +79,15 @@ export function flattenUnits(units: InstalledUnit[]): ProviderConfig[] {
   )
 }
 
+// Updates are surfaced only for sources the user actually installed; a pending
+// update on a catalog-only manifest belongs to the Catalog section, not here.
+export function installedUpdates<T extends { manifestId: string }>(
+  updates: T[],
+  installedManifestIds: Set<string>
+): T[] {
+  return updates.filter((update) => installedManifestIds.has(update.manifestId))
+}
+
 export function matchesQuery(query: string, ...fields: string[]): boolean {
   const trimmed = query.trim().toLowerCase()
   if (trimmed === '') {

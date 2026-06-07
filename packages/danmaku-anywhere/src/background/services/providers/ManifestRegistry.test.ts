@@ -146,14 +146,6 @@ class InMemoryStore implements IManifestStore {
   async remove(id: string) {
     delete this.record[id]
   }
-
-  async getLastCheckedAt() {
-    return this.lastCheckedAt
-  }
-
-  async setLastCheckedAt(timestamp: number) {
-    this.lastCheckedAt = timestamp
-  }
 }
 
 describe('ManifestRegistry', () => {

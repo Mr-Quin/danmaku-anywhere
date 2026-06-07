@@ -604,7 +604,13 @@
       "reorderDone": "完成",
       "title": "已安装"
     },
-    "name": "弹幕源"
+    "name": "弹幕源",
+    "updates": {
+      "title": "有可用更新",
+      "update": "更新",
+      "updateAll": "全部更新",
+      "version": "v{{from}} → v{{to}}"
+    }
   },
   "searchPage": {
     "alert": {

@@ -194,10 +194,6 @@ export class ManifestRegistry {
     await this.fetchAndStore(targets)
   }
 
-  getLastCheckedAt(): Promise<number | null> {
-    return this.store.getLastCheckedAt()
-  }
-
   private async init(): Promise<void> {
     const record = await this.store.getAll()
     for (const [id, entry] of Object.entries(record)) {

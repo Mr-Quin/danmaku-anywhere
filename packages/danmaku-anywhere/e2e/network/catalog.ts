@@ -21,10 +21,45 @@ function loadManifest(id: string): { apiVersion: number; version: string } {
   return JSON.parse(readFileSync(resolved, 'utf-8'))
 }
 
+export function manifestVersion(id: string): string {
+  return loadManifest(id).version
+}
+
+// Builds a chrome.storage `manifests` record from the real dango manifests,
+// optionally pinning some ids to an older version so the catalog advertises a
+// newer one (an "update available"). Seed via the profile's rawStorage.
+export function manifestStoreSeed(
+  versionOverrides: Record<string, string> = {},
+  ids: readonly string[] = CATALOG_IDS
+): Record<string, { manifest: unknown; kind: 'preinstalled' }> {
+  return Object.fromEntries(
+    ids.map((id) => {
+      const manifest = loadManifest(id)
+      const version = versionOverrides[id]
+      return [
+        id,
+        {
+          manifest: version ? { ...manifest, version } : manifest,
+          kind: 'preinstalled',
+        },
+      ]
+    })
+  )
+}
+
 // Defaults to the built-in three. Pass extra ids to seed catalog-only sources
 // (registered but unconfigured) so a spec can exercise the import flow.
-export function mockCatalog(ids: readonly string[] = CATALOG_IDS): NetworkMock {
-  const manifests = ids.map((id) => ({ id, manifest: loadManifest(id) }))
+// versionOverrides bumps a manifest's version in both the index and its file,
+// so a store seeded at the real version sees an available update.
+export function mockCatalog(
+  ids: readonly string[] = CATALOG_IDS,
+  versionOverrides: Record<string, string> = {}
+): NetworkMock {
+  const manifests = ids.map((id) => {
+    const manifest = loadManifest(id)
+    const version = versionOverrides[id]
+    return { id, manifest: version ? { ...manifest, version } : manifest }
+  })
 
   const files: Record<string, unknown> = Object.fromEntries(
     manifests.map(({ id, manifest }) => [manifestFile(id), manifest])

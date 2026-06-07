@@ -38,6 +38,14 @@ export class ProvidersPage {
     await this.page.getByRole('button', { name: /^(Refresh|刷新)$/ }).click()
   }
 
+  updateButton(): Locator {
+    return this.page.getByRole('button', { name: /^(Update|更新)$/ })
+  }
+
+  async update(): Promise<void> {
+    await this.updateButton().click()
+  }
+
   field(label: string | RegExp): Locator {
     return this.page.getByLabel(label)
   }
