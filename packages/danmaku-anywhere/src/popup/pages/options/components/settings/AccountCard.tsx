@@ -86,49 +86,54 @@ export const AccountCard = () => {
   }
 
   return (
-    <ButtonBase
-      onClick={goToAuth}
-      sx={{
-        mx: 1.5,
-        mt: 1.5,
-        mb: 0.5,
-        p: 1.5,
-        borderRadius: 2,
-        border: 1,
-        borderColor: 'divider',
-        bgcolor: 'background.paper',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1.5,
-        textAlign: 'left',
-        '&:hover': { bgcolor: 'action.hover' },
-      }}
-    >
-      <HashAvatar seed={session.user.id} label={session.user.name} size={42} />
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-          <Typography sx={{ fontWeight: 700 }} noWrap>
-            {session.user.name}
+    <Box sx={{ mx: 1.5, mt: 1.5, mb: 0.5 }}>
+      <ButtonBase
+        onClick={goToAuth}
+        sx={{
+          width: '100%',
+          boxSizing: 'border-box',
+          p: 1.5,
+          borderRadius: 2,
+          border: 1,
+          borderColor: 'divider',
+          bgcolor: 'background.paper',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          textAlign: 'left',
+          '&:hover': { bgcolor: 'action.hover' },
+        }}
+      >
+        <HashAvatar
+          seed={session.user.id}
+          label={session.user.name}
+          size={42}
+        />
+        <Box sx={{ flex: 1, minWidth: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+            <Typography sx={{ fontWeight: 700 }} noWrap>
+              {session.user.name}
+            </Typography>
+            <Chip
+              label={t('optionsPage.account.synced', 'Synced')}
+              size="small"
+              color="success"
+              icon={<Check />}
+            />
+          </Box>
+          <Typography
+            variant="caption"
+            noWrap
+            sx={{ display: 'block', color: 'text.secondary' }}
+          >
+            {session.user.email}
           </Typography>
-          <Chip
-            label={t('optionsPage.account.synced', 'Synced')}
-            size="small"
-            color="success"
-            icon={<Check />}
-          />
         </Box>
-        <Typography
-          variant="caption"
-          noWrap
-          sx={{ display: 'block', color: 'text.secondary' }}
-        >
-          {session.user.email}
-        </Typography>
-      </Box>
-      <ChevronRight
-        fontSize="small"
-        sx={{ color: 'text.secondary', opacity: 0.7 }}
-      />
-    </ButtonBase>
+        <ChevronRight
+          fontSize="small"
+          sx={{ color: 'text.secondary', opacity: 0.7 }}
+        />
+      </ButtonBase>
+    </Box>
   )
 }
