@@ -330,10 +330,8 @@ export class OcclusionService {
       return
     }
 
-    // The player can swap src on the same element (next episode, quality
-    // change). start() no-ops for an unchanged element, so detect it here: a
-    // changed source invalidates a clone bound to the old URL and any prior
-    // origin-clean decision, forcing a re-resolve.
+    // start() no-ops for an unchanged element, so a same-element src swap is
+    // detected here and forces a re-resolve (the clone is bound to the old URL).
     if (this.captureResolved && this.resolvedSrc !== video.currentSrc) {
       this.crossOriginCapture?.dispose()
       this.crossOriginCapture = null
