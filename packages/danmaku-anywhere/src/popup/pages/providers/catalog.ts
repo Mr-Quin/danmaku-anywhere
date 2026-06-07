@@ -51,8 +51,6 @@ export type InstalledUnit =
   | { type: 'single'; id: string; config: ProviderConfig }
   | { type: 'group'; id: string; manifestId: string; configs: ProviderConfig[] }
 
-// Multi-instance manifests collapse into one group anchored at their first
-// config; everything else is a single row.
 export function groupInstalled(configs: ProviderConfig[]): InstalledUnit[] {
   const units: InstalledUnit[] = []
   const grouped = new Set<string>()

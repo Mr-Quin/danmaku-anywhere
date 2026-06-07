@@ -50,8 +50,6 @@ export const defaultProviderConfigs: ProviderConfig[] = [
   builtInTencentProvider,
 ]
 
-// The seeded default for a manifest (e.g. the hosted DanDanPlay proxy), used to
-// restore it after the user removes or re-imports the source.
 export function createDefaultProviderConfig(
   manifestId: string
 ): ProviderConfig | undefined {

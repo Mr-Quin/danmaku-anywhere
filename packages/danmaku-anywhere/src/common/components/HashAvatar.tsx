@@ -1,9 +1,7 @@
 import { Box } from '@mui/material'
 
-// Avatar tint derived from a seed: the hash sets the hue, the theme sets
-// lightness/chroma. Keep the OKLCH values here (not inline) so every hashed
-// avatar can be restyled in one place. Light and dark each get their own
-// ink/tint pair so the chip stays legible on either background.
+// The seed hash picks the hue; the theme sets lightness/chroma, with separate
+// light/dark ink/tint pairs so the avatar stays legible on either background.
 const AVATAR_OKLCH = {
   light: { tint: { l: 0.93, c: 0.045 }, ink: { l: 0.58, c: 0.135 } },
   dark: { tint: { l: 0.32, c: 0.05 }, ink: { l: 0.82, c: 0.12 } },
@@ -35,8 +33,7 @@ export function avatarInitials(label: string): string {
 }
 
 interface HashAvatarProps {
-  // Hashed for the hue, so the same entity keeps its tint across renders. Also
-  // the natural slot for a real icon/logo later.
+  // Hashed for the hue, so the same entity keeps its tint across renders.
   seed: string
   label: string
   size?: number

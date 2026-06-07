@@ -1,6 +1,5 @@
 import type { Theme } from '@mui/material'
 
-// Right padding (spacing units) that reserves room for a row's trailing action.
 export const LIST_ITEM_ACTION_SPACING = 12
 
 export function listItemCardStyles(theme: Theme) {

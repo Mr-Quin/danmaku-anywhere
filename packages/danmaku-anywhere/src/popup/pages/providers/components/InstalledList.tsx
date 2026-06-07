@@ -185,7 +185,6 @@ export const InstalledList = ({
             icon: <Add />,
           },
         ]
-        // Offer to restore the hosted default once it has been removed.
         if (!unit.configs.some(isHostedDanDanPlay)) {
           menuItems.push({
             id: 'add-default',

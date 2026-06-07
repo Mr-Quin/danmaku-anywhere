@@ -88,7 +88,6 @@ export class ProviderConfigService implements IStoreService {
 
     const configs = await this.options.get()
 
-    // Check if ID already exists
     const existingConfig = configs.find((item) => item.id === config.id)
     if (existingConfig) {
       throw new Error(`Provider with ID "${config.id}" already exists`)

@@ -57,7 +57,6 @@ const StyledListItem = styled(ListItem, {
 })<{ hasAction?: boolean }>(({ theme, hasAction }) => {
   return {
     ...listItemCardStyles(theme),
-    // Reserve the action room only when there is an action.
     ...(hasAction
       ? {
           '.MuiListItemButton-root': {
