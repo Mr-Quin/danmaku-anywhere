@@ -41,6 +41,7 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { flattenUnits, groupInstalled, type InstalledUnit } from '../catalog'
+import { ProviderAvatar } from './ProviderAvatar'
 
 interface InstalledListProps {
   configs: ProviderConfig[]
@@ -174,7 +175,9 @@ function SortableUnit({
         >
           <ListItemButton onClick={() => onEdit(config)}>
             {dragHandle}
+            <ProviderAvatar seed={config.manifestId} name={config.name} />
             <ListItemText
+              sx={{ ml: 1.5 }}
               primary={config.name}
               secondary={singleSubtitle(
                 config,
@@ -216,7 +219,12 @@ function SortableUnit({
       >
         <ListItemButton onClick={() => onToggleExpand(unit.id)}>
           {dragHandle}
-          <ListItemText primary={name} secondary={groupSubtitle} />
+          <ProviderAvatar seed={unit.manifestId} name={name} />
+          <ListItemText
+            sx={{ ml: 1.5 }}
+            primary={name}
+            secondary={groupSubtitle}
+          />
           {expanded ? (
             <ExpandLess fontSize="small" color="action" />
           ) : (

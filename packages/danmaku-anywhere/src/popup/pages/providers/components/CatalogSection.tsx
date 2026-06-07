@@ -15,6 +15,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { type CheckedAgo, checkedAgo, matchesQuery } from '../catalog'
 import { useManifestList, useRefreshCatalog } from '../hooks/useManifestList'
+import { ProviderAvatar } from './ProviderAvatar'
 import { SectionHeader } from './SectionHeader'
 
 interface CatalogSectionProps {
@@ -119,7 +120,9 @@ export const CatalogSection = ({
               </Button>
             }
           >
+            <ProviderAvatar seed={manifest.id} name={manifest.name} />
             <ListItemText
+              sx={{ ml: 1.5 }}
               primary={manifest.name}
               secondary={t('providers.catalog.version', 'v{{version}}', {
                 version: manifest.version,
