@@ -53,7 +53,7 @@ test('current build migrates an imported v1.5.0 backup and danmaku export', asyn
     mimeType: 'application/json',
     buffer: backup,
   })
-  await popup.toast.expectSuccess(/Import success|成功导入备份/)
+  await popup.toast.expectSuccess(/^(Import success|成功导入备份)$/)
 
   const importPage = await ImportPage.open(page, extensionId)
   await importPage.selectFiles(DANMAKU_ZIP)
