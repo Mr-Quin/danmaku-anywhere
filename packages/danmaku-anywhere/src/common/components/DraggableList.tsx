@@ -33,6 +33,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { NothingHere } from '@/common/components/NothingHere'
 import { ScrollBox } from './layout/ScrollBox'
+import { LIST_ITEM_ACTION_SPACING, listItemCardStyles } from './listItemStyles'
 
 const DraggableItemIcon = styled(ListItemIcon)(({ theme }) => {
   return {
@@ -55,14 +56,14 @@ const StyledListItem = styled(ListItem, {
   shouldForwardProp: (prop) => prop !== 'hasAction',
 })<{ hasAction?: boolean }>(({ theme, hasAction }) => {
   return {
-    border: `1px solid ${theme.palette.divider}`,
-    borderRadius: theme.shape.borderRadius,
-    backgroundColor: theme.palette.background.paper,
-    userSelect: 'none',
-    // Reserve room for the action buttons only when there are any, otherwise
-    // the row keeps the default padding like every other list item.
+    ...listItemCardStyles(theme),
+    // Reserve the action room only when there is an action.
     ...(hasAction
-      ? { '.MuiListItemButton-root': { paddingRight: theme.spacing(12) } }
+      ? {
+          '.MuiListItemButton-root': {
+            paddingRight: theme.spacing(LIST_ITEM_ACTION_SPACING),
+          },
+        }
       : {}),
   }
 })

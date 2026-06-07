@@ -8,15 +8,12 @@ import {
 } from '@mui/material'
 import type { ReactNode } from 'react'
 import { HashAvatar } from '@/common/components/HashAvatar'
+import {
+  LIST_ITEM_ACTION_SPACING,
+  listItemCardStyles,
+} from '@/common/components/listItemStyles'
 
-export const sourceCardSx: SxProps<Theme> = {
-  border: 1,
-  borderColor: 'divider',
-  borderRadius: 1,
-  bgcolor: 'background.paper',
-  overflow: 'hidden',
-  userSelect: 'none',
-}
+export const sourceCardSx: SxProps<Theme> = listItemCardStyles
 
 interface ProviderRowProps {
   avatarSeed?: string
@@ -59,9 +56,7 @@ export const ProviderRow = ({
     </>
   )
 
-  // Reserve the action's width on the row content so the truncated text stops
-  // before it; the descendant selector is what actually constrains the button.
-  const pr = action ? 12 : 1
+  const pr = action ? LIST_ITEM_ACTION_SPACING : 1
   return (
     <ListItem
       disablePadding
