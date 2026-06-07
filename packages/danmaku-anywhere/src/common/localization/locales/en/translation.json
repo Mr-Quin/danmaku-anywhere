@@ -95,6 +95,7 @@
     "name": "Name",
     "next": "Next",
     "pip": "Picture-in-Picture",
+    "refresh": "Refresh",
     "regexShort": "Regex",
     "reset": "Reset",
     "restore": "Restore",
@@ -257,11 +258,6 @@
   },
   "danmakuPage": {
     "confirmDeleteMessage": "Are you sure to delete the selected Danmaku?"
-  },
-  "danmakuSource": {
-    "tooltip": {
-      "loginRequired": "This source may need you to sign in or refresh cookies. Episode and danmaku results can be limited until then."
-    }
   },
   "debugPage": {
     "segmentation": {
@@ -576,7 +572,29 @@
       "deleted": "Provider deleted",
       "updated": "Provider updated"
     },
-    "builtin": "Built-in",
+    "attention": {
+      "signIn": "Sign in",
+      "signInHint": "Sign in for complete danmaku",
+      "title": "Needs attention"
+    },
+    "catalog": {
+      "checked": {
+        "days_one": "checked {{count}}d ago",
+        "days_other": "checked {{count}}d ago",
+        "hours_one": "checked {{count}}h ago",
+        "hours_other": "checked {{count}}h ago",
+        "justNow": "checked just now",
+        "minutes_one": "checked {{count}}m ago",
+        "minutes_other": "checked {{count}}m ago",
+        "never": "not checked yet"
+      },
+      "empty": "All sources are installed",
+      "error": "Failed to load catalog",
+      "import": "Import",
+      "noMatch": "No matching sources",
+      "title": "Catalog",
+      "version": "v{{version}}"
+    },
     "delete": {
       "message": "Are you sure you want to delete \"{{name}}\"? Once a provider is deleted, the season and episodes associated with it will no longer be able to be refreshed.",
       "title": "Delete Provider"
@@ -590,6 +608,21 @@
         "addMacCms": "Add MacCMS Provider",
         "edit": "Edit Provider: {{name}}"
       }
+    },
+    "filter": {
+      "placeholder": "Filter sources"
+    },
+    "installed": {
+      "addDefaultInstance": "Add default instance",
+      "addInstance": "Add instance",
+      "builtIn": "Built-in",
+      "empty": "No matching sources",
+      "instances_one": "{{count}} instances",
+      "instances_other": "{{count}} instances",
+      "none": "No sources installed",
+      "reorder": "Reorder",
+      "reorderDone": "Done",
+      "title": "Installed"
     },
     "name": "Danmaku Providers"
   },

@@ -387,6 +387,9 @@ function buildSakuraComponents(
           meta: 'span',
         },
       },
+      styleOverrides: {
+        overline: ({ theme }) => ({ color: theme.palette.text.secondary }),
+      },
     },
 
     MuiAlert: {
@@ -508,7 +511,7 @@ function buildSakuraTypography(
     body2: { fontSize: pxToRem(13), lineHeight: 1.4 },
     caption: { fontSize: pxToRem(12), lineHeight: 1.35, letterSpacing: 0.1 },
     overline: {
-      fontSize: pxToRem(11),
+      fontSize: pxToRem(12),
       lineHeight: 1.4,
       fontWeight: 700,
       letterSpacing: 0.6,

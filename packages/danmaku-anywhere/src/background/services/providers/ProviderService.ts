@@ -19,6 +19,7 @@ import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import type {
   ProviderLoginStatus,
+  ProviderManifestList,
   ProviderManifestSpec,
 } from '@/common/rpcClient/background/types'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
@@ -255,6 +256,22 @@ export class ProviderService {
       this.logger.error('loginProbe failed', manifestId, e)
       return { hasLoginProbe: true, cookieSet, ok: false }
     }
+  }
+
+  // Lists every registered manifest plus the last catalog-check timestamp so
+  // the popup can render the catalog section (registered manifests the user
+  // has no config for) without bundling the manifest set itself.
+  async listManifests(): Promise<ProviderManifestList> {
+    await this.manifestRegistry.ready
+    return {
+      manifests: this.manifestRegistry.listManifests(),
+      lastCheckedAt: await this.manifestRegistry.getLastCheckedAt(),
+    }
+  }
+
+  async refreshCatalog(): Promise<ProviderManifestList> {
+    await this.manifestRegistry.update()
+    return this.listManifests()
   }
 
   // Surfaces the host-relevant subset of a manifest so the popup can render

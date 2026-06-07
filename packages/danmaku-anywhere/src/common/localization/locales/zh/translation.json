@@ -94,6 +94,7 @@
     "name": "名称",
     "next": "下一步",
     "pip": "画中画",
+    "refresh": "刷新",
     "regexShort": "正则",
     "reset": "重置",
     "restore": "恢复",
@@ -250,11 +251,6 @@
   },
   "danmakuPage": {
     "confirmDeleteMessage": "确定要删除选中的弹幕吗？"
-  },
-  "danmakuSource": {
-    "tooltip": {
-      "loginRequired": "此来源可能需要登录或刷新 Cookie，否则获取的剧集信息和弹幕可能受限。"
-    }
   },
   "debugPage": {
     "segmentation": {
@@ -560,7 +556,26 @@
       "deleted": "弹幕源已删除",
       "updated": "弹幕源已更新"
     },
-    "builtin": "内置",
+    "attention": {
+      "signIn": "登录",
+      "signInHint": "登录以获取完整弹幕",
+      "title": "存在问题"
+    },
+    "catalog": {
+      "checked": {
+        "days_other": "{{count}} 天前检查",
+        "hours_other": "{{count}} 小时前检查",
+        "justNow": "刚刚检查",
+        "minutes_other": "{{count}} 分钟前检查",
+        "never": "尚未检查"
+      },
+      "empty": "所有弹幕源均已安装",
+      "error": "加载弹幕源目录失败",
+      "import": "导入",
+      "noMatch": "没有匹配的弹幕源",
+      "title": "弹幕源目录",
+      "version": "v{{version}}"
+    },
     "delete": {
       "message": "确定要删除 \"{{name}}\" 吗？删除后，与此弹幕源相关的所有番剧将无法刷新。",
       "title": "删除弹幕源"
@@ -574,6 +589,20 @@
         "addMacCms": "添加MacCMS弹幕源",
         "edit": "编辑弹幕源: {{name}}"
       }
+    },
+    "filter": {
+      "placeholder": "筛选弹幕源"
+    },
+    "installed": {
+      "addDefaultInstance": "添加默认实例",
+      "addInstance": "添加实例",
+      "builtIn": "内置",
+      "empty": "没有匹配的弹幕源",
+      "instances_other": "{{count}} 个实例",
+      "none": "未安装弹幕源",
+      "reorder": "排序",
+      "reorderDone": "完成",
+      "title": "已安装"
     },
     "name": "弹幕源"
   },

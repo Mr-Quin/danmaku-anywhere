@@ -33,6 +33,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { NothingHere } from '@/common/components/NothingHere'
 import { ScrollBox } from './layout/ScrollBox'
+import { LIST_ITEM_ACTION_SPACING, listItemCardStyles } from './listItemStyles'
 
 const DraggableItemIcon = styled(ListItemIcon)(({ theme }) => {
   return {
@@ -51,14 +52,18 @@ const DraggableItemIcon = styled(ListItemIcon)(({ theme }) => {
   }
 })
 
-const StyledListItem = styled(ListItem)(({ theme }) => {
+const StyledListItem = styled(ListItem, {
+  shouldForwardProp: (prop) => prop !== 'hasAction',
+})<{ hasAction?: boolean }>(({ theme, hasAction }) => {
   return {
-    border: `1px solid ${theme.palette.divider}`,
-    borderRadius: theme.shape.borderRadius,
-    backgroundColor: theme.palette.background.paper,
-    '.MuiListItemButton-root': {
-      paddingRight: theme.spacing(12), // make room for action buttons
-    },
+    ...listItemCardStyles(theme),
+    ...(hasAction
+      ? {
+          '.MuiListItemButton-root': {
+            paddingRight: theme.spacing(LIST_ITEM_ACTION_SPACING),
+          },
+        }
+      : {}),
   }
 })
 
@@ -74,6 +79,7 @@ interface SortableItemProps<T extends DraggableItem> {
   selected?: boolean
   onEdit?: (item: T) => void
   onToggleSelect?: (item: T) => void
+  renderLeading?: (item: T) => ReactNode
   renderPrimary: (item: T) => ReactNode
   renderSecondary?: (item: T) => ReactNode
   renderSecondaryAction?: (item: T) => ReactNode
@@ -87,6 +93,7 @@ function SortableItem<T extends DraggableItem>({
   selected,
   onEdit,
   onToggleSelect,
+  renderLeading,
   renderPrimary,
   renderSecondary,
   renderSecondaryAction,
@@ -139,6 +146,7 @@ function SortableItem<T extends DraggableItem>({
           <DragIndicator />
         </DraggableItemIcon>
       ) : null}
+      {renderLeading?.(item)}
       <ListItemText {...listItemTextProps} />
     </>
   )
@@ -148,6 +156,7 @@ function SortableItem<T extends DraggableItem>({
       ref={setNodeRef}
       style={style}
       key={item.id}
+      hasAction={!multiselect && renderSecondaryAction !== undefined}
       secondaryAction={
         multiselect
           ? null
@@ -206,6 +215,7 @@ export interface DraggableListProps<T extends DraggableItem> {
   onSelectionChange?: (ids: string[]) => void
   onEdit?: (item: T) => void
   onReorder?: (sourceIndex: number, destinationIndex: number) => void
+  renderLeading?: (item: T) => ReactNode
   renderPrimary: (item: T) => ReactNode
   renderSecondary?: (item: T) => ReactNode
   renderSecondaryAction?: (item: T) => ReactNode
@@ -225,6 +235,7 @@ export function DraggableList<T extends DraggableItem>({
   onEdit,
   onReorder,
   renderEmpty,
+  renderLeading,
   renderPrimary,
   renderSecondary,
   renderSecondaryAction,
@@ -352,6 +363,7 @@ export function DraggableList<T extends DraggableItem>({
                 selected={selectedIdSet.has(item.id)}
                 onEdit={onEdit}
                 onToggleSelect={handleToggleSelect}
+                renderLeading={renderLeading}
                 renderPrimary={renderPrimary}
                 renderSecondary={renderSecondary}
                 renderSecondaryAction={renderSecondaryAction}

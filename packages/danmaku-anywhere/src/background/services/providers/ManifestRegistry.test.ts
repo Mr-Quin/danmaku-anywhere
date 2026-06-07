@@ -108,6 +108,8 @@ afterEach(() => {
 })
 
 class InMemoryStore implements IManifestStore {
+  private lastCheckedAt: number | null = null
+
   constructor(private record: ManifestRecord = {}) {}
 
   async getAll() {
@@ -132,6 +134,14 @@ class InMemoryStore implements IManifestStore {
 
   async remove(id: string) {
     delete this.record[id]
+  }
+
+  async getLastCheckedAt() {
+    return this.lastCheckedAt
+  }
+
+  async setLastCheckedAt(timestamp: number) {
+    this.lastCheckedAt = timestamp
   }
 }
 
@@ -164,6 +174,31 @@ describe('ManifestRegistry', () => {
       expect(record[id].kind).toBe('preinstalled')
       expect(registry.getRunner(id)).toBeDefined()
     }
+  })
+
+  it('listManifests returns id/name/version for each registered manifest', async () => {
+    stubCatalogFetch([], {})
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '2.1.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(registry.listManifests()).toEqual([
+      { id: 'one', name: 'one', version: '2.1.0', configSchema: undefined },
+    ])
+  })
+
+  it('update records a lastCheckedAt timestamp on a successful index fetch', async () => {
+    stubCatalogFetch([catalogEntry('one')], {
+      [manifestPath('one')]: makeManifest('one'),
+    })
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    expect(await registry.getLastCheckedAt()).toBeNull()
+
+    await registry.update()
+    expect(await registry.getLastCheckedAt()).not.toBeNull()
   })
 
   it('update skips entries whose apiVersion is unsupported', async () => {

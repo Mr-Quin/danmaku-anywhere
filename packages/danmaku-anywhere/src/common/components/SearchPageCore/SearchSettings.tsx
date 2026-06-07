@@ -1,9 +1,7 @@
 import { Box, Stack, Switch, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
-import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
-import { ProviderConfigChip } from '@/common/options/providerConfig/ProviderConfigChip'
 import {
   useEditProviderConfig,
   useProviderConfig,
@@ -95,11 +93,8 @@ export const SearchSettings = ({ dragOverlayPortal }: SearchSettingsProps) => {
                 }}
               >
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {config.isBuiltIn
-                    ? localizedDanmakuSourceType(config.impl)
-                    : config.name}
+                  {config.name}
                 </Typography>
-                <ProviderConfigChip config={config} />
               </Stack>
             )}
             renderSecondaryAction={(config) => (

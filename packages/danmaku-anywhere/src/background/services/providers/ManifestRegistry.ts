@@ -7,6 +7,7 @@ import {
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { invariant } from '@/common/utils/utils'
 import { extensionFetchLike } from './extensionFetchLike'
 import {
@@ -72,6 +73,20 @@ export class ManifestRegistry {
     return [...this.runners.keys()]
   }
 
+  listManifests(): ProviderManifestInfo[] {
+    invariant(this.initialized, 'ManifestRegistry accessed before ready')
+    return [...this.runners.values()].map(({ manifest }) => ({
+      id: manifest.id,
+      name: manifest.name,
+      version: manifest.version,
+      configSchema: manifest.configSchema,
+    }))
+  }
+
+  getLastCheckedAt(): Promise<number | null> {
+    return this.store.getLastCheckedAt()
+  }
+
   async register(manifest: unknown, kind: ManifestKind): Promise<void> {
     await this.ready
     const parsed = zManifest.safeParse(manifest)
@@ -119,6 +134,7 @@ export class ManifestRegistry {
       this.log.error('Failed to fetch manifest catalog:', e)
       return
     }
+    await this.store.setLastCheckedAt(Date.now())
     const stored = await this.store.getAll()
     const stale = entries.filter((entry) =>
       this.shouldFetch(entry, stored[entry.id])

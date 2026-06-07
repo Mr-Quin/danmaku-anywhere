@@ -58,9 +58,7 @@ export const ProviderEditor = ({
   }
 
   const isCustomDdp =
-    provider.manifestId ===
-      PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay] &&
-    !provider.isBuiltIn
+    provider.manifestId === PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]
 
   const getTitle = () => {
     if (isEdit) {

@@ -9,7 +9,6 @@ import {
 import { useTranslation } from 'react-i18next'
 import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
-import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { computeChipOverflow } from './computeChipOverflow'
 
@@ -66,9 +65,6 @@ const CountText = styled('span', {
 }))
 
 function providerLabel(provider: ProviderConfig): string {
-  if (provider.isBuiltIn) {
-    return localizedDanmakuSourceType(provider.impl)
-  }
   return provider.name
 }
 

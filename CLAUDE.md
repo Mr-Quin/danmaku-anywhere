@@ -78,12 +78,14 @@ Always prefer scripts defined in `package.json` over ad-hoc commands. Run `pnpm 
 ## Comments
 
 - Default to no comments. Add one only when the **what** or **why** is non-obvious from the code itself — a hidden constraint, a subtle invariant, a workaround, behavior that would surprise a future reader.
+- **Tests get a header.** The standing exception to "default to no comments": e2e specs carry a short header block (see the e2e test-header rule under Code style). The rest of these rules still apply inside that header and inside tests.
 - **No narration.** Don't restate what the next few lines do. Well-named identifiers carry that load.
 - **No conversation summaries.** Comments are not changelogs, review-response notes, or rationalizations for a decision someone questioned. Those belong in commit messages and PR descriptions.
 - **Don't reference invisible-from-code context.** No `// Added for DA-XXX`, `// Per Gemini review`, `// As discussed`, `// Phase 2 fix`, `// Previously…`. If a future reader can't see it in the tree, the comment is dead weight.
 - **Never put a ClickUp task id (`DA-XXX`) anywhere in source or comments** — not in a file or test header, not in a `for DA-XXX` note, not in a string. Task ids live only in commit messages, PR bodies, and ClickUp. This applies to all code, not just comments.
 - **No defensive comments.** If you're tempted to justify code that looks reasonable on its own, delete the comment. If the code looks unreasonable, fix the code.
 - **Terse, not essays.** Two or three lines is fine when the constraint genuinely needs them; a paragraph-long block comment is almost always wrong. If you find yourself writing one, ask whether the code itself should be restructured to make the constraint obvious instead.
+- **Plain and approachable.** When a comment earns its place, write it so someone new to the file follows it on the first read: full words, a natural sentence, the kind of explanation you'd give a teammate. Skip insider jargon, cryptic abbreviations, and shorthand that only parses if you already know the backstory.
 - **No em dashes (`—`, U+2014) anywhere new** — not in code, not in comments, not in commit messages, not in PR bodies, not in localization strings. Use a period, a comma, a colon, or parentheses instead. This applies to every locale: zh translations should not use `—` either. Existing em dashes in code/docs predate this rule; do not add new ones.
 
 ## TypeScript

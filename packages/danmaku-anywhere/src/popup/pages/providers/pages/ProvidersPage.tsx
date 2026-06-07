@@ -1,4 +1,12 @@
-import { type ReactElement, useState } from 'react'
+import { Clear, Search, SwapVert } from '@mui/icons-material'
+import {
+  Button,
+  IconButton,
+  InputAdornment,
+  Stack,
+  TextField,
+} from '@mui/material'
+import { type ReactElement, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { TabBody } from '@/common/components/layout/TabBody'
@@ -8,25 +16,63 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import {
   createCustomDanDanPlayProvider,
   createCustomMacCmsProvider,
+  createDefaultProviderConfig,
 } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
-import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import {
+  useEditProviderConfig,
+  useProviderConfig,
+} from '@/common/options/providerConfig/useProviderConfig'
+import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
+import {
+  createConfigFromManifest,
+  groupInstalled,
+  manifestNeedsConfigForm,
+  matchesQuery,
+} from '../catalog'
+import { CatalogSection } from '../components/CatalogSection'
+import { InstalledList } from '../components/InstalledList'
+import { NeedsAttentionCallout } from '../components/NeedsAttentionCallout'
 import { ProviderAddMenu } from '../components/ProviderAddMenu'
-import { ProviderConfigList } from '../components/ProviderConfigList'
+import { SectionHeader } from '../components/SectionHeader'
+import { useManifestList } from '../hooks/useManifestList'
 import { ProviderEditor } from './ProviderEditor'
 
 export const ProvidersPage = (): ReactElement => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
   const dialog = useDialog()
-  const { remove } = useEditProviderConfig()
+  const { configs } = useProviderConfig()
+  const { create, remove } = useEditProviderConfig()
+  const { data: manifestData } = useManifestList()
   const [mode, setMode] = useState<'add' | 'edit' | null>(null)
+  const [filter, setFilter] = useState('')
+  const [reorderMode, setReorderMode] = useState(false)
 
   const [editingProvider, setEditingProvider] = useState<ProviderConfig | null>(
     null
   )
 
-  const handleEditProvider = (provider: ProviderConfig) => {
+  const manifestById = useMemo(
+    () => new Map((manifestData?.manifests ?? []).map((m) => [m.id, m])),
+    [manifestData]
+  )
+
+  const installedManifestIds = new Set(
+    configs.map((config) => config.manifestId)
+  )
+  const matchesConfig = (config: ProviderConfig) =>
+    matchesQuery(
+      filter,
+      config.name,
+      config.manifestId,
+      manifestById.get(config.manifestId)?.name ?? ''
+    )
+  const visibleConfigs = configs.filter(matchesConfig)
+  const installedCount = groupInstalled(visibleConfigs).length
+  const filterActive = filter.trim() !== ''
+
+  const handleEdit = (provider: ProviderConfig) => {
     setEditingProvider(provider)
     setMode('edit')
   }
@@ -41,9 +87,47 @@ export const ProvidersPage = (): ReactElement => {
     setMode('add')
   }
 
+  const handleAddInstance = () => {
+    setEditingProvider(createCustomDanDanPlayProvider())
+    setMode('add')
+  }
+
   const handleCloseEditor = () => {
     setEditingProvider(null)
     setMode(null)
+  }
+
+  const createConfig = (config: ProviderConfig) => {
+    create.mutate(config, {
+      onSuccess: () => {
+        toast.success(t('providers.alert.created', 'Provider created'))
+      },
+      onError: (error) => {
+        toast.error(error.message)
+      },
+    })
+  }
+
+  const handleImport = (manifest: ProviderManifestInfo) => {
+    const seeded = createDefaultProviderConfig(manifest.id)
+    if (seeded) {
+      createConfig(seeded)
+      return
+    }
+    const config = createConfigFromManifest(manifest)
+    if (manifestNeedsConfigForm(manifest.configSchema)) {
+      setEditingProvider(config)
+      setMode('add')
+      return
+    }
+    createConfig(config)
+  }
+
+  const handleAddDefaultInstance = (manifestId: string) => {
+    const seeded = createDefaultProviderConfig(manifestId)
+    if (seeded) {
+      createConfig(seeded)
+    }
   }
 
   const handleDelete = (provider: ProviderConfig) => {
@@ -56,10 +140,9 @@ export const ProvidersPage = (): ReactElement => {
       ),
       confirmText: t('common.delete', 'Delete'),
       onConfirm: async () => {
-        if (!provider.id || provider.isBuiltIn) {
+        if (!provider.id) {
           return
         }
-
         await remove.mutateAsync(provider.id, {
           onSuccess: () => {
             toast.success(t('providers.alert.deleted', 'Provider deleted'))
@@ -76,16 +159,91 @@ export const ProvidersPage = (): ReactElement => {
     <>
       <TabLayout>
         <TabToolbar title={t('providers.name', 'Danmaku Providers')}>
-          <ProviderAddMenu
-            onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
-            onAddMacCmsProvider={handleAddMacCmsProvider}
-          />
+          {reorderMode ? (
+            <Button size="small" onClick={() => setReorderMode(false)}>
+              {t('providers.installed.reorderDone', 'Done')}
+            </Button>
+          ) : (
+            <ProviderAddMenu
+              onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
+              onAddMacCmsProvider={handleAddMacCmsProvider}
+            />
+          )}
         </TabToolbar>
         <TabBody>
-          <ProviderConfigList
-            onEdit={handleEditProvider}
-            onDelete={handleDelete}
-          />
+          {reorderMode ? (
+            <InstalledList
+              configs={configs}
+              manifestById={manifestById}
+              reorderMode
+              filterActive={false}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+              onAddInstance={handleAddInstance}
+              onAddDefaultInstance={handleAddDefaultInstance}
+            />
+          ) : (
+            <Stack direction="column" sx={{ pb: 1.5 }}>
+              <TextField
+                size="small"
+                fullWidth
+                sx={{ mb: 1 }}
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+                placeholder={t(
+                  'providers.filter.placeholder',
+                  'Filter sources'
+                )}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <Search fontSize="small" />
+                      </InputAdornment>
+                    ),
+                    endAdornment: filter ? (
+                      <InputAdornment position="end">
+                        <IconButton size="small" onClick={() => setFilter('')}>
+                          <Clear fontSize="small" />
+                        </IconButton>
+                      </InputAdornment>
+                    ) : null,
+                  },
+                }}
+              />
+              <NeedsAttentionCallout configs={configs} filter={filter} />
+              <SectionHeader
+                title={t('providers.installed.title', 'Installed')}
+                count={installedCount}
+              >
+                {configs.length > 1 && !filterActive ? (
+                  <Button
+                    size="small"
+                    startIcon={<SwapVert fontSize="small" />}
+                    onClick={() => setReorderMode(true)}
+                  >
+                    {t('providers.installed.reorder', 'Reorder')}
+                  </Button>
+                ) : null}
+              </SectionHeader>
+              <InstalledList
+                configs={visibleConfigs}
+                manifestById={manifestById}
+                reorderMode={false}
+                filterActive={filterActive}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onAddInstance={handleAddInstance}
+                onAddDefaultInstance={handleAddDefaultInstance}
+              />
+              <CatalogSection
+                filter={filter}
+                installedManifestIds={installedManifestIds}
+                onImport={handleImport}
+                isImporting={create.isPending}
+              />
+            </Stack>
+          )}
         </TabBody>
       </TabLayout>
 

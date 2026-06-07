@@ -15,7 +15,6 @@ export const builtInDanDanPlayProvider: ProviderConfig = {
   name: 'DanDanPlay',
   impl: DanmakuSourceType.DanDanPlay,
   enabled: true,
-  isBuiltIn: true,
   configValues: {
     baseUrl: PROXY_DDP_BASE_URL,
     chConvert: DanDanChConvert.None,
@@ -28,7 +27,6 @@ export const builtInBilibiliProvider: ProviderConfig = {
   name: 'Bilibili',
   impl: DanmakuSourceType.Bilibili,
   enabled: true,
-  isBuiltIn: true,
   // Pin xml explicitly so the user-visible default matches master. The
   // manifest defaults to protobuf, which is the better long-term endpoint
   // but would silently switch the format for existing users on upgrade.
@@ -43,7 +41,6 @@ export const builtInTencentProvider: ProviderConfig = {
   name: 'Tencent',
   impl: DanmakuSourceType.Tencent,
   enabled: true,
-  isBuiltIn: true,
   configValues: {},
 }
 
@@ -52,6 +49,15 @@ export const defaultProviderConfigs: ProviderConfig[] = [
   builtInBilibiliProvider,
   builtInTencentProvider,
 ]
+
+export function createDefaultProviderConfig(
+  manifestId: string
+): ProviderConfig | undefined {
+  const config = defaultProviderConfigs.find((c) => c.manifestId === manifestId)
+  return config
+    ? { ...config, configValues: { ...config.configValues } }
+    : undefined
+}
 
 export function createCustomDanDanPlayProvider(
   input: Partial<ProviderConfig> = {}
@@ -66,7 +72,6 @@ export function createCustomDanDanPlayProvider(
     name: input.name ?? 'DanDanPlay',
     impl: DanmakuSourceType.DanDanPlay,
     enabled: true,
-    isBuiltIn: false,
     configValues: {
       baseUrl: inputValues.baseUrl ?? '',
       auth: {
@@ -91,7 +96,6 @@ export function createCustomMacCmsProvider(
     name: input.name ?? 'MacCMS',
     impl: DanmakuSourceType.MacCMS,
     enabled: true,
-    isBuiltIn: false,
     configValues: {
       danmakuBaseUrl: inputValues.danmakuBaseUrl ?? '',
       danmuicuBaseUrl: inputValues.danmuicuBaseUrl ?? '',

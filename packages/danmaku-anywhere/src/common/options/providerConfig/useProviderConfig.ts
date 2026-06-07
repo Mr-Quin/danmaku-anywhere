@@ -119,11 +119,38 @@ export const useEditProviderConfig = () => {
     },
   })
 
+  const reorderAllMutation = useMutation({
+    mutationFn: (orderedIds: string[]) =>
+      providerConfigService.setOrder(orderedIds),
+    onMutate: async (orderedIds) => {
+      await queryClient.cancelQueries({ queryKey })
+      const previousData =
+        queryClient.getQueryData<ProviderConfigOptions>(queryKey)
+      if (previousData) {
+        const byId = new Map(previousData.data.map((c) => [c.id, c]))
+        const reordered = orderedIds
+          .map((id) => byId.get(id))
+          .filter((c): c is ProviderConfig => c !== undefined)
+        queryClient.setQueryData(queryKey, { ...previousData, data: reordered })
+      }
+      return { previousData }
+    },
+    onError: (_, __, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(queryKey, context.previousData)
+      }
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey })
+    },
+  })
+
   return {
     create: createMutation,
     update: updateMutation,
     remove: deleteMutation,
     toggle: toggleMutation,
     reorder: reorderMutation,
+    reorderAll: reorderAllMutation,
   }
 }
