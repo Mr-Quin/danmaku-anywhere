@@ -5,7 +5,10 @@ export enum Language {
 
 // Map the app's bare language code to the BCP-47 tag (e.g. `zh-CN`) that
 // localized manifest strings are keyed by.
-export function toManifestLocale(language: string): string {
+export function toManifestLocale(language?: string): string {
+  if (!language) {
+    return Language.en
+  }
   if (language === Language.zh) {
     return 'zh-CN'
   }
