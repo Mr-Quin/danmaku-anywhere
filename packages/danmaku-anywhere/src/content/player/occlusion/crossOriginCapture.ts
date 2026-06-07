@@ -5,6 +5,11 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
 // such a video (the taint only surfaces at the later pixel read), so probe with
 // an actual getImageData and treat SecurityError as the taint signal.
 export function isVideoOriginClean(video: HTMLVideoElement): boolean {
+  // drawImage is a no-op on a video with no decoded frame, which would let
+  // getImageData read a blank canvas and falsely report clean; require a frame.
+  if (video.readyState < 2) {
+    return false
+  }
   const canvas = document.createElement('canvas')
   canvas.width = 2
   canvas.height = 2
@@ -92,6 +97,11 @@ export class CrossOriginCapture {
       return
     }
     const target = this.original.currentTime
+    // Match rate first; otherwise a non-1x original drifts continuously and
+    // triggers a corrective seek every cycle.
+    if (clone.playbackRate !== this.original.playbackRate) {
+      clone.playbackRate = this.original.playbackRate
+    }
     if (Math.abs(clone.currentTime - target) > DRIFT_TOLERANCE_SECONDS) {
       clone.currentTime = target
     }
@@ -119,18 +129,29 @@ export class CrossOriginCapture {
 
   private waitReady(clone: HTMLVideoElement): Promise<boolean> {
     return new Promise((resolve) => {
+      let settled = false
       const finish = (value: boolean) => {
+        if (settled) {
+          return
+        }
+        settled = true
         clearTimeout(timer)
         clone.removeEventListener('loadedmetadata', onMeta)
-        clone.removeEventListener('loadeddata', onData)
+        clone.removeEventListener('loadeddata', onReady)
+        clone.removeEventListener('seeked', onReady)
         clone.removeEventListener('error', onError)
         resolve(value)
       }
-      const onMeta = () => {
-        clone.currentTime = this.original.currentTime
+      const seekToLive = () => {
+        if (clone.currentTime !== this.original.currentTime) {
+          clone.currentTime = this.original.currentTime
+        }
         void clone.play().catch(() => undefined)
       }
-      const onData = () => {
+      const onMeta = () => seekToLive()
+      // readyState dips while seeking, so gate on a decoded frame being present
+      // rather than the event firing, to avoid reporting ready mid-seek.
+      const onReady = () => {
         if (clone.readyState >= 2) {
           finish(true)
         }
@@ -138,8 +159,15 @@ export class CrossOriginCapture {
       const onError = () => finish(false)
       const timer = setTimeout(() => finish(false), CLONE_READY_TIMEOUT_MS)
       clone.addEventListener('loadedmetadata', onMeta)
-      clone.addEventListener('loadeddata', onData)
+      clone.addEventListener('loadeddata', onReady)
+      clone.addEventListener('seeked', onReady)
       clone.addEventListener('error', onError)
+      // A cached/fast clone may already be past these events, which won't fire
+      // again; drive the seek and readiness check synchronously.
+      if (clone.readyState >= 1) {
+        seekToLive()
+        onReady()
+      }
     })
   }
 

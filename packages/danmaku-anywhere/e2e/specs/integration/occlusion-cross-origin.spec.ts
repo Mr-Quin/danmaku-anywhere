@@ -33,8 +33,14 @@ const COMMENTS = [
   { p: '3,1,16777215,e2e-3', m: 'third' },
 ]
 
+// Real harness server (playwright webServer): the page origin and the
+// cross-origin video origin, both needed live so the canvas genuinely taints
+// and the extension's DNR rule can un-taint a real response.
 test.use({ allowedNetworkOrigins: ['localhost:8889', '127.0.0.1:8889'] })
 
+// Helpers below probe the harness page directly (taint state, mask, src swap).
+// They are specific to this cross-origin harness fixture, not the shared
+// IntegrationPage POM, so they live here rather than as POM methods.
 function maskImageOf(locator: import('@playwright/test').Locator) {
   return locator.evaluate((el) => {
     const style = getComputedStyle(el)
@@ -124,10 +130,7 @@ test('occlusion recovers a cross-origin tainted video via the DNR clone', async 
   await page.goto(PAGE_URL)
   await setVideoSrc(page, VIDEO_1)
 
-  // The scenario is a genuine cross-origin taint, not a same-origin accident.
-  await expect
-    .poll(() => videoTaintState(page), { timeout: 10_000 })
-    .toBe('SecurityError')
+  await expect.poll(() => videoTaintState(page)).toBe('SecurityError')
 
   const mirror = await da.mount.waitForMount(undefined, 15_000)
   expect(mirror.isMounted).toBe(true)
@@ -135,12 +138,8 @@ test('occlusion recovers a cross-origin tainted video via the DNR clone', async 
     timeout: 15_000,
   })
 
-  // The mask can only apply if the upfront taint probe was satisfied by the
-  // recovered (origin-clean) clone, so this asserts the full DNR recovery path.
   await expect
-    .poll(() => maskImageOf(integrationPage.danmuContainer()), {
-      timeout: 15_000,
-    })
+    .poll(() => maskImageOf(integrationPage.danmuContainer()))
     .toMatch(/^url\(/)
 })
 
@@ -156,20 +155,12 @@ test('occlusion re-recovers when the player swaps to another cross-origin src', 
   await setVideoSrc(page, VIDEO_1)
   await da.mount.waitForMount(undefined, 15_000)
   await expect
-    .poll(() => maskImageOf(integrationPage.danmuContainer()), {
-      timeout: 15_000,
-    })
+    .poll(() => maskImageOf(integrationPage.danmuContainer()))
     .toMatch(/^url\(/)
 
-  // Same element, new cross-origin source: the clone bound to the old URL is
-  // stale and must be rebuilt for the new one.
   await setVideoSrc(page, VIDEO_2)
+  await expect.poll(() => videoTaintState(page)).toBe('SecurityError')
   await expect
-    .poll(() => videoTaintState(page), { timeout: 10_000 })
-    .toBe('SecurityError')
-  await expect
-    .poll(() => maskImageOf(integrationPage.danmuContainer()), {
-      timeout: 15_000,
-    })
+    .poll(() => maskImageOf(integrationPage.danmuContainer()))
     .toMatch(/^url\(/)
 })
