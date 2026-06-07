@@ -1,8 +1,10 @@
+import type { Mask } from './maskGeometry'
+
 const DEBUG_Z_INDEX = '2147483646'
 
 export interface DebugUpdate {
   rect: DOMRect
-  mask: { data: Uint8ClampedArray; width: number; height: number }
+  mask: Mask
   sourceSize: { width: number; height: number }
   cycleMs: number
   personFraction: number

@@ -3,6 +3,7 @@ import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ModelEntry } from '@/common/models/schema'
 import { FrameSource } from './frameSource'
 import { MaskCompositor } from './MaskCompositor'
+import type { Mask } from './maskGeometry'
 import {
   type IMaskProviderFactory,
   MaskProviderFactory,
@@ -392,7 +393,7 @@ export class OcclusionService {
 
   private renderDebug(
     video: HTMLVideoElement,
-    mask: { data: Uint8ClampedArray; width: number; height: number },
+    mask: Mask,
     sourceSize: { width: number; height: number },
     cycleMs: number
   ): void {

@@ -1,4 +1,4 @@
-import { buildAlphaMask } from './maskGeometry'
+import { buildAlphaMask, type Mask } from './maskGeometry'
 import type { SegmentationResult } from './types'
 
 // The bundled selfie_segmenter's category mask marks the PERSON as category 0
@@ -12,12 +12,6 @@ function isPerson(value: number): boolean {
 export interface CompositeOptions {
   outputMaxSide: number
   edgeSoftness: number
-}
-
-export interface Mask {
-  data: Uint8ClampedArray
-  width: number
-  height: number
 }
 
 export interface CompositeResult {
