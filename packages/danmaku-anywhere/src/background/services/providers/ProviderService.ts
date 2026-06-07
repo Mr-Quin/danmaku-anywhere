@@ -300,7 +300,13 @@ export class ProviderService {
       .filter((update) => !installed.has(update.manifestId))
       .map((update) => update.manifestId)
     if (uninstalled.length > 0) {
-      await this.manifestRegistry.applyUpdates(uninstalled)
+      try {
+        await this.manifestRegistry.applyUpdates(uninstalled)
+      } catch (e) {
+        // Best-effort: a failed background apply retries next sync and must not
+        // block recording the check or the rest of the refresh.
+        this.logger.warn('Failed to auto-apply catalog updates:', e)
+      }
     }
     await this.manifestRegistry.recordChecked()
   }

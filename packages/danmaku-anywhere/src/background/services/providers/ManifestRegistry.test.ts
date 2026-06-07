@@ -432,7 +432,7 @@ describe('ManifestRegistry', () => {
     expect(fileFetches(fetchMock)).toEqual([])
   })
 
-  it('applyUpdates skips a file that fails to fetch', async () => {
+  it('applyUpdates throws and leaves the manifest unchanged when a file fails to fetch', async () => {
     stubCatalogFetch(
       [catalogEntry('one', '2.0.0')],
       {},
@@ -444,11 +444,26 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     await registry.ready
 
-    await registry.applyUpdates(['one'])
+    await expect(registry.applyUpdates(['one'])).rejects.toThrow(
+      /Failed to apply updates/
+    )
 
     expect((await store.get('one'))?.manifest).toMatchObject({
       version: '1.0.0',
     })
+  })
+
+  it('applyUpdates throws when the catalog index is unreachable', async () => {
+    stubFetch(() => ({ status: 503, body: 'unavailable' }))
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(registry.applyUpdates(['one'])).rejects.toThrow(
+      /Failed to fetch the manifest catalog/
+    )
   })
 
   it('update leaves a user import untouched even when the catalog lists the same id', async () => {

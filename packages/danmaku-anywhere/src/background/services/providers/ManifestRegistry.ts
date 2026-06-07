@@ -167,12 +167,14 @@ export class ManifestRegistry {
 
   // Replace only the named manifests that are already stored as preinstalled.
   // User imports and ids not already seeded are left untouched, so an apply
-  // can never clobber a user manifest or install a brand-new source.
+  // can never clobber a user manifest or install a brand-new source. Throws on
+  // failure (unreachable catalog or a file that did not apply) so a user-driven
+  // update surfaces the error instead of silently no-op'ing.
   async applyUpdates(manifestIds: string[]): Promise<void> {
     await this.ready
     const entries = await this.loadIndex()
     if (!entries) {
-      return
+      throw new Error('Failed to fetch the manifest catalog')
     }
     const wanted = new Set(manifestIds)
     const stored = await this.store.getAll()
@@ -180,7 +182,13 @@ export class ManifestRegistry {
       const existing = stored[entry.id]
       return wanted.has(entry.id) && existing?.kind === 'preinstalled'
     })
-    await this.fetchAndStore(targets)
+    const applied = await this.fetchAndStore(targets)
+    if (applied.length < targets.length) {
+      const failed = targets
+        .map((entry) => entry.id)
+        .filter((id) => !applied.includes(id))
+      throw new Error(`Failed to apply updates: ${failed.join(', ')}`)
+    }
   }
 
   private async init(): Promise<void> {
@@ -191,14 +199,16 @@ export class ManifestRegistry {
     this.initialized = true
   }
 
-  private async fetchAndStore(entries: CatalogEntry[]): Promise<void> {
+  // Returns the ids actually stored; the caller can compare against what it
+  // asked for to tell a partial failure from a complete one.
+  private async fetchAndStore(entries: CatalogEntry[]): Promise<string[]> {
     const fetched = (
       await Promise.all(
         entries.map((entry) => this.fetchManifest(entry.file, entry.id))
       )
     ).filter((manifest) => manifest !== null)
     if (fetched.length === 0) {
-      return
+      return []
     }
     const updates: Record<string, ManifestEntry> = {}
     for (const { raw, parsed } of fetched) {
@@ -208,6 +218,7 @@ export class ManifestRegistry {
     for (const { parsed } of fetched) {
       this.runners.set(parsed.id, this.buildRunner(parsed))
     }
+    return fetched.map(({ parsed }) => parsed.id)
   }
 
   private async loadIndex(): Promise<CatalogEntry[] | null> {

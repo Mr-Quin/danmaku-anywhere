@@ -113,6 +113,10 @@ export class AlarmManager {
       return
     }
 
-    await this.providerService.syncCatalog()
+    try {
+      await this.providerService.syncCatalog()
+    } catch (e) {
+      this.logger.error('Periodic manifest refresh failed:', e)
+    }
   }
 }
