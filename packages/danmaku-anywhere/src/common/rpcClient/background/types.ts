@@ -203,6 +203,8 @@ export type BackgroundMethods = {
   occlusionResolveModel: RPCDef<{ id: string }, ModelEntry>
   occlusionDownloadModel: RPCDef<{ id: string }, ModelManagementState>
   occlusionDeleteModel: RPCDef<{ id: string }, ModelManagementState>
+  occlusionAddCorsRule: RPCDef<{ url: string }, number>
+  occlusionRemoveCorsRule: RPCDef<{ ruleId: number }, void>
 }
 
 type InputWithFrameId<TInput> = TInput extends void
