@@ -486,7 +486,9 @@ describe('ProviderService.seedDefaultProviders', () => {
     lang?: string
   }) {
     let seeded = opts.seeded ?? false
-    const seedIfEmpty = vi.fn(async () => opts.storeEmpty ?? true)
+    const seedIfEmpty = vi.fn(
+      async (_configs: ProviderConfig[]) => opts.storeEmpty ?? true
+    )
     const markSeeded = vi.fn(async () => {
       seeded = true
     })
@@ -530,7 +532,7 @@ describe('ProviderService.seedDefaultProviders', () => {
     await service.seedDefaultProviders()
 
     expect(seedIfEmpty).toHaveBeenCalledTimes(1)
-    const configs = seedIfEmpty.mock.calls[0][0] as ProviderConfig[]
+    const configs = seedIfEmpty.mock.calls[0][0]
     expect(configs.map((c) => c.manifestId)).toEqual([
       'dandanplay',
       'bilibili',
@@ -560,7 +562,7 @@ describe('ProviderService.seedDefaultProviders', () => {
     await service.seedDefaultProviders()
 
     expect(listManifests).toHaveBeenCalledWith('en')
-    const configs = seedIfEmpty.mock.calls[0][0] as ProviderConfig[]
+    const configs = seedIfEmpty.mock.calls[0][0]
     expect(configs.find((c) => c.manifestId === 'tencent')?.name).toBe(
       'Tencent Video'
     )
@@ -599,6 +601,20 @@ describe('ProviderService.seedDefaultProviders', () => {
 
   it('stays unseeded for a later retry when the catalog has no manifests yet', async () => {
     const { service, seedIfEmpty, markSeeded } = buildForSeed({ manifests: [] })
+
+    await service.seedDefaultProviders()
+
+    expect(seedIfEmpty).not.toHaveBeenCalled()
+    expect(markSeeded).not.toHaveBeenCalled()
+  })
+
+  it('does not seed (or lock) a partial set when one preloaded manifest is still missing', async () => {
+    const { service, seedIfEmpty, markSeeded } = buildForSeed({
+      manifests: [
+        { id: 'dandanplay', name: '弹弹play' },
+        { id: 'bilibili', name: 'B站' },
+      ],
+    })
 
     await service.seedDefaultProviders()
 

@@ -23,6 +23,7 @@ import {
   AUTO_IMPORT_PROVIDERS,
   autoImportToProviderConfig,
 } from '@/common/options/providerConfig/constant'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import type {
   ProviderLoginStatus,
@@ -352,12 +353,16 @@ export class ProviderService {
     const names = new Map(
       this.manifestRegistry.listManifests(locale).map((m) => [m.id, m.name])
     )
-    const configs = AUTO_IMPORT_PROVIDERS.flatMap((entry) => {
+    const configs: ProviderConfig[] = []
+    for (const entry of AUTO_IMPORT_PROVIDERS) {
       const name = names.get(entry.manifestId)
-      return name === undefined ? [] : [autoImportToProviderConfig(entry, name)]
-    })
-    if (configs.length === 0) {
-      return
+      if (name === undefined) {
+        // A preloaded manifest has not loaded yet. Seed nothing and leave the
+        // flag unset so the next sync retries, rather than seed a partial set
+        // and lock the missing source out forever.
+        return
+      }
+      configs.push(autoImportToProviderConfig(entry, name))
     }
     await this.providerConfigService.seedIfEmpty(configs)
     await this.providerConfigService.markSeeded()

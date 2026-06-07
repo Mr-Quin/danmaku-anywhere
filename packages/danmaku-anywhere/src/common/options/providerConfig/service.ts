@@ -26,11 +26,12 @@ export class ProviderConfigService implements IStoreService {
   public readonly name = 'providerConfig'
   public readonly options: OptionsService<ProviderConfig[]>
 
-  // One-shot guard: seeding the preloaded providers runs once per install, so a
-  // user who deletes every config is never re-seeded on a later boot.
+  // One-shot guard so the preloaded set seeds once and a user who deletes every
+  // config is never re-seeded. Stored in sync alongside the configs so a second
+  // signed-in device reads the same flag and does not re-seed the shared store.
   private readonly seededFlag = new ExtStorageService<boolean>(
     'providerConfigSeeded',
-    { storageType: 'local' }
+    { storageType: 'sync' }
   )
 
   constructor(
