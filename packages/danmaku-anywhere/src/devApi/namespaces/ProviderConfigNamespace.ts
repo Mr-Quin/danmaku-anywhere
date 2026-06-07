@@ -1,5 +1,5 @@
 import { inject, injectable } from 'inversify'
-import { defaultProviderConfigs } from '@/common/options/providerConfig/constant'
+import { defaultProviderConfigs } from '@/common/options/providerConfig/migration'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { type AnyMethodDef, type DevNamespace, defineMethod } from '../registry'

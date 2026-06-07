@@ -11,8 +11,8 @@ import type { OptionsService } from '@/common/options/OptionsService/OptionsServ
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { isServiceWorker } from '@/common/utils/utils'
-import { defaultProviderConfigs } from './constant'
 import {
+  defaultProviderConfigs,
   ensureBuiltinProviders,
   migrateBuiltinPrefixedProviderIds,
   migrateDanDanPlayApiBaseUrl,
@@ -26,9 +26,8 @@ export class ProviderConfigService implements IStoreService {
   public readonly name = 'providerConfig'
   public readonly options: OptionsService<ProviderConfig[]>
 
-  // One-shot guard so the preloaded set seeds once and a user who deletes every
-  // config is never re-seeded. Stored in sync alongside the configs so a second
-  // signed-in device reads the same flag and does not re-seed the shared store.
+  // Stored in sync alongside the configs so a second signed-in device reads the
+  // same flag and does not re-seed the shared store.
   private readonly seededFlag = new ExtStorageService<boolean>(
     'providerConfigSeeded',
     { storageType: 'sync' }
@@ -42,9 +41,7 @@ export class ProviderConfigService implements IStoreService {
   ) {
     this.options = this.optionServiceFactory<ProviderConfig[]>(
       'providerConfig',
-      // Fresh installs start empty; the preloaded set is seeded after the
-      // manifest catalog loads so its names derive (and localize) from the
-      // manifest. defaultProviderConfigs stays the offline fallback below.
+      // Fresh installs start empty and are seeded after the catalog loads.
       [],
       this.logger
     )
@@ -99,11 +96,10 @@ export class ProviderConfigService implements IStoreService {
     await this.seededFlag.set(true)
   }
 
-  // Write the preloaded set only while the store is still empty, atomically, so
-  // it can never overwrite configs an existing user already has.
+  // Atomic so it can never overwrite configs an existing user already has.
   async seedIfEmpty(configs: ProviderConfig[]): Promise<boolean> {
     return this.options.setIf(
-      (current) => current === undefined || current.length === 0,
+      (current) => !current || current.length === 0,
       configs
     )
   }

@@ -282,9 +282,6 @@ export class ProviderService {
     }
   }
 
-  // Seed the catalog (and the preloaded provider configs) on install. The
-  // periodic refresh is scheduled by AlarmManager, which calls syncCatalog when
-  // the alarm fires.
   setup(): void {
     chrome.runtime.onInstalled.addListener((details) => {
       return this.onInstalled(details.reason).catch((e) => {
@@ -295,11 +292,8 @@ export class ProviderService {
 
   private async onInstalled(reason: string): Promise<void> {
     if (reason === 'update') {
-      // An extension update is an existing install: lock the seed flag before
-      // any catalog work can seed, so its configs survive verbatim even if the
-      // user deleted them all. A fresh install ('install') seeds; a browser
-      // update ('chrome_update') leaves the flag to the normal seed path so an
-      // install that was offline at first run can still seed once reachable.
+      // Lock the flag for an existing install so its configs are never
+      // re-seeded, even if the user has deleted them all.
       await this.providerConfigService.markSeeded()
     }
     await this.syncCatalog()
@@ -338,28 +332,24 @@ export class ProviderService {
     await this.seedDefaultProviders()
   }
 
-  // Seed the preloaded provider configs once, after the catalog has loaded so
-  // each name derives (and localizes) from its manifest. The one-shot flag and
-  // the empty-store guard together keep an existing user's configs untouched;
-  // a fresh install with an unreachable catalog stays unseeded and retries on
-  // the next sync.
+  // Seed the preloaded configs once, after the catalog loads so each name comes
+  // from its manifest. Skips entirely until every preloaded manifest is present
+  // so a transient partial fetch never seeds a subset and then locks.
   async seedDefaultProviders(): Promise<void> {
     if (await this.providerConfigService.hasSeeded()) {
       return
     }
     await this.manifestRegistry.ready
     const { lang } = await this.extensionOptions.get()
-    const locale = toManifestLocale(lang)
     const names = new Map(
-      this.manifestRegistry.listManifests(locale).map((m) => [m.id, m.name])
+      this.manifestRegistry
+        .listManifests(toManifestLocale(lang))
+        .map((m) => [m.id, m.name])
     )
     const configs: ProviderConfig[] = []
     for (const entry of AUTO_IMPORT_PROVIDERS) {
       const name = names.get(entry.manifestId)
       if (name === undefined) {
-        // A preloaded manifest has not loaded yet. Seed nothing and leave the
-        // flag unset so the next sync retries, rather than seed a partial set
-        // and lock the missing source out forever.
         return
       }
       configs.push(autoImportToProviderConfig(entry, name))

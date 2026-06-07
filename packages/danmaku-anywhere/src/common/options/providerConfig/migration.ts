@@ -6,13 +6,30 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import {
-  builtInBilibiliProvider,
-  builtInDanDanPlayProvider,
-  builtInTencentProvider,
-  defaultProviderConfigs,
+  AUTO_IMPORT_PROVIDERS,
+  autoImportToProviderConfig,
   PROXY_DDP_BASE_URL,
 } from './constant'
 import { type ProviderConfig, providerConfigSchema } from './schema'
+
+// Names for built-ins migrated from storage older than the manifest catalog.
+// Fresh installs take the name from the manifest instead (see ProviderService).
+const LEGACY_BUILTIN_NAMES: Record<string, string> = {
+  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]]: 'DanDanPlay',
+  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]]: 'Bilibili',
+  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]]: 'Tencent',
+}
+
+export const defaultProviderConfigs: ProviderConfig[] =
+  AUTO_IMPORT_PROVIDERS.map((entry) =>
+    autoImportToProviderConfig(entry, LEGACY_BUILTIN_NAMES[entry.manifestId])
+  )
+
+const [
+  builtInDanDanPlayProvider,
+  builtInBilibiliProvider,
+  builtInTencentProvider,
+] = defaultProviderConfigs
 
 // Drop undefined-valued keys so manifest configSchema defaults can apply.
 function pruneUndefined(obj: Record<string, unknown>): Record<string, unknown> {

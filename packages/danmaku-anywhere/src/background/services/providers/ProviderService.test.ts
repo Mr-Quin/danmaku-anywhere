@@ -538,13 +538,11 @@ describe('ProviderService.seedDefaultProviders', () => {
       'bilibili',
       'tencent',
     ])
-    // Built-in instances key their id to the manifest id.
     expect(configs.map((c) => c.id)).toEqual([
       'dandanplay',
       'bilibili',
       'tencent',
     ])
-    // Names derive from the manifest, not a hardcoded English label.
     expect(configs.map((c) => c.name)).toEqual(['弹弹play', 'B站', '腾讯视频'])
     expect(markSeeded).toHaveBeenCalledTimes(1)
   })
@@ -592,9 +590,6 @@ describe('ProviderService.seedDefaultProviders', () => {
 
     await service.seedDefaultProviders()
 
-    // seedIfEmpty is asked to write but its guard reports a non-empty store, so
-    // the existing configs are preserved verbatim. The flag is still set so we
-    // never re-evaluate.
     expect(seedIfEmpty).toHaveBeenCalledTimes(1)
     expect(markSeeded).toHaveBeenCalledTimes(1)
   })
