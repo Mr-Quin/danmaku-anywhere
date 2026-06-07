@@ -124,14 +124,14 @@ export class RpcManager {
         providerProbeLogin: async ({ manifestId }) => {
           return this.providerService.getLoginStatus(manifestId)
         },
-        providerGetManifestSpec: async ({ manifestId }) => {
-          return this.providerService.getManifestSpec(manifestId)
+        providerGetManifestSpec: async ({ manifestId, locale }) => {
+          return this.providerService.getManifestSpec(manifestId, locale)
         },
-        providerListManifests: async () => {
-          return this.providerService.listManifests()
+        providerListManifests: async (input) => {
+          return this.providerService.listManifests(input?.locale)
         },
-        providerRefreshCatalog: async () => {
-          return this.providerService.refreshCatalog()
+        providerRefreshCatalog: async (input) => {
+          return this.providerService.refreshCatalog(input?.locale)
         },
         providerGetPendingUpdates: async () => {
           return this.manifestRegistry.getPendingUpdates()

@@ -20,6 +20,8 @@ import type { ManifestRegistry } from './ManifestRegistry'
  * configValues; there is no DDP-compat special case.
  */
 
+const RUN_OPTS = { allowPrivateHosts: true }
+
 const mockRunner = {
   runSearch: vi.fn(async () => []),
   runEpisodes: vi.fn(async () => []),
@@ -96,7 +98,7 @@ describe('ProviderFactory dispatch', () => {
 
     expect(service.forProvider).toBe(DanmakuSourceType.DanDanPlay)
     await service.search({ keyword: 'x' })
-    expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' })
+    expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' }, RUN_OPTS)
   })
 
   it('routes Bilibili and threads danmakuFormat from configValues', async () => {
@@ -113,10 +115,13 @@ describe('ProviderFactory dispatch', () => {
 
     expect(service.forProvider).toBe(DanmakuSourceType.Bilibili)
     await service.search({ keyword: 'frieren' })
-    expect(mockRunner.runSearch).toHaveBeenCalledWith({
-      q: 'frieren',
-      danmakuFormat: 'protobuf',
-    })
+    expect(mockRunner.runSearch).toHaveBeenCalledWith(
+      {
+        q: 'frieren',
+        danmakuFormat: 'protobuf',
+      },
+      RUN_OPTS
+    )
   })
 
   it('routes Tencent without extraInputs', async () => {
@@ -133,7 +138,7 @@ describe('ProviderFactory dispatch', () => {
 
     expect(service.forProvider).toBe(DanmakuSourceType.Tencent)
     await service.search({ keyword: 'x' })
-    expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' })
+    expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' }, RUN_OPTS)
   })
 
   it('routes a custom DanDanPlay server through the dandanplay manifest with configValues threaded through', async () => {
@@ -147,11 +152,14 @@ describe('ProviderFactory dispatch', () => {
 
     expect(service.forProvider).toBe(DanmakuSourceType.DanDanPlay)
     await service.search({ keyword: 'x' })
-    expect(mockRunner.runSearch).toHaveBeenCalledWith({
-      q: 'x',
-      baseUrl: 'https://my-ddp.example',
-      auth: { enabled: true, headers: [{ key: 'X-A', value: '1' }] },
-    })
+    expect(mockRunner.runSearch).toHaveBeenCalledWith(
+      {
+        q: 'x',
+        baseUrl: 'https://my-ddp.example',
+        auth: { enabled: true, headers: [{ key: 'X-A', value: '1' }] },
+      },
+      RUN_OPTS
+    )
   })
 
   it('routes legacy MacCMS to MacCmsProviderService (not ManifestProviderService)', async () => {
@@ -185,7 +193,10 @@ describe('ProviderFactory dispatch', () => {
     expect(service).toBeInstanceOf(ManifestProviderService)
     expect(service.forProvider).toBe(DanmakuSourceType.DanDanPlay)
     await service.search({ keyword: 'x' })
-    expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x', region: 'cn' })
+    expect(mockRunner.runSearch).toHaveBeenCalledWith(
+      { q: 'x', region: 'cn' },
+      RUN_OPTS
+    )
   })
 
   it('rejects a non-maccms config that carries the Custom impl', async () => {

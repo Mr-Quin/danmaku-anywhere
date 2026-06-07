@@ -48,15 +48,17 @@ test('catalog: refresh surfaces an uninstalled source and import installs it', a
 
   // iQIYI isn't seeded at boot (the fixture catalog has only the built-ins),
   // so the richer catalog only reaches the registry once Refresh re-fetches.
-  await expect(popup.providers.importButton('iQIYI')).toBeHidden()
+  // The catalog name localizes with the UI language (iQIYI -> 爱奇艺).
+  const iqiyiName = /iQIYI|爱奇艺/
+  await expect(popup.providers.importButton(iqiyiName)).toBeHidden()
   await popup.providers.refreshCatalog()
-  await expect(popup.providers.importButton('iQIYI')).toBeVisible()
+  await expect(popup.providers.importButton(iqiyiName)).toBeVisible()
 
-  await popup.providers.import('iQIYI')
+  await popup.providers.import(iqiyiName)
 
   await popup.toast.expectSuccess(/Provider created|创建/)
-  await expect(popup.providers.importButton('iQIYI')).toBeHidden()
-  await expect(popup.providers.row('iQIYI')).toBeVisible()
+  await expect(popup.providers.importButton(iqiyiName)).toBeHidden()
+  await expect(popup.providers.row(iqiyiName)).toBeVisible()
 
   const configs = await da.providerConfig.list()
   expect(configs.some((config) => config.manifestId === 'iqiyi')).toBe(true)

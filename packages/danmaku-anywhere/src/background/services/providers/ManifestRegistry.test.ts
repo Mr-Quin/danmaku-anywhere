@@ -193,6 +193,47 @@ describe('ManifestRegistry', () => {
     ])
   })
 
+  it('listManifests resolves name and configSchema into the requested locale', async () => {
+    const manifest = {
+      ...makeManifest('one', 1, '1.0.0'),
+      name: 'Source',
+      configSchema: {
+        type: 'object',
+        properties: { baseUrl: { type: 'string', title: 'Base URL' } },
+      },
+      locales: {
+        'zh-CN': {
+          name: '来源',
+          'configSchema.properties.baseUrl.title': '基础地址',
+        },
+      },
+    }
+    const store = new InMemoryStore({
+      one: { manifest, kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    const [info] = registry.listManifests('zh-CN')
+    expect(info.name).toBe('来源')
+    expect(info.configSchema?.properties?.baseUrl.title).toBe('基础地址')
+  })
+
+  it('listManifests falls back to source strings when no locale is given', async () => {
+    const manifest = {
+      ...makeManifest('one', 1, '1.0.0'),
+      name: 'Source',
+      locales: { 'zh-CN': { name: '来源' } },
+    }
+    const store = new InMemoryStore({
+      one: { manifest, kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(registry.listManifests()[0].name).toBe('Source')
+  })
+
   it('update does not stamp lastCheckedAt; recordChecked does', async () => {
     stubCatalogFetch([catalogEntry('one')], {
       [manifestPath('one')]: makeManifest('one'),

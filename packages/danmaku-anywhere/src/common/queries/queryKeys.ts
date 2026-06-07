@@ -64,9 +64,10 @@ export const customEpisodeQueryKeys = {
 export const sourceQueryKeys = {
   loginStatus: (manifestId: string) =>
     [{ scope: 'source', kind: 'loginStatus', manifestId }] as const,
-  manifestSpec: (manifestId: string) =>
-    [{ scope: 'source', kind: 'manifestSpec', manifestId }] as const,
-  manifestList: () => [{ scope: 'source', kind: 'manifestList' }] as const,
+  manifestSpec: (manifestId: string, locale: string) =>
+    [{ scope: 'source', kind: 'manifestSpec', manifestId, locale }] as const,
+  manifestList: (locale: string) =>
+    [{ scope: 'source', kind: 'manifestList', locale }] as const,
   pendingUpdates: () => [{ scope: 'source', kind: 'pendingUpdates' }] as const,
 }
 

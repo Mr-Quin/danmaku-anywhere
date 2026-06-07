@@ -8,7 +8,7 @@ import {
   stripHtml,
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { ManifestRunner } from '@mr-quin/dango'
+import type { ManifestRunner, RunOptions } from '@mr-quin/dango'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ILogger } from '@/common/Logger'
@@ -71,6 +71,10 @@ export interface ManifestProviderConfig {
   configValues?: Record<string, unknown>
 }
 
+// Permit requests to private/loopback hosts so a config pointed at a
+// self-hosted local server resolves instead of being blocked.
+export const MANIFEST_RUN_OPTIONS: RunOptions = { allowPrivateHosts: true }
+
 export class ManifestProviderService implements IDanmakuProvider {
   readonly forProvider: DanmakuSourceType
 
@@ -97,7 +101,10 @@ export class ManifestProviderService implements IDanmakuProvider {
     this.logger.debug('Search via manifest', this.config.manifestId, params)
     const runner = this.registry.getRunner(this.config.manifestId)
     const inputs = this.resolveInputs(runner, { q: params.keyword })
-    const rows = await runner.runSearch<ManifestSearchRow[]>(inputs)
+    const rows = await runner.runSearch<ManifestSearchRow[]>(
+      inputs,
+      MANIFEST_RUN_OPTIONS
+    )
     return rows.map((row) => ({
       ...row,
       title: stripHtml(row.title),
@@ -120,7 +127,10 @@ export class ManifestProviderService implements IDanmakuProvider {
       return null
     }
     const inputs = this.resolveInputs(runner, seasonRemoteIds)
-    const row = await runner.runSeason<ManifestSearchRow | null>(inputs)
+    const row = await runner.runSeason<ManifestSearchRow | null>(
+      inputs,
+      MANIFEST_RUN_OPTIONS
+    )
     if (row === null) {
       return null
     }
@@ -143,7 +153,10 @@ export class ManifestProviderService implements IDanmakuProvider {
     )
     const runner = this.registry.getRunner(this.config.manifestId)
     const inputs = this.resolveInputs(runner, seasonRemoteIds)
-    const rows = await runner.runEpisodes<ManifestEpisodeRow[]>(inputs)
+    const rows = await runner.runEpisodes<ManifestEpisodeRow[]>(
+      inputs,
+      MANIFEST_RUN_OPTIONS
+    )
     const now = Date.now()
     return rows.map((row) => ({
       ...row,
@@ -168,7 +181,7 @@ export class ManifestProviderService implements IDanmakuProvider {
       ...meta.params,
       ...meta.providerIds,
     })
-    return runner.runDanmaku<CommentEntity[]>(inputs)
+    return runner.runDanmaku<CommentEntity[]>(inputs, MANIFEST_RUN_OPTIONS)
   }
 
   async findEpisode(
@@ -194,7 +207,11 @@ export class ManifestProviderService implements IDanmakuProvider {
   async parseUrl(url: string): Promise<ParseUrlResult | null> {
     this.logger.debug('Parse URL via manifest', this.config.manifestId, url)
     const runner = this.registry.getRunner(this.config.manifestId)
-    const result = await runner.runParseUrl<ManifestParseUrlOutput>(url)
+    const result = await runner.runParseUrl<ManifestParseUrlOutput>(
+      url,
+      undefined,
+      MANIFEST_RUN_OPTIONS
+    )
     if (result === null) {
       return null
     }

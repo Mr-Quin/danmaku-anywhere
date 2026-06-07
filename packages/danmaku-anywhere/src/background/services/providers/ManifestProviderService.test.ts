@@ -18,12 +18,18 @@ import type { ManifestRegistry } from './ManifestRegistry'
  * the caller. Input precedence is exercised via the configValues path.
  */
 
+// Manifest sources may target self-hosted local endpoints, so every runner
+// call opts into private hosts; the manifest `hosts` allowlist still gates
+// requests.
+const RUN_OPTS = { allowPrivateHosts: true }
+
 function makeRunner(returns: Record<string, unknown>): ManifestRunner {
   return {
     runSearch: vi.fn(async () => returns.search ?? []),
     runEpisodes: vi.fn(async () => returns.episodes ?? []),
     runDanmaku: vi.fn(async () => returns.danmaku ?? []),
     runSeason: vi.fn(async () => returns.season ?? null),
+    runParseUrl: vi.fn(async () => returns.parseUrl ?? null),
     hasSeason: vi.fn(() => 'season' in returns),
     configDefaults: vi.fn(
       () => (returns.configDefaults as Record<string, unknown>) ?? {}
@@ -80,7 +86,7 @@ describe('ManifestProviderService.search', () => {
       providerConfigId: 'bilibili',
       schemaVersion: SEASON_SCHEMA_VERSION,
     })
-    expect(runner.runSearch).toHaveBeenCalledWith({ q: 'frieren' })
+    expect(runner.runSearch).toHaveBeenCalledWith({ q: 'frieren' }, RUN_OPTS)
   })
 
   it('merges configValues into the search pipeline inputs', async () => {
@@ -101,11 +107,14 @@ describe('ManifestProviderService.search', () => {
 
     await svc.search({ keyword: 'x' })
 
-    expect(runner.runSearch).toHaveBeenCalledWith({
-      q: 'x',
-      baseUrl: 'https://compat.example',
-      authHeaders: [],
-    })
+    expect(runner.runSearch).toHaveBeenCalledWith(
+      {
+        q: 'x',
+        baseUrl: 'https://compat.example',
+        authHeaders: [],
+      },
+      RUN_OPTS
+    )
   })
 })
 
@@ -152,7 +161,7 @@ describe('ManifestProviderService.getSeason', () => {
       providerConfigId: 'bilibili',
       schemaVersion: SEASON_SCHEMA_VERSION,
     })
-    expect(runner.runSeason).toHaveBeenCalledWith({ seasonId: 41410 })
+    expect(runner.runSeason).toHaveBeenCalledWith({ seasonId: 41410 }, RUN_OPTS)
   })
 
   it('returns null when the season pipeline yields null', async () => {
@@ -201,7 +210,7 @@ describe('ManifestProviderService.getEpisodes', () => {
       schemaVersion: EPISODE_SCHEMA_VERSION,
     })
     expect(typeof result[0].lastChecked).toBe('number')
-    expect(runner.runEpisodes).toHaveBeenCalledWith({ seasonId: 123 })
+    expect(runner.runEpisodes).toHaveBeenCalledWith({ seasonId: 123 }, RUN_OPTS)
   })
 })
 
@@ -240,6 +249,43 @@ describe('ManifestProviderService.getDanmaku', () => {
     const result = await svc.getDanmaku(makeRequest({ episodeId: 42 }))
 
     expect(result).toBe(raw)
-    expect(runner.runDanmaku).toHaveBeenCalledWith({ episodeId: 42 })
+    expect(runner.runDanmaku).toHaveBeenCalledWith({ episodeId: 42 }, RUN_OPTS)
+  })
+})
+
+describe('ManifestProviderService.parseUrl', () => {
+  it('passes the private-host opt-in to the parseUrl pipeline', async () => {
+    const runner = makeRunner({
+      parseUrl: {
+        seasonInsert: {
+          providerIds: { seasonId: 1 },
+          indexedId: '1',
+          title: 'S',
+          type: 'tv',
+        },
+        episodeMeta: {
+          providerIds: { cid: 2 },
+          indexedId: '2',
+          title: 'E',
+        },
+      },
+    })
+    const svc = new ManifestProviderService(
+      {
+        manifestId: 'dandanplay',
+        provider: DanmakuSourceType.DanDanPlay,
+        providerConfigId: 'custom-ddp-1',
+      },
+      makeRegistry(runner),
+      silentLogger
+    )
+
+    await svc.parseUrl('https://local.example/v/1')
+
+    expect(runner.runParseUrl).toHaveBeenCalledWith(
+      'https://local.example/v/1',
+      undefined,
+      RUN_OPTS
+    )
   })
 })

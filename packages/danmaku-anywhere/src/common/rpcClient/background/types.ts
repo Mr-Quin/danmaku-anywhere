@@ -173,9 +173,18 @@ export type BackgroundMethods = {
   danmakuPurgeCache: RPCDef<number, number>
   bilibiliSetCookies: RPCDef<void, void>
   providerProbeLogin: RPCDef<{ manifestId: string }, ProviderLoginStatus>
-  providerGetManifestSpec: RPCDef<{ manifestId: string }, ProviderManifestSpec>
-  providerListManifests: RPCDef<void, ProviderManifestList>
-  providerRefreshCatalog: RPCDef<void, ProviderManifestList>
+  providerGetManifestSpec: RPCDef<
+    { manifestId: string; locale?: string },
+    ProviderManifestSpec
+  >
+  providerListManifests: RPCDef<
+    { locale?: string } | void,
+    ProviderManifestList
+  >
+  providerRefreshCatalog: RPCDef<
+    { locale?: string } | void,
+    ProviderManifestList
+  >
   providerGetPendingUpdates: RPCDef<void, ManifestUpdate[]>
   providerApplyUpdates: RPCDef<{ manifestIds: string[] }, void>
   fetchImage: RPCDef<{ src: string }, string | null>
