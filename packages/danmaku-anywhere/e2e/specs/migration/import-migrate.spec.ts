@@ -79,7 +79,7 @@ test('current build migrates an imported v1.5.0 backup and danmaku export', asyn
     expect(
       url?.endsWith('/api'),
       `${url} should not retain a /api suffix`
-    ).toBe(false)
+    ).not.toBe(true)
   }
 
   const seasons = await da.season.list()
