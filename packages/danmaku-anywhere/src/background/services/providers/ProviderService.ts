@@ -10,7 +10,6 @@ import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
-import { alarmKeys } from '@/common/alarms/constants'
 import type { SeasonQueryFilter, SeasonSearchRequest } from '@/common/anime/dto'
 import type {
   DanmakuFetchByMeta,
@@ -270,20 +269,14 @@ export class ProviderService {
     }
   }
 
-  // Register the install seed + periodic catalog refresh. Kept here (not in the
-  // registry) because bringing the catalog current needs the installed set.
+  // Seed the catalog on install. The periodic refresh is scheduled by
+  // AlarmManager, which calls syncCatalog when the alarm fires.
   setup(): void {
     chrome.runtime.onInstalled.addListener(() => {
       this.syncCatalog().catch((e) => {
         this.logger.error('Catalog sync failed:', e)
       })
     })
-
-    void this.createRefreshAlarm()
-
-    if (!chrome.alarms.onAlarm.hasListener(this.handleRefreshAlarm)) {
-      chrome.alarms.onAlarm.addListener(this.handleRefreshAlarm)
-    }
   }
 
   async refreshCatalog(): Promise<ProviderManifestList> {
@@ -296,7 +289,7 @@ export class ProviderService {
   // stamp the check time. Installed-source updates stay manual via the Updates
   // list. lastCheckedAt is recorded here, so "checked Nm ago" only advances when
   // the catalog is actually brought current, never on a bare detection.
-  private async syncCatalog(): Promise<void> {
+  async syncCatalog(): Promise<void> {
     await this.manifestRegistry.update()
     const pending = await this.manifestRegistry.getPendingUpdates()
     const configs = await this.providerConfigService.getAll()
@@ -308,27 +301,6 @@ export class ProviderService {
       await this.manifestRegistry.applyUpdates(uninstalled)
     }
     await this.manifestRegistry.recordChecked()
-  }
-
-  private async createRefreshAlarm(): Promise<void> {
-    const existing = await chrome.alarms.get(alarmKeys.REFRESH_MANIFESTS)
-    if (existing) {
-      return
-    }
-    this.logger.debug('Creating manifest refresh alarm')
-    await chrome.alarms.create(alarmKeys.REFRESH_MANIFESTS, {
-      periodInMinutes: 60 * 12,
-      delayInMinutes: 60,
-    })
-  }
-
-  private handleRefreshAlarm = async (
-    alarm: chrome.alarms.Alarm
-  ): Promise<void> => {
-    if (alarm.name !== alarmKeys.REFRESH_MANIFESTS) {
-      return
-    }
-    await this.syncCatalog()
   }
 
   // Surfaces the host-relevant subset of a manifest so the popup can render

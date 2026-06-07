@@ -330,7 +330,7 @@ describe('ProviderService.setup', () => {
     vi.clearAllMocks()
   })
 
-  it('registers the refresh alarm and an onAlarm listener', async () => {
+  it('registers an onInstalled listener to seed the catalog', () => {
     const registry = {
       ready: Promise.resolve(true),
     } as unknown as ManifestRegistry
@@ -344,12 +344,7 @@ describe('ProviderService.setup', () => {
     )
 
     service.setup()
-    await new Promise((resolve) => setTimeout(resolve, 0))
 
-    expect(chrome.alarms.create).toHaveBeenCalledWith(
-      'refresh-manifests',
-      expect.objectContaining({ periodInMinutes: expect.any(Number) })
-    )
-    expect(chrome.alarms.onAlarm.addListener).toHaveBeenCalled()
+    expect(chrome.runtime.onInstalled.addListener).toHaveBeenCalled()
   })
 })
