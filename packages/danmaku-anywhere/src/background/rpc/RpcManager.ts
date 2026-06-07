@@ -127,10 +127,10 @@ export class RpcManager {
         providerGetManifestSpec: async ({ manifestId, locale }) => {
           return this.providerService.getManifestSpec(manifestId, locale)
         },
-        providerListManifests: async ({ locale }) => {
+        providerListManifests: async ({ locale } = {}) => {
           return this.providerService.listManifests(locale)
         },
-        providerRefreshCatalog: async ({ locale }) => {
+        providerRefreshCatalog: async ({ locale } = {}) => {
           return this.providerService.refreshCatalog(locale)
         },
         providerGetPendingUpdates: async () => {
