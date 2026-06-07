@@ -142,10 +142,8 @@ export type SetHeaderRule = {
   headers?: HTTPHeader[]
   url: string
   referer: string
-  // when set, the request's Origin is rewritten to this value and the response
-  // is given Access-Control-Allow-Origin: *, so a CORS request to a
-  // hotlink-protected CDN that only allowlists the source origin succeeds and
-  // stays origin-clean
+  // rewrites request Origin to this and forces Access-Control-Allow-Origin: *,
+  // so a CDN that only allowlists the source origin serves the CORS request
   origin?: string
 }
 

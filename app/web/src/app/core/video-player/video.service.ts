@@ -199,8 +199,7 @@ export class VideoService {
       airplay: false,
       lang: 'zh-cn',
       theme: '#f472b6',
-      // load CORS-clean so occlusion can read frames from the video; falls back
-      // to no-cors on error (see setupEventListeners) for CDNs that reject it
+      // CORS-clean so occlusion can read frames; falls back to no-cors on error
       moreVideoAttr: { crossOrigin: 'anonymous' },
     })
 
@@ -224,8 +223,7 @@ export class VideoService {
       if (!url) {
         this.updateState({ isVideoReady: false })
       } else {
-        // re-arm CORS for each source so a new one can be read CORS-clean even
-        // after a previous source fell back to no-cors
+        // re-arm CORS per source after a previous no-cors fallback
         this.corsRetryPending = false
         player.video.crossOrigin = 'anonymous'
         void player.switchUrl(url)
@@ -412,9 +410,7 @@ export class VideoService {
       this.updateState({ isFullscreenWeb })
     })
 
-    // a crossorigin video that the CDN refuses to serve CORS fails to load;
-    // drop crossorigin so Artplayer's reconnect reloads it no-cors, keeping
-    // playback alive (occlusion just stays off for this source)
+    // CORS rejected: drop crossorigin so the reconnect reloads no-cors
     player.on('video:error', () => {
       if (player.video.crossOrigin) {
         this.corsRetryPending = true
