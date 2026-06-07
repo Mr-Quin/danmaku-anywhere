@@ -23,19 +23,23 @@ interface ProviderRowProps {
   primary: ReactNode
   secondary?: ReactNode
   mono?: boolean
+  dense?: boolean
   onClick?: () => void
   action?: ReactNode
 }
 
+// The clickable area flexes and shrinks; the action sits beside it as a flex
+// sibling, so the truncated text can never run under the toggle/menu.
 export const ProviderRow = ({
   avatarSeed,
   primary,
   secondary,
   mono,
+  dense,
   onClick,
   action,
 }: ProviderRowProps) => {
-  const inner = (
+  const content = (
     <>
       {avatarSeed !== undefined ? (
         <Box sx={{ mr: 1.5, display: 'flex' }}>
@@ -43,11 +47,11 @@ export const ProviderRow = ({
         </Box>
       ) : null}
       <ListItemText
-        sx={{ minWidth: 0, my: 0 }}
+        sx={{ minWidth: 0, my: 0, overflow: 'hidden' }}
         primary={primary}
         secondary={secondary}
         slotProps={{
-          primary: { noWrap: true },
+          primary: { noWrap: true, variant: dense ? 'body2' : 'body1' },
           secondary: {
             noWrap: true,
             sx: mono ? { fontFamily: 'ui-monospace, monospace' } : undefined,
@@ -58,25 +62,30 @@ export const ProviderRow = ({
   )
 
   return (
-    <ListItem disablePadding secondaryAction={action}>
+    <ListItem disablePadding sx={{ pr: 1 }}>
       {onClick ? (
-        <ListItemButton onClick={onClick} sx={{ pr: action ? 12 : 1.5 }}>
-          {inner}
+        <ListItemButton onClick={onClick} sx={{ flex: 1, minWidth: 0 }}>
+          {content}
         </ListItemButton>
       ) : (
         <Box
           sx={{
+            flex: 1,
+            minWidth: 0,
             display: 'flex',
             alignItems: 'center',
-            width: '100%',
             px: 1,
             py: 0.75,
-            pr: action ? 12 : 1,
           }}
         >
-          {inner}
+          {content}
         </Box>
       )}
+      {action ? (
+        <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          {action}
+        </Box>
+      ) : null}
     </ListItem>
   )
 }

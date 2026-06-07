@@ -229,6 +229,7 @@ export const InstalledList = ({
                 {unit.configs.map((config) => (
                   <ProviderRow
                     key={config.id}
+                    dense
                     primary={displayName(config)}
                     secondary={(config.configValues.baseUrl as string) ?? ''}
                     mono

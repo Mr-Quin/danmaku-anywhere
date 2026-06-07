@@ -187,6 +187,7 @@ export const ProvidersPage = (): ReactElement => {
               <TextField
                 size="small"
                 fullWidth
+                sx={{ mb: 1 }}
                 value={filter}
                 onChange={(e) => setFilter(e.target.value)}
                 placeholder={t(
