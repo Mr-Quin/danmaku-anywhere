@@ -1,6 +1,7 @@
 import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { defaultDanmakuOptions } from '../../../src/common/options/danmakuOptions/constant'
 import { IntegrationPage } from '../../pom/IntegrationPage'
+import { Toast } from '../../pom/Toast'
 import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import {
@@ -10,11 +11,12 @@ import {
 import { applyProfile } from '../../setup/profile'
 
 /**
- * Occlusion cross-origin recovery over real network (route-fulfilled .invalid
+ * Occlusion cross-origin behavior over real network (route-fulfilled .invalid
  * origins can't exercise DNR). Page on localhost:8889, video on 127.0.0.1:8889,
- * so the canvas genuinely taints; asserts the original is tainted yet a mask
- * still applies (only possible if the DNR rule + crossorigin clone un-tainted
- * it). Also covers swapping to another cross-origin src.
+ * so the canvas genuinely taints. Asserts the recovery path (tainted original +
+ * DNR clone yields a mask), the src-swap re-recovery, and the graceful-failure
+ * path (a clone the DNR rule cannot rescue surfaces the taint status, leaves
+ * playback intact, and applies no mask).
  */
 
 const PAGE_ORIGIN = 'http://localhost:8889'
@@ -22,6 +24,9 @@ const MEDIA_ORIGIN = 'http://127.0.0.1:8889'
 const PAGE_URL = `${PAGE_ORIGIN}/sites/cross-origin-video.html`
 const VIDEO_1 = `${MEDIA_ORIGIN}/media/sample-motion.webm`
 const VIDEO_2 = `${MEDIA_ORIGIN}/media/person-akiyo.webm`
+// Served so the crossorigin clone's CORS request is rejected (DNR can't rescue
+// it) while the plain <video> still plays and taints.
+const VIDEO_UNRECOVERABLE = `${MEDIA_ORIGIN}/cors-fail/media/sample-motion.webm`
 const MOUNT_PATTERN = `${PAGE_ORIGIN}/*`
 
 const EPISODE_TITLE = 'DA Harness Native Video'
@@ -69,6 +74,15 @@ function videoTaintState(page: import('@playwright/test').Page) {
     } catch (e) {
       return e instanceof DOMException ? e.name : 'error'
     }
+  })
+}
+
+function videoCurrentTime(page: import('@playwright/test').Page) {
+  return page.evaluate(() => {
+    const v = document.querySelector<HTMLVideoElement>(
+      'video[data-testid="da-video"]'
+    )
+    return v?.currentTime ?? 0
   })
 }
 
@@ -159,4 +173,41 @@ test('occlusion re-recovers when the player swaps to another cross-origin src', 
   await expect
     .poll(() => maskImageOf(integrationPage.danmuContainer()))
     .toMatch(/^url\(/)
+})
+
+test.describe('unrecoverable cross-origin source', () => {
+  // The clone's CORS fetch to this source is rejected by design.
+  test.use({ expectedConsoleErrors: [/cors-fail\/media/] })
+
+  test('occlusion degrades safely when the tainted source cannot be recovered', async ({
+    context,
+    page,
+  }) => {
+    const da = await seedOcclusionMount(context)
+    const integrationPage = new IntegrationPage(page)
+    const toast = new Toast(page)
+
+    await page.bringToFront()
+    await page.goto(PAGE_URL)
+    await setVideoSrc(page, VIDEO_UNRECOVERABLE)
+
+    await expect.poll(() => videoTaintState(page)).toBe('SecurityError')
+
+    const mirror = await da.mount.waitForMount(undefined, 15_000)
+    expect(mirror.isMounted).toBe(true)
+    await expect(integrationPage.commentElements().first()).toBeVisible({
+      timeout: 15_000,
+    })
+
+    await toast.expectError(/cross-origin or DRM|跨域或 DRM/, {
+      timeout: 15_000,
+    })
+    const playheadBefore = await videoCurrentTime(page)
+    await expect
+      .poll(() => videoCurrentTime(page))
+      .toBeGreaterThan(playheadBefore)
+    await expect(maskImageOf(integrationPage.danmuContainer())).resolves.toBe(
+      'none'
+    )
+  })
 })
