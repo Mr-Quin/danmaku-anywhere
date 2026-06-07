@@ -10,13 +10,11 @@ import {
 import { applyProfile } from '../../setup/profile'
 
 /**
- * Occlusion cross-origin recovery, end to end over real network (the
- * route-fulfilled `.invalid` origins cannot, since DNR only sees real
- * responses). The page is served from localhost:8889 and the video from
- * 127.0.0.1:8889 (a distinct origin), so the capture canvas is genuinely
- * tainted. Asserts the original is tainted yet occlusion still applies a mask,
- * which is only possible if the extension's DNR rule + crossorigin clone
- * un-tainted it; also covers the player swapping to another cross-origin src.
+ * Occlusion cross-origin recovery over real network (route-fulfilled .invalid
+ * origins can't exercise DNR). Page on localhost:8889, video on 127.0.0.1:8889,
+ * so the canvas genuinely taints; asserts the original is tainted yet a mask
+ * still applies (only possible if the DNR rule + crossorigin clone un-tainted
+ * it). Also covers swapping to another cross-origin src.
  */
 
 const PAGE_ORIGIN = 'http://localhost:8889'
@@ -33,14 +31,12 @@ const COMMENTS = [
   { p: '3,1,16777215,e2e-3', m: 'third' },
 ]
 
-// Real harness server (playwright webServer): the page origin and the
-// cross-origin video origin, both needed live so the canvas genuinely taints
-// and the extension's DNR rule can un-taint a real response.
+// Both real origins (page + cross-origin video) must hit the network so the
+// DNR taint/recovery path is exercised.
 test.use({ allowedNetworkOrigins: ['localhost:8889', '127.0.0.1:8889'] })
 
-// Helpers below probe the harness page directly (taint state, mask, src swap).
-// They are specific to this cross-origin harness fixture, not the shared
-// IntegrationPage POM, so they live here rather than as POM methods.
+// Harness-fixture-specific probes (taint, mask, src swap); intentionally not
+// IntegrationPage POM methods.
 function maskImageOf(locator: import('@playwright/test').Locator) {
   return locator.evaluate((el) => {
     const style = getComputedStyle(el)

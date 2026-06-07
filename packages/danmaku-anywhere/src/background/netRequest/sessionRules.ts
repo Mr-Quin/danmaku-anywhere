@@ -2,11 +2,9 @@ import { Mutex } from 'async-mutex'
 
 const mutex = new Mutex()
 
-// Monotonic per-SW-instance counter for DNR rule IDs; guarded by the mutex.
-// `undefined` triggers a one-time prime from getSessionRules: on cold start
-// or after an MV3 service-worker restart, persisted session rules from a
-// prior instance still live in chrome, and starting from 0 would collide.
-// Same prime happens when we near MAX_NUMBER_OF_SESSION_RULES (~5000).
+// Monotonic DNR rule-id counter, mutex-guarded. Primed from existing rules on
+// cold start / SW restart (persisted session rules would otherwise collide),
+// and again near the cap.
 let nextRuleIdCounter: number | undefined
 const MAX_DNR_SESSION_RULES = 4500
 
@@ -27,9 +25,8 @@ export async function removeSessionRule(ruleId: number): Promise<void> {
   })
 }
 
-// Allocates a collision-free session rule id and installs the rule built from
-// it. All session DNR rules share this single counter so independent callers
-// (request-header rewrites, media CORS bypass) never hand out the same id.
+// Shared id allocator for every session DNR rule, so independent callers
+// (request-header rewrites, media CORS bypass) can't collide on ids.
 export async function addSessionRule(
   buildRule: (id: number) => chrome.declarativeNetRequest.Rule
 ): Promise<SessionRuleHandle> {

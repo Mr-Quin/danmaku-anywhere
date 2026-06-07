@@ -1,12 +1,9 @@
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
-// A cross-origin video loaded without CORS taints the capture canvas, so the
-// segmenter cannot read its frames. createImageBitmap does not reliably throw on
-// such a video (the taint only surfaces at the later pixel read), so probe with
-// an actual getImageData and treat SecurityError as the taint signal.
+// createImageBitmap doesn't reliably throw on a tainted video (the taint
+// surfaces only at the later pixel read), so probe with getImageData.
 export function isVideoOriginClean(video: HTMLVideoElement): boolean {
-  // drawImage is a no-op on a video with no decoded frame, which would let
-  // getImageData read a blank canvas and falsely report clean; require a frame.
+  // No decoded frame: drawImage no-ops and getImageData would read clean.
   if (video.readyState < 2) {
     return false
   }
@@ -33,12 +30,9 @@ const DRIFT_TOLERANCE_SECONDS = 0.2
 const CLONE_READY_TIMEOUT_MS = 8000
 
 /**
- * Recovers frame capture for a tainted cross-origin video. A background DNR rule
- * injects `Access-Control-Allow-Origin: *` onto the media URL; a hidden
- * `crossorigin="anonymous"` clone of the same source then loads origin-clean and
- * is captured instead of the live element, so the user's playback is untouched.
- * Only direct http(s) sources are recoverable (not blob/MSE, which is already
- * origin-clean, nor DRM, which is never readable).
+ * Reads a tainted cross-origin video via a hidden crossorigin clone (a
+ * background DNR rule supplies ACAO) instead of the live element, leaving
+ * playback untouched. http(s) only: blob/MSE aren't tainted, DRM never readable.
  */
 export class CrossOriginCapture {
   private clone: HTMLVideoElement | null = null
@@ -81,24 +75,21 @@ export class CrossOriginCapture {
       this.sync()
       return clone
     } catch {
-      // A failed RPC / rule install must not leave capture half-resolved; give
-      // up cleanly so the caller falls through to the tainted-canvas status
-      // instead of capturing the unrecovered (tainted) original forever.
+      // Any failure: give up cleanly so the caller falls back to the taint
+      // status rather than capturing the unrecovered original.
       this.dispose()
       return null
     }
   }
 
-  // Keep the clone aligned with the live element so the captured frame matches
-  // what the user sees; called once per capture cycle.
+  // Align the clone to the live element; called once per capture cycle.
   sync(): void {
     const clone = this.clone
     if (!clone) {
       return
     }
     const target = this.original.currentTime
-    // Match rate first; otherwise a non-1x original drifts continuously and
-    // triggers a corrective seek every cycle.
+    // Match rate, else a non-1x original drifts and seeks every cycle.
     if (clone.playbackRate !== this.original.playbackRate) {
       clone.playbackRate = this.original.playbackRate
     }
@@ -149,8 +140,7 @@ export class CrossOriginCapture {
         void clone.play().catch(() => undefined)
       }
       const onMeta = () => seekToLive()
-      // readyState dips while seeking, so gate on a decoded frame being present
-      // rather than the event firing, to avoid reporting ready mid-seek.
+      // readyState dips during a seek; gate on the decoded frame, not the event.
       const onReady = () => {
         if (clone.readyState >= 2) {
           finish(true)
@@ -162,8 +152,7 @@ export class CrossOriginCapture {
       clone.addEventListener('loadeddata', onReady)
       clone.addEventListener('seeked', onReady)
       clone.addEventListener('error', onError)
-      // A cached/fast clone may already be past these events, which won't fire
-      // again; drive the seek and readiness check synchronously.
+      // Already-loaded clone won't re-fire these events; kick it synchronously.
       if (clone.readyState >= 1) {
         seekToLive()
         onReady()
@@ -180,8 +169,7 @@ export class CrossOriginCapture {
     try {
       await chromeRpcClient.occlusionRemoveCorsRule({ ruleId })
     } catch {
-      // Best-effort cleanup; a stale session rule only re-adds one harmless ACAO
-      // header and is cleared when the browser session ends.
+      // Best-effort; a leaked rule only re-adds one ACAO header for the session.
     }
   }
 }

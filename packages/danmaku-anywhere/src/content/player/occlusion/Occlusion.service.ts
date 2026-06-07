@@ -107,12 +107,11 @@ export class OcclusionService {
   private lastError: string | null = null
   private lastStatusReason?: OcclusionStatusReason
   private lastAppliedTs = 0
-  // The element frames are read from: the live video when origin-clean, or a
-  // CORS-bypassed clone when the live video is cross-origin-tainted.
+  // Element to read frames from: the live video, or a clone when it's tainted.
   private captureEl: HTMLVideoElement | null = null
   private crossOriginCapture: CrossOriginCapture | null = null
   private captureResolved = false
-  // currentSrc the capture source was resolved against; a change means re-resolve.
+  // src the capture was resolved against; a change forces a re-resolve.
   private resolvedSrc: string | null = null
 
   constructor(
@@ -330,8 +329,8 @@ export class OcclusionService {
       return
     }
 
-    // start() no-ops for an unchanged element, so a same-element src swap is
-    // detected here and forces a re-resolve (the clone is bound to the old URL).
+    // start() no-ops on an unchanged element, so catch same-element src swaps
+    // here (the clone is bound to the old URL).
     if (this.captureResolved && this.resolvedSrc !== video.currentSrc) {
       this.crossOriginCapture?.dispose()
       this.crossOriginCapture = null
@@ -375,9 +374,8 @@ export class OcclusionService {
         resizeQuality: 'medium',
       })
     } catch (e) {
-      // A tainted canvas can still surface here on engines where
-      // createImageBitmap enforces origin-clean; the upfront probe normally
-      // catches it first, so this is a fallback.
+      // Fallback: some engines do throw here; the upfront probe usually catches
+      // it first.
       if (e instanceof DOMException && e.name === 'SecurityError') {
         this.disableForTaint()
         return
@@ -473,11 +471,8 @@ export class OcclusionService {
     }
   }
 
-  // Pick the element to read frames from, once per video. An origin-clean video
-  // is captured directly; a cross-origin-tainted one with an http(s) source is
-  // recovered through a CORS-bypassed clone. Anything else (blob/DRM) disables.
-  // Reached synchronously from onFrame's readyState >= 2 gate, so the probe
-  // always has a decoded frame to test (an unready video would read as clean).
+  // Resolve the capture element once per video: live if clean, else a clone for
+  // http(s) sources, else give up. Runs under onFrame's readyState >= 2 gate.
   private async resolveCaptureSource(video: HTMLVideoElement): Promise<void> {
     this.captureResolved = true
     this.resolvedSrc = video.currentSrc
