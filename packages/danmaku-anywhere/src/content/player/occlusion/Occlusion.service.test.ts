@@ -3,11 +3,8 @@ import type { ILogger } from '@/common/Logger'
 import { modelEntrySchema } from '@/common/models/schema'
 import { MockMaskProvider } from './MockMaskProvider'
 import type { IMaskProviderFactory } from './maskProviderFactory'
-import {
-  type OcclusionConfig,
-  OcclusionService,
-  type OcclusionStatus,
-} from './Occlusion.service'
+import { OcclusionService } from './Occlusion.service'
+import type { OcclusionConfig, OcclusionStatus } from './Occlusion.types'
 
 const peopleModel = modelEntrySchema.parse({
   id: 'people',

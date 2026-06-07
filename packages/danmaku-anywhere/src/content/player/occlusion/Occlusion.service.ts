@@ -1,66 +1,24 @@
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ModelEntry } from '@/common/models/schema'
-import { CrossOriginCapture, isVideoOriginClean } from './crossOriginCapture'
-import { buildAlphaMask } from './maskGeometry'
+import { FrameSource } from './frameSource'
+import { MaskCompositor } from './MaskCompositor'
 import {
   type IMaskProviderFactory,
   MaskProviderFactory,
 } from './maskProviderFactory'
+import type {
+  OcclusionConfig,
+  OcclusionStats,
+  OcclusionStatus,
+  OcclusionStatusReason,
+} from './Occlusion.types'
+import { OcclusionDebugView } from './OcclusionDebugView'
 import type { MaskProvider } from './types'
-
-// Distinct reasons because the user-facing remedy differs (taint vs webgpu vs
-// init); the rest are surfaced the same way.
-export type OcclusionStatusReason =
-  | 'downloading'
-  | 'init'
-  | 'taint'
-  | 'webgpu'
-  | 'segment'
-  | 'unavailable'
-
-export interface OcclusionStatus {
-  reason: OcclusionStatusReason
-  message: string
-}
-
-export interface OcclusionStats {
-  running: boolean
-  fps: number | null
-  lastError: string | null
-  debugOverlay: boolean
-}
-
-export interface OcclusionConfig {
-  descriptor: ModelEntry
-  captureSize: number
-  // Capture at the video's aspect ratio (long side = captureSize) instead of a
-  // square. The anime model is distortion-sensitive; the people segmenter is
-  // robust and uses the cheaper square capture.
-  capturePreserveAspect: boolean
-  minIntervalMs: number
-  outputMaxSide: number
-  threshold: number
-  edgeSoftness: number
-  debug: boolean
-  applyMask: (url?: string) => void
-  // Classified failure gates a higher layer (settings/toast) surfaces; also
-  // tracked as lastError in stats.
-  onStatus?: (status: OcclusionStatus) => void
-}
 
 const DEFAULT_CAPTURE_SIZE = 256
 const DEFAULT_MIN_INTERVAL_MS = 80
 const DEFAULT_OUTPUT_MAX_SIDE = 320
-const DEBUG_Z_INDEX = '2147483646'
-
-// The bundled selfie_segmenter's category mask marks the PERSON as category 0
-// and the background as non-zero (verified empirically against the shipped
-// model; inverted from some MediaPipe docs). Danmaku hide where the person is,
-// so person pixels become transparent (alpha 0) in the mask.
-function isPerson(value: number): boolean {
-  return value === 0
-}
 
 function modelKey(descriptor: ModelEntry): string {
   // Every load-bearing field (inputSize, preprocessing, capture, source) must
@@ -71,8 +29,9 @@ function modelKey(descriptor: ModelEntry): string {
 /**
  * Drives a per-frame person-mask loop for one video and applies the resulting
  * alpha mask (as a data URL) to the danmaku overlay so comments render behind
- * people. Capture and mask application live here (co-located with the video and
- * overlay); inference is delegated to a MaskProvider created per model.
+ * people. A FrameSource resolves the readable element, a MaskProvider runs
+ * inference, and a MaskCompositor turns the result into the applied mask; this
+ * service is the lifecycle and per-frame coordinator.
  */
 @injectable('Singleton')
 export class OcclusionService {
@@ -80,11 +39,9 @@ export class OcclusionService {
   private running = false
   private busy = false
   private lastSegmentTs = 0
-  private readonly maskCanvas = document.createElement('canvas')
-  private readonly rawMaskCanvas = document.createElement('canvas')
-  private readonly maskCtx: CanvasRenderingContext2D | null
-  private readonly rawMaskCtx: CanvasRenderingContext2D | null
   private readonly logger: ILogger
+  private readonly frameSource: FrameSource
+  private readonly compositor: MaskCompositor
   private provider?: MaskProvider
   // Identity of the model behind the live provider. Includes the download source
   // so a manifest refresh that re-points the same id rebuilds the provider.
@@ -101,27 +58,20 @@ export class OcclusionService {
   private debug = false
   private debugView?: OcclusionDebugView
   private appliedOnce = false
-  private imageData?: ImageData
   private callbackId: number | null = null
   private fps: number | null = null
   private lastError: string | null = null
   private lastStatusReason?: OcclusionStatusReason
   private lastAppliedTs = 0
-  // Element to read frames from: the live video, or a clone when it's tainted.
-  private captureEl: HTMLVideoElement | null = null
-  private crossOriginCapture: CrossOriginCapture | null = null
-  private captureResolved = false
-  // src the capture was resolved against; a change forces a re-resolve.
-  private resolvedSrc: string | null = null
 
   constructor(
     @inject(MaskProviderFactory)
     private readonly createProvider: IMaskProviderFactory,
     @inject(LoggerSymbol) logger: ILogger
   ) {
-    this.maskCtx = this.maskCanvas.getContext('2d')
-    this.rawMaskCtx = this.rawMaskCanvas.getContext('2d')
     this.logger = logger.sub('[OcclusionService]')
+    this.frameSource = new FrameSource((message) => this.log(message))
+    this.compositor = new MaskCompositor((message) => this.log(message))
   }
 
   configure(config: OcclusionConfig): void {
@@ -219,11 +169,7 @@ export class OcclusionService {
     this.appliedOnce = false
     this.fps = null
     this.lastAppliedTs = 0
-    this.crossOriginCapture?.dispose()
-    this.crossOriginCapture = null
-    this.captureEl = null
-    this.captureResolved = false
-    this.resolvedSrc = null
+    this.frameSource.reset()
     this.applyMask(undefined)
     this.debugView?.remove()
     this.debugView = undefined
@@ -322,35 +268,91 @@ export class OcclusionService {
   }
 
   private async segmentAndApply(video: HTMLVideoElement): Promise<void> {
-    const maskCtx = this.maskCtx
-    const rawMaskCtx = this.rawMaskCtx
     const provider = this.provider
-    if (!maskCtx || !rawMaskCtx || !provider) {
+    if (!provider) {
       return
     }
+    const isStale = () => !this.running || this.video !== video
 
-    // start() no-ops on an unchanged element, so catch same-element src swaps
-    // here (the clone is bound to the old URL).
-    if (this.captureResolved && this.resolvedSrc !== video.currentSrc) {
-      this.crossOriginCapture?.dispose()
-      this.crossOriginCapture = null
-      this.captureEl = null
-      this.captureResolved = false
-    }
-
-    if (!this.captureResolved) {
-      await this.resolveCaptureSource(video)
-      if (!this.running || this.video !== video) {
-        return
-      }
-    }
-    const source = this.captureEl
-    if (!source) {
+    const source = await this.frameSource.read(video, isStale)
+    if (source === 'taint') {
+      this.disableForTaint()
       return
     }
-    this.crossOriginCapture?.sync()
+    if (!source || isStale()) {
+      return
+    }
 
     const t0 = performance.now()
+    const frame = await this.captureFrame(source, video)
+    if (frame === 'taint') {
+      this.disableForTaint()
+      return
+    }
+    if (!frame) {
+      return
+    }
+    if (isStale()) {
+      frame.close()
+      return
+    }
+
+    const result = await provider.segment(frame, { threshold: this.threshold })
+    if (!result) {
+      this.status(
+        'segment',
+        'segment returned no result (provider failed or timed out)'
+      )
+      return
+    }
+    if (isStale()) {
+      return
+    }
+
+    const composed = this.compositor.compose(result, video, {
+      outputMaxSide: this.outputMaxSide,
+      edgeSoftness: this.edgeSoftness,
+    })
+    if (!composed || isStale()) {
+      return
+    }
+
+    this.applyMask(composed.url)
+    this.lastError = null
+    this.lastStatusReason = undefined
+    const appliedAt = performance.now()
+    if (this.lastAppliedTs > 0) {
+      const dt = appliedAt - this.lastAppliedTs
+      const instantFps = dt > 0 ? 1000 / dt : 0
+      this.fps =
+        this.fps === null ? instantFps : this.fps * 0.7 + instantFps * 0.3
+    }
+    this.lastAppliedTs = appliedAt
+    if (!this.appliedOnce) {
+      this.appliedOnce = true
+      const { width, height } = composed.mask
+      this.log(
+        `first mask applied (${width}x${height}) in ${Math.round(appliedAt - t0)}ms`
+      )
+    }
+
+    if (this.debug) {
+      this.renderDebug(
+        video,
+        composed.mask,
+        result.maskSize,
+        performance.now() - t0
+      )
+    }
+  }
+
+  // createImageBitmap resizes on the GPU during decode, avoiding a main-thread
+  // canvas draw. Returns 'taint' when the source is unreadable (some engines
+  // throw here even though the upfront probe usually catches it first).
+  private async captureFrame(
+    source: HTMLVideoElement,
+    video: HTMLVideoElement
+  ): Promise<ImageBitmap | 'taint' | null> {
     let resizeWidth = this.captureSize
     let resizeHeight = this.captureSize
     if (
@@ -365,135 +367,19 @@ export class OcclusionService {
         resizeWidth = Math.max(1, Math.round(this.captureSize * aspect))
       }
     }
-    let frame: ImageBitmap
     try {
-      // Resize on the GPU during decode; avoids a main-thread canvas draw.
-      frame = await createImageBitmap(source, {
+      return await createImageBitmap(source, {
         resizeWidth,
         resizeHeight,
         resizeQuality: 'medium',
       })
     } catch (e) {
-      // Fallback: some engines do throw here; the upfront probe usually catches
-      // it first.
       if (e instanceof DOMException && e.name === 'SecurityError') {
-        this.disableForTaint()
-        return
+        return 'taint'
       }
       this.log(`capture failed: ${e instanceof Error ? e.message : e}`)
-      return
+      return null
     }
-
-    if (!this.running || this.video !== video) {
-      frame.close()
-      return
-    }
-    const result = await provider.segment(frame, {
-      threshold: this.threshold,
-    })
-    if (!result) {
-      this.status(
-        'segment',
-        'segment returned no result (provider failed or timed out)'
-      )
-      return
-    }
-    if (!this.running || this.video !== video) {
-      return
-    }
-
-    const box = { width: video.clientWidth, height: video.clientHeight }
-    if (box.width === 0 || box.height === 0) {
-      this.log('video box has zero size; skipping')
-      return
-    }
-    const content = {
-      width: video.videoWidth || box.width,
-      height: video.videoHeight || box.height,
-    }
-    const outputScale = Math.min(
-      1,
-      this.outputMaxSide / Math.max(box.width, box.height)
-    )
-
-    const mask = buildAlphaMask({
-      category: result.category,
-      maskSize: result.maskSize,
-      content,
-      box,
-      outputScale,
-      isPerson,
-    })
-
-    if (
-      this.maskCanvas.width !== mask.width ||
-      this.maskCanvas.height !== mask.height ||
-      !this.imageData
-    ) {
-      this.maskCanvas.width = mask.width
-      this.maskCanvas.height = mask.height
-      this.rawMaskCanvas.width = mask.width
-      this.rawMaskCanvas.height = mask.height
-      this.imageData = rawMaskCtx.createImageData(mask.width, mask.height)
-    }
-    this.imageData.data.set(mask.data)
-    rawMaskCtx.putImageData(this.imageData, 0, 0)
-
-    maskCtx.clearRect(0, 0, mask.width, mask.height)
-    maskCtx.filter =
-      this.edgeSoftness > 0 ? `blur(${this.edgeSoftness}px)` : 'none'
-    maskCtx.drawImage(this.rawMaskCanvas, 0, 0)
-    maskCtx.filter = 'none'
-
-    if (!this.running || this.video !== video) {
-      return
-    }
-    this.applyMask(this.maskCanvas.toDataURL('image/png'))
-    this.lastError = null
-    this.lastStatusReason = undefined
-    const appliedAt = performance.now()
-    if (this.lastAppliedTs > 0) {
-      const dt = appliedAt - this.lastAppliedTs
-      const instantFps = dt > 0 ? 1000 / dt : 0
-      this.fps =
-        this.fps === null ? instantFps : this.fps * 0.7 + instantFps * 0.3
-    }
-    this.lastAppliedTs = appliedAt
-    if (!this.appliedOnce) {
-      this.appliedOnce = true
-      this.log(
-        `first mask applied (${mask.width}x${mask.height}) in ${Math.round(appliedAt - t0)}ms`
-      )
-    }
-
-    if (this.debug) {
-      this.renderDebug(video, mask, result.maskSize, performance.now() - t0)
-    }
-  }
-
-  // Resolve the capture element once per video: live if clean, else a clone for
-  // http(s) sources, else give up. Runs under onFrame's readyState >= 2 gate.
-  private async resolveCaptureSource(video: HTMLVideoElement): Promise<void> {
-    this.captureResolved = true
-    this.resolvedSrc = video.currentSrc
-    if (isVideoOriginClean(video)) {
-      this.captureEl = video
-      return
-    }
-    const recovery = new CrossOriginCapture(video)
-    const clone = await recovery.setup()
-    if (!this.running || this.video !== video) {
-      recovery.dispose()
-      return
-    }
-    if (clone && isVideoOriginClean(clone)) {
-      this.crossOriginCapture = recovery
-      this.captureEl = clone
-      this.log('cross-origin video recovered via CORS-bypassed clone')
-      return
-    }
-    recovery.dispose()
-    this.disableForTaint()
   }
 
   private disableForTaint(): void {
@@ -528,77 +414,5 @@ export class OcclusionService {
       cycleMs,
       personFraction,
     })
-  }
-}
-
-interface DebugUpdate {
-  rect: DOMRect
-  mask: { data: Uint8ClampedArray; width: number; height: number }
-  sourceSize: { width: number; height: number }
-  cycleMs: number
-  personFraction: number
-}
-
-/**
- * Visible debug overlay (debug mode only): tints the detected person region over
- * the video and prints timing / coverage so the segmentation can be seen and
- * profiled. Owns its own DOM in the host page; removed on stop / debug-off.
- */
-class OcclusionDebugView {
-  private readonly root = document.createElement('div')
-  private readonly canvas = document.createElement('canvas')
-  private readonly label = document.createElement('div')
-  private readonly ctx: CanvasRenderingContext2D | null
-
-  constructor() {
-    this.root.style.cssText = `position:fixed;z-index:${DEBUG_Z_INDEX};pointer-events:none;outline:1px solid rgba(0,255,128,0.6);`
-    this.canvas.style.cssText = 'width:100%;height:100%;display:block;'
-    this.label.style.cssText =
-      'position:absolute;top:0;left:0;padding:2px 6px;font:11px monospace;color:#0f8;background:rgba(0,0,0,0.6);white-space:pre;'
-    this.root.appendChild(this.canvas)
-    this.root.appendChild(this.label)
-    document.body.appendChild(this.root)
-    this.ctx = this.canvas.getContext('2d')
-  }
-
-  update(u: DebugUpdate): void {
-    this.root.style.left = `${u.rect.left}px`
-    this.root.style.top = `${u.rect.top}px`
-    this.root.style.width = `${u.rect.width}px`
-    this.root.style.height = `${u.rect.height}px`
-
-    const ctx = this.ctx
-    if (ctx) {
-      if (
-        this.canvas.width !== u.mask.width ||
-        this.canvas.height !== u.mask.height
-      ) {
-        this.canvas.width = u.mask.width
-        this.canvas.height = u.mask.height
-      }
-      const tint = ctx.createImageData(u.mask.width, u.mask.height)
-      for (let i = 0; i < u.mask.data.length; i += 4) {
-        // mask alpha 0 => person; tint it green, leave background clear.
-        const personHere = u.mask.data[i + 3] === 0
-        tint.data[i] = 0
-        tint.data[i + 1] = 255
-        tint.data[i + 2] = 128
-        tint.data[i + 3] = personHere ? 110 : 0
-      }
-      ctx.putImageData(tint, 0, 0)
-    }
-
-    const fps = u.cycleMs > 0 ? 1000 / u.cycleMs : 0
-    const coverage = `${Math.round(u.personFraction * 100)}%`
-    const detected = u.personFraction < 0.005 ? ' (no person detected)' : ''
-    this.label.textContent = `occlusion ${u.cycleMs.toFixed(0)}ms ~${fps.toFixed(0)}fps\nsrc ${u.sourceSize.width}x${u.sourceSize.height} person ${coverage}${detected}`
-  }
-
-  showDisabled(message: string): void {
-    this.label.textContent = message
-  }
-
-  remove(): void {
-    this.root.remove()
   }
 }
