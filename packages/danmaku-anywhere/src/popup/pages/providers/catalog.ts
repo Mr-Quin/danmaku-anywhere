@@ -10,10 +10,8 @@ import {
   getObjectFields,
 } from './components/forms/schemaForm'
 
-// Imported catalog sources are resolved by manifestId, so impl is a
-// non-load-bearing tag. DanDanPlay is the least-broken choice: it sits in the
-// default type filter and gets the refresh affordance. It must not be Custom,
-// which the provider factory rejects for non-maccms configs.
+// impl is a non-load-bearing tag here, but it must not be Custom, which the
+// provider factory rejects for non-maccms configs.
 export function createConfigFromManifest(
   manifest: ProviderManifestInfo
 ): ProviderConfig {
@@ -27,17 +25,14 @@ export function createConfigFromManifest(
   }
 }
 
-// A required field without a default can't be satisfied by the schema alone,
-// so the user has to fill it in before the config is usable.
 export function manifestNeedsConfigForm(configSchema?: ConfigSchema): boolean {
   return getObjectFields(configSchema).some(
     (field) => field.required && field.schema.default === undefined
   )
 }
 
-// No manifest field declares multi-instance support yet, so the one source
-// that takes several configs (the DanDanPlay-compatible servers, including the
-// hosted proxy) is hardcoded. Replace with a manifest capability when one lands.
+// No manifest flag declares multi-instance support yet, so DanDanPlay is
+// hardcoded as the one source that takes several configs.
 const DDP_MANIFEST_ID = PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]
 const MULTI_INSTANCE_MANIFEST_IDS = new Set<string>([DDP_MANIFEST_ID])
 
@@ -45,8 +40,6 @@ export function supportsInstances(manifestId: string): boolean {
   return MULTI_INSTANCE_MANIFEST_IDS.has(manifestId)
 }
 
-// The DanDanPlay instance pointed at our hosted proxy, as opposed to a
-// user-added server.
 export function isHostedDanDanPlay(config: ProviderConfig): boolean {
   return (
     config.manifestId === DDP_MANIFEST_ID &&
@@ -58,10 +51,8 @@ export type InstalledUnit =
   | { type: 'single'; id: string; config: ProviderConfig }
   | { type: 'group'; id: string; manifestId: string; configs: ProviderConfig[] }
 
-// A multi-instance manifest always renders as a group (collapsible), even with
-// a single config, so the Add instance affordance is always reachable. The
-// group is anchored at the first member's position so drag-order (search
-// priority) is per-manifest.
+// Multi-instance manifests collapse into one group anchored at their first
+// config; everything else is a single row.
 export function groupInstalled(configs: ProviderConfig[]): InstalledUnit[] {
   const units: InstalledUnit[] = []
   const grouped = new Set<string>()
@@ -84,8 +75,6 @@ export function groupInstalled(configs: ProviderConfig[]): InstalledUnit[] {
   return units
 }
 
-// Flatten a reordered unit list back to the persisted config order, keeping each
-// group's instances in their existing relative order.
 export function flattenUnits(units: InstalledUnit[]): ProviderConfig[] {
   return units.flatMap((unit) =>
     unit.type === 'single' ? [unit.config] : unit.configs

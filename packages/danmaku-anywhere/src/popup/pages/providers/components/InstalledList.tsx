@@ -38,11 +38,8 @@ function versionSubtitle(
   if (manifest) {
     return `v${manifest.version}`
   }
-  return (
-    (config.configValues.danmakuBaseUrl as string) ??
-    (config.configValues.baseUrl as string) ??
-    ''
-  )
+  // Only legacy MacCMS has no manifest; show its base URL in place of a version.
+  return (config.configValues.danmakuBaseUrl as string) ?? ''
 }
 
 export const InstalledList = ({

@@ -28,8 +28,6 @@ interface ProviderRowProps {
   action?: ReactNode
 }
 
-// The clickable area flexes and shrinks; the action sits beside it as a flex
-// sibling, so the truncated text can never run under the toggle/menu.
 export const ProviderRow = ({
   avatarSeed,
   primary,
@@ -47,7 +45,7 @@ export const ProviderRow = ({
         </Box>
       ) : null}
       <ListItemText
-        sx={{ minWidth: 0, my: 0, overflow: 'hidden' }}
+        sx={{ minWidth: 0, my: 0 }}
         primary={primary}
         secondary={secondary}
         slotProps={{
@@ -61,19 +59,24 @@ export const ProviderRow = ({
     </>
   )
 
+  // Reserve the action's width on the row content so the truncated text stops
+  // before it; the descendant selector is what actually constrains the button.
+  const pr = action ? 12 : 1
   return (
-    <ListItem disablePadding sx={{ pr: 1 }}>
+    <ListItem
+      disablePadding
+      secondaryAction={action}
+      sx={{ '& .MuiListItemButton-root, & .ProviderRow-static': { pr } }}
+    >
       {onClick ? (
-        <ListItemButton onClick={onClick} sx={{ flex: 1, minWidth: 0 }}>
-          {content}
-        </ListItemButton>
+        <ListItemButton onClick={onClick}>{content}</ListItemButton>
       ) : (
         <Box
+          className="ProviderRow-static"
           sx={{
-            flex: 1,
-            minWidth: 0,
             display: 'flex',
             alignItems: 'center',
+            width: '100%',
             px: 1,
             py: 0.75,
           }}
@@ -81,11 +84,6 @@ export const ProviderRow = ({
           {content}
         </Box>
       )}
-      {action ? (
-        <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-          {action}
-        </Box>
-      ) : null}
     </ListItem>
   )
 }
