@@ -89,14 +89,13 @@ const CORS_FAIL_PREFIX = '/cors-fail/'
 
 function handle(req, res) {
   let urlPath = req.url
-  const corsFail = urlPath.startsWith(CORS_FAIL_PREFIX)
-  if (corsFail) {
-    urlPath = `/${urlPath.slice(CORS_FAIL_PREFIX.length)}`
+  if (urlPath.startsWith(CORS_FAIL_PREFIX)) {
     if (req.headers.origin) {
       res.writeHead(403)
       res.end('Forbidden')
       return
     }
+    urlPath = `/${urlPath.slice(CORS_FAIL_PREFIX.length)}`
   }
   const filePath = resolvePath(urlPath)
   if (!filePath) {

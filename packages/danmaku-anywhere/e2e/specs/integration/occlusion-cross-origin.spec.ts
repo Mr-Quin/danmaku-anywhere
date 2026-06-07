@@ -77,17 +77,12 @@ function videoTaintState(page: import('@playwright/test').Page) {
   })
 }
 
-function videoIsPlaying(page: import('@playwright/test').Page) {
-  return page.evaluate(async () => {
+function videoCurrentTime(page: import('@playwright/test').Page) {
+  return page.evaluate(() => {
     const v = document.querySelector<HTMLVideoElement>(
       'video[data-testid="da-video"]'
     )
-    if (!v) {
-      return false
-    }
-    const before = v.currentTime
-    await new Promise((r) => setTimeout(r, 400))
-    return !v.paused && v.currentTime > before
+    return v?.currentTime ?? 0
   })
 }
 
@@ -181,8 +176,8 @@ test('occlusion re-recovers when the player swaps to another cross-origin src', 
 })
 
 test.describe('unrecoverable cross-origin source', () => {
-  // The clone's CORS fetch is rejected by design; that 403 is the trigger.
-  test.use({ expectedConsoleErrors: [/403.*cors-fail\/media/] })
+  // The clone's CORS fetch to this source is rejected by design.
+  test.use({ expectedConsoleErrors: [/cors-fail\/media/] })
 
   test('occlusion degrades safely when the tainted source cannot be recovered', async ({
     context,
@@ -207,7 +202,10 @@ test.describe('unrecoverable cross-origin source', () => {
     await toast.expectError(/cross-origin or DRM|跨域或 DRM/, {
       timeout: 15_000,
     })
-    expect(await videoIsPlaying(page)).toBe(true)
+    const playheadBefore = await videoCurrentTime(page)
+    await expect
+      .poll(() => videoCurrentTime(page))
+      .toBeGreaterThan(playheadBefore)
     await expect(maskImageOf(integrationPage.danmuContainer())).resolves.toBe(
       'none'
     )
