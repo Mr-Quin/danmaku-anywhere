@@ -438,10 +438,8 @@
   },
   "optionsPage": {
     "account": {
-      "cloudSyncActive": "云同步已开启",
       "signInDescription": "将配置与弹幕备份到云端",
-      "signInToSync": "登录以同步",
-      "synced": "已同步"
+      "signInToSync": "登录以同步"
     },
     "advanced": {
       "behavior": "行为",

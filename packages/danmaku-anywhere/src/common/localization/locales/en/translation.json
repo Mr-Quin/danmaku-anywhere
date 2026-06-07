@@ -453,10 +453,8 @@
   },
   "optionsPage": {
     "account": {
-      "cloudSyncActive": "Cloud sync active",
       "signInDescription": "Back up configs and danmaku to the cloud",
-      "signInToSync": "Sign in to sync",
-      "synced": "Synced"
+      "signInToSync": "Sign in to sync"
     },
     "advanced": {
       "behavior": "Behavior",

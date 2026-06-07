@@ -1,5 +1,5 @@
-import { Check, Mail, Person } from '@mui/icons-material'
-import { Box, Button, Chip, Typography } from '@mui/material'
+import { Mail, Person } from '@mui/icons-material'
+import { Box, Button, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import type { AuthUserInfo } from '@/common/auth/types'
 import { HashAvatar } from '@/common/components/HashAvatar'
@@ -29,11 +29,6 @@ export const UserProfile = ({ user }: { user: AuthUserInfo }) => {
         <Typography variant="h4" sx={{ mt: 1 }}>
           {user.name}
         </Typography>
-        <Chip
-          label={t('optionsPage.account.cloudSyncActive', 'Cloud sync active')}
-          color="success"
-          icon={<Check />}
-        />
       </Box>
 
       <SettingsGroup>

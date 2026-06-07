@@ -1,12 +1,5 @@
-import { Check, ChevronRight, Person } from '@mui/icons-material'
-import {
-  Box,
-  Button,
-  ButtonBase,
-  Chip,
-  Skeleton,
-  Typography,
-} from '@mui/material'
+import { ChevronRight, Person } from '@mui/icons-material'
+import { Box, Button, ButtonBase, Skeleton, Typography } from '@mui/material'
 import { alpha } from '@mui/material/styles'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
@@ -23,7 +16,33 @@ export const AccountCard = () => {
   if (isLoading) {
     return (
       <Box sx={{ mx: 1.5, mt: 1.5, mb: 0.5 }}>
-        <Skeleton variant="rounded" height={66} />
+        <Box
+          sx={{
+            p: 1.5,
+            borderRadius: 2,
+            border: 1,
+            borderColor: 'divider',
+            bgcolor: 'background.paper',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.5,
+          }}
+        >
+          <Skeleton
+            variant="rounded"
+            width={42}
+            height={42}
+            sx={{ borderRadius: 1, flexShrink: 0 }}
+          />
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <Skeleton
+              variant="text"
+              width="40%"
+              sx={{ fontSize: '0.875rem' }}
+            />
+            <Skeleton variant="text" width="65%" sx={{ fontSize: '0.75rem' }} />
+          </Box>
+        </Box>
       </Box>
     )
   }
@@ -110,17 +129,9 @@ export const AccountCard = () => {
           size={42}
         />
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-            <Typography sx={{ fontWeight: 700 }} noWrap>
-              {session.user.name}
-            </Typography>
-            <Chip
-              label={t('optionsPage.account.synced', 'Synced')}
-              size="small"
-              color="success"
-              icon={<Check />}
-            />
-          </Box>
+          <Typography sx={{ fontWeight: 700 }} noWrap>
+            {session.user.name}
+          </Typography>
           <Typography
             variant="caption"
             noWrap
