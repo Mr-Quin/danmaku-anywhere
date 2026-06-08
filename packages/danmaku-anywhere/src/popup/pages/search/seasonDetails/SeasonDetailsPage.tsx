@@ -1,7 +1,6 @@
-import {
-  DanmakuSourceType,
-  type EpisodeMeta,
-  type WithSeason,
+import type {
+  EpisodeMeta,
+  WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Search } from '@mui/icons-material'
 import {
@@ -24,7 +23,7 @@ import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
-import { assertProviderConfigImpl } from '@/common/options/providerConfig/utils'
+import { assertMacCmsConfig } from '@/common/options/providerConfig/utils'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { useStore } from '@/popup/store'
 
@@ -118,7 +117,7 @@ export const SeasonDetailsPage = () => {
               renderCustomEpisode={(data) => {
                 const mutation = useFetchGenericDanmaku()
 
-                assertProviderConfigImpl(provider, DanmakuSourceType.MacCMS)
+                assertMacCmsConfig(provider)
 
                 return (
                   <MacCmsEpisodeListItem

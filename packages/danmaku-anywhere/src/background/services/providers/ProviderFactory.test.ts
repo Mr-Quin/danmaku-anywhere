@@ -18,9 +18,10 @@ import type { ManifestRegistry } from './ManifestRegistry'
  * a ManifestProviderService configured for the source, or the legacy
  * MacCmsProviderService for `legacy:maccms` configs. Any non-maccms
  * manifestId (built-in or catalog) resolves to a ManifestProviderService
- * that stamps `config.impl` as the provider tag. Custom DanDanPlay servers
- * share the `dandanplay` manifest and thread their baseUrl/auth through
- * configValues; there is no DDP-compat special case.
+ * whose provider tag is derived from the manifestId, not read from the
+ * persisted `config.impl`. Custom DanDanPlay servers share the `dandanplay`
+ * manifest and thread their baseUrl/auth through configValues; there is no
+ * DDP-compat special case.
  */
 
 const RUN_OPTS = MANIFEST_RUN_OPTIONS
@@ -181,12 +182,12 @@ describe('ProviderFactory dispatch', () => {
     expect((service as unknown as { tag?: string }).tag).toBe('maccms-legacy')
   })
 
-  it('resolves a non-built-in catalog manifestId to ManifestProviderService stamping config.impl', async () => {
+  it('resolves a non-built-in catalog manifestId to ManifestProviderService with the derived tag, ignoring a stale impl', async () => {
     const factory = await buildFactory()
     const service = factory({
       id: 'iqiyi-1',
       manifestId: 'iqiyi',
-      impl: DanmakuSourceType.DanDanPlay,
+      impl: DanmakuSourceType.Bilibili,
       name: 'iQIYI',
       enabled: true,
       isBuiltIn: false,
@@ -202,18 +203,19 @@ describe('ProviderFactory dispatch', () => {
     )
   })
 
-  it('rejects a non-maccms config that carries the Custom impl', async () => {
+  it('derives the tag from the manifestId even when the stored impl is Custom', async () => {
     const factory = await buildFactory()
-    expect(() =>
-      factory({
-        id: 'bad-1',
-        manifestId: 'iqiyi',
-        impl: DanmakuSourceType.Custom,
-        name: 'Bad',
-        enabled: true,
-        isBuiltIn: false,
-        configValues: {},
-      })
-    ).toThrow(/cannot use the Custom impl/)
+    const service = factory({
+      id: 'iqiyi-2',
+      manifestId: 'iqiyi',
+      impl: DanmakuSourceType.Custom,
+      name: 'iQIYI',
+      enabled: true,
+      isBuiltIn: false,
+      configValues: {},
+    })
+
+    expect(service).toBeInstanceOf(ManifestProviderService)
+    expect(service.forProvider).toBe(DanmakuSourceType.DanDanPlay)
   })
 })

@@ -1,7 +1,6 @@
 import { arrayMove } from '@dnd-kit/sortable'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
@@ -22,21 +21,13 @@ export const useProviderConfig = () => {
   const methods = useMemo(() => {
     const enabledProviders = configs.filter((config) => config.enabled)
 
-    const enabledProviderTypes = enabledProviders.map((config) => config.impl)
-
     const getProviderById = (id: string) => {
       return configs.find((config) => config.id === id)
     }
 
-    const getProvidersBySourceType = (sourceType: DanmakuSourceType) => {
-      return configs.filter((config) => config.impl === sourceType)
-    }
-
     return {
       enabledProviders,
-      enabledProviderTypes,
       getProviderById,
-      getProvidersBySourceType,
     }
   }, [configs])
 
