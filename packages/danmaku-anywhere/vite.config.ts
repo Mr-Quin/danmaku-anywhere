@@ -1,5 +1,6 @@
 import { crx } from '@crxjs/vite-plugin'
 import react from '@vitejs/plugin-react'
+import { defaultClientConditions } from 'vite'
 import { defineConfig } from 'vitest/config'
 import { manifest } from './manifest'
 import { getBuildContext } from './scripts/getBuildContext'
@@ -48,6 +49,10 @@ export default defineConfig({
     ],
   },
   resolve: {
+    // Select onnxruntime-web's extern-wasm webgpu build (ort.webgpu.min.mjs): it
+    // loads wasm from the ort/ override instead of inlining it via `new URL`,
+    // which would make Vite emit a duplicate copy into assets/ that is never loaded.
+    conditions: ['onnxruntime-web-use-extern-wasm', ...defaultClientConditions],
     // Specific alias must precede the generic '@' prefix.
     alias: [
       ...(daEnv === 'prod'
