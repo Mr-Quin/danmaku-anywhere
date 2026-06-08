@@ -119,6 +119,16 @@ button.danger {
   margin: 12px 0;
 }
 
+.working {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.empty {
+  opacity: 0.7;
+  margin: 16px 0;
+}
+
 .settings {
   margin-top: 40px;
 }

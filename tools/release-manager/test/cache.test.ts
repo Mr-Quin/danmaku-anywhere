@@ -99,6 +99,36 @@ describe('downloadBuild', () => {
     expect(JSON.parse(manifest).version).toBe('2.0.0')
   })
 
+  it('rejects an archive with no manifest.json as invalid', async () => {
+    const zipped = zipSync({
+      'background.js': strToU8('console.log("hi")'),
+    })
+    const result = await downloadBuild(
+      dir,
+      asset('t', '1.0.0'),
+      stubFetch(zipped)
+    )
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.kind).toBe('invalid')
+    }
+  })
+
+  it('falls back to the asset version when the manifest has no version', async () => {
+    const zipped = zipSync({
+      'manifest.json': strToU8(JSON.stringify({ name: 'da' })),
+    })
+    const result = await downloadBuild(
+      dir,
+      asset('t', '7.7.7'),
+      stubFetch(zipped)
+    )
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.version).toBe('7.7.7')
+    }
+  })
+
   it('maps a download failure to a network error', async () => {
     const result = await downloadBuild(
       dir,
@@ -131,6 +161,32 @@ describe('downloadBuild', () => {
     }
     await downloadBuild(dir, asset('t', '1.0.0'), recordingFetch)
     expect((seen as Record<string, string>).Authorization).toBeUndefined()
+  })
+})
+
+describe('zip-slip containment', () => {
+  it('does not write entries that escape the dest dir', async () => {
+    const zipped = zipSync({
+      'manifest.json': strToU8(JSON.stringify({ version: '1.0.0' })),
+      '../escape.txt': strToU8('pwned'),
+    })
+    const result = await downloadBuild(
+      dir,
+      asset('t', '1.0.0'),
+      stubFetch(zipped)
+    )
+    expect(result.success).toBe(true)
+
+    await expect(
+      readFile(join(dir, 'cache', 'escape.txt'), 'utf8')
+    ).rejects.toThrow()
+    await expect(readFile(join(dir, 'escape.txt'), 'utf8')).rejects.toThrow()
+
+    const manifest = await readFile(
+      join(dir, 'cache', 't', 'manifest.json'),
+      'utf8'
+    )
+    expect(JSON.parse(manifest).version).toBe('1.0.0')
   })
 })
 

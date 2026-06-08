@@ -1,9 +1,11 @@
 import {
+  lstat,
   mkdir,
   mkdtemp,
   readdir,
   readFile,
   rm,
+  symlink,
   writeFile,
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
@@ -54,6 +56,25 @@ describe('setActive', () => {
     if (!result.success) {
       expect(result.error.kind).toBe('swap')
     }
+  })
+
+  it('replaces a pre-existing symlink at active with a real dir', async () => {
+    await symlink(join(dir, 'cache', 'v1'), activePath(dir), 'dir')
+    const before = await lstat(activePath(dir))
+    expect(before.isSymbolicLink()).toBe(true)
+
+    const result = await setActive(dir, 'v2')
+    expect(result.success).toBe(true)
+
+    const after = await lstat(activePath(dir))
+    expect(after.isSymbolicLink()).toBe(false)
+    expect(after.isDirectory()).toBe(true)
+
+    const content = await readFile(
+      join(activePath(dir), 'manifest.json'),
+      'utf8'
+    )
+    expect(content).toBe('two')
   })
 
   it('empties the active dir when cleared', async () => {

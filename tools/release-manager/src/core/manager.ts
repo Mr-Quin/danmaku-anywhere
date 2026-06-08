@@ -1,3 +1,4 @@
+import { basename } from 'node:path'
 import { err, ok, type Result } from '@danmaku-anywhere/result'
 import { activePath, clearActive, setActive } from './active.js'
 import { downloadBuild, reconcileBuilds, removeBuild } from './cache.js'
@@ -9,6 +10,21 @@ import type {
   ReleaseAsset,
   ReleaseManagerError,
 } from './types.js'
+
+function validateTag(tag: string): Result<string, ReleaseManagerError> {
+  if (
+    tag === '' ||
+    tag === '.' ||
+    tag === '..' ||
+    tag.includes('/') ||
+    tag.includes('\\') ||
+    tag.includes('\0') ||
+    basename(tag) !== tag
+  ) {
+    return err({ kind: 'invalid', message: `unsafe tag: ${tag}` })
+  }
+  return ok(tag)
+}
 
 interface ManagerDeps {
   dataDir: string
@@ -37,31 +53,36 @@ export class ReleaseManager {
 
   async getState(): Promise<PublicState> {
     const config = await this.store.load()
+    const reconciled = await this.reconcileConfig(config)
+    const resolvedActive = reconciled.activeTag
+      ? activePath(this.dataDir)
+      : undefined
+    return this.store.toPublicState(reconciled, resolvedActive)
+  }
+
+  private async reconcileConfig(config: Config): Promise<Config> {
     const builds = await reconcileBuilds(this.dataDir, config.builds)
     const activeStillPresent = config.activeTag
       ? builds.some((b) => b.tag === config.activeTag)
       : false
 
-    let reconciled = config
     if (
-      builds.length !== config.builds.length ||
-      (config.activeTag && !activeStillPresent)
+      builds.length === config.builds.length &&
+      (!config.activeTag || activeStillPresent)
     ) {
-      if (config.activeTag && !activeStillPresent) {
-        await clearActive(this.dataDir)
-      }
-      reconciled = {
-        ...config,
-        builds,
-        activeTag: activeStillPresent ? config.activeTag : undefined,
-      }
-      await this.persist(reconciled)
+      return config
     }
 
-    const resolvedActive = reconciled.activeTag
-      ? activePath(this.dataDir)
-      : undefined
-    return this.store.toPublicState(reconciled, resolvedActive)
+    if (config.activeTag && !activeStillPresent) {
+      await clearActive(this.dataDir)
+    }
+    const reconciled: Config = {
+      ...config,
+      builds,
+      activeTag: activeStillPresent ? config.activeTag : undefined,
+    }
+    await this.persist(reconciled)
+    return reconciled
   }
 
   async listReleases(): Promise<Result<ReleaseAsset[], ReleaseManagerError>> {
@@ -72,6 +93,11 @@ export class ReleaseManager {
   async downloadBuild(
     tag: string
   ): Promise<Result<PublicState, ReleaseManagerError>> {
+    const valid = validateTag(tag)
+    if (!valid.success) {
+      return valid
+    }
+
     if (this.inFlight.has(tag)) {
       return err({
         kind: 'conflict',
@@ -105,6 +131,13 @@ export class ReleaseManager {
       const builds = config.builds.filter((b) => b.tag !== tag)
       builds.push(downloaded.data)
       await this.persist({ ...config, builds })
+
+      if (config.activeTag === tag) {
+        const refreshed = await setActive(this.dataDir, tag)
+        if (!refreshed.success) {
+          return refreshed
+        }
+      }
     } finally {
       this.inFlight.delete(tag)
     }
@@ -115,6 +148,11 @@ export class ReleaseManager {
   async setActive(
     tag: string
   ): Promise<Result<PublicState, ReleaseManagerError>> {
+    const valid = validateTag(tag)
+    if (!valid.success) {
+      return valid
+    }
+
     const config = await this.store.load()
     if (!config.builds.some((b) => b.tag === tag)) {
       return err({ kind: 'not-found', message: `${tag} is not cached` })
@@ -132,6 +170,11 @@ export class ReleaseManager {
   async removeBuild(
     tag: string
   ): Promise<Result<PublicState, ReleaseManagerError>> {
+    const valid = validateTag(tag)
+    if (!valid.success) {
+      return valid
+    }
+
     const config = await this.store.load()
     if (config.activeTag === tag) {
       return err({
@@ -159,18 +202,7 @@ export class ReleaseManager {
 
   async reconcile(): Promise<void> {
     const config = await this.store.load()
-    const builds = await reconcileBuilds(this.dataDir, config.builds)
-    const activeStillPresent = config.activeTag
-      ? builds.some((b) => b.tag === config.activeTag)
-      : false
-    if (!activeStillPresent && config.activeTag) {
-      await clearActive(this.dataDir)
-    }
-    await this.persist({
-      ...config,
-      builds,
-      activeTag: activeStillPresent ? config.activeTag : undefined,
-    })
+    await this.reconcileConfig(config)
   }
 
   private async persist(config: Config): Promise<void> {

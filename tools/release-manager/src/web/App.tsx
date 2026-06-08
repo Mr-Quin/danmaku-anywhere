@@ -84,6 +84,7 @@ function ReleaseRow(props: ReleaseRowProps) {
             Remove
           </button>
         ) : null}
+        {busy ? <span className="working">Working…</span> : null}
         {error ? <div className="row-error">{error}</div> : null}
       </td>
     </tr>
@@ -281,6 +282,10 @@ export function App() {
       </header>
 
       {globalError ? <div className="error">{globalError}</div> : null}
+
+      {stable.length === 0 && previews.length === 0 ? (
+        <p className="empty">No releases found</p>
+      ) : null}
 
       <ReleaseGroup
         title="Stable"

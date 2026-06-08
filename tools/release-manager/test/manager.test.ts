@@ -1,9 +1,10 @@
-import { mkdtemp, rm } from 'node:fs/promises'
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { strToU8, zipSync } from 'fflate'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { ReleaseManager } from '../src/core/manager.js'
+import { ConfigStore } from '../src/core/store.js'
 import type { ReleaseAsset } from '../src/core/types.js'
 
 let dir: string
@@ -165,5 +166,82 @@ describe('ReleaseManager', () => {
       expect(second.error.kind).toBe('conflict')
     }
     void first
+  })
+
+  it('refreshes the active copy when re-downloading the active tag', async () => {
+    let marker = 'first'
+    const manager = new ReleaseManager({
+      dataDir: dir,
+      fetchReleases: async () => ({ success: true, data: releases }),
+      downloadAsset: async () => {
+        const bytes = zipSync({
+          'manifest.json': strToU8(JSON.stringify({ version: '1.0.0' })),
+          'marker.txt': strToU8(marker),
+        })
+        const buffer = new ArrayBuffer(bytes.byteLength)
+        new Uint8Array(buffer).set(bytes)
+        return new Response(buffer, { status: 200 })
+      },
+    })
+
+    await manager.downloadBuild('preview-pr-1')
+    await manager.setActive('preview-pr-1')
+
+    const before = await readFile(join(dir, 'active', 'marker.txt'), 'utf8')
+    expect(before).toBe('first')
+
+    marker = 'second'
+    const redownload = await manager.downloadBuild('preview-pr-1')
+    expect(redownload.success).toBe(true)
+
+    const after = await readFile(join(dir, 'active', 'marker.txt'), 'utf8')
+    expect(after).toBe('second')
+  })
+
+  it('rejects a path-traversal tag as invalid without touching the fs', async () => {
+    const manager = makeManager()
+    const result = await manager.downloadBuild('../../evil')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.kind).toBe('invalid')
+    }
+
+    await expect(
+      readFile(join(dir, '..', 'evil', 'manifest.json'))
+    ).rejects.toThrow()
+
+    const setResult = await manager.setActive('../../evil')
+    expect(setResult.success).toBe(false)
+    if (!setResult.success) {
+      expect(setResult.error.kind).toBe('invalid')
+    }
+
+    const removeResult = await manager.removeBuild('../../evil')
+    expect(removeResult.success).toBe(false)
+    if (!removeResult.success) {
+      expect(removeResult.error.kind).toBe('invalid')
+    }
+  })
+
+  it('clears a stale active tag on startup reconcile', async () => {
+    const store = new ConfigStore(dir)
+    await store.save({
+      activeTag: 'gone',
+      builds: [
+        {
+          tag: 'gone',
+          version: '1.0.0',
+          channel: 'preview',
+          downloadedAt: '2026-01-01T00:00:00Z',
+        },
+      ],
+    })
+
+    const manager = makeManager()
+    await manager.reconcile()
+
+    const reloaded = await store.load()
+    expect(reloaded.activeTag).toBeUndefined()
+    expect(reloaded.builds).toEqual([])
   })
 })

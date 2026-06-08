@@ -12,6 +12,14 @@ async function requireTag(c: Context): Promise<string | undefined> {
   return tag ? tag : undefined
 }
 
+function isLoopbackHost(host: string | undefined): boolean {
+  if (!host) {
+    return false
+  }
+  const hostname = host.split(':')[0]
+  return hostname === '127.0.0.1' || hostname === 'localhost'
+}
+
 function statusFor(error: ReleaseManagerError): ContentfulStatusCode {
   switch (error.kind) {
     case 'auth':
@@ -35,6 +43,13 @@ function statusFor(error: ReleaseManagerError): ContentfulStatusCode {
 
 export function createApp(manager: ReleaseManager): Hono {
   const app = new Hono()
+
+  app.use('/*', async (c, next) => {
+    if (!isLoopbackHost(c.req.header('Host'))) {
+      return c.json({ error: 'forbidden host' }, 403)
+    }
+    return next()
+  })
 
   app.get('/api/state', async (c) => {
     return c.json(await manager.getState())

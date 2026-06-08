@@ -1,5 +1,5 @@
 import { access, mkdir, readdir, rename, rm, writeFile } from 'node:fs/promises'
-import { dirname, join } from 'node:path'
+import { dirname, isAbsolute, join, resolve, sep } from 'node:path'
 import { err, ok, type Result } from '@danmaku-anywhere/result'
 import { unzipSync } from 'fflate'
 import type { CachedBuild, ReleaseAsset, ReleaseManagerError } from './types.js'
@@ -29,15 +29,27 @@ function manifestVersion(bytes: Uint8Array): string | undefined {
   }
 }
 
+function isContained(root: string, candidate: string): boolean {
+  const resolved = resolve(candidate)
+  return resolved === root || resolved.startsWith(root + sep)
+}
+
 async function writeUnzipped(
   dest: string,
   files: Record<string, Uint8Array>
 ): Promise<void> {
+  const root = resolve(dest)
   for (const [name, bytes] of Object.entries(files)) {
     if (name.endsWith('/')) {
       continue
     }
+    if (isAbsolute(name)) {
+      continue
+    }
     const filePath = join(dest, name)
+    if (!isContained(root, filePath)) {
+      continue
+    }
     await mkdir(dirname(filePath), { recursive: true })
     await writeFile(filePath, bytes)
   }

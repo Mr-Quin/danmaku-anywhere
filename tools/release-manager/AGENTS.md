@@ -18,10 +18,12 @@ never enters a production build. It still participates in the root `test`,
 
 ## How to run
 
-- `pnpm start` builds the web bundle (`build:web`) then starts the Node server
-  and opens the resolved URL in the browser.
-- `pnpm dev` runs the Node server under `tsx watch` and Vite together; Vite
-  proxies `/api` to the server.
+- From the repo root: `pnpm release-manager` (or
+  `pnpm --filter @danmaku-anywhere/release-manager start`). This builds the web
+  bundle (`build:web`) then starts the Node server and opens the resolved URL in
+  the browser. There is no root `pnpm start`.
+- From this package: `pnpm dev` runs the Node server under `tsx watch` and Vite
+  together; Vite proxies `/api` to the server.
 
 ## dataDir
 

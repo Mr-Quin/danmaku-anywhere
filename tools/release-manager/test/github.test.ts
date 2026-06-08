@@ -103,4 +103,37 @@ describe('fetchReleases', () => {
       expect(result.error.kind).toBe('network')
     }
   })
+
+  it('maps a 403 without an exhausted rate limit to an auth error', async () => {
+    const stubFetch: typeof fetch = async () =>
+      new Response('no', {
+        status: 403,
+        headers: { 'x-ratelimit-remaining': '42' },
+      })
+    const result = await fetchReleases(undefined, stubFetch)
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.kind).toBe('auth')
+    }
+  })
+
+  it('maps a non-ok status to a network error', async () => {
+    const stubFetch: typeof fetch = async () =>
+      new Response('boom', { status: 500 })
+    const result = await fetchReleases(undefined, stubFetch)
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.kind).toBe('network')
+    }
+  })
+
+  it('maps an invalid json body to a network error', async () => {
+    const stubFetch: typeof fetch = async () =>
+      new Response('not json', { status: 200 })
+    const result = await fetchReleases(undefined, stubFetch)
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.kind).toBe('network')
+    }
+  })
 })
