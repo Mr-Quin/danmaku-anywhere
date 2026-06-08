@@ -25,50 +25,7 @@ Pick a `hint` — 2-4 kebab-case words describing the task (e.g. `dev-workflow`,
 node scripts/da-bootstrap.mjs --task DA-XXX --hint <hint> --type <extension|app|proxy|chore|docs>
 ```
 
-That handles `git fetch`, `git worktree add`, env copy, `pnpm install`, `pnpm build:packages`, and writes task notes to `~/.claude/da-tasks/DA-XXX.md` (outside the repo, survives `/da-cleanup`). On success it prints a trailing `READY` block with `worktree=...`, `branch=...`, `task_file=...`, `title=...`. Parse those and open a new terminal tab in the worktree running:
-
-```bash
-claude --permission-mode acceptEdits --add-dir . -- "Read <task_file> and follow the instructions"
-```
-
-How you open that tab depends on your terminal:
-
-- **Warp (any OS):** write a tab config, then open it by deeplink. Tab configs live in `~/.local/share/warp-terminal/tab_configs/` (Linux), `~/.warp/tab_configs/` (macOS), or `%APPDATA%\warp\Warp\data\tab_configs\` (Windows). Write `DA-XXX.toml` with two side-by-side panes both in the worktree, claude on the left and a free terminal on the right:
-
-  ```toml
-  name = "<title>"
-  title = "<title>"
-
-  [[panes]]
-  id = "root"
-  split = "horizontal"
-  children = ["left", "right"]
-
-  [[panes]]
-  id = "left"
-  type = "terminal"
-  directory = "<worktree>"
-  commands = ['claude --permission-mode acceptEdits --add-dir . -- "Read <task_file> and follow the instructions"']
-  is_focused = true
-
-  [[panes]]
-  id = "right"
-  type = "terminal"
-  directory = "<worktree>"
-  ```
-
-  Then fire `warp://tab_config/DA-XXX`. On macOS use `open '<uri>'`; on Windows use `start <uri>`. On Linux the Warp launcher drops the deeplink, so hand it to the app over D-Bus:
-
-  ```bash
-  gdbus call --session --dest dev.warp.Warp --object-path /dev/warp/Warp \
-    --method org.freedesktop.Application.Open "['warp://tab_config/DA-XXX']" "{}"
-  ```
-
-- **Windows Terminal (no Warp):** `wt new-tab --title '<title>' -d '<worktree>' -- powershell -NoExit -Command "claude --permission-mode acceptEdits --add-dir . -- 'Read <task_file> and follow the instructions'"`
-
-- **Other terminals:** open a tab in `<worktree>` and run the `claude ...` line yourself.
-
-The new session reads `<task_file>` and starts from step 3. **Stop the current session here.**
+That handles `git fetch`, `git worktree add`, env copy, `pnpm install`, `pnpm build:packages`, and writes task notes to `~/.claude/da-tasks/DA-XXX.md` (outside the repo, survives `/da-cleanup`). It ends with a machine-readable `READY` block (`worktree=...`, `branch=...`, `task_file=...`, `title=...`). Parse those, then use the `worktree-tab` skill to open a fresh Claude session in the worktree. The new session reads `<task_file>` and starts from step 3. **Stop the current session here.**
 
 For trivial changes (CLAUDE.md / docs / config-only): branch directly without a worktree:
 
@@ -117,25 +74,7 @@ Skip for trivial changes (config-only, types, docs).
 
 #### Extension: agentic verification (for the agent)
 
-While `dev:browser` is running, agentic self-verification goes through the `browser-verify` skill — it drives its own MCP-controlled Chrome that loads the same `dev/chrome/` build, so HMR feeds both browsers without the agent stealing the human's window:
-
-```
-Skill(browser-verify)
-```
-
-Use it whenever the change has runtime behavior worth observing, not just visual changes. For non-visual changes it's the primary way to confirm wiring (commands fire, RPC propagates, storage writes invalidate) and to capture selectors and event sequencing for the e2e spec. Screenshots go to `.tmp/` (gitignored); never commit them.
-
-If you only need to exercise a published preview build (e.g. reproducing against build N, bisecting nightlies), use the `preview-build` skill instead.
-
-#### Extension: i18n extraction
-
-When adding or modifying i18n keys (`t('...')` calls), run extraction **before committing**:
-
-```bash
-cd <worktree-path>/packages/danmaku-anywhere && pnpm i18n extract
-```
-
-This regenerates the JSON translation files (sorts keys, removes unused entries). Then translate any new entries in the `zh` locale. CI runs `i18n:check` and will fail if the committed JSON doesn't match what extraction produces.
+For any change with runtime behavior worth observing (not just visual changes), self-verify via the `browser-verify` skill. Use it to confirm wiring (commands fire, RPC propagates, storage writes invalidate) and to capture selectors and event sequencing for the e2e spec. To exercise an already-published preview build instead (reproducing against build N, bisecting nightlies), use `preview-build`.
 
 #### Web app: Cloudflare preview
 
@@ -151,7 +90,8 @@ git commit -m "<descriptive message>"
 Before pushing, run reviews using **clean subagents** (no prior context). They have no sunk-cost bias toward the lines you just wrote, which matters most for the KISS pass:
 
 - Always run `/review`
-- Always run `/simplify` for a KISS / YAGNI pass, then re-read the diff yourself with the same lens. `/simplify` catches obvious dead code but routinely misses subtler bloat: fallback chains where only the first branch fires (`?? a ?? b`), constants/helpers used in one place, defensive guards for inputs the caller or type system already guarantees, conditional branches whose other side never executes, parameters that are always passed the same value. If you spot one, fix it even when `/simplify` was silent.
+- Always run `/simplify` for a KISS / YAGNI pass, then re-read the diff yourself with the same lens. It catches obvious dead code but misses subtler bloat, so treat its silence as a starting point, not a clean bill.
+- Always run a **comment sweep**: have a clean subagent read the diff and delete every comment that doesn't earn its place under CLAUDE.md's `## Comments` policy. A fresh subagent has no attachment to the lines you just wrote, which is exactly why the author is the wrong one to prune them.
 - Run `/security-review` when the change touches user input, auth, APIs, or data storage
 - When the change carries runtime behavior, data contracts, migrations, non-trivial logic, or new-or-changed tests, also do a manual pass on two axes the commands above don't cover (skip for config-only, docs-only, or types-only changes). Each axis must end in a named failure; "the structure looks fine" is not a finding.
   - **Architecture / pattern fit**: does the change sit at the right seam, consistent with how the codebase already solves this? Look for a new coupling that other code now silently depends on, an invariant the types don't enforce (so a future caller can break it unnoticed), or an abstraction that duplicates one already in the tree. Name the specific seam or invariant at risk.
@@ -191,43 +131,13 @@ EOF
 
 ### 7. Review Monitoring
 
-```
-/loop 5m check PR #N for review comments, report status, address comments, push fixes
-```
+Once the PR is open, hand monitoring to the `babysit-pr` skill:
 
-**Each iteration reports status:**
-
-```bash
-scripts/pr-status.sh <N>
+```
+babysit PR #N
 ```
 
-One GraphQL call returns reviews, pending reviewers, open threads, reactions, and check states.
-
-**When review comments are found:** use the `reviewing-ai-feedback` skill to evaluate each thread (it lists known false-positive patterns from gemini/copilot on this repo and gives an accept/decline checklist). The default is to evaluate, not apply.
-
-Mechanically:
-
-1. **Evaluate validity** via the skill above. Most reviewer suggestions are correct; decline only when you can name the rule
-2. **If valid**: fix, reply with what changed (cite the commit SHA)
-3. **If not valid**: reply with rationale citing the rule you're upholding
-4. **Resolve the thread**:
-
-Resolve `<owner>/<repo>` from `gh repo view --json owner,name`. Then:
-
-```bash
-gh api graphql -f query='{ repository(owner: "<owner>", name: "<repo>") { pullRequest(number: N) { reviewThreads(first: 50) { nodes { id isResolved } } } } }'
-gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREAD_ID"}) { thread { isResolved } } }'
-```
-
-**Stop the loop when ALL are true:**
-
-1. All review threads handled (addressed/declined/resolved)
-2. No pending reviews (no unmatched eyes reactions, no pending reviewer requests)
-3. All CI checks completed — if any **fail**, fix before stopping
-
-**Keep looping when:** bots still processing (eyes emoji without review), reviewers pending, or CI running.
-
-On stop: alert human. **NEVER merge PRs** — merging is always a human action.
+It owns the loop: status polling (`scripts/pr-status.sh <N>`), per-thread evaluation via `reviewing-ai-feedback`, the GraphQL resolve mechanics, the duration budget, and the stop conditions. When it stops, it alerts the human. **NEVER merge PRs** — merging is always a human action.
 
 ### 8. Worktree Cleanup
 
