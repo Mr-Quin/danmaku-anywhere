@@ -1,0 +1,144 @@
+:root {
+  color-scheme: light dark;
+  font-family: system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+}
+
+.container {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+}
+
+h1 {
+  font-size: 1.4rem;
+}
+
+h2 {
+  font-size: 1.1rem;
+  margin-top: 32px;
+}
+
+.active-box {
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  padding: 12px 16px;
+  opacity: 0.95;
+}
+
+.active-label {
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.active-path {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  word-break: break-all;
+}
+
+.hint {
+  font-size: 0.85rem;
+  opacity: 0.75;
+  margin: 4px 0 0;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(127, 127, 127, 0.3);
+  vertical-align: top;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+}
+
+button {
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+button.danger {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.tag-active {
+  font-weight: 600;
+  color: #2e7d32;
+}
+
+.cached {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.subtype {
+  margin-left: 6px;
+  font-size: 0.75rem;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  opacity: 0.7;
+}
+
+.error,
+.row-error {
+  color: #c0392b;
+  font-size: 0.85rem;
+}
+
+.error {
+  margin: 12px 0;
+}
+
+.settings {
+  margin-top: 40px;
+}
+
+.settings label {
+  display: block;
+  font-size: 0.85rem;
+  margin-top: 12px;
+}
+
+.token-row {
+  display: flex;
+  gap: 8px;
+}
+
+input {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(127, 127, 127, 0.5);
+  background: transparent;
+  color: inherit;
+}
