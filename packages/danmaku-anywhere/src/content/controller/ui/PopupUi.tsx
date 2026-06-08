@@ -13,6 +13,7 @@ import { FloatingButton } from './floatingButton/FloatingButton'
 export const PopupUi = () => {
   const { isOpen, toggleOpen, lock, open, triggerSearchFocus } = usePopup()
   const isPicking = useStore((state) => state.integrationForm.isPicking)
+  const editModeActive = useStore((state) => state.editMode.active)
   const { data: options } = useExtensionOptions()
   const { showFloatingButton } = options
   const { getKeyCombo } = useHotkeyOptions()
@@ -63,8 +64,8 @@ export const PopupUi = () => {
     >
       <div
         style={{
-          opacity: isPicking ? 0 : 1,
-          pointerEvents: isPicking ? 'none' : 'auto',
+          opacity: isPicking || editModeActive ? 0 : 1,
+          pointerEvents: isPicking || editModeActive ? 'none' : 'auto',
           transition: 'opacity 0.2s',
         }}
       >

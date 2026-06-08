@@ -79,6 +79,7 @@
     "danmakuAnywhere": "弹幕任何地方",
     "delete": "删除",
     "deleted": "已删除",
+    "discard": "放弃",
     "docs": "文档",
     "duration": {
       "day_other": "天"
@@ -263,6 +264,65 @@
       "running": "运行状态",
       "status": "状态"
     }
+  },
+  "editMode": {
+    "addField": {
+      "label": "+ 添加"
+    },
+    "advanced": "高级编辑器",
+    "entry": {
+      "advancedEditor": "高级编辑器",
+      "editMode": "编辑模式"
+    },
+    "exit": {
+      "confirmAdvancedBody": "打开高级编辑器将放弃在编辑模式中尚未保存的更改。",
+      "confirmBody": "现在关闭编辑模式将放弃尚未保存的选取和正则更改。",
+      "confirmTitle": "放弃未保存的更改？",
+      "discardAndClose": "放弃并关闭",
+      "discardAndOpenAdvanced": "放弃并打开"
+    },
+    "field": {
+      "episode": "集数",
+      "episodeTitle": "集标题",
+      "season": "季",
+      "title": "标题"
+    },
+    "footer": {
+      "saved": "无未保存的更改",
+      "unsaved": "未保存的更改"
+    },
+    "picker": {
+      "statusPrefix": "正在选取",
+      "statusSuffix": "· 点击页面元素"
+    },
+    "refine": {
+      "extracted": "提取结果",
+      "invalidRegex": "正则表达式无效",
+      "noMatch": "(无匹配)",
+      "noRaw": "(元素无文本)",
+      "pattern": "正则",
+      "patternPlaceholder": "(.+?) · TV",
+      "raw": "原文",
+      "title": "提炼提取 · {{label}}"
+    },
+    "row": {
+      "noText": "(未提取到文本)",
+      "notOnPage": "页面上已不存在",
+      "refine": "提炼 (正则)",
+      "regexAppliedTooltip": "已应用正则提炼",
+      "regexMissed": "正则未能匹配原文",
+      "remove": "移除",
+      "repick": "重新选取"
+    },
+    "save": {
+      "success": "已保存"
+    },
+    "status": {
+      "empty": "请先选取标题",
+      "titleSet": "标题已配置"
+    },
+    "title": "编辑 XPath",
+    "unsaved": "未保存"
   },
   "error": {
     "unknown": "出错啦!"
