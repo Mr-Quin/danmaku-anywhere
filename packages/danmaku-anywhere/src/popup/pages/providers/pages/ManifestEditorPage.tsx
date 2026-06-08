@@ -64,7 +64,11 @@ function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
   const parsed = useMemo(() => parseManifestJson(text), [text])
 
   useEffect(() => {
-    if (parsed.ok) {
+    if (
+      parsed.ok &&
+      typeof parsed.value === 'object' &&
+      parsed.value !== null
+    ) {
       setLastValid({
         value: parsed.value,
         configSchema: (parsed.value as { configSchema?: ConfigSchema })
