@@ -200,8 +200,8 @@ function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
                 )}
               </AlertTitle>
               <Stack component="ul" sx={{ m: 0, pl: 2 }}>
-                {issues.map((issue) => (
-                  <li key={`${issue.path}:${issue.message}`}>
+                {issues.map((issue, index) => (
+                  <li key={`${issue.path}:${issue.message}:${index}`}>
                     {issue.path ? `${issue.path}: ` : ''}
                     {issue.message}
                   </li>
@@ -295,5 +295,11 @@ export const ManifestEditorPage = () => {
 
   const initialText = stringifyManifest(source.manifest)
   const mode: EditorMode = source.kind === 'user' ? 'edit' : 'view'
-  return <ManifestEditor initialText={initialText} initialMode={mode} />
+  return (
+    <ManifestEditor
+      key={manifestId}
+      initialText={initialText}
+      initialMode={mode}
+    />
+  )
 }
