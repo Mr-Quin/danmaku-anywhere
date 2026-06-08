@@ -75,9 +75,12 @@ test('mount tree: refresh danmaku fetches new comments for an episode', async ({
 
   await popup.mount.openItemMenu(episodeItem, 'refresh')
 
-  await expect(popup.mount.episodeCommentCount(episode.id)).not.toHaveText('0')
-
   await expect
     .poll(async () => (await da.episode.get(episode.id))?.commentCount)
     .toBeGreaterThan(0)
+
+  const refreshed = await da.episode.get(episode.id)
+  await expect(popup.mount.episodeCommentCount(episode.id)).toHaveText(
+    String(refreshed?.commentCount)
+  )
 })

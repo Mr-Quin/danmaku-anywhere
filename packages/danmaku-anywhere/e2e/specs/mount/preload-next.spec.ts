@@ -106,11 +106,12 @@ test('mount tree: bookmark-driven preload caches the next episode', async ({
   )
   const nextEpisodeId = episodeIds.find((id) => id !== episode.id) as number
 
-  await expect(popup.mount.episodeCommentCount(nextEpisodeId)).not.toHaveText(
-    '0'
-  )
-
   await expect
     .poll(async () => (await da.episode.get(nextEpisodeId))?.commentCount)
     .toBeGreaterThan(0)
+
+  const preloaded = await da.episode.get(nextEpisodeId)
+  await expect(popup.mount.episodeCommentCount(nextEpisodeId)).toHaveText(
+    String(preloaded?.commentCount)
+  )
 })

@@ -74,12 +74,7 @@ test('/import route renders standalone and runs a full file import', async ({
 
   const importResult = new ImportResultDialog(page)
   await importResult.confirm()
-
-  await expect(
-    page.locator('[role="alert"]').filter({
-      hasText: /Successfully imported|成功导入/,
-    })
-  ).toBeVisible()
+  await importResult.expectSuccess()
 
   const customs = await da.episode.listCustom()
   expect(customs).toHaveLength(1)
@@ -114,11 +109,7 @@ test('an open /mount popup refreshes when the /import window writes', async ({
 
   const importResult = new ImportResultDialog(importTab)
   await importResult.confirm()
-  await expect(
-    importTab.locator('[role="alert"]').filter({
-      hasText: /Successfully imported|成功导入/,
-    })
-  ).toBeVisible()
+  await importResult.expectSuccess()
 
   const customs = await da.episode.listCustom()
   expect(customs).toHaveLength(1)
