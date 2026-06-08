@@ -42,7 +42,9 @@ One GraphQL call returns: reviews, pending reviewers, open threads, reactions, c
 
 ### 2b. Classify each new comment
 
-Evaluate via the `reviewing-ai-feedback` skill. It defines the accept/decline rules, false-positive patterns, accept-signals, reply style, and the in-chat reporting format. Default stance is "verify against the code; the reviewer is probably right." Decline only with a named rule. Resolve every thread you handle (accepted or declined).
+**Screen for settled re-flags first.** On a multi-push PR the AI reviewer re-reads the whole diff on every push and will re-raise suggestions you already declined and resolved (the `ai-rereview` label re-triggers it each push, and the reviewer doesn't learn from a decline). So before evaluating, fetch resolved threads too and check each new open thread against them: if it re-raises a suggestion already declined + resolved on this PR (same file/region, same gist), skip the evaluation and resolve it with a one-line back-reference to the prior thread (per `reviewing-ai-feedback`). Reserve the full accept/decline pass for genuinely new threads. Once a PR has a few pushes this is the common case, and not screening for it is most of the loop's wasted cost.
+
+Evaluate the rest via the `reviewing-ai-feedback` skill. It defines the accept/decline rules, false-positive patterns, accept-signals, reply style, and the in-chat reporting format. Default stance is "verify against the code; the reviewer is probably right." Decline only with a named rule. Resolve every thread you handle (accepted or declined).
 
 ### 2c. Resolve mechanics
 
