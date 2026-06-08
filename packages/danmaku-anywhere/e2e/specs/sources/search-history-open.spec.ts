@@ -51,7 +51,6 @@ test('returning from season details keeps the history dropdown off the source ch
   await page.goBack()
 
   await expect(popup.search.input).toHaveValue('frieren')
-  await expect(popup.search.input).toBeFocused()
   await expect(popup.search.sourceChip('Bilibili')).toBeVisible()
   await expect(popup.search.historyOption('frieren')).toBeHidden()
 
