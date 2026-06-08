@@ -20,6 +20,7 @@ export class OcclusionDebugView {
   private readonly canvas = document.createElement('canvas')
   private readonly label = document.createElement('div')
   private readonly ctx: CanvasRenderingContext2D | null
+  private imageData?: ImageData
 
   constructor() {
     this.root.style.cssText = `position:fixed;z-index:${DEBUG_Z_INDEX};pointer-events:none;outline:1px solid rgba(0,255,128,0.6);`
@@ -42,12 +43,14 @@ export class OcclusionDebugView {
     if (ctx) {
       if (
         this.canvas.width !== u.mask.width ||
-        this.canvas.height !== u.mask.height
+        this.canvas.height !== u.mask.height ||
+        !this.imageData
       ) {
         this.canvas.width = u.mask.width
         this.canvas.height = u.mask.height
+        this.imageData = ctx.createImageData(u.mask.width, u.mask.height)
       }
-      const tint = ctx.createImageData(u.mask.width, u.mask.height)
+      const tint = this.imageData
       for (let i = 0; i < u.mask.data.length; i += 4) {
         // mask alpha 0 => person; tint it green, leave background clear.
         const personHere = u.mask.data[i + 3] === 0
