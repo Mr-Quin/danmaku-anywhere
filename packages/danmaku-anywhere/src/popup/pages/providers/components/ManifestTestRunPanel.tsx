@@ -26,6 +26,7 @@ import { buildDefaultValues } from './forms/schemaForm'
 interface ManifestTestRunPanelProps {
   manifest: unknown
   configSchema?: ConfigSchema
+  disabled?: boolean
 }
 
 interface TestRunForm {
@@ -35,6 +36,7 @@ interface TestRunForm {
 export const ManifestTestRunPanel = ({
   manifest,
   configSchema,
+  disabled,
 }: ManifestTestRunPanelProps) => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
@@ -96,6 +98,7 @@ export const ManifestTestRunPanel = ({
             fullWidth
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
+            disabled={disabled}
             placeholder={t(
               'providers.editor.testRun.keyword',
               'Search keyword'
@@ -110,7 +113,7 @@ export const ManifestTestRunPanel = ({
                 <Search fontSize="small" />
               )
             }
-            disabled={search.isPending || keyword.trim() === ''}
+            disabled={disabled || search.isPending || keyword.trim() === ''}
             onClick={handleSearch}
           >
             {t('providers.editor.testRun.search', 'Search')}
@@ -128,7 +131,7 @@ export const ManifestTestRunPanel = ({
                 <ListItemButton
                   key={row.indexedId}
                   onClick={() => handlePickSeason(row)}
-                  disabled={episodes.isPending}
+                  disabled={disabled || episodes.isPending}
                 >
                   <ListItemText primary={row.title} secondary={row.type} />
                 </ListItemButton>
@@ -151,7 +154,7 @@ export const ManifestTestRunPanel = ({
                 <ListItemButton
                   key={row.indexedId}
                   onClick={() => handlePickEpisode(row)}
-                  disabled={danmaku.isPending}
+                  disabled={disabled || danmaku.isPending}
                 >
                   <ListItemText
                     primary={row.title}

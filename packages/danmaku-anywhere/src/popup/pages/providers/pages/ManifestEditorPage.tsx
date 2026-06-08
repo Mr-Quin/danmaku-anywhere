@@ -50,11 +50,28 @@ function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
   const [forked, setForked] = useState(false)
   const [issues, setIssues] = useState<ManifestValidationIssue[]>([])
   const [isValidating, setIsValidating] = useState(false)
+  // The last parseable manifest, so the test-run panel keeps its state
+  // (keyword, results, selections) while the JSON is mid-edit rather than
+  // unmounting on every keystroke.
+  const [lastValid, setLastValid] = useState<{
+    value: unknown
+    configSchema?: ConfigSchema
+  } | null>(null)
 
   const mode = forked ? 'create' : initialMode
   const readOnly = mode === 'view'
 
   const parsed = useMemo(() => parseManifestJson(text), [text])
+
+  useEffect(() => {
+    if (parsed.ok) {
+      setLastValid({
+        value: parsed.value,
+        configSchema: (parsed.value as { configSchema?: ConfigSchema })
+          .configSchema,
+      })
+    }
+  }, [parsed])
 
   useEffect(() => {
     if (!parsed.ok) {
@@ -97,9 +114,6 @@ function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
   }, [parsed, t])
 
   const isValid = parsed.ok && !isValidating && issues.length === 0
-  const configSchema = parsed.ok
-    ? (parsed.value as { configSchema?: ConfigSchema }).configSchema
-    : undefined
 
   const title = () => {
     if (mode === 'view') {
@@ -216,11 +230,12 @@ function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
             )}
           </Stack>
 
-          {!readOnly && isValid ? (
+          {!readOnly && lastValid ? (
             <ManifestTestRunPanel
-              key={JSON.stringify(configSchema ?? null)}
-              manifest={parsed.value}
-              configSchema={configSchema}
+              key={JSON.stringify(lastValid.configSchema ?? null)}
+              manifest={parsed.ok ? parsed.value : lastValid.value}
+              configSchema={lastValid.configSchema}
+              disabled={!isValid}
             />
           ) : null}
         </Stack>
