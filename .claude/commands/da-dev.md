@@ -25,7 +25,11 @@ Pick a `hint` — 2-4 kebab-case words describing the task (e.g. `dev-workflow`,
 node scripts/da-bootstrap.mjs --task DA-XXX --hint <hint> --type <extension|app|proxy|chore|docs>
 ```
 
-That handles `git fetch`, `git worktree add`, env copy, `pnpm install`, `pnpm build:packages`, and writes task notes to `~/.claude/da-tasks/DA-XXX.md` (outside the repo, survives `/da-cleanup`). It ends with a machine-readable `READY` block (`worktree=...`, `branch=...`, `task_file=...`, `title=...`). Parse those, then use the `worktree-tab` skill to open a fresh Claude session in the worktree. The new session reads `<task_file>` and starts from step 3. **Stop the current session here.**
+That handles `git fetch`, `git worktree add`, env copy, `pnpm install`, `pnpm build:packages`, and writes task notes to `~/.claude/da-tasks/DA-XXX.md` (outside the repo, survives `/da-cleanup`). It ends with a machine-readable `READY` block (`worktree=...`, `branch=...`, `task_file=...`, `title=...`). Parse those.
+
+The task file `da-bootstrap` writes is a bare stub. Before handing off, fetch the ClickUp task (`clickup_get_task DA-XXX`) and append its description to the task file as a brief (the implementation notes, scope, acceptance criteria), so the new session starts with full context instead of re-deriving it. A bare stub is the single biggest cause of a dispatched session going off-track.
+
+Then use the `worktree-tab` skill to open a fresh Claude session in the worktree. The new session reads `<task_file>` and starts from step 3. **Stop the current session here.**
 
 For trivial changes (CLAUDE.md / docs / config-only): branch directly without a worktree:
 
@@ -59,6 +63,17 @@ Make the changes. Apply these in order:
 | Cross-cutting | `pnpm lint && pnpm --filter '...[origin/master]' test` | Depends on areas touched                          |
 
 Run e2e (`pnpm --filter @mr-quin/danmaku-anywhere test:e2e`) for any PR that adds or touches an e2e spec, or that changes content scripts, mount profiles, integration policies, dango manifests, or popup flows. The suite should be running before push.
+
+#### Record a verify summary
+
+Verification you only narrate is unauditable: a reviewer can't tell whether the full affected-test set ran, or whether e2e ran or was skipped and why. So as you verify, record a short summary and paste it into the PR's Test plan (step 6). One line each:
+
+- `lint` (tsc + biome): pass / fail
+- tests: the scope you ran (e.g. `pnpm --filter '...[origin/master]' test`) and the result (N passed)
+- e2e: which specs ran, or skipped + a one-line reason
+- browser-verify: what you observed, if you ran it
+
+This is a record of what you actually did, not a second gate: deciding *what* to run stays your judgment, the summary just makes that judgment reviewable. Writing it also surfaces a step you meant to run and didn't.
 
 #### Extension: open dev browser (for the human)
 
@@ -99,6 +114,8 @@ Before pushing, run reviews using **clean subagents** (no prior context). They h
 
 Fix any issues found, then add a commit. Never include Co-Authored-By or AI attribution.
 
+This pass is not just a pre-first-push gate. Re-run the relevant axis after any **substantial** change made later in the PR's life: a rebase across a large sibling branch, a behavior change, a refactor, or a fix that is more than a line or two. A one-line review-feedback tweak does not need it; a reworked code path does. The post-push commits are exactly the ones that escape review otherwise.
+
 ### 6. Push and Create PR
 
 The PR itself is the human gate — push and open it without waiting.
@@ -110,6 +127,7 @@ gh pr create --title "(type) description [DA-XXX]" --label "ai-rereview" --body 
 - <one short bullet per major change; "what" + "why" if non-obvious>
 
 ## Test plan
+- Verified: lint <result> · tests <scope -> result> · e2e <specs ran / skipped + why> (the step 4 verify summary)
 - [ ] <commands or e2e spec(s) the reviewer should run; reference paths under `packages/danmaku-anywhere/e2e/specs/...`>
 - <if e2e coverage is infeasible for this change, state why here>
 
@@ -148,4 +166,5 @@ After the PR is merged, run `/da-cleanup` to remove completed worktrees. This al
 - **Lint / type-check fails mid-way:** fix and commit on top. Don't amend.
 - **i18n keys touched but extraction not run:** `cd packages/danmaku-anywhere && pnpm i18n extract`, then stage the regenerated JSON.
 - **New Claude tab closed:** the worktree is still valid. `cd <worktree> && claude --add-dir . "Read ~/.claude/da-tasks/DA-XXX.md and continue"` to resume.
+- **Session worktree deleted under you** (e.g. `/da-cleanup` ran during the session): the shell cwd becomes invalid. Find the main checkout with `git worktree list` (the entry on `master`). For a trivial change, branch off `origin/master` there; for non-trivial work, bootstrap a fresh worktree. The task notes in `~/.claude/da-tasks/DA-XXX.md` survive the cleanup.
 - **CI flake (unrelated failure):** retry the workflow once via `gh run rerun <id>`. If it fails again, comment on the PR and stop the loop.
