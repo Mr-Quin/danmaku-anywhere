@@ -260,6 +260,7 @@ export function SearchForm({
               onSubmit={handleInputSubmit}
               urlMode={isUrl}
               focusToken={focusToken}
+              hasCommittedSearch={!!committedSearchTerm}
             />
           </Box>
           {isUrl ? (
