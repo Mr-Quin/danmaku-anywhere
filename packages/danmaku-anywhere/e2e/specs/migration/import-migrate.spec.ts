@@ -4,7 +4,6 @@ import { fileURLToPath } from 'node:url'
 import { gunzipSync } from 'node:zlib'
 import { ImportPage } from '../../pom/ImportPage'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 
 /**
@@ -44,6 +43,7 @@ test('current build migrates an imported v1.5.0 backup and danmaku export', asyn
   context,
   page,
   extensionId,
+  da,
 }) => {
   const popup = await Popup.open(page, extensionId, '/options/backup')
 
@@ -59,8 +59,6 @@ test('current build migrates an imported v1.5.0 backup and danmaku export', asyn
   await importPage.selectFiles(DANMAKU_ZIP)
   await importPage.result.confirm()
   await importPage.result.expectSuccess()
-
-  const da = await getDaClient(context)
 
   const providers = await da.providerConfig.list()
   expect(providers.length).toBeGreaterThan(0)

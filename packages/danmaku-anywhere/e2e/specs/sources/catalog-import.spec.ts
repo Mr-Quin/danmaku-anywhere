@@ -1,6 +1,5 @@
 import { mockCatalog } from '../../network/catalog'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
@@ -23,8 +22,8 @@ test('catalog: refresh surfaces an uninstalled source and import installs it', a
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: {},
     network: [

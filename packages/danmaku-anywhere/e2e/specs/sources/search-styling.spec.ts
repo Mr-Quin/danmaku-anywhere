@@ -2,7 +2,6 @@ import { ColorMode } from '../../../src/common/theme/enums'
 import { mockBilibiliXml } from '../../network/bilibili'
 import { mockDandanplay } from '../../network/dandanplay'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { loadJsonFixture, loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
@@ -47,8 +46,8 @@ test('source filter chip text is painted by the bundled theme font, not a serif 
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: {
       dandanplay: { enabled: true },
@@ -103,8 +102,8 @@ test('search history dropdown text stays readable when ambient color is stripped
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     extensionOptions: { theme: { colorMode: ColorMode.Dark } },
     providers: {

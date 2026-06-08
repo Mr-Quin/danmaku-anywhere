@@ -1,6 +1,5 @@
 import { mockTencent } from '../../network/tencent'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { test } from '../../setup/fixtures'
 import { loadJsonFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
@@ -17,8 +16,8 @@ test('tencent: search → season → episode → fetch danmaku', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: { tencent: { enabled: true } },
     network: mockTencent({
@@ -44,8 +43,8 @@ test('tencent: a failed danmaku segment does not drop the overlay', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: { tencent: { enabled: true } },
     network: mockTencent({

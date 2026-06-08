@@ -1,7 +1,7 @@
 import type { BrowserContext } from '@playwright/test'
 import { defaultDanmakuOptions } from '../../../src/common/options/danmakuOptions/constant'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
+import type { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
@@ -57,8 +57,8 @@ function activeModel(da: Awaited<ReturnType<typeof getDaClient>>) {
 test('occlusion models: lists, reflects OPFS state, switches active, and evicts on delete', async ({
   context,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     rawStorage: [
       {

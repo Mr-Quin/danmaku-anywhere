@@ -4,7 +4,6 @@ import {
   mockCatalog,
 } from '../../network/catalog'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
@@ -24,8 +23,8 @@ test('updates: a stale installed source surfaces and applying it clears the row'
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   const current = manifestVersion('bilibili')
 
   await applyProfile(context, da, {
@@ -52,8 +51,8 @@ test('updates: an uninstalled catalog source updates in place on refresh, not as
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   // iqiyi is not a built-in, so it never gets a config: a catalog-only source.
   const ids = ['dandanplay', 'bilibili', 'tencent', 'iqiyi']
 

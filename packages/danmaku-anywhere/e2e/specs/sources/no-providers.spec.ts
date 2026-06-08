@@ -1,6 +1,5 @@
 import { expect } from '@playwright/test'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
@@ -16,8 +15,8 @@ test('search: noProviders error renders when all sources are disabled', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: {
       dandanplay: { enabled: false },

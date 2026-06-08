@@ -1,7 +1,6 @@
 import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import type { ProviderConfig } from '../../../src/common/options/providerConfig/schema'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
@@ -27,8 +26,8 @@ test('installed: multiple dandanplay configs group into instances', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: { dandanplay: { enabled: true } },
     customProviders: [homeServer],

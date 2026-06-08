@@ -1,6 +1,5 @@
 import { mockDandanplay } from '../../network/dandanplay'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { test } from '../../setup/fixtures'
 import { loadJsonFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
@@ -17,8 +16,8 @@ test('dandanplay: search → season → episode → fetch danmaku', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: { dandanplay: { enabled: true } },
     network: [

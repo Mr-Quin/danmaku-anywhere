@@ -2,7 +2,6 @@ import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { defaultDanmakuOptions } from '../../../src/common/options/danmakuOptions/constant'
 import { IntegrationPage } from '../../pom/IntegrationPage'
 import { Toast } from '../../pom/Toast'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import {
   buildFixtureIntegrationPolicy,
@@ -47,8 +46,8 @@ function maskImageOf(locator: import('@playwright/test').Locator) {
 test('occlusion: mask applied to danmu container when enabled', async ({
   context,
   page,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     extensionOptions: { matchLocalDanmaku: true },
     rawStorage: [
@@ -97,8 +96,7 @@ test('occlusion: mask applied to danmu container when enabled', async ({
     .toMatch(/^url\(/)
 })
 
-test('occlusion: no mask when disabled', async ({ context, page }) => {
-  const da = await getDaClient(context)
+test('occlusion: no mask when disabled', async ({ context, page, da }) => {
   await applyProfile(context, da, {
     extensionOptions: { matchLocalDanmaku: true },
   })
@@ -134,8 +132,8 @@ test('occlusion: no mask when disabled', async ({ context, page }) => {
 test('occlusion: anime model without WebGPU surfaces an error and applies no mask', async ({
   context,
   page,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     extensionOptions: { matchLocalDanmaku: true },
     rawStorage: [
@@ -192,8 +190,8 @@ test('occlusion: anime model without WebGPU surfaces an error and applies no mas
 test('occlusion: debug mode shows the mask debug overlay', async ({
   context,
   page,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     extensionOptions: { matchLocalDanmaku: true, debug: true },
     rawStorage: [

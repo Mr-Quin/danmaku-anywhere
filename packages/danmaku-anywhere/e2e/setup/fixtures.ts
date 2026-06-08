@@ -3,6 +3,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 import { mockCatalog } from '../network/catalog'
 import { attachConsoleWatcher, type ConsoleWatcher } from './console-watcher'
+import { type DaClient, getDaClient } from './da-client'
 import {
   type AllowedNetworkPattern,
   attachNetworkWatcher,
@@ -29,6 +30,7 @@ export type { AllowedNetworkPattern } from './network-watcher'
 export const test = base.extend<{
   context: BrowserContext
   extensionId: string
+  da: DaClient
   consoleErrors: () => string[]
   expectedConsoleErrors: ExpectedConsoleErrorPattern[]
   allowedNetworkOrigins: AllowedNetworkPattern[]
@@ -70,6 +72,9 @@ export const test = base.extend<{
     }
     const extensionId = serviceWorker.url().split('/')[2]
     await use(extensionId)
+  },
+  da: async ({ context }, use) => {
+    await use(await getDaClient(context))
   },
   consoleErrors: async ({ context }, use) => {
     const watchers = watchersByContext.get(context)

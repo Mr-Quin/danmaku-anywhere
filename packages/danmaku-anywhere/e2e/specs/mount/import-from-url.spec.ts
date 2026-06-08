@@ -1,5 +1,4 @@
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
@@ -19,8 +18,8 @@ test('mount toolbar: import from URL fetches a mocked xml and stages a custom ep
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     network: [
       {
@@ -56,8 +55,8 @@ test('mount toolbar: URL dialog surfaces a validation error in the helperText', 
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {})
 
   const popup = await Popup.open(page, extensionId, '/mount')

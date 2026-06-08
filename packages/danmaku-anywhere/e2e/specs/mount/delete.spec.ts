@@ -4,7 +4,6 @@ import {
   type SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
@@ -52,8 +51,8 @@ test('mount tree: delete season removes it + cascades episodes', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
   })
@@ -77,8 +76,8 @@ test('mount tree: delete single episode keeps season + siblings', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
   })

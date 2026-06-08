@@ -1,6 +1,5 @@
 import { CONTROLLER_ROOT_ID } from '../../../src/content/controller/common/constants/rootId'
 import { IntegrationPage } from '../../pom/IntegrationPage'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import {
   buildFixtureIntegrationPolicy,
@@ -29,8 +28,8 @@ const FONT_PROBES = [
 test('content-script controller paints text using bundled variable fonts', async ({
   context,
   page,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await seedXPathIntegration(da, {
     patterns: [MOUNT_PATTERN],
     name: 'da-e2e-fonts',

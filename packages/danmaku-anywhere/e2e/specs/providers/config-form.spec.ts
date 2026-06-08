@@ -1,7 +1,6 @@
 import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import type { ProviderConfig } from '../../../src/common/options/providerConfig/schema'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
@@ -35,8 +34,8 @@ test('renders configSchema fields and saves a custom DanDanPlay server', async (
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, { customProviders: [customDdp] })
 
   const popup = await Popup.open(page, extensionId, '/providers')
@@ -63,8 +62,8 @@ test('enforces the schema required constraint on auth headers', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, { customProviders: [customDdp] })
 
   const popup = await Popup.open(page, extensionId, '/providers')
@@ -94,8 +93,8 @@ test('edits the built-in Bilibili provider via the generic form', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
     network: [

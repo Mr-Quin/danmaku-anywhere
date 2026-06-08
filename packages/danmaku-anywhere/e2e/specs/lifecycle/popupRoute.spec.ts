@@ -1,4 +1,3 @@
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 
 /**
@@ -20,9 +19,8 @@ test('reopened popup lands on the last-visited route within the session', async 
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
-
   await openPopup(page, extensionId)
   await expect(page).toHaveURL(/#\/mount$/)
 
@@ -45,8 +43,8 @@ test('reopened popup at a nested route rebuilds back stack to ancestors', async 
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await da.storage.setRaw('session', 'popup:lastRoute', '/config/add')
 
   await openPopup(page, extensionId)
@@ -63,9 +61,8 @@ test('invalid stored route is cleared and popup falls back to /mount', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
-
   await da.storage.setRaw('session', 'popup:lastRoute', '/this/does/not/exist')
 
   await openPopup(page, extensionId)

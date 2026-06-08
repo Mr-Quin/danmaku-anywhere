@@ -1,6 +1,5 @@
 import { Language } from '../../../src/common/localization/language'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 
 /**
@@ -26,8 +25,8 @@ test('settings menu shows the account card and live status subtitles', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   const current = await da.extensionOptions.get()
   await da.extensionOptions.update({
     lang: Language.en,
@@ -49,8 +48,8 @@ test('toggling a player option persists the option', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   const current = await da.extensionOptions.get()
   await da.extensionOptions.update({
     lang: Language.en,

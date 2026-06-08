@@ -2,7 +2,6 @@ import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import type { ProviderConfig } from '../../../src/common/options/providerConfig/schema'
 import { mockDandanplayCustom } from '../../network/dandanplay'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { test } from '../../setup/fixtures'
 import { loadJsonFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
@@ -33,8 +32,8 @@ test('dandanplay: custom baseUrl flow', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     customProviders: [customConfig],
     network: mockDandanplayCustom({
