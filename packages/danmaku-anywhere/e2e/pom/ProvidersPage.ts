@@ -89,6 +89,46 @@ export class ProvidersPage {
   }
 
   async save(): Promise<void> {
-    await this.page.getByRole('button', { name: SAVE_BUTTON }).click()
+    await this.saveButton().click()
+  }
+
+  saveButton(): Locator {
+    return this.page.getByRole('button', { name: SAVE_BUTTON })
+  }
+
+  async authorManifest(): Promise<void> {
+    await this.page
+      .getByRole('button', { name: /Add|添加/ })
+      .first()
+      .click()
+    await this.page
+      .getByRole('menuitem', { name: /Author a manifest|编写清单/ })
+      .click()
+  }
+
+  manifestJsonField(): Locator {
+    return this.page.getByLabel(/Manifest JSON|清单 JSON/)
+  }
+
+  setManifestJson(value: string): Promise<void> {
+    return this.manifestJsonField().fill(value)
+  }
+
+  manifestValid(): Locator {
+    return this.page.getByText(/Manifest is valid|清单有效/)
+  }
+
+  manifestJsonError(): Locator {
+    return this.page.getByText(/Invalid JSON|JSON 无效/)
+  }
+
+  viewSourceButton(name: string | RegExp): Locator {
+    return this.catalogRow(name).getByRole('button', {
+      name: /View source|查看源码/,
+    })
+  }
+
+  async viewSource(name: string | RegExp): Promise<void> {
+    await this.viewSourceButton(name).click()
   }
 }
