@@ -44,12 +44,7 @@ test('mount toolbar: import from URL fetches a mocked xml and stages a custom ep
 
   await popup.urlImport.expectHidden()
   await popup.importResult.confirm()
-
-  await expect(
-    page.locator('[role="alert"]').filter({
-      hasText: /Successfully imported|成功导入/,
-    })
-  ).toBeVisible()
+  await popup.importResult.expectSuccess()
 
   const customs = await da.episode.listCustom()
   expect(customs).toHaveLength(1)

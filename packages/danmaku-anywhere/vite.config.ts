@@ -30,6 +30,22 @@ console.log('Building for', {
   gitBranch,
 })
 
+// E2E builds run without a developer .env (CI and fresh checkouts), but the DNR
+// rule that stamps the proxy Origin header rejects undefined values. Inject
+// placeholder hosts that Playwright routes intercept; an exported env var (not a
+// .env file, which this define overrides) still points an e2e build at a backend.
+const e2eProxyDefines =
+  daEnv === 'e2e'
+    ? {
+        'import.meta.env.VITE_PROXY_URL': JSON.stringify(
+          process.env.VITE_PROXY_URL || 'https://api.danmaku.test'
+        ),
+        'import.meta.env.VITE_PROXY_ORIGIN': JSON.stringify(
+          process.env.VITE_PROXY_ORIGIN || 'https://danmaku.test'
+        ),
+      }
+    : {}
+
 export default defineConfig({
   // @ts-ignore
   plugins: [
@@ -83,6 +99,7 @@ export default defineConfig({
     'import.meta.env.VITE_DA_BRANCH': JSON.stringify(
       daEnv === 'prod' ? '' : gitBranch
     ),
+    ...e2eProxyDefines,
   },
   build: {
     emptyOutDir: true,
