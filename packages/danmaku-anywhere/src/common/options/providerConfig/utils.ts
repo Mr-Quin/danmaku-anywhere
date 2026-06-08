@@ -1,16 +1,11 @@
-import type { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import type { ProviderConfig } from './schema'
 
-// Defensive runtime check. Does NOT narrow `configValues` — that field is
-// opaque at the type level. Use local cast helpers in the consumer when
-// reading typed fields.
-export function assertProviderConfigImpl(
-  config: ProviderConfig,
-  impl: DanmakuSourceType
-): void {
-  if (config.impl !== impl) {
+// Defensive runtime check before rendering the legacy MacCMS episode UI.
+export function assertMacCmsConfig(config: ProviderConfig): void {
+  if (config.manifestId !== LEGACY_MACCMS_ID) {
     throw new Error(
-      `Provider type mismatch: expected ${impl}, got ${config.impl}`
+      `Provider type mismatch: expected ${LEGACY_MACCMS_ID}, got ${config.manifestId}`
     )
   }
 }

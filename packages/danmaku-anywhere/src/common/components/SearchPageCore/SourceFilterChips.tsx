@@ -1,3 +1,4 @@
+import { providerTypeFromManifestId } from '@danmaku-anywhere/danmaku-converter'
 import { Box, ButtonBase, CircularProgress, styled } from '@mui/material'
 import {
   type ReactNode,
@@ -202,7 +203,7 @@ export function SourceFilterChips({
             active={active}
             onClick={() => onChange(provider.id)}
             aria-pressed={active}
-            data-testid={`source-chip-${provider.impl}`}
+            data-testid={`source-chip-${providerTypeFromManifestId(provider.manifestId)}`}
           >
             {chipBody(provider, active, states[provider.id])}
           </Chip>
