@@ -46,9 +46,11 @@ export class ManifestSandbox {
     input: ManifestTestSearchInput
   ): Promise<ManifestTestSearchRow[]> {
     const runner = this.buildRunner(input.manifest)
-    const inputs = resolveManifestInputs(runner.configDefaults(), undefined, {
-      q: input.keyword,
-    })
+    const inputs = resolveManifestInputs(
+      runner.configDefaults(),
+      input.configValues,
+      { q: input.keyword }
+    )
     return runner.runSearch<ManifestTestSearchRow[]>(inputs, TEST_RUN_OPTIONS)
   }
 

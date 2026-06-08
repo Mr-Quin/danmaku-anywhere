@@ -45,18 +45,24 @@ describe('ManifestSandbox.validate', () => {
 })
 
 describe('ManifestSandbox test runs', () => {
-  it('searches with the keyword and withholds allowPrivateHosts', async () => {
+  it('searches with the keyword, merges config values, and withholds allowPrivateHosts', async () => {
     const runSearch = vi
       .spyOn(ManifestRunner.prototype, 'runSearch')
       .mockResolvedValue([])
-    vi.spyOn(ManifestRunner.prototype, 'configDefaults').mockReturnValue({})
+    vi.spyOn(ManifestRunner.prototype, 'configDefaults').mockReturnValue({
+      baseUrl: 'default',
+    })
 
     await new ManifestSandbox().search({
       manifest: makeManifest(),
       keyword: 'frieren',
+      configValues: { baseUrl: 'override' },
     })
 
-    expect(runSearch).toHaveBeenCalledWith({ q: 'frieren' }, TEST_RUN_OPTIONS)
+    expect(runSearch).toHaveBeenCalledWith(
+      { q: 'frieren', baseUrl: 'override' },
+      TEST_RUN_OPTIONS
+    )
     expect(TEST_RUN_OPTIONS).not.toHaveProperty('allowPrivateHosts')
   })
 

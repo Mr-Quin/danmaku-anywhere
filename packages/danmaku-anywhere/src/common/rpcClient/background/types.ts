@@ -167,6 +167,7 @@ export interface ManifestSource {
 export interface ManifestTestSearchInput {
   manifest: unknown
   keyword: string
+  configValues?: Record<string, unknown>
 }
 
 export interface ManifestTestEpisodesInput {

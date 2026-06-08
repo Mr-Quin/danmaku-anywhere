@@ -58,7 +58,10 @@ export const ManifestTestRunPanel = ({
     setResults([])
     setEpisodeRows([])
     setCommentCount(null)
-    search.mutate({ manifest, keyword }, { onSuccess: setResults, onError })
+    search.mutate(
+      { manifest, keyword, configValues: configValues() },
+      { onSuccess: setResults, onError }
+    )
   }
 
   const handlePickSeason = (row: ManifestTestSearchRow) => {
