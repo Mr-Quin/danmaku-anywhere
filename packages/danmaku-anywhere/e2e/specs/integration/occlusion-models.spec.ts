@@ -1,7 +1,7 @@
 import type { BrowserContext } from '@playwright/test'
 import { defaultDanmakuOptions } from '../../../src/common/options/danmakuOptions/constant'
 import { Popup } from '../../pom/Popup'
-import type { getDaClient } from '../../setup/da-client'
+import type { DaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
@@ -48,7 +48,7 @@ function modelFileSize(
   }, id)
 }
 
-function activeModel(da: Awaited<ReturnType<typeof getDaClient>>) {
+function activeModel(da: DaClient) {
   return da.storage.get('sync', 'danmakuOptions').then((stored) => {
     return (stored as { data: { occlusionModel: string } }).data.occlusionModel
   })

@@ -1,6 +1,6 @@
 import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { IntegrationPage } from '../../pom/IntegrationPage'
-import type { getDaClient } from '../../setup/da-client'
+import type { DaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import {
   buildFixtureIntegrationPolicy,
@@ -31,7 +31,7 @@ const SEEK_TIME_S = 15
 
 async function seedFixtureProfile(
   context: import('@playwright/test').BrowserContext,
-  da: Awaited<ReturnType<typeof getDaClient>>
+  da: DaClient
 ): Promise<{ episodeId: number }> {
   await applyProfile(context, da, {
     extensionOptions: { matchLocalDanmaku: true },
