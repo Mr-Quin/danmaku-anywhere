@@ -27,4 +27,17 @@ export class SeasonDetailsPage {
   async expectCommentCount(episode: Locator, timeout = 15_000): Promise<void> {
     await expect(episode).toContainText(SELECTORS.COMMENT_COUNT_RE, { timeout })
   }
+
+  async expectCommentCountToBe(
+    episode: Locator,
+    count: number,
+    timeout = 15_000
+  ): Promise<void> {
+    // Scope to the count caption: the flattened button text merges the
+    // episode number with the count (e.g. "第1集" + "1" + "2条弹幕").
+    const countNode = episode.getByText(
+      new RegExp(`^${count}\\s*(条弹幕|comments?)$`, 'i')
+    )
+    await expect(countNode).toBeVisible({ timeout })
+  }
 }
