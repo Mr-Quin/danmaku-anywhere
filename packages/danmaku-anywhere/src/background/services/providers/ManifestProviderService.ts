@@ -75,6 +75,13 @@ export interface ManifestProviderConfig {
 // self-hosted local server resolves instead of being blocked.
 export const MANIFEST_RUN_OPTIONS: RunOptions = { allowPrivateHosts: true }
 
+// A danmaku run fans out across segments; tolerate a failed segment so one
+// missing segment doesn't drop the whole overlay.
+export const DANMAKU_RUN_OPTIONS: RunOptions = {
+  ...MANIFEST_RUN_OPTIONS,
+  continueOnError: true,
+}
+
 export class ManifestProviderService implements IDanmakuProvider {
   readonly forProvider: DanmakuSourceType
 
@@ -181,7 +188,7 @@ export class ManifestProviderService implements IDanmakuProvider {
       ...meta.params,
       ...meta.providerIds,
     })
-    return runner.runDanmaku<CommentEntity[]>(inputs, MANIFEST_RUN_OPTIONS)
+    return runner.runDanmaku<CommentEntity[]>(inputs, DANMAKU_RUN_OPTIONS)
   }
 
   async findEpisode(

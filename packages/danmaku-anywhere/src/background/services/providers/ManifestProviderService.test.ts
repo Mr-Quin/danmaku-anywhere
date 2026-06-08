@@ -9,6 +9,7 @@ import { describe, expect, it, vi } from 'vitest'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { ILogger } from '@/common/Logger'
 import {
+  DANMAKU_RUN_OPTIONS,
   MANIFEST_RUN_OPTIONS,
   ManifestProviderService,
 } from './ManifestProviderService'
@@ -249,7 +250,15 @@ describe('ManifestProviderService.getDanmaku', () => {
     const result = await svc.getDanmaku(makeRequest({ episodeId: 42 }))
 
     expect(result).toBe(raw)
-    expect(runner.runDanmaku).toHaveBeenCalledWith({ episodeId: 42 }, RUN_OPTS)
+    expect(runner.runDanmaku).toHaveBeenCalledWith(
+      { episodeId: 42 },
+      DANMAKU_RUN_OPTIONS
+    )
+  })
+
+  it('only the danmaku run tolerates a failed segment', () => {
+    expect(DANMAKU_RUN_OPTIONS.continueOnError).toBe(true)
+    expect(MANIFEST_RUN_OPTIONS).not.toHaveProperty('continueOnError')
   })
 })
 
