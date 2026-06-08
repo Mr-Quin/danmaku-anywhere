@@ -15,9 +15,12 @@ export const PROVIDER_TO_BUILTIN_ID = {
   [DanmakuSourceType.MacCMS]: LEGACY_MACCMS_ID, // not built-in, but used for migrations to indicate this is a migrated option
 } as const satisfies Record<DanmakuSourceType, string>
 
-const BUILTIN_ID_TO_PROVIDER = Object.fromEntries(
-  Object.entries(PROVIDER_TO_BUILTIN_ID).map(([provider, id]) => [id, provider])
-) as Record<string, DanmakuSourceType>
+const BUILTIN_ID_TO_PROVIDER: Record<string, DanmakuSourceType> = {
+  dandanplay: DanmakuSourceType.DanDanPlay,
+  bilibili: DanmakuSourceType.Bilibili,
+  tencent: DanmakuSourceType.Tencent,
+  [LEGACY_MACCMS_ID]: DanmakuSourceType.MacCMS,
+}
 
 // A generic catalog manifest must not fall back to the Custom tag, which would
 // make the source read as custom danmaku; DanDanPlay is the neutral default.
