@@ -191,19 +191,14 @@ async function openProbePage(context: BrowserContext): Promise<Page> {
     { waitUntil: 'domcontentloaded', timeout: POPUP_TIMEOUT_MS }
   )
   await expect(page.locator('#root')).toBeVisible({ timeout: POPUP_TIMEOUT_MS })
-  // Wait for the season tree to either render an entry or show the
-  // empty-library state. Without this, render-time errors (zod parse,
-  // missing fields read by SeasonTreeItem) land after we've already moved on.
-  await page
-    .waitForFunction(
-      () =>
-        Boolean(
-          document.querySelector('[role="treeitem"]') ||
-            document.body.textContent?.toLowerCase().includes('library')
-        ),
-      { timeout: POPUP_TIMEOUT_MS }
-    )
-    .catch(() => undefined)
+  // A render-time error (zod parse, a field SeasonTreeItem reads going missing)
+  // shows neither the season tree nor the empty-library state, so this is the
+  // gate that surfaces it instead of the probe moving on half-rendered.
+  const renderedTree = page.locator('[role="treeitem"]')
+  const emptyLibrary = page.getByText(/library/i)
+  await expect(renderedTree.or(emptyLibrary).first()).toBeVisible({
+    timeout: POPUP_TIMEOUT_MS,
+  })
   return page
 }
 
