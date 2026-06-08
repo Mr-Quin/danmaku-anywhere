@@ -32,22 +32,19 @@ const ASSET_GROUPS: readonly AssetGroup[] = [
         'wasm'
       ),
     destDir: 'mediapipe/wasm',
-    files: [
-      'vision_wasm_internal.js',
-      'vision_wasm_internal.wasm',
-      'vision_wasm_nosimd_internal.js',
-      'vision_wasm_nosimd_internal.wasm',
-    ],
+    // The build targets (chrome89+/firefox89+) all support SIMD, so
+    // FilesetResolver always picks the SIMD build; the no-SIMD fallback is dead
+    // weight.
+    files: ['vision_wasm_internal.js', 'vision_wasm_internal.wasm'],
   },
   {
     label: 'onnxruntime-web',
     resolveSrcDir: () => path.dirname(require.resolve('onnxruntime-web')),
     destDir: 'ort',
+    // The extern-wasm webgpu build (ort.webgpu.min.mjs, selected by the resolve
+    // condition in vite.config) loads only the asyncify pair via the wasmPaths
+    // override; the plain and jsep variants are never fetched.
     files: [
-      'ort-wasm-simd-threaded.wasm',
-      'ort-wasm-simd-threaded.mjs',
-      'ort-wasm-simd-threaded.jsep.wasm',
-      'ort-wasm-simd-threaded.jsep.mjs',
       'ort-wasm-simd-threaded.asyncify.wasm',
       'ort-wasm-simd-threaded.asyncify.mjs',
     ],
@@ -59,6 +56,9 @@ function vendor(): void {
   for (const group of ASSET_GROUPS) {
     const srcDir = group.resolveSrcDir()
     const destDir = path.join(publicDir, group.destDir)
+    // Wipe first so a trimmed file list does not leave stale runtimes behind to
+    // ship in the build (these dirs hold only vendored assets).
+    fs.rmSync(destDir, { recursive: true, force: true })
     fs.mkdirSync(destDir, { recursive: true })
     for (const file of group.files) {
       const src = path.join(srcDir, file)
