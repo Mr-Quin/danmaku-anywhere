@@ -15,7 +15,8 @@ import type {
  * fetching files or applying; applyUpdates replaces only the named preinstalled
  * ids, never a user import or an unseeded id), skipping a bad/failed file,
  * index failures, that neither update() nor getPendingUpdates stamps
- * lastCheckedAt (only recordChecked does), and
+ * lastCheckedAt (only recordChecked does), forcing a no-cache fetch, reusing a
+ * passed-in index instead of refetching, and
  * register / unregister / hydrate-skip-invalid.
  */
 
@@ -71,7 +72,7 @@ function makeResponse(status: number, body: unknown) {
 function stubFetch(
   respond: (url: string) => { status: number; body: unknown }
 ) {
-  const fetchMock = vi.fn(async (input: unknown) => {
+  const fetchMock = vi.fn(async (input: unknown, _init?: unknown) => {
     const { status, body } = respond(String(input))
     return makeResponse(status, body)
   })
@@ -87,6 +88,20 @@ function fileFetches(fetchMock: ReturnType<typeof stubFetch>): string[] {
   return fetchMock.mock.calls
     .map(([url]) => String(url))
     .filter((url) => url.includes('/manifest/file'))
+}
+
+function indexFetches(fetchMock: ReturnType<typeof stubFetch>): string[] {
+  return fetchMock.mock.calls
+    .map(([url]) => String(url))
+    .filter(
+      (url) => url.includes('/manifest') && !url.includes('/manifest/file')
+    )
+}
+
+function cacheControl(init: unknown): string | undefined {
+  const headers = (init as { headers?: Record<string, string> } | undefined)
+    ?.headers
+  return headers?.['Cache-Control']
 }
 
 function stubCatalogFetch(
@@ -596,6 +611,82 @@ describe('ManifestRegistry', () => {
 
     expect(await store.has('test:one')).toBe(false)
     expect(() => registry.getRunner('test:one')).toThrow()
+  })
+
+  it('update forwards Cache-Control: no-cache to the index and file fetches when forced', async () => {
+    const fetchMock = stubCatalogFetch([catalogEntry('one')], {
+      [manifestPath('one')]: makeManifest('one'),
+    })
+    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+    await registry.update(undefined, true)
+
+    expect(fetchMock).toHaveBeenCalled()
+    for (const [, init] of fetchMock.mock.calls) {
+      expect(cacheControl(init)).toBe('no-cache')
+    }
+  })
+
+  it('update sends no cache header by default', async () => {
+    const fetchMock = stubCatalogFetch([catalogEntry('one')], {
+      [manifestPath('one')]: makeManifest('one'),
+    })
+    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+    await registry.update()
+
+    expect(fetchMock).toHaveBeenCalled()
+    for (const [, init] of fetchMock.mock.calls) {
+      expect(cacheControl(init)).toBeUndefined()
+    }
+  })
+
+  it('update reuses a passed-in index instead of fetching it', async () => {
+    const fetchMock = stubCatalogFetch([catalogEntry('one')], {
+      [manifestPath('one')]: makeManifest('one'),
+    })
+    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+    await registry.update([catalogEntry('one')], true)
+
+    expect(indexFetches(fetchMock)).toEqual([])
+    expect(fileFetches(fetchMock)).toHaveLength(1)
+    expect(cacheControl(fetchMock.mock.calls[0][1])).toBe('no-cache')
+  })
+
+  it('getPendingUpdates reuses a passed-in index without any fetch', async () => {
+    const fetchMock = stubCatalogFetch([catalogEntry('one', '2.0.0')], {})
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    const pending = await registry.getPendingUpdates([
+      catalogEntry('one', '2.0.0'),
+    ])
+
+    expect(pending).toEqual([
+      { manifestId: 'one', fromVersion: '1.0.0', toVersion: '2.0.0' },
+    ])
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('applyUpdates reuses a passed-in index and forces the file fetch', async () => {
+    const fetchMock = stubCatalogFetch([catalogEntry('one', '2.0.0')], {
+      [manifestPath('one')]: makeManifest('one', 1, '2.0.0'),
+    })
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.applyUpdates(['one'], [catalogEntry('one', '2.0.0')], true)
+
+    expect(indexFetches(fetchMock)).toEqual([])
+    expect(fileFetches(fetchMock)).toHaveLength(1)
+    expect(cacheControl(fetchMock.mock.calls[0][1])).toBe('no-cache')
+    expect((await store.get('one'))?.manifest).toMatchObject({
+      version: '2.0.0',
+    })
   })
 
   it('skips a manifest that fails safeParse without taking the registry down', async () => {

@@ -300,20 +300,24 @@ export class ProviderService {
   }
 
   async refreshCatalog(locale?: string): Promise<ProviderManifestList> {
-    await this.syncCatalog()
+    await this.syncCatalog(true)
     return this.listManifests(locale)
   }
 
   // Bring the catalog current: updates for uninstalled sources (no config or
   // user data to disturb) are applied here, while installed-source updates stay
   // manual via the Updates list. Records the check only on a real sync, so
-  // "checked Nm ago" never advances on a bare detection.
-  async syncCatalog(): Promise<void> {
-    const fetched = await this.manifestRegistry.update()
-    if (!fetched) {
+  // "checked Nm ago" never advances on a bare detection. force sends
+  // Cache-Control: no-cache on a user-initiated refresh so the backend skips its
+  // edge cache; background and install syncs stay cached. The index is fetched
+  // once and shared across the three steps.
+  async syncCatalog(force = false): Promise<void> {
+    const entries = await this.manifestRegistry.loadCatalog(force)
+    if (!entries) {
       return
     }
-    const pending = await this.manifestRegistry.getPendingUpdates()
+    await this.manifestRegistry.update(entries, force)
+    const pending = await this.manifestRegistry.getPendingUpdates(entries)
     const configs = await this.providerConfigService.getAll()
     const installed = new Set(configs.map((config) => config.manifestId))
     const uninstalled = pending
@@ -321,7 +325,7 @@ export class ProviderService {
       .map((update) => update.manifestId)
     if (uninstalled.length > 0) {
       try {
-        await this.manifestRegistry.applyUpdates(uninstalled)
+        await this.manifestRegistry.applyUpdates(uninstalled, entries, force)
       } catch (e) {
         // Best-effort: a failed background apply retries next sync and must not
         // block recording the check or the rest of the refresh.

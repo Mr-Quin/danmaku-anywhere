@@ -338,16 +338,24 @@ describe('ProviderService.refreshCatalog', () => {
     vi.clearAllMocks()
   })
 
+  const catalogEntries = [
+    { id: 'one', apiVersion: 1, version: '1.0.0', file: 'one.json' },
+  ]
+
   function buildForRefresh(opts: {
     pending: { manifestId: string; fromVersion: string; toVersion: string }[]
     installedManifestIds: string[]
   }) {
+    const loadCatalog = vi.fn(async () => catalogEntries)
+    const update = vi.fn(async () => true)
+    const getPendingUpdates = vi.fn(async () => opts.pending)
     const applyUpdates = vi.fn(async () => {})
     const recordChecked = vi.fn(async () => {})
     const registry = {
       ready: Promise.resolve(true),
-      update: vi.fn(async () => true),
-      getPendingUpdates: vi.fn(async () => opts.pending),
+      loadCatalog,
+      update,
+      getPendingUpdates,
       applyUpdates,
       recordChecked,
       listManifests: vi.fn(() => []),
@@ -373,7 +381,14 @@ describe('ProviderService.refreshCatalog', () => {
       silentExtensionOptions
     )
 
-    return { service, applyUpdates, recordChecked }
+    return {
+      service,
+      registry,
+      loadCatalog,
+      update,
+      applyUpdates,
+      recordChecked,
+    }
   }
 
   it('auto-applies updates for uninstalled manifests only', async () => {
@@ -387,7 +402,36 @@ describe('ProviderService.refreshCatalog', () => {
 
     await service.refreshCatalog()
 
-    expect(applyUpdates).toHaveBeenCalledWith(['iqiyi'])
+    expect(applyUpdates).toHaveBeenCalledWith(['iqiyi'], catalogEntries, true)
+  })
+
+  it('forces a no-cache fetch and reuses one index across the sync', async () => {
+    const { service, loadCatalog, update, applyUpdates } = buildForRefresh({
+      pending: [
+        { manifestId: 'iqiyi', fromVersion: '1.0.0', toVersion: '2.0.0' },
+      ],
+      installedManifestIds: [],
+    })
+
+    await service.refreshCatalog()
+
+    expect(loadCatalog).toHaveBeenCalledTimes(1)
+    expect(loadCatalog).toHaveBeenCalledWith(true)
+    expect(update).toHaveBeenCalledWith(catalogEntries, true)
+    expect(applyUpdates).toHaveBeenCalledWith(['iqiyi'], catalogEntries, true)
+  })
+
+  it('a background sync stays cached and reuses one index', async () => {
+    const { service, loadCatalog, update } = buildForRefresh({
+      pending: [],
+      installedManifestIds: [],
+    })
+
+    await service.syncCatalog()
+
+    expect(loadCatalog).toHaveBeenCalledTimes(1)
+    expect(loadCatalog).toHaveBeenCalledWith(false)
+    expect(update).toHaveBeenCalledWith(catalogEntries, false)
   })
 
   it('does not apply anything when every pending update is installed', async () => {
@@ -416,10 +460,12 @@ describe('ProviderService.refreshCatalog', () => {
 
   it('does not record a check when the catalog index fetch fails', async () => {
     const recordChecked = vi.fn(async () => {})
+    const update = vi.fn(async () => true)
     const getPendingUpdates = vi.fn(async () => [])
     const registry = {
       ready: Promise.resolve(true),
-      update: vi.fn(async () => false),
+      loadCatalog: vi.fn(async () => null),
+      update,
       getPendingUpdates,
       applyUpdates: vi.fn(async () => {}),
       recordChecked,
@@ -438,6 +484,7 @@ describe('ProviderService.refreshCatalog', () => {
 
     await service.refreshCatalog()
 
+    expect(update).not.toHaveBeenCalled()
     expect(getPendingUpdates).not.toHaveBeenCalled()
     expect(recordChecked).not.toHaveBeenCalled()
   })
@@ -500,6 +547,7 @@ describe('ProviderService.seedDefaultProviders', () => {
     const listManifests = vi.fn(() => opts.manifests ?? DEFAULT_MANIFESTS)
     const registry = {
       ready: Promise.resolve(true),
+      loadCatalog: vi.fn(async () => []),
       update: vi.fn(async () => true),
       getPendingUpdates: vi.fn(async () => []),
       recordChecked: vi.fn(async () => {}),
