@@ -219,8 +219,12 @@ export class ManifestRegistry {
     if (mode === 'update' && existing?.kind !== 'user') {
       throw new Error(`No user manifest with id "${id}" to update`)
     }
+    // Build before persisting: a manifest that passes zManifest can still throw
+    // at runner construction, and a stored-but-unbuildable manifest would break
+    // init() on the next startup.
+    const runner = this.buildRunner(parsed.data)
     await this.store.set(id, { manifest, kind: 'user' })
-    this.runners.set(id, this.buildRunner(parsed.data))
+    this.runners.set(id, runner)
   }
 
   // Returns the raw stored manifest JSON (not the parsed runner form) so the
@@ -325,13 +329,18 @@ export class ManifestRegistry {
   }
 
   private loadEntry(id: string, entry: ManifestEntry): void {
-    // Per-manifest so one bad spec doesn't take the registry down.
+    // Per-manifest, and runner construction can throw past safeParse, so one
+    // bad stored spec can't take the whole registry down on startup.
     const parsed = zManifest.safeParse(entry.manifest)
     if (!parsed.success) {
       this.log.error('Failed to load manifest:', id, parsed.error.issues)
       return
     }
-    this.runners.set(id, this.buildRunner(parsed.data))
+    try {
+      this.runners.set(id, this.buildRunner(parsed.data))
+    } catch (e) {
+      this.log.error('Failed to build runner for manifest:', id, e)
+    }
   }
 
   private buildRunner(manifest: Manifest): ManifestRunner {

@@ -49,6 +49,7 @@ function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
   const [text, setText] = useState(initialText)
   const [forked, setForked] = useState(false)
   const [issues, setIssues] = useState<ManifestValidationIssue[]>([])
+  const [isValidating, setIsValidating] = useState(false)
 
   const mode = forked ? 'create' : initialMode
   const readOnly = mode === 'view'
@@ -58,8 +59,10 @@ function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
   useEffect(() => {
     if (!parsed.ok) {
       setIssues([])
+      setIsValidating(false)
       return
     }
+    setIsValidating(true)
     let cancelled = false
     const handle = setTimeout(async () => {
       try {
@@ -70,16 +73,30 @@ function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
           setIssues(res.data.valid ? [] : res.data.issues)
         }
       } catch {
-        if (!cancelled) setIssues([])
+        if (!cancelled) {
+          setIssues([
+            {
+              path: '',
+              message: t(
+                'providers.editor.manifest.validateFailed',
+                'Could not validate the manifest'
+              ),
+            },
+          ])
+        }
+      } finally {
+        if (!cancelled) {
+          setIsValidating(false)
+        }
       }
     }, 400)
     return () => {
       cancelled = true
       clearTimeout(handle)
     }
-  }, [parsed])
+  }, [parsed, t])
 
-  const isValid = parsed.ok && issues.length === 0
+  const isValid = parsed.ok && !isValidating && issues.length === 0
   const configSchema = parsed.ok
     ? (parsed.value as { configSchema?: ConfigSchema }).configSchema
     : undefined
@@ -189,7 +206,7 @@ function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
               <Button
                 variant="contained"
                 onClick={handleSave}
-                disabled={!parsed.ok || save.isPending}
+                disabled={!isValid || save.isPending}
                 startIcon={
                   save.isPending ? <CircularProgress size={16} /> : undefined
                 }
@@ -220,6 +237,12 @@ export const ManifestEditorPage = () => {
 
   const sourceQuery = useManifestSource(manifestId)
 
+  if (!manifestId) {
+    return (
+      <ManifestEditor initialText={STARTER_MANIFEST} initialMode="create" />
+    )
+  }
+
   if (sourceQuery.isLoading) {
     return (
       <OptionsPageLayout>
@@ -227,12 +250,6 @@ export const ManifestEditorPage = () => {
           <CircularProgress />
         </Box>
       </OptionsPageLayout>
-    )
-  }
-
-  if (!manifestId) {
-    return (
-      <ManifestEditor initialText={STARTER_MANIFEST} initialMode="create" />
     )
   }
 

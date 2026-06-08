@@ -661,6 +661,7 @@
         "notFound": "No manifest source is available for this source.",
         "saved": "Manifest saved",
         "valid": "Manifest is valid",
+        "validateFailed": "Could not validate the manifest",
         "viewSource": "View source",
         "viewTitle": "Manifest source"
       },

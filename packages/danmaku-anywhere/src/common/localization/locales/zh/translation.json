@@ -640,6 +640,7 @@
         "notFound": "此来源没有可用的清单源码。",
         "saved": "清单已保存",
         "valid": "清单有效",
+        "validateFailed": "无法校验清单",
         "viewSource": "查看源码",
         "viewTitle": "清单源码"
       },
