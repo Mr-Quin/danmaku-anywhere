@@ -138,7 +138,9 @@ export class RpcManager {
           return this.manifestRegistry.getPendingUpdates()
         },
         providerApplyUpdates: async ({ manifestIds }) => {
-          await this.manifestRegistry.applyUpdates(manifestIds)
+          // User-initiated, so force a no-cache fetch: the new manifest file
+          // must not come from the backend's stale edge cache.
+          await this.manifestRegistry.applyUpdates(manifestIds, undefined, true)
         },
         providerValidateManifest: async ({ manifest }) => {
           return this.manifestSandbox.validate(manifest)
