@@ -93,6 +93,8 @@
     "multiselect": "多选",
     "name": "名称",
     "next": "下一步",
+    "openInNewTab": "在新标签页中打开",
+    "openInNewWindow": "在新窗口中打开",
     "pip": "画中画",
     "refresh": "刷新",
     "regexShort": "正则",

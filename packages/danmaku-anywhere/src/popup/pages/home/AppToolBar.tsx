@@ -1,4 +1,4 @@
-import { OpenInNew, Settings } from '@mui/icons-material'
+import { OpenInNew, Settings, Tab } from '@mui/icons-material'
 import {
   AppBar,
   Box,
@@ -11,6 +11,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
+import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -25,8 +26,12 @@ export const AppToolBar = () => {
 
   const { t } = useTranslation()
 
-  const openInWindow = async () => {
+  const openInWindow = () => {
     void chromeRpcClient.openPopupInNewWindow({ path: '' })
+  }
+
+  const openInTab = () => {
+    void chromeRpcClient.openPopupInNewTab({ path: '' })
   }
 
   return (
@@ -61,15 +66,24 @@ export const AppToolBar = () => {
           <Settings />
         </IconButton>
         {!isMobile && (
-          <IconButton
-            onClick={openInWindow}
-            edge="end"
-            sx={{
-              color: 'inherit',
-            }}
-          >
-            <OpenInNew />
-          </IconButton>
+          <DrilldownMenu
+            icon={<OpenInNew />}
+            ButtonProps={{ edge: 'end', sx: { color: 'inherit' } }}
+            items={[
+              {
+                id: 'open-in-window',
+                label: t('common.openInNewWindow', 'Open in new window'),
+                icon: <OpenInNew />,
+                onClick: openInWindow,
+              },
+              {
+                id: 'open-in-tab',
+                label: t('common.openInNewTab', 'Open in new tab'),
+                icon: <Tab />,
+                onClick: openInTab,
+              },
+            ]}
+          />
         )}
       </Toolbar>
     </AppBar>
