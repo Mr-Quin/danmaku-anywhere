@@ -60,6 +60,17 @@ Make the changes. Apply these in order:
 
 Run e2e (`pnpm --filter @mr-quin/danmaku-anywhere test:e2e`) for any PR that adds or touches an e2e spec, or that changes content scripts, mount profiles, integration policies, dango manifests, or popup flows. The suite should be running before push.
 
+#### Record a verify summary
+
+Verification you only narrate is unauditable: a reviewer can't tell whether the full affected-test set ran, or whether e2e ran or was skipped and why. So as you verify, record a short summary and paste it into the PR's Test plan (step 6). One line each:
+
+- `lint` (tsc + biome): pass / fail
+- tests: the scope you ran (e.g. `pnpm --filter '...[origin/master]' test`) and the result (N passed)
+- e2e: which specs ran, or skipped + a one-line reason
+- browser-verify: what you observed, if you ran it
+
+This is a record of what you actually did, not a second gate: deciding *what* to run stays your judgment, the summary just makes that judgment reviewable. Writing it also surfaces a step you meant to run and didn't.
+
 #### Extension: open dev browser (for the human)
 
 For extension changes, launch the human's dev browser with HMR at the start of implementation:
@@ -110,6 +121,7 @@ gh pr create --title "(type) description [DA-XXX]" --label "ai-rereview" --body 
 - <one short bullet per major change; "what" + "why" if non-obvious>
 
 ## Test plan
+- Verified: lint <result> · tests <scope -> result> · e2e <specs ran / skipped + why> (the step 4 verify summary)
 - [ ] <commands or e2e spec(s) the reviewer should run; reference paths under `packages/danmaku-anywhere/e2e/specs/...`>
 - <if e2e coverage is infeasible for this change, state why here>
 
