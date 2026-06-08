@@ -96,14 +96,6 @@ export class ProviderConfigService implements IStoreService {
     await this.seededFlag.set(true)
   }
 
-  // Atomic so it can never overwrite configs an existing user already has.
-  async seedIfEmpty(configs: ProviderConfig[]): Promise<boolean> {
-    return this.options.setIf(
-      (current) => !current || current.length === 0,
-      configs
-    )
-  }
-
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {
     const configs = await this.options.get()
     return !configs.some((item) => item.id === id && item.id !== excludeId)

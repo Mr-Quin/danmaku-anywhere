@@ -481,20 +481,17 @@ describe('ProviderService.seedDefaultProviders', () => {
 
   function buildForSeed(opts: {
     seeded?: boolean
-    storeEmpty?: boolean
     manifests?: { id: string; name: string }[]
     lang?: string
   }) {
     let seeded = opts.seeded ?? false
-    const seedIfEmpty = vi.fn(
-      async (_configs: ProviderConfig[]) => opts.storeEmpty ?? true
-    )
+    const set = vi.fn(async (_configs: ProviderConfig[]) => {})
     const markSeeded = vi.fn(async () => {
       seeded = true
     })
     const hasSeeded = vi.fn(async () => seeded)
     const providerConfigService = {
-      seedIfEmpty,
+      options: { set },
       markSeeded,
       hasSeeded,
       getAll: vi.fn(async () => []),
@@ -523,16 +520,16 @@ describe('ProviderService.seedDefaultProviders', () => {
       extensionOptions
     )
 
-    return { service, seedIfEmpty, markSeeded, hasSeeded, listManifests }
+    return { service, set, markSeeded, hasSeeded, listManifests }
   }
 
   it('seeds the preloaded set with manifest-derived names on a fresh install', async () => {
-    const { service, seedIfEmpty, markSeeded } = buildForSeed({})
+    const { service, set, markSeeded } = buildForSeed({})
 
     await service.seedDefaultProviders()
 
-    expect(seedIfEmpty).toHaveBeenCalledTimes(1)
-    const configs = seedIfEmpty.mock.calls[0][0]
+    expect(set).toHaveBeenCalledTimes(1)
+    const configs = set.mock.calls[0][0]
     expect(configs.map((c) => c.manifestId)).toEqual([
       'dandanplay',
       'bilibili',
@@ -548,7 +545,7 @@ describe('ProviderService.seedDefaultProviders', () => {
   })
 
   it('resolves names in the active UI language', async () => {
-    const { service, listManifests, seedIfEmpty } = buildForSeed({
+    const { service, listManifests, set } = buildForSeed({
       lang: 'en',
       manifests: [
         { id: 'dandanplay', name: 'DanDanPlay' },
@@ -560,7 +557,7 @@ describe('ProviderService.seedDefaultProviders', () => {
     await service.seedDefaultProviders()
 
     expect(listManifests).toHaveBeenCalledWith('en')
-    const configs = seedIfEmpty.mock.calls[0][0]
+    const configs = set.mock.calls[0][0]
     expect(configs.find((c) => c.manifestId === 'tencent')?.name).toBe(
       'Tencent Video'
     )
@@ -574,37 +571,26 @@ describe('ProviderService.seedDefaultProviders', () => {
     expect(listManifests).toHaveBeenCalledWith('zh-CN')
   })
 
-  it('never double-seeds once the flag is set', async () => {
-    const { service, seedIfEmpty, markSeeded } = buildForSeed({ seeded: true })
+  it('does not seed once the flag is set, leaving an existing user untouched', async () => {
+    const { service, set, markSeeded } = buildForSeed({ seeded: true })
 
     await service.seedDefaultProviders()
 
-    expect(seedIfEmpty).not.toHaveBeenCalled()
+    expect(set).not.toHaveBeenCalled()
     expect(markSeeded).not.toHaveBeenCalled()
   })
 
-  it('leaves an existing user untouched: the empty-store guard no-ops the write but still locks the flag', async () => {
-    const { service, seedIfEmpty, markSeeded } = buildForSeed({
-      storeEmpty: false,
-    })
-
-    await service.seedDefaultProviders()
-
-    expect(seedIfEmpty).toHaveBeenCalledTimes(1)
-    expect(markSeeded).toHaveBeenCalledTimes(1)
-  })
-
   it('stays unseeded for a later retry when the catalog has no manifests yet', async () => {
-    const { service, seedIfEmpty, markSeeded } = buildForSeed({ manifests: [] })
+    const { service, set, markSeeded } = buildForSeed({ manifests: [] })
 
     await service.seedDefaultProviders()
 
-    expect(seedIfEmpty).not.toHaveBeenCalled()
+    expect(set).not.toHaveBeenCalled()
     expect(markSeeded).not.toHaveBeenCalled()
   })
 
   it('does not seed (or lock) a partial set when one preloaded manifest is still missing', async () => {
-    const { service, seedIfEmpty, markSeeded } = buildForSeed({
+    const { service, set, markSeeded } = buildForSeed({
       manifests: [
         { id: 'dandanplay', name: '弹弹play' },
         { id: 'bilibili', name: 'B站' },
@@ -613,12 +599,12 @@ describe('ProviderService.seedDefaultProviders', () => {
 
     await service.seedDefaultProviders()
 
-    expect(seedIfEmpty).not.toHaveBeenCalled()
+    expect(set).not.toHaveBeenCalled()
     expect(markSeeded).not.toHaveBeenCalled()
   })
 
   it('locks the flag without seeding when an existing install updates', async () => {
-    const { service, seedIfEmpty, markSeeded, hasSeeded } = buildForSeed({})
+    const { service, set, markSeeded, hasSeeded } = buildForSeed({})
 
     service.setup()
     const calls = vi.mocked(chrome.runtime.onInstalled.addListener).mock.calls
@@ -628,12 +614,12 @@ describe('ProviderService.seedDefaultProviders', () => {
     await listener({ reason: 'update' })
 
     expect(markSeeded).toHaveBeenCalled()
-    expect(seedIfEmpty).not.toHaveBeenCalled()
+    expect(set).not.toHaveBeenCalled()
     expect(hasSeeded).toHaveBeenCalled()
   })
 
   it('seeds when a brand-new install fires onInstalled', async () => {
-    const { service, seedIfEmpty, markSeeded } = buildForSeed({})
+    const { service, set, markSeeded } = buildForSeed({})
 
     service.setup()
     const calls = vi.mocked(chrome.runtime.onInstalled.addListener).mock.calls
@@ -642,7 +628,7 @@ describe('ProviderService.seedDefaultProviders', () => {
     }) => Promise<void>
     await listener({ reason: 'install' })
 
-    expect(seedIfEmpty).toHaveBeenCalledTimes(1)
+    expect(set).toHaveBeenCalledTimes(1)
     expect(markSeeded).toHaveBeenCalledTimes(1)
   })
 })

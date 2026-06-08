@@ -42,9 +42,25 @@ export interface TestProfile {
   extensionOptions?: Partial<ExtensionOptions>
   // Raw chrome.storage seeds applied before typed writes.
   rawStorage?: RawStorageSeed[]
-  // If true, runs storage migrations after rawStorage is applied.
-  runUpgrade?: boolean
   network?: NetworkMock[]
+}
+
+const SEEDED_FLAG_KEY = 'providerConfigSeeded'
+
+// The extension seeds its preloaded providers on first boot, after the catalog
+// loads, and sets this flag as the last step. Wait for it before rebuilding
+// storage so the seed write can't land on top of the profile's configs. The
+// flag is a definitive completion signal, so wait reliably (the ceiling only
+// guards against a genuinely stuck seed under heavy parallel load).
+async function waitForSeeded(da: DaClient): Promise<void> {
+  const deadline = Date.now() + 20000
+  while (Date.now() < deadline) {
+    if ((await da.storage.get('sync', SEEDED_FLAG_KEY)) === true) {
+      return
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50))
+  }
+  throw new Error('applyProfile: timed out waiting for the first-boot seed')
 }
 
 function buildBuiltInProviderConfigs(
@@ -97,14 +113,16 @@ export async function applyProfile(
   da: DaClient,
   profile: TestProfile
 ): Promise<void> {
+  await waitForSeeded(da)
   await da.storage.clear()
+
+  // clear() wiped the options stores; rerun the upgrade so the typed writes
+  // below have versioned options to read. Raw seeds are applied afterwards so
+  // they stay authoritative rather than being re-migrated.
+  await da.runtime.runUpgrade()
 
   for (const seed of profile.rawStorage ?? []) {
     await da.storage.setRaw(seed.area, seed.key, seed.value)
-  }
-
-  if (profile.runUpgrade) {
-    await da.runtime.runUpgrade()
   }
 
   if (
@@ -115,6 +133,10 @@ export async function applyProfile(
     const customs = profile.customProviders ?? []
     await da.providerConfig.set([...builtIns, ...customs])
   }
+
+  // The profile is the source of truth, so mark seeding done; a catalog refresh
+  // during the test must not re-seed over it.
+  await da.storage.setRaw('sync', SEEDED_FLAG_KEY, true)
 
   if (profile.extensionOptions) {
     await da.extensionOptions.update(profile.extensionOptions)

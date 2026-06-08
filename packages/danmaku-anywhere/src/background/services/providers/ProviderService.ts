@@ -354,7 +354,7 @@ export class ProviderService {
       }
       configs.push(autoImportToProviderConfig(entry, name))
     }
-    await this.providerConfigService.seedIfEmpty(configs)
+    await this.providerConfigService.options.set(configs)
     await this.providerConfigService.markSeeded()
   }
 
