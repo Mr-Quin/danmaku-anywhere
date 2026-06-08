@@ -131,7 +131,8 @@ function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
     if (
       !parsed.ok ||
       typeof parsed.value !== 'object' ||
-      parsed.value === null
+      parsed.value === null ||
+      Array.isArray(parsed.value)
     ) {
       return
     }

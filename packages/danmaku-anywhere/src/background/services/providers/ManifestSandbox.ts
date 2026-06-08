@@ -16,11 +16,13 @@ import { resolveManifestInputs } from './manifestInputs'
 // Withhold the private-host opt-in so the engine's host-rejection boundary
 // applies. Saving a manifest is a separate trust decision on the normal
 // provider path, which keeps its own run options.
-export const TEST_RUN_OPTIONS: RunOptions = {}
+export const TEST_RUN_OPTIONS: RunOptions = Object.freeze({})
 
 // A danmaku run fans out across segments; tolerate a failed segment so one
 // missing segment doesn't drop the whole preview, mirroring production.
-export const TEST_DANMAKU_RUN_OPTIONS: RunOptions = { continueOnError: true }
+export const TEST_DANMAKU_RUN_OPTIONS: RunOptions = Object.freeze({
+  continueOnError: true,
+})
 
 // Executes a not-yet-saved manifest so the editor can preview it. Stateless:
 // every call rebuilds the runner from the posted manifest and touches no store.
