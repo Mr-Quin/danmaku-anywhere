@@ -74,6 +74,8 @@ install_extension(<absolute path to packages/danmaku-anywhere/build>)
 
 Same MCP browser, fresh artifact. For shadow-root introspection use `VITE_DA_ENV=e2e pnpm build` — the controller's shadow root opens in e2e builds only.
 
+**Install the dir you actually just wrote.** `pnpm build` writes to `build/`, but a bare `vite build` writes to `dev/chrome` (the config default). If you build manually, install that dir, not whichever was sitting in `build/` from an earlier run: a stale `build/` silently runs old code and the build banner's `gitBranch` still reads correct, so a "broken" fix can really be a stale install. Confirm freshness (`ls -la <dir>/manifest.json`, or grep the compiled `<dir>/assets/*.js` for your change) before trusting a result.
+
 ## 3. Inspect
 
 | Need | Tool |
