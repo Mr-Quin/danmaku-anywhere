@@ -1,0 +1,83 @@
+[
+  {
+    "tag_name": "v1.2.0",
+    "prerelease": false,
+    "published_at": "2026-05-01T10:00:00Z",
+    "assets": [
+      {
+        "name": "danmaku-anywhere-1.2.0-firefox.zip",
+        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/1"
+      },
+      {
+        "name": "danmaku-anywhere-1.2.0-chrome.zip",
+        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/2"
+      }
+    ]
+  },
+  {
+    "tag_name": "nightly-123456",
+    "prerelease": true,
+    "published_at": "2026-05-02T02:00:00Z",
+    "assets": [
+      {
+        "name": "danmaku-anywhere-1.2.1-123-chrome.zip",
+        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/3"
+      }
+    ]
+  },
+  {
+    "tag_name": "preview-pr-460",
+    "prerelease": true,
+    "published_at": "2026-05-03T08:00:00Z",
+    "assets": [
+      {
+        "name": "danmaku-anywhere-1.2.1-9-chrome.zip",
+        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/4"
+      }
+    ]
+  },
+  {
+    "tag_name": "preview-branch-feature-foo",
+    "prerelease": true,
+    "published_at": "2026-05-04T08:00:00Z",
+    "assets": [
+      {
+        "name": "danmaku-anywhere-1.2.1-10-chrome.zip",
+        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/5"
+      }
+    ]
+  },
+  {
+    "tag_name": "preview-manual-11",
+    "prerelease": true,
+    "published_at": "2026-05-05T08:00:00Z",
+    "assets": [
+      {
+        "name": "danmaku-anywhere-1.2.1-11-chrome.zip",
+        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/6"
+      }
+    ]
+  },
+  {
+    "tag_name": "latest-preview",
+    "prerelease": true,
+    "published_at": "2026-05-06T08:00:00Z",
+    "assets": [
+      {
+        "name": "danmaku-anywhere-1.2.1-12-chrome.zip",
+        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/7"
+      }
+    ]
+  },
+  {
+    "tag_name": "v1.1.0-no-chrome",
+    "prerelease": false,
+    "published_at": "2026-04-01T08:00:00Z",
+    "assets": [
+      {
+        "name": "danmaku-anywhere-1.1.0-firefox.zip",
+        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/8"
+      }
+    ]
+  }
+]
