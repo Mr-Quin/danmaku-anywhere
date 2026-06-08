@@ -85,6 +85,7 @@ export function SearchForm({
       enabled:
         !!committedSearchTerm && !isUrl && provider.id === activeProviderId,
       staleTime: Number.POSITIVE_INFINITY,
+      gcTime: 30 * 60 * 1000,
       retry: false,
     })),
   })
