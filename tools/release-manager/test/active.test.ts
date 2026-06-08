@@ -1,4 +1,11 @@
-import { mkdir, mkdtemp, realpath, rm, writeFile } from 'node:fs/promises'
+import {
+  mkdir,
+  mkdtemp,
+  readdir,
+  readFile,
+  rm,
+  writeFile,
+} from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -10,8 +17,8 @@ beforeEach(async () => {
   dir = await mkdtemp(join(tmpdir(), 'rm-active-'))
   await mkdir(join(dir, 'cache', 'v1'), { recursive: true })
   await mkdir(join(dir, 'cache', 'v2'), { recursive: true })
-  await writeFile(join(dir, 'cache', 'v1', 'marker'), 'one')
-  await writeFile(join(dir, 'cache', 'v2', 'marker'), 'two')
+  await writeFile(join(dir, 'cache', 'v1', 'manifest.json'), 'one')
+  await writeFile(join(dir, 'cache', 'v2', 'manifest.json'), 'two')
 })
 
 afterEach(async () => {
@@ -19,20 +26,26 @@ afterEach(async () => {
 })
 
 describe('setActive', () => {
-  it('points the active link at the requested cache dir', async () => {
+  it('copies the requested build into the active dir', async () => {
     const result = await setActive(dir, 'v1')
     expect(result.success).toBe(true)
 
-    const resolved = await realpath(activePath(dir))
-    expect(resolved).toBe(await realpath(join(dir, 'cache', 'v1')))
+    const content = await readFile(
+      join(activePath(dir), 'manifest.json'),
+      'utf8'
+    )
+    expect(content).toBe('one')
   })
 
-  it('repoints an existing link to a new target', async () => {
+  it('replaces active contents when switching builds', async () => {
     await setActive(dir, 'v1')
     await setActive(dir, 'v2')
 
-    const resolved = await realpath(activePath(dir))
-    expect(resolved).toBe(await realpath(join(dir, 'cache', 'v2')))
+    const content = await readFile(
+      join(activePath(dir), 'manifest.json'),
+      'utf8'
+    )
+    expect(content).toBe('two')
   })
 
   it('fails with a swap error when the cache dir is missing', async () => {
@@ -43,11 +56,12 @@ describe('setActive', () => {
     }
   })
 
-  it('clears the active link', async () => {
+  it('empties the active dir when cleared', async () => {
     await setActive(dir, 'v1')
     const result = await clearActive(dir)
     expect(result.success).toBe(true)
 
-    await expect(realpath(activePath(dir))).rejects.toThrow()
+    const entries = await readdir(activePath(dir))
+    expect(entries).toEqual([])
   })
 })

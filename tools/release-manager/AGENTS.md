@@ -33,21 +33,25 @@ Resolved once at startup from `DA_RELEASE_MANAGER_DIR`, defaulting to
   config.json            # mode 0600; { githubToken?, activeTag?, builds[] }
   cache/<tag>/           # an unzipped chrome build (contains manifest.json)
   cache/.tmp-<tag>/      # transient unzip staging, renamed atomically into place
-  active                 # symlink pointing at cache/<active-tag>
+  active/                # real dir holding a copy of the active build
 ```
 
 The token never leaves the server in cleartext: `getState` exposes
 `hasToken: boolean`, never the raw token.
 
-## Chrome swap behavior (pending verification)
+## Chrome swap behavior
 
-`setActive(tag)` repoints `<dataDir>/active` at `cache/<tag>` by removing the
-existing link and recreating it (`fs.symlink` with `'junction'` on win32,
-`'dir'` elsewhere). Chrome will likely need a **manual reload** of the unpacked
-extension after a repoint. Whether Chrome follows a symlink repoint in place or
-requires copying the build into a real directory is **not yet verified in a real
-browser**. Symlink repoint is the primary path for now; revisit if Chrome does
-not pick up the swap.
+`setActive(tag)` makes `<dataDir>/active` a real directory and copies the chosen
+`cache/<tag>/` build into it, replacing its previous contents in place. The user
+loads `<dataDir>/active` once via "Load unpacked" and clicks reload after each
+swap to pick up the new build.
+
+The active folder is copied rather than symlinked because a sandboxed (Flatpak)
+Chrome reads the picked folder through a document portal that does not grant the
+symlink's target, so a symlinked active folder fails with "File path cannot be
+resolved." Copying keeps the loaded path stable across swaps and works for both
+native and Flatpak Chrome. The copy source is the local cache, so swapping never
+re-downloads.
 
 ## Layout
 
