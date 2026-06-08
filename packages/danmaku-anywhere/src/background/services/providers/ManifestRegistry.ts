@@ -33,7 +33,7 @@ const zCatalogIndex = z.object({
   manifests: z.array(zCatalogEntry),
 })
 
-type CatalogEntry = z.infer<typeof zCatalogEntry>
+export type CatalogEntry = z.infer<typeof zCatalogEntry>
 type CatalogManifest = { raw: unknown; parsed: Manifest }
 
 // Shared by every catalog-gated path; tests and the popup toast match on it.
@@ -160,6 +160,14 @@ export class ManifestRegistry {
     }
   }
 
+  // Fetch the catalog index once so a single sync can share it across update,
+  // getPendingUpdates, and applyUpdates instead of refetching three times. force
+  // sends Cache-Control: no-cache so the backend skips its edge cache.
+  async loadCatalog(force = false): Promise<CatalogEntry[] | null> {
+    await this.ready
+    return this.loadIndex(force)
+  }
+
   // Add-only for everything except a bundle-seeded entry: a changed
   // preinstalled manifest surfaces via getPendingUpdates instead of being
   // replaced here, but a 'bundled' entry auto-upgrades to the catalog copy
@@ -171,35 +179,43 @@ export class ManifestRegistry {
   // offline. The bundle can be stale, so the first successful sync replaces
   // any still-listed bundled entry outright rather than waiting for a manual
   // update, since the user never chose to install the bundled version.
-  async update(): Promise<boolean> {
+  //
+  // Pass a pre-fetched index to reuse one sync's fetch, or null when that
+  // fetch already failed; force flows to the file fetches.
+  async update(
+    entries?: CatalogEntry[] | null,
+    force = false
+  ): Promise<boolean> {
     await this.ready
-    const entries = await this.loadIndex()
-    if (!entries) {
+    const catalog = await this.resolveCatalog(entries, force)
+    if (!catalog) {
       await this.seedFromBundle()
       return false
     }
     const stored = await this.store.getAll()
-    const missing = entries.filter((entry) => !stored[entry.id])
-    const bundledStale = entries.filter(
+    const missing = catalog.filter((entry) => !stored[entry.id])
+    const bundledStale = catalog.filter(
       (entry) => stored[entry.id]?.kind === 'bundled'
     )
-    await this.fetchAndStore([...missing, ...bundledStale])
+    await this.fetchAndStore([...missing, ...bundledStale], force)
     return true
   }
 
   // Index-only: diff stored versions against the catalog without fetching files
   // or applying. Throws on an unreachable catalog: "no updates" and "could not
   // check" must stay distinguishable, or a failed check would clear the
-  // popup's pending list.
-  async getPendingUpdates(): Promise<ManifestUpdate[]> {
+  // popup's pending list. Pass a pre-fetched index to reuse one sync's fetch.
+  async getPendingUpdates(
+    entries?: CatalogEntry[] | null
+  ): Promise<ManifestUpdate[]> {
     await this.ready
-    const entries = await this.loadIndex()
-    if (!entries) {
+    const catalog = await this.resolveCatalog(entries, false)
+    if (!catalog) {
       throw new Error(CATALOG_UNREACHABLE_MESSAGE)
     }
     const stored = await this.store.getAll()
     const updates: ManifestUpdate[] = []
-    for (const entry of entries) {
+    for (const entry of catalog) {
       const existing = stored[entry.id]
       // 'user' is never replaced by the catalog. 'bundled' auto-upgrades in
       // update() as soon as the index is reachable, so it must not also
@@ -229,22 +245,26 @@ export class ManifestRegistry {
   // source. Throws on failure (unreachable catalog or a file that did not
   // apply) so a user-driven update surfaces the error instead of silently
   // no-op'ing.
-  async applyUpdates(manifestIds: string[]): Promise<void> {
+  async applyUpdates(
+    manifestIds: string[],
+    entries?: CatalogEntry[] | null,
+    force = false
+  ): Promise<void> {
     await this.ready
-    const entries = await this.loadIndex()
-    if (!entries) {
+    const catalog = await this.resolveCatalog(entries, force)
+    if (!catalog) {
       throw new Error(CATALOG_UNREACHABLE_MESSAGE)
     }
     const wanted = new Set(manifestIds)
     const stored = await this.store.getAll()
-    const targets = entries.filter((entry) => {
+    const targets = catalog.filter((entry) => {
       const existing = stored[entry.id]
       return (
         wanted.has(entry.id) &&
         (existing?.kind === 'preinstalled' || existing?.kind === 'bundled')
       )
     })
-    const applied = await this.fetchAndStore(targets)
+    const applied = await this.fetchAndStore(targets, force)
     if (applied.length < targets.length) {
       const failed = targets
         .map((entry) => entry.id)
@@ -309,10 +329,13 @@ export class ManifestRegistry {
 
   // Returns the ids actually stored; the caller can compare against what it
   // asked for to tell a partial failure from a complete one.
-  private async fetchAndStore(entries: CatalogEntry[]): Promise<string[]> {
+  private async fetchAndStore(
+    entries: CatalogEntry[],
+    force = false
+  ): Promise<string[]> {
     const fetched = (
       await Promise.all(
-        entries.map((entry) => this.fetchManifest(entry.file, entry.id))
+        entries.map((entry) => this.fetchManifest(entry.file, entry.id, force))
       )
     ).filter((manifest) => manifest !== null)
     if (fetched.length === 0) {
@@ -372,24 +395,36 @@ export class ManifestRegistry {
     }
   }
 
-  private async loadIndex(): Promise<CatalogEntry[] | null> {
+  // undefined means the caller has no index and this call should fetch one;
+  // null means a shared fetch already ran and failed, so do not refetch.
+  private async resolveCatalog(
+    entries: CatalogEntry[] | null | undefined,
+    force: boolean
+  ): Promise<CatalogEntry[] | null> {
+    if (entries === undefined) {
+      return this.loadIndex(force)
+    }
+    return entries
+  }
+
+  private async loadIndex(force = false): Promise<CatalogEntry[] | null> {
     try {
-      return await this.fetchIndex()
+      return await this.fetchIndex(force)
     } catch (e) {
       this.log.warn('Catalog index fetch failed, retrying:', e)
     }
     await sleep(1000)
     try {
-      return await this.fetchIndex()
+      return await this.fetchIndex(force)
     } catch (e) {
       this.log.error('Failed to fetch manifest catalog:', e)
       return null
     }
   }
 
-  private async fetchIndex(): Promise<CatalogEntry[]> {
+  private async fetchIndex(force = false): Promise<CatalogEntry[]> {
     const index = zCatalogIndex.parse(
-      await this.fetchJson(`${this.baseUrl}/manifest`)
+      await this.fetchJson(`${this.baseUrl}/manifest`, force)
     )
     return index.manifests.filter((entry) =>
       SUPPORTED_API_VERSIONS.has(entry.apiVersion)
@@ -400,12 +435,14 @@ export class ManifestRegistry {
   // rest; the next reconcile retries whatever is still missing.
   private async fetchManifest(
     file: string,
-    id: string
+    id: string,
+    force = false
   ): Promise<CatalogManifest | null> {
     let raw: unknown
     try {
       raw = await this.fetchJson(
-        `${this.baseUrl}/manifest/file?file=${encodeURIComponent(file)}`
+        `${this.baseUrl}/manifest/file?file=${encodeURIComponent(file)}`,
+        force
       )
     } catch (e) {
       this.log.error('Failed to fetch catalog manifest:', id, e)
@@ -433,9 +470,10 @@ export class ManifestRegistry {
     return { raw, parsed: parsed.data }
   }
 
-  private async fetchJson(url: string): Promise<unknown> {
+  private async fetchJson(url: string, force = false): Promise<unknown> {
     const res = await extensionFetchLike(url, {
       signal: AbortSignal.timeout(5000),
+      headers: force ? { 'Cache-Control': 'no-cache' } : undefined,
     })
     if (res.status !== 200) {
       throw new Error(`catalog fetch failed (${res.status}): ${url}`)

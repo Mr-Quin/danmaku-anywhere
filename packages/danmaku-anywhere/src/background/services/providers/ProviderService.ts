@@ -405,7 +405,7 @@ export class ProviderService {
   // Throws on an unreachable catalog so a user-driven refresh surfaces the
   // failure instead of silently returning the stale list.
   async refreshCatalog(locale?: string): Promise<ProviderManifestList> {
-    const synced = await this.syncCatalog()
+    const synced = await this.syncCatalog(true)
     if (!synced) {
       throw new Error(CATALOG_UNREACHABLE_MESSAGE)
     }
@@ -416,16 +416,21 @@ export class ProviderService {
   // user data to disturb) are applied here, while installed-source updates stay
   // manual via the Updates list. Records the check only on a real sync, so
   // "checked Nm ago" never advances on a bare detection. Returns whether the
-  // catalog index was reachable.
-  async syncCatalog(): Promise<boolean> {
-    const fetched = await this.manifestRegistry.update()
+  // catalog index was reachable. force sends Cache-Control: no-cache on a
+  // user-initiated refresh so the backend skips its edge cache; background and
+  // install syncs stay cached. The index is fetched once and shared across the
+  // three steps.
+  async syncCatalog(force = false): Promise<boolean> {
+    const entries = await this.manifestRegistry.loadCatalog(force)
+    const fetched = await this.manifestRegistry.update(entries, force)
     if (!fetched) {
       return false
     }
-    // update() just reached the index, so a failure here means it died
-    // mid-sync; skip the best-effort auto-apply rather than fail the sync.
+    // The index is already in hand, so this only reads the store; stay
+    // best-effort so a store failure skips the auto-apply instead of failing
+    // the whole sync.
     const pending = await this.manifestRegistry
-      .getPendingUpdates()
+      .getPendingUpdates(entries)
       .catch((e) => {
         this.logger.warn('Failed to detect pending updates mid-sync:', e)
         return []
@@ -437,7 +442,7 @@ export class ProviderService {
       .map((update) => update.manifestId)
     if (uninstalled.length > 0) {
       try {
-        await this.manifestRegistry.applyUpdates(uninstalled)
+        await this.manifestRegistry.applyUpdates(uninstalled, entries, force)
       } catch (e) {
         // Best-effort: a failed background apply retries next sync and must not
         // block recording the check or the rest of the refresh.
