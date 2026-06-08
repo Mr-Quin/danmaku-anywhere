@@ -33,7 +33,6 @@ type EditorMode = 'create' | 'edit' | 'view'
 
 interface EditorState {
   manifestId?: string
-  duplicate?: boolean
 }
 
 interface ManifestEditorProps {
@@ -93,6 +92,22 @@ function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
       return t('providers.editor.manifest.editTitle', 'Edit manifest')
     }
     return t('providers.editor.manifest.createTitle', 'Author manifest')
+  }
+
+  // Forking a read-only manifest must not reuse its id, or the create-guard
+  // rejects the save. Seed a distinct id so the copy saves as-is.
+  const handleDuplicate = () => {
+    if (
+      !parsed.ok ||
+      typeof parsed.value !== 'object' ||
+      parsed.value === null
+    ) {
+      return
+    }
+    const source = parsed.value as { id?: unknown }
+    const baseId = typeof source.id === 'string' ? source.id : 'manifest'
+    setText(stringifyManifest({ ...source, id: `${baseId}-copy` }))
+    setForked(true)
   }
 
   const handleSave = () => {
@@ -167,7 +182,7 @@ function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
 
           <Stack direction="row" spacing={1}>
             {readOnly ? (
-              <Button variant="outlined" onClick={() => setForked(true)}>
+              <Button variant="outlined" onClick={handleDuplicate}>
                 {t('providers.editor.manifest.duplicate', 'Duplicate')}
               </Button>
             ) : (
@@ -201,7 +216,7 @@ export const ManifestEditorPage = () => {
   const { t } = useTranslation()
   const location = useLocation()
   const goBack = useGoBack()
-  const { manifestId, duplicate } = (location.state ?? {}) as EditorState
+  const { manifestId } = (location.state ?? {}) as EditorState
 
   const sourceQuery = useManifestSource(manifestId)
 
@@ -242,9 +257,6 @@ export const ManifestEditorPage = () => {
   }
 
   const initialText = stringifyManifest(source.manifest)
-  if (duplicate) {
-    return <ManifestEditor initialText={initialText} initialMode="create" />
-  }
   const mode: EditorMode = source.kind === 'user' ? 'edit' : 'view'
   return <ManifestEditor initialText={initialText} initialMode={mode} />
 }

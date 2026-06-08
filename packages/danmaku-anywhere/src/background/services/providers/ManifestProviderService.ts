@@ -20,16 +20,7 @@ import type {
   SeasonSearchParams,
 } from './IDanmakuProvider'
 import type { ManifestRegistry } from './ManifestRegistry'
-
-// Undefined values in configValues would shadow manifest schema defaults
-// when spread; drop them before merging.
-function stripUndefined(o: Record<string, unknown>): Record<string, unknown> {
-  const out: Record<string, unknown> = {}
-  for (const [k, v] of Object.entries(o)) {
-    if (v !== undefined) out[k] = v
-  }
-  return out
-}
+import { resolveManifestInputs } from './manifestInputs'
 
 // Manifest output shapes — the canonical fields a search/episodes/danmaku
 // pipeline must emit. The host adds `provider` / `providerConfigId` /
@@ -93,15 +84,15 @@ export class ManifestProviderService implements IDanmakuProvider {
     this.forProvider = config.provider
   }
 
-  // Precedence (low to high): configSchema defaults, user-configured
-  // values, per-call inputs (providerIds / meta.params).
   private resolveInputs(
     runner: ManifestRunner,
     inputs: Record<string, unknown>
   ): Record<string, unknown> {
-    const defaults = runner.configDefaults()
-    const configValues = stripUndefined(this.config.configValues ?? {})
-    return { ...defaults, ...configValues, ...inputs }
+    return resolveManifestInputs(
+      runner.configDefaults(),
+      this.config.configValues,
+      inputs
+    )
   }
 
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {

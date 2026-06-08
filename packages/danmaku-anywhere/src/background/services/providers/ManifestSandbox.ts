@@ -1,11 +1,15 @@
 import { ManifestRunner, type RunOptions, zManifest } from '@mr-quin/dango'
 import { injectable } from 'inversify'
 import type {
+  ManifestTestDanmakuInput,
   ManifestTestEpisodeRow,
+  ManifestTestEpisodesInput,
+  ManifestTestSearchInput,
   ManifestTestSearchRow,
   ManifestValidationResult,
 } from '@/common/rpcClient/background/types'
 import { extensionFetchLike } from './extensionFetchLike'
+import { resolveManifestInputs } from './manifestInputs'
 
 // An ad-hoc test run executes an unsaved, user-authored manifest: arbitrary
 // JSONata plus credentialed fetch under the extension's host permissions.
@@ -17,32 +21,6 @@ export const TEST_RUN_OPTIONS: RunOptions = {}
 // A danmaku run fans out across segments; tolerate a failed segment so one
 // missing segment doesn't drop the whole preview, mirroring production.
 export const TEST_DANMAKU_RUN_OPTIONS: RunOptions = { continueOnError: true }
-
-interface SearchInput {
-  manifest: unknown
-  keyword: string
-}
-
-interface EpisodesInput {
-  manifest: unknown
-  configValues?: Record<string, unknown>
-  providerIds: Record<string, unknown>
-}
-
-interface DanmakuInput {
-  manifest: unknown
-  configValues?: Record<string, unknown>
-  providerIds: Record<string, unknown>
-  params?: Record<string, unknown>
-}
-
-function stripUndefined(o: Record<string, unknown>): Record<string, unknown> {
-  const out: Record<string, unknown> = {}
-  for (const [k, v] of Object.entries(o)) {
-    if (v !== undefined) out[k] = v
-  }
-  return out
-}
 
 // Executes a not-yet-saved manifest so the editor can preview it. Stateless:
 // every call rebuilds the runner from the posted manifest and touches no store.
@@ -62,16 +40,22 @@ export class ManifestSandbox {
     }
   }
 
-  async search(input: SearchInput): Promise<ManifestTestSearchRow[]> {
+  async search(
+    input: ManifestTestSearchInput
+  ): Promise<ManifestTestSearchRow[]> {
     const runner = this.buildRunner(input.manifest)
-    const inputs = this.resolveInputs(runner, undefined, { q: input.keyword })
+    const inputs = resolveManifestInputs(runner.configDefaults(), undefined, {
+      q: input.keyword,
+    })
     return runner.runSearch<ManifestTestSearchRow[]>(inputs, TEST_RUN_OPTIONS)
   }
 
-  async episodes(input: EpisodesInput): Promise<ManifestTestEpisodeRow[]> {
+  async episodes(
+    input: ManifestTestEpisodesInput
+  ): Promise<ManifestTestEpisodeRow[]> {
     const runner = this.buildRunner(input.manifest)
-    const inputs = this.resolveInputs(
-      runner,
+    const inputs = resolveManifestInputs(
+      runner.configDefaults(),
       input.configValues,
       input.providerIds
     )
@@ -81,31 +65,20 @@ export class ManifestSandbox {
     )
   }
 
-  async danmaku(input: DanmakuInput): Promise<{ commentCount: number }> {
+  async danmaku(
+    input: ManifestTestDanmakuInput
+  ): Promise<{ commentCount: number }> {
     const runner = this.buildRunner(input.manifest)
-    const inputs = this.resolveInputs(runner, input.configValues, {
-      ...input.params,
-      ...input.providerIds,
-    })
+    const inputs = resolveManifestInputs(
+      runner.configDefaults(),
+      input.configValues,
+      { ...input.params, ...input.providerIds }
+    )
     const comments = await runner.runDanmaku<unknown[]>(
       inputs,
       TEST_DANMAKU_RUN_OPTIONS
     )
     return { commentCount: comments.length }
-  }
-
-  // Precedence (low to high): configSchema defaults, user-entered config
-  // values, per-call inputs. Mirrors ManifestProviderService.resolveInputs.
-  private resolveInputs(
-    runner: ManifestRunner,
-    configValues: Record<string, unknown> | undefined,
-    perCall: Record<string, unknown>
-  ): Record<string, unknown> {
-    return {
-      ...runner.configDefaults(),
-      ...stripUndefined(configValues ?? {}),
-      ...perCall,
-    }
   }
 
   private buildRunner(manifest: unknown): ManifestRunner {

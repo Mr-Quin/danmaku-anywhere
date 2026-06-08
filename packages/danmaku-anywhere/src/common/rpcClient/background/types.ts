@@ -164,6 +164,24 @@ export interface ManifestSource {
   kind: 'preinstalled' | 'user'
 }
 
+export interface ManifestTestSearchInput {
+  manifest: unknown
+  keyword: string
+}
+
+export interface ManifestTestEpisodesInput {
+  manifest: unknown
+  configValues?: Record<string, unknown>
+  providerIds: Record<string, unknown>
+}
+
+export interface ManifestTestDanmakuInput {
+  manifest: unknown
+  configValues?: Record<string, unknown>
+  providerIds: Record<string, unknown>
+  params?: Record<string, unknown>
+}
+
 export type BackgroundMethods = {
   iconSet: RPCDef<IconSetDto, void>
   authGetSession: RPCDef<void, AuthSessionState | null>
@@ -217,24 +235,15 @@ export type BackgroundMethods = {
     ManifestValidationResult
   >
   providerTestRunSearch: RPCDef<
-    { manifest: unknown; keyword: string },
+    ManifestTestSearchInput,
     ManifestTestSearchRow[]
   >
   providerTestRunEpisodes: RPCDef<
-    {
-      manifest: unknown
-      configValues?: Record<string, unknown>
-      providerIds: Record<string, unknown>
-    },
+    ManifestTestEpisodesInput,
     ManifestTestEpisodeRow[]
   >
   providerTestRunDanmaku: RPCDef<
-    {
-      manifest: unknown
-      configValues?: Record<string, unknown>
-      providerIds: Record<string, unknown>
-      params?: Record<string, unknown>
-    },
+    ManifestTestDanmakuInput,
     { commentCount: number }
   >
   providerSaveUserManifest: RPCDef<
