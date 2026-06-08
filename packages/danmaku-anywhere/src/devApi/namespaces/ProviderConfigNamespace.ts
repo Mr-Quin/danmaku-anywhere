@@ -10,6 +10,8 @@ export interface ProviderConfigApi {
   set(configs: ProviderConfig[]): Promise<void>
   toggle(id: string, enabled?: boolean): Promise<ProviderConfig>
   reset(): Promise<void>
+  hasSeeded(): Promise<boolean>
+  markSeeded(): Promise<void>
 }
 
 @injectable('Singleton')
@@ -60,6 +62,18 @@ export class ProviderConfigNamespace implements DevNamespace {
         description: 'Reset provider configs to defaults',
         kind: 'write',
         handler: () => this.service.options.set([...defaultProviderConfigs]),
+      }),
+      defineMethod({
+        name: 'hasSeeded',
+        description: 'Whether the preloaded providers have been seeded',
+        kind: 'read',
+        handler: () => this.service.hasSeeded(),
+      }),
+      defineMethod({
+        name: 'markSeeded',
+        description: 'Mark the preloaded providers as seeded',
+        kind: 'write',
+        handler: () => this.service.markSeeded(),
       }),
     ]
   }

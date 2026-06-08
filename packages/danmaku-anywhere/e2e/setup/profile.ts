@@ -45,17 +45,15 @@ export interface TestProfile {
   network?: NetworkMock[]
 }
 
-const SEEDED_FLAG_KEY = 'providerConfigSeeded'
-
 // The extension seeds its preloaded providers on first boot, after the catalog
-// loads, and sets this flag as the last step. Wait for it before rebuilding
-// storage so the seed write can't land on top of the profile's configs. The
-// flag is a definitive completion signal, so wait reliably (the ceiling only
-// guards against a genuinely stuck seed under heavy parallel load).
+// loads, and marks itself seeded as the last step. Wait for that before
+// rebuilding storage so the seed write can't land on top of the profile's
+// configs. The flag is a definitive completion signal, so wait reliably (the
+// ceiling only guards against a genuinely stuck seed under heavy parallel load).
 async function waitForSeeded(da: DaClient): Promise<void> {
   const deadline = Date.now() + 20000
   while (Date.now() < deadline) {
-    if ((await da.storage.get('sync', SEEDED_FLAG_KEY)) === true) {
+    if (await da.providerConfig.hasSeeded()) {
       return
     }
     await new Promise((resolve) => setTimeout(resolve, 50))
@@ -136,7 +134,7 @@ export async function applyProfile(
 
   // The profile is the source of truth, so mark seeding done; a catalog refresh
   // during the test must not re-seed over it.
-  await da.storage.setRaw('sync', SEEDED_FLAG_KEY, true)
+  await da.providerConfig.markSeeded()
 
   if (profile.extensionOptions) {
     await da.extensionOptions.update(profile.extensionOptions)
