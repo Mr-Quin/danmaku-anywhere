@@ -10,8 +10,9 @@ import { expect, test } from '../../setup/fixtures'
  * choice adds a window.
  */
 
-function getWindowCount(context: BrowserContext): Promise<number> {
-  const [worker] = context.serviceWorkers()
+async function getWindowCount(context: BrowserContext): Promise<number> {
+  const [sw] = context.serviceWorkers()
+  const worker = sw ?? (await context.waitForEvent('serviceworker'))
   return worker.evaluate(() => chrome.windows.getAll().then((w) => w.length))
 }
 
