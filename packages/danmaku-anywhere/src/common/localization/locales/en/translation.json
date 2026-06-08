@@ -650,7 +650,30 @@
     },
     "editor": {
       "addItem": "Add",
+      "manifest": {
+        "author": "Author a manifest",
+        "createTitle": "Author manifest",
+        "duplicate": "Duplicate",
+        "editTitle": "Edit manifest",
+        "invalidJson": "Invalid JSON",
+        "invalidManifest": "Manifest does not match the schema",
+        "json": "Manifest JSON",
+        "notFound": "No manifest source is available for this source.",
+        "saved": "Manifest saved",
+        "valid": "Manifest is valid",
+        "viewSource": "View source",
+        "viewTitle": "Manifest source"
+      },
       "name": "Name",
+      "testRun": {
+        "danmakuCount_one": "{{count}} comments fetched",
+        "danmakuCount_other": "{{count}} comments fetched",
+        "episodes": "Episodes (pick one for danmaku)",
+        "keyword": "Search keyword",
+        "results": "Results (pick a season)",
+        "search": "Search",
+        "title": "Test run"
+      },
       "title": {
         "add": "Add Provider",
         "addDanDanPlay": "Add DanDanPlay Compatible Provider",

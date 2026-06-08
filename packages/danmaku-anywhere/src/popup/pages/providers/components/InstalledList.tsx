@@ -1,6 +1,7 @@
 import { arrayMove } from '@dnd-kit/sortable'
 import {
   Add,
+  Code,
   Delete,
   ExpandLess,
   ExpandMore,
@@ -11,6 +12,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
 import { HashAvatar } from '@/common/components/HashAvatar'
+import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
@@ -29,6 +31,7 @@ interface InstalledListProps {
   onDelete: (config: ProviderConfig) => void
   onAddInstance: (manifestId: string) => void
   onAddDefaultInstance: (manifestId: string) => void
+  onViewSource: (manifestId: string) => void
 }
 
 function versionSubtitle(
@@ -51,6 +54,7 @@ export const InstalledList = ({
   onDelete,
   onAddInstance,
   onAddDefaultInstance,
+  onViewSource,
 }: InstalledListProps) => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
@@ -103,22 +107,32 @@ export const InstalledList = ({
     )
   }
 
-  const removeMenu = (config: ProviderConfig) => (
-    <DrilldownMenu
-      BoxProps={{ sx: { display: 'inline' } }}
-      ButtonProps={{ edge: 'end', size: 'small' }}
-      dense
-      items={[
-        {
-          id: 'delete',
-          label: t('common.delete', 'Delete'),
-          onClick: () => onDelete(config),
-          icon: <Delete />,
-          color: 'error',
-        },
-      ]}
-    />
-  )
+  const configMenu = (config: ProviderConfig) => {
+    const items: DAMenuItemConfig[] = []
+    if (manifestById.has(config.manifestId)) {
+      items.push({
+        id: 'view-source',
+        label: t('providers.editor.manifest.viewSource', 'View source'),
+        onClick: () => onViewSource(config.manifestId),
+        icon: <Code />,
+      })
+    }
+    items.push({
+      id: 'delete',
+      label: t('common.delete', 'Delete'),
+      onClick: () => onDelete(config),
+      icon: <Delete />,
+      color: 'error',
+    })
+    return (
+      <DrilldownMenu
+        BoxProps={{ sx: { display: 'inline' } }}
+        ButtonProps={{ edge: 'end', size: 'small' }}
+        dense
+        items={items}
+      />
+    )
+  }
 
   const enableSwitch = (config: ProviderConfig) => (
     <Switch
@@ -159,7 +173,7 @@ export const InstalledList = ({
                 action={
                   <>
                     {enableSwitch(config)}
-                    {removeMenu(config)}
+                    {configMenu(config)}
                   </>
                 }
               />
@@ -177,7 +191,7 @@ export const InstalledList = ({
           }
         )
         const isOpen = !collapsed.has(unit.id)
-        const menuItems = [
+        const menuItems: DAMenuItemConfig[] = [
           {
             id: 'add-instance',
             label: t('providers.installed.addInstance', 'Add instance'),
@@ -185,6 +199,14 @@ export const InstalledList = ({
             icon: <Add />,
           },
         ]
+        if (manifestById.has(unit.manifestId)) {
+          menuItems.push({
+            id: 'view-source',
+            label: t('providers.editor.manifest.viewSource', 'View source'),
+            onClick: () => onViewSource(unit.manifestId),
+            icon: <Code />,
+          })
+        }
         if (!unit.configs.some(isHostedDanDanPlay)) {
           menuItems.push({
             id: 'add-default',
@@ -232,7 +254,7 @@ export const InstalledList = ({
                     action={
                       <>
                         {enableSwitch(config)}
-                        {removeMenu(config)}
+                        {configMenu(config)}
                       </>
                     }
                   />

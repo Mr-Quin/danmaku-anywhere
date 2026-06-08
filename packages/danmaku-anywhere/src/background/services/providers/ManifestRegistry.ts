@@ -195,6 +195,40 @@ export class ManifestRegistry {
     }
   }
 
+  // Persists a user-authored manifest. The id is the manifest's own id, so the
+  // guard reads the store by that id rather than trusting a caller-supplied one.
+  // create rejects any existing id (a user manifest must not shadow a built-in
+  // or another user manifest); update only touches an id already owned by the
+  // user, so a preinstalled manifest can never be edited in place.
+  async saveUserManifest(
+    manifest: unknown,
+    mode: 'create' | 'update'
+  ): Promise<void> {
+    await this.ready
+    const parsed = zManifest.safeParse(manifest)
+    if (!parsed.success) {
+      throw new Error(
+        `invalid manifest: ${JSON.stringify(parsed.error.issues)}`
+      )
+    }
+    const id = parsed.data.id
+    const existing = await this.store.get(id)
+    if (mode === 'create' && existing) {
+      throw new Error(`A manifest with id "${id}" already exists`)
+    }
+    if (mode === 'update' && existing?.kind !== 'user') {
+      throw new Error(`No user manifest with id "${id}" to update`)
+    }
+    await this.store.set(id, { manifest, kind: 'user' })
+    this.runners.set(id, this.buildRunner(parsed.data))
+  }
+
+  // Returns the raw stored manifest JSON (not the parsed runner form) so the
+  // editor can show or duplicate exactly what was imported.
+  getSource(manifestId: string): Promise<ManifestEntry | undefined> {
+    return this.store.get(manifestId)
+  }
+
   private async init(): Promise<void> {
     const record = await this.store.getAll()
     for (const [id, entry] of Object.entries(record)) {

@@ -610,4 +610,80 @@ describe('ManifestRegistry', () => {
     expect(() => registry.getRunner('bad:one')).toThrow()
     expect(registry.list()).toEqual(['good:one'])
   })
+
+  it('saveUserManifest create stores a user manifest and builds its runner', async () => {
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.saveUserManifest(makeManifest('mine:one'), 'create')
+
+    expect(await store.get('mine:one')).toMatchObject({ kind: 'user' })
+    expect(registry.getRunner('mine:one')).toBeDefined()
+  })
+
+  it('saveUserManifest create rejects an id that already exists', async () => {
+    const store = new InMemoryStore({
+      'builtin:one': {
+        manifest: makeManifest('builtin:one'),
+        kind: 'preinstalled',
+      },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(
+      registry.saveUserManifest(makeManifest('builtin:one'), 'create')
+    ).rejects.toThrow(/already exists/)
+    expect(await store.get('builtin:one')).toMatchObject({
+      kind: 'preinstalled',
+    })
+  })
+
+  it('saveUserManifest update overwrites an existing user manifest', async () => {
+    const store = new InMemoryStore({
+      'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.saveUserManifest(
+      makeManifest('mine:one', 1, '2.0.0'),
+      'update'
+    )
+
+    expect((await store.get('mine:one'))?.manifest).toMatchObject({
+      version: '2.0.0',
+    })
+  })
+
+  it('saveUserManifest update refuses a preinstalled id', async () => {
+    const store = new InMemoryStore({
+      'builtin:one': {
+        manifest: makeManifest('builtin:one'),
+        kind: 'preinstalled',
+      },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(
+      registry.saveUserManifest(makeManifest('builtin:one'), 'update')
+    ).rejects.toThrow(/no user manifest/i)
+  })
+
+  it('getSource returns the raw stored manifest and kind', async () => {
+    const raw = makeManifest('mine:one')
+    const store = new InMemoryStore({
+      'mine:one': { manifest: raw, kind: 'user' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(await registry.getSource('mine:one')).toEqual({
+      manifest: raw,
+      kind: 'user',
+    })
+    expect(await registry.getSource('missing')).toBeUndefined()
+  })
 })

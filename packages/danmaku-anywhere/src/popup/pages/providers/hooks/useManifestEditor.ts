@@ -1,0 +1,52 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { sourceQueryKeys } from '@/common/queries/queryKeys'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
+
+export const useManifestSource = (manifestId?: string) => {
+  return useQuery({
+    enabled: manifestId !== undefined,
+    queryFn: () =>
+      chromeRpcClient.providerGetManifestSource({
+        manifestId: manifestId as string,
+      }),
+    select: (res) => res.data,
+    queryKey: sourceQueryKeys.manifestSource(manifestId ?? ''),
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useSaveUserManifest = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: { manifest: unknown; mode: 'create' | 'update' }) =>
+      chromeRpcClient.providerSaveUserManifest(input),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: sourceQueryKeys.manifestList(),
+      })
+    },
+  })
+}
+
+export const useManifestTestRun = () => {
+  const search = useMutation({
+    mutationFn: async (input: { manifest: unknown; keyword: string }) =>
+      (await chromeRpcClient.providerTestRunSearch(input)).data,
+  })
+  const episodes = useMutation({
+    mutationFn: async (input: {
+      manifest: unknown
+      configValues?: Record<string, unknown>
+      providerIds: Record<string, unknown>
+    }) => (await chromeRpcClient.providerTestRunEpisodes(input)).data,
+  })
+  const danmaku = useMutation({
+    mutationFn: async (input: {
+      manifest: unknown
+      configValues?: Record<string, unknown>
+      providerIds: Record<string, unknown>
+      params?: Record<string, unknown>
+    }) => (await chromeRpcClient.providerTestRunDanmaku(input)).data,
+  })
+  return { search, episodes, danmaku }
+}

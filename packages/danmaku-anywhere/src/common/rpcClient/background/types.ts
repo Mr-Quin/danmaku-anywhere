@@ -133,6 +133,37 @@ export interface ManifestUpdate {
   toVersion: string
 }
 
+export interface ManifestValidationIssue {
+  path: string
+  message: string
+}
+
+export type ManifestValidationResult =
+  | { valid: true }
+  | { valid: false; issues: ManifestValidationIssue[] }
+
+export interface ManifestTestSearchRow {
+  providerIds: Record<string, unknown>
+  indexedId: string
+  title: string
+  type?: string
+  imageUrl?: string
+  episodeCount?: number
+}
+
+export interface ManifestTestEpisodeRow {
+  providerIds: Record<string, unknown>
+  indexedId: string
+  title: string
+  episodeNumber?: number | string
+  params?: Record<string, unknown>
+}
+
+export interface ManifestSource {
+  manifest: unknown
+  kind: 'preinstalled' | 'user'
+}
+
 export type BackgroundMethods = {
   iconSet: RPCDef<IconSetDto, void>
   authGetSession: RPCDef<void, AuthSessionState | null>
@@ -181,6 +212,39 @@ export type BackgroundMethods = {
   providerRefreshCatalog: RPCDef<{ locale?: string }, ProviderManifestList>
   providerGetPendingUpdates: RPCDef<void, ManifestUpdate[]>
   providerApplyUpdates: RPCDef<{ manifestIds: string[] }, void>
+  providerValidateManifest: RPCDef<
+    { manifest: unknown },
+    ManifestValidationResult
+  >
+  providerTestRunSearch: RPCDef<
+    { manifest: unknown; keyword: string },
+    ManifestTestSearchRow[]
+  >
+  providerTestRunEpisodes: RPCDef<
+    {
+      manifest: unknown
+      configValues?: Record<string, unknown>
+      providerIds: Record<string, unknown>
+    },
+    ManifestTestEpisodeRow[]
+  >
+  providerTestRunDanmaku: RPCDef<
+    {
+      manifest: unknown
+      configValues?: Record<string, unknown>
+      providerIds: Record<string, unknown>
+      params?: Record<string, unknown>
+    },
+    { commentCount: number }
+  >
+  providerSaveUserManifest: RPCDef<
+    { manifest: unknown; mode: 'create' | 'update' },
+    void
+  >
+  providerGetManifestSource: RPCDef<
+    { manifestId: string },
+    ManifestSource | null
+  >
   fetchImage: RPCDef<{ src: string }, string | null>
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>

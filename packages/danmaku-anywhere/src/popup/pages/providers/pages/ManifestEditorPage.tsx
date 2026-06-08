@@ -1,0 +1,250 @@
+import type { ConfigSchema } from '@mr-quin/dango'
+import {
+  Alert,
+  AlertTitle,
+  Box,
+  Button,
+  CircularProgress,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
+import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useLocation } from 'react-router'
+import { useToast } from '@/common/components/Toast/toastStore'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import type { ManifestValidationIssue } from '@/common/rpcClient/background/types'
+import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
+import { useGoBack } from '@/popup/hooks/useGoBack'
+import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
+import { ManifestTestRunPanel } from '../components/ManifestTestRunPanel'
+import {
+  useManifestSource,
+  useSaveUserManifest,
+} from '../hooks/useManifestEditor'
+import {
+  parseManifestJson,
+  STARTER_MANIFEST,
+  stringifyManifest,
+} from '../manifestEditor'
+
+type EditorMode = 'create' | 'edit' | 'view'
+
+interface EditorState {
+  manifestId?: string
+  duplicate?: boolean
+}
+
+interface ManifestEditorProps {
+  initialText: string
+  initialMode: EditorMode
+}
+
+function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
+  const { t } = useTranslation()
+  const toast = useToast.use.toast()
+  const goBack = useGoBack()
+  const save = useSaveUserManifest()
+
+  const [text, setText] = useState(initialText)
+  const [forked, setForked] = useState(false)
+  const [issues, setIssues] = useState<ManifestValidationIssue[]>([])
+
+  const mode = forked ? 'create' : initialMode
+  const readOnly = mode === 'view'
+
+  const parsed = useMemo(() => parseManifestJson(text), [text])
+
+  useEffect(() => {
+    if (!parsed.ok) {
+      setIssues([])
+      return
+    }
+    let cancelled = false
+    const handle = setTimeout(async () => {
+      try {
+        const res = await chromeRpcClient.providerValidateManifest({
+          manifest: parsed.value,
+        })
+        if (!cancelled) {
+          setIssues(res.data.valid ? [] : res.data.issues)
+        }
+      } catch {
+        if (!cancelled) setIssues([])
+      }
+    }, 400)
+    return () => {
+      cancelled = true
+      clearTimeout(handle)
+    }
+  }, [parsed])
+
+  const isValid = parsed.ok && issues.length === 0
+  const configSchema = parsed.ok
+    ? (parsed.value as { configSchema?: ConfigSchema }).configSchema
+    : undefined
+
+  const title = () => {
+    if (mode === 'view') {
+      return t('providers.editor.manifest.viewTitle', 'Manifest source')
+    }
+    if (mode === 'edit') {
+      return t('providers.editor.manifest.editTitle', 'Edit manifest')
+    }
+    return t('providers.editor.manifest.createTitle', 'Author manifest')
+  }
+
+  const handleSave = () => {
+    if (!parsed.ok) {
+      return
+    }
+    save.mutate(
+      { manifest: parsed.value, mode: mode === 'edit' ? 'update' : 'create' },
+      {
+        onSuccess: () => {
+          toast.success(t('providers.editor.manifest.saved', 'Manifest saved'))
+          goBack()
+        },
+        onError: (error) => toast.error(error.message),
+      }
+    )
+  }
+
+  return (
+    <OptionsPageLayout>
+      <OptionsPageToolBar title={title()} onGoBack={goBack} />
+      <Box sx={{ p: 2 }}>
+        <Stack direction="column" spacing={2}>
+          <TextField
+            label={t('providers.editor.manifest.json', 'Manifest JSON')}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            multiline
+            minRows={12}
+            fullWidth
+            slotProps={{
+              input: {
+                readOnly,
+                sx: { fontFamily: 'monospace', fontSize: 13 },
+              },
+            }}
+          />
+
+          {!parsed.ok ? (
+            <Alert severity="error">
+              <AlertTitle>
+                {t('providers.editor.manifest.invalidJson', 'Invalid JSON')}
+              </AlertTitle>
+              {parsed.error}
+            </Alert>
+          ) : null}
+
+          {parsed.ok && issues.length > 0 ? (
+            <Alert severity="warning">
+              <AlertTitle>
+                {t(
+                  'providers.editor.manifest.invalidManifest',
+                  'Manifest does not match the schema'
+                )}
+              </AlertTitle>
+              <Stack component="ul" sx={{ m: 0, pl: 2 }}>
+                {issues.map((issue) => (
+                  <li key={`${issue.path}:${issue.message}`}>
+                    {issue.path ? `${issue.path}: ` : ''}
+                    {issue.message}
+                  </li>
+                ))}
+              </Stack>
+            </Alert>
+          ) : null}
+
+          {isValid ? (
+            <Typography variant="body2" color="success.main">
+              {t('providers.editor.manifest.valid', 'Manifest is valid')}
+            </Typography>
+          ) : null}
+
+          <Stack direction="row" spacing={1}>
+            {readOnly ? (
+              <Button variant="outlined" onClick={() => setForked(true)}>
+                {t('providers.editor.manifest.duplicate', 'Duplicate')}
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                onClick={handleSave}
+                disabled={!parsed.ok || save.isPending}
+                startIcon={
+                  save.isPending ? <CircularProgress size={16} /> : undefined
+                }
+              >
+                {t('common.save', 'Save')}
+              </Button>
+            )}
+          </Stack>
+
+          {!readOnly && isValid ? (
+            <ManifestTestRunPanel
+              key={JSON.stringify(configSchema ?? null)}
+              manifest={parsed.value}
+              configSchema={configSchema}
+            />
+          ) : null}
+        </Stack>
+      </Box>
+    </OptionsPageLayout>
+  )
+}
+
+export const ManifestEditorPage = () => {
+  const { t } = useTranslation()
+  const location = useLocation()
+  const goBack = useGoBack()
+  const { manifestId, duplicate } = (location.state ?? {}) as EditorState
+
+  const sourceQuery = useManifestSource(manifestId)
+
+  if (sourceQuery.isLoading) {
+    return (
+      <OptionsPageLayout>
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+          <CircularProgress />
+        </Box>
+      </OptionsPageLayout>
+    )
+  }
+
+  if (!manifestId) {
+    return (
+      <ManifestEditor initialText={STARTER_MANIFEST} initialMode="create" />
+    )
+  }
+
+  const source = sourceQuery.data
+  if (!source) {
+    return (
+      <OptionsPageLayout>
+        <OptionsPageToolBar
+          title={t('providers.editor.manifest.viewTitle', 'Manifest source')}
+          onGoBack={goBack}
+        />
+        <Box sx={{ p: 2 }}>
+          <Typography color="text.secondary">
+            {t(
+              'providers.editor.manifest.notFound',
+              'No manifest source is available for this source.'
+            )}
+          </Typography>
+        </Box>
+      </OptionsPageLayout>
+    )
+  }
+
+  const initialText = stringifyManifest(source.manifest)
+  if (duplicate) {
+    return <ManifestEditor initialText={initialText} initialMode="create" />
+  }
+  const mode: EditorMode = source.kind === 'user' ? 'edit' : 'view'
+  return <ManifestEditor initialText={initialText} initialMode={mode} />
+}

@@ -73,6 +73,8 @@ export const sourceQueryKeys = {
       ? ([{ scope: 'source', kind: 'manifestList' }] as const)
       : ([{ scope: 'source', kind: 'manifestList', locale }] as const),
   pendingUpdates: () => [{ scope: 'source', kind: 'pendingUpdates' }] as const,
+  manifestSource: (manifestId: string) =>
+    [{ scope: 'source', kind: 'manifestSource', manifestId }] as const,
 }
 
 export const tabQueryKeys = {

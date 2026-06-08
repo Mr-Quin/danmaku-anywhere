@@ -8,6 +8,7 @@ import {
 } from '@mui/material'
 import { type ReactElement, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Outlet, useNavigate } from 'react-router'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { TabBody } from '@/common/components/layout/TabBody'
 import { TabLayout } from '@/common/components/layout/TabLayout'
@@ -41,6 +42,7 @@ import { ProviderEditor } from './ProviderEditor'
 
 export const ProvidersPage = (): ReactElement => {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const toast = useToast.use.toast()
   const dialog = useDialog()
   const { configs } = useProviderConfig()
@@ -96,6 +98,14 @@ export const ProvidersPage = (): ReactElement => {
   const handleCloseEditor = () => {
     setEditingProvider(null)
     setMode(null)
+  }
+
+  const handleAuthorManifest = () => {
+    navigate('editor')
+  }
+
+  const handleViewSource = (manifestId: string) => {
+    navigate('editor', { state: { manifestId } })
   }
 
   const createConfig = (config: ProviderConfig) => {
@@ -172,6 +182,7 @@ export const ProvidersPage = (): ReactElement => {
             <ProviderAddMenu
               onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
               onAddMacCmsProvider={handleAddMacCmsProvider}
+              onAuthorManifest={handleAuthorManifest}
             />
           )}
         </TabToolbar>
@@ -186,6 +197,7 @@ export const ProvidersPage = (): ReactElement => {
               onDelete={handleDelete}
               onAddInstance={handleAddInstance}
               onAddDefaultInstance={handleAddDefaultInstance}
+              onViewSource={handleViewSource}
             />
           ) : (
             <Stack direction="column" sx={{ pb: 1.5 }}>
@@ -244,11 +256,13 @@ export const ProvidersPage = (): ReactElement => {
                 onDelete={handleDelete}
                 onAddInstance={handleAddInstance}
                 onAddDefaultInstance={handleAddDefaultInstance}
+                onViewSource={handleViewSource}
               />
               <CatalogSection
                 filter={filter}
                 installedManifestIds={installedManifestIds}
                 onImport={handleImport}
+                onViewSource={handleViewSource}
                 isImporting={create.isPending}
               />
             </Stack>
@@ -263,6 +277,7 @@ export const ProvidersPage = (): ReactElement => {
           onClose={handleCloseEditor}
         />
       )}
+      <Outlet />
     </>
   )
 }

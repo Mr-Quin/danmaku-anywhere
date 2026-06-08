@@ -629,7 +629,29 @@
     },
     "editor": {
       "addItem": "添加",
+      "manifest": {
+        "author": "编写清单",
+        "createTitle": "编写清单",
+        "duplicate": "复制",
+        "editTitle": "编辑清单",
+        "invalidJson": "JSON 无效",
+        "invalidManifest": "清单不符合架构",
+        "json": "清单 JSON",
+        "notFound": "此来源没有可用的清单源码。",
+        "saved": "清单已保存",
+        "valid": "清单有效",
+        "viewSource": "查看源码",
+        "viewTitle": "清单源码"
+      },
       "name": "名称",
+      "testRun": {
+        "danmakuCount_other": "已获取 {{count}} 条弹幕",
+        "episodes": "剧集（选择一集获取弹幕）",
+        "keyword": "搜索关键词",
+        "results": "结果（选择一个季）",
+        "search": "搜索",
+        "title": "测试运行"
+      },
       "title": {
         "add": "添加弹幕源",
         "addDanDanPlay": "添加弹弹play弹幕源",
