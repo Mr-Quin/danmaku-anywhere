@@ -40,6 +40,7 @@ interface SearchInputProps {
   onSubmit: (value: string) => void
   urlMode?: boolean
   focusToken?: number
+  hasCommittedSearch?: boolean
 }
 
 export function SearchInput({
@@ -48,6 +49,7 @@ export function SearchInput({
   onSubmit,
   urlMode,
   focusToken,
+  hasCommittedSearch,
 }: SearchInputProps) {
   const showHotkey = focusToken !== undefined
   const isMacOs = getOS() === 'MacOS'
@@ -100,7 +102,7 @@ export function SearchInput({
   return (
     <Autocomplete
       freeSolo
-      openOnFocus={historyEnabled}
+      openOnFocus={historyEnabled && !hasCommittedSearch}
       options={filteredEntries}
       filterOptions={(options) => options}
       inputValue={value}
