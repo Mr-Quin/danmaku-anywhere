@@ -173,3 +173,100 @@ export class CrossOriginCapture {
     }
   }
 }
+
+export interface CloneCapture {
+  setup(): Promise<HTMLVideoElement | null>
+  sync(): void
+  dispose(): void
+}
+
+export interface FrameSourceDeps {
+  isOriginClean: (video: HTMLVideoElement) => boolean
+  createCapture: (video: HTMLVideoElement) => CloneCapture
+}
+
+const defaultDeps: FrameSourceDeps = {
+  isOriginClean: isVideoOriginClean,
+  createCapture: (video) => new CrossOriginCapture(video),
+}
+
+// 'taint' = the video is unreadable and recovery failed; the caller should
+// disable. null = nothing to capture yet (still resolving or the loop moved on).
+export type ReadResult = HTMLVideoElement | 'taint' | null
+
+/**
+ * Answers "what element do I read frames from, and is it readable?" for one
+ * video. Probes the live element; on a cross-origin taint it falls back to a
+ * CORS-bypassed clone. The result is cached until the video's src changes or the
+ * source is reset. The probe and clone are injectable so the resolution logic is
+ * testable without a DOM.
+ */
+export class FrameSource {
+  private capture: CloneCapture | null = null
+  private captureEl: HTMLVideoElement | null = null
+  private resolved = false
+  // src the capture was resolved against; a change forces a re-resolve.
+  private resolvedSrc: string | null = null
+
+  constructor(
+    private readonly log: (message: string) => void,
+    private readonly deps: FrameSourceDeps = defaultDeps
+  ) {}
+
+  // isStale lets the caller abort a resolve whose async clone setup outlived the
+  // capture loop (stopped or switched video), so a late clone isn't leaked.
+  async read(
+    video: HTMLVideoElement,
+    isStale: () => boolean
+  ): Promise<ReadResult> {
+    if (this.resolved && this.resolvedSrc !== video.currentSrc) {
+      this.reset()
+    }
+    if (!this.resolved) {
+      const outcome = await this.resolve(video, isStale)
+      if (outcome !== 'ok') {
+        return outcome === 'taint' ? 'taint' : null
+      }
+    }
+    const source = this.captureEl
+    if (!source) {
+      return null
+    }
+    this.capture?.sync()
+    return source
+  }
+
+  reset(): void {
+    this.capture?.dispose()
+    this.capture = null
+    this.captureEl = null
+    this.resolved = false
+    this.resolvedSrc = null
+  }
+
+  private async resolve(
+    video: HTMLVideoElement,
+    isStale: () => boolean
+  ): Promise<'ok' | 'taint' | 'aborted'> {
+    this.resolved = true
+    this.resolvedSrc = video.currentSrc
+    if (this.deps.isOriginClean(video)) {
+      this.captureEl = video
+      return 'ok'
+    }
+    const recovery = this.deps.createCapture(video)
+    const clone = await recovery.setup()
+    if (isStale()) {
+      recovery.dispose()
+      return 'aborted'
+    }
+    if (clone && this.deps.isOriginClean(clone)) {
+      this.capture = recovery
+      this.captureEl = clone
+      this.log('cross-origin video recovered via CORS-bypassed clone')
+      return 'ok'
+    }
+    recovery.dispose()
+    return 'taint'
+  }
+}

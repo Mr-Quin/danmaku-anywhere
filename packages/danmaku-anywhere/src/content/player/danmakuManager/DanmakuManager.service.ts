@@ -19,10 +19,8 @@ import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
 import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayout.service'
 import { RectObserver } from '@/content/player/danmakuManager/RectObserver'
 import { DanmakuDebugOverlayService } from '@/content/player/debugOverlay/DanmakuDebugOverlay.service'
-import {
-  OcclusionService,
-  type OcclusionStatus,
-} from '@/content/player/occlusion/Occlusion.service'
+import { OcclusionService } from '@/content/player/occlusion/Occlusion.service'
+import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.types'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
 
 const OCCLUSION_QUALITY_PRESETS: Record<

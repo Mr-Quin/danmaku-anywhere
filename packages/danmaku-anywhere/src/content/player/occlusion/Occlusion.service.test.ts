@@ -3,11 +3,9 @@ import type { ILogger } from '@/common/Logger'
 import { modelEntrySchema } from '@/common/models/schema'
 import { MockMaskProvider } from './MockMaskProvider'
 import type { IMaskProviderFactory } from './maskProviderFactory'
-import {
-  type OcclusionConfig,
-  OcclusionService,
-  type OcclusionStatus,
-} from './Occlusion.service'
+import { OcclusionService } from './Occlusion.service'
+import type { OcclusionConfig, OcclusionStatus } from './Occlusion.types'
+import type { MaskProvider } from './types'
 
 const peopleModel = modelEntrySchema.parse({
   id: 'people',
@@ -15,6 +13,15 @@ const peopleModel = modelEntrySchema.parse({
   runtime: 'mediapipe',
   delivery: 'bundled',
   inputSize: 256,
+  requiresWebGpu: false,
+})
+
+const animeModel = modelEntrySchema.parse({
+  id: 'anime',
+  label: { en: 'Anime', zh: '动漫' },
+  runtime: 'mediapipe',
+  delivery: 'bundled',
+  inputSize: 512,
   requiresWebGpu: false,
 })
 
@@ -78,6 +85,30 @@ describe('OcclusionService stats', () => {
     expect(service.getStats().debugOverlay).toBe(true)
     service.setDebug(false)
     expect(service.getStats().debugOverlay).toBe(false)
+  })
+})
+
+describe('OcclusionService provider lifecycle', () => {
+  it('rebuilds the provider only when the model descriptor changes', () => {
+    const disposes: Array<() => void> = []
+    const spyFactory: IMaskProviderFactory = () => {
+      const dispose = vi.fn()
+      disposes.push(dispose)
+      return {
+        init: vi.fn().mockResolvedValue(undefined),
+        segment: vi.fn().mockResolvedValue(null),
+        dispose,
+      } as unknown as MaskProvider
+    }
+    const service = new OcclusionService(spyFactory, makeLogger())
+
+    service.configure(makeConfig({ descriptor: peopleModel }))
+    service.configure(makeConfig({ descriptor: peopleModel }))
+    expect(disposes).toHaveLength(1)
+
+    service.configure(makeConfig({ descriptor: animeModel }))
+    expect(disposes).toHaveLength(2)
+    expect(disposes[0]).toHaveBeenCalledTimes(1)
   })
 })
 

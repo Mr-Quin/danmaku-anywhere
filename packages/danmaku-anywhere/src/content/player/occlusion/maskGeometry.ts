@@ -2,6 +2,8 @@ export type Size = { width: number; height: number }
 
 export type Rect = { x: number; y: number; width: number; height: number }
 
+export type Mask = { data: Uint8ClampedArray; width: number; height: number }
+
 export function computeContainRect(content: Size, box: Size): Rect {
   const contentAspect = content.width / content.height
   const boxAspect = box.width / box.height
@@ -36,7 +38,7 @@ export function buildAlphaMask(opts: {
   // The decoded frame's native size, used for object-fit:contain letterboxing.
   // Falls back to maskSize when the segmenter saw the full (un-letterboxed) frame.
   content?: Size
-}): { data: Uint8ClampedArray; width: number; height: number } {
+}): Mask {
   const { category, maskSize, box, isPerson } = opts
   const outputScale = opts.outputScale ?? 1
 

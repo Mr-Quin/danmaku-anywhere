@@ -21,7 +21,7 @@ import { selectBestFrame } from '@/content/controller/danmaku/frame/selectBestFr
 import { useMigrateDanmaku } from '@/content/controller/danmaku/frame/useMigrateDanmaku'
 import { usePreloadNextEpisode } from '@/content/controller/danmaku/frame/usePreloadNextEpisode'
 import { useStore } from '@/content/controller/store/store'
-import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.service'
+import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.types'
 
 const logger = Logger.sub('[FrameManager]')
 const frameRegistry = uiContainer.get(FrameRegistry)

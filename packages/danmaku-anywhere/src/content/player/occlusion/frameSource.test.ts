@@ -20,7 +20,12 @@ vi.mock('@/common/rpcClient/background/client', () => ({
   },
 }))
 
-import { CrossOriginCapture, isVideoOriginClean } from './crossOriginCapture'
+import {
+  type CloneCapture,
+  CrossOriginCapture,
+  FrameSource,
+  isVideoOriginClean,
+} from './frameSource'
 
 type Listener = () => void
 
@@ -313,5 +318,137 @@ describe('CrossOriginCapture.dispose', () => {
 
     expect(clone.remove).toHaveBeenCalledTimes(1)
     expect(removeCorsRule).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('FrameSource', () => {
+  const notStale = () => false
+
+  function fakeClone(): { capture: CloneCapture; cloneEl: HTMLVideoElement } {
+    const cloneEl = asVideo(makeOriginal())
+    const capture: CloneCapture = {
+      setup: vi.fn().mockResolvedValue(cloneEl),
+      sync: vi.fn(),
+      dispose: vi.fn(),
+    }
+    return { capture, cloneEl }
+  }
+
+  function makeSource(deps: {
+    isOriginClean: (v: HTMLVideoElement) => boolean
+    createCapture: () => CloneCapture
+  }): FrameSource {
+    return new FrameSource(() => undefined, {
+      isOriginClean: deps.isOriginClean,
+      createCapture: deps.createCapture,
+    })
+  }
+
+  it('returns the live element when the origin is clean, without a clone', async () => {
+    const video = asVideo(makeOriginal())
+    const createCapture = vi.fn()
+    const source = makeSource({ isOriginClean: () => true, createCapture })
+
+    expect(await source.read(video, notStale)).toBe(video)
+    expect(createCapture).not.toHaveBeenCalled()
+  })
+
+  it('recovers a tainted video via a clean clone', async () => {
+    const video = asVideo(makeOriginal())
+    const { capture, cloneEl } = fakeClone()
+    const source = makeSource({
+      isOriginClean: (v) => v === cloneEl,
+      createCapture: () => capture,
+    })
+
+    expect(await source.read(video, notStale)).toBe(cloneEl)
+    expect(capture.sync).toHaveBeenCalled()
+  })
+
+  it('reports taint and disposes the clone when recovery is not readable', async () => {
+    const video = asVideo(makeOriginal())
+    const { capture } = fakeClone()
+    const source = makeSource({
+      isOriginClean: () => false,
+      createCapture: () => capture,
+    })
+
+    expect(await source.read(video, notStale)).toBe('taint')
+    expect(capture.dispose).toHaveBeenCalled()
+  })
+
+  it('reports taint when clone setup yields nothing', async () => {
+    const video = asVideo(makeOriginal())
+    const capture: CloneCapture = {
+      setup: vi.fn().mockResolvedValue(null),
+      sync: vi.fn(),
+      dispose: vi.fn(),
+    }
+    const source = makeSource({
+      isOriginClean: () => false,
+      createCapture: () => capture,
+    })
+
+    expect(await source.read(video, notStale)).toBe('taint')
+  })
+
+  it('caches the resolved element and syncs the clone on each read', async () => {
+    const video = asVideo(makeOriginal())
+    const { capture, cloneEl } = fakeClone()
+    const createCapture = vi.fn(() => capture)
+    const source = makeSource({
+      isOriginClean: (v) => v === cloneEl,
+      createCapture,
+    })
+
+    await source.read(video, notStale)
+    await source.read(video, notStale)
+
+    expect(createCapture).toHaveBeenCalledTimes(1)
+    expect(capture.sync).toHaveBeenCalledTimes(2)
+  })
+
+  it('re-resolves and disposes the old clone when the src changes', async () => {
+    const original = makeOriginal({ currentSrc: 'http://a/v.webm' })
+    const video = asVideo(original)
+    const first = fakeClone()
+    const second = fakeClone()
+    const captures = [first.capture, second.capture]
+    const clones = [first.cloneEl, second.cloneEl]
+    const source = makeSource({
+      isOriginClean: (v) => clones.includes(v),
+      createCapture: () => captures.shift() as CloneCapture,
+    })
+
+    await source.read(video, notStale)
+    original.currentSrc = 'http://b/v.webm'
+    expect(await source.read(video, notStale)).toBe(second.cloneEl)
+    expect(first.capture.dispose).toHaveBeenCalled()
+  })
+
+  it('aborts and disposes the clone when the read goes stale mid-setup', async () => {
+    const video = asVideo(makeOriginal())
+    const { capture } = fakeClone()
+    const source = makeSource({
+      isOriginClean: () => false,
+      createCapture: () => capture,
+    })
+
+    expect(await source.read(video, () => true)).toBeNull()
+    expect(capture.dispose).toHaveBeenCalled()
+  })
+
+  it('disposes the live clone on reset', async () => {
+    const video = asVideo(makeOriginal())
+    const { capture, cloneEl } = fakeClone()
+    const source = makeSource({
+      isOriginClean: (v) => v === cloneEl,
+      createCapture: () => capture,
+    })
+
+    await source.read(video, notStale)
+    source.reset()
+
+    expect(capture.dispose).toHaveBeenCalled()
   })
 })
