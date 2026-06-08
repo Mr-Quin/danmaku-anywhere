@@ -82,7 +82,9 @@ export class ManifestSandbox {
       inputs,
       TEST_DANMAKU_RUN_OPTIONS
     )
-    return { commentCount: comments.length }
+    // A user danmaku pipeline can emit a non-array output; don't read .length
+    // off it.
+    return { commentCount: Array.isArray(comments) ? comments.length : 0 }
   }
 
   private buildRunner(manifest: unknown): ManifestRunner {

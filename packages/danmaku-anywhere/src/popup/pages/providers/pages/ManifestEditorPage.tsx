@@ -65,16 +65,23 @@ function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
 
   useEffect(() => {
     if (
-      parsed.ok &&
-      typeof parsed.value === 'object' &&
-      parsed.value !== null
+      !parsed.ok ||
+      typeof parsed.value !== 'object' ||
+      parsed.value === null ||
+      Array.isArray(parsed.value)
     ) {
-      setLastValid({
-        value: parsed.value,
-        configSchema: (parsed.value as { configSchema?: ConfigSchema })
-          .configSchema,
-      })
+      return
     }
+    // A half-edited manifest can carry a non-object configSchema; only pass a
+    // real object to the schema-driven form, which would otherwise throw.
+    const rawSchema = (parsed.value as { configSchema?: unknown }).configSchema
+    const configSchema =
+      typeof rawSchema === 'object' &&
+      rawSchema !== null &&
+      !Array.isArray(rawSchema)
+        ? (rawSchema as ConfigSchema)
+        : undefined
+    setLastValid({ value: parsed.value, configSchema })
   }, [parsed])
 
   useEffect(() => {
