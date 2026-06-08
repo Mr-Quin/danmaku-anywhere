@@ -18,7 +18,7 @@ import { expect, test } from '../../setup/fixtures'
  * extension does not respawn after reload, so the case isn't exercisable.
  */
 
-const BUILTIN_PROVIDER_IDS = [
+const PRELOADED_PROVIDER_IDS = [
   PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
   PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
   PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
@@ -53,7 +53,7 @@ test('fresh install: default options seeded, no console errors', async ({
       const providers = await da.providerConfig.list()
       return providers.map((p) => p.id).sort()
     })
-    .toEqual([...BUILTIN_PROVIDER_IDS].sort())
+    .toEqual([...PRELOADED_PROVIDER_IDS].sort())
 
   const providers = await da.providerConfig.list()
   for (const provider of providers) {
@@ -71,7 +71,7 @@ test('fresh install: default options seeded, no console errors', async ({
   )
 
   const popup = await Popup.open(page, extensionId, '/providers')
-  for (const id of BUILTIN_PROVIDER_IDS) {
+  for (const id of PRELOADED_PROVIDER_IDS) {
     await expect(
       popup.providers.row(LOCALIZED_NAMES_BY_ID[id]).first()
     ).toBeVisible()
