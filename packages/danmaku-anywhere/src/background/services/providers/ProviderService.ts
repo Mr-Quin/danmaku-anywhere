@@ -309,8 +309,7 @@ export class ProviderService {
   // manual via the Updates list. Records the check only on a real sync, so
   // "checked Nm ago" never advances on a bare detection. force sends
   // Cache-Control: no-cache on a user-initiated refresh so the backend skips its
-  // edge cache; background and install syncs stay cached. The index is fetched
-  // once and shared across the three steps.
+  // edge cache; background and install syncs stay cached.
   async syncCatalog(force = false): Promise<void> {
     const entries = await this.manifestRegistry.loadCatalog(force)
     if (!entries) {

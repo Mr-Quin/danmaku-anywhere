@@ -88,3 +88,31 @@ export function mockCatalog(
     },
   }
 }
+
+export interface CatalogRequest {
+  isFile: boolean
+  cacheControl: string
+}
+
+// Wraps mockCatalog, recording each request's path kind and Cache-Control so a
+// spec can assert the force-refresh path sends no-cache to the backend.
+export function recordingCatalog(
+  ids: readonly string[],
+  versionOverrides: Record<string, string>,
+  sink: CatalogRequest[]
+): NetworkMock {
+  const base = mockCatalog(ids, versionOverrides)
+  return {
+    pattern: base.pattern,
+    respond: async (route: Route) => {
+      const headers = await route.request().allHeaders()
+      sink.push({
+        isFile: new URL(route.request().url()).pathname.endsWith(
+          '/manifest/file'
+        ),
+        cacheControl: headers['cache-control'] ?? '',
+      })
+      await base.respond(route)
+    },
+  }
+}

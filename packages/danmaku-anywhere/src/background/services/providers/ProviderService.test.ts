@@ -386,6 +386,7 @@ describe('ProviderService.refreshCatalog', () => {
       registry,
       loadCatalog,
       update,
+      getPendingUpdates,
       applyUpdates,
       recordChecked,
     }
@@ -406,32 +407,39 @@ describe('ProviderService.refreshCatalog', () => {
   })
 
   it('forces a no-cache fetch and reuses one index across the sync', async () => {
-    const { service, loadCatalog, update, applyUpdates } = buildForRefresh({
-      pending: [
-        { manifestId: 'iqiyi', fromVersion: '1.0.0', toVersion: '2.0.0' },
-      ],
-      installedManifestIds: [],
-    })
+    const { service, loadCatalog, update, getPendingUpdates, applyUpdates } =
+      buildForRefresh({
+        pending: [
+          { manifestId: 'iqiyi', fromVersion: '1.0.0', toVersion: '2.0.0' },
+        ],
+        installedManifestIds: [],
+      })
 
     await service.refreshCatalog()
 
     expect(loadCatalog).toHaveBeenCalledTimes(1)
     expect(loadCatalog).toHaveBeenCalledWith(true)
     expect(update).toHaveBeenCalledWith(catalogEntries, true)
+    expect(getPendingUpdates).toHaveBeenCalledWith(catalogEntries)
     expect(applyUpdates).toHaveBeenCalledWith(['iqiyi'], catalogEntries, true)
   })
 
   it('a background sync stays cached and reuses one index', async () => {
-    const { service, loadCatalog, update } = buildForRefresh({
-      pending: [],
-      installedManifestIds: [],
-    })
+    const { service, loadCatalog, update, getPendingUpdates, applyUpdates } =
+      buildForRefresh({
+        pending: [
+          { manifestId: 'iqiyi', fromVersion: '1.0.0', toVersion: '2.0.0' },
+        ],
+        installedManifestIds: [],
+      })
 
     await service.syncCatalog()
 
     expect(loadCatalog).toHaveBeenCalledTimes(1)
     expect(loadCatalog).toHaveBeenCalledWith(false)
     expect(update).toHaveBeenCalledWith(catalogEntries, false)
+    expect(getPendingUpdates).toHaveBeenCalledWith(catalogEntries)
+    expect(applyUpdates).toHaveBeenCalledWith(['iqiyi'], catalogEntries, false)
   })
 
   it('does not apply anything when every pending update is installed', async () => {
