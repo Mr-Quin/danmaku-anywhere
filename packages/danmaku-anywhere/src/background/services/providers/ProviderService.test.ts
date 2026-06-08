@@ -466,7 +466,7 @@ describe('ProviderService.refreshCatalog', () => {
     expect(recordChecked).toHaveBeenCalledTimes(1)
   })
 
-  it('does not record a check when the catalog index fetch fails', async () => {
+  function buildForFailedIndex() {
     const recordChecked = vi.fn(async () => {})
     const update = vi.fn(async () => true)
     const getPendingUpdates = vi.fn(async () => [])
@@ -489,10 +489,27 @@ describe('ProviderService.refreshCatalog', () => {
       silentLogger,
       silentExtensionOptions
     )
+    return { service, update, getPendingUpdates, recordChecked }
+  }
 
-    await service.refreshCatalog()
+  it('a user refresh rejects when the catalog index fetch fails', async () => {
+    const { service, update, getPendingUpdates, recordChecked } =
+      buildForFailedIndex()
+
+    await expect(service.refreshCatalog()).rejects.toThrow(
+      'Failed to fetch the manifest catalog'
+    )
 
     expect(update).not.toHaveBeenCalled()
+    expect(getPendingUpdates).not.toHaveBeenCalled()
+    expect(recordChecked).not.toHaveBeenCalled()
+  })
+
+  it('a background sync stays silent when the catalog index fetch fails', async () => {
+    const { service, getPendingUpdates, recordChecked } = buildForFailedIndex()
+
+    await expect(service.syncCatalog()).resolves.toBeUndefined()
+
     expect(getPendingUpdates).not.toHaveBeenCalled()
     expect(recordChecked).not.toHaveBeenCalled()
   })

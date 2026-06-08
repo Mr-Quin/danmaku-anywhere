@@ -313,6 +313,11 @@ export class ProviderService {
   async syncCatalog(force = false): Promise<void> {
     const entries = await this.manifestRegistry.loadCatalog(force)
     if (!entries) {
+      // A user-initiated refresh surfaces the failure so the UI can toast it; a
+      // background sync stays best-effort and silently retries next cycle.
+      if (force) {
+        throw new Error('Failed to fetch the manifest catalog')
+      }
       return
     }
     await this.manifestRegistry.update(entries, force)
