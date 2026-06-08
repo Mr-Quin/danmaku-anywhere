@@ -28,6 +28,7 @@ export function HiddenImportInputs({
         onChange={handleChange}
         accept={[...VALID_EXTENSIONS, '.zip'].join(',')}
         multiple
+        data-testid="danmaku-import-file-input"
       />
       <input
         type="file"
