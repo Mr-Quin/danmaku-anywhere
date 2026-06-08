@@ -59,6 +59,12 @@ Well-named identifiers are the WHAT. Comment only the WHY, and only when WHY is 
 - **Parallel test-only mirror state** (e.g. `__daMountMirror`) must justify itself against asserting on the UI signal directly. Prefer the UI signal. Mirrors are acceptable when the UI signal is genuinely unobservable from Playwright (e.g. cross-frame state not reflected in DOM), but the burden of proof is on the mirror.
 - **`IS_DA_E2E` branches in source.** The flag stays — `e2e` is another runtime env alongside `dev`/`preview`/`prod`, and using it sparingly is fine. But every branch in source needs a one-line comment naming why the e2e path differs.
 
+## Seeding determinism (boot races)
+
+The fixture seeds the manifest store from the default catalog at boot (before the test body runs), and `applyProfile` clears storage. So a spec that seeds a *stale* manifest via `rawStorage` races the boot seed: under load, boot can overwrite your stale seed with the real version, and the spec flakes (the "update available" never appears). Don't seed staleness into storage.
+
+The deterministic pattern for an update-flow spec: seed the store at the manifest's *real* version (`manifestStoreSeed`), and make the catalog advertise a newer one (`mockCatalog(ids, { id: '9.9.9' })`). The boot seed and your seed agree on the real version, so the race is benign; the "available update" comes from the catalog, whose request happens at popup time against the bumped mock. See `e2e/specs/sources/updates.spec.ts`.
+
 ## Baselines
 
 These are enforced by `e2e/setup/fixtures.ts` and apply to every spec by default.
