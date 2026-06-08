@@ -19,6 +19,7 @@ import { DrilldownMenuList } from './DrilldownMenuList'
 
 type DrilldownMenuProps = PropsWithChildren & {
   icon?: ReactNode
+  buttonTestId?: string
   ButtonProps?: IconButtonProps
   BoxProps?: BoxProps
   MenuProps?: Partial<MenuProps>
@@ -37,6 +38,7 @@ export const DrilldownMenu = ({
   MenuProps,
   items,
   icon,
+  buttonTestId = 'drilldown-menu-button',
   dense = false,
   renderButton: renderButtonProp,
 }: DrilldownMenuProps): ReactElement => {
@@ -62,7 +64,7 @@ export const DrilldownMenu = ({
       <IconButton
         id={buttonId}
         onClick={handleClick}
-        data-testid="drilldown-menu-button"
+        data-testid={buttonTestId}
         {...ButtonProps}
       >
         {icon ?? <MoreVert fontSize={ButtonProps?.size} />}

@@ -68,6 +68,7 @@ export const AppToolBar = () => {
         {!isMobile && (
           <DrilldownMenu
             icon={<OpenInNew />}
+            buttonTestId="open-in-new-button"
             ButtonProps={{ edge: 'end', sx: { color: 'inherit' } }}
             items={[
               {

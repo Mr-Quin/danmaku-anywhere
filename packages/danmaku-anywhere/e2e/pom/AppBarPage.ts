@@ -3,12 +3,8 @@ import type { Locator, Page } from '@playwright/test'
 export class AppBarPage {
   constructor(private readonly page: Page) {}
 
-  // The mount tab has its own drilldown toolbar, so scope to the app bar banner
-  // to keep this button unambiguous.
   private openInNewButton(): Locator {
-    return this.page
-      .getByRole('banner')
-      .locator('[data-testid="drilldown-menu-button"]')
+    return this.page.getByTestId('open-in-new-button')
   }
 
   async openOpenInNewMenu(): Promise<void> {
