@@ -17,6 +17,13 @@ import type {
   DanmakuFetchRequest,
 } from '@/common/danmaku/dto'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import { toManifestLocale } from '@/common/localization/language'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import {
+  AUTO_IMPORT_PROVIDERS,
+  autoImportToProviderConfig,
+} from '@/common/options/providerConfig/constant'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import type {
   ProviderLoginStatus,
@@ -57,7 +64,9 @@ export class ProviderService {
     private danmakuProviderFactory: IDanmakuProviderFactory,
     @inject(ManifestRegistry)
     private manifestRegistry: ManifestRegistry,
-    @inject(LoggerSymbol) logger: ILogger
+    @inject(LoggerSymbol) logger: ILogger,
+    @inject(ExtensionOptionsService)
+    private extensionOptions: ExtensionOptionsService
   ) {
     invariant(
       isServiceWorker(),
@@ -273,14 +282,21 @@ export class ProviderService {
     }
   }
 
-  // Seed the catalog on install. The periodic refresh is scheduled by
-  // AlarmManager, which calls syncCatalog when the alarm fires.
   setup(): void {
-    chrome.runtime.onInstalled.addListener(() => {
-      this.syncCatalog().catch((e) => {
-        this.logger.error('Catalog sync failed:', e)
+    chrome.runtime.onInstalled.addListener((details) => {
+      return this.onInstalled(details.reason).catch((e) => {
+        this.logger.error('Install handling failed:', e)
       })
     })
+  }
+
+  private async onInstalled(reason: string): Promise<void> {
+    if (reason === 'update') {
+      // Lock the flag for an existing install so its configs are never
+      // re-seeded, even if the user has deleted them all.
+      await this.providerConfigService.markSeeded()
+    }
+    await this.syncCatalog()
   }
 
   async refreshCatalog(locale?: string): Promise<ProviderManifestList> {
@@ -313,6 +329,33 @@ export class ProviderService {
       }
     }
     await this.manifestRegistry.recordChecked()
+    await this.seedDefaultProviders()
+  }
+
+  // Seed the preloaded configs once, after the catalog loads so each name comes
+  // from its manifest. Skips entirely until every preloaded manifest is present
+  // so a transient partial fetch never seeds a subset and then locks.
+  async seedDefaultProviders(): Promise<void> {
+    if (await this.providerConfigService.hasSeeded()) {
+      return
+    }
+    await this.manifestRegistry.ready
+    const { lang } = await this.extensionOptions.get()
+    const names = new Map(
+      this.manifestRegistry
+        .listManifests(toManifestLocale(lang))
+        .map((m) => [m.id, m.name])
+    )
+    const configs: ProviderConfig[] = []
+    for (const entry of AUTO_IMPORT_PROVIDERS) {
+      const name = names.get(entry.manifestId)
+      if (name === undefined) {
+        return
+      }
+      configs.push(autoImportToProviderConfig(entry, name))
+    }
+    await this.providerConfigService.options.set(configs)
+    await this.providerConfigService.markSeeded()
   }
 
   // Surfaces the host-relevant subset of a manifest so the popup can render

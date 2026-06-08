@@ -110,7 +110,7 @@ export const ProvidersPage = (): ReactElement => {
   }
 
   const handleImport = (manifest: ProviderManifestInfo) => {
-    const seeded = createDefaultProviderConfig(manifest.id)
+    const seeded = createDefaultProviderConfig(manifest.id, manifest.name)
     if (seeded) {
       createConfig(seeded)
       return
@@ -125,7 +125,11 @@ export const ProvidersPage = (): ReactElement => {
   }
 
   const handleAddDefaultInstance = (manifestId: string) => {
-    const seeded = createDefaultProviderConfig(manifestId)
+    const manifest = manifestById.get(manifestId)
+    if (!manifest) {
+      return
+    }
+    const seeded = createDefaultProviderConfig(manifestId, manifest.name)
     if (seeded) {
       createConfig(seeded)
     }

@@ -37,6 +37,10 @@ export class DaClient {
       ] as const),
     reset: (): Promise<void> =>
       this.sw.evaluate(() => self.__da.providerConfig.reset()),
+    hasSeeded: (): Promise<boolean> =>
+      this.sw.evaluate(() => self.__da.providerConfig.hasSeeded()),
+    markSeeded: (): Promise<void> =>
+      this.sw.evaluate(() => self.__da.providerConfig.markSeeded()),
   }
 
   storage = {

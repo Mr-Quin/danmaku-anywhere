@@ -9,9 +9,10 @@ import {
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { isServiceWorker } from '@/common/utils/utils'
-import { defaultProviderConfigs } from './constant'
 import {
+  defaultProviderConfigs,
   ensureBuiltinProviders,
   migrateBuiltinPrefixedProviderIds,
   migrateDanDanPlayApiBaseUrl,
@@ -25,6 +26,13 @@ export class ProviderConfigService implements IStoreService {
   public readonly name = 'providerConfig'
   public readonly options: OptionsService<ProviderConfig[]>
 
+  // Stored in sync alongside the configs so a second signed-in device reads the
+  // same flag and does not re-seed the shared store.
+  private readonly seededFlag = new ExtStorageService<boolean>(
+    'providerConfigSeeded',
+    { storageType: 'sync' }
+  )
+
   constructor(
     @inject(LoggerSymbol)
     private readonly logger: ILogger,
@@ -33,7 +41,8 @@ export class ProviderConfigService implements IStoreService {
   ) {
     this.options = this.optionServiceFactory<ProviderConfig[]>(
       'providerConfig',
-      defaultProviderConfigs,
+      // Fresh installs start empty and are seeded after the catalog loads.
+      [],
       this.logger
     )
       .version(2, {
@@ -78,6 +87,15 @@ export class ProviderConfigService implements IStoreService {
         },
       })
   }
+
+  async hasSeeded(): Promise<boolean> {
+    return (await this.seededFlag.read()) === true
+  }
+
+  async markSeeded(): Promise<void> {
+    await this.seededFlag.set(true)
+  }
+
   async isIdUnique(id: string, excludeId?: string): Promise<boolean> {
     const configs = await this.options.get()
     return !configs.some((item) => item.id === id && item.id !== excludeId)
