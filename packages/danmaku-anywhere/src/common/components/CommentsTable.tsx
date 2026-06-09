@@ -145,17 +145,23 @@ export const CommentsTable = ({
   const [hoverRow, setHoverRow] = useState<number>()
   const [filter, setFilter] = useState('')
 
-  const timeOf = useMemo(() => {
-    const map = new Map<CommentEntity, number>()
+  const { validComments, timeOf } = useMemo(() => {
+    const timeByComment = new Map<CommentEntity, number>()
+    const valid: CommentEntity[] = []
     for (const c of comments) {
       const options = parseCommentEntityP(c.p)
-      if (options) map.set(c, options.time)
+      if (!options) continue
+      timeByComment.set(c, options.time)
+      valid.push(c)
     }
-    return (c: CommentEntity) => map.get(c) ?? 0
+    return {
+      validComments: valid,
+      timeOf: (c: CommentEntity) => timeByComment.get(c) ?? 0,
+    }
   }, [comments])
 
   const { decisionByComment, headLabelByIndex } = useMemo(() => {
-    const inTimeOrder = comments.toSorted((a, b) => timeOf(a) - timeOf(b))
+    const inTimeOrder = validComments.toSorted((a, b) => timeOf(a) - timeOf(b))
     const { decisions } = compile(
       inTimeOrder.map((c) => ({ text: c.m, time: timeOf(c) })),
       {
@@ -174,7 +180,7 @@ export const CommentsTable = ({
     })
     return { decisionByComment, headLabelByIndex }
   }, [
-    comments,
+    validComments,
     timeOf,
     danmakuOptions.filters,
     danmakuOptions.collapse,
@@ -183,7 +189,7 @@ export const CommentsTable = ({
 
   const filteredComments = useMemo(() => {
     const keyword = filter.trim().toLowerCase()
-    const withDecision = comments.map((c) => ({
+    const withDecision = validComments.map((c) => ({
       comment: c,
       decision: decisionByComment.get(c) ?? ({ kind: 'normal' } as Decision),
     }))
@@ -191,7 +197,7 @@ export const CommentsTable = ({
     return withDecision.filter(({ comment }) =>
       comment.m.toLowerCase().includes(keyword)
     )
-  }, [comments, decisionByComment, filter])
+  }, [validComments, decisionByComment, filter])
 
   const sortedComments = useMemo(() => {
     return match(orderBy)
