@@ -33,6 +33,7 @@ interface InstalledListProps {
   onAddInstance: (manifestId: string) => void
   onAddDefaultInstance: (manifestId: string) => void
   onViewSource: (manifestId: string) => void
+  onDeleteManifest: (manifestId: string) => void
 }
 
 function versionSubtitle(
@@ -56,6 +57,7 @@ export const InstalledList = ({
   onAddInstance,
   onAddDefaultInstance,
   onViewSource,
+  onDeleteManifest,
 }: InstalledListProps) => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
@@ -120,10 +122,12 @@ export const InstalledList = ({
         icon: <Code />,
       })
     }
+    const isUser = manifestById.get(config.manifestId)?.kind === 'user'
     items.push({
       id: 'delete',
       label: t('common.delete', 'Delete'),
-      onClick: () => onDelete(config),
+      onClick: () =>
+        isUser ? onDeleteManifest(config.manifestId) : onDelete(config),
       icon: <Delete />,
       color: 'error',
     })

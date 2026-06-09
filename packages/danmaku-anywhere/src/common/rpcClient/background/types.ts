@@ -256,6 +256,7 @@ export type BackgroundMethods = {
     { manifestId: string },
     ManifestSource | null
   >
+  providerDeleteUserManifest: RPCDef<{ manifestId: string }, void>
   fetchImage: RPCDef<{ src: string }, string | null>
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>

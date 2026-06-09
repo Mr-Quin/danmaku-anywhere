@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { sourceQueryKeys } from '@/common/queries/queryKeys'
+import { sourceQueryKeys, storageQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type {
   ManifestTestDanmakuInput,
@@ -31,6 +31,22 @@ export const useSaveUserManifest = () => {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: sourceQueryKeys.manifestList(),
+      })
+    },
+  })
+}
+
+export const useDeleteUserManifest = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (manifestId: string) =>
+      chromeRpcClient.providerDeleteUserManifest({ manifestId }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: sourceQueryKeys.manifestList(),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: storageQueryKeys.external('sync', ['providerConfig']),
       })
     },
   })

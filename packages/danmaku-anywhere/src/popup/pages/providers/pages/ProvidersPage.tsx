@@ -37,6 +37,7 @@ import { NeedsAttentionCallout } from '../components/NeedsAttentionCallout'
 import { ProviderAddMenu } from '../components/ProviderAddMenu'
 import { SectionHeader } from '../components/SectionHeader'
 import { UpdatesSection } from '../components/UpdatesSection'
+import { useDeleteUserManifest } from '../hooks/useManifestEditor'
 import { useManifestList } from '../hooks/useManifestList'
 import { ProviderEditor } from './ProviderEditor'
 
@@ -47,6 +48,7 @@ export const ProvidersPage = (): ReactElement => {
   const dialog = useDialog()
   const { configs } = useProviderConfig()
   const { create, remove } = useEditProviderConfig()
+  const deleteManifest = useDeleteUserManifest()
   const { data: manifestData } = useManifestList()
   const [mode, setMode] = useState<'add' | 'edit' | null>(null)
   const [filter, setFilter] = useState('')
@@ -170,6 +172,29 @@ export const ProvidersPage = (): ReactElement => {
     })
   }
 
+  const handleDeleteManifest = (manifestId: string) => {
+    const name = manifestById.get(manifestId)?.name ?? manifestId
+    dialog.delete({
+      title: t('providers.delete.manifestTitle', 'Delete custom source'),
+      content: t(
+        'providers.delete.manifestMessage',
+        'Delete "{{name}}"? This removes the manifest and its instances; saved danmaku for it can no longer be refreshed.',
+        { name }
+      ),
+      confirmText: t('common.delete', 'Delete'),
+      onConfirm: async () => {
+        await deleteManifest.mutateAsync(manifestId, {
+          onSuccess: () => {
+            toast.success(t('providers.alert.deleted', 'Provider deleted'))
+          },
+          onError: (error) => {
+            toast.error(error.message)
+          },
+        })
+      },
+    })
+  }
+
   return (
     <>
       <TabLayout>
@@ -198,6 +223,7 @@ export const ProvidersPage = (): ReactElement => {
               onAddInstance={handleAddInstance}
               onAddDefaultInstance={handleAddDefaultInstance}
               onViewSource={handleViewSource}
+              onDeleteManifest={handleDeleteManifest}
             />
           ) : (
             <Stack direction="column" sx={{ pb: 1.5 }}>
@@ -257,11 +283,13 @@ export const ProvidersPage = (): ReactElement => {
                 onAddInstance={handleAddInstance}
                 onAddDefaultInstance={handleAddDefaultInstance}
                 onViewSource={handleViewSource}
+                onDeleteManifest={handleDeleteManifest}
               />
               <CatalogSection
                 filter={filter}
                 installedManifestIds={installedManifestIds}
                 onImport={handleImport}
+                onDeleteManifest={handleDeleteManifest}
                 isImporting={create.isPending}
               />
             </Stack>

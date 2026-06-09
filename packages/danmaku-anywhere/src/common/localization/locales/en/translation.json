@@ -645,6 +645,8 @@
       "version": "v{{version}}"
     },
     "delete": {
+      "manifestMessage": "Delete \"{{name}}\"? This removes the manifest and its instances; saved danmaku for it can no longer be refreshed.",
+      "manifestTitle": "Delete custom source",
       "message": "Are you sure you want to delete \"{{name}}\"? Once a provider is deleted, the season and episodes associated with it will no longer be able to be refreshed.",
       "title": "Delete Provider"
     },

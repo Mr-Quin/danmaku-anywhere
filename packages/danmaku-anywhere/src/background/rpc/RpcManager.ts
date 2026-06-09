@@ -393,6 +393,23 @@ export class RpcManager {
 
           void invalidateContentScriptData(sender.tab?.id)
         },
+        providerDeleteUserManifest: async ({ manifestId }, sender) => {
+          const source = await this.manifestRegistry.getSource(manifestId)
+          if (source?.kind !== 'user') {
+            throw new RpcException('Only user manifests can be deleted')
+          }
+          // Same semantics as deleting each config: seasons and episodes stay
+          // orphaned-but-viewable, bookmarks go.
+          const configs = await this.providerConfigService.getAll()
+          for (const config of configs) {
+            if (config.manifestId === manifestId) {
+              await this.providerConfigService.deleteFromStorage(config.id)
+              await this.bookmarkService.deleteByProviderConfigId(config.id)
+            }
+          }
+          await this.manifestRegistry.unregister(manifestId)
+          void invalidateContentScriptData(sender.tab?.id)
+        },
         backupExport: async () => {
           return this.backupService.getBackupData()
         },

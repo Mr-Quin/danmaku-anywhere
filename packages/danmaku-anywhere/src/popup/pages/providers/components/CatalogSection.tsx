@@ -1,4 +1,4 @@
-import { Refresh } from '@mui/icons-material'
+import { Delete, Refresh } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -21,6 +21,7 @@ interface CatalogSectionProps {
   filter: string
   installedManifestIds: Set<string>
   onImport: (manifest: ProviderManifestInfo) => void
+  onDeleteManifest: (manifestId: string) => void
   isImporting: boolean
 }
 
@@ -51,6 +52,7 @@ export const CatalogSection = ({
   filter,
   installedManifestIds,
   onImport,
+  onDeleteManifest,
   isImporting,
 }: CatalogSectionProps) => {
   const { t } = useTranslation()
@@ -105,14 +107,28 @@ export const CatalogSection = ({
                 version: manifest.version,
               })}
               action={
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => onImport(manifest)}
-                  disabled={isImporting}
-                >
-                  {t('providers.catalog.import', 'Import')}
-                </Button>
+                <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => onImport(manifest)}
+                    disabled={isImporting}
+                  >
+                    {t('providers.catalog.import', 'Import')}
+                  </Button>
+                  {manifest.kind === 'user' ? (
+                    <Tooltip title={t('common.delete', 'Delete')}>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        aria-label={t('common.delete', 'Delete')}
+                        onClick={() => onDeleteManifest(manifest.id)}
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  ) : null}
+                </Stack>
               }
             />
           </Box>

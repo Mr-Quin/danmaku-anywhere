@@ -624,6 +624,8 @@
       "version": "v{{version}}"
     },
     "delete": {
+      "manifestMessage": "删除“{{name}}”？这将移除该配置及其实例，已保存的弹幕将无法再刷新。",
+      "manifestTitle": "删除自定义源",
       "message": "确定要删除 \"{{name}}\" 吗？删除后，与此弹幕源相关的所有番剧将无法刷新。",
       "title": "删除弹幕源"
     },
