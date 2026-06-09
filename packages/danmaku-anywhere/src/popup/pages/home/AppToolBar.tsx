@@ -58,14 +58,25 @@ export const AppToolBar = () => {
           onClick={() => {
             navigate('/options')
           }}
-          edge={isMobile ? 'end' : undefined}
           sx={{
             color: 'inherit',
           }}
         >
           <Settings />
         </IconButton>
-        {!isMobile && (
+        {isMobile ? (
+          <IconButton
+            onClick={openInTab}
+            edge="end"
+            aria-label={t('common.openInNewTab', 'Open in new tab')}
+            data-testid="open-in-tab-button"
+            sx={{
+              color: 'inherit',
+            }}
+          >
+            <Tab />
+          </IconButton>
+        ) : (
           <DrilldownMenu
             icon={<OpenInNew />}
             buttonTestId="open-in-new-button"
