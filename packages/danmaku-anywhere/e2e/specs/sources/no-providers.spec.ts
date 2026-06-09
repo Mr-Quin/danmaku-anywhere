@@ -28,6 +28,7 @@ test('search: noProviders error renders when all sources are disabled', async ({
   const popup = await Popup.open(page, extensionId)
   await popup.search.submit('frieren')
 
+  // One-off guard testid asserted only in this spec; not worth a POM method.
   const guard = page.locator('[data-testid="search-no-providers"]')
   await expect(guard).toBeVisible()
   await expect(guard).toContainText(

@@ -64,6 +64,7 @@ test('toggling a player option persists the option', async ({
 
   await popup.options.openSubPage(/Player Settings/)
   await expect(page).toHaveURL(/#\/options\/player$/)
+  // One-off section heading on the player sub-page, asserted only here.
   await expect(page.getByText('In-player controls')).toBeVisible()
 
   const skipButton = popup.options.toggle(0)

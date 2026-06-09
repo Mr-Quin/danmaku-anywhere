@@ -10,6 +10,8 @@ import { applyProfile } from '../../setup/profile'
  * and the callout is absent when every probe reports logged-in.
  */
 
+// Probe-warning matchers used only here; the providers list has no POM for the
+// "needs attention" state and a single spec doesn't warrant one.
 const ATTENTION = /Needs attention|存在问题/
 const SIGN_IN = /^(Sign in|登录)$/
 
