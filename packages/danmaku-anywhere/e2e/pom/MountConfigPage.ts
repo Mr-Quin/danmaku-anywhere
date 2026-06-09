@@ -21,8 +21,12 @@ export class MountConfigPage {
 
   // The row is a MUI ListItem (<li>) whose clickable body nests a button, so
   // the implicit listitem role is lost; match the <li> tag directly instead.
+  // Exact text match keeps a name that is a substring of another from
+  // resolving two rows.
   row(name: string): Locator {
-    return this.page.locator('li').filter({ hasText: name })
+    return this.page
+      .locator('li')
+      .filter({ has: this.page.getByText(name, { exact: true }) })
   }
 
   async expectRow(name: string): Promise<void> {
