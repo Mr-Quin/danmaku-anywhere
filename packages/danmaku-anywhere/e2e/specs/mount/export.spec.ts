@@ -5,7 +5,6 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import { readFile } from 'fs/promises'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
@@ -52,8 +51,8 @@ test('mount tree: season export downloads an XML payload', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
   })
@@ -85,8 +84,8 @@ test('mount tree: season exportBackup downloads a JSON payload', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
   })

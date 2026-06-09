@@ -1,6 +1,6 @@
 import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { IntegrationPage } from '../../pom/IntegrationPage'
-import { getDaClient } from '../../setup/da-client'
+import type { DaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import {
   buildFixtureIntegrationPolicy,
@@ -31,7 +31,7 @@ const SEEK_TIME_S = 15
 
 async function seedFixtureProfile(
   context: import('@playwright/test').BrowserContext,
-  da: Awaited<ReturnType<typeof getDaClient>>
+  da: DaClient
 ): Promise<{ episodeId: number }> {
   await applyProfile(context, da, {
     extensionOptions: { matchLocalDanmaku: true },
@@ -62,8 +62,8 @@ async function seedFixtureProfile(
 test('integration auto-mount: native <video> happy path', async ({
   context,
   page,
+  da,
 }) => {
-  const da = await getDaClient(context)
   const { episodeId } = await seedFixtureProfile(context, da)
 
   const integrationPage = new IntegrationPage(page)
@@ -88,8 +88,8 @@ test('integration auto-mount: native <video> happy path', async ({
 test('integration auto-mount: same-origin iframe <video> happy path', async ({
   context,
   page,
+  da,
 }) => {
-  const da = await getDaClient(context)
   const { episodeId } = await seedFixtureProfile(context, da)
 
   const integrationPage = new IntegrationPage(page)

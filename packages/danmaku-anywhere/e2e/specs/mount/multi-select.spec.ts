@@ -4,7 +4,6 @@ import {
   type SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
@@ -51,8 +50,8 @@ test('mount tree: multi-select bulk delete removes every selected episode', asyn
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
   })

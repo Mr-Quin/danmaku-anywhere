@@ -3,7 +3,6 @@ import { mockBilibiliXml } from '../../network/bilibili'
 import { mockDandanplay } from '../../network/dandanplay'
 import { mockTencent } from '../../network/tencent'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { test } from '../../setup/fixtures'
 import { loadJsonFixture, loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
@@ -20,8 +19,8 @@ test('source chips: selection persists across season details navigation', async 
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: {
       dandanplay: { enabled: true },
@@ -67,10 +66,10 @@ test('source chips: overflow collapses into a +N menu that activates hidden sour
   context,
   page,
   extensionId,
+  da,
 }) => {
   await page.setViewportSize({ width: 240, height: 640 })
 
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: {
       dandanplay: { enabled: true },

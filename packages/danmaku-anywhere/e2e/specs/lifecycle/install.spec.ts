@@ -3,7 +3,6 @@ import {
   PROVIDER_TO_BUILTIN_ID,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 
 /**
@@ -35,11 +34,10 @@ test('fresh install: default options seeded, no console errors', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
   // Chrome extension IDs are a 32-char base-16 alphabet of a-p.
   expect(extensionId).toMatch(/^[a-p]{32}$/)
-
-  const da = await getDaClient(context)
 
   const options = await da.extensionOptions.get()
   expect(options.enabled).toBe(true)

@@ -3,7 +3,6 @@ import { Language } from '../../../src/common/localization/language'
 import type { ProviderConfig } from '../../../src/common/options/providerConfig/schema'
 import { mockCatalog } from '../../network/catalog'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
@@ -35,8 +34,8 @@ test('catalog and config editor render localized manifest strings', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     extensionOptions: { lang: Language.zh },
     customProviders: [localDdp],

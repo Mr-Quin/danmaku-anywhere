@@ -1,7 +1,6 @@
 import { expect } from '@playwright/test'
 import { mockBilibiliXml } from '../../network/bilibili'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { test } from '../../setup/fixtures'
 import { loadJsonFixture, loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
@@ -18,8 +17,8 @@ test('bilibili url paste: detect URL → parse → download danmaku', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
     network: mockBilibiliXml({

@@ -2,7 +2,6 @@ import { expect } from '@playwright/test'
 import { mockBilibiliXml } from '../../network/bilibili'
 import { mockDandanplay } from '../../network/dandanplay'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { test } from '../../setup/fixtures'
 import { loadJsonFixture, loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
@@ -18,8 +17,8 @@ test('returning from season details keeps the history dropdown off the source ch
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: {
       dandanplay: { enabled: true },
@@ -69,8 +68,8 @@ test('history auto-opens on focus for a fresh search', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: {
       dandanplay: { enabled: true },

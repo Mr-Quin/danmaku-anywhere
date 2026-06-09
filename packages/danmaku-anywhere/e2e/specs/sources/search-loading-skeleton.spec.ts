@@ -1,5 +1,4 @@
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { loadJsonFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
@@ -23,10 +22,10 @@ test('loading shows a result-count skeleton, then the result count', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
   const gate = deferredGate()
 
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: { dandanplay: { enabled: true } },
     network: [
@@ -64,11 +63,11 @@ test.describe(() => {
     context,
     page,
     extensionId,
+    da,
   }) => {
     let calls = 0
     const retryGate = deferredGate()
 
-    const da = await getDaClient(context)
     await applyProfile(context, da, {
       providers: { dandanplay: { enabled: true } },
       network: [

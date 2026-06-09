@@ -1,6 +1,5 @@
 import { ImportResultDialog } from '../../pom/ImportResultDialog'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
@@ -23,8 +22,8 @@ test('popup opened as a tab runs the picker in place, no detach window', async (
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {})
 
   const popup = await Popup.open(page, extensionId, '/mount')
@@ -49,8 +48,8 @@ test('/import route renders standalone and runs a full file import', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {})
 
   await page.goto(
@@ -85,8 +84,8 @@ test('an open /mount popup refreshes when the /import window writes', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {})
 
   const popup = await Popup.open(page, extensionId, '/mount')

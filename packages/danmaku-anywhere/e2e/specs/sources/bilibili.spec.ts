@@ -1,7 +1,6 @@
 import type { Page } from '@playwright/test'
 import { mockBilibiliProto, mockBilibiliXml } from '../../network/bilibili'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { test } from '../../setup/fixtures'
 import {
   loadBinaryFixture,
@@ -36,8 +35,8 @@ test('bilibili xml: search → season → episode → fetch xml danmaku', async 
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
     network: mockBilibiliXml({
@@ -53,8 +52,8 @@ test('bilibili proto: same flow, danmaku via /seg.so protobuf', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: {
       bilibili: {

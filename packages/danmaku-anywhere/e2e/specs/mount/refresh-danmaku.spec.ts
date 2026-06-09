@@ -5,7 +5,6 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import { mockBilibiliXml } from '../../network/bilibili'
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { loadJsonFixture, loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
@@ -50,8 +49,8 @@ test('mount tree: refresh danmaku fetches new comments for an episode', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
     network: mockBilibiliXml({

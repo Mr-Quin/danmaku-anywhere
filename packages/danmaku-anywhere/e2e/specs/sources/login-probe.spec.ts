@@ -1,5 +1,4 @@
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
@@ -22,9 +21,9 @@ test('hides warnings when both probes return logged-in / cookies-present', async
   context,
   page,
   extensionId,
+  da,
 }) => {
   const calls = { nav: 0, tencent: 0 }
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: {
       bilibili: { enabled: true },
@@ -62,8 +61,8 @@ test('surfaces warning icons when probes report logged-out / no cookies', async 
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {
     providers: {
       bilibili: { enabled: true },
