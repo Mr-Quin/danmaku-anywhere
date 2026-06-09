@@ -14,6 +14,10 @@ const SELECTORS = {
 export class MountPage {
   constructor(private readonly page: Page) {}
 
+  treeItem(id: string): Locator {
+    return this.page.locator(SELECTORS.treeItem(id))
+  }
+
   seasonItem(seasonId: number): Locator {
     return this.page.locator(SELECTORS.treeItem(`season-${seasonId}`))
   }

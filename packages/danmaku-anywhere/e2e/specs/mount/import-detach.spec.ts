@@ -90,7 +90,7 @@ test('an open /mount popup refreshes when the /import window writes', async ({
 
   const popup = await Popup.open(page, extensionId, '/mount')
 
-  const seasonCustom = page.locator('[data-testid="tree-item-season-custom"]')
+  const seasonCustom = popup.mount.treeItem('season-custom')
   await expect(seasonCustom).toBeHidden()
 
   const importTab = await context.newPage()
