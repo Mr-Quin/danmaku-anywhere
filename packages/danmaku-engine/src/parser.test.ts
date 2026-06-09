@@ -1,11 +1,24 @@
 import { describe, expect, it } from 'vitest'
-import { applyFilter, filterComments } from './parser'
+import { applyFilter, filterComments, transformComment } from './parser'
 
 /**
- * Exercises the pure filter primitives the engine and renderer share.
- * Asserts text-includes vs regex semantics, the enabled flag, and that
- * filterComments drops everything matched by any enabled filter.
+ * Exercises the pure filter primitives the engine and renderer share,
+ * plus transformComment. Asserts text-includes vs regex semantics, the
+ * enabled flag, that filterComments drops everything matched by any
+ * enabled filter, and that a comment with an unknown mode is dropped
+ * (null) rather than throwing.
  */
+
+describe('transformComment', () => {
+  it('parses a valid comment', () => {
+    const parsed = transformComment({ p: '10,1,16777215,0', m: 'hi' }, 0)
+    expect(parsed).toMatchObject({ text: 'hi', mode: 'rtl', time: 10 })
+  })
+
+  it('returns null for an unknown mode', () => {
+    expect(transformComment({ p: '10,99,16777215,0', m: 'hi' }, 0)).toBeNull()
+  })
+})
 
 describe('applyFilter', () => {
   it('matches text via includes', () => {

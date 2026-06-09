@@ -147,7 +147,10 @@ export const CommentsTable = ({
 
   const timeOf = useMemo(() => {
     const map = new Map<CommentEntity, number>()
-    for (const c of comments) map.set(c, parseCommentEntityP(c.p).time)
+    for (const c of comments) {
+      const options = parseCommentEntityP(c.p)
+      if (options) map.set(c, options.time)
+    }
     return (c: CommentEntity) => map.get(c) ?? 0
   }, [comments])
 
