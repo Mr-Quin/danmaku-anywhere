@@ -13,6 +13,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { type CheckedAgo, checkedAgo, matchesQuery } from '../catalog'
 import { useManifestList, useRefreshCatalog } from '../hooks/useManifestList'
+import { ManifestKindChip } from './ManifestKindChip'
 import { ProviderRow, sourceCardSx } from './ProviderRow'
 import { SectionHeader } from './SectionHeader'
 
@@ -99,6 +100,7 @@ export const CatalogSection = ({
             <ProviderRow
               avatarSeed={manifest.id}
               primary={manifest.name}
+              titleChip={<ManifestKindChip kind={manifest.kind} />}
               secondary={t('providers.catalog.version', 'v{{version}}', {
                 version: manifest.version,
               })}

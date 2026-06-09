@@ -635,7 +635,6 @@
         "createTitle": "新建配置",
         "duplicate": "复制",
         "editTitle": "编辑配置",
-        "help": "配置文档",
         "invalidJson": "JSON 格式错误",
         "invalidManifest": "配置不符合规范",
         "json": "配置 JSON",

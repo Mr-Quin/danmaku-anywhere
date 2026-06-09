@@ -1,5 +1,5 @@
 import type { ConfigSchema } from '@mr-quin/dango'
-import { Launch } from '@mui/icons-material'
+import { OpenInNew } from '@mui/icons-material'
 import {
   Alert,
   AlertTitle,
@@ -7,10 +7,8 @@ import {
   Button,
   Chip,
   CircularProgress,
-  IconButton,
   Stack,
   TextField,
-  Tooltip,
   Typography,
 } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
@@ -236,41 +234,37 @@ function ManifestEditor({
     )
   }
 
-  const toolbarActions = (
-    <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
+  const docsRow = (
+    <Stack
+      direction="row"
+      sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+    >
       <Chip
         size="small"
         color="warning"
         variant="outlined"
         label={t('providers.editor.manifest.beta', 'Beta')}
-        sx={{ height: 20 }}
       />
-      <Tooltip
-        title={t('providers.editor.manifest.help', 'Manifest documentation')}
+      <Button
+        variant="text"
+        size="small"
+        component="a"
+        href={docsLink(MANIFEST_DOCS_PATH)}
+        target="_blank"
+        rel="noopener noreferrer"
       >
-        <IconButton
-          size="small"
-          color="inherit"
-          component="a"
-          href={docsLink(MANIFEST_DOCS_PATH)}
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Launch fontSize="small" />
-        </IconButton>
-      </Tooltip>
+        {t('common.docs', 'Docs')}
+        <OpenInNew fontSize="inherit" sx={{ ml: 0.5 }} />
+      </Button>
     </Stack>
   )
 
   return (
     <OptionsPageLayout>
-      <OptionsPageToolBar
-        title={title()}
-        onGoBack={goBack}
-        rightElement={toolbarActions}
-      />
+      <OptionsPageToolBar title={title()} onGoBack={goBack} />
       <Box sx={{ p: 2 }}>
         <Stack direction="column" spacing={2}>
+          {docsRow}
           <TextField
             label={t('providers.editor.manifest.json', 'Manifest JSON')}
             value={text}

@@ -7,7 +7,7 @@ import {
   ExpandMore,
   Restore,
 } from '@mui/icons-material'
-import { Box, Chip, Collapse, Stack, Switch } from '@mui/material'
+import { Box, Collapse, Stack, Switch } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
@@ -20,6 +20,7 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { groupInstalled, isHostedDanDanPlay } from '../catalog'
+import { ManifestKindChip } from './ManifestKindChip'
 import { ProviderRow, sourceCardSx } from './ProviderRow'
 
 interface InstalledListProps {
@@ -136,20 +137,6 @@ export const InstalledList = ({
     )
   }
 
-  const kindChip = (manifestId: string) => {
-    if (manifestById.get(manifestId)?.kind !== 'user') {
-      return null
-    }
-    return (
-      <Chip
-        size="small"
-        variant="outlined"
-        label={t('providers.installed.custom', 'Custom')}
-        sx={{ height: 20 }}
-      />
-    )
-  }
-
   const enableSwitch = (config: ProviderConfig) => (
     <Switch
       size="small"
@@ -181,6 +168,11 @@ export const InstalledList = ({
               <ProviderRow
                 avatarSeed={config.manifestId}
                 primary={displayName(config)}
+                titleChip={
+                  <ManifestKindChip
+                    kind={manifestById.get(config.manifestId)?.kind}
+                  />
+                }
                 secondary={versionSubtitle(
                   config,
                   manifestById.get(config.manifestId)
@@ -188,7 +180,6 @@ export const InstalledList = ({
                 onClick={() => onEdit(config)}
                 action={
                   <>
-                    {kindChip(config.manifestId)}
                     {enableSwitch(config)}
                     {configMenu(config, true)}
                   </>
@@ -240,11 +231,11 @@ export const InstalledList = ({
             <ProviderRow
               avatarSeed={unit.manifestId}
               primary={name}
+              titleChip={<ManifestKindChip kind={manifest?.kind} />}
               secondary={manifest ? `${count} · v${manifest.version}` : count}
               onClick={() => toggleCollapsed(unit.id)}
               action={
                 <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
-                  {kindChip(unit.manifestId)}
                   {isOpen ? (
                     <ExpandLess fontSize="small" color="action" />
                   ) : (

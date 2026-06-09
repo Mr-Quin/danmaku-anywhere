@@ -8,6 +8,7 @@ import {
 } from '@mui/material'
 import type { ReactNode } from 'react'
 import { HashAvatar } from '@/common/components/HashAvatar'
+import { ListItemPrimaryStack } from '@/common/components/ListItemPrimaryStack'
 import {
   LIST_ITEM_ACTION_SPACING,
   listItemCardStyles,
@@ -18,6 +19,7 @@ export const sourceCardSx: SxProps<Theme> = listItemCardStyles
 interface ProviderRowProps {
   avatarSeed?: string
   primary: ReactNode
+  titleChip?: ReactNode
   secondary?: ReactNode
   mono?: boolean
   dense?: boolean
@@ -28,6 +30,7 @@ interface ProviderRowProps {
 export const ProviderRow = ({
   avatarSeed,
   primary,
+  titleChip,
   secondary,
   mono,
   dense,
@@ -43,10 +46,20 @@ export const ProviderRow = ({
       ) : null}
       <ListItemText
         sx={{ minWidth: 0, my: 0 }}
-        primary={primary}
+        primary={
+          titleChip ? (
+            <ListItemPrimaryStack text={String(primary)}>
+              {titleChip}
+            </ListItemPrimaryStack>
+          ) : (
+            primary
+          )
+        }
         secondary={secondary}
         slotProps={{
-          primary: { noWrap: true, variant: dense ? 'body2' : 'body1' },
+          primary: titleChip
+            ? { component: 'div' }
+            : { noWrap: true, variant: dense ? 'body2' : 'body1' },
           secondary: {
             noWrap: true,
             sx: mono ? { fontFamily: 'ui-monospace, monospace' } : undefined,
