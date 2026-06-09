@@ -7,8 +7,7 @@ import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-// e2e/setup/open-browser.ts → ../..
-const EXTENSION_ROOT = path.join(__dirname, '..', '..')
+const EXTENSION_ROOT = path.join(__dirname, '..')
 const DEV_BUILD_PATH = path.join(EXTENSION_ROOT, 'dev', 'chrome')
 const PROD_BUILD_PATH = path.join(EXTENSION_ROOT, 'build')
 const USER_DATA_DIR = path.join(EXTENSION_ROOT, '.playwright-profile')
