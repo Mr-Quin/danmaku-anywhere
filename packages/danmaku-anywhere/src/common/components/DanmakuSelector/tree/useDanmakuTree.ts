@@ -245,13 +245,16 @@ export const useDanmakuTree = (
 
       children.sort(compareEpisodes)
 
+      const provider = getProviderById(season.providerConfigId)
+
       treeItems.push(
         register({
           id: `season-${season.id}`,
           label: season.title,
           kind: 'season',
           data: season,
-          provider: getProviderById(season.providerConfigId),
+          provider,
+          orphaned: !provider,
           children,
         })
       )
@@ -307,13 +310,15 @@ export const useDanmakuTree = (
         existingNode.children.sort(compareEpisodes)
         existingNode.bookmarked = true
       } else {
-        // Season has no fetched episodes — create node from stubs only
+        // Season has no fetched episodes, create node from stubs only
+        const provider = getProviderById(season.providerConfigId)
         const seasonNode = register({
           id: `season-${season.id}`,
           label: season.title,
           kind: 'season' as const,
           data: season,
-          provider: getProviderById(season.providerConfigId),
+          provider,
+          orphaned: !provider,
           bookmarked: true,
           children: stubNodes.sort(compareEpisodes),
         })

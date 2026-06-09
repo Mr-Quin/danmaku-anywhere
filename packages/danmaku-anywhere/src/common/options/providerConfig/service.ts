@@ -185,8 +185,8 @@ export class ProviderConfigService implements IStoreService {
   }
 
   async delete(id: string) {
-    // Deletion involves deleting seasons and episodes, which must be done in the background script
-    // So this method just calls the background script to do the deletion
+    // Routed through the background script so the deletion runs where the DB
+    // lives and content scripts get invalidated. Seasons/episodes are kept.
     await chromeRpcClient.providerConfigDelete(id)
   }
 

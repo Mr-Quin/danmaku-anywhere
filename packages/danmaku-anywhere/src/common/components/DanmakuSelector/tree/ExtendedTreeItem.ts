@@ -11,6 +11,9 @@ interface SeasonTreeItem extends TreeViewDefaultItemModelProperties {
   kind: 'season'
   data: Season | CustomSeason
   provider?: ProviderConfig
+  // True when the season's provider config has been deleted: the season stays
+  // viewable, but refresh is blocked since there is no source to re-fetch from.
+  orphaned?: boolean
   bookmarked?: boolean
   children?: ExtendedTreeItem[]
 }

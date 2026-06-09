@@ -21,6 +21,7 @@ export interface SeasonContextMenuPureProps {
   onRefresh: () => void
   isRefreshing: boolean
   isExporting: boolean
+  orphaned?: boolean
   bookmarked: boolean
   onBookmarkToggle: () => void
   onBookmarkRefresh: () => void
@@ -37,6 +38,7 @@ export const SeasonContextMenuPure = ({
   onRefresh,
   isRefreshing,
   isExporting,
+  orphaned,
   bookmarked,
   onBookmarkToggle,
   onBookmarkRefresh,
@@ -75,6 +77,13 @@ export const SeasonContextMenuPure = ({
   ]
 
   if (isNotCustom(season)) {
+    const sourceRemovedTooltip = orphaned
+      ? t(
+          'anime.sourceRemovedTooltip',
+          'This source was deleted. Re-add it to refresh.'
+        )
+      : undefined
+
     items.unshift({
       kind: 'item',
       id: 'refresh',
@@ -82,6 +91,8 @@ export const SeasonContextMenuPure = ({
       icon: <Sync />,
       onClick: onRefresh,
       loading: isRefreshing,
+      disabled: orphaned,
+      tooltip: sourceRemovedTooltip,
     })
 
     if (bookmarked) {
@@ -93,6 +104,8 @@ export const SeasonContextMenuPure = ({
           icon: <Sync fontSize="small" />,
           onClick: onBookmarkRefresh,
           loading: isBookmarkLoading,
+          disabled: orphaned,
+          tooltip: sourceRemovedTooltip,
         },
         {
           kind: 'item',

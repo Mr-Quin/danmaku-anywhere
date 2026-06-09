@@ -24,7 +24,6 @@ import { ManifestRegistry } from '@/background/services/providers/ManifestRegist
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import { AuthClientService } from '@/common/auth/AuthClientService'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
-import { DanmakuAnywhereDb } from '@/common/db/db'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { MountConfigService } from '@/common/options/mountConfig/service'
@@ -67,7 +66,6 @@ export class RpcManager {
     @inject(EpisodeMatchingService)
     private episodeMatchingService: EpisodeMatchingService,
     @inject(LogService) private logService: LogService,
-    @inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb,
     @inject(LoggerSymbol) logger: ILogger,
     @inject(DebugFileService) private debugFileService: DebugFileService,
     @inject(ImageCacheService) private imageCacheService: ImageCacheService,
@@ -359,29 +357,9 @@ export class RpcManager {
           return res.data
         },
         providerConfigDelete: async (id, sender) => {
-          await this.db.transaction(
-            'rw',
-            this.db.season,
-            this.db.episode,
-            this.db.bookmark,
-            async () => {
-              const seasons = await this.db.season
-                .where({ providerConfigId: id })
-                .toArray()
-              const seasonIds = seasons.map((s) => s.id)
-
-              if (seasonIds.length > 0) {
-                await this.db.episode
-                  .where('seasonId')
-                  .anyOf(seasonIds)
-                  .delete()
-                await this.bookmarkService.deleteBySeasonIds(seasonIds)
-              }
-
-              await this.db.season.where({ providerConfigId: id }).delete()
-            }
-          )
-
+          // Deleting a config keeps its seasons, episodes, and bookmarks. They
+          // become orphaned (no config matches their providerConfigId) so the
+          // downloaded danmaku stays viewable; refresh is blocked downstream.
           await this.providerConfigService.deleteFromStorage(id)
 
           void invalidateContentScriptData(sender.tab?.id)
