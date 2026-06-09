@@ -37,7 +37,7 @@ test('mount tree: custom episodes with shared path render under a folder node', 
 
   const popup = await Popup.open(page, extensionId, '/mount')
 
-  // `season-custom` is a synthetic id — there's no DB season for customs.
+  // `season-custom` is a synthetic id; there's no DB season for customs.
   await popup.mount.expandItem('season-custom')
 
   const folder = popup.mount.folderItem(FOLDER)

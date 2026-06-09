@@ -7,7 +7,13 @@ export interface DandanplayFixtures {
   comments: unknown
 }
 
-// Path-only match — VITE_PROXY_URL host varies between local, CI, and prod.
+const DDP_ROUTES = [
+  { path: '/api/v2/search/anime', key: 'search' },
+  { path: '/api/v2/bangumi/', key: 'bangumi' },
+  { path: '/api/v2/comment/', key: 'comments' },
+] as const
+
+// Path-only match: VITE_PROXY_URL host varies between local, CI, and prod.
 // The built-in provider points baseUrl at {proxy}/ddp and the manifest hits
 // /api/v2/* on it, so the proxy passes the path through transparently.
 const PROXY_PATH = /\/ddp\/api\/v2\//
@@ -17,22 +23,15 @@ export function mockDandanplay(fixtures: DandanplayFixtures): NetworkMock {
     pattern: PROXY_PATH,
     respond: async (route: Route) => {
       const innerPath = new URL(route.request().url()).pathname
-      if (innerPath.includes('/api/v2/search/anime')) {
-        await route.fulfill({ json: fixtures.search })
+      const matched = DDP_ROUTES.find((r) => innerPath.includes(r.path))
+      if (!matched) {
+        await route.fulfill({
+          status: 404,
+          body: `unhandled DDP path: ${innerPath}`,
+        })
         return
       }
-      if (innerPath.includes('/api/v2/bangumi/')) {
-        await route.fulfill({ json: fixtures.bangumi })
-        return
-      }
-      if (innerPath.includes('/api/v2/comment/')) {
-        await route.fulfill({ json: fixtures.comments })
-        return
-      }
-      await route.fulfill({
-        status: 404,
-        body: `unhandled DDP path: ${innerPath}`,
-      })
+      await route.fulfill({ json: fixtures[matched.key] })
     },
   }
 }
@@ -48,18 +47,8 @@ export function mockDandanplayCustom(
   fixtures: DandanplayCustomFixtures
 ): NetworkMock[] {
   const escaped = fixtures.baseUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return [
-    {
-      pattern: new RegExp(`${escaped}/api/v2/search/anime`),
-      respond: (route) => route.fulfill({ json: fixtures.search }),
-    },
-    {
-      pattern: new RegExp(`${escaped}/api/v2/bangumi/`),
-      respond: (route) => route.fulfill({ json: fixtures.bangumi }),
-    },
-    {
-      pattern: new RegExp(`${escaped}/api/v2/comment/`),
-      respond: (route) => route.fulfill({ json: fixtures.comments }),
-    },
-  ]
+  return DDP_ROUTES.map((r) => ({
+    pattern: new RegExp(`${escaped}${r.path}`),
+    respond: (route) => route.fulfill({ json: fixtures[r.key] }),
+  }))
 }

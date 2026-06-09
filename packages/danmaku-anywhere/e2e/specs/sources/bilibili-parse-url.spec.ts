@@ -37,6 +37,7 @@ test('bilibili url paste: detect URL → parse → download danmaku', async ({
 
   await popup.search.parseButton.click()
 
+  // One-off action label; only this spec downloads from a parsed URL result.
   const downloadDanmaku = page.getByRole('button', {
     name: /download danmaku|获取弹幕/i,
   })

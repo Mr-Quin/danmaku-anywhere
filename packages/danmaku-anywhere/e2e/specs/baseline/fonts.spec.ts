@@ -9,8 +9,8 @@ import {
 /**
  * Mounts the controller on a host-origin page and asserts every variable
  * font is the one actually painting text inside the controller's shadow
- * DOM. Reads CDP CSS.getPlatformFontsForNode — the same source DevTools'
- * Rendered Fonts panel uses — so the assertion fails iff the woff2 isn't
+ * DOM. Reads CDP CSS.getPlatformFontsForNode (the same source DevTools'
+ * Rendered Fonts panel uses), so the assertion fails iff the woff2 isn't
  * registered AND the host page is using a fallback.
  */
 
@@ -53,7 +53,7 @@ test('content-script controller paints text using bundled variable fonts', async
       }
       const probeRoot = document.createElement('div')
       probeRoot.id = '__font_probes__'
-      // Offscreen but rendered — CSS.getPlatformFontsForNode needs a layout box.
+      // Offscreen but rendered: CSS.getPlatformFontsForNode needs a layout box.
       probeRoot.style.cssText = 'position:fixed;top:-9999px;left:-9999px;'
       for (const { family, sample } of probes) {
         const span = document.createElement('span')
