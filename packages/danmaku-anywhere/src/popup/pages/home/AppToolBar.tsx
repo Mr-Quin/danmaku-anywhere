@@ -68,6 +68,7 @@ export const AppToolBar = () => {
           <IconButton
             onClick={openInTab}
             edge="end"
+            aria-label={t('common.openInNewTab', 'Open in new tab')}
             data-testid="open-in-tab-button"
             sx={{
               color: 'inherit',
