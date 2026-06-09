@@ -339,6 +339,11 @@ export class RpcManager {
             height: height ?? 650,
           })
         },
+        openPopupInNewTab: async ({ path }) => {
+          void chrome.tabs.create({
+            url: chrome.runtime.getURL(`pages/popup.html?detached=1#/${path}`),
+          })
+        },
         getConfigMacCms: async (input) => {
           const res = await getMaccmsConfig(input?.force)
           if (!res.success) {

@@ -134,6 +134,7 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
       }
     },
     openPopupInNewWindow: () => undefined,
+    openPopupInNewTab: () => undefined,
     getConfigMacCms: () => standaloneBaseUrlConfig,
     getConfigDanmuIcu: () => standaloneBaseUrlConfig,
     providerConfigDelete: () => undefined,

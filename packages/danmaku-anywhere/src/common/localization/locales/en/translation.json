@@ -94,6 +94,8 @@
     "multiselect": "Multiselect",
     "name": "Name",
     "next": "Next",
+    "openInNewTab": "Open in new tab",
+    "openInNewWindow": "Open in new window",
     "pip": "Picture-in-Picture",
     "refresh": "Refresh",
     "regexShort": "Regex",

@@ -208,6 +208,7 @@ export type BackgroundMethods = {
     { path: string; width?: number; height?: number },
     void
   >
+  openPopupInNewTab: RPCDef<{ path: string }, void>
   getConfigMacCms: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   getConfigDanmuIcu: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   providerConfigDelete: RPCDef<string, void>
