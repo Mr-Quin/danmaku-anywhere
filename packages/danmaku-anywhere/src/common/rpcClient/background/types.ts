@@ -120,6 +120,7 @@ export interface ProviderManifestInfo {
   name: string
   version: string
   configSchema?: ConfigSchema
+  kind: 'preinstalled' | 'user'
 }
 
 export interface ProviderManifestList {
@@ -248,7 +249,7 @@ export type BackgroundMethods = {
     { commentCount: number }
   >
   providerSaveUserManifest: RPCDef<
-    { manifest: unknown; mode: 'create' | 'update' },
+    { manifest: unknown; mode: 'create' | 'update'; expectedId?: string },
     void
   >
   providerGetManifestSource: RPCDef<

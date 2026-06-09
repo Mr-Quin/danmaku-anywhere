@@ -1,4 +1,4 @@
-import { Code, Refresh } from '@mui/icons-material'
+import { Refresh } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -20,7 +20,6 @@ interface CatalogSectionProps {
   filter: string
   installedManifestIds: Set<string>
   onImport: (manifest: ProviderManifestInfo) => void
-  onViewSource: (manifestId: string) => void
   isImporting: boolean
 }
 
@@ -51,7 +50,6 @@ export const CatalogSection = ({
   filter,
   installedManifestIds,
   onImport,
-  onViewSource,
   isImporting,
 }: CatalogSectionProps) => {
   const { t } = useTranslation()
@@ -105,33 +103,14 @@ export const CatalogSection = ({
                 version: manifest.version,
               })}
               action={
-                <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
-                  <Tooltip
-                    title={t(
-                      'providers.editor.manifest.viewSource',
-                      'View source'
-                    )}
-                  >
-                    <IconButton
-                      size="small"
-                      aria-label={t(
-                        'providers.editor.manifest.viewSource',
-                        'View source'
-                      )}
-                      onClick={() => onViewSource(manifest.id)}
-                    >
-                      <Code fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() => onImport(manifest)}
-                    disabled={isImporting}
-                  >
-                    {t('providers.catalog.import', 'Import')}
-                  </Button>
-                </Stack>
+                <Button
+                  size="small"
+                  variant="outlined"
+                  onClick={() => onImport(manifest)}
+                  disabled={isImporting}
+                >
+                  {t('providers.catalog.import', 'Import')}
+                </Button>
               }
             />
           </Box>

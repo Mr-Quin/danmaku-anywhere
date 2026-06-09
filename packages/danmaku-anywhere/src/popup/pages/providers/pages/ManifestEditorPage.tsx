@@ -1,23 +1,30 @@
 import type { ConfigSchema } from '@mr-quin/dango'
+import { Launch } from '@mui/icons-material'
 import {
   Alert,
   AlertTitle,
   Box,
   Button,
+  Chip,
   CircularProgress,
+  IconButton,
   Stack,
   TextField,
+  Tooltip,
   Typography,
 } from '@mui/material'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type { ManifestValidationIssue } from '@/common/rpcClient/background/types'
+import { docsLink } from '@/common/utils/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
+import { createConfigFromManifest, manifestNeedsConfigForm } from '../catalog'
 import { ManifestTestRunPanel } from '../components/ManifestTestRunPanel'
 import {
   useManifestSource,
@@ -29,6 +36,8 @@ import {
   stringifyManifest,
 } from '../manifestEditor'
 
+const MANIFEST_DOCS_PATH = 'docs/danmaku-manifest/'
+
 type EditorMode = 'create' | 'edit' | 'view'
 
 interface EditorState {
@@ -38,13 +47,19 @@ interface EditorState {
 interface ManifestEditorProps {
   initialText: string
   initialMode: EditorMode
+  manifestId?: string
 }
 
-function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
+function ManifestEditor({
+  initialText,
+  initialMode,
+  manifestId,
+}: ManifestEditorProps) {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
   const goBack = useGoBack()
   const save = useSaveUserManifest()
+  const { create } = useEditProviderConfig()
 
   const [text, setText] = useState(initialText)
   const [forked, setForked] = useState(false)
@@ -153,25 +168,107 @@ function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
     setForked(true)
   }
 
+  // A new manifest is auto-imported (a default config instance is created), so
+  // it shows up in Installed without a second step. That instance is built from
+  // configSchema defaults, so block the save when a required field has no
+  // default and can't be defaulted.
   const handleSave = () => {
-    if (!parsed.ok) {
+    if (
+      !parsed.ok ||
+      typeof parsed.value !== 'object' ||
+      parsed.value === null
+    ) {
       return
     }
+    const manifest = parsed.value as {
+      id: string
+      name?: string
+      version?: string
+      configSchema?: ConfigSchema
+    }
+    const isNew = mode !== 'edit'
+
+    if (isNew && manifestNeedsConfigForm(manifest.configSchema)) {
+      toast.error(
+        t(
+          'providers.editor.manifest.requiredConfig',
+          'This manifest has required settings without defaults, so it cannot be saved as a default source.'
+        )
+      )
+      return
+    }
+
+    const finish = () => {
+      toast.success(t('providers.editor.manifest.saved', 'Manifest saved'))
+      goBack()
+    }
+
     save.mutate(
-      { manifest: parsed.value, mode: mode === 'edit' ? 'update' : 'create' },
       {
-        onSuccess: () => {
-          toast.success(t('providers.editor.manifest.saved', 'Manifest saved'))
-          goBack()
-        },
+        manifest: parsed.value,
+        mode: isNew ? 'create' : 'update',
+        expectedId: isNew ? undefined : manifestId,
+      },
+      {
         onError: (error) => toast.error(error.message),
+        onSuccess: () => {
+          if (!isNew) {
+            finish()
+            return
+          }
+          create.mutate(
+            createConfigFromManifest({
+              id: manifest.id,
+              name:
+                typeof manifest.name === 'string' ? manifest.name : manifest.id,
+              version:
+                typeof manifest.version === 'string' ? manifest.version : '',
+              configSchema: manifest.configSchema,
+              kind: 'user',
+            }),
+            {
+              onSuccess: finish,
+              onError: (error) => toast.error(error.message),
+            }
+          )
+        },
       }
     )
   }
 
+  const toolbarActions = (
+    <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
+      <Chip
+        size="small"
+        color="warning"
+        variant="outlined"
+        label={t('providers.editor.manifest.beta', 'Beta')}
+        sx={{ height: 20 }}
+      />
+      <Tooltip
+        title={t('providers.editor.manifest.help', 'Manifest documentation')}
+      >
+        <IconButton
+          size="small"
+          color="inherit"
+          component="a"
+          href={docsLink(MANIFEST_DOCS_PATH)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Launch fontSize="small" />
+        </IconButton>
+      </Tooltip>
+    </Stack>
+  )
+
   return (
     <OptionsPageLayout>
-      <OptionsPageToolBar title={title()} onGoBack={goBack} />
+      <OptionsPageToolBar
+        title={title()}
+        onGoBack={goBack}
+        rightElement={toolbarActions}
+      />
       <Box sx={{ p: 2 }}>
         <Stack direction="column" spacing={2}>
           <TextField
@@ -232,9 +329,11 @@ function ManifestEditor({ initialText, initialMode }: ManifestEditorProps) {
               <Button
                 variant="contained"
                 onClick={handleSave}
-                disabled={!isValid || save.isPending}
+                disabled={!isValid || save.isPending || create.isPending}
                 startIcon={
-                  save.isPending ? <CircularProgress size={16} /> : undefined
+                  save.isPending || create.isPending ? (
+                    <CircularProgress size={16} />
+                  ) : undefined
                 }
               >
                 {t('common.save', 'Save')}
@@ -305,6 +404,7 @@ export const ManifestEditorPage = () => {
   return (
     <ManifestEditor
       key={manifestId}
+      manifestId={manifestId}
       initialText={initialText}
       initialMode={mode}
     />

@@ -46,9 +46,14 @@ function storedVersion(manifest: unknown): unknown {
   return undefined
 }
 
+interface RegisteredManifest {
+  runner: ManifestRunner
+  kind: ManifestKind
+}
+
 @injectable('Singleton')
 export class ManifestRegistry {
-  private readonly runners = new Map<string, ManifestRunner>()
+  private readonly runners = new Map<string, RegisteredManifest>()
   private readonly log: ILogger
   private readonly store: IManifestStore
   private readonly baseUrl = import.meta.env.VITE_PROXY_URL
@@ -66,11 +71,11 @@ export class ManifestRegistry {
 
   getRunner(manifestId: string): ManifestRunner {
     invariant(this.initialized, 'ManifestRegistry accessed before ready')
-    const runner = this.runners.get(manifestId)
-    if (!runner) {
+    const entry = this.runners.get(manifestId)
+    if (!entry) {
       throw new Error(`no manifest registered with id: ${manifestId}`)
     }
-    return runner
+    return entry.runner
   }
 
   list(): string[] {
@@ -80,13 +85,15 @@ export class ManifestRegistry {
 
   listManifests(locale?: string): ProviderManifestInfo[] {
     invariant(this.initialized, 'ManifestRegistry accessed before ready')
-    return [...this.runners.values()].map(({ manifest }) => {
+    return [...this.runners.values()].map(({ runner, kind }) => {
+      const { manifest } = runner
       const display = getDisplayStrings(manifest, locale)
       return {
         id: manifest.id,
         name: display.name,
         version: manifest.version,
         configSchema: display.configSchema,
+        kind,
       }
     })
   }
@@ -109,7 +116,10 @@ export class ManifestRegistry {
       )
     }
     await this.store.set(parsed.data.id, { manifest, kind })
-    this.runners.set(parsed.data.id, this.buildRunner(parsed.data))
+    this.runners.set(parsed.data.id, {
+      runner: this.buildRunner(parsed.data),
+      kind,
+    })
   }
 
   async unregister(manifestId: string): Promise<void> {
@@ -202,7 +212,8 @@ export class ManifestRegistry {
   // user, so a preinstalled manifest can never be edited in place.
   async saveUserManifest(
     manifest: unknown,
-    mode: 'create' | 'update'
+    mode: 'create' | 'update',
+    expectedId?: string
   ): Promise<void> {
     await this.ready
     const parsed = zManifest.safeParse(manifest)
@@ -212,6 +223,11 @@ export class ManifestRegistry {
       )
     }
     const id = parsed.data.id
+    // The id is the manifest's identity; an update must not change it, or it
+    // would orphan the old entry and could overwrite an unrelated manifest.
+    if (mode === 'update' && expectedId !== undefined && id !== expectedId) {
+      throw new Error('A manifest id cannot be changed')
+    }
     const existing = await this.store.get(id)
     if (mode === 'create' && existing) {
       throw new Error(`A manifest with id "${id}" already exists`)
@@ -224,7 +240,7 @@ export class ManifestRegistry {
     // init() on the next startup.
     const runner = this.buildRunner(parsed.data)
     await this.store.set(id, { manifest, kind: 'user' })
-    this.runners.set(id, runner)
+    this.runners.set(id, { runner, kind: 'user' })
   }
 
   // Returns the raw stored manifest JSON (not the parsed runner form) so the
@@ -258,7 +274,10 @@ export class ManifestRegistry {
     }
     await this.store.setMany(updates)
     for (const { parsed } of fetched) {
-      this.runners.set(parsed.id, this.buildRunner(parsed))
+      this.runners.set(parsed.id, {
+        runner: this.buildRunner(parsed),
+        kind: 'preinstalled',
+      })
     }
     return fetched.map(({ parsed }) => parsed.id)
   }
@@ -337,7 +356,10 @@ export class ManifestRegistry {
       return
     }
     try {
-      this.runners.set(id, this.buildRunner(parsed.data))
+      this.runners.set(id, {
+        runner: this.buildRunner(parsed.data),
+        kind: entry.kind,
+      })
     } catch (e) {
       this.log.error('Failed to build runner for manifest:', id, e)
     }

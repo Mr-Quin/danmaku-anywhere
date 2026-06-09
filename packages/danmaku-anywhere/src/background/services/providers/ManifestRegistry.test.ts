@@ -180,17 +180,33 @@ describe('ManifestRegistry', () => {
     }
   })
 
-  it('listManifests returns id/name/version for each registered manifest', async () => {
+  it('listManifests returns id/name/version/kind for each registered manifest', async () => {
     stubCatalogFetch([], {})
     const store = new InMemoryStore({
       one: { manifest: makeManifest('one', 1, '2.1.0'), kind: 'preinstalled' },
+      'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
     await registry.ready
 
-    expect(registry.listManifests()).toEqual([
-      { id: 'one', name: 'one', version: '2.1.0', configSchema: undefined },
-    ])
+    expect(registry.listManifests()).toEqual(
+      expect.arrayContaining([
+        {
+          id: 'one',
+          name: 'one',
+          version: '2.1.0',
+          configSchema: undefined,
+          kind: 'preinstalled',
+        },
+        {
+          id: 'mine:one',
+          name: 'mine:one',
+          version: '1.0.0',
+          configSchema: undefined,
+          kind: 'user',
+        },
+      ])
+    )
   })
 
   it('listManifests resolves name and configSchema into the requested locale', async () => {
@@ -655,6 +671,19 @@ describe('ManifestRegistry', () => {
     expect((await store.get('mine:one'))?.manifest).toMatchObject({
       version: '2.0.0',
     })
+  })
+
+  it('saveUserManifest update refuses an id that differs from the edited one', async () => {
+    const store = new InMemoryStore({
+      'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(
+      registry.saveUserManifest(makeManifest('mine:two'), 'update', 'mine:one')
+    ).rejects.toThrow(/cannot be changed/)
+    expect(await store.get('mine:two')).toBeUndefined()
   })
 
   it('saveUserManifest update refuses a preinstalled id', async () => {

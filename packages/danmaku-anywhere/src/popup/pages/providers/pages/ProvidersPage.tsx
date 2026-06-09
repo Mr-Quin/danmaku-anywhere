@@ -262,7 +262,6 @@ export const ProvidersPage = (): ReactElement => {
                 filter={filter}
                 installedManifestIds={installedManifestIds}
                 onImport={handleImport}
-                onViewSource={handleViewSource}
                 isImporting={create.isPending}
               />
             </Stack>

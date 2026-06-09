@@ -152,8 +152,12 @@ export class RpcManager {
         providerTestRunDanmaku: async (input) => {
           return this.manifestSandbox.danmaku(input)
         },
-        providerSaveUserManifest: async ({ manifest, mode }) => {
-          await this.manifestRegistry.saveUserManifest(manifest, mode)
+        providerSaveUserManifest: async ({ manifest, mode, expectedId }) => {
+          await this.manifestRegistry.saveUserManifest(
+            manifest,
+            mode,
+            expectedId
+          )
         },
         providerGetManifestSource: async ({ manifestId }) => {
           return (await this.manifestRegistry.getSource(manifestId)) ?? null

@@ -23,8 +23,11 @@ export const useManifestSource = (manifestId?: string) => {
 export const useSaveUserManifest = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: { manifest: unknown; mode: 'create' | 'update' }) =>
-      chromeRpcClient.providerSaveUserManifest(input),
+    mutationFn: (input: {
+      manifest: unknown
+      mode: 'create' | 'update'
+      expectedId?: string
+    }) => chromeRpcClient.providerSaveUserManifest(input),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: sourceQueryKeys.manifestList(),

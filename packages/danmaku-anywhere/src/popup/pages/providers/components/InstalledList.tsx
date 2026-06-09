@@ -7,7 +7,7 @@ import {
   ExpandMore,
   Restore,
 } from '@mui/icons-material'
-import { Box, Collapse, Stack, Switch } from '@mui/material'
+import { Box, Chip, Collapse, Stack, Switch } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
@@ -107,9 +107,11 @@ export const InstalledList = ({
     )
   }
 
-  const configMenu = (config: ProviderConfig) => {
+  // View source is a manifest-level action, so it appears once per manifest
+  // (single row or group header), never on the per-instance rows in a group.
+  const configMenu = (config: ProviderConfig, showViewSource: boolean) => {
     const items: DAMenuItemConfig[] = []
-    if (manifestById.has(config.manifestId)) {
+    if (showViewSource && manifestById.has(config.manifestId)) {
       items.push({
         id: 'view-source',
         label: t('providers.editor.manifest.viewSource', 'View source'),
@@ -130,6 +132,20 @@ export const InstalledList = ({
         ButtonProps={{ edge: 'end', size: 'small' }}
         dense
         items={items}
+      />
+    )
+  }
+
+  const kindChip = (manifestId: string) => {
+    if (manifestById.get(manifestId)?.kind !== 'user') {
+      return null
+    }
+    return (
+      <Chip
+        size="small"
+        variant="outlined"
+        label={t('providers.installed.custom', 'Custom')}
+        sx={{ height: 20 }}
       />
     )
   }
@@ -172,8 +188,9 @@ export const InstalledList = ({
                 onClick={() => onEdit(config)}
                 action={
                   <>
+                    {kindChip(config.manifestId)}
                     {enableSwitch(config)}
-                    {configMenu(config)}
+                    {configMenu(config, true)}
                   </>
                 }
               />
@@ -227,6 +244,7 @@ export const InstalledList = ({
               onClick={() => toggleCollapsed(unit.id)}
               action={
                 <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
+                  {kindChip(unit.manifestId)}
                   {isOpen ? (
                     <ExpandLess fontSize="small" color="action" />
                   ) : (
@@ -254,7 +272,7 @@ export const InstalledList = ({
                     action={
                       <>
                         {enableSwitch(config)}
-                        {configMenu(config)}
+                        {configMenu(config, false)}
                       </>
                     }
                   />

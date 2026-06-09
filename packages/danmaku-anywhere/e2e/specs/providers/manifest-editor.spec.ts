@@ -5,15 +5,16 @@ import { applyProfile } from '../../setup/profile'
 
 /**
  * The user manifest editor (#/providers/editor). Authoring from the Add menu
- * opens the editor on a valid starter manifest; saving registers it as a user
- * source that appears in the catalog and reopens (via View source) in editable
- * form. Typing invalid JSON surfaces a parse error and disables Save. Validation
- * and registration run in the background; the assertions here are user-visible.
+ * opens the editor on a valid starter manifest; saving registers it and
+ * auto-imports it, so it appears in Installed with a Custom chip and a
+ * provider config is persisted. Typing invalid JSON surfaces a parse error and
+ * disables Save. Validation/registration run in the background; the assertions
+ * here are user-visible.
  */
 
 const STARTER_ID = 'user:new-source'
 
-test('authoring a manifest saves it and reopens its source', async ({
+test('authoring a manifest saves and auto-imports it as a custom source', async ({
   context,
   page,
   extensionId,
@@ -27,15 +28,13 @@ test('authoring a manifest saves it and reopens its source', async ({
   await expect(popup.providers.manifestValid()).toBeVisible()
 
   await popup.providers.save()
-  await popup.toast.expectSuccess(/Manifest saved|清单已保存/)
+  await popup.toast.expectSuccess(/Manifest saved|配置已保存/)
 
-  await expect(popup.providers.catalogRow('New Source')).toBeVisible()
+  await expect(popup.providers.row('New Source')).toBeVisible()
+  await expect(popup.providers.customChip()).toBeVisible()
 
-  await popup.providers.viewSource('New Source')
-  await expect(popup.providers.manifestJsonField()).toHaveValue(
-    new RegExp(STARTER_ID)
-  )
-  await expect(popup.providers.saveButton()).toBeVisible()
+  const configs = await da.providerConfig.list()
+  expect(configs.some((config) => config.manifestId === STARTER_ID)).toBe(true)
 })
 
 test('invalid JSON surfaces a parse error and disables saving', async ({

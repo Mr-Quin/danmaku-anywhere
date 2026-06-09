@@ -102,12 +102,12 @@ export class ProvidersPage {
       .first()
       .click()
     await this.page
-      .getByRole('menuitem', { name: /Author a manifest|编写清单/ })
+      .getByRole('menuitem', { name: /Author a manifest|新建配置/ })
       .click()
   }
 
   manifestJsonField(): Locator {
-    return this.page.getByLabel(/Manifest JSON|清单 JSON/)
+    return this.page.getByLabel(/Manifest JSON|配置 JSON/)
   }
 
   setManifestJson(value: string): Promise<void> {
@@ -115,20 +115,14 @@ export class ProvidersPage {
   }
 
   manifestValid(): Locator {
-    return this.page.getByText(/Manifest is valid|清单有效/)
+    return this.page.getByText(/Manifest is valid|配置有效/)
   }
 
   manifestJsonError(): Locator {
-    return this.page.getByText(/Invalid JSON|JSON 无效/)
+    return this.page.getByText(/Invalid JSON|JSON 格式错误/)
   }
 
-  viewSourceButton(name: string | RegExp): Locator {
-    return this.catalogRow(name).getByRole('button', {
-      name: /View source|查看源码/,
-    })
-  }
-
-  async viewSource(name: string | RegExp): Promise<void> {
-    await this.viewSourceButton(name).click()
+  customChip(): Locator {
+    return this.page.getByText(/^(Custom|自定义)$/)
   }
 }
