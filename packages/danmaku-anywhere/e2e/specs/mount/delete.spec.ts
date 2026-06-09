@@ -9,8 +9,8 @@ import { applyProfile } from '../../setup/profile'
 
 /**
  * Per-item delete on the DanmakuTree (/mount) via the context menu:
- *   - Season delete cascades to its episodes — row vanishes, DB cleared.
- *   - Episode delete removes one row — parent + sibling stay intact.
+ *   - Season delete cascades to its episodes: row vanishes, DB cleared.
+ *   - Episode delete removes one row: parent + sibling stay intact.
  *
  * Both paths route through the shared confirm Dialog (`popup.dialog`).
  */
@@ -100,7 +100,7 @@ test('mount tree: delete single episode keeps season + siblings', async ({
 
   await expect.poll(() => da.episode.get(ep1.id)).toBeUndefined()
 
-  // Sibling + parent intact — checked in both UI and DB so a wider-than-
+  // Sibling + parent intact, checked in both UI and DB so a wider-than-
   // intended delete (or one that updates only one layer) is caught.
   await expect(popup.mount.episodeItem(ep2.id)).toBeVisible()
   await expect(popup.mount.seasonItem(season.id)).toBeVisible()

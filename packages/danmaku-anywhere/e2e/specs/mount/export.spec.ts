@@ -10,8 +10,8 @@ import { applyProfile } from '../../setup/profile'
 
 /**
  * Export actions on the DanmakuTree (/mount), via the season context menu:
- *   - `export` — downloads a `.xml` payload with the `<i>` root + comments.
- *   - `exportBackup` — downloads a `.json` payload with title + commentCount.
+ *   - `export`: downloads a `.xml` payload with the `<i>` root + comments.
+ *   - `exportBackup`: downloads a `.json` payload with title + commentCount.
  *
  * Single-episode seasons only; multi-episode exports zip (out of scope).
  */
@@ -63,7 +63,7 @@ test('mount tree: season export downloads an XML payload', async ({
   const popup = await Popup.open(page, extensionId, '/mount')
   const seasonItem = await popup.mount.waitForSeason(season.id)
 
-  // Arm before the click. Wider timeout — RPC + serialize + programmatic
+  // Arm before the click. Wider timeout: RPC + serialize + programmatic
   // <a download> click is slow on CI.
   const downloadPromise = page.waitForEvent('download', { timeout: 20_000 })
   await popup.mount.openItemMenu(seasonItem, 'export')

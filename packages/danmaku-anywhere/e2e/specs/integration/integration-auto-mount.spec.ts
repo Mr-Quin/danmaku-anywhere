@@ -12,7 +12,7 @@ import { applyProfile } from '../../setup/profile'
  * Auto-mount happy path: URL match → XPath policy → media-info → mount →
  * render at the right timestamp. Two video setups: top-frame and
  * same-origin iframe. Both resolve via LocalMatchingStrategy against a
- * seeded custom episode — no provider network is exercised here.
+ * seeded custom episode. No provider network is exercised here.
  */
 
 const ORIGIN = 'https://da-test.invalid'
@@ -98,7 +98,7 @@ test('integration auto-mount: same-origin iframe <video> happy path', async ({
     extraFixtures: { 'iframe-inner.html': 'iframe-inner.html' },
   })
 
-  // <video> in a child frame — controller (top) extracts media info,
+  // <video> in a child frame: controller (top) extracts media info,
   // player content script (allFrames) inside the iframe mounts the renderer.
   await integrationPage.useIframeVideo('iframe[data-testid="da-iframe"]')
 
