@@ -16,11 +16,12 @@ export const parseCommentGradient = (s: string) => {
 }
 
 // convert string to object
-export const parseCommentEntityP = (p: string): CommentOptions => {
+// returns null on an unrecognized mode so callers can drop the comment instead of throwing
+export const parseCommentEntityP = (p: string): CommentOptions | null => {
   const [time, mode, color, uid = ''] = p.split(',')
 
   if (!CommentMode[Number.parseInt(mode)]) {
-    throw new Error(`Invalid mode: ${mode}`)
+    return null
   }
 
   return {

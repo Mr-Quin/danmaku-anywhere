@@ -268,8 +268,10 @@ export const commentGetCommentManualWithRelated = async (
               // if the shift is not 0, we need to adjust the time of the comments
               if (entry.shift !== 0) {
                 const options = parseCommentEntityP(comment.p)
-                options.time += entry.shift
-                comment.p = commentOptionsToString(options)
+                if (options) {
+                  options.time += entry.shift
+                  comment.p = commentOptionsToString(options)
+                }
               }
 
               comments.push(comment)

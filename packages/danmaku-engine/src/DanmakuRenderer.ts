@@ -69,6 +69,7 @@ export class DanmakuRenderer {
     )
     const sampledGenerator = sampleByTime(
       Array.from(commentGenerator)
+        .filter((comment) => comment !== null)
         .toSorted((a, b) => a.time - b.time)
         .values(),
       Number.POSITIVE_INFINITY,

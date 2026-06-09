@@ -56,9 +56,15 @@ export interface DanmakuOption {
 export const transformComment = (
   comment: CommentEntity,
   offset: number
-): ParsedComment => {
+): ParsedComment | null => {
   const { p, m, s } = comment
-  const { time, mode, color } = parseCommentEntityP(p)
+  const options = parseCommentEntityP(p)
+
+  if (!options) {
+    return null
+  }
+
+  const { time, mode, color } = options
   const offsetTime = time + offset / 1000
 
   const parsed: ParsedComment = {
