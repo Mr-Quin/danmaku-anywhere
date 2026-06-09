@@ -10,7 +10,7 @@ const NEXT = /^(Next|下一步)$/
 const SAVE = /^(Save|保存)$/
 const ADD_PATTERN = /^(Add Pattern|添加模式)$/
 const NAME_LABEL = /Name|名称/
-const patternLabel = (index: number) => new RegExp(`(Pattern|模式) ${index}`)
+const PATTERN_LABEL = /(Pattern|模式) 1/
 
 // POM for the mount-config list (#/config) and the stepper-based config editor
 // (#/config/add, #/config/edit). List rows carry no testid, so they are
@@ -43,11 +43,7 @@ export class MountConfigPage {
 
   async addPattern(value: string): Promise<void> {
     await this.page.getByRole('button', { name: ADD_PATTERN }).click()
-    await this.page.getByLabel(patternLabel(1)).fill(value)
-  }
-
-  async fillPattern(index: number, value: string): Promise<void> {
-    await this.page.getByLabel(patternLabel(index)).fill(value)
+    await this.page.getByLabel(PATTERN_LABEL).fill(value)
   }
 
   async next(): Promise<void> {
