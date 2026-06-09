@@ -80,13 +80,6 @@ export class BookmarkService {
     await this.db.bookmark.where({ seasonId }).delete()
   }
 
-  async deleteBySeasonIds(seasonIds: number[]): Promise<void> {
-    if (seasonIds.length === 0) {
-      return
-    }
-    await this.db.bookmark.where('seasonId').anyOf(seasonIds).delete()
-  }
-
   async getAll(): Promise<Bookmark[]> {
     return this.db.bookmark.toArray()
   }
