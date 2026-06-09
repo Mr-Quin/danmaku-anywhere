@@ -1,6 +1,10 @@
 import { randomUUID } from 'node:crypto'
 import type { Integration } from '@danmaku-anywhere/integration-policy'
 import { BUILT_IN_AI_PROVIDER_ID } from '../../src/common/options/aiProviderConfig/constant'
+import {
+  zIntegration,
+  zIntegrationPolicy,
+} from '../../src/common/options/integrationPolicyStore/schema'
 import { LATEST_INTEGRATION_POLICY_VERSION } from '../../src/common/options/integrationPolicyStore/version'
 import { LATEST_MOUNT_CONFIG_VERSION } from '../../src/common/options/mountConfig/version'
 import type { DaClient } from './da-client'
@@ -28,7 +32,7 @@ export async function seedXPathIntegration(
   const mountConfigId = randomUUID()
 
   const integration: Integration = {
-    version: 3,
+    version: zIntegration.shape.version.value,
     id: integrationId,
     name: input.name ?? 'e2e integration',
     policy: input.policy,
@@ -61,7 +65,7 @@ export async function seedXPathIntegration(
 // Generic policy keyed to data-testid hooks on the fixture pages.
 export function buildFixtureIntegrationPolicy(): Integration['policy'] {
   return {
-    version: 3,
+    version: zIntegrationPolicy.shape.version.value,
     title: {
       selector: [{ value: '//*[@data-testid="da-title"]', quick: true }],
       regex: [],
