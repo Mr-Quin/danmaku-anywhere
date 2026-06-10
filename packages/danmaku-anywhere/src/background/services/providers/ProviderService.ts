@@ -34,7 +34,10 @@ import type {
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { OmitSeasonId } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
-import { ManifestRegistry } from './ManifestRegistry'
+import {
+  CATALOG_UNREACHABLE_MESSAGE,
+  ManifestRegistry,
+} from './ManifestRegistry'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
@@ -344,7 +347,7 @@ export class ProviderService {
   async refreshCatalog(locale?: string): Promise<ProviderManifestList> {
     const synced = await this.syncCatalog()
     if (!synced) {
-      throw new Error('Failed to fetch the manifest catalog')
+      throw new Error(CATALOG_UNREACHABLE_MESSAGE)
     }
     return this.listManifests(locale)
   }
@@ -359,7 +362,13 @@ export class ProviderService {
     if (!fetched) {
       return false
     }
-    const pending = await this.manifestRegistry.getPendingUpdates()
+    // update() just reached the index, so a failure here means it died
+    // mid-sync; skip the best-effort auto-apply rather than fail the sync.
+    const pending = await this.manifestRegistry
+      .getPendingUpdates()
+      .catch(() => {
+        return []
+      })
     const configs = await this.providerConfigService.getAll()
     const installed = new Set(configs.map((config) => config.manifestId))
     const uninstalled = pending

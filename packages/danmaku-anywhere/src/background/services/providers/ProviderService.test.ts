@@ -406,10 +406,11 @@ describe('ProviderService.refreshCatalog', () => {
   }) {
     const applyUpdates = vi.fn(async () => {})
     const recordChecked = vi.fn(async () => {})
+    const getPendingUpdates = vi.fn(async () => opts.pending)
     const registry = {
       ready: Promise.resolve(true),
       update: vi.fn(async () => true),
-      getPendingUpdates: vi.fn(async () => opts.pending),
+      getPendingUpdates,
       applyUpdates,
       recordChecked,
       listManifests: vi.fn(() => []),
@@ -436,7 +437,7 @@ describe('ProviderService.refreshCatalog', () => {
       silentExtensionOptions
     )
 
-    return { service, applyUpdates, recordChecked }
+    return { service, applyUpdates, recordChecked, getPendingUpdates }
   }
 
   it('auto-applies updates for uninstalled manifests only', async () => {
@@ -464,6 +465,20 @@ describe('ProviderService.refreshCatalog', () => {
     await service.refreshCatalog()
 
     expect(applyUpdates).not.toHaveBeenCalled()
+  })
+
+  it('still records the check when pending detection fails mid-sync', async () => {
+    const { service, applyUpdates, recordChecked, getPendingUpdates } =
+      buildForRefresh({
+        pending: [],
+        installedManifestIds: [],
+      })
+    getPendingUpdates.mockRejectedValueOnce(new Error('index died mid-sync'))
+
+    await service.refreshCatalog()
+
+    expect(applyUpdates).not.toHaveBeenCalled()
+    expect(recordChecked).toHaveBeenCalledTimes(1)
   })
 
   it('stamps lastCheckedAt after bringing the catalog current', async () => {

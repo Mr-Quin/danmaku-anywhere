@@ -25,6 +25,9 @@ export function manifestVersion(id: string): string {
   return loadManifest(id).version
 }
 
+// Shape of the chrome.storage `manifests` record as specs read it back.
+export type StoredManifests = Record<string, { manifest: { version: string } }>
+
 // Builds a chrome.storage `manifests` record from the real dango manifests,
 // optionally pinning some ids to an older version so the catalog advertises a
 // newer one (an "update available"). Seed via the profile's rawStorage.

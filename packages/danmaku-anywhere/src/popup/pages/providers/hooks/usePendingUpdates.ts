@@ -8,6 +8,9 @@ export const usePendingUpdates = () => {
     select: (res) => res.data,
     queryKey: sourceQueryKeys.pendingUpdates(),
     refetchOnWindowFocus: false,
+    // The background already retries the catalog index fetch once; client
+    // retries would multiply that during an outage.
+    retry: false,
   })
 }
 

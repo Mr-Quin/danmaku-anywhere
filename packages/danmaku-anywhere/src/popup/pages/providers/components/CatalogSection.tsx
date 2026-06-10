@@ -57,7 +57,7 @@ export const CatalogSection = ({
 }: CatalogSectionProps) => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
-  const { data, isLoading, isError, refetch } = useManifestList()
+  const { data, isLoading, isError, isFetching, refetch } = useManifestList()
   const refresh = useRefreshCatalog()
 
   const checkedLabel = useCheckedAgoLabel(data?.lastCheckedAt ?? null)
@@ -86,7 +86,7 @@ export const CatalogSection = ({
           <Typography variant="body2" color="error">
             {t('providers.catalog.error', 'Failed to load catalog')}
           </Typography>
-          <Button size="small" onClick={() => refetch()}>
+          <Button size="small" disabled={isFetching} onClick={() => refetch()}>
             {t('common.retry', 'Retry')}
           </Button>
         </Stack>

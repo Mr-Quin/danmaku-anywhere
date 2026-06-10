@@ -463,7 +463,7 @@ describe('ManifestRegistry', () => {
     expect(await registry.getLastCheckedAt()).toBeNull()
   })
 
-  it('getPendingUpdates returns nothing when the index fetch fails', async () => {
+  it('getPendingUpdates throws when the index fetch fails (distinct from no updates)', async () => {
     stubFetch(() => ({ status: 503, body: 'unavailable' }))
     const store = new InMemoryStore({
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
@@ -471,9 +471,9 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     await registry.ready
 
-    expect(await settleIndexRetry(() => registry.getPendingUpdates())).toEqual(
-      []
-    )
+    await expect(
+      settleIndexRetry(() => registry.getPendingUpdates())
+    ).rejects.toThrow(/Failed to fetch the manifest catalog/)
   })
 
   it('applyUpdates replaces only the named ids and rebuilds their runners', async () => {

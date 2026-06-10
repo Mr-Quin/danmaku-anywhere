@@ -89,6 +89,14 @@ export const test = base.extend<{
   // Skipped when the test already failed so a real failure isn't drowned out.
   _assertNoUnexpectedConsoleErrors: [
     async ({ context, expectedConsoleErrors }, use, testInfo) => {
+      // Playwright reads a multi-RegExp array passed to test.use as a
+      // [value, options] fixture tuple (a RegExp is typeof 'object'), leaving
+      // a bare RegExp here and silently dropping the other patterns.
+      if (!Array.isArray(expectedConsoleErrors)) {
+        throw new Error(
+          'expectedConsoleErrors resolved to a non-array. When passing multiple patterns, use strings instead of RegExps (see e2e/AGENTS.md).'
+        )
+      }
       await use()
       if (testInfo.status === 'failed' || testInfo.status === 'timedOut') {
         return
