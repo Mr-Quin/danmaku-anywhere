@@ -103,6 +103,7 @@
     "regexShort": "Regex",
     "reset": "Reset",
     "restore": "Restore",
+    "retry": "Retry",
     "save": "Save",
     "saved": "Saved",
     "saving": "Saving...",
@@ -672,6 +673,7 @@
         "viewTitle": "Manifest source"
       },
       "name": "Name",
+      "specError": "Failed to load provider settings. Some fields are missing, saving now would drop them.",
       "testRun": {
         "danmakuCount_one": "{{count}} comments fetched",
         "danmakuCount_other": "{{count}} comments fetched",

@@ -1,7 +1,8 @@
 import type { ConfigSchema } from '@mr-quin/dango'
-import { Box, CircularProgress, Stack, TextField } from '@mui/material'
+import { Box, Button, CircularProgress, Stack, TextField } from '@mui/material'
 import { FormProvider, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { ErrorMessage } from '@/common/components/ErrorMessage'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useManifestSpec } from '../../hooks/useManifestSpec'
 import { FormActions } from './FormActions'
@@ -89,13 +90,33 @@ function ConfigForm({
 }
 
 export const ProviderConfigForm = (props: ProviderFormProps) => {
-  const { isLoading, data } = useManifestSpec(props.provider.manifestId)
+  const { t } = useTranslation()
+  const { isLoading, isError, data, refetch } = useManifestSpec(
+    props.provider.manifestId
+  )
 
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
         <CircularProgress />
       </Box>
+    )
+  }
+
+  if (isError) {
+    return (
+      <ErrorMessage
+        message={t(
+          'providers.editor.specError',
+          'Failed to load provider settings. Some fields are missing, saving now would drop them.'
+        )}
+        size={160}
+        beforeContent={
+          <Button onClick={() => void refetch()} variant="text">
+            {t('common.retry', 'Retry')}
+          </Button>
+        }
+      />
     )
   }
 
