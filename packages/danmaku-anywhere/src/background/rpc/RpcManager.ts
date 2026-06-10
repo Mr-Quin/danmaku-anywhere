@@ -361,8 +361,10 @@ export class RpcManager {
           // providerConfigId) so downloaded danmaku stays viewable. Bookmarks
           // are removed: they only exist to fetch new episodes, which an
           // orphaned season can no longer do.
-          await this.bookmarkService.deleteByProviderConfigId(id)
+          // deleteFromStorage throws if the config does not exist, so it runs
+          // first to keep a failed delete free of side effects.
           await this.providerConfigService.deleteFromStorage(id)
+          await this.bookmarkService.deleteByProviderConfigId(id)
 
           void invalidateContentScriptData(sender.tab?.id)
         },
