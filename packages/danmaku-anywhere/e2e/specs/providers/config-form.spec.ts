@@ -96,7 +96,7 @@ test('edits the built-in Bilibili provider via the generic form', async ({
 }) => {
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
-    network: [...mockLoginProbes()],
+    network: mockLoginProbes(),
   })
 
   const popup = await Popup.open(page, extensionId, '/providers')

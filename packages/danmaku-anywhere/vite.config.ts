@@ -49,7 +49,8 @@ const e2eProxyDefines =
     : {}
 
 // Stamps the output with build metadata so the e2e setup can refuse to run
-// against a stale or wrong-env build (see e2e/setup/globalSetup.ts).
+// against a stale or wrong-env build (see e2e/setup/globalSetup.ts). Skipped
+// for prod so release zips stay free of branch names and timestamps.
 function buildInfo(): Plugin {
   let outDir = ''
   return {
@@ -59,6 +60,9 @@ function buildInfo(): Plugin {
       outDir = path.resolve(config.root, config.build.outDir)
     },
     closeBundle() {
+      if (daEnv === 'prod') {
+        return
+      }
       mkdirSync(outDir, { recursive: true })
       writeFileSync(
         path.join(outDir, 'build-info.json'),

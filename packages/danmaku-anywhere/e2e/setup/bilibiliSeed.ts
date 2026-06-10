@@ -29,7 +29,6 @@ export function makeBilibiliSeason(
 interface BilibiliEpisodeOpts {
   cid?: number
   episodeNumber?: string
-  title?: string
   comments?: CommentEntity[]
 }
 
@@ -40,17 +39,12 @@ export function makeBilibiliEpisode(
   seasonId: number,
   opts: BilibiliEpisodeOpts = {}
 ): EpisodeInsert {
-  const {
-    cid = 1300001,
-    episodeNumber = '1',
-    title = `Ep${episodeNumber}`,
-    comments = [],
-  } = opts
+  const { cid = 1300001, episodeNumber = '1', comments = [] } = opts
   return {
     provider: DanmakuSourceType.Bilibili,
     providerIds: { cid, aid: 100000 + cid, bvid: `BV${cid}` },
     indexedId: String(cid),
-    title,
+    title: `Ep${episodeNumber}`,
     episodeNumber,
     seasonId,
     comments,

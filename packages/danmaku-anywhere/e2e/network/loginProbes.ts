@@ -4,16 +4,13 @@ import type { NetworkMock } from '../setup/profile'
 // Specs that visit /providers mock the probes so network strict-mode and the
 // console gate stay clean. The tencent mock is inert when tencent is not in
 // the profile.
-export function mockLoginProbes(
-  opts: { bilibiliLoggedIn?: boolean } = {}
-): NetworkMock[] {
-  const { bilibiliLoggedIn = true } = opts
+export function mockLoginProbes(): NetworkMock[] {
   return [
     {
       pattern: /api\.bilibili\.com\/x\/web-interface\/nav/,
       respond: (route) =>
         route.fulfill({
-          json: { code: 0, message: '0', data: { isLogin: bilibiliLoggedIn } },
+          json: { code: 0, message: '0', data: { isLogin: true } },
         }),
     },
     {

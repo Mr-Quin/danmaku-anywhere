@@ -43,7 +43,7 @@ test('deleting a provider orphans its season but keeps it viewable', async ({
 }) => {
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
-    network: [...mockLoginProbes()],
+    network: mockLoginProbes(),
   })
 
   const season = await da.season.add(makeBilibiliSeason())
