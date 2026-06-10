@@ -142,6 +142,9 @@ export class ProviderService {
   async refreshSeason(filter: SeasonQueryFilter) {
     await this.manifestRegistry.ready
     const [season] = await this.seasonService.filter(filter)
+    if (!season) {
+      throw new Error('No season found for refresh filter')
+    }
 
     const providerConfig = await this.getConfigForSeason(
       season.providerConfigId
