@@ -8,10 +8,12 @@ description: Use to open a fresh Claude session in a new terminal tab for a da-d
 `scripts/da-bootstrap.mjs` ends with a `READY` block (`worktree=...`, `branch=...`, `task_file=...`, `title=...`). Parse those, then open a new terminal tab in the worktree running a fresh Claude session:
 
 ```bash
-claude --permission-mode acceptEdits --add-dir . -- "Read <task_file> and follow the instructions"
+claude --model <model> --permission-mode acceptEdits --add-dir . -- "Read <task_file> and follow the instructions"
 ```
 
-How you open the tab depends on the terminal you're in (`$TERM_PROGRAM`). Substitute `<worktree>`, `<task_file>`, `<title>`, and the task id (`DA-XXX`) from the `READY` block throughout.
+`<model>` is the implementation model for the dispatched session: a strong coding model chosen to fit the task, scaled down for mechanical or low-risk changes. It need not be the top research-tier model used for planning and spec writing. Pick from the aliases `claude --help` lists, following the model-selection guidance in `CLAUDE.md`.
+
+How you open the tab depends on the terminal you're in (`$TERM_PROGRAM`). Substitute `<model>`, `<worktree>`, `<task_file>`, `<title>`, and the task id (`DA-XXX`) from the `READY` block throughout.
 
 ## Warp
 
@@ -30,7 +32,7 @@ children = ["left", "right"]
 id = "left"
 type = "terminal"
 directory = "<worktree>"
-commands = ['claude --permission-mode acceptEdits --add-dir . -- "Read <task_file> and follow the instructions"']
+commands = ['claude --model <model> --permission-mode acceptEdits --add-dir . -- "Read <task_file> and follow the instructions"']
 is_focused = true
 
 [[panes]]
@@ -49,7 +51,7 @@ gdbus call --session --dest dev.warp.Warp --object-path /dev/warp/Warp \
 ## Windows Terminal (no Warp)
 
 ```
-wt new-tab --title '<title>' -d '<worktree>' -- powershell -NoExit -Command "claude --permission-mode acceptEdits --add-dir . -- 'Read <task_file> and follow the instructions'"
+wt new-tab --title '<title>' -d '<worktree>' -- powershell -NoExit -Command "claude --model <model> --permission-mode acceptEdits --add-dir . -- 'Read <task_file> and follow the instructions'"
 ```
 
 ## Other terminals

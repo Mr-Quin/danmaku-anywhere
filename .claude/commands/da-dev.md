@@ -9,6 +9,14 @@ Task: $ARGUMENTS
 
 Orchestrates: ClickUp task → branch → implement → verify → self-review → PR → review monitoring → human handoff.
 
+## Models
+
+Apply the model-selection guidance in CLAUDE.md (match the model to the task; don't reflexively inherit the session model). This workflow spans two kinds of session:
+
+- **Orchestrating session** (this one): ClickUp research, brainstorming, planning, and spec writing through step 2. Reasoning and spec quality dominate, so launch it on the most capable model available.
+- **Implementation session** (dispatched into the worktree at step 2, plus any resume): the coding work in steps 3-8. Use a strong coding model, scaled down for mechanical or low-risk changes (config, docs, small self-contained fixes). It need not be the top research-tier model. You choose this when dispatching, and `worktree-tab` threads it through as `claude --model <model>`.
+- **Subagents you spawn** (the step 5 reviews, exploration): pick per task. Their overrides cap at the highest tier the Agent tool exposes, below the orchestrating session's research tier.
+
 ## Step Details
 
 ### 1. ClickUp Task
@@ -29,7 +37,7 @@ That handles `git fetch`, `git worktree add`, env copy, `pnpm install`, `pnpm bu
 
 The task file `da-bootstrap` writes is a bare stub. Before handing off, fetch the ClickUp task (`clickup_get_task DA-XXX`) and append its description to the task file as a brief (the implementation notes, scope, acceptance criteria), so the new session starts with full context instead of re-deriving it. A bare stub is the single biggest cause of a dispatched session going off-track.
 
-Then use the `worktree-tab` skill to open a fresh Claude session in the worktree. The new session reads `<task_file>` and starts from step 3. **Stop the current session here.**
+Then use the `worktree-tab` skill to open a fresh Claude session in the worktree, passing the implementation model you chose (see Models above). The new session reads `<task_file>` and starts from step 3. **Stop the current session here.**
 
 For trivial changes (CLAUDE.md / docs / config-only): branch directly without a worktree:
 
@@ -165,6 +173,6 @@ After the PR is merged, run `/da-cleanup` to remove completed worktrees. This al
 
 - **Lint / type-check fails mid-way:** fix and commit on top. Don't amend.
 - **i18n keys touched but extraction not run:** `cd packages/danmaku-anywhere && pnpm i18n extract`, then stage the regenerated JSON.
-- **New Claude tab closed:** the worktree is still valid. `cd <worktree> && claude --add-dir . "Read ~/.claude/da-tasks/DA-XXX.md and continue"` to resume.
+- **New Claude tab closed:** the worktree is still valid. `cd <worktree> && claude --model <model> --add-dir . "Read ~/.claude/da-tasks/DA-XXX.md and continue"` to resume on the implementation model (see Models).
 - **Session worktree deleted under you** (e.g. `/da-cleanup` ran during the session): the shell cwd becomes invalid. Find the main checkout with `git worktree list` (the entry on `master`). For a trivial change, branch off `origin/master` there; for non-trivial work, bootstrap a fresh worktree. The task notes in `~/.claude/da-tasks/DA-XXX.md` survive the cleanup.
 - **CI flake (unrelated failure):** retry the workflow once via `gh run rerun <id>`. If it fails again, comment on the PR and stop the loop.

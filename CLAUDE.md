@@ -101,6 +101,16 @@ Always prefer scripts defined in `package.json` over ad-hoc commands. Run `pnpm 
 - Use the `Result` type from `@danmaku-anywhere/result` for explicit error handling
 - Avoid throwing exceptions for expected error paths
 
+## Model selection
+
+When you launch a subagent or fan out work, match the model to the task instead of reflexively inheriting the current session's model or reaching for the most capable one. Subagents inherit the session model by default, which is usually more (and more expensive) than a narrow task needs, so scaling down is a deliberate choice you have to make.
+
+- Heavy reasoning, research, planning, spec writing, ambiguous problems: the most capable model available.
+- Routine implementation and well-scoped edits: a strong mid-tier model.
+- Cheap, narrow, deterministic work (locate a symbol, read a file, simple greps): the cheapest capable tier.
+
+Don't hardcode a model name as policy; the roster changes. Reason in tiers and pick from what is currently offered (`claude --help` lists the session aliases). Know the override ceiling: explicit subagent overrides are limited to the tiers the Agent/Workflow tools expose (currently `opus`/`sonnet`/`haiku`). A top-flagship alias can only be chosen when launching a session with `claude --model`, so a subagent can be scaled down from the session model but not pushed up past the highest override tier.
+
 ## Refactoring guidelines
 
 - Use TDD when refactoring — write tests first, start with reusable primitives
