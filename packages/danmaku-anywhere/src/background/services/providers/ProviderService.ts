@@ -406,21 +406,15 @@ export class ProviderService {
     locale?: string
   ): Promise<ProviderManifestSpec> {
     await this.manifestRegistry.ready
-    try {
-      const { manifest } = this.manifestRegistry.getRunner(manifestId)
-      const display = getDisplayStrings(manifest, locale)
-      return {
-        name: display.name,
-        hasLoginProbe: manifest.loginProbe !== undefined,
-        cookieSet: manifest.cookieSet
-          ? { url: manifest.cookieSet.url, title: display.cookieSet?.title }
-          : undefined,
-        configSchema: display.configSchema,
-      }
-    } catch {
-      // Unknown id (legacy:maccms) or a catalog miss: report a minimal spec so
-      // the popup degrades to a name-only form instead of rejecting the RPC.
-      return { name: '', hasLoginProbe: false }
+    const { manifest } = this.manifestRegistry.getRunner(manifestId)
+    const display = getDisplayStrings(manifest, locale)
+    return {
+      name: display.name,
+      hasLoginProbe: manifest.loginProbe !== undefined,
+      cookieSet: manifest.cookieSet
+        ? { url: manifest.cookieSet.url, title: display.cookieSet?.title }
+        : undefined,
+      configSchema: display.configSchema,
     }
   }
 }

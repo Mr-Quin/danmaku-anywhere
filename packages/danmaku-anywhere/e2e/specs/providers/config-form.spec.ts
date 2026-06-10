@@ -14,6 +14,8 @@ import { applyProfile } from '../../setup/profile'
  * Also asserts the schema's `required` constraint blocks saving an empty
  * auth header until it is filled. Field titles localize with the UI language,
  * so they are matched against both the English source and the zh override.
+ * Finally, a provider whose manifest spec fails to load shows an error with a
+ * retry action instead of a stripped name-only form that would drop its config.
  */
 
 const customDdp: ProviderConfig = {
@@ -114,4 +116,49 @@ test('edits the built-in Bilibili provider via the generic form', async ({
   const saved = await da.providerConfig.get('bilibili')
   expect(saved?.name).toBe('Bilibili Custom')
   expect(saved?.configValues.danmakuFormat).toBe('protobuf')
+})
+
+const orphanedProvider: ProviderConfig = {
+  id: 'orphaned-source',
+  manifestId: 'manifest-that-failed-to-load',
+  name: 'Orphaned Source',
+  impl: DanmakuSourceType.DanDanPlay,
+  enabled: true,
+  isBuiltIn: false,
+  configValues: {
+    baseUrl: 'https://orphaned.example.invalid',
+    auth: { enabled: false, headers: [] },
+  },
+}
+
+test.describe('manifest spec load failure', () => {
+  // Editing a provider whose manifest is unregistered rejects the spec RPC; the
+  // service worker logs that rejection.
+  test.use({
+    expectedConsoleErrors: [
+      /\[RpcManager\] Error in RPC handler.*no manifest registered/,
+    ],
+  })
+
+  test('shows an error with retry instead of a stripped form', async ({
+    context,
+    page,
+    extensionId,
+    da,
+  }) => {
+    await applyProfile(context, da, { customProviders: [orphanedProvider] })
+
+    const popup = await Popup.open(page, extensionId, '/providers')
+    await popup.providers.edit('Orphaned Source')
+
+    await expect(
+      page.getByText(/Failed to load provider settings|加载弹幕源设置失败/)
+    ).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: /^(Retry|重试)$/ })
+    ).toBeVisible()
+
+    await expect(popup.providers.nameField()).toBeHidden()
+    await expect(popup.providers.saveButton()).toBeHidden()
+  })
 })

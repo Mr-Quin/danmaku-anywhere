@@ -197,6 +197,27 @@ describe('ProviderService.getManifestSpec', () => {
 
     expect(spec.name).toBe('DanDanPlay')
   })
+
+  it('rejects when no manifest is registered for the id', async () => {
+    const registry = {
+      ready: Promise.resolve(true),
+      getRunner: vi.fn(() => {
+        throw new Error('no manifest registered with id: missing')
+      }),
+    } as unknown as ManifestRegistry
+    const service = new ProviderService(
+      {} as unknown as DanmakuService,
+      {} as unknown as SeasonService,
+      {} as unknown as ProviderConfigService,
+      vi.fn(() => makeProvider()),
+      registry,
+      {} as unknown as BookmarkService,
+      silentLogger,
+      silentExtensionOptions
+    )
+
+    await expect(service.getManifestSpec('missing')).rejects.toThrow()
+  })
 })
 
 describe('ProviderService legacy-maccms decoupling', () => {
