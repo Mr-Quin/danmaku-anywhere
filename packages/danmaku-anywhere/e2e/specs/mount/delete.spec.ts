@@ -1,9 +1,8 @@
-import {
-  DanmakuSourceType,
-  type EpisodeInsert,
-  type SeasonInsert,
-} from '@danmaku-anywhere/danmaku-converter'
 import { Popup } from '../../pom/Popup'
+import {
+  makeBilibiliEpisode,
+  makeBilibiliSeason,
+} from '../../setup/bilibiliSeed'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
@@ -15,38 +14,6 @@ import { applyProfile } from '../../setup/profile'
  * Both paths route through the shared confirm Dialog (`popup.dialog`).
  */
 
-const SEASON: SeasonInsert = {
-  provider: DanmakuSourceType.Bilibili,
-  providerIds: { seasonId: 41410, mediaId: 28219412 },
-  providerConfigId: 'bilibili',
-  indexedId: '41410',
-  title: '葬送的芙莉莲',
-  type: '番剧',
-  imageUrl: 'https://bilibili-cdn.invalid/x.jpg',
-  episodeCount: 28,
-  year: 2023,
-  schemaVersion: 1,
-}
-
-function makeEpisode(
-  seasonId: number,
-  cid: number,
-  episodeNumber: string
-): EpisodeInsert {
-  return {
-    provider: DanmakuSourceType.Bilibili,
-    providerIds: { cid, aid: 100000 + cid, bvid: `BV${cid}` },
-    indexedId: String(cid),
-    title: `Ep${episodeNumber}`,
-    episodeNumber,
-    seasonId,
-    comments: [],
-    commentCount: 0,
-    schemaVersion: 4,
-    lastChecked: 0,
-  }
-}
-
 test('mount tree: delete season removes it + cascades episodes', async ({
   context,
   page,
@@ -57,8 +24,10 @@ test('mount tree: delete season removes it + cascades episodes', async ({
     providers: { bilibili: { enabled: true } },
   })
 
-  const season = await da.season.add(SEASON)
-  const ep = await da.episode.add(makeEpisode(season.id, 1300001, '1'))
+  const season = await da.season.add(makeBilibiliSeason())
+  const ep = await da.episode.add(
+    makeBilibiliEpisode(season.id, { cid: 1300001, episodeNumber: '1' })
+  )
 
   const popup = await Popup.open(page, extensionId, '/mount')
   const seasonItem = await popup.mount.waitForSeason(season.id)
@@ -82,9 +51,13 @@ test('mount tree: delete single episode keeps season + siblings', async ({
     providers: { bilibili: { enabled: true } },
   })
 
-  const season = await da.season.add(SEASON)
-  const ep1 = await da.episode.add(makeEpisode(season.id, 1300001, '1'))
-  const ep2 = await da.episode.add(makeEpisode(season.id, 1300002, '2'))
+  const season = await da.season.add(makeBilibiliSeason())
+  const ep1 = await da.episode.add(
+    makeBilibiliEpisode(season.id, { cid: 1300001, episodeNumber: '1' })
+  )
+  const ep2 = await da.episode.add(
+    makeBilibiliEpisode(season.id, { cid: 1300002, episodeNumber: '2' })
+  )
 
   const popup = await Popup.open(page, extensionId, '/mount')
   await popup.mount.waitForSeason(season.id)

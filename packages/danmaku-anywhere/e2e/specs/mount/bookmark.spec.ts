@@ -1,10 +1,9 @@
-import {
-  DanmakuSourceType,
-  type EpisodeInsert,
-  type SeasonInsert,
-} from '@danmaku-anywhere/danmaku-converter'
 import { mockBilibiliXml } from '../../network/bilibili'
 import { Popup } from '../../pom/Popup'
+import {
+  makeBilibiliEpisode,
+  makeBilibiliSeason,
+} from '../../setup/bilibiliSeed'
 import { expect, test } from '../../setup/fixtures'
 import { loadJsonFixture, loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
@@ -17,35 +16,6 @@ import { applyProfile } from '../../setup/profile'
  * Bilibili season fixture has 2 episodes → 1 stub after deduping the seeded
  * persisted episode by indexedId.
  */
-
-const SEASON: SeasonInsert = {
-  provider: DanmakuSourceType.Bilibili,
-  providerIds: { seasonId: 41410, mediaId: 28219412 },
-  providerConfigId: 'bilibili',
-  indexedId: '41410',
-  title: '葬送的芙莉莲',
-  type: '番剧',
-  imageUrl: 'https://bilibili-cdn.invalid/x.jpg',
-  episodeCount: 28,
-  year: 2023,
-  schemaVersion: 1,
-}
-
-function makeEpisode(seasonId: number): EpisodeInsert {
-  // indexedId matches the fixture's first episode so stub dedup leaves 1.
-  return {
-    provider: DanmakuSourceType.Bilibili,
-    providerIds: { cid: 1300001, aid: 100001, bvid: 'BV1aaaaaaaa' },
-    indexedId: '1300001',
-    title: 'Episode 1',
-    episodeNumber: '1',
-    seasonId,
-    comments: [],
-    commentCount: 0,
-    schemaVersion: 4,
-    lastChecked: 0,
-  }
-}
 
 test('mount tree: bookmark adds stubs, remove clears them', async ({
   context,
@@ -63,8 +33,8 @@ test('mount tree: bookmark adds stubs, remove clears them', async ({
     }),
   })
 
-  const season = await da.season.add(SEASON)
-  await da.episode.add(makeEpisode(season.id))
+  const season = await da.season.add(makeBilibiliSeason())
+  await da.episode.add(makeBilibiliEpisode(season.id))
 
   const popup = await Popup.open(page, extensionId, '/mount')
   const seasonItem = await popup.mount.waitForSeason(season.id)

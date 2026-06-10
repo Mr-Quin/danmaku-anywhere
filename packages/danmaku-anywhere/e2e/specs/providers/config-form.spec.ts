@@ -1,5 +1,6 @@
 import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import type { ProviderConfig } from '../../../src/common/options/providerConfig/schema'
+import { mockLoginProbes } from '../../network/loginProbes'
 import { Popup } from '../../pom/Popup'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
@@ -14,8 +15,6 @@ import { applyProfile } from '../../setup/profile'
  * auth header until it is filled. Field titles localize with the UI language,
  * so they are matched against both the English source and the zh override.
  */
-
-const NAV_URL = /api\.bilibili\.com\/x\/web-interface\/nav/
 
 const customDdp: ProviderConfig = {
   id: 'custom-ddp-form',
@@ -97,15 +96,7 @@ test('edits the built-in Bilibili provider via the generic form', async ({
 }) => {
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
-    network: [
-      {
-        pattern: NAV_URL,
-        respond: (route) =>
-          route.fulfill({
-            json: { code: 0, message: '0', data: { isLogin: true } },
-          }),
-      },
-    ],
+    network: [...mockLoginProbes()],
   })
 
   const popup = await Popup.open(page, extensionId, '/providers')

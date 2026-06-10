@@ -4,6 +4,7 @@ const isCI = !!process.env.CI
 
 export default defineConfig({
   testDir: './e2e',
+  globalSetup: './e2e/setup/globalSetup.ts',
   timeout: 30_000,
   retries: 0,
   // Real server for specs needing genuine cross-origin network (route-fulfilled

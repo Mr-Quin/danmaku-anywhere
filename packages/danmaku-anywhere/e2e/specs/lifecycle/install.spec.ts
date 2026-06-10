@@ -2,6 +2,7 @@ import {
   DanmakuSourceType,
   PROVIDER_TO_BUILTIN_ID,
 } from '@danmaku-anywhere/danmaku-converter'
+import { mockLoginProbes } from '../../network/loginProbes'
 import { Popup } from '../../pom/Popup'
 import { expect, test } from '../../setup/fixtures'
 
@@ -60,13 +61,9 @@ test('fresh install: default options seeded, no console errors', async ({
 
   // The providers list runs each configured provider's connectivity probe on
   // render; mock them so network strict-mode and the console gate stay clean.
-  await context.route(/api\.bilibili\.com\/x\/web-interface\/nav/, (route) =>
-    route.fulfill({ json: { code: 0, message: '0', data: { isLogin: true } } })
-  )
-  await context.route(
-    /pbaccess\.video\.qq\.com\/.*page_server_rpc\.PageServer\/GetPageData/,
-    (route) => route.fulfill({ json: { ret: 0, msg: '', data: {} } })
-  )
+  for (const m of mockLoginProbes()) {
+    await context.route(m.pattern, m.respond)
+  }
 
   const popup = await Popup.open(page, extensionId, '/providers')
   for (const id of PRELOADED_PROVIDER_IDS) {

@@ -1,10 +1,9 @@
-import {
-  DanmakuSourceType,
-  type EpisodeInsert,
-  type SeasonInsert,
-} from '@danmaku-anywhere/danmaku-converter'
 import { mockBilibiliXml } from '../../network/bilibili'
 import { Popup } from '../../pom/Popup'
+import {
+  makeBilibiliEpisode,
+  makeBilibiliSeason,
+} from '../../setup/bilibiliSeed'
 import { expect, test } from '../../setup/fixtures'
 import { loadJsonFixture, loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
@@ -19,34 +18,6 @@ import { applyProfile } from '../../setup/profile'
  */
 
 const STALE_TITLE = '旧标题 (stale)'
-
-const SEASON: SeasonInsert = {
-  provider: DanmakuSourceType.Bilibili,
-  providerIds: { seasonId: 41410, mediaId: 28219412 },
-  providerConfigId: 'bilibili',
-  indexedId: '41410',
-  title: STALE_TITLE,
-  type: '番剧',
-  imageUrl: 'https://bilibili-cdn.invalid/x.jpg',
-  episodeCount: 28,
-  year: 2023,
-  schemaVersion: 1,
-}
-
-function makeEpisode(seasonId: number): EpisodeInsert {
-  return {
-    provider: DanmakuSourceType.Bilibili,
-    providerIds: { cid: 1300001, aid: 100001, bvid: 'BV1aaaaaaaa' },
-    indexedId: '1300001',
-    title: 'Ep1',
-    episodeNumber: '1',
-    seasonId,
-    comments: [],
-    commentCount: 0,
-    schemaVersion: 4,
-    lastChecked: 0,
-  }
-}
 
 test('mount tree: refresh metadata replaces stale season info', async ({
   context,
@@ -64,8 +35,8 @@ test('mount tree: refresh metadata replaces stale season info', async ({
     }),
   })
 
-  const seeded = await da.season.add(SEASON)
-  await da.episode.add(makeEpisode(seeded.id))
+  const seeded = await da.season.add(makeBilibiliSeason({ title: STALE_TITLE }))
+  await da.episode.add(makeBilibiliEpisode(seeded.id))
   expect(seeded.title).toBe(STALE_TITLE)
   expect(seeded.version).toBe(1)
 

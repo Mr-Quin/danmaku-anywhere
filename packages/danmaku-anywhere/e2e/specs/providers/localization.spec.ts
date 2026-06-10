@@ -2,6 +2,7 @@ import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { Language } from '../../../src/common/localization/language'
 import type { ProviderConfig } from '../../../src/common/options/providerConfig/schema'
 import { mockCatalog } from '../../network/catalog'
+import { mockLoginProbes } from '../../network/loginProbes'
 import { Popup } from '../../pom/Popup'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
@@ -12,10 +13,6 @@ import { applyProfile } from '../../setup/profile'
  * localized name (iQIYI -> 爱奇艺) and the generic config editor renders a
  * dandanplay field under its localized title (Base URL -> 基础地址).
  */
-
-const BILIBILI_NAV = /api\.bilibili\.com\/x\/web-interface\/nav/
-const TENCENT_PROBE =
-  /pbaccess\.video\.qq\.com\/.*page_server_rpc\.PageServer\/GetPageData/
 
 const localDdp: ProviderConfig = {
   id: 'localized-ddp',
@@ -41,18 +38,7 @@ test('catalog and config editor render localized manifest strings', async ({
     customProviders: [localDdp],
     network: [
       mockCatalog(['dandanplay', 'bilibili', 'tencent', 'iqiyi']),
-      {
-        pattern: BILIBILI_NAV,
-        respond: (route) =>
-          route.fulfill({
-            json: { code: 0, message: '0', data: { isLogin: true } },
-          }),
-      },
-      {
-        pattern: TENCENT_PROBE,
-        respond: (route) =>
-          route.fulfill({ json: { ret: 0, msg: '', data: {} } }),
-      },
+      ...mockLoginProbes(),
     ],
   })
 
