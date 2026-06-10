@@ -1,5 +1,4 @@
 import { Popup } from '../../pom/Popup'
-import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
@@ -18,8 +17,8 @@ test('authoring a manifest saves and auto-imports it as a custom source', async 
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {})
 
   const popup = await Popup.open(page, extensionId, '/providers')
@@ -41,8 +40,8 @@ test('invalid JSON surfaces a parse error and disables saving', async ({
   context,
   page,
   extensionId,
+  da,
 }) => {
-  const da = await getDaClient(context)
   await applyProfile(context, da, {})
 
   const popup = await Popup.open(page, extensionId, '/providers')
