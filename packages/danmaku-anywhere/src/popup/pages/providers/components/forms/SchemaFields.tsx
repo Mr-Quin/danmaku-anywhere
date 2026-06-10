@@ -115,7 +115,7 @@ function SelectField({ name, schema, required }: SchemaFieldProps) {
           required={required}
           error={!!fieldState.error}
           inputRef={ref}
-          helperText={schema.description}
+          helperText={fieldState.error?.message || schema.description}
           fullWidth
         >
           {options.map((option) => (

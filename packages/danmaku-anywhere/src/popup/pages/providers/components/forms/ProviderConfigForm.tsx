@@ -3,6 +3,7 @@ import { Box, Button, CircularProgress, Stack, TextField } from '@mui/material'
 import { FormProvider, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
+import { useToast } from '@/common/components/Toast/toastStore'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useManifestSpec } from '../../hooks/useManifestSpec'
 import { FormActions } from './FormActions'
@@ -31,6 +32,7 @@ function ConfigForm({
   isEdit,
 }: ConfigFormProps) {
   const { t } = useTranslation()
+  const toast = useToast.use.toast()
 
   const methods = useForm<FormValues>({
     defaultValues: {
@@ -54,6 +56,11 @@ function ConfigForm({
       for (const error of configErrors) {
         setError(`config.${error.path}`, { message: error.message })
       }
+      // Rendered fields are already validated by their own rules, so an error
+      // here usually sits on a field the form does not render. Toast it so the
+      // blocked save is never silent.
+      const [first] = configErrors
+      toast.error(`${first.path}: ${first.message}`)
       return
     }
     const next: ProviderConfig = {
