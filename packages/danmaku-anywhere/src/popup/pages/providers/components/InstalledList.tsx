@@ -1,6 +1,7 @@
 import { arrayMove } from '@dnd-kit/sortable'
 import {
   Add,
+  Code,
   Delete,
   ExpandLess,
   ExpandMore,
@@ -11,6 +12,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
 import { HashAvatar } from '@/common/components/HashAvatar'
+import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
@@ -18,6 +20,7 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { groupInstalled, isHostedDanDanPlay } from '../catalog'
+import { ManifestKindChip } from './ManifestKindChip'
 import { ProviderRow, sourceCardSx } from './ProviderRow'
 
 interface InstalledListProps {
@@ -29,6 +32,8 @@ interface InstalledListProps {
   onDelete: (config: ProviderConfig) => void
   onAddInstance: (manifestId: string) => void
   onAddDefaultInstance: (manifestId: string) => void
+  onViewSource: (manifestId: string) => void
+  onDeleteManifest: (manifestId: string) => void
 }
 
 function versionSubtitle(
@@ -51,6 +56,8 @@ export const InstalledList = ({
   onDelete,
   onAddInstance,
   onAddDefaultInstance,
+  onViewSource,
+  onDeleteManifest,
 }: InstalledListProps) => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
@@ -103,22 +110,40 @@ export const InstalledList = ({
     )
   }
 
-  const removeMenu = (config: ProviderConfig) => (
-    <DrilldownMenu
-      BoxProps={{ sx: { display: 'inline' } }}
-      ButtonProps={{ edge: 'end', size: 'small' }}
-      dense
-      items={[
-        {
-          id: 'delete',
-          label: t('common.delete', 'Delete'),
-          onClick: () => onDelete(config),
-          icon: <Delete />,
-          color: 'error',
-        },
-      ]}
-    />
-  )
+  // Manifest-level actions (view source; whole-manifest delete for user
+  // manifests) appear once per manifest: on a single row or a group header,
+  // never on the per-instance rows inside a group.
+  const configMenu = (config: ProviderConfig, manifestLevel: boolean) => {
+    const items: DAMenuItemConfig[] = []
+    if (manifestLevel && manifestById.has(config.manifestId)) {
+      items.push({
+        id: 'view-source',
+        label: t('providers.editor.manifest.viewSource', 'View source'),
+        onClick: () => onViewSource(config.manifestId),
+        icon: <Code />,
+      })
+    }
+    const deletesManifest =
+      manifestLevel && manifestById.get(config.manifestId)?.kind === 'user'
+    items.push({
+      id: 'delete',
+      label: t('common.delete', 'Delete'),
+      onClick: () =>
+        deletesManifest
+          ? onDeleteManifest(config.manifestId)
+          : onDelete(config),
+      icon: <Delete />,
+      color: 'error',
+    })
+    return (
+      <DrilldownMenu
+        BoxProps={{ sx: { display: 'inline' } }}
+        ButtonProps={{ edge: 'end', size: 'small' }}
+        dense
+        items={items}
+      />
+    )
+  }
 
   const enableSwitch = (config: ProviderConfig) => (
     <Switch
@@ -151,6 +176,11 @@ export const InstalledList = ({
               <ProviderRow
                 avatarSeed={config.manifestId}
                 primary={displayName(config)}
+                titleChip={
+                  <ManifestKindChip
+                    kind={manifestById.get(config.manifestId)?.kind}
+                  />
+                }
                 secondary={versionSubtitle(
                   config,
                   manifestById.get(config.manifestId)
@@ -159,7 +189,7 @@ export const InstalledList = ({
                 action={
                   <>
                     {enableSwitch(config)}
-                    {removeMenu(config)}
+                    {configMenu(config, true)}
                   </>
                 }
               />
@@ -177,7 +207,7 @@ export const InstalledList = ({
           }
         )
         const isOpen = !collapsed.has(unit.id)
-        const menuItems = [
+        const menuItems: DAMenuItemConfig[] = [
           {
             id: 'add-instance',
             label: t('providers.installed.addInstance', 'Add instance'),
@@ -185,6 +215,14 @@ export const InstalledList = ({
             icon: <Add />,
           },
         ]
+        if (manifestById.has(unit.manifestId)) {
+          menuItems.push({
+            id: 'view-source',
+            label: t('providers.editor.manifest.viewSource', 'View source'),
+            onClick: () => onViewSource(unit.manifestId),
+            icon: <Code />,
+          })
+        }
         if (!unit.configs.some(isHostedDanDanPlay)) {
           menuItems.push({
             id: 'add-default',
@@ -201,6 +239,7 @@ export const InstalledList = ({
             <ProviderRow
               avatarSeed={unit.manifestId}
               primary={name}
+              titleChip={<ManifestKindChip kind={manifest?.kind} />}
               secondary={manifest ? `${count} · v${manifest.version}` : count}
               onClick={() => toggleCollapsed(unit.id)}
               action={
@@ -232,7 +271,7 @@ export const InstalledList = ({
                     action={
                       <>
                         {enableSwitch(config)}
-                        {removeMenu(config)}
+                        {configMenu(config, false)}
                       </>
                     }
                   />

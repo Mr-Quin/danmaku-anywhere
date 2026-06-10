@@ -624,12 +624,41 @@
       "version": "v{{version}}"
     },
     "delete": {
+      "manifestMessage": "删除“{{name}}”？这将移除该配置及其实例，已保存的弹幕将无法再刷新。",
+      "manifestTitle": "删除自定义源",
       "message": "确定要删除 \"{{name}}\" 吗？删除后，与此弹幕源相关的所有番剧将无法刷新。",
       "title": "删除弹幕源"
     },
     "editor": {
       "addItem": "添加",
+      "manifest": {
+        "author": "新建配置",
+        "beta": "Beta",
+        "createTitle": "新建配置",
+        "duplicate": "复制",
+        "editTitle": "编辑配置",
+        "importFailed": "配置已保存，但创建弹幕源失败：{{message}}。请从列表中导入。",
+        "invalidJson": "JSON 格式错误",
+        "invalidManifest": "配置不符合规范",
+        "json": "配置 JSON",
+        "loadFailed": "加载配置源码失败。",
+        "notFound": "此来源没有可用的配置源码。",
+        "requiredConfig": "该配置包含没有默认值的必填项，无法保存为默认源。",
+        "saved": "配置已保存",
+        "valid": "配置有效",
+        "validateFailed": "校验配置失败",
+        "viewSource": "查看源码",
+        "viewTitle": "配置源码"
+      },
       "name": "名称",
+      "testRun": {
+        "danmakuCount_other": "已获取 {{count}} 条弹幕",
+        "episodes": "剧集（选择一集获取弹幕）",
+        "keyword": "搜索关键词",
+        "results": "结果（选择一个季）",
+        "search": "搜索",
+        "title": "测试运行"
+      },
       "title": {
         "add": "添加弹幕源",
         "addDanDanPlay": "添加弹弹play弹幕源",
@@ -644,6 +673,7 @@
       "addDefaultInstance": "添加默认实例",
       "addInstance": "添加实例",
       "builtIn": "内置",
+      "custom": "自定义",
       "empty": "没有匹配的弹幕源",
       "instances_other": "{{count}} 个实例",
       "none": "未安装弹幕源",

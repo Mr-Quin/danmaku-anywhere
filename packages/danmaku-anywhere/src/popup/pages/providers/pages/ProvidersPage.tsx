@@ -8,6 +8,7 @@ import {
 } from '@mui/material'
 import { type ReactElement, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Outlet, useNavigate } from 'react-router'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { TabBody } from '@/common/components/layout/TabBody'
 import { TabLayout } from '@/common/components/layout/TabLayout'
@@ -36,15 +37,18 @@ import { NeedsAttentionCallout } from '../components/NeedsAttentionCallout'
 import { ProviderAddMenu } from '../components/ProviderAddMenu'
 import { SectionHeader } from '../components/SectionHeader'
 import { UpdatesSection } from '../components/UpdatesSection'
+import { useDeleteUserManifest } from '../hooks/useManifestEditor'
 import { useManifestList } from '../hooks/useManifestList'
 import { ProviderEditor } from './ProviderEditor'
 
 export const ProvidersPage = (): ReactElement => {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const toast = useToast.use.toast()
   const dialog = useDialog()
   const { configs } = useProviderConfig()
   const { create, remove } = useEditProviderConfig()
+  const deleteManifest = useDeleteUserManifest()
   const { data: manifestData } = useManifestList()
   const [mode, setMode] = useState<'add' | 'edit' | null>(null)
   const [filter, setFilter] = useState('')
@@ -96,6 +100,14 @@ export const ProvidersPage = (): ReactElement => {
   const handleCloseEditor = () => {
     setEditingProvider(null)
     setMode(null)
+  }
+
+  const handleAuthorManifest = () => {
+    navigate('editor')
+  }
+
+  const handleViewSource = (manifestId: string) => {
+    navigate('editor', { state: { manifestId } })
   }
 
   const createConfig = (config: ProviderConfig) => {
@@ -160,6 +172,29 @@ export const ProvidersPage = (): ReactElement => {
     })
   }
 
+  const handleDeleteManifest = (manifestId: string) => {
+    const name = manifestById.get(manifestId)?.name ?? manifestId
+    dialog.delete({
+      title: t('providers.delete.manifestTitle', 'Delete custom source'),
+      content: t(
+        'providers.delete.manifestMessage',
+        'Delete "{{name}}"? This removes the manifest and its instances; saved danmaku for it can no longer be refreshed.',
+        { name }
+      ),
+      confirmText: t('common.delete', 'Delete'),
+      onConfirm: async () => {
+        await deleteManifest.mutateAsync(manifestId, {
+          onSuccess: () => {
+            toast.success(t('providers.alert.deleted', 'Provider deleted'))
+          },
+          onError: (error) => {
+            toast.error(error.message)
+          },
+        })
+      },
+    })
+  }
+
   return (
     <>
       <TabLayout>
@@ -172,6 +207,7 @@ export const ProvidersPage = (): ReactElement => {
             <ProviderAddMenu
               onAddDanDanPlayProvider={handleAddDanDanPlayProvider}
               onAddMacCmsProvider={handleAddMacCmsProvider}
+              onAuthorManifest={handleAuthorManifest}
             />
           )}
         </TabToolbar>
@@ -186,6 +222,8 @@ export const ProvidersPage = (): ReactElement => {
               onDelete={handleDelete}
               onAddInstance={handleAddInstance}
               onAddDefaultInstance={handleAddDefaultInstance}
+              onViewSource={handleViewSource}
+              onDeleteManifest={handleDeleteManifest}
             />
           ) : (
             <Stack direction="column" sx={{ pb: 1.5 }}>
@@ -244,11 +282,14 @@ export const ProvidersPage = (): ReactElement => {
                 onDelete={handleDelete}
                 onAddInstance={handleAddInstance}
                 onAddDefaultInstance={handleAddDefaultInstance}
+                onViewSource={handleViewSource}
+                onDeleteManifest={handleDeleteManifest}
               />
               <CatalogSection
                 filter={filter}
                 installedManifestIds={installedManifestIds}
                 onImport={handleImport}
+                onDeleteManifest={handleDeleteManifest}
                 isImporting={create.isPending}
               />
             </Stack>
@@ -263,6 +304,7 @@ export const ProvidersPage = (): ReactElement => {
           onClose={handleCloseEditor}
         />
       )}
+      <Outlet />
     </>
   )
 }

@@ -9,6 +9,7 @@ import type {
 import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import { getDisplayStrings } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
+import { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import type { SeasonQueryFilter, SeasonSearchRequest } from '@/common/anime/dto'
@@ -64,6 +65,8 @@ export class ProviderService {
     private danmakuProviderFactory: IDanmakuProviderFactory,
     @inject(ManifestRegistry)
     private manifestRegistry: ManifestRegistry,
+    @inject(BookmarkService)
+    private bookmarkService: BookmarkService,
     @inject(LoggerSymbol) logger: ILogger,
     @inject(ExtensionOptionsService)
     private extensionOptions: ExtensionOptionsService
@@ -286,6 +289,26 @@ export class ProviderService {
       this.logger.error('loginProbe failed', manifestId, e)
       return { hasLoginProbe: true, cookieSet, ok: false }
     }
+  }
+
+  // Removes a user manifest along with its config instances and their
+  // bookmarks. Seasons and episodes stay orphaned-but-viewable, the same
+  // semantics as deleting a single provider config. The manifest unregisters
+  // last so a partial failure stays retryable (the kind guard re-passes while
+  // the manifest still exists).
+  async deleteUserManifest(manifestId: string): Promise<void> {
+    const source = await this.manifestRegistry.getSource(manifestId)
+    if (source?.kind !== 'user') {
+      throw new Error('Only user manifests can be deleted')
+    }
+    const configs = await this.providerConfigService.getAll()
+    for (const config of configs) {
+      if (config.manifestId === manifestId) {
+        await this.providerConfigService.deleteFromStorage(config.id)
+        await this.bookmarkService.deleteByProviderConfigId(config.id)
+      }
+    }
+    await this.manifestRegistry.unregister(manifestId)
   }
 
   // Lists every registered manifest plus the last catalog-check timestamp so

@@ -21,6 +21,7 @@ import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
 import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
 import { ManifestRegistry } from '@/background/services/providers/ManifestRegistry'
+import { ManifestSandbox } from '@/background/services/providers/ManifestSandbox'
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import { AuthClientService } from '@/common/auth/AuthClientService'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
@@ -81,7 +82,9 @@ export class RpcManager {
     @inject(ExtensionOptionsService)
     private extensionOptionsService: ExtensionOptionsService,
     @inject(ManifestRegistry)
-    private manifestRegistry: ManifestRegistry
+    private manifestRegistry: ManifestRegistry,
+    @inject(ManifestSandbox)
+    private manifestSandbox: ManifestSandbox
   ) {
     this.logger = logger.sub('[RpcManager]')
   }
@@ -136,6 +139,28 @@ export class RpcManager {
         },
         providerApplyUpdates: async ({ manifestIds }) => {
           await this.manifestRegistry.applyUpdates(manifestIds)
+        },
+        providerValidateManifest: async ({ manifest }) => {
+          return this.manifestSandbox.validate(manifest)
+        },
+        providerTestRunSearch: async (input) => {
+          return this.manifestSandbox.search(input)
+        },
+        providerTestRunEpisodes: async (input) => {
+          return this.manifestSandbox.episodes(input)
+        },
+        providerTestRunDanmaku: async (input) => {
+          return this.manifestSandbox.danmaku(input)
+        },
+        providerSaveUserManifest: async ({ manifest, mode, expectedId }) => {
+          await this.manifestRegistry.saveUserManifest(
+            manifest,
+            mode,
+            expectedId
+          )
+        },
+        providerGetManifestSource: async ({ manifestId }) => {
+          return (await this.manifestRegistry.getSource(manifestId)) ?? null
         },
         bilibiliSetCookies: async () => {
           // Credentialed homepage GET lets bilibili's Set-Cookie response
@@ -366,6 +391,10 @@ export class RpcManager {
           await this.providerConfigService.deleteFromStorage(id)
           await this.bookmarkService.deleteByProviderConfigId(id)
 
+          void invalidateContentScriptData(sender.tab?.id)
+        },
+        providerDeleteUserManifest: async ({ manifestId }, sender) => {
+          await this.providerService.deleteUserManifest(manifestId)
           void invalidateContentScriptData(sender.tab?.id)
         },
         backupExport: async () => {

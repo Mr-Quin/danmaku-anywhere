@@ -73,6 +73,12 @@ export const sourceQueryKeys = {
       ? ([{ scope: 'source', kind: 'manifestList' }] as const)
       : ([{ scope: 'source', kind: 'manifestList', locale }] as const),
   pendingUpdates: () => [{ scope: 'source', kind: 'pendingUpdates' }] as const,
+  // Omit manifestId for a family-prefix key that matches every cached source
+  // (used to invalidate after a save/delete).
+  manifestSource: (manifestId?: string) =>
+    manifestId === undefined
+      ? ([{ scope: 'source', kind: 'manifestSource' }] as const)
+      : ([{ scope: 'source', kind: 'manifestSource', manifestId }] as const),
 }
 
 export const tabQueryKeys = {

@@ -27,6 +27,7 @@ const manifest: ProviderManifestInfo = {
   id: 'iqiyi',
   name: 'iQIYI',
   version: '0.3.0',
+  kind: 'preinstalled',
 }
 
 describe('createConfigFromManifest', () => {

@@ -18,6 +18,7 @@ import { MountPage } from '../pages/mount/MountPage'
 import { Options } from '../pages/options/Options'
 import { HotkeyOptions } from '../pages/options/pages/hotkeyOptions/HotkeyOptions'
 import { RetentionPolicyPage } from '../pages/options/pages/retentionPolicy/RetentionPolicyPage'
+import { ManifestEditorPage } from '../pages/providers/pages/ManifestEditorPage'
 import { ProvidersPage } from '../pages/providers/pages/ProvidersPage'
 import { SearchPage } from '../pages/search/SearchPage'
 import { StylesPage } from '../pages/styles/StylesPage'
@@ -80,6 +81,12 @@ export const routes: RouteObject[] = [
       {
         path: 'providers',
         Component: ProvidersPage,
+        children: [
+          {
+            path: 'editor',
+            Component: ManifestEditorPage,
+          },
+        ],
       },
       {
         path: 'ai-providers',

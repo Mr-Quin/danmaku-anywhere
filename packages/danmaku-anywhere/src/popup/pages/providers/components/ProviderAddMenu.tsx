@@ -1,4 +1,4 @@
-import { Add } from '@mui/icons-material'
+import { Add, Code } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import { ListAddButton } from '@/common/components/ListAddButton'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
@@ -10,11 +10,13 @@ import {
 interface ProviderAddMenuProps {
   onAddDanDanPlayProvider: () => void
   onAddMacCmsProvider: () => void
+  onAuthorManifest: () => void
 }
 
 export const ProviderAddMenu = ({
   onAddDanDanPlayProvider,
   onAddMacCmsProvider,
+  onAuthorManifest,
 }: ProviderAddMenuProps) => {
   const { t } = useTranslation()
 
@@ -36,6 +38,12 @@ export const ProviderAddMenu = ({
           label: localizedDanmakuSourceType(DanmakuSourceType.MacCMS),
           onClick: onAddMacCmsProvider,
           icon: <Add />,
+        },
+        {
+          id: 'author-manifest',
+          label: t('providers.editor.manifest.author', 'Author a manifest'),
+          onClick: onAuthorManifest,
+          icon: <Code />,
         },
       ]}
     />

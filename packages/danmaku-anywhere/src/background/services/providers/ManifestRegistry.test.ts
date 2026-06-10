@@ -180,17 +180,33 @@ describe('ManifestRegistry', () => {
     }
   })
 
-  it('listManifests returns id/name/version for each registered manifest', async () => {
+  it('listManifests returns id/name/version/kind for each registered manifest', async () => {
     stubCatalogFetch([], {})
     const store = new InMemoryStore({
       one: { manifest: makeManifest('one', 1, '2.1.0'), kind: 'preinstalled' },
+      'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
     await registry.ready
 
-    expect(registry.listManifests()).toEqual([
-      { id: 'one', name: 'one', version: '2.1.0', configSchema: undefined },
-    ])
+    expect(registry.listManifests()).toEqual(
+      expect.arrayContaining([
+        {
+          id: 'one',
+          name: 'one',
+          version: '2.1.0',
+          configSchema: undefined,
+          kind: 'preinstalled',
+        },
+        {
+          id: 'mine:one',
+          name: 'mine:one',
+          version: '1.0.0',
+          configSchema: undefined,
+          kind: 'user',
+        },
+      ])
+    )
   })
 
   it('listManifests resolves name and configSchema into the requested locale', async () => {
@@ -609,5 +625,114 @@ describe('ManifestRegistry', () => {
     expect(registry.getRunner('good:one')).toBeDefined()
     expect(() => registry.getRunner('bad:one')).toThrow()
     expect(registry.list()).toEqual(['good:one'])
+  })
+
+  it('saveUserManifest create stores a user manifest and builds its runner', async () => {
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.saveUserManifest(makeManifest('mine:one'), 'create')
+
+    expect(await store.get('mine:one')).toMatchObject({ kind: 'user' })
+    expect(registry.getRunner('mine:one')).toBeDefined()
+  })
+
+  it('saveUserManifest create rejects an id that already exists', async () => {
+    const store = new InMemoryStore({
+      'builtin:one': {
+        manifest: makeManifest('builtin:one'),
+        kind: 'preinstalled',
+      },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(
+      registry.saveUserManifest(makeManifest('builtin:one'), 'create')
+    ).rejects.toThrow(/already exists/)
+    expect(await store.get('builtin:one')).toMatchObject({
+      kind: 'preinstalled',
+    })
+  })
+
+  it('saveUserManifest update overwrites an existing user manifest', async () => {
+    const store = new InMemoryStore({
+      'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.saveUserManifest(
+      makeManifest('mine:one', 1, '2.0.0'),
+      'update',
+      'mine:one'
+    )
+
+    expect((await store.get('mine:one'))?.manifest).toMatchObject({
+      version: '2.0.0',
+    })
+  })
+
+  it('saveUserManifest update requires the expected id', async () => {
+    const store = new InMemoryStore({
+      'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(
+      registry.saveUserManifest(makeManifest('mine:one', 1, '2.0.0'), 'update')
+    ).rejects.toThrow(/cannot be changed/)
+    expect((await store.get('mine:one'))?.manifest).toMatchObject({
+      version: '1.0.0',
+    })
+  })
+
+  it('saveUserManifest update refuses an id that differs from the edited one', async () => {
+    const store = new InMemoryStore({
+      'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(
+      registry.saveUserManifest(makeManifest('mine:two'), 'update', 'mine:one')
+    ).rejects.toThrow(/cannot be changed/)
+    expect(await store.get('mine:two')).toBeUndefined()
+  })
+
+  it('saveUserManifest update refuses a preinstalled id', async () => {
+    const store = new InMemoryStore({
+      'builtin:one': {
+        manifest: makeManifest('builtin:one'),
+        kind: 'preinstalled',
+      },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(
+      registry.saveUserManifest(
+        makeManifest('builtin:one'),
+        'update',
+        'builtin:one'
+      )
+    ).rejects.toThrow(/no user manifest/i)
+  })
+
+  it('getSource returns the raw stored manifest and kind', async () => {
+    const raw = makeManifest('mine:one')
+    const store = new InMemoryStore({
+      'mine:one': { manifest: raw, kind: 'user' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(await registry.getSource('mine:one')).toEqual({
+      manifest: raw,
+      kind: 'user',
+    })
+    expect(await registry.getSource('missing')).toBeUndefined()
   })
 })

@@ -120,6 +120,7 @@ export interface ProviderManifestInfo {
   name: string
   version: string
   configSchema?: ConfigSchema
+  kind: 'preinstalled' | 'user'
 }
 
 export interface ProviderManifestList {
@@ -131,6 +132,56 @@ export interface ManifestUpdate {
   manifestId: string
   fromVersion: string
   toVersion: string
+}
+
+export interface ManifestValidationIssue {
+  path: string
+  message: string
+}
+
+export type ManifestValidationResult =
+  | { valid: true }
+  | { valid: false; issues: ManifestValidationIssue[] }
+
+export interface ManifestTestSearchRow {
+  providerIds: Record<string, unknown>
+  indexedId: string
+  title: string
+  type?: string
+  imageUrl?: string
+  episodeCount?: number
+}
+
+export interface ManifestTestEpisodeRow {
+  providerIds: Record<string, unknown>
+  indexedId: string
+  title: string
+  episodeNumber?: number | string
+  params?: Record<string, unknown>
+}
+
+export interface ManifestSource {
+  manifest: unknown
+  kind: 'preinstalled' | 'user'
+}
+
+export interface ManifestTestSearchInput {
+  manifest: unknown
+  keyword: string
+  configValues?: Record<string, unknown>
+}
+
+export interface ManifestTestEpisodesInput {
+  manifest: unknown
+  configValues?: Record<string, unknown>
+  providerIds: Record<string, unknown>
+}
+
+export interface ManifestTestDanmakuInput {
+  manifest: unknown
+  configValues?: Record<string, unknown>
+  providerIds: Record<string, unknown>
+  params?: Record<string, unknown>
 }
 
 export type BackgroundMethods = {
@@ -181,6 +232,31 @@ export type BackgroundMethods = {
   providerRefreshCatalog: RPCDef<{ locale?: string }, ProviderManifestList>
   providerGetPendingUpdates: RPCDef<void, ManifestUpdate[]>
   providerApplyUpdates: RPCDef<{ manifestIds: string[] }, void>
+  providerValidateManifest: RPCDef<
+    { manifest: unknown },
+    ManifestValidationResult
+  >
+  providerTestRunSearch: RPCDef<
+    ManifestTestSearchInput,
+    ManifestTestSearchRow[]
+  >
+  providerTestRunEpisodes: RPCDef<
+    ManifestTestEpisodesInput,
+    ManifestTestEpisodeRow[]
+  >
+  providerTestRunDanmaku: RPCDef<
+    ManifestTestDanmakuInput,
+    { commentCount: number }
+  >
+  providerSaveUserManifest: RPCDef<
+    { manifest: unknown; mode: 'create' | 'update'; expectedId?: string },
+    void
+  >
+  providerGetManifestSource: RPCDef<
+    { manifestId: string },
+    ManifestSource | null
+  >
+  providerDeleteUserManifest: RPCDef<{ manifestId: string }, void>
   fetchImage: RPCDef<{ src: string }, string | null>
   getActiveTabUrl: RPCDef<void, string | null>
   getFrameId: RPCDef<void, number>

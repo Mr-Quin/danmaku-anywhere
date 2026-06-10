@@ -1,4 +1,4 @@
-import { Refresh } from '@mui/icons-material'
+import { Delete, Refresh } from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -13,6 +13,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { type CheckedAgo, checkedAgo, matchesQuery } from '../catalog'
 import { useManifestList, useRefreshCatalog } from '../hooks/useManifestList'
+import { ManifestKindChip } from './ManifestKindChip'
 import { ProviderRow, sourceCardSx } from './ProviderRow'
 import { SectionHeader } from './SectionHeader'
 
@@ -20,6 +21,7 @@ interface CatalogSectionProps {
   filter: string
   installedManifestIds: Set<string>
   onImport: (manifest: ProviderManifestInfo) => void
+  onDeleteManifest: (manifestId: string) => void
   isImporting: boolean
 }
 
@@ -50,6 +52,7 @@ export const CatalogSection = ({
   filter,
   installedManifestIds,
   onImport,
+  onDeleteManifest,
   isImporting,
 }: CatalogSectionProps) => {
   const { t } = useTranslation()
@@ -99,18 +102,33 @@ export const CatalogSection = ({
             <ProviderRow
               avatarSeed={manifest.id}
               primary={manifest.name}
+              titleChip={<ManifestKindChip kind={manifest.kind} />}
               secondary={t('providers.catalog.version', 'v{{version}}', {
                 version: manifest.version,
               })}
               action={
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => onImport(manifest)}
-                  disabled={isImporting}
-                >
-                  {t('providers.catalog.import', 'Import')}
-                </Button>
+                <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => onImport(manifest)}
+                    disabled={isImporting}
+                  >
+                    {t('providers.catalog.import', 'Import')}
+                  </Button>
+                  {manifest.kind === 'user' ? (
+                    <Tooltip title={t('common.delete', 'Delete')}>
+                      <IconButton
+                        size="small"
+                        color="error"
+                        aria-label={t('common.delete', 'Delete')}
+                        onClick={() => onDeleteManifest(manifest.id)}
+                      >
+                        <Delete fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  ) : null}
+                </Stack>
               }
             />
           </Box>
