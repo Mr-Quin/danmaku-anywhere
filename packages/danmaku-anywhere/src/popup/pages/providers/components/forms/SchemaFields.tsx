@@ -19,6 +19,7 @@ import {
   getFieldKind,
   getObjectFields,
   toNumberOrUndefined,
+  validateScalar,
 } from './schemaForm'
 
 interface SchemaFieldProps {
@@ -64,7 +65,10 @@ function ScalarField({ name, schema, required }: SchemaFieldProps) {
     <Controller
       name={name}
       control={control}
-      rules={{ required }}
+      rules={{
+        required,
+        validate: (value) => validateScalar(schema, value) ?? true,
+      }}
       render={({ field: { ref, onChange, value, ...field }, fieldState }) => (
         <TextField
           {...field}
@@ -82,7 +86,7 @@ function ScalarField({ name, schema, required }: SchemaFieldProps) {
           type={kind === 'number' ? 'number' : 'text'}
           required={required}
           error={!!fieldState.error}
-          helperText={schema.description}
+          helperText={fieldState.error?.message || schema.description}
           fullWidth
         />
       )}

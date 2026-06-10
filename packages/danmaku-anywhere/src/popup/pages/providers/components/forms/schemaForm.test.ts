@@ -6,6 +6,8 @@ import {
   getObjectFields,
   mergeConfigValues,
   toNumberOrUndefined,
+  validateConfigValues,
+  validateScalar,
 } from './schemaForm'
 
 /**
@@ -188,6 +190,117 @@ describe('buildDefaultValues', () => {
       enabled: true,
       headers: [{ key: 'only-key', value: '' }],
     })
+  })
+})
+
+describe('validateScalar', () => {
+  it('skips constraint checks for empty values', () => {
+    const schema: ConfigSchema = { type: 'string', minLength: 5 }
+    expect(validateScalar(schema, '')).toBeNull()
+    expect(validateScalar(schema, undefined)).toBeNull()
+    expect(validateScalar(schema, null)).toBeNull()
+  })
+
+  it('returns null when there are no constraints', () => {
+    expect(validateScalar({ type: 'string' }, 'anything')).toBeNull()
+    expect(validateScalar({ type: 'number' }, 12.5)).toBeNull()
+  })
+
+  // The test setup mocks i18n.t to return the key, so messages are asserted
+  // by the constraint key that fired.
+  it('enforces minLength and maxLength', () => {
+    const schema: ConfigSchema = { type: 'string', minLength: 2, maxLength: 4 }
+    expect(validateScalar(schema, 'a')).toContain('minLength')
+    expect(validateScalar(schema, 'abcde')).toContain('maxLength')
+    expect(validateScalar(schema, 'abc')).toBeNull()
+  })
+
+  it('enforces pattern', () => {
+    const schema: ConfigSchema = { type: 'string', pattern: '^[a-z]+$' }
+    expect(validateScalar(schema, 'abc')).toBeNull()
+    expect(validateScalar(schema, 'ABC')).not.toBeNull()
+  })
+
+  it('ignores an invalid pattern regex', () => {
+    const schema: ConfigSchema = { type: 'string', pattern: '[' }
+    expect(validateScalar(schema, 'anything')).toBeNull()
+  })
+
+  it('enforces uri format and ignores unknown formats', () => {
+    const uri: ConfigSchema = { type: 'string', format: 'uri' }
+    expect(validateScalar(uri, 'not a url')).not.toBeNull()
+    expect(validateScalar(uri, 'https://example.test')).toBeNull()
+    const unknown: ConfigSchema = { type: 'string', format: 'hostname' }
+    expect(validateScalar(unknown, 'anything')).toBeNull()
+  })
+
+  it('enforces minimum and maximum', () => {
+    const schema: ConfigSchema = { type: 'number', minimum: 1, maximum: 10 }
+    expect(validateScalar(schema, 0)).toContain('minimum')
+    expect(validateScalar(schema, 11)).toContain('maximum')
+    expect(validateScalar(schema, 5)).toBeNull()
+  })
+
+  it('rejects fractional values for integer schemas', () => {
+    const schema: ConfigSchema = { type: 'integer' }
+    expect(validateScalar(schema, 1.5)).not.toBeNull()
+    expect(validateScalar(schema, 2)).toBeNull()
+  })
+})
+
+describe('validateConfigValues', () => {
+  it('returns no errors without a schema', () => {
+    expect(validateConfigValues(undefined, { foo: 'bar' })).toEqual([])
+  })
+
+  it('reports missing or empty required fields with their path', () => {
+    const schema: ConfigSchema = {
+      type: 'object',
+      required: ['baseUrl'],
+      properties: { baseUrl: { type: 'string' } },
+    }
+    expect(validateConfigValues(schema, {})).toMatchObject([
+      { path: 'baseUrl' },
+    ])
+    expect(validateConfigValues(schema, { baseUrl: '' })).toMatchObject([
+      { path: 'baseUrl' },
+    ])
+    expect(validateConfigValues(schema, { baseUrl: 'x' })).toEqual([])
+  })
+
+  it('reports constraint violations with their path', () => {
+    const schema: ConfigSchema = {
+      type: 'object',
+      properties: { baseUrl: { type: 'string', format: 'uri' } },
+    }
+    expect(validateConfigValues(schema, { baseUrl: 'nope' })).toMatchObject([
+      { path: 'baseUrl' },
+    ])
+  })
+
+  it('walks nested objects and array items', () => {
+    const errors = validateConfigValues(ddpSchema, {
+      baseUrl: 'https://example.test',
+      auth: { enabled: true, headers: [{ key: 'X-Token', value: '' }] },
+    })
+    expect(errors).toMatchObject([{ path: 'auth.headers.0.value' }])
+  })
+
+  it('ignores stored keys the schema does not know about', () => {
+    const schema: ConfigSchema = {
+      type: 'object',
+      properties: { baseUrl: { type: 'string' } },
+    }
+    expect(validateConfigValues(schema, { legacyOnly: 'keep' })).toEqual([])
+  })
+
+  it('accepts a fully valid config', () => {
+    const errors = validateConfigValues(ddpSchema, {
+      baseUrl: 'https://example.test',
+      auth: { enabled: false, headers: [] },
+      chConvert: 0,
+    })
+    expect(errors).toEqual([])
   })
 })
 

@@ -7,7 +7,11 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useManifestSpec } from '../../hooks/useManifestSpec'
 import { FormActions } from './FormActions'
 import { SchemaObjectFields } from './SchemaFields'
-import { buildDefaultValues, mergeConfigValues } from './schemaForm'
+import {
+  buildDefaultValues,
+  mergeConfigValues,
+  validateConfigValues,
+} from './schemaForm'
 import type { ProviderFormProps } from './types'
 
 interface FormValues {
@@ -39,14 +43,23 @@ function ConfigForm({
     handleSubmit,
     register,
     reset,
+    setError,
     formState: { errors, isSubmitting, isDirty },
   } = methods
 
   const handleFormSubmit = handleSubmit(async (data) => {
+    const configValues = mergeConfigValues(provider.configValues, data.config)
+    const configErrors = validateConfigValues(configSchema, configValues)
+    if (configErrors.length > 0) {
+      for (const error of configErrors) {
+        setError(`config.${error.path}`, { message: error.message })
+      }
+      return
+    }
     const next: ProviderConfig = {
       ...provider,
       name: data.name,
-      configValues: mergeConfigValues(provider.configValues, data.config),
+      configValues,
     }
     await onSubmit(next)
   })

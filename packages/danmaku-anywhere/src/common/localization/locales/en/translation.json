@@ -688,6 +688,16 @@
         "addDanDanPlay": "Add DanDanPlay Compatible Provider",
         "addMacCms": "Add MacCMS Provider",
         "edit": "Edit Provider: {{name}}"
+      },
+      "validation": {
+        "integer": "Must be a whole number",
+        "maximum": "Must be at most {{max}}",
+        "maxLength": "Must be at most {{max}} characters",
+        "minimum": "Must be at least {{min}}",
+        "minLength": "Must be at least {{min}} characters",
+        "pattern": "Must match the pattern {{pattern}}",
+        "required": "This field is required",
+        "url": "Not a valid URL"
       }
     },
     "filter": {
