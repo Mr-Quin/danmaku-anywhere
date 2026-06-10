@@ -104,13 +104,29 @@ export class ProviderService {
     return this.seasonService.upsert(data)
   }
 
+  // Resolves the config a season was saved under, raising a clear "source
+  // removed" error when the config has been deleted (the season is orphaned).
+  // The UI blocks refresh affordances for orphaned seasons, so this is the
+  // fallback for any path that still reaches a provider call.
+  private async getConfigForSeason(
+    providerConfigId: string
+  ): Promise<ProviderConfig> {
+    const config = await this.providerConfigService.get(providerConfigId)
+    if (!config) {
+      throw new Error(
+        'This source has been removed, so new danmaku cannot be fetched.'
+      )
+    }
+    return config
+  }
+
   async fetchEpisodesBySeason(
     seasonId: number
   ): Promise<WithSeason<EpisodeMeta>[]> {
     await this.manifestRegistry.ready
     const season = await this.seasonService.mustGetById(seasonId)
 
-    const providerConfig = await this.providerConfigService.mustGet(
+    const providerConfig = await this.getConfigForSeason(
       season.providerConfigId
     )
 
@@ -126,8 +142,11 @@ export class ProviderService {
   async refreshSeason(filter: SeasonQueryFilter) {
     await this.manifestRegistry.ready
     const [season] = await this.seasonService.filter(filter)
+    if (!season) {
+      throw new Error('No season found for refresh filter')
+    }
 
-    const providerConfig = await this.providerConfigService.mustGet(
+    const providerConfig = await this.getConfigForSeason(
       season.providerConfigId
     )
 
@@ -186,9 +205,7 @@ export class ProviderService {
       this.logger.debug('Danmaku not found in db, fetching from server')
     }
 
-    const config = await this.providerConfigService.mustGet(
-      meta.season.providerConfigId
-    )
+    const config = await this.getConfigForSeason(meta.season.providerConfigId)
 
     if (config.manifestId === LEGACY_MACCMS_ID) {
       throw new Error('MacCMS episodes are not refetchable')

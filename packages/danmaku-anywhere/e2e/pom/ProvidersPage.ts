@@ -16,6 +16,15 @@ export class ProvidersPage {
     await this.row(name).first().click()
   }
 
+  // Stops before confirming; the caller confirms via `popup.dialog`.
+  async deleteProvider(name: string | RegExp): Promise<void> {
+    const installedRow = this.page
+      .getByRole('listitem')
+      .filter({ hasText: name })
+    await installedRow.getByTestId('drilldown-menu-button').click()
+    await this.page.getByTestId('drilldown-menu-item-delete').click()
+  }
+
   filter(query: string): Promise<void> {
     return this.page.getByPlaceholder(/Filter sources|筛选/).fill(query)
   }

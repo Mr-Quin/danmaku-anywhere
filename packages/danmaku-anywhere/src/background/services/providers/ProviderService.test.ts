@@ -66,7 +66,11 @@ function makeProvider(
 function build(
   config: ProviderConfig,
   provider: IDanmakuProvider,
-  opts: { findExisting?: unknown; existingDanmaku?: unknown[] } = {}
+  opts: {
+    findExisting?: unknown
+    existingDanmaku?: unknown[]
+    configMissing?: boolean
+  } = {}
 ) {
   const danmakuService = {
     filter: vi.fn(async () => opts.existingDanmaku ?? []),
@@ -88,6 +92,7 @@ function build(
 
   const providerConfigService = {
     mustGet: vi.fn(async () => config),
+    get: vi.fn(async () => (opts.configMissing ? undefined : config)),
   } as unknown as ProviderConfigService
 
   const factory = vi.fn(() => provider)
@@ -221,6 +226,20 @@ describe('ProviderService legacy-maccms decoupling', () => {
       )
       expect(provider.getEpisodes).not.toHaveBeenCalled()
     })
+
+    it('throws a source-removed error when the season is orphaned', async () => {
+      const provider = makeProvider()
+      const { service } = build(
+        makeConfig('iqiyi', DanmakuSourceType.DanDanPlay),
+        provider,
+        { configMissing: true }
+      )
+
+      await expect(service.fetchEpisodesBySeason(1)).rejects.toThrow(
+        'This source has been removed'
+      )
+      expect(provider.getEpisodes).not.toHaveBeenCalled()
+    })
   })
 
   describe('searchSeason', () => {
@@ -328,6 +347,24 @@ describe('ProviderService legacy-maccms decoupling', () => {
       await expect(
         service.getDanmaku({ type: 'by-meta', meta: maccmsMeta, options: {} })
       ).rejects.toThrow('MacCMS episodes are not refetchable')
+      expect(provider.getDanmaku).not.toHaveBeenCalled()
+    })
+
+    it('throws a source-removed error when forcing an orphaned season', async () => {
+      const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
+      const { service } = build(
+        makeConfig('iqiyi', DanmakuSourceType.DanDanPlay),
+        provider,
+        { configMissing: true }
+      )
+
+      await expect(
+        service.getDanmaku({
+          type: 'by-meta',
+          meta,
+          options: { forceUpdate: true },
+        })
+      ).rejects.toThrow('This source has been removed')
       expect(provider.getDanmaku).not.toHaveBeenCalled()
     })
   })

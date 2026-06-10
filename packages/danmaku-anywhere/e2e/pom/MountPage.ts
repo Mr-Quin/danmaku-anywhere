@@ -72,6 +72,22 @@ export class MountPage {
     await expect(menuItem).toBeHidden()
   }
 
+  // Right-click to reveal the context menu without acting on an entry, so a
+  // spec can assert an entry's enabled/disabled state. Targets the row header
+  // near the top: an expanded season's box covers its child rows, so a centered
+  // click would open a child's menu instead.
+  async openContextMenu(item: Locator): Promise<void> {
+    await item.click({ button: 'right', position: { x: 16, y: 16 } })
+  }
+
+  contextMenuItem(actionId: string): Locator {
+    return this.page.locator(SELECTORS.menuItem(actionId))
+  }
+
+  seasonOrphanedBadge(seasonId: number): Locator {
+    return this.seasonItem(seasonId).getByTestId('season-orphaned-badge')
+  }
+
   async expandSeason(seasonId: number): Promise<void> {
     const item = this.seasonItem(seasonId)
     if ((await item.getAttribute('aria-expanded')) === 'true') {

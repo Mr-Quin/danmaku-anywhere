@@ -18,11 +18,13 @@ import { SeasonContextMenuPure } from './SeasonContextMenuPure'
 interface SeasonContextMenuContainerProps {
   season: Season | CustomSeason
   itemId: string
+  orphaned?: boolean
 }
 
 export const SeasonContextMenuContainer = ({
   season,
   itemId,
+  orphaned,
 }: SeasonContextMenuContainerProps): ReactElement => {
   const { t } = useTranslation()
   const { contextMenu, setContextMenu } = useDanmakuTreeContext()
@@ -115,6 +117,7 @@ export const SeasonContextMenuContainer = ({
       isExporting={exportXml.isPending || exportBackup.isPending}
       onRefresh={() => refreshSeason.mutate(season.id)}
       isRefreshing={refreshSeason.isPending}
+      orphaned={orphaned}
       bookmarked={isBookmarked}
       onBookmarkToggle={handleBookmarkToggle}
       onBookmarkRefresh={handleBookmarkRefresh}

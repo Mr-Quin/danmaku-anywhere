@@ -2,6 +2,7 @@ import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import { Favorite, Folder } from '@mui/icons-material'
 import { Chip, Skeleton, Stack, styled, Typography } from '@mui/material'
 import { type ReactElement, Suspense } from 'react'
+import { useTranslation } from 'react-i18next'
 import { isNotCustom } from '@/common/danmaku/utils'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { SuspenseImage } from '../../../image/SuspenseImage'
@@ -41,6 +42,7 @@ const SeasonThumbnail = ({
 interface SeasonTreeItemProps {
   season: Season | CustomSeason
   provider?: ProviderConfig
+  orphaned?: boolean
   fetchedCount?: number
   stubCount?: number
   bookmarked?: boolean
@@ -49,10 +51,12 @@ interface SeasonTreeItemProps {
 export const SeasonTreeItem = ({
   season,
   provider,
+  orphaned,
   fetchedCount,
   stubCount,
   bookmarked,
 }: SeasonTreeItemProps): ReactElement => {
+  const { t } = useTranslation()
   const isCustom = !isNotCustom(season)
 
   const renderCounts = () => {
@@ -129,6 +133,15 @@ export const SeasonTreeItem = ({
               label={provider.name}
               size="small"
               variant="outlined"
+            />
+          )}
+          {orphaned && (
+            <ProviderChip
+              label={t('anime.sourceRemoved', 'Source removed')}
+              size="small"
+              variant="outlined"
+              color="warning"
+              data-testid="season-orphaned-badge"
             />
           )}
           {renderCounts()}

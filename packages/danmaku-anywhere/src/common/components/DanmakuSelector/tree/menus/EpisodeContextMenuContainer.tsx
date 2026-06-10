@@ -13,11 +13,13 @@ import { EpisodeContextMenuPure } from './EpisodeContextMenuPure'
 interface EpisodeContextMenuContainerProps {
   episode: GenericEpisodeLite
   itemId: string
+  orphaned?: boolean
 }
 
 export const EpisodeContextMenuContainer = ({
   episode,
   itemId,
+  orphaned,
 }: EpisodeContextMenuContainerProps): ReactElement => {
   const { t } = useTranslation()
   const { mutateAsync: load, isPending } = useFetchDanmaku()
@@ -95,7 +97,7 @@ export const EpisodeContextMenuContainer = ({
 
   return (
     <EpisodeContextMenuPure
-      canRefresh={isNotCustom(episode)}
+      canRefresh={isNotCustom(episode) && !orphaned}
       isRefreshing={isPending}
       onViewDanmaku={() => setViewingDanmaku(episode)}
       onRefresh={handleFetchDanmaku}

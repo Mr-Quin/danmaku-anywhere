@@ -2,7 +2,7 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useInjectService } from '@/common/hooks/useInjectService'
-import { storageQueryKeys } from '@/common/queries/queryKeys'
+import { bookmarkQueryKeys, storageQueryKeys } from '@/common/queries/queryKeys'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import type { ProviderConfig, ProviderConfigOptions } from './schema'
 import { ProviderConfigService } from './service'
@@ -64,7 +64,9 @@ export const useEditProviderConfig = () => {
 
   const deleteMutation = useMutation({
     mutationFn: providerConfigService.delete.bind(providerConfigService),
-    meta,
+    // Deleting a config also deletes its bookmarks in the background, so the
+    // bookmark cache must refetch or the tree keeps showing dead stubs.
+    meta: { invalidates: [queryKey, bookmarkQueryKeys.all()] },
   })
 
   const toggleMutation = useMutation({

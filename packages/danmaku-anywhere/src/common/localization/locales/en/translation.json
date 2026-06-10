@@ -54,6 +54,8 @@
     "numericEpisode": "Episode {{episode}}",
     "numericSeason": "Season {{season}}",
     "refreshMetadata": "Refresh Metadata",
+    "sourceRemoved": "Source removed",
+    "sourceRemovedTooltip": "This source has been deleted.",
     "title": "Title"
   },
   "bookmark": {
