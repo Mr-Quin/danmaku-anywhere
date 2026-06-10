@@ -366,7 +366,8 @@ export class ProviderService {
     // mid-sync; skip the best-effort auto-apply rather than fail the sync.
     const pending = await this.manifestRegistry
       .getPendingUpdates()
-      .catch(() => {
+      .catch((e) => {
+        this.logger.warn('Failed to detect pending updates mid-sync:', e)
         return []
       })
     const configs = await this.providerConfigService.getAll()

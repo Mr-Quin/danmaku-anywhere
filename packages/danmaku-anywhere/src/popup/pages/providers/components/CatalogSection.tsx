@@ -86,7 +86,11 @@ export const CatalogSection = ({
           <Typography variant="body2" color="error">
             {t('providers.catalog.error', 'Failed to load catalog')}
           </Typography>
-          <Button size="small" disabled={isFetching} onClick={() => refetch()}>
+          <Button
+            size="small"
+            disabled={isFetching}
+            onClick={() => void refetch()}
+          >
             {t('common.retry', 'Retry')}
           </Button>
         </Stack>
