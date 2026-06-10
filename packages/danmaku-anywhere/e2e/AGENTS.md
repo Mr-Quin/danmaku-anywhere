@@ -91,6 +91,8 @@ test.use({ expectedConsoleErrors: [/SchemaValidationError: known stale fixture/]
 
 One-line justification per entry. Treat opt-outs as tech debt — leaving them unjustified means a real regression hides behind a "we always saw that one."
 
+When passing two or more patterns, use strings, not RegExps. Playwright's `test.use` reads any array whose second element is `typeof 'object'` as a `[value, options]` fixture tuple, and a RegExp is an object — so a multi-RegExp array silently collapses to its first pattern and the assertion throws `expectedConsoleErrors.some is not a function`. A single-RegExp array is safe.
+
 ## Page Objects (POMs)
 
 POMs live under `e2e/pom/`. The composed root is `Popup` (`e2e/pom/Popup.ts`); page-area POMs hang off it (`popup.mount`, `popup.search`, `popup.seasonDetails`, `popup.toast`, `popup.dialog`). `IntegrationPage` is standalone — it doesn't open via `chrome-extension://`.

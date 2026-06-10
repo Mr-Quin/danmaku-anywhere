@@ -1,4 +1,4 @@
-import { Box, Button, CircularProgress, Stack } from '@mui/material'
+import { Box, Button, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
@@ -35,6 +35,20 @@ export const UpdatesSection = ({
     })
   }
 
+  const attempted = (manifestId: string) => {
+    return apply.variables?.includes(manifestId) === true
+  }
+
+  const buttonLabel = (updating: boolean, failed: boolean) => {
+    if (updating) {
+      return t('providers.updates.updating', 'Updating…')
+    }
+    if (failed) {
+      return t('common.retry', 'Retry')
+    }
+    return t('providers.updates.update', 'Update')
+  }
+
   return (
     <Box sx={{ pb: 1.5 }}>
       <SectionHeader
@@ -53,8 +67,13 @@ export const UpdatesSection = ({
       </SectionHeader>
       <Stack sx={{ gap: 1 }}>
         {updates.map((update) => {
-          const updatingThis =
-            apply.isPending && apply.variables?.includes(update.manifestId)
+          const updatingThis = apply.isPending && attempted(update.manifestId)
+          const failedThis = apply.isError && attempted(update.manifestId)
+          const versionLabel = t(
+            'providers.updates.version',
+            'v{{from}} → v{{to}}',
+            { from: update.fromVersion, to: update.toVersion }
+          )
           return (
             <Box key={update.manifestId} sx={sourceCardSx}>
               <ProviderRow
@@ -62,23 +81,29 @@ export const UpdatesSection = ({
                 primary={
                   manifestById.get(update.manifestId)?.name ?? update.manifestId
                 }
-                secondary={t(
-                  'providers.updates.version',
-                  'v{{from}} → v{{to}}',
-                  { from: update.fromVersion, to: update.toVersion }
-                )}
+                secondary={
+                  failedThis ? (
+                    <Typography
+                      component="span"
+                      variant="inherit"
+                      color="error"
+                    >
+                      {t('providers.updates.failed', 'Update failed')}
+                    </Typography>
+                  ) : (
+                    versionLabel
+                  )
+                }
                 action={
                   <Button
                     size="small"
                     variant="outlined"
                     onClick={() => runApply([update.manifestId])}
                     disabled={apply.isPending}
+                    loading={updatingThis}
+                    loadingPosition="start"
                   >
-                    {updatingThis ? (
-                      <CircularProgress size={16} />
-                    ) : (
-                      t('providers.updates.update', 'Update')
-                    )}
+                    {buttonLabel(updatingThis, failedThis)}
                   </Button>
                 }
               />

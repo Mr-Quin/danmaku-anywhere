@@ -16,10 +16,12 @@ export const useApplyUpdates = () => {
   return useMutation({
     mutationFn: (manifestIds: string[]) =>
       chromeRpcClient.providerApplyUpdates({ manifestIds }),
-    onSuccess: () => {
+    onSettled: () => {
       // Applying changes stored versions, so both the pending list and the
-      // manifest list (used for the version subtitles) need to refetch. The
-      // version is locale-independent, so invalidate every locale's list.
+      // manifest list (used for the version subtitles) need to refetch. A
+      // failed apply can still have persisted some of the requested manifests,
+      // so refetch on error too. The version is locale-independent, so
+      // invalidate every locale's list.
       void queryClient.invalidateQueries({
         queryKey: sourceQueryKeys.pendingUpdates(),
       })

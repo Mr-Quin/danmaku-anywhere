@@ -708,9 +708,11 @@
     },
     "name": "Danmaku Providers",
     "updates": {
+      "failed": "Update failed",
       "title": "Updates available",
       "update": "Update",
       "updateAll": "Update all",
+      "updating": "Updating…",
       "version": "v{{from}} → v{{to}}"
     }
   },

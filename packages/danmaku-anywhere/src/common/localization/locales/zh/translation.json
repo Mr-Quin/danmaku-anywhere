@@ -685,9 +685,11 @@
     },
     "name": "弹幕源",
     "updates": {
+      "failed": "更新失败",
       "title": "有可用更新",
       "update": "更新",
       "updateAll": "全部更新",
+      "updating": "更新中…",
       "version": "v{{from}} → v{{to}}"
     }
   },

@@ -57,7 +57,7 @@ export const CatalogSection = ({
 }: CatalogSectionProps) => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
-  const { data, isLoading, isError } = useManifestList()
+  const { data, isLoading, isError, refetch } = useManifestList()
   const refresh = useRefreshCatalog()
 
   const checkedLabel = useCheckedAgoLabel(data?.lastCheckedAt ?? null)
@@ -79,9 +79,17 @@ export const CatalogSection = ({
     }
     if (isError) {
       return (
-        <Typography variant="body2" color="error" sx={{ py: 1 }}>
-          {t('providers.catalog.error', 'Failed to load catalog')}
-        </Typography>
+        <Stack
+          direction="row"
+          sx={{ alignItems: 'center', justifyContent: 'space-between', py: 1 }}
+        >
+          <Typography variant="body2" color="error">
+            {t('providers.catalog.error', 'Failed to load catalog')}
+          </Typography>
+          <Button size="small" onClick={() => refetch()}>
+            {t('common.retry', 'Retry')}
+          </Button>
+        </Stack>
       )
     }
     if (visible.length === 0) {

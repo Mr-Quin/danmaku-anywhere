@@ -12,7 +12,7 @@ import type {
   ManifestUpdate,
   ProviderManifestInfo,
 } from '@/common/rpcClient/background/types'
-import { invariant } from '@/common/utils/utils'
+import { invariant, sleep } from '@/common/utils/utils'
 import { extensionFetchLike } from './extensionFetchLike'
 import {
   type IManifestStore,
@@ -284,7 +284,15 @@ export class ManifestRegistry {
     return fetched.map(({ parsed }) => parsed.id)
   }
 
+  // One retry smooths over a transient network blip without stalling a real
+  // outage for long.
   private async loadIndex(): Promise<CatalogEntry[] | null> {
+    try {
+      return await this.fetchIndex()
+    } catch (e) {
+      this.log.warn('Catalog index fetch failed, retrying:', e)
+    }
+    await sleep(1000)
     try {
       return await this.fetchIndex()
     } catch (e) {

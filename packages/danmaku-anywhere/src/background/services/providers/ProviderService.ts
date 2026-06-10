@@ -339,19 +339,25 @@ export class ProviderService {
     await this.syncCatalog()
   }
 
+  // Throws on an unreachable catalog so a user-driven refresh surfaces the
+  // failure instead of silently returning the stale list.
   async refreshCatalog(locale?: string): Promise<ProviderManifestList> {
-    await this.syncCatalog()
+    const synced = await this.syncCatalog()
+    if (!synced) {
+      throw new Error('Failed to fetch the manifest catalog')
+    }
     return this.listManifests(locale)
   }
 
   // Bring the catalog current: updates for uninstalled sources (no config or
   // user data to disturb) are applied here, while installed-source updates stay
   // manual via the Updates list. Records the check only on a real sync, so
-  // "checked Nm ago" never advances on a bare detection.
-  async syncCatalog(): Promise<void> {
+  // "checked Nm ago" never advances on a bare detection. Returns whether the
+  // catalog index was reachable.
+  async syncCatalog(): Promise<boolean> {
     const fetched = await this.manifestRegistry.update()
     if (!fetched) {
-      return
+      return false
     }
     const pending = await this.manifestRegistry.getPendingUpdates()
     const configs = await this.providerConfigService.getAll()
@@ -370,6 +376,7 @@ export class ProviderService {
     }
     await this.manifestRegistry.recordChecked()
     await this.seedDefaultProviders()
+    return true
   }
 
   // Seed the preloaded configs once, after the catalog loads so each name comes

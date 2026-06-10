@@ -477,7 +477,7 @@ describe('ProviderService.refreshCatalog', () => {
     expect(recordChecked).toHaveBeenCalledTimes(1)
   })
 
-  it('does not record a check when the catalog index fetch fails', async () => {
+  it('throws and does not record a check when the catalog index fetch fails', async () => {
     const recordChecked = vi.fn(async () => {})
     const getPendingUpdates = vi.fn(async () => [])
     const registry = {
@@ -500,7 +500,9 @@ describe('ProviderService.refreshCatalog', () => {
       silentExtensionOptions
     )
 
-    await service.refreshCatalog()
+    await expect(service.refreshCatalog()).rejects.toThrow(
+      /Failed to fetch the manifest catalog/
+    )
 
     expect(getPendingUpdates).not.toHaveBeenCalled()
     expect(recordChecked).not.toHaveBeenCalled()

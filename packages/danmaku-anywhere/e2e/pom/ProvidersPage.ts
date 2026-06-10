@@ -55,6 +55,22 @@ export class ProvidersPage {
     await this.updateButton().click()
   }
 
+  updatingButton(): Locator {
+    return this.page.getByRole('button', { name: /^(Updating…|更新中…)$/ })
+  }
+
+  retryButton(): Locator {
+    return this.page.getByRole('button', { name: /^(Retry|重试)$/ })
+  }
+
+  updateFailedLabel(): Locator {
+    return this.page.getByText(/^(Update failed|更新失败)$/)
+  }
+
+  checkedNeverLabel(): Locator {
+    return this.page.getByText(/not checked yet|尚未检查/)
+  }
+
   field(label: string | RegExp): Locator {
     return this.page.getByLabel(label)
   }
