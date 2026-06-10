@@ -32,6 +32,11 @@ export const useSaveUserManifest = () => {
       void queryClient.invalidateQueries({
         queryKey: sourceQueryKeys.manifestList(),
       })
+      // Stale sources would seed the next edit with pre-save JSON, so a
+      // re-save could silently revert this one.
+      void queryClient.invalidateQueries({
+        queryKey: sourceQueryKeys.manifestSource(),
+      })
     },
   })
 }
@@ -44,6 +49,9 @@ export const useDeleteUserManifest = () => {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: sourceQueryKeys.manifestList(),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: sourceQueryKeys.manifestSource(),
       })
       void queryClient.invalidateQueries({
         queryKey: storageQueryKeys.external('sync', ['providerConfig']),

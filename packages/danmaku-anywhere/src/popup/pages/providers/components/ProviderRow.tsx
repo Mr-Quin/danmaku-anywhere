@@ -3,12 +3,13 @@ import {
   ListItem,
   ListItemButton,
   ListItemText,
+  Stack,
   type SxProps,
   type Theme,
+  Typography,
 } from '@mui/material'
 import type { ReactNode } from 'react'
 import { HashAvatar } from '@/common/components/HashAvatar'
-import { ListItemPrimaryStack } from '@/common/components/ListItemPrimaryStack'
 import {
   LIST_ITEM_ACTION_SPACING,
   listItemCardStyles,
@@ -18,7 +19,7 @@ export const sourceCardSx: SxProps<Theme> = listItemCardStyles
 
 interface ProviderRowProps {
   avatarSeed?: string
-  primary: ReactNode
+  primary: string
   titleChip?: ReactNode
   secondary?: ReactNode
   mono?: boolean
@@ -41,25 +42,28 @@ export const ProviderRow = ({
     <>
       {avatarSeed !== undefined ? (
         <Box sx={{ mr: 1.5, display: 'flex' }}>
-          <HashAvatar seed={avatarSeed} label={String(primary)} />
+          <HashAvatar seed={avatarSeed} label={primary} />
         </Box>
       ) : null}
       <ListItemText
         sx={{ minWidth: 0, my: 0 }}
         primary={
-          titleChip ? (
-            <ListItemPrimaryStack text={String(primary)}>
-              {titleChip}
-            </ListItemPrimaryStack>
-          ) : (
-            primary
-          )
+          <Stack direction="row" sx={{ alignItems: 'center', gap: 1 }}>
+            <Typography
+              component="span"
+              variant={dense ? 'body2' : 'body1'}
+              noWrap
+              title={primary}
+              sx={{ flexShrink: 1, minWidth: 0 }}
+            >
+              {primary}
+            </Typography>
+            {titleChip}
+          </Stack>
         }
         secondary={secondary}
         slotProps={{
-          primary: titleChip
-            ? { component: 'div' }
-            : { noWrap: true, variant: dense ? 'body2' : 'body1' },
+          primary: { component: 'div' },
           secondary: {
             noWrap: true,
             sx: mono ? { fontFamily: 'ui-monospace, monospace' } : undefined,

@@ -110,11 +110,12 @@ export const InstalledList = ({
     )
   }
 
-  // View source is a manifest-level action, so it appears once per manifest
-  // (single row or group header), never on the per-instance rows in a group.
-  const configMenu = (config: ProviderConfig, showViewSource: boolean) => {
+  // Manifest-level actions (view source; whole-manifest delete for user
+  // manifests) appear once per manifest: on a single row or a group header,
+  // never on the per-instance rows inside a group.
+  const configMenu = (config: ProviderConfig, manifestLevel: boolean) => {
     const items: DAMenuItemConfig[] = []
-    if (showViewSource && manifestById.has(config.manifestId)) {
+    if (manifestLevel && manifestById.has(config.manifestId)) {
       items.push({
         id: 'view-source',
         label: t('providers.editor.manifest.viewSource', 'View source'),
@@ -122,12 +123,15 @@ export const InstalledList = ({
         icon: <Code />,
       })
     }
-    const isUser = manifestById.get(config.manifestId)?.kind === 'user'
+    const deletesManifest =
+      manifestLevel && manifestById.get(config.manifestId)?.kind === 'user'
     items.push({
       id: 'delete',
       label: t('common.delete', 'Delete'),
       onClick: () =>
-        isUser ? onDeleteManifest(config.manifestId) : onDelete(config),
+        deletesManifest
+          ? onDeleteManifest(config.manifestId)
+          : onDelete(config),
       icon: <Delete />,
       color: 'error',
     })

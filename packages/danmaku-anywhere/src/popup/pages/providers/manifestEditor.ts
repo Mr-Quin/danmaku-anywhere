@@ -1,15 +1,3 @@
-export type JsonParseResult =
-  | { ok: true; value: unknown }
-  | { ok: false; error: string }
-
-export function parseManifestJson(text: string): JsonParseResult {
-  try {
-    return { ok: true, value: JSON.parse(text) }
-  } catch (e) {
-    return { ok: false, error: e instanceof Error ? e.message : String(e) }
-  }
-}
-
 export const STARTER_MANIFEST = `${JSON.stringify(
   {
     apiVersion: 1,

@@ -18,6 +18,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type { ManifestValidationIssue } from '@/common/rpcClient/background/types'
+import { tryCatchSync } from '@/common/utils/tryCatch'
 import { docsLink } from '@/common/utils/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { useGoBack } from '@/popup/hooks/useGoBack'
@@ -28,11 +29,7 @@ import {
   useManifestSource,
   useSaveUserManifest,
 } from '../hooks/useManifestEditor'
-import {
-  parseManifestJson,
-  STARTER_MANIFEST,
-  stringifyManifest,
-} from '../manifestEditor'
+import { STARTER_MANIFEST, stringifyManifest } from '../manifestEditor'
 
 const MANIFEST_DOCS_PATH = 'docs/danmaku-manifest/'
 
@@ -63,42 +60,52 @@ function ManifestEditor({
   const [forked, setForked] = useState(false)
   const [issues, setIssues] = useState<ManifestValidationIssue[]>([])
   const [isValidating, setIsValidating] = useState(false)
-  // The last parseable manifest, so the test-run panel keeps its state
-  // (keyword, results, selections) while the JSON is mid-edit rather than
-  // unmounting on every keystroke.
-  const [lastValid, setLastValid] = useState<{
-    value: unknown
-    configSchema?: ConfigSchema
-  } | null>(null)
 
   const mode = forked ? 'create' : initialMode
   const readOnly = mode === 'view'
 
-  const parsed = useMemo(() => parseManifestJson(text), [text])
-
-  useEffect(() => {
+  const [parsedValue, parseError] = useMemo(
+    () => tryCatchSync(() => JSON.parse(text) as unknown),
+    [text]
+  )
+  const parsedObject = useMemo(() => {
     if (
-      !parsed.ok ||
-      typeof parsed.value !== 'object' ||
-      parsed.value === null ||
-      Array.isArray(parsed.value)
+      parseError ||
+      typeof parsedValue !== 'object' ||
+      parsedValue === null ||
+      Array.isArray(parsedValue)
     ) {
-      return
+      return null
     }
-    // A half-edited manifest can carry a non-object configSchema; only pass a
-    // real object to the schema-driven form, which would otherwise throw.
-    const rawSchema = (parsed.value as { configSchema?: unknown }).configSchema
-    const configSchema =
-      typeof rawSchema === 'object' &&
-      rawSchema !== null &&
-      !Array.isArray(rawSchema)
-        ? (rawSchema as ConfigSchema)
-        : undefined
-    setLastValid({ value: parsed.value, configSchema })
-  }, [parsed])
+    return parsedValue as Record<string, unknown>
+  }, [parsedValue, parseError])
+
+  // The last parseable manifest object, so the test-run panel keeps its state
+  // (keyword, results, selections) while the JSON is mid-edit rather than
+  // unmounting on every keystroke.
+  const [lastValidObject, setLastValidObject] = useState<Record<
+    string,
+    unknown
+  > | null>(null)
 
   useEffect(() => {
-    if (!parsed.ok) {
+    if (parsedObject) {
+      setLastValidObject(parsedObject)
+    }
+  }, [parsedObject])
+
+  // A half-edited manifest can carry a non-object configSchema; only pass a
+  // real object to the schema-driven form, which would otherwise throw.
+  const lastValidSchema = useMemo(() => {
+    const raw = lastValidObject?.configSchema
+    if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+      return undefined
+    }
+    return raw as ConfigSchema
+  }, [lastValidObject])
+
+  useEffect(() => {
+    if (parseError) {
       setIssues([])
       setIsValidating(false)
       return
@@ -108,7 +115,7 @@ function ManifestEditor({
     const handle = setTimeout(async () => {
       try {
         const res = await chromeRpcClient.providerValidateManifest({
-          manifest: parsed.value,
+          manifest: parsedValue,
         })
         if (!cancelled) {
           setIssues(res.data.valid ? [] : res.data.issues)
@@ -135,9 +142,9 @@ function ManifestEditor({
       cancelled = true
       clearTimeout(handle)
     }
-  }, [parsed, t])
+  }, [parsedValue, parseError, t])
 
-  const isValid = parsed.ok && !isValidating && issues.length === 0
+  const isValid = !parseError && !isValidating && issues.length === 0
 
   const title = () => {
     if (mode === 'view') {
@@ -152,33 +159,24 @@ function ManifestEditor({
   // Forking a read-only manifest must not reuse its id, or the create-guard
   // rejects the save. Seed a distinct id so the copy saves as-is.
   const handleDuplicate = () => {
-    if (
-      !parsed.ok ||
-      typeof parsed.value !== 'object' ||
-      parsed.value === null ||
-      Array.isArray(parsed.value)
-    ) {
+    if (!parsedObject) {
       return
     }
-    const source = parsed.value as { id?: unknown }
-    const baseId = typeof source.id === 'string' ? source.id : 'manifest'
-    setText(stringifyManifest({ ...source, id: `${baseId}-copy` }))
+    const baseId =
+      typeof parsedObject.id === 'string' ? parsedObject.id : 'manifest'
+    setText(stringifyManifest({ ...parsedObject, id: `${baseId}-copy` }))
     setForked(true)
   }
 
   // A new manifest is auto-imported (a default config instance is created), so
   // it shows up in Installed without a second step. That instance is built from
-  // configSchema defaults, so block the save when a required field has no
-  // default and can't be defaulted.
+  // configSchema defaults, so reject a manifest whose required fields have no
+  // default; on update the same rule keeps existing instances satisfiable.
   const handleSave = () => {
-    if (
-      !parsed.ok ||
-      typeof parsed.value !== 'object' ||
-      parsed.value === null
-    ) {
+    if (!parsedObject) {
       return
     }
-    const manifest = parsed.value as {
+    const manifest = parsedObject as {
       id: string
       name?: string
       version?: string
@@ -186,7 +184,7 @@ function ManifestEditor({
     }
     const isNew = mode !== 'edit'
 
-    if (isNew && manifestNeedsConfigForm(manifest.configSchema)) {
+    if (manifestNeedsConfigForm(manifest.configSchema)) {
       toast.error(
         t(
           'providers.editor.manifest.requiredConfig',
@@ -203,7 +201,7 @@ function ManifestEditor({
 
     save.mutate(
       {
-        manifest: parsed.value,
+        manifest: parsedObject,
         mode: isNew ? 'create' : 'update',
         expectedId: isNew ? undefined : manifestId,
       },
@@ -226,7 +224,19 @@ function ManifestEditor({
             }),
             {
               onSuccess: finish,
-              onError: (error) => toast.error(error.message),
+              // The manifest is already registered; retrying Save would hit
+              // the create-guard. Leave the editor so the user can import or
+              // delete it from the source list instead.
+              onError: (error) => {
+                toast.error(
+                  t(
+                    'providers.editor.manifest.importFailed',
+                    'Manifest saved, but creating its source failed: {{message}}. Import it from the source list.',
+                    { message: error.message }
+                  )
+                )
+                goBack()
+              },
             }
           )
         },
@@ -280,16 +290,16 @@ function ManifestEditor({
             }}
           />
 
-          {!parsed.ok ? (
+          {parseError ? (
             <Alert severity="error">
               <AlertTitle>
                 {t('providers.editor.manifest.invalidJson', 'Invalid JSON')}
               </AlertTitle>
-              {parsed.error}
+              {parseError.message}
             </Alert>
           ) : null}
 
-          {parsed.ok && issues.length > 0 ? (
+          {!parseError && issues.length > 0 ? (
             <Alert severity="warning">
               <AlertTitle>
                 {t(
@@ -335,11 +345,11 @@ function ManifestEditor({
             )}
           </Stack>
 
-          {!readOnly && lastValid ? (
+          {!readOnly && lastValidObject ? (
             <ManifestTestRunPanel
-              key={JSON.stringify(lastValid.configSchema ?? null)}
-              manifest={parsed.ok ? parsed.value : lastValid.value}
-              configSchema={lastValid.configSchema}
+              key={JSON.stringify(lastValidSchema ?? null)}
+              manifest={lastValidObject}
+              configSchema={lastValidSchema}
               disabled={!isValid}
             />
           ) : null}
@@ -375,6 +385,17 @@ export const ManifestEditorPage = () => {
 
   const source = sourceQuery.data
   if (!source) {
+    // A failed RPC must not read as "this manifest does not exist"; the
+    // source is intact in storage, the load just failed.
+    const message = sourceQuery.isError
+      ? t(
+          'providers.editor.manifest.loadFailed',
+          'Failed to load the manifest source.'
+        )
+      : t(
+          'providers.editor.manifest.notFound',
+          'No manifest source is available for this source.'
+        )
     return (
       <OptionsPageLayout>
         <OptionsPageToolBar
@@ -382,12 +403,7 @@ export const ManifestEditorPage = () => {
           onGoBack={goBack}
         />
         <Box sx={{ p: 2 }}>
-          <Typography color="text.secondary">
-            {t(
-              'providers.editor.manifest.notFound',
-              'No manifest source is available for this source.'
-            )}
-          </Typography>
+          <Typography color="text.secondary">{message}</Typography>
         </Box>
       </OptionsPageLayout>
     )
