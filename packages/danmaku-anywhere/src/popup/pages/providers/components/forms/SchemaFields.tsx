@@ -59,6 +59,7 @@ export function SchemaObjectFields({
 }
 
 function ScalarField({ name, schema, required }: SchemaFieldProps) {
+  const { t } = useTranslation()
   const { control } = useFormContext()
   const kind = getFieldKind(schema)
   return (
@@ -66,7 +67,9 @@ function ScalarField({ name, schema, required }: SchemaFieldProps) {
       name={name}
       control={control}
       rules={{
-        required,
+        required: required
+          ? t('providers.editor.validation.required', 'This field is required')
+          : false,
         validate: (value) => validateScalar(schema, value) ?? true,
       }}
       render={({ field: { ref, onChange, value, ...field }, fieldState }) => (
@@ -95,6 +98,7 @@ function ScalarField({ name, schema, required }: SchemaFieldProps) {
 }
 
 function SelectField({ name, schema, required }: SchemaFieldProps) {
+  const { t } = useTranslation()
   const { control } = useFormContext()
   const options = (schema.enum ?? []).filter(
     (option): option is string | number =>
@@ -104,7 +108,11 @@ function SelectField({ name, schema, required }: SchemaFieldProps) {
     <Controller
       name={name}
       control={control}
-      rules={{ required }}
+      rules={{
+        required: required
+          ? t('providers.editor.validation.required', 'This field is required')
+          : false,
+      }}
       render={({ field: { ref, value, ...field }, fieldState }) => (
         <TextField
           {...field}
