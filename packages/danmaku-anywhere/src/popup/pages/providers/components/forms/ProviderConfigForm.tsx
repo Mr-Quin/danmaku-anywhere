@@ -91,7 +91,7 @@ function ConfigForm({
 
 export const ProviderConfigForm = (props: ProviderFormProps) => {
   const { t } = useTranslation()
-  const { isLoading, isError, data, refetch } = useManifestSpec(
+  const { isLoading, isError, isFetching, data, refetch } = useManifestSpec(
     props.provider.manifestId
   )
 
@@ -112,7 +112,11 @@ export const ProviderConfigForm = (props: ProviderFormProps) => {
         )}
         size={160}
         beforeContent={
-          <Button onClick={() => void refetch()} variant="text">
+          <Button
+            onClick={() => void refetch()}
+            variant="text"
+            disabled={isFetching}
+          >
             {t('common.retry', 'Retry')}
           </Button>
         }
