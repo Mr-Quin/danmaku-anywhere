@@ -42,8 +42,17 @@ function newestMtime(target: string): NewestFile | undefined {
   if (stat.isFile()) {
     return { filePath: target, mtimeMs: stat.mtimeMs }
   }
+  if (!stat.isDirectory()) {
+    return undefined
+  }
+  let entries: string[]
+  try {
+    entries = readdirSync(target)
+  } catch {
+    return undefined
+  }
   let newest: NewestFile | undefined
-  for (const entry of readdirSync(target)) {
+  for (const entry of entries) {
     const candidate = newestMtime(path.join(target, entry))
     if (candidate && (!newest || candidate.mtimeMs > newest.mtimeMs)) {
       newest = candidate
