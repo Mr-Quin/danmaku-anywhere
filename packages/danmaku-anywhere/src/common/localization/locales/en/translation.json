@@ -55,7 +55,7 @@
     "numericSeason": "Season {{season}}",
     "refreshMetadata": "Refresh Metadata",
     "sourceRemoved": "Source removed",
-    "sourceRemovedTooltip": "This source was deleted. Re-add it to refresh.",
+    "sourceRemovedTooltip": "This source has been deleted.",
     "title": "Title"
   },
   "bookmark": {

@@ -78,10 +78,7 @@ export const SeasonContextMenuPure = ({
 
   if (isNotCustom(season)) {
     const sourceRemovedTooltip = orphaned
-      ? t(
-          'anime.sourceRemovedTooltip',
-          'This source was deleted. Re-add it to refresh.'
-        )
+      ? t('anime.sourceRemovedTooltip', 'This source has been deleted.')
       : undefined
 
     items.unshift({
@@ -124,6 +121,8 @@ export const SeasonContextMenuPure = ({
         icon: <FavoriteBorder fontSize="small" />,
         onClick: onBookmarkToggle,
         loading: isBookmarkLoading,
+        disabled: orphaned,
+        tooltip: sourceRemovedTooltip,
       })
     }
   }

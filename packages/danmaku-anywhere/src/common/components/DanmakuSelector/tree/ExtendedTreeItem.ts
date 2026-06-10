@@ -21,6 +21,7 @@ interface SeasonTreeItem extends TreeViewDefaultItemModelProperties {
 interface EpisodeTreeItem extends TreeViewDefaultItemModelProperties {
   kind: 'episode'
   data: GenericEpisodeLite
+  orphaned?: boolean
   children?: ExtendedTreeItem[]
 }
 

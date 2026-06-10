@@ -4,16 +4,19 @@ import {
   type EpisodeInsert,
   type SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
+import { mockBilibiliXml } from '../../network/bilibili'
 import { Popup } from '../../pom/Popup'
 import { expect, test } from '../../setup/fixtures'
+import { loadJsonFixture, loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
 
 /**
- * Deleting a provider config keeps its seasons/episodes instead of cascading.
- * Seeds a Bilibili season with a cached episode, deletes the Bilibili provider
- * from /providers, then asserts on /mount that the season survives in the DB
- * and tree, still renders its cached comment count, shows a "source removed"
- * badge, and that Refresh Metadata is disabled.
+ * Deleting a provider config orphans its seasons instead of cascading.
+ * Seeds a bookmarked Bilibili season with a cached episode, deletes the
+ * Bilibili provider, then asserts the season/episode survive (DB + tree),
+ * cached comments still render, the bookmark and its stubs are gone, a
+ * "source removed" badge shows, Refresh Metadata is disabled, Follow is
+ * disabled, and the episode menu no longer offers Refresh Danmaku.
  */
 
 const SEASON: SeasonInsert = {
@@ -36,6 +39,8 @@ const COMMENTS: CommentEntity[] = [
 ]
 
 function makeEpisode(seasonId: number): EpisodeInsert {
+  // indexedId matches the fixture's first episode so the bookmark dedups to
+  // one stub.
   return {
     provider: DanmakuSourceType.Bilibili,
     providerIds: { cid: 1300001, aid: 100001, bvid: 'BV1aaaaaaaa' },
@@ -58,38 +63,49 @@ test('deleting a provider orphans its season but keeps it viewable', async ({
 }) => {
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
-    // The providers list probes Bilibili login status (/nav) on render.
-    network: [
-      {
-        pattern: /api\.bilibili\.com\/x\/web-interface\/nav/,
-        respond: (route) =>
-          route.fulfill({ json: { code: 0, data: { isLogin: false } } }),
-      },
-    ],
+    network: mockBilibiliXml({
+      searchBangumi: loadJsonFixture('bilibili-search-bangumi.json'),
+      searchFt: loadJsonFixture('bilibili-search-ft.json'),
+      season: loadJsonFixture('bilibili-season.json'),
+      xml: loadTextFixture('bilibili-xml.xml'),
+    }),
   })
 
   const season = await da.season.add(SEASON)
   const ep = await da.episode.add(makeEpisode(season.id))
 
-  const popup = await Popup.open(page, extensionId, '/providers')
+  const popup = await Popup.open(page, extensionId, '/mount')
+  let seasonItem = await popup.mount.waitForSeason(season.id)
+  await popup.mount.openItemMenu(seasonItem, 'bookmarkAdd')
+  await expect(seasonItem).toContainText(/\+1/)
+
+  await Popup.open(page, extensionId, '/providers')
   await popup.providers.deleteProvider('Bilibili')
   await popup.dialog.confirm()
   await popup.toast.expectSuccess(/Provider deleted|弹幕源已删除/)
 
   expect((await da.season.get(season.id))?.id).toBe(season.id)
   expect((await da.episode.get(ep.id))?.commentCount).toBe(COMMENTS.length)
+  await expect.poll(() => da.bookmark.bySeason(season.id)).toBeUndefined()
 
   await Popup.open(page, extensionId, '/mount')
-  const seasonItem = await popup.mount.waitForSeason(season.id)
+  seasonItem = await popup.mount.waitForSeason(season.id)
   await expect(popup.mount.seasonOrphanedBadge(season.id)).toBeVisible()
+  await expect(seasonItem).not.toContainText(/\+\d+/)
 
   await popup.mount.expandSeason(season.id)
   await expect(popup.mount.episodeCommentCount(ep.id)).toHaveText(
     String(COMMENTS.length)
   )
 
+  const epItem = popup.mount.episodeItem(ep.id)
+  await popup.mount.openContextMenu(epItem)
+  await expect(popup.mount.contextMenuItem('view')).toBeVisible()
+  await expect(popup.mount.contextMenuItem('refresh')).toBeHidden()
+
   await popup.mount.openContextMenu(seasonItem)
   const refresh = popup.mount.contextMenuItem('refresh')
   await expect(refresh).toBeVisible()
   await expect(refresh).toBeDisabled()
+  await expect(popup.mount.contextMenuItem('bookmarkAdd')).toBeDisabled()
 })

@@ -234,18 +234,20 @@ export const useDanmakuTree = (
         return
       }
 
+      const provider = getProviderById(season.providerConfigId)
+      const orphaned = !provider
+
       const children = groupEpisodes.map((ep) =>
         register({
           id: `episode-${ep.id}`,
           label: ep.title,
           kind: 'episode',
           data: ep,
+          orphaned,
         })
       )
 
       children.sort(compareEpisodes)
-
-      const provider = getProviderById(season.providerConfigId)
 
       treeItems.push(
         register({
@@ -254,7 +256,7 @@ export const useDanmakuTree = (
           kind: 'season',
           data: season,
           provider,
-          orphaned: !provider,
+          orphaned,
           children,
         })
       )

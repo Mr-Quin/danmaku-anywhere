@@ -55,7 +55,7 @@
     "numericSeason": "第{{season}}季",
     "refreshMetadata": "刷新元数据",
     "sourceRemoved": "来源已删除",
-    "sourceRemovedTooltip": "该来源已被删除，重新添加后才能刷新。",
+    "sourceRemovedTooltip": "该来源已被删除。",
     "title": "标题"
   },
   "bookmark": {

@@ -114,7 +114,7 @@ export class ProviderService {
     const config = await this.providerConfigService.get(providerConfigId)
     if (!config) {
       throw new Error(
-        'This source has been removed. Re-add it to refresh or fetch new danmaku.'
+        'This source has been removed, so new danmaku cannot be fetched.'
       )
     }
     return config

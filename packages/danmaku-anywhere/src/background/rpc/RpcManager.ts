@@ -357,9 +357,11 @@ export class RpcManager {
           return res.data
         },
         providerConfigDelete: async (id, sender) => {
-          // Deleting a config keeps its seasons, episodes, and bookmarks. They
-          // become orphaned (no config matches their providerConfigId) so the
-          // downloaded danmaku stays viewable; refresh is blocked downstream.
+          // Seasons and episodes are kept (orphaned: no config matches their
+          // providerConfigId) so downloaded danmaku stays viewable. Bookmarks
+          // are removed: they only exist to fetch new episodes, which an
+          // orphaned season can no longer do.
+          await this.bookmarkService.deleteByProviderConfigId(id)
           await this.providerConfigService.deleteFromStorage(id)
 
           void invalidateContentScriptData(sender.tab?.id)
