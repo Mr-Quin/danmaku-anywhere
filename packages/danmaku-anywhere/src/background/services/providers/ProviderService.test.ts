@@ -5,6 +5,7 @@ import {
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { SeasonService } from '@/background/services/persistence/SeasonService'
 import type { ILogger } from '@/common/Logger'
@@ -107,6 +108,7 @@ function build(
     providerConfigService,
     factory,
     registry,
+    {} as unknown as BookmarkService,
     silentLogger,
     silentExtensionOptions
   )
@@ -127,6 +129,7 @@ describe('ProviderService.probeLogin', () => {
       {} as unknown as ProviderConfigService,
       vi.fn(() => makeProvider()),
       registry,
+      {} as unknown as BookmarkService,
       silentLogger,
       silentExtensionOptions
     )
@@ -149,6 +152,7 @@ describe('ProviderService.getManifestSpec', () => {
       {} as unknown as ProviderConfigService,
       vi.fn(() => makeProvider()),
       registry,
+      {} as unknown as BookmarkService,
       silentLogger,
       silentExtensionOptions
     )
@@ -406,6 +410,7 @@ describe('ProviderService.refreshCatalog', () => {
       providerConfigService,
       vi.fn(),
       registry,
+      {} as unknown as BookmarkService,
       silentLogger,
       silentExtensionOptions
     )
@@ -469,6 +474,7 @@ describe('ProviderService.refreshCatalog', () => {
       {} as unknown as ProviderConfigService,
       vi.fn(),
       registry,
+      {} as unknown as BookmarkService,
       silentLogger,
       silentExtensionOptions
     )
@@ -495,6 +501,7 @@ describe('ProviderService.setup', () => {
       {} as unknown as ProviderConfigService,
       vi.fn(),
       registry,
+      {} as unknown as BookmarkService,
       silentLogger,
       silentExtensionOptions
     )
@@ -553,6 +560,7 @@ describe('ProviderService.seedDefaultProviders', () => {
       providerConfigService,
       vi.fn(),
       registry,
+      {} as unknown as BookmarkService,
       silentLogger,
       extensionOptions
     )
@@ -667,5 +675,81 @@ describe('ProviderService.seedDefaultProviders', () => {
 
     expect(set).toHaveBeenCalledTimes(1)
     expect(markSeeded).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('ProviderService.deleteUserManifest', () => {
+  function buildForDelete(opts: {
+    kind?: 'preinstalled' | 'user'
+    configs: { id: string; manifestId: string }[]
+  }) {
+    const unregister = vi.fn(async () => {})
+    const registry = {
+      ready: Promise.resolve(true),
+      getSource: vi.fn(async () =>
+        opts.kind ? { manifest: {}, kind: opts.kind } : undefined
+      ),
+      unregister,
+    } as unknown as ManifestRegistry
+    const deleteFromStorage = vi.fn(async () => {})
+    const providerConfigService = {
+      getAll: vi.fn(async () => opts.configs),
+      deleteFromStorage,
+    } as unknown as ProviderConfigService
+    const deleteByProviderConfigId = vi.fn(async () => {})
+    const bookmarkService = {
+      deleteByProviderConfigId,
+    } as unknown as BookmarkService
+    const service = new ProviderService(
+      {} as unknown as DanmakuService,
+      {} as unknown as SeasonService,
+      providerConfigService,
+      vi.fn(() => makeProvider()),
+      registry,
+      bookmarkService,
+      silentLogger,
+      silentExtensionOptions
+    )
+    return { service, unregister, deleteFromStorage, deleteByProviderConfigId }
+  }
+
+  it('removes the manifest configs and their bookmarks, then unregisters', async () => {
+    const { service, unregister, deleteFromStorage, deleteByProviderConfigId } =
+      buildForDelete({
+        kind: 'user',
+        configs: [
+          { id: 'cfg-1', manifestId: 'mine:one' },
+          { id: 'cfg-2', manifestId: 'other' },
+        ],
+      })
+
+    await service.deleteUserManifest('mine:one')
+
+    expect(deleteFromStorage).toHaveBeenCalledTimes(1)
+    expect(deleteFromStorage).toHaveBeenCalledWith('cfg-1')
+    expect(deleteByProviderConfigId).toHaveBeenCalledWith('cfg-1')
+    expect(unregister).toHaveBeenCalledWith('mine:one')
+  })
+
+  it('refuses a preinstalled manifest', async () => {
+    const { service, unregister, deleteFromStorage } = buildForDelete({
+      kind: 'preinstalled',
+      configs: [{ id: 'cfg-1', manifestId: 'bilibili' }],
+    })
+
+    await expect(service.deleteUserManifest('bilibili')).rejects.toThrow(
+      /user manifests/
+    )
+    expect(deleteFromStorage).not.toHaveBeenCalled()
+    expect(unregister).not.toHaveBeenCalled()
+  })
+
+  it('refuses an unknown manifest id', async () => {
+    const { service, unregister } = buildForDelete({ configs: [] })
+
+    await expect(service.deleteUserManifest('missing')).rejects.toThrow(
+      /user manifests/
+    )
+    expect(unregister).not.toHaveBeenCalled()
   })
 })

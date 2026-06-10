@@ -80,22 +80,15 @@ function ManifestEditor({
     return parsedValue as Record<string, unknown>
   }, [parsedValue, parseError])
 
-  // The last parseable manifest object, so the test-run panel keeps its state
-  // (keyword, results, selections) while the JSON is mid-edit rather than
-  // unmounting on every keystroke.
+  // The last manifest object that passed zManifest validation, so the
+  // test-run panel keeps its state (keyword, results, selections) while the
+  // JSON is mid-edit, and never renders a configSchema the engine has not
+  // accepted (a half-edited schema could crash the schema-driven form).
   const [lastValidObject, setLastValidObject] = useState<Record<
     string,
     unknown
   > | null>(null)
 
-  useEffect(() => {
-    if (parsedObject) {
-      setLastValidObject(parsedObject)
-    }
-  }, [parsedObject])
-
-  // A half-edited manifest can carry a non-object configSchema; only pass a
-  // real object to the schema-driven form, which would otherwise throw.
   const lastValidSchema = useMemo(() => {
     const raw = lastValidObject?.configSchema
     if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
@@ -119,6 +112,9 @@ function ManifestEditor({
         })
         if (!cancelled) {
           setIssues(res.data.valid ? [] : res.data.issues)
+          if (res.data.valid && parsedObject) {
+            setLastValidObject(parsedObject)
+          }
         }
       } catch {
         if (!cancelled) {
@@ -142,7 +138,7 @@ function ManifestEditor({
       cancelled = true
       clearTimeout(handle)
     }
-  }, [parsedValue, parseError, t])
+  }, [parsedValue, parsedObject, parseError, t])
 
   const isValid = !parseError && !isValidating && issues.length === 0
 

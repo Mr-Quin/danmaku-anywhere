@@ -665,11 +665,27 @@ describe('ManifestRegistry', () => {
 
     await registry.saveUserManifest(
       makeManifest('mine:one', 1, '2.0.0'),
-      'update'
+      'update',
+      'mine:one'
     )
 
     expect((await store.get('mine:one'))?.manifest).toMatchObject({
       version: '2.0.0',
+    })
+  })
+
+  it('saveUserManifest update requires the expected id', async () => {
+    const store = new InMemoryStore({
+      'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(
+      registry.saveUserManifest(makeManifest('mine:one', 1, '2.0.0'), 'update')
+    ).rejects.toThrow(/cannot be changed/)
+    expect((await store.get('mine:one'))?.manifest).toMatchObject({
+      version: '1.0.0',
     })
   })
 
@@ -697,7 +713,11 @@ describe('ManifestRegistry', () => {
     await registry.ready
 
     await expect(
-      registry.saveUserManifest(makeManifest('builtin:one'), 'update')
+      registry.saveUserManifest(
+        makeManifest('builtin:one'),
+        'update',
+        'builtin:one'
+      )
     ).rejects.toThrow(/no user manifest/i)
   })
 

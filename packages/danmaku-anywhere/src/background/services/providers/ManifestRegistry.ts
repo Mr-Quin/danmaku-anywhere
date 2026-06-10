@@ -223,9 +223,11 @@ export class ManifestRegistry {
       )
     }
     const id = parsed.data.id
-    // The id is the manifest's identity; an update must not change it, or it
-    // would orphan the old entry and could overwrite an unrelated manifest.
-    if (mode === 'update' && expectedId !== undefined && id !== expectedId) {
+    // The id is the manifest's identity; an update must target the id being
+    // edited, or it would orphan the old entry and could overwrite an
+    // unrelated manifest. An omitted expectedId would bypass the check, so it
+    // is required.
+    if (mode === 'update' && (expectedId === undefined || id !== expectedId)) {
       throw new Error('A manifest id cannot be changed')
     }
     const existing = await this.store.get(id)
