@@ -1,9 +1,8 @@
-import {
-  DanmakuSourceType,
-  type EpisodeInsert,
-  type SeasonInsert,
-} from '@danmaku-anywhere/danmaku-converter'
 import { Popup } from '../../pom/Popup'
+import {
+  makeBilibiliEpisode,
+  makeBilibiliSeason,
+} from '../../setup/bilibiliSeed'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
@@ -13,38 +12,6 @@ import { applyProfile } from '../../setup/profile'
  * the dialog. Asserts every row + DB record is gone. With no surviving
  * episodes the parent season row also disappears.
  */
-
-const SEASON: SeasonInsert = {
-  provider: DanmakuSourceType.Bilibili,
-  providerIds: { seasonId: 41410, mediaId: 28219412 },
-  providerConfigId: 'bilibili',
-  indexedId: '41410',
-  title: '葬送的芙莉莲',
-  type: '番剧',
-  imageUrl: 'https://bilibili-cdn.invalid/x.jpg',
-  episodeCount: 28,
-  year: 2023,
-  schemaVersion: 1,
-}
-
-function makeEpisode(
-  seasonId: number,
-  cid: number,
-  episodeNumber: string
-): EpisodeInsert {
-  return {
-    provider: DanmakuSourceType.Bilibili,
-    providerIds: { cid, aid: 100000 + cid, bvid: `BV${cid}` },
-    indexedId: String(cid),
-    title: `Ep${episodeNumber}`,
-    episodeNumber,
-    seasonId,
-    comments: [],
-    commentCount: 0,
-    schemaVersion: 4,
-    lastChecked: 0,
-  }
-}
 
 test('mount tree: multi-select bulk delete removes every selected episode', async ({
   context,
@@ -56,11 +23,17 @@ test('mount tree: multi-select bulk delete removes every selected episode', asyn
     providers: { bilibili: { enabled: true } },
   })
 
-  const season = await da.season.add(SEASON)
+  const season = await da.season.add(makeBilibiliSeason())
   const seeded = await Promise.all([
-    da.episode.add(makeEpisode(season.id, 1300001, '1')),
-    da.episode.add(makeEpisode(season.id, 1300002, '2')),
-    da.episode.add(makeEpisode(season.id, 1300003, '3')),
+    da.episode.add(
+      makeBilibiliEpisode(season.id, { cid: 1300001, episodeNumber: '1' })
+    ),
+    da.episode.add(
+      makeBilibiliEpisode(season.id, { cid: 1300002, episodeNumber: '2' })
+    ),
+    da.episode.add(
+      makeBilibiliEpisode(season.id, { cid: 1300003, episodeNumber: '3' })
+    ),
   ])
 
   const popup = await Popup.open(page, extensionId, '/mount')

@@ -1,4 +1,5 @@
 import { mockCatalog } from '../../network/catalog'
+import { mockLoginProbes } from '../../network/loginProbes'
 import { Popup } from '../../pom/Popup'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
@@ -12,10 +13,6 @@ import { applyProfile } from '../../setup/profile'
  * referencing the manifest is persisted.
  */
 
-const BILIBILI_NAV = /api\.bilibili\.com\/x\/web-interface\/nav/
-const TENCENT_PROBE =
-  /pbaccess\.video\.qq\.com\/.*page_server_rpc\.PageServer\/GetPageData/
-
 const CATALOG_WITH_IQIYI = ['dandanplay', 'bilibili', 'tencent', 'iqiyi']
 
 test('catalog: refresh surfaces an uninstalled source and import installs it', async ({
@@ -26,21 +23,7 @@ test('catalog: refresh surfaces an uninstalled source and import installs it', a
 }) => {
   await applyProfile(context, da, {
     providers: {},
-    network: [
-      mockCatalog(CATALOG_WITH_IQIYI),
-      {
-        pattern: BILIBILI_NAV,
-        respond: (route) =>
-          route.fulfill({
-            json: { code: 0, message: '0', data: { isLogin: true } },
-          }),
-      },
-      {
-        pattern: TENCENT_PROBE,
-        respond: (route) =>
-          route.fulfill({ json: { ret: 0, msg: '', data: {} } }),
-      },
-    ],
+    network: [mockCatalog(CATALOG_WITH_IQIYI), ...mockLoginProbes()],
   })
 
   const popup = await Popup.open(page, extensionId, '/providers')

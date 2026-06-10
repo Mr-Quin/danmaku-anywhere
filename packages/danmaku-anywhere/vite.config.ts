@@ -1,6 +1,8 @@
+import { mkdirSync, writeFileSync } from 'node:fs'
+import path from 'node:path'
 import { crx } from '@crxjs/vite-plugin'
 import react from '@vitejs/plugin-react'
-import { defaultClientConditions } from 'vite'
+import { defaultClientConditions, type Plugin } from 'vite'
 import { defineConfig } from 'vitest/config'
 import { manifest } from './manifest'
 import { getBuildContext } from './scripts/getBuildContext'
@@ -46,12 +48,37 @@ const e2eProxyDefines =
       }
     : {}
 
+// Stamps the output with build metadata so the e2e setup can refuse to run
+// against a stale or wrong-env build (see e2e/setup/globalSetup.ts). Skipped
+// for prod so release zips stay free of branch names and timestamps.
+function buildInfo(): Plugin {
+  let outDir = ''
+  return {
+    name: 'da:build-info',
+    apply: 'build',
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir)
+    },
+    closeBundle() {
+      if (daEnv === 'prod') {
+        return
+      }
+      mkdirSync(outDir, { recursive: true })
+      writeFileSync(
+        path.join(outDir, 'build-info.json'),
+        JSON.stringify({ daEnv, gitBranch, appVersion, builtAt: Date.now() })
+      )
+    },
+  }
+}
+
 export default defineConfig({
   // @ts-ignore
   plugins: [
     vendorRuntimeAssets(),
     react({}),
     crx({ manifest, browser: browser.name }),
+    buildInfo(),
   ],
   // Don't pre-bundle the variable font packages: when crxjs serves dev assets,
   // `?url` for pre-bundled CSS resolves to a `/vendor/...__url.js` shim instead

@@ -46,6 +46,11 @@ export class Popup {
   ): Promise<Popup> {
     // detached=1 makes the popup fill the viewport instead of its fixed 500px
     // box, so a narrow viewport can exercise width-dependent layout.
+    //
+    // Calling open() again with a different hashRoute is a same-document
+    // navigation: the SPA and its React Query cache survive, exactly like a
+    // user switching tabs inside the popup. Stale-cache bugs are reachable
+    // this way; use page.reload() if a spec needs a cold popup instead.
     const query = opts.detached ? '?detached=1' : ''
     await page.goto(
       `chrome-extension://${extensionId}/pages/popup.html${query}#${hashRoute}`

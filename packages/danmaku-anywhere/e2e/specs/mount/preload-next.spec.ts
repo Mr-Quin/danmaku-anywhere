@@ -1,10 +1,9 @@
-import {
-  DanmakuSourceType,
-  type EpisodeInsert,
-  type SeasonInsert,
-} from '@danmaku-anywhere/danmaku-converter'
 import { mockBilibiliXml } from '../../network/bilibili'
 import { Popup } from '../../pom/Popup'
+import {
+  makeBilibiliEpisode,
+  makeBilibiliSeason,
+} from '../../setup/bilibiliSeed'
 import { expect, test } from '../../setup/fixtures'
 import { loadJsonFixture, loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
@@ -16,36 +15,6 @@ import { applyProfile } from '../../setup/profile'
  * the player fires at 50% playback) for episode 1, then asserts the episode-2
  * stub row is replaced by a fetched episode row with a non-zero comment count.
  */
-
-const SEASON: SeasonInsert = {
-  provider: DanmakuSourceType.Bilibili,
-  providerIds: { seasonId: 41410, mediaId: 28219412 },
-  providerConfigId: 'bilibili',
-  indexedId: '41410',
-  title: '葬送的芙莉莲',
-  type: '番剧',
-  imageUrl: 'https://bilibili-cdn.invalid/x.jpg',
-  episodeCount: 28,
-  year: 2023,
-  schemaVersion: 1,
-}
-
-function makeEpisode(seasonId: number): EpisodeInsert {
-  // indexedId matches the season fixture's first episode (cid 1300001), so the
-  // bookmark snapshot leaves only the second episode as an unfetched stub.
-  return {
-    provider: DanmakuSourceType.Bilibili,
-    providerIds: { cid: 1300001, aid: 100001, bvid: 'BV1aaaaaaaa' },
-    indexedId: '1300001',
-    title: 'Ep1',
-    episodeNumber: '1',
-    seasonId,
-    comments: [],
-    commentCount: 0,
-    schemaVersion: 4,
-    lastChecked: 0,
-  }
-}
 
 test('mount tree: bookmark-driven preload caches the next episode', async ({
   context,
@@ -63,8 +32,8 @@ test('mount tree: bookmark-driven preload caches the next episode', async ({
     }),
   })
 
-  const season = await da.season.add(SEASON)
-  const episode = await da.episode.add(makeEpisode(season.id))
+  const season = await da.season.add(makeBilibiliSeason())
+  const episode = await da.episode.add(makeBilibiliEpisode(season.id))
 
   const popup = await Popup.open(page, extensionId, '/mount')
   const seasonItem = await popup.mount.waitForSeason(season.id)

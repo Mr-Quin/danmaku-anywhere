@@ -1,13 +1,15 @@
 import {
   type CommentEntity,
   DanmakuSourceType,
-  type EpisodeInsert,
-  type SeasonInsert,
+  type EpisodeStub,
 } from '@danmaku-anywhere/danmaku-converter'
-import { mockBilibiliXml } from '../../network/bilibili'
+import { mockLoginProbes } from '../../network/loginProbes'
 import { Popup } from '../../pom/Popup'
+import {
+  makeBilibiliEpisode,
+  makeBilibiliSeason,
+} from '../../setup/bilibiliSeed'
 import { expect, test } from '../../setup/fixtures'
-import { loadJsonFixture, loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
 
 /**
@@ -19,40 +21,18 @@ import { applyProfile } from '../../setup/profile'
  * disabled, and the episode menu no longer offers Refresh Danmaku.
  */
 
-const SEASON: SeasonInsert = {
-  provider: DanmakuSourceType.Bilibili,
-  providerIds: { seasonId: 41410, mediaId: 28219412 },
-  providerConfigId: 'bilibili',
-  indexedId: '41410',
-  title: '葬送的芙莉莲',
-  type: '番剧',
-  imageUrl: 'https://bilibili-cdn.invalid/x.jpg',
-  episodeCount: 28,
-  year: 2023,
-  schemaVersion: 1,
-}
-
 const COMMENTS: CommentEntity[] = [
   { p: '1,1,16777215', m: 'first' },
   { p: '2,1,16777215', m: 'second' },
   { p: '3,1,16777215', m: 'third' },
 ]
 
-function makeEpisode(seasonId: number): EpisodeInsert {
-  // indexedId matches the fixture's first episode so the bookmark dedups to
-  // one stub.
-  return {
-    provider: DanmakuSourceType.Bilibili,
-    providerIds: { cid: 1300001, aid: 100001, bvid: 'BV1aaaaaaaa' },
-    indexedId: '1300001',
-    title: 'Ep1',
-    episodeNumber: '1',
-    seasonId,
-    comments: COMMENTS,
-    commentCount: COMMENTS.length,
-    schemaVersion: 4,
-    lastChecked: 0,
-  }
+const UNFETCHED_STUB: EpisodeStub = {
+  provider: DanmakuSourceType.Bilibili,
+  providerIds: { cid: 1300002, aid: 1400002, bvid: 'BV1300002' },
+  indexedId: '1300002',
+  title: 'Ep2',
+  episodeNumber: '2',
 }
 
 test('deleting a provider orphans its season but keeps it viewable', async ({
@@ -63,20 +43,17 @@ test('deleting a provider orphans its season but keeps it viewable', async ({
 }) => {
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
-    network: mockBilibiliXml({
-      searchBangumi: loadJsonFixture('bilibili-search-bangumi.json'),
-      searchFt: loadJsonFixture('bilibili-search-ft.json'),
-      season: loadJsonFixture('bilibili-season.json'),
-      xml: loadTextFixture('bilibili-xml.xml'),
-    }),
+    network: mockLoginProbes(),
   })
 
-  const season = await da.season.add(SEASON)
-  const ep = await da.episode.add(makeEpisode(season.id))
+  const season = await da.season.add(makeBilibiliSeason())
+  const ep = await da.episode.add(
+    makeBilibiliEpisode(season.id, { comments: COMMENTS })
+  )
+  await da.bookmark.add(season.id, [UNFETCHED_STUB])
 
   const popup = await Popup.open(page, extensionId, '/mount')
   let seasonItem = await popup.mount.waitForSeason(season.id)
-  await popup.mount.openItemMenu(seasonItem, 'bookmarkAdd')
   await expect(seasonItem).toContainText(/\+1/)
 
   await Popup.open(page, extensionId, '/providers')

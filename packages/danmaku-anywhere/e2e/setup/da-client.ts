@@ -4,6 +4,7 @@ import type {
   CustomEpisodeInsert,
   Episode,
   EpisodeInsert,
+  EpisodeStub,
   Season,
   SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -113,6 +114,11 @@ export class DaClient {
       this.sw.evaluate(() => self.__da.bookmark.list()),
     bySeason: (seasonId: number): Promise<Bookmark | undefined> =>
       this.sw.evaluate((id) => self.__da.bookmark.bySeason(id), seasonId),
+    add: (seasonId: number, episodes?: EpisodeStub[]): Promise<Bookmark> =>
+      this.sw.evaluate(([id, eps]) => self.__da.bookmark.add(id, eps), [
+        seasonId,
+        episodes,
+      ] as const),
     deleteBySeason: (seasonId: number): Promise<void> =>
       this.sw.evaluate((id) => self.__da.bookmark.deleteBySeason(id), seasonId),
   }
