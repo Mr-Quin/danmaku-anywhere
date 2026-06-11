@@ -31,8 +31,12 @@ intakeRouter.post(
   async (c) => {
     const events = c.req.valid('json')
 
+    const encoder = new TextEncoder()
     for (const event of events) {
-      if (JSON.stringify(event.properties).length > MAX_EVENT_BYTES) {
+      if (
+        encoder.encode(JSON.stringify(event.properties)).length >
+        MAX_EVENT_BYTES
+      ) {
         throw new HTTPException(413, { message: 'Event properties too large' })
       }
     }

@@ -58,13 +58,17 @@ const useMountDanmaku = () => {
       mount(episodes)
       updateFrame(mountedFrameId, { mounted: true })
 
+      const firstEpisode = episodes[0]
+      if (!firstEpisode) {
+        return
+      }
       const commentCount = episodes.reduce(
         (sum, episode) => sum + episode.commentCount,
         0
       )
       getTrackingService().track('danmakuMount', {
         mode,
-        providerType: String(episodes[0].provider),
+        providerType: String(firstEpisode.provider),
         commentCount,
       })
     },

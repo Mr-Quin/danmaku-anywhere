@@ -114,6 +114,8 @@ export class TelemetryManager {
           'da-version': EXTENSION_VERSION,
         },
         body: JSON.stringify(batch),
+        // Let an in-flight flush complete even if MV3 suspends the worker.
+        keepalive: true,
       })
     } catch (e) {
       this.logger.debug('Flush failed, dropping batch', e)
