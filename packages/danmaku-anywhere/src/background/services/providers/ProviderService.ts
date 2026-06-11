@@ -42,6 +42,7 @@ import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from './ProviderFactory'
+import { resolveSeasonConfig } from './resolveSeasonConfig'
 
 function enrichEpisode(
   episode: OmitSeasonId<EpisodeMeta>,
@@ -114,10 +115,14 @@ export class ProviderService {
   // removed" error when the config has been deleted (the season is orphaned).
   // The UI blocks refresh affordances for orphaned seasons, so this is the
   // fallback for any path that still reaches a provider call.
-  private async getConfigForSeason(
-    providerConfigId: string
-  ): Promise<ProviderConfig> {
-    const config = await this.providerConfigService.get(providerConfigId)
+  private async getConfigForSeason(season: {
+    manifestId?: string
+    namespaceKey?: string
+  }): Promise<ProviderConfig> {
+    const config = resolveSeasonConfig(
+      season,
+      await this.providerConfigService.getAll()
+    )
     if (!config) {
       throw new Error(
         'This source has been removed, so new danmaku cannot be fetched.'
@@ -132,9 +137,7 @@ export class ProviderService {
     await this.manifestRegistry.ready
     const season = await this.seasonService.mustGetById(seasonId)
 
-    const providerConfig = await this.getConfigForSeason(
-      season.providerConfigId
-    )
+    const providerConfig = await this.getConfigForSeason(season)
 
     if (providerConfig.manifestId === LEGACY_MACCMS_ID) {
       throw new Error('MacCMS does not support fetching episodes')
@@ -152,9 +155,7 @@ export class ProviderService {
       throw new Error('No season found for refresh filter')
     }
 
-    const providerConfig = await this.getConfigForSeason(
-      season.providerConfigId
-    )
+    const providerConfig = await this.getConfigForSeason(season)
 
     const service = this.danmakuProviderFactory(providerConfig)
     if (!service.getSeason) {
@@ -211,7 +212,7 @@ export class ProviderService {
       this.logger.debug('Danmaku not found in db, fetching from server')
     }
 
-    const config = await this.getConfigForSeason(meta.season.providerConfigId)
+    const config = await this.getConfigForSeason(meta.season)
 
     if (config.manifestId === LEGACY_MACCMS_ID) {
       throw new Error('MacCMS episodes are not refetchable')

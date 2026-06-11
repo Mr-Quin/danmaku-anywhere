@@ -8,6 +8,7 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { serializeError } from '@/common/utils/serializeError'
+import { resolveSeasonConfig } from '../../providers/resolveSeasonConfig'
 import { EpisodeResolutionService } from '../EpisodeResolutionService'
 import type { IMatchingStrategy } from './IMatchingStrategy'
 
@@ -80,10 +81,11 @@ export class MappingMatchingStrategy implements IMatchingStrategy {
       if (!season) {
         return undefined
       }
-      const providerConfig = await this.providerConfigService.get(
-        season.providerConfigId
+      const providerConfig = resolveSeasonConfig(
+        season,
+        await this.providerConfigService.getAll()
       )
-      return { season, providerConfig: providerConfig ?? undefined }
+      return { season, providerConfig }
     }
 
     const mapping = await this.titleMappingService.get(mapKey)

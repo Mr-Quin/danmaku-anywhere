@@ -9,6 +9,7 @@ import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from '../providers/ProviderFactory'
+import { resolveSeasonConfig } from '../providers/resolveSeasonConfig'
 
 @injectable('Singleton')
 export class EpisodeResolutionService {
@@ -23,9 +24,13 @@ export class EpisodeResolutionService {
     season: Season,
     episodeNumber: number
   ): Promise<WithSeason<EpisodeMeta>> {
-    const providerConfig = await this.providerConfigService.mustGet(
-      season.providerConfigId
+    const providerConfig = resolveSeasonConfig(
+      season,
+      await this.providerConfigService.getAll()
     )
+    if (!providerConfig) {
+      throw new Error(`Provider config not found for season: ${season.title}`)
+    }
     const service = this.danmakuProviderFactory(providerConfig)
 
     if (!service.findEpisode) {

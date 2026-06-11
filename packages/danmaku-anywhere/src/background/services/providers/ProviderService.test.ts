@@ -60,6 +60,8 @@ function makeProvider(
   } as unknown as IDanmakuProvider
 }
 
+import { computeNamespaceKey } from './namespaceKey'
+
 function build(
   config: ProviderConfig,
   provider: IDanmakuProvider,
@@ -77,6 +79,8 @@ function build(
   const season = {
     id: 1,
     providerConfigId: config.id,
+    manifestId: config.manifestId,
+    namespaceKey: computeNamespaceKey(config),
     providerIds: { animeId: 42 },
     provider: providerTypeFromManifestId(config.manifestId),
     title: 'Show',
@@ -90,6 +94,7 @@ function build(
   const providerConfigService = {
     mustGet: vi.fn(async () => config),
     get: vi.fn(async () => (opts.configMissing ? undefined : config)),
+    getAll: vi.fn(async () => (opts.configMissing ? [] : [config])),
   } as unknown as ProviderConfigService
 
   const factory = vi.fn(() => provider)
@@ -305,17 +310,23 @@ describe('ProviderService legacy-maccms decoupling', () => {
   })
 
   describe('getDanmaku', () => {
+    const iqiyiConfig = makeConfig('iqiyi')
     const meta = {
       provider: DanmakuSourceType.DanDanPlay,
       indexedId: 'ep1',
       seasonId: 1,
       providerIds: {},
-      season: { id: 1, providerConfigId: 'iqiyi-1' },
+      season: {
+        id: 1,
+        providerConfigId: 'iqiyi-1',
+        manifestId: iqiyiConfig.manifestId,
+        namespaceKey: computeNamespaceKey(iqiyiConfig),
+      },
     } as unknown as WithSeason<EpisodeMeta>
 
     it('fetches danmaku for a generic source', async () => {
       const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
-      const { service } = build(makeConfig('iqiyi'), provider)
+      const { service } = build(iqiyiConfig, provider)
 
       await service.getDanmaku({ type: 'by-meta', meta, options: {} })
 
@@ -325,7 +336,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
     it('serves cached danmaku without fetching or resolving the config', async () => {
       const cached = { id: 5, comments: [] }
       const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
-      const { service } = build(makeConfig('iqiyi'), provider, {
+      const { service } = build(iqiyiConfig, provider, {
         existingDanmaku: [cached],
       })
 
@@ -341,11 +352,17 @@ describe('ProviderService legacy-maccms decoupling', () => {
 
     it('throws for a legacy MacCMS config', async () => {
       const provider = makeProvider()
+      const maccmsConfig = makeConfig(LEGACY_MACCMS_ID)
       const maccmsMeta = {
         ...meta,
-        season: { id: 1, providerConfigId: `${LEGACY_MACCMS_ID}-1` },
+        season: {
+          id: 1,
+          providerConfigId: `${LEGACY_MACCMS_ID}-1`,
+          manifestId: maccmsConfig.manifestId,
+          namespaceKey: computeNamespaceKey(maccmsConfig),
+        },
       } as unknown as WithSeason<EpisodeMeta>
-      const { service } = build(makeConfig(LEGACY_MACCMS_ID), provider)
+      const { service } = build(maccmsConfig, provider)
 
       await expect(
         service.getDanmaku({ type: 'by-meta', meta: maccmsMeta, options: {} })
@@ -355,7 +372,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
 
     it('throws a source-removed error when forcing an orphaned season', async () => {
       const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
-      const { service } = build(makeConfig('iqiyi'), provider, {
+      const { service } = build(iqiyiConfig, provider, {
         configMissing: true,
       })
 
