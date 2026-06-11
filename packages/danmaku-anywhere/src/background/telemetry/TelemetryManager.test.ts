@@ -76,6 +76,33 @@ describe('TelemetryManager', () => {
       version: EXTENSION_VERSION,
       environment: DA_ENV,
     })
+    expect(batch[0].properties).toEqual({ keyword: 'x' })
+  })
+
+  it('does not schedule a second flush after a size-triggered flush', async () => {
+    vi.useFakeTimers()
+    const manager = await makeManager({
+      enableAnalytics: true,
+      id: 'install-1',
+    })
+
+    for (let i = 0; i < 20; i++) {
+      manager.track('search', { keyword: 'x' }, 'popup', 1)
+    }
+    await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1))
+
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('flushes background-origin events immediately', async () => {
+    const manager = await makeManager({
+      enableAnalytics: true,
+      id: 'install-1',
+    })
+
+    manager.track('heartbeat', { browser: 'chrome' }, 'background', 1)
+    await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1))
   })
 
   it('flushes a partial buffer after the timer elapses', async () => {
@@ -85,7 +112,7 @@ describe('TelemetryManager', () => {
       id: 'install-1',
     })
 
-    manager.track('heartbeat', { browser: 'chrome' }, 'background', 1)
+    manager.track('search', { keyword: 'x' }, 'popup', 1)
     expect(fetchSpy).not.toHaveBeenCalled()
 
     await vi.advanceTimersByTimeAsync(30_000)

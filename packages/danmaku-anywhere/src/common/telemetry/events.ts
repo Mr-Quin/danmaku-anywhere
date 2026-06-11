@@ -14,8 +14,8 @@ interface ProviderConfigEventProps {
   manifestId: string
 }
 
-// Migrated events forward their existing payloads untouched; `object` keeps the
-// catalog from constraining shapes the backend treats as opaque anyway.
+// The backend treats these payloads as opaque, so the catalog does not
+// constrain their shape.
 type OpaqueProps = object
 
 type EmptyProps = Record<string, never>

@@ -81,7 +81,7 @@ export function UrlParseSection({
       try {
         hostname = new URL(trimmedUrl).hostname
       } catch {
-        // leave empty when the input is not a parseable URL
+        hostname = ''
       }
       getTrackingService().track('parseUrl', { hostname })
       return chromeRpcClient.mediaParseUrl({ url: trimmedUrl })
