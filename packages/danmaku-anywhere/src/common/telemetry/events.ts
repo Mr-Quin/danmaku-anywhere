@@ -46,7 +46,7 @@ export interface TelemetryEventMap {
 
   danmakuMount: {
     mode: DanmakuMountMode
-    providerType: string
+    manifestId: string | null
     commentCount: number
   }
   danmakuUnmount: { mode: DanmakuMountMode }

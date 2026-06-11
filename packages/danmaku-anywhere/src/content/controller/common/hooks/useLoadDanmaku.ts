@@ -13,6 +13,8 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
 import { episodeToString, isProvider } from '@/common/danmaku/utils'
+import { useInjectService } from '@/common/hooks/useInjectService'
+import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { DanmakuMountMode } from '@/common/telemetry/events'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
@@ -29,6 +31,7 @@ const useMountDanmaku = () => {
 
   const { getActiveFrame, updateFrame } = useStore.use.frame()
   const { mount } = useStore.use.danmaku()
+  const providerConfigService = useInjectService(ProviderConfigService)
 
   return useMutation({
     mutationFn: async ({ episodes }: MountVariables) => {
@@ -54,7 +57,7 @@ const useMountDanmaku = () => {
 
       return activeFrame.frameId
     },
-    onSuccess: (mountedFrameId, { episodes, mode }) => {
+    onSuccess: async (mountedFrameId, { episodes, mode }) => {
       mount(episodes)
       updateFrame(mountedFrameId, { mounted: true })
 
@@ -66,9 +69,17 @@ const useMountDanmaku = () => {
         (sum, episode) => sum + episode.commentCount,
         0
       )
+      // Provider episodes carry the season's config id; map it to the manifest
+      // so custom providers (which share one source type) stay distinguishable.
+      // Local imports have no season, hence no manifest.
+      const providerConfigId =
+        'season' in firstEpisode ? firstEpisode.season.providerConfigId : null
+      const config = providerConfigId
+        ? await providerConfigService.get(providerConfigId)
+        : null
       getTrackingService().track('danmakuMount', {
         mode,
-        providerType: String(firstEpisode.provider),
+        manifestId: config?.manifestId ?? null,
         commentCount,
       })
     },
