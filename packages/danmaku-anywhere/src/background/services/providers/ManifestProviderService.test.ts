@@ -86,6 +86,7 @@ describe('ManifestProviderService.search', () => {
       provider: DanmakuSourceType.Bilibili,
       providerConfigId: 'bilibili',
       manifestId: 'bilibili',
+      namespaceKey: 'bilibili',
       schemaVersion: SEASON_SCHEMA_VERSION,
     })
     expect(runner.runSearch).toHaveBeenCalledWith({ q: 'frieren' }, RUN_OPTS)
@@ -162,6 +163,7 @@ describe('ManifestProviderService.getSeason', () => {
       provider: DanmakuSourceType.Bilibili,
       providerConfigId: 'bilibili',
       manifestId: 'bilibili',
+      namespaceKey: 'bilibili',
       schemaVersion: SEASON_SCHEMA_VERSION,
     })
     expect(runner.runSeason).toHaveBeenCalledWith({ seasonId: 41410 }, RUN_OPTS)
@@ -286,6 +288,7 @@ describe('ManifestProviderService.parseUrl', () => {
         manifestId: 'dandanplay',
         provider: DanmakuSourceType.DanDanPlay,
         providerConfigId: 'custom-ddp-1',
+        configValues: { baseUrl: 'https://my-server/api' },
       },
       makeRegistry(runner),
       silentLogger
@@ -304,5 +307,7 @@ describe('ManifestProviderService.parseUrl', () => {
       providerConfigId: 'custom-ddp-1',
       manifestId: 'dandanplay',
     })
+    expect(result?.seasonInsert?.namespaceKey).toMatch(/^ns:/)
+    expect(result?.seasonInsert?.namespaceKey).not.toBe('dandanplay')
   })
 })

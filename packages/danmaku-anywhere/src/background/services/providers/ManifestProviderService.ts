@@ -21,6 +21,7 @@ import type {
 } from './IDanmakuProvider'
 import type { ManifestRegistry } from './ManifestRegistry'
 import { resolveManifestInputs } from './manifestInputs'
+import { computeNamespaceKey } from './namespaceKey'
 
 // Manifest output shapes — the canonical fields a search/episodes/danmaku
 // pipeline must emit. The host adds `provider` / `providerConfigId` /
@@ -75,6 +76,7 @@ export const DANMAKU_RUN_OPTIONS: RunOptions = {
 
 export class ManifestProviderService implements IDanmakuProvider {
   readonly forProvider: DanmakuSourceType
+  private readonly namespaceKey: string
 
   constructor(
     private readonly config: ManifestProviderConfig,
@@ -82,6 +84,11 @@ export class ManifestProviderService implements IDanmakuProvider {
     private readonly logger: ILogger
   ) {
     this.forProvider = config.provider
+    this.namespaceKey = computeNamespaceKey({
+      id: config.providerConfigId,
+      manifestId: config.manifestId,
+      configValues: config.configValues,
+    })
   }
 
   private resolveInputs(
@@ -109,6 +116,7 @@ export class ManifestProviderService implements IDanmakuProvider {
       provider: this.forProvider,
       providerConfigId: this.config.providerConfigId,
       manifestId: this.config.manifestId,
+      namespaceKey: this.namespaceKey,
       schemaVersion: SEASON_SCHEMA_VERSION,
     }))
   }
@@ -139,6 +147,7 @@ export class ManifestProviderService implements IDanmakuProvider {
       provider: this.forProvider,
       providerConfigId: this.config.providerConfigId,
       manifestId: this.config.manifestId,
+      namespaceKey: this.namespaceKey,
       schemaVersion: SEASON_SCHEMA_VERSION,
     }
   }
@@ -226,6 +235,7 @@ export class ManifestProviderService implements IDanmakuProvider {
         provider: this.forProvider,
         providerConfigId: this.config.providerConfigId,
         manifestId: this.config.manifestId,
+        namespaceKey: this.namespaceKey,
         schemaVersion: SEASON_SCHEMA_VERSION,
       },
       episodeMeta: {
