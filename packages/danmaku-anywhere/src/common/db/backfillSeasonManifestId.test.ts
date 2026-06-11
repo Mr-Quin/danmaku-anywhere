@@ -22,6 +22,11 @@ describe('resolveSeasonManifestId', () => {
     expect(resolveSeasonManifestId('uuid-orphan', new Map())).toBeUndefined()
   })
 
+  it('returns unset for a non-string providerConfigId', () => {
+    expect(resolveSeasonManifestId(undefined, new Map())).toBeUndefined()
+    expect(resolveSeasonManifestId(null, new Map())).toBeUndefined()
+  })
+
   it('does not mis-stamp a catalog orphan with the provider tag', () => {
     // A catalog season's config was deleted, so its uuid no longer resolves.
     // It must stay unset rather than fall back to the DanDanPlay builtin id.

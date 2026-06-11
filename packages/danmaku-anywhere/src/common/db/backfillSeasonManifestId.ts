@@ -26,9 +26,13 @@ const BUILTIN_CONFIG_IDS = new Set<string>(
  * manifestId 'dandanplay' and reparent it onto the wrong source.
  */
 export function resolveSeasonManifestId(
-  providerConfigId: string,
+  providerConfigId: string | undefined | null,
   manifestIdByConfigId: Map<string, string>
 ): string | undefined {
+  if (typeof providerConfigId !== 'string') {
+    return undefined
+  }
+
   const liveManifestId = manifestIdByConfigId.get(providerConfigId)
   if (liveManifestId !== undefined) {
     return liveManifestId

@@ -465,9 +465,14 @@ export class DanmakuAnywhereDb extends Dexie {
         } catch {
           configs = []
         }
-        const manifestIdByConfigId = new Map(
-          configs.map((config) => [config.id, config.manifestId])
-        )
+        // configs come from external storage, so skip malformed entries
+        // rather than let a single bad record throw and abort the upgrade.
+        const manifestIdByConfigId = new Map<string, string>()
+        for (const config of configs) {
+          if (config?.id && config?.manifestId) {
+            manifestIdByConfigId.set(config.id, config.manifestId)
+          }
+        }
 
         await tx
           .table('season')
