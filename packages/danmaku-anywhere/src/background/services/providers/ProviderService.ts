@@ -34,7 +34,10 @@ import type {
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { OmitSeasonId } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
-import { ManifestRegistry } from './ManifestRegistry'
+import {
+  CATALOG_UNREACHABLE_MESSAGE,
+  ManifestRegistry,
+} from './ManifestRegistry'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
@@ -339,21 +342,34 @@ export class ProviderService {
     await this.syncCatalog()
   }
 
+  // Throws on an unreachable catalog so a user-driven refresh surfaces the
+  // failure instead of silently returning the stale list.
   async refreshCatalog(locale?: string): Promise<ProviderManifestList> {
-    await this.syncCatalog()
+    const synced = await this.syncCatalog()
+    if (!synced) {
+      throw new Error(CATALOG_UNREACHABLE_MESSAGE)
+    }
     return this.listManifests(locale)
   }
 
   // Bring the catalog current: updates for uninstalled sources (no config or
   // user data to disturb) are applied here, while installed-source updates stay
   // manual via the Updates list. Records the check only on a real sync, so
-  // "checked Nm ago" never advances on a bare detection.
-  async syncCatalog(): Promise<void> {
+  // "checked Nm ago" never advances on a bare detection. Returns whether the
+  // catalog index was reachable.
+  async syncCatalog(): Promise<boolean> {
     const fetched = await this.manifestRegistry.update()
     if (!fetched) {
-      return
+      return false
     }
-    const pending = await this.manifestRegistry.getPendingUpdates()
+    // update() just reached the index, so a failure here means it died
+    // mid-sync; skip the best-effort auto-apply rather than fail the sync.
+    const pending = await this.manifestRegistry
+      .getPendingUpdates()
+      .catch((e) => {
+        this.logger.warn('Failed to detect pending updates mid-sync:', e)
+        return []
+      })
     const configs = await this.providerConfigService.getAll()
     const installed = new Set(configs.map((config) => config.manifestId))
     const uninstalled = pending
@@ -370,6 +386,7 @@ export class ProviderService {
     }
     await this.manifestRegistry.recordChecked()
     await this.seedDefaultProviders()
+    return true
   }
 
   // Seed the preloaded configs once, after the catalog loads so each name comes

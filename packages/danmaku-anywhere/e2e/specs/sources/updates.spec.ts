@@ -2,6 +2,7 @@ import {
   manifestStoreSeed,
   manifestVersion,
   mockCatalog,
+  type StoredManifests,
 } from '../../network/catalog'
 import { Popup } from '../../pom/Popup'
 import { expect, test } from '../../setup/fixtures'
@@ -14,8 +15,6 @@ import { applyProfile } from '../../setup/profile'
  * version is not prompted as an update: a Refresh applies it in place so the
  * Catalog row shows the latest, ready to import.
  */
-
-type StoredManifests = Record<string, { manifest: { version: string } }>
 
 const BUMPED = '9.9.9'
 

@@ -14,7 +14,8 @@ import type {
  * user imports), detect-vs-apply (getPendingUpdates diffs versions without
  * fetching files or applying; applyUpdates replaces only the named preinstalled
  * ids, never a user import or an unseeded id), skipping a bad/failed file,
- * index failures, that neither update() nor getPendingUpdates stamps
+ * index failures (one retry after a delay, then give up), that neither
+ * update() nor getPendingUpdates stamps
  * lastCheckedAt (only recordChecked does), and
  * register / unregister / hydrate-skip-invalid.
  */
@@ -109,7 +110,19 @@ function stubCatalogFetch(
 afterEach(() => {
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
+  vi.useRealTimers()
 })
+
+// A failed index fetch sleeps before its single retry, so run the call under
+// fake timers and skip past the delay. The no-op catch keeps a rejection that
+// settles during the timer advance from surfacing as unhandled.
+async function settleIndexRetry<T>(run: () => Promise<T>): Promise<T> {
+  vi.useFakeTimers()
+  const promise = run()
+  promise.catch(() => {})
+  await vi.advanceTimersByTimeAsync(1000)
+  return promise
+}
 
 class InMemoryStore implements IManifestStore {
   private lastCheckedAt: number | null = null
@@ -279,14 +292,35 @@ describe('ManifestRegistry', () => {
     )
   })
 
-  it('update leaves the store empty when the index fetch fails', async () => {
-    stubFetch(() => ({ status: 503, body: 'unavailable' }))
+  it('update retries once and leaves the store empty when the index fetch keeps failing', async () => {
+    const fetchMock = stubFetch(() => ({ status: 503, body: 'unavailable' }))
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await expect(registry.update()).resolves.toBe(false)
+    await expect(settleIndexRetry(() => registry.update())).resolves.toBe(false)
 
+    expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(await store.getAll()).toEqual({})
     expect(registry.list()).toEqual([])
+  })
+
+  it('update succeeds when the index fetch recovers on the retry', async () => {
+    let indexCalls = 0
+    stubFetch((url) => {
+      if (url.includes('/manifest/file')) {
+        return { status: 200, body: makeManifest('one') }
+      }
+      indexCalls += 1
+      if (indexCalls === 1) {
+        return { status: 503, body: 'unavailable' }
+      }
+      return { status: 200, body: { manifests: [catalogEntry('one')] } }
+    })
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    await expect(settleIndexRetry(() => registry.update())).resolves.toBe(true)
+
+    expect(indexCalls).toBe(2)
+    expect(registry.list()).toEqual(['one'])
   })
 
   it('update leaves the store empty when the index body is malformed', async () => {
@@ -297,7 +331,7 @@ describe('ManifestRegistry', () => {
     )
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await expect(registry.update()).resolves.toBe(false)
+    await expect(settleIndexRetry(() => registry.update())).resolves.toBe(false)
 
     expect(await store.getAll()).toEqual({})
     expect(registry.list()).toEqual([])
@@ -429,7 +463,7 @@ describe('ManifestRegistry', () => {
     expect(await registry.getLastCheckedAt()).toBeNull()
   })
 
-  it('getPendingUpdates returns nothing when the index fetch fails', async () => {
+  it('getPendingUpdates throws when the index fetch fails (distinct from no updates)', async () => {
     stubFetch(() => ({ status: 503, body: 'unavailable' }))
     const store = new InMemoryStore({
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
@@ -437,7 +471,9 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     await registry.ready
 
-    expect(await registry.getPendingUpdates()).toEqual([])
+    await expect(
+      settleIndexRetry(() => registry.getPendingUpdates())
+    ).rejects.toThrow(/Failed to fetch the manifest catalog/)
   })
 
   it('applyUpdates replaces only the named ids and rebuilds their runners', async () => {
@@ -518,9 +554,9 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     await registry.ready
 
-    await expect(registry.applyUpdates(['one'])).rejects.toThrow(
-      /Failed to fetch the manifest catalog/
-    )
+    await expect(
+      settleIndexRetry(() => registry.applyUpdates(['one']))
+    ).rejects.toThrow(/Failed to fetch the manifest catalog/)
   })
 
   it('update leaves a user import untouched even when the catalog lists the same id', async () => {

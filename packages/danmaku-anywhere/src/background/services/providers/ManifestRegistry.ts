@@ -12,7 +12,7 @@ import type {
   ManifestUpdate,
   ProviderManifestInfo,
 } from '@/common/rpcClient/background/types'
-import { invariant } from '@/common/utils/utils'
+import { invariant, sleep } from '@/common/utils/utils'
 import { extensionFetchLike } from './extensionFetchLike'
 import {
   type IManifestStore,
@@ -34,6 +34,10 @@ const zCatalogIndex = z.object({
 
 type CatalogEntry = z.infer<typeof zCatalogEntry>
 type CatalogManifest = { raw: unknown; parsed: Manifest }
+
+// Shared by every catalog-gated path; tests and the popup toast match on it.
+export const CATALOG_UNREACHABLE_MESSAGE =
+  'Failed to fetch the manifest catalog'
 
 function storedVersion(manifest: unknown): unknown {
   if (
@@ -153,12 +157,14 @@ export class ManifestRegistry {
   }
 
   // Index-only: diff stored versions against the catalog without fetching files
-  // or applying.
+  // or applying. Throws on an unreachable catalog: "no updates" and "could not
+  // check" must stay distinguishable, or a failed check would clear the
+  // popup's pending list.
   async getPendingUpdates(): Promise<ManifestUpdate[]> {
     await this.ready
     const entries = await this.loadIndex()
     if (!entries) {
-      return []
+      throw new Error(CATALOG_UNREACHABLE_MESSAGE)
     }
     const stored = await this.store.getAll()
     const updates: ManifestUpdate[] = []
@@ -188,7 +194,7 @@ export class ManifestRegistry {
     await this.ready
     const entries = await this.loadIndex()
     if (!entries) {
-      throw new Error('Failed to fetch the manifest catalog')
+      throw new Error(CATALOG_UNREACHABLE_MESSAGE)
     }
     const wanted = new Set(manifestIds)
     const stored = await this.store.getAll()
@@ -285,6 +291,12 @@ export class ManifestRegistry {
   }
 
   private async loadIndex(): Promise<CatalogEntry[] | null> {
+    try {
+      return await this.fetchIndex()
+    } catch (e) {
+      this.log.warn('Catalog index fetch failed, retrying:', e)
+    }
+    await sleep(1000)
     try {
       return await this.fetchIndex()
     } catch (e) {
