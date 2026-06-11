@@ -65,9 +65,14 @@ const useMountDanmaku = () => {
         (sum, episode) => sum + episode.commentCount,
         0
       )
+      // Custom providers all share one source type, so the manifest is what
+      // distinguishes them. Local imports have no season, hence no manifest.
+      const manifestId = isSourceEpisode(firstEpisode)
+        ? (firstEpisode.season.manifestId ?? null)
+        : null
       getTrackingService().track('danmakuMount', {
         mode,
-        providerType: String(firstEpisode.provider),
+        manifestId,
         commentCount,
       })
     },
