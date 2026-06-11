@@ -193,10 +193,8 @@ export class ProviderService {
     await this.manifestRegistry.ready
     const resolved = await this.resolveMeta(request)
     const { options = {}, meta } = resolved
-    const provider = meta.provider
 
     const [existingDanmaku] = await this.danmakuService.filter({
-      provider,
       indexedId: meta.indexedId,
       seasonId: meta.seasonId,
     })

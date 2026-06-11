@@ -81,7 +81,12 @@ export class BookmarkService {
   }
 
   async deleteByProviderConfigId(providerConfigId: string): Promise<void> {
-    await this.db.bookmark.where({ providerConfigId }).delete()
+    const seasonIds = await this.db.season
+      .where({ providerConfigId })
+      .primaryKeys()
+    if (seasonIds.length > 0) {
+      await this.db.bookmark.where('seasonId').anyOf(seasonIds).delete()
+    }
   }
 
   async getAll(): Promise<Bookmark[]> {

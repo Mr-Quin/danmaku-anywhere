@@ -35,7 +35,7 @@ export class EpisodeResolutionService {
 
     if (!service.findEpisode) {
       throw new Error(
-        `Provider ${season.provider} does not support episode matching.`
+        `Provider ${season.manifestId} does not support episode matching.`
       )
     }
 

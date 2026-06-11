@@ -1,7 +1,7 @@
 export type SeasonMapSnapshot = {
   // Title of the show
   key: string
-  // A map of provider config ID to season ID
+  // A map of namespaceKey to season ID
   seasons: Record<string, number>
   // A list of season IDs derived from the map. This is separated for use as a key in IDB
   seasonIds: number[]
@@ -10,6 +10,7 @@ export type SeasonMapSnapshot = {
 }
 
 type SeasonLike = {
+  namespaceKey?: string
   providerConfigId: string
   id: number
 }
@@ -17,7 +18,7 @@ type SeasonLike = {
 export class SeasonMap {
   private constructor(
     readonly key: string,
-    private readonly seasonsByConfig: Map<string, number>,
+    private readonly seasonsByNamespace: Map<string, number>,
     readonly local?: string
   ) {}
 
@@ -26,7 +27,10 @@ export class SeasonMap {
   }
 
   static fromSeason(key: string, season: SeasonLike) {
-    return SeasonMap.empty(key).withMapping(season.providerConfigId, season.id)
+    return SeasonMap.empty(key).withMapping(
+      season.namespaceKey ?? season.providerConfigId,
+      season.id
+    )
   }
 
   static fromSnapshot(snapshot: SeasonMapSnapshot) {
@@ -53,19 +57,19 @@ export class SeasonMap {
   static hasMapping(
     seasonMaps: Array<SeasonMap | SeasonMapSnapshot>,
     key: string,
-    providerConfigId: string,
+    namespaceKey: string,
     seasonId: number
   ) {
     const map = SeasonMap.findByKey(seasonMaps, key)
     if (!map) {
       return false
     }
-    return map.matches(providerConfigId, seasonId)
+    return map.matches(namespaceKey, seasonId)
   }
 
   // get deduplicated season IDs
   getSeasonIds() {
-    return Array.from(new Set(this.seasonsByConfig.values()))
+    return Array.from(new Set(this.seasonsByNamespace.values()))
   }
 
   toSnapshot(): SeasonMapSnapshot {
@@ -78,58 +82,58 @@ export class SeasonMap {
   }
 
   get seasons() {
-    return Object.fromEntries(this.seasonsByConfig.entries())
+    return Object.fromEntries(this.seasonsByNamespace.entries())
   }
 
   get seasonIds() {
     return this.getSeasonIds()
   }
 
-  getSeasonId(providerConfigId: string) {
-    return this.seasonsByConfig.get(providerConfigId)
+  getSeasonId(namespaceKey: string) {
+    return this.seasonsByNamespace.get(namespaceKey)
   }
 
-  matches(providerConfigId: string, seasonId: number) {
-    return this.getSeasonId(providerConfigId) === seasonId
+  matches(namespaceKey: string, seasonId: number) {
+    return this.getSeasonId(namespaceKey) === seasonId
   }
 
   merge(other: SeasonMap | SeasonMapSnapshot) {
     const toMerge = SeasonMap.from(other)
-    const seasons = new Map(this.seasonsByConfig)
-    for (const [providerConfigId, seasonId] of toMerge.seasonsByConfig) {
-      seasons.set(providerConfigId, seasonId)
+    const seasons = new Map(this.seasonsByNamespace)
+    for (const [namespaceKey, seasonId] of toMerge.seasonsByNamespace) {
+      seasons.set(namespaceKey, seasonId)
     }
     // Preserve self.local when the other side didn't set one; additive merge
     return new SeasonMap(this.key, seasons, toMerge.local ?? this.local)
   }
 
-  withMapping(providerConfigId: string, seasonId: number) {
-    const seasons = new Map(this.seasonsByConfig)
-    seasons.set(providerConfigId, seasonId)
+  withMapping(namespaceKey: string, seasonId: number) {
+    const seasons = new Map(this.seasonsByNamespace)
+    seasons.set(namespaceKey, seasonId)
     return new SeasonMap(this.key, seasons, this.local)
   }
 
   withLocal(folderPath: string) {
-    return new SeasonMap(this.key, new Map(this.seasonsByConfig), folderPath)
+    return new SeasonMap(this.key, new Map(this.seasonsByNamespace), folderPath)
   }
 
   withoutLocal() {
-    return new SeasonMap(this.key, new Map(this.seasonsByConfig))
+    return new SeasonMap(this.key, new Map(this.seasonsByNamespace))
   }
 
   withoutSeasonId(seasonId: number) {
-    const seasons = new Map(this.seasonsByConfig)
-    for (const [providerConfigId, id] of seasons.entries()) {
+    const seasons = new Map(this.seasonsByNamespace)
+    for (const [namespaceKey, id] of seasons.entries()) {
       if (id === seasonId) {
-        seasons.delete(providerConfigId)
+        seasons.delete(namespaceKey)
       }
     }
     return new SeasonMap(this.key, seasons, this.local)
   }
 
-  withoutProvider(providerConfigId: string) {
-    const seasons = new Map(this.seasonsByConfig)
-    seasons.delete(providerConfigId)
+  withoutProvider(namespaceKey: string) {
+    const seasons = new Map(this.seasonsByNamespace)
+    seasons.delete(namespaceKey)
     return new SeasonMap(this.key, seasons, this.local)
   }
 }

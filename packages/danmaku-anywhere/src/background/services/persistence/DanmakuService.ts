@@ -316,7 +316,7 @@ export class DanmakuService {
               }
             )
             imported.push({
-              type: item.season.provider,
+              type: item.season.manifestId ?? item.season.providerConfigId,
               title: item.episode.title,
               seasonId: savedSeasonId,
               seasonTitle: savedSeasonTitle,
@@ -334,7 +334,7 @@ export class DanmakuService {
       ) as Record<
         string,
         {
-          type: DanmakuSourceType
+          type: string
           title: string
           seasonId: number
           seasonTitle: string

@@ -66,7 +66,7 @@ export type DanmakuImportResult = {
           imported: Record<
             string,
             {
-              type: DanmakuSourceType
+              type: string
               title: string
               seasonId: number
               seasonTitle: string

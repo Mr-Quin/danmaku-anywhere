@@ -1,13 +1,9 @@
-import {
-  DanmakuSourceType,
-  type Season,
-  type SeasonInsert,
-} from '@danmaku-anywhere/danmaku-converter'
+import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
 import type { MatchEpisodeInput, MatchEpisodeResult } from '@/common/anime/dto'
-import { isNotCustom, isProvider } from '@/common/danmaku/utils'
+import { isCustomSeason } from '@/common/danmaku/utils'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
@@ -59,7 +55,7 @@ export class SearchMatchingStrategy implements IMatchingStrategy {
 
     if (
       foundSeasonInserts[0] &&
-      isProvider(foundSeasonInserts[0], DanmakuSourceType.MacCMS)
+      isCustomSeason(foundSeasonInserts[0] as unknown as Season)
     ) {
       // should not be reached
       throw new Error('Custom season found, but not supported')
@@ -108,7 +104,7 @@ export class SearchMatchingStrategy implements IMatchingStrategy {
 
     return {
       status: 'disambiguation',
-      data: foundSeasons.filter(isNotCustom),
+      data: foundSeasons.filter((s) => !isCustomSeason(s)),
       metadata: { strategy: 'search', providerConfig: autoProvider },
     }
   }

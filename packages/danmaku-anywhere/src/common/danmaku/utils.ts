@@ -6,30 +6,7 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 
-class UnsupportedProviderException extends Error {
-  constructor(provider: DanmakuSourceType, message?: string) {
-    super(`Unsupported provider: ${provider}${message ? `: ${message}` : ''}`)
-  }
-}
-
-// Defensive runtime check. Does NOT narrow `providerIds` — that field is
-// opaque at the type level. Use service-local boundary helpers (e.g.
-// `seasonIds()`, `episodeIds()`) to read typed fields off `providerIds`
-// at the point of access.
-export function assertProviderType(
-  data: { provider: DanmakuSourceType },
-  provider: DanmakuSourceType
-): void {
-  if (data.provider !== provider) {
-    throw new UnsupportedProviderException(
-      data.provider,
-      `expected ${provider}`
-    )
-  }
-}
-
-// Boolean predicate only — does not narrow `providerIds`. See
-// `assertProviderType` for the rationale.
+// Boolean predicate only — does not narrow `providerIds`.
 export function isProvider(
   data: { provider: DanmakuSourceType },
   provider: DanmakuSourceType

@@ -80,6 +80,7 @@ export class MacCmsProviderService implements IDanmakuProvider {
           : undefined,
         schemaVersion: 1,
         provider: DanmakuSourceType.MacCMS,
+        isCustom: true as const,
         providerIds: {},
         episodes: item.parsedPlayUrls,
       }
