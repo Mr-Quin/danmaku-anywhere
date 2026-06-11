@@ -30,7 +30,7 @@ export function isCustomEpisode(x: GenericEpisodeLite): x is CustomEpisodeLite {
 export function isCustomSeason(
   season: Season | CustomSeason
 ): season is CustomSeason {
-  return !('providerConfigId' in season)
+  return 'isCustom' in season && season.isCustom === true
 }
 
 export const episodeToString = (episode: GenericEpisodeLite) => {
