@@ -61,15 +61,22 @@ declare module '@mui/material/Typography' {
   }
 }
 
+// Deep red used for the dark-mode error emphasis (contained-button hover).
+// The dark danger ink is a light tint for text, so it cannot serve here.
+const DARK_ERROR_EMPHASIS = '#991B1B'
+
 function toPaletteOptions(
   mode: 'light' | 'dark',
   t: SakuraPalette
 ): PaletteOptions {
   // MUI uses palette[color].dark for emphasis (e.g. contained-button hover).
-  // The original palettes used the severity ink in light mode and the severity
-  // main in dark mode; preserve that so hover states don't shift.
+  // In light mode every severity darkens to its ink. In dark mode the ink is a
+  // lighter tint (meant for text), so severities emphasize to their main.
   const severityDark = (s: SakuraPalette['success']) =>
     mode === 'light' ? s.ink : s.main
+  // Error is the exception: destructive buttons keep a deeper red on hover in
+  // both modes so the action still gives clear feedback.
+  const errorDark = mode === 'light' ? t.danger.ink : DARK_ERROR_EMPHASIS
   return {
     mode,
     primary: {
@@ -86,7 +93,7 @@ function toPaletteOptions(
     },
     error: {
       main: t.danger.main,
-      dark: severityDark(t.danger),
+      dark: errorDark,
       light: t.danger.soft,
     },
     warning: {

@@ -118,7 +118,6 @@ export const sakuraPalette = {
 export const sakuraRadii = {
   control: 8,
   card: 12,
-  root: 18,
 } as const
 
 export const sakuraFontFamily = `'Plus Jakarta Sans Variable', 'Noto Sans SC Variable', 'Noto Sans TC Variable', 'Noto Sans JP Variable', system-ui, sans-serif`
@@ -141,6 +140,3 @@ export const sakuraFontSize = {
   meta: 10,
   button: 12,
 } as const
-
-/** Base spacing unit in px (MUI-compatible 8px grid). */
-export const sakuraSpacingUnit = 8

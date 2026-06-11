@@ -31,4 +31,11 @@ describe('sakura theme is built from sakuraTokens', () => {
       sakuraDark.success.main
     )
   })
+
+  it('keeps a deep red error emphasis in both modes for destructive hover', () => {
+    expect(createSakuraTheme('light').palette.error.dark).toBe(
+      sakuraLight.danger.ink
+    )
+    expect(createSakuraTheme('dark').palette.error.dark).toBe('#991B1B')
+  })
 })
