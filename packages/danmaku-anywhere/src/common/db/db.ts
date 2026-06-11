@@ -459,9 +459,10 @@ export class DanmakuAnywhereDb extends Dexie {
           const stored = await Dexie.waitFor(
             chrome.storage.sync.get('providerConfig')
           )
-          configs =
-            (stored.providerConfig as ProviderConfigOptions | undefined)
-              ?.data ?? []
+          const data = (
+            stored.providerConfig as ProviderConfigOptions | undefined
+          )?.data
+          configs = Array.isArray(data) ? data : []
         } catch {
           configs = []
         }
