@@ -4,6 +4,7 @@ import type {
   CustomEpisode,
   CustomEpisodeLite,
   CustomSeason,
+  DanmakuSourceType,
   Episode,
   EpisodeLite,
   EpisodeMeta,
@@ -346,7 +347,7 @@ export interface PanelStateSnapshot {
   state: PanelSubstate
   media?: PanelMediaInfo
   commentCount?: number
-  provider?: string
+  provider?: DanmakuSourceType
 }
 
 // Controller -> Player communication

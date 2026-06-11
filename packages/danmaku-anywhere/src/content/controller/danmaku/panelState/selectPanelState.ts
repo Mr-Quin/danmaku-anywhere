@@ -1,4 +1,7 @@
-import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  DanmakuSourceType,
+  GenericEpisode,
+} from '@danmaku-anywhere/danmaku-converter'
 import type {
   PanelMediaInfo,
   PanelStateSnapshot,
@@ -13,7 +16,7 @@ export interface PanelStateInputs {
   isManual: boolean
   isMounted: boolean
   commentCount: number
-  provider?: string
+  provider?: DanmakuSourceType
   mountedEpisodes?: GenericEpisode[]
   integration: {
     active: boolean
@@ -41,24 +44,9 @@ function deriveSubstate(inputs: PanelStateInputs): PanelSubstate {
   return 'noMatch'
 }
 
-function toPanelMedia(
-  media: MediaInfo | undefined
-): PanelMediaInfo | undefined {
-  if (!media) {
-    return undefined
-  }
-  return {
-    title: media.title,
-    seasonDecorator: media.seasonDecorator,
-    episode: media.episode,
-    episodeTitle: media.episodeTitle,
-    originalTitle: media.originalTitle,
-  }
-}
-
 function resolveMedia(inputs: PanelStateInputs): PanelMediaInfo | undefined {
   if (inputs.integration.mediaInfo) {
-    return toPanelMedia(inputs.integration.mediaInfo)
+    return inputs.integration.mediaInfo.toJSON()
   }
   // Manual mode has no integration match; derive media from the mounted episode.
   const episode = inputs.mountedEpisodes?.[0]

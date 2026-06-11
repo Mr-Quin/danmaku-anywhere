@@ -1,9 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
 import { LocalStorageService } from '@/common/storage/LocalStorageService'
-import {
-  clampOffset,
-  type OffsetBounds,
-} from '@/content/common/hooks/clampOffset'
 import type { DragOffset } from '@/content/controller/ui/components/dragOffset'
 
 function readValidOffset(
@@ -23,27 +19,18 @@ function readValidOffset(
   return defaultOffset
 }
 
-interface UsePersistedPositionOptions {
-  bounds?: OffsetBounds
-}
-
-export function usePersistedPosition(
-  key: string,
-  defaultOffset: DragOffset,
-  options: UsePersistedPositionOptions = {}
-) {
-  const { bounds } = options
+export function usePersistedPosition(key: string, defaultOffset: DragOffset) {
   const storage = useMemo(() => new LocalStorageService<DragOffset>(key), [key])
 
   const [initialOffset] = useState<DragOffset>(() => {
-    return clampOffset(readValidOffset(storage, defaultOffset), bounds)
+    return readValidOffset(storage, defaultOffset)
   })
 
   const persistOffset = useCallback(
     (newOffset: DragOffset) => {
-      storage.write(clampOffset(newOffset, bounds))
+      storage.write(newOffset)
     },
-    [storage, bounds]
+    [storage]
   )
 
   return { initialOffset, persistOffset }

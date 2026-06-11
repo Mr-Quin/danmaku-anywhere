@@ -334,11 +334,17 @@ export class PlayerCommandHandler {
       pipWindow.document.body
     )
 
+    // The panel's styles live in the player shadow root, which the PiP window
+    // does not inherit. Hide it for the PiP session so it does not render as an
+    // unstyled block, and restore it when PiP closes.
+    this.infoPanel.setPipActive(true)
+
     delayResize()
 
     pipWindow.addEventListener('pagehide', () => {
       restoreVideo()
       restoreWrapper()
+      this.infoPanel.setPipActive(false)
       delayResize()
     })
   }

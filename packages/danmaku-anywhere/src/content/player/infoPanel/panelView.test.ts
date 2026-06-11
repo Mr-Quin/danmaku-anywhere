@@ -33,4 +33,18 @@ describe('panelView', () => {
     expect(panelView('error').severity).toBe('danger')
     expect(panelView('disconnected').severity).toBe('danger')
   })
+
+  it('exposes a headline for every substate', () => {
+    const states: PanelSubstate[] = [
+      'loading',
+      'matched',
+      'mounted',
+      'noMatch',
+      'error',
+      'disconnected',
+    ]
+    for (const s of states) {
+      expect(panelView(s).headline()).toBeTruthy()
+    }
+  })
 })

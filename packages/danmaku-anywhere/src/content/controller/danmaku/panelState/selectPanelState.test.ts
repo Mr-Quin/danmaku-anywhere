@@ -98,7 +98,7 @@ describe('selectPanelState', () => {
     })
     const snapshot = selectPanelState({
       ...baseInputs,
-      provider: 'dandanplay',
+      provider: DanmakuSourceType.DanDanPlay,
       integration: {
         ...baseInputs.integration,
         mediaInfo: media,
@@ -111,7 +111,7 @@ describe('selectPanelState', () => {
       episodeTitle: 'Pilot',
       originalTitle: 'Original',
     })
-    expect(snapshot.provider).toBe('dandanplay')
+    expect(snapshot.provider).toBe(DanmakuSourceType.DanDanPlay)
   })
 
   it('derives media from the mounted episode in manual mode', () => {

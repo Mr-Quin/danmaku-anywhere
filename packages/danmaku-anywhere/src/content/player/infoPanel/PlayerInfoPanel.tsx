@@ -1,10 +1,11 @@
+import type { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { useDrag } from '@use-gesture/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import { i18n } from '@/common/localization/i18n'
 import type {
   PanelMediaInfo,
   PanelStateSnapshot,
-  PanelSubstate,
 } from '@/common/rpcClient/background/types'
 import {
   clampOffset,
@@ -17,20 +18,6 @@ import { usePanelStateStore } from './panelStateStore'
 import { panelView } from './panelView'
 
 const DEFAULT_OFFSET: DragOffset = { x: 16, y: 16 }
-
-// Literal keys per substate so the i18n extractor can find them statically.
-const HEADLINE: Record<PanelSubstate, () => string> = {
-  loading: () => i18n.t('infoPanel.state.loading', 'Searching'),
-  matched: () => i18n.t('infoPanel.state.matched', 'Matched'),
-  mounted: () => i18n.t('infoPanel.state.mounted', 'Mounted'),
-  noMatch: () => i18n.t('infoPanel.state.noMatch', 'No match'),
-  error: () => i18n.t('infoPanel.state.error', 'Error'),
-  disconnected: () => i18n.t('infoPanel.state.disconnected', 'Disconnected'),
-}
-
-function stateHeadline(state: PanelSubstate): string {
-  return HEADLINE[state]()
-}
 
 function episodeLabel(media: PanelMediaInfo): string | null {
   if (media.episode === undefined) {
@@ -61,19 +48,37 @@ function MediaBlock({ media }: { media: PanelMediaInfo }) {
   )
 }
 
-function CountRow({ count, provider }: { count: number; provider?: string }) {
+function CountRow({
+  count,
+  provider,
+}: {
+  count: number
+  provider?: DanmakuSourceType
+}) {
   return (
     <div className="da-ip-count">
       <span className="da-ip-count-num">{count.toLocaleString()}</span>
       <span className="da-ip-count-label">
         {i18n.t('infoPanel.comments', 'comments')}
       </span>
-      {provider ? <span className="da-ip-source">{provider}</span> : null}
+      {provider ? (
+        <span className="da-ip-source">
+          {localizedDanmakuSourceType(provider)}
+        </span>
+      ) : null}
     </div>
   )
 }
 
-function shouldRender(snapshot: PanelStateSnapshot | undefined): boolean {
+function shouldRender(
+  snapshot: PanelStateSnapshot | undefined,
+  pipActive: boolean
+): boolean {
+  if (pipActive) {
+    // The panel's styles live in the player shadow root, which a PiP window
+    // does not inherit, so it would render unstyled there.
+    return false
+  }
   if (!snapshot || !snapshot.enabled) {
     return false
   }
@@ -86,8 +91,9 @@ function shouldRender(snapshot: PanelStateSnapshot | undefined): boolean {
 }
 
 export function PlayerInfoPanel() {
-  const snapshot = usePanelStateStore((s) => s.snapshot)
-  const active = usePanelStateStore((s) => s.active)
+  const snapshot = usePanelStateStore.use.snapshot()
+  const active = usePanelStateStore.use.active()
+  const pipActive = usePanelStateStore.use.pipActive()
   const [hovered, setHovered] = useState(false)
   const [dragging, setDragging] = useState(false)
 
@@ -133,19 +139,28 @@ export function PlayerInfoPanel() {
     return start
   })
 
+  const rendered = shouldRender(snapshot, pipActive)
+
+  // The panel mounts before the first snapshot arrives, so this re-runs once
+  // the panel actually renders: it clamps the restored offset into the current
+  // bounds and keeps it in bounds as the video resizes.
   useEffect(() => {
+    if (!rendered) {
+      return
+    }
     const parent = panelRef.current?.offsetParent as HTMLElement | null
     if (!parent) {
       return
     }
+    applyOffset(clampOffset(offsetRef.current, currentBounds()))
     const observer = new ResizeObserver(() => {
       applyOffset(clampOffset(offsetRef.current, currentBounds()))
     })
     observer.observe(parent)
     return () => observer.disconnect()
-  }, [applyOffset, currentBounds])
+  }, [rendered, applyOffset, currentBounds])
 
-  if (!shouldRender(snapshot) || !snapshot) {
+  if (!rendered || !snapshot) {
     return null
   }
 
@@ -174,7 +189,7 @@ export function PlayerInfoPanel() {
         <span
           className={view.pulse ? 'da-ip-dot da-ip-dot--pulse' : 'da-ip-dot'}
         />
-        <span className="da-ip-headline">{stateHeadline(snapshot.state)}</span>
+        <span className="da-ip-headline">{view.headline()}</span>
         {expanded ? (
           <span
             {...bind()}

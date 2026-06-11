@@ -48,4 +48,8 @@ export class InfoPanelService {
   setSnapshot(snapshot: PanelStateSnapshot) {
     usePanelStateStore.getState().setSnapshot(snapshot)
   }
+
+  setPipActive(pipActive: boolean) {
+    usePanelStateStore.getState().setPipActive(pipActive)
+  }
 }
