@@ -181,8 +181,8 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
       `season provider id ${id} resolves to a config`
     ).toBe(true)
   }
-  // Every seeded season resolves to a live config (asserted above), so the v15
-  // backfill must stamp manifestId on all of them via the live-config branch.
+  // The fixture's seasons all point at live configs, so v15 must stamp a
+  // manifestId on every one, not just some.
   expect(
     postSeasonManifestIds.length,
     'fixture should have at least one season'

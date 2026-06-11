@@ -448,15 +448,23 @@ export class DanmakuAnywhereDb extends Dexie {
         bookmark: '++id, &seasonId, providerConfigId',
       })
       .upgrade(async (tx) => {
-        // Dexie.waitFor keeps the upgrade transaction alive while we await a
-        // non-IndexedDB promise; awaiting chrome.storage directly would let the
-        // transaction auto-commit before the modify below runs.
-        const stored = await Dexie.waitFor(
-          chrome.storage.sync.get('providerConfig')
-        )
-        const configs =
-          (stored.providerConfig as ProviderConfigOptions | undefined)?.data ??
-          []
+        // A storage read failure must not brick the DB upgrade: builtins still
+        // stamp structurally and non-builtin seasons stay unset, behaving as
+        // they do today.
+        let configs: ProviderConfigOptions['data'] = []
+        try {
+          // Dexie.waitFor keeps the upgrade transaction alive while we await a
+          // non-IndexedDB promise; awaiting chrome.storage directly would let
+          // the transaction auto-commit before the modify below runs.
+          const stored = await Dexie.waitFor(
+            chrome.storage.sync.get('providerConfig')
+          )
+          configs =
+            (stored.providerConfig as ProviderConfigOptions | undefined)
+              ?.data ?? []
+        } catch {
+          configs = []
+        }
         const manifestIdByConfigId = new Map(
           configs.map((config) => [config.id, config.manifestId])
         )

@@ -1,10 +1,13 @@
 import {
+  LEGACY_MACCMS_ID,
   PROVIDER_TO_BUILTIN_ID,
   stripBuiltinPrefix,
 } from '@danmaku-anywhere/danmaku-converter'
 
+// legacy:maccms is in PROVIDER_TO_BUILTIN_ID for migration mapping but is not a
+// real manifest, so it must not be treated as a structural manifestId.
 const BUILTIN_CONFIG_IDS = new Set<string>(
-  Object.values(PROVIDER_TO_BUILTIN_ID)
+  Object.values(PROVIDER_TO_BUILTIN_ID).filter((id) => id !== LEGACY_MACCMS_ID)
 )
 
 /**

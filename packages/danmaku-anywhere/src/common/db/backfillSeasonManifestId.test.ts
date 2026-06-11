@@ -31,6 +31,10 @@ describe('resolveSeasonManifestId', () => {
     expect(resolveSeasonManifestId('catalog-uuid', new Map())).toBeUndefined()
   })
 
+  it('does not treat legacy:maccms as a structural builtin manifestId', () => {
+    expect(resolveSeasonManifestId('legacy:maccms', new Map())).toBeUndefined()
+  })
+
   it('takes the catalog manifestId from a live catalog config', () => {
     const configs = new Map([['catalog-uuid', 'some-catalog-manifest']])
 

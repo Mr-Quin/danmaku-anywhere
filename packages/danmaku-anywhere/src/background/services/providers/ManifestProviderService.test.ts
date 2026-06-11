@@ -85,6 +85,7 @@ describe('ManifestProviderService.search', () => {
       title: 'Frieren',
       provider: DanmakuSourceType.Bilibili,
       providerConfigId: 'bilibili',
+      manifestId: 'bilibili',
       schemaVersion: SEASON_SCHEMA_VERSION,
     })
     expect(runner.runSearch).toHaveBeenCalledWith({ q: 'frieren' }, RUN_OPTS)
@@ -160,6 +161,7 @@ describe('ManifestProviderService.getSeason', () => {
       title: '新标题',
       provider: DanmakuSourceType.Bilibili,
       providerConfigId: 'bilibili',
+      manifestId: 'bilibili',
       schemaVersion: SEASON_SCHEMA_VERSION,
     })
     expect(runner.runSeason).toHaveBeenCalledWith({ seasonId: 41410 }, RUN_OPTS)
@@ -289,12 +291,18 @@ describe('ManifestProviderService.parseUrl', () => {
       silentLogger
     )
 
-    await svc.parseUrl('https://local.example/v/1')
+    const result = await svc.parseUrl('https://local.example/v/1')
 
     expect(runner.runParseUrl).toHaveBeenCalledWith(
       'https://local.example/v/1',
       undefined,
       RUN_OPTS
     )
+    // manifestId is the durable config identity, distinct from the instance
+    // providerConfigId.
+    expect(result?.seasonInsert).toMatchObject({
+      providerConfigId: 'custom-ddp-1',
+      manifestId: 'dandanplay',
+    })
   })
 })
