@@ -59,7 +59,7 @@ export const FabContextMenu = (props: FabContextMenuProps) => {
       hotkey: getKeyCombo('refreshComments'),
     },
     {
-      action: () => unmountMutation.mutate(),
+      action: () => unmountMutation.mutate({}),
       disabled: () => !isMounted,
       icon: () => <Eject fontSize="small" />,
       label: () => t('danmaku.unmount', 'Unmount'),

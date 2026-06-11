@@ -31,7 +31,7 @@ export const useMigrateDanmaku = () => {
       prevActiveFrameId.current &&
       allFrames.get(prevActiveFrameId.current)?.mounted
     ) {
-      unmountDanmaku.mutate(prevActiveFrameId.current)
+      unmountDanmaku.mutate({ frameId: prevActiveFrameId.current })
     }
 
     if (episodes && episodes.length > 0) {

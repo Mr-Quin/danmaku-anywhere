@@ -77,7 +77,13 @@ export function UrlParseSection({
     queryKey,
     retry: false,
     queryFn: async () => {
-      getTrackingService().track('parseUrl', { url: trimmedUrl })
+      let hostname = ''
+      try {
+        hostname = new URL(trimmedUrl).hostname
+      } catch {
+        hostname = ''
+      }
+      getTrackingService().track('parseUrl', { hostname })
       return chromeRpcClient.mediaParseUrl({ url: trimmedUrl })
     },
     select: (res) => res.data,

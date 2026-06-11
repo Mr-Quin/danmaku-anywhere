@@ -17,12 +17,18 @@
     "GEMINI_MODEL": "gemini-flash-lite-latest",
     "BETTER_AUTH_URL": "https://api.danmaku-staging.weeblify.app",
     "GOOGLE_CLIENT_ID": "",
-    "EMAIL_FROM": "Danmaku Anywhere <hello@danmaku.weeblify.app>"
+    "EMAIL_FROM": "Danmaku Anywhere <hello@danmaku.weeblify.app>",
+    "AXIOM_INTAKE_URL": "https://us-east-1.aws.edge.axiom.co/v1/ingest/da-events"
   },
   "version_metadata": {
     "binding": "CF_VERSION_METADATA"
   },
   "secrets_store_secrets": [
+    {
+      "binding": "AXIOM_TOKEN",
+      "store_id": "4a9ca50edba84431879f34b0b67f9998",
+      "secret_name": "AXIOM_DA_STG_INTAKE"
+    },
     {
       "binding": "DANMAKU_GEMINI_API_KEY",
       "store_id": "4a9ca50edba84431879f34b0b67f9998",
@@ -74,7 +80,13 @@
       "migrations_dir": "./drizzle"
     }
   ],
-  "ratelimits": [],
+  "ratelimits": [
+    {
+      "name": "INTAKE_RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": { "limit": 200, "period": 60 }
+    }
+  ],
   "services": [
     {
       "binding": "DDP_SERVICE",
@@ -90,12 +102,18 @@
         "GEMINI_MODEL": "gemini-flash-lite-latest",
         "BETTER_AUTH_URL": "https://api.danmaku-staging.weeblify.app",
         "GOOGLE_CLIENT_ID": "",
-        "EMAIL_FROM": "Danmaku Anywhere <hello@danmaku.weeblify.app>"
+        "EMAIL_FROM": "Danmaku Anywhere <hello@danmaku.weeblify.app>",
+        "AXIOM_INTAKE_URL": "https://us-east-1.aws.edge.axiom.co/v1/ingest/da-events"
       },
       "version_metadata": {
         "binding": "CF_VERSION_METADATA"
       },
       "secrets_store_secrets": [
+        {
+          "binding": "AXIOM_TOKEN",
+          "store_id": "4a9ca50edba84431879f34b0b67f9998",
+          "secret_name": "AXIOM_DA_STG_INTAKE"
+        },
         {
           "binding": "DANMAKU_GEMINI_API_KEY",
           "store_id": "4a9ca50edba84431879f34b0b67f9998",
@@ -154,7 +172,13 @@
           "service": "ddp-microservice-staging"
         }
       ],
-      "ratelimits": []
+      "ratelimits": [
+        {
+          "name": "INTAKE_RATE_LIMITER",
+          "namespace_id": "1001",
+          "simple": { "limit": 200, "period": 60 }
+        }
+      ]
     },
     "production": {
       "vars": {
@@ -164,12 +188,18 @@
         "GEMINI_MODEL": "gemini-flash-lite-latest",
         "BETTER_AUTH_URL": "https://api.danmaku.weeblify.app",
         "GOOGLE_CLIENT_ID": "",
-        "EMAIL_FROM": "Danmaku Anywhere <hello@danmaku.weeblify.app>"
+        "EMAIL_FROM": "Danmaku Anywhere <hello@danmaku.weeblify.app>",
+        "AXIOM_INTAKE_URL": "https://us-east-1.aws.edge.axiom.co/v1/ingest/da-events"
       },
       "version_metadata": {
         "binding": "CF_VERSION_METADATA"
       },
       "secrets_store_secrets": [
+        {
+          "binding": "AXIOM_TOKEN",
+          "store_id": "4a9ca50edba84431879f34b0b67f9998",
+          "secret_name": "AXIOM_DA_INTAKE"
+        },
         {
           "binding": "DANMAKU_GEMINI_API_KEY",
           "store_id": "4a9ca50edba84431879f34b0b67f9998",
@@ -227,7 +257,13 @@
           "service": "ddp-microservice-production"
         }
       ],
-      "ratelimits": []
+      "ratelimits": [
+        {
+          "name": "INTAKE_RATE_LIMITER",
+          "namespace_id": "1001",
+          "simple": { "limit": 200, "period": 60 }
+        }
+      ]
     }
   }
 }

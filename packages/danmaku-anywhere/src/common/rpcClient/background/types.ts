@@ -66,6 +66,7 @@ import type {
   MountConfigAiConfig,
 } from '@/common/options/mountConfig/schema'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
+import type { TelemetryRelayEvent } from '@/common/telemetry/events'
 import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.types'
 import type { RPCDef } from '../../rpc/types'
 
@@ -263,6 +264,7 @@ export type BackgroundMethods = {
   getExtensionManifest: RPCDef<void, chrome.runtime.ManifestV3>
   getAlarm: RPCDef<string, chrome.alarms.Alarm | null>
   remoteLog: RPCDef<LogEntry, void>
+  telemetryEvent: RPCDef<TelemetryRelayEvent, void>
   exportDebugData: RPCDef<void, { id: string }>
   getFontList: RPCDef<void, chrome.fontSettings.FontName[]>
   getPlatformInfo: RPCDef<void, chrome.runtime.PlatformInfo>

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import type { MatchEpisodeInput } from '@/common/anime/dto'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 
 export const useMatchEpisode = () => {
@@ -27,6 +28,9 @@ export const useMatchEpisode = () => {
       )
     },
     onSuccess: (result, v) => {
+      getTrackingService().track('episodeMatch', {
+        result: result.data.status,
+      })
       switch (result.data.status) {
         case 'success': {
           break

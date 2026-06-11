@@ -12,6 +12,7 @@ import type {
   PlayerRelayEvents,
   VideoInfo,
 } from '@/common/rpcClient/background/types'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { reparentPopover } from '@/content/common/reparentPopover'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
@@ -122,7 +123,7 @@ export const FrameManager = () => {
     const activeFrame = useStore.getState().frame.activeFrame
     if (activeFrame?.frameId === frameId) {
       if (activeFrame.mounted) {
-        unmountDanmaku.mutate(frameId)
+        unmountDanmaku.mutate({ frameId })
       }
     }
     updateFrame(frameId, {
@@ -134,6 +135,7 @@ export const FrameManager = () => {
   })
 
   const handleOcclusionStatus = useEventCallback((status: OcclusionStatus) => {
+    getTrackingService().track('occlusionStatus', { reason: status.reason })
     const message = occlusionStatusText(status.reason)
     if (status.reason === 'downloading') {
       toast.info(message)

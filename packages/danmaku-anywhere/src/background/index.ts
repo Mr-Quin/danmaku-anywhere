@@ -8,6 +8,7 @@ import { MountConfigTabReloader } from '@/background/scripting/MountConfigTabRel
 import { ScriptingManager } from '@/background/scripting/ScriptingManager'
 import { ProviderService } from '@/background/services/providers/ProviderService'
 import { OptionsManager } from '@/background/syncOptions/OptionsManager'
+import { TelemetryManager } from '@/background/telemetry/TelemetryManager'
 import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
 import { generateId } from '@/background/utils/generateId'
 import {
@@ -33,6 +34,7 @@ container.get(RpcManager).setup()
 container.get(NetRequestManager).setup()
 container.get(AlarmManager).setup()
 container.get(PortsManager).setup()
+void container.get(TelemetryManager).setup()
 
 container.get(ProviderService).setup()
 
