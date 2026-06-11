@@ -1,7 +1,4 @@
-import {
-  DanmakuSourceType,
-  type Season,
-} from '@danmaku-anywhere/danmaku-converter'
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
 import { Box, Button, Divider, Stack, Typography } from '@mui/material'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -50,7 +47,7 @@ export const SelectorPage = () => {
       onSuccess: (result) => {
         if (
           result.data.status !== 'success' ||
-          result.data.data.provider === DanmakuSourceType.MacCMS // shouldn't happen here
+          !isNotCustom(result.data.data) // shouldn't happen here
         ) {
           return
         }

@@ -16,6 +16,7 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useImage } from '@/common/components/image/useImage'
+import { seasonSourceKey } from '@/common/danmaku/seasonLabel'
 import { isNotCustom } from '@/common/danmaku/utils'
 
 const isEpisodeLite = (
@@ -109,7 +110,10 @@ export function BaseEpisodeListItem<
   const testIdSuffix = isNotCustom(episode)
     ? episode.indexedId
     : (episode as CustomEpisodeLite).id
-  const testId = `episode-list-item-${episode.provider}-${testIdSuffix}`
+  const sourceKey = isNotCustom(episode)
+    ? seasonSourceKey(episode.season)
+    : 'custom'
+  const testId = `episode-list-item-${sourceKey}-${testIdSuffix}`
 
   const thumbSrc = !isCustom
     ? (episode as WithSeason<EpisodeMeta>).imageUrl

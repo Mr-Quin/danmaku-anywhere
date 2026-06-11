@@ -10,6 +10,7 @@ import type {
   CustomEpisodeQueryFilter,
   EpisodeQueryFilter,
 } from '@/common/danmaku/dto'
+import { seasonSourceKey } from '@/common/danmaku/seasonLabel'
 import {
   customEpisodeQueryKeys,
   episodeQueryKeys,
@@ -73,7 +74,7 @@ export const useExportWithFormat = (formatter: ExportFormatter) => {
       // Add regular episodes
       episodes.forEach((ep) => {
         const formatted = formatter.formatEpisode(ep)
-        const fileName = `${sanitizeFilename(`${ep.season.provider} (${ep.season.providerConfigId})`)}/${sanitizeFilename(ep.season.title)}/${sanitizeFilename(formatted.name)}`
+        const fileName = `${sanitizeFilename(`${seasonSourceKey(ep.season)} (${ep.season.providerConfigId})`)}/${sanitizeFilename(ep.season.title)}/${sanitizeFilename(formatted.name)}`
 
         files.push({
           name: fileName,
