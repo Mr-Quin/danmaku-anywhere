@@ -11,7 +11,9 @@ import { applyProfile } from '../../setup/profile'
  * and the built-in Bilibili provider, asserting the schema-driven fields show,
  * a save toast appears, and the edited values land in stored configValues.
  * Also asserts the schema's `required` constraint blocks saving an empty
- * auth header until it is filled. Field titles localize with the UI language,
+ * auth header until it is filled, and that configSchema constraints
+ * (format: uri, minimum) surface as field errors and block saving until
+ * the values are fixed. Field titles localize with the UI language,
  * so they are matched against both the English source and the zh override.
  * Finally, a provider whose manifest spec fails to load shows an error with a
  * retry action instead of a stripped name-only form that would drop its config.
@@ -113,6 +115,77 @@ test('edits the built-in Bilibili provider via the generic form', async ({
   const saved = await da.providerConfig.get('bilibili')
   expect(saved?.name).toBe('Bilibili Custom')
   expect(saved?.configValues.danmakuFormat).toBe('protobuf')
+})
+
+// Authored through the manifest editor because no bundled manifest carries
+// constraint keywords. Required fields are avoided: the editor rejects
+// required-without-default manifests at save.
+const constrainedManifest = {
+  apiVersion: 1,
+  id: 'user:constrained-source',
+  name: 'Constrained Source',
+  version: '1.0.0',
+  hosts: ['example.com'],
+  configSchema: {
+    type: 'object',
+    properties: {
+      baseUrl: { type: 'string', format: 'uri', title: 'Base URL' },
+      limit: {
+        type: 'integer',
+        title: 'Limit',
+        minimum: 1,
+        maximum: 100,
+        default: 10,
+      },
+    },
+  },
+}
+
+test('enforces configSchema constraints before saving config values', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, {})
+
+  const popup = await Popup.open(page, extensionId, '/providers')
+  await popup.providers.authorManifest()
+  await popup.providers.setManifestJson(JSON.stringify(constrainedManifest))
+  await expect(popup.providers.manifestValid()).toBeVisible()
+  await popup.providers.save()
+  await popup.toast.expectSuccess(/Manifest saved|配置已保存/)
+
+  await popup.providers.edit('Constrained Source')
+  await popup.providers.fillField('Base URL', 'not a url')
+  await popup.providers.fillField('Limit', '0')
+  await popup.providers.save()
+
+  await expect(page.getByText(/Not a valid URL|不是有效的 URL/)).toBeVisible()
+  await expect(page.getByText(/Must be at least 1|不能小于 1/)).toBeVisible()
+
+  const blocked = (await da.providerConfig.list()).find(
+    (config) => config.manifestId === 'user:constrained-source'
+  )
+  expect(blocked?.configValues.baseUrl).toBe('')
+  expect(blocked?.configValues.limit).toBe(10)
+
+  await popup.providers.fillField(
+    'Base URL',
+    'https://constrained.example.invalid'
+  )
+  await popup.providers.fillField('Limit', '50')
+  await popup.providers.save()
+
+  await popup.toast.expectSuccess(/Provider updated|弹幕源已更新/)
+
+  const saved = (await da.providerConfig.list()).find(
+    (config) => config.manifestId === 'user:constrained-source'
+  )
+  expect(saved?.configValues).toMatchObject({
+    baseUrl: 'https://constrained.example.invalid',
+    limit: 50,
+  })
 })
 
 const orphanedProvider: ProviderConfig = {

@@ -666,6 +666,16 @@
         "addDanDanPlay": "添加弹弹play弹幕源",
         "addMacCms": "添加MacCMS弹幕源",
         "edit": "编辑弹幕源: {{name}}"
+      },
+      "validation": {
+        "integer": "必须是整数",
+        "maximum": "不能大于 {{max}}",
+        "maxLength": "不能超过 {{max}} 个字符",
+        "minimum": "不能小于 {{min}}",
+        "minLength": "不能少于 {{min}} 个字符",
+        "pattern": "必须匹配模式 {{pattern}}",
+        "required": "此项为必填项",
+        "url": "不是有效的 URL"
       }
     },
     "filter": {
