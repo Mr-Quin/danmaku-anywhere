@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import { bookmarkQueryKeys, storageQueryKeys } from '@/common/queries/queryKeys'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import type { ProviderConfig, ProviderConfigOptions } from './schema'
 import { ProviderConfigService } from './service'
 
@@ -47,7 +48,12 @@ export const useEditProviderConfig = () => {
   const providerConfigService = useInjectService(ProviderConfigService)
 
   const createMutation = useMutation({
-    mutationFn: providerConfigService.create.bind(providerConfigService),
+    mutationFn: (input: unknown) => providerConfigService.create(input),
+    onSuccess: (config) => {
+      getTrackingService().track('providerConfigCreate', {
+        manifestId: config.manifestId,
+      })
+    },
     meta,
   })
 
@@ -59,11 +65,27 @@ export const useEditProviderConfig = () => {
       id: string
       config: Partial<ProviderConfig>
     }) => providerConfigService.update(id, config),
+    onSuccess: (config) => {
+      getTrackingService().track('providerConfigUpdate', {
+        manifestId: config.manifestId,
+      })
+    },
     meta,
   })
 
   const deleteMutation = useMutation({
     mutationFn: providerConfigService.delete.bind(providerConfigService),
+    onMutate: async (id: string) => {
+      const config = await providerConfigService.get(id)
+      return { manifestId: config?.manifestId }
+    },
+    onSuccess: (_, __, context) => {
+      if (context?.manifestId) {
+        getTrackingService().track('providerConfigDelete', {
+          manifestId: context.manifestId,
+        })
+      }
+    },
     // Deleting a config also deletes its bookmarks in the background, so the
     // bookmark cache must refetch or the tree keeps showing dead stubs.
     meta: { invalidates: [queryKey, bookmarkQueryKeys.all()] },
@@ -72,6 +94,11 @@ export const useEditProviderConfig = () => {
   const toggleMutation = useMutation({
     mutationFn: ({ id, enabled }: { id: string; enabled?: boolean }) =>
       providerConfigService.toggle(id, enabled),
+    onSuccess: (config) => {
+      getTrackingService().track('providerConfigToggle', {
+        manifestId: config.manifestId,
+      })
+    },
     meta,
   })
 

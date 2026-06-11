@@ -26,7 +26,7 @@ export const InfoBar = () => {
   const { refreshComments, canRefresh, loadMutation } = useLoadDanmaku()
 
   const handleUnmount = () => {
-    unmountMutation.mutate()
+    unmountMutation.mutate({})
   }
 
   const { titles, title } = useMemo(() => {

@@ -44,6 +44,7 @@ import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { DebugFileService } from '../services/DebugFile/DebugFile.service'
 import { EpisodeMatchingService } from '../services/matching/EpisodeMatchingService'
 import { ProviderService } from '../services/providers/ProviderService'
+import { TelemetryManager } from '../telemetry/TelemetryManager'
 
 @injectable('Singleton')
 export class RpcManager {
@@ -84,7 +85,9 @@ export class RpcManager {
     @inject(ManifestRegistry)
     private manifestRegistry: ManifestRegistry,
     @inject(ManifestSandbox)
-    private manifestSandbox: ManifestSandbox
+    private manifestSandbox: ManifestSandbox,
+    @inject(TelemetryManager)
+    private telemetryManager: TelemetryManager
   ) {
     this.logger = logger.sub('[RpcManager]')
   }
@@ -298,6 +301,14 @@ export class RpcManager {
         },
         remoteLog: async (data) => {
           void this.logService.log(data)
+        },
+        telemetryEvent: async (input) => {
+          this.telemetryManager.track(
+            input.event,
+            input.properties,
+            input.surface,
+            input.clientTs
+          )
         },
         exportDebugData: async () => {
           return this.debugFileService.upload()

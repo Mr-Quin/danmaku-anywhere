@@ -6,6 +6,7 @@ import { bangumiRouter } from './bangumi/router'
 import { configRouter } from './config/router'
 import { ddpRouter } from './ddp/router'
 import { filesRouter } from './files/router'
+import { intakeRouter } from './intake/router'
 import { kazumiRouter } from './kazumi/router'
 import { llmRouter } from './llm/router'
 import { manifestRouter } from './manifest/router'
@@ -22,3 +23,4 @@ api.route('/kazumi', kazumiRouter)
 api.route('/manifest', manifestRouter)
 api.route('/config', configRouter)
 api.route('/files', filesRouter)
+api.route('/v1/intake', intakeRouter)

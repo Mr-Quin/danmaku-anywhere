@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { settingConfigs } from '@/common/settings/settingConfigs'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 import { DeclarativeToggleSetting } from '@/popup/pages/options/components/DeclarativeToggleSetting'
@@ -12,6 +13,19 @@ import {
 export const PlayerOptions = () => {
   const { t } = useTranslation()
   const { data, partialUpdate, isLoading } = useExtensionOptions()
+
+  const handleUpdate = (update: Parameters<typeof partialUpdate>[0]) => {
+    const nextShowSkipButton = update.playerOptions?.showSkipButton
+    if (
+      nextShowSkipButton !== undefined &&
+      nextShowSkipButton !== data.playerOptions.showSkipButton
+    ) {
+      getTrackingService().track('skipButtonToggle', {
+        enabled: nextShowSkipButton,
+      })
+    }
+    return partialUpdate(update)
+  }
 
   return (
     <OptionsPageLayout>
@@ -27,7 +41,7 @@ export const PlayerOptions = () => {
             key={config.id}
             config={config}
             state={data}
-            onUpdate={partialUpdate}
+            onUpdate={handleUpdate}
             isLoading={isLoading}
           />
         ))}
