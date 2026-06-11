@@ -95,6 +95,28 @@ describe('TelemetryManager', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1)
   })
 
+  it('does not drop an event relayed before setup resolves', async () => {
+    let resolveGet: (value: { enableAnalytics: boolean; id?: string }) => void =
+      () => {}
+    const optionsService = {
+      get: vi.fn(
+        () =>
+          new Promise<{ enableAnalytics: boolean; id?: string }>((resolve) => {
+            resolveGet = resolve
+          })
+      ),
+      onChange: vi.fn(),
+    } as unknown as ExtensionOptionsService
+    const manager = new TelemetryManager(optionsService, silentLogger)
+
+    void manager.setup()
+    manager.track('heartbeat', { browser: 'chrome' }, 'background', 1)
+    expect(fetchSpy).not.toHaveBeenCalled()
+
+    resolveGet({ enableAnalytics: true, id: 'install-1' })
+    await vi.waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(1))
+  })
+
   it('flushes background-origin events immediately', async () => {
     const manager = await makeManager({
       enableAnalytics: true,

@@ -26,6 +26,7 @@ export class TelemetryManager {
   private flushTimer: ReturnType<typeof setTimeout> | null = null
   private consent = true
   private installId?: string
+  private initPromise: Promise<void> | null = null
 
   constructor(
     @inject(ExtensionOptionsService)
@@ -39,7 +40,21 @@ export class TelemetryManager {
     if (this.disabled) {
       return
     }
+    await this.ensureReady()
+  }
 
+  private ensureReady(): Promise<void> {
+    if (!this.initPromise) {
+      this.initPromise = this.load().catch((e) => {
+        // Allow a later track() to retry the initial read.
+        this.initPromise = null
+        this.logger.debug('Init failed', e)
+      })
+    }
+    return this.initPromise
+  }
+
+  private async load() {
     const options = await this.extensionOptionsService.get()
     this.consent = options.enableAnalytics
     this.installId = options.id
@@ -56,7 +71,24 @@ export class TelemetryManager {
     surface: Surface,
     clientTs: number
   ) {
-    if (this.disabled || !this.consent || !this.installId) {
+    if (this.disabled) {
+      return
+    }
+
+    // Defer behind init so an event relayed before the first options read (e.g.
+    // a heartbeat on a worker woken by its alarm) is not dropped.
+    void this.ensureReady().then(() => {
+      this.enqueue(event, properties, surface, clientTs)
+    })
+  }
+
+  private enqueue(
+    event: TelemetryEventName,
+    properties: object,
+    surface: Surface,
+    clientTs: number
+  ) {
+    if (!this.consent || !this.installId) {
       return
     }
 
