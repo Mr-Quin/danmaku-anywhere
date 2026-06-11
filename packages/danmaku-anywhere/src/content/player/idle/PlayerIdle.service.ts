@@ -16,13 +16,19 @@ function isWithinVideoSubtree(event: Event, video: HTMLVideoElement): boolean {
   return target === video || video.contains(target) || target.contains(video)
 }
 
+/**
+ * Shared idle state for the player frame, derived from pointer activity within
+ * the active video's subtree. Consumers (density chart, info panel) subscribe
+ * once; the underlying tracker follows the active video as it changes without
+ * resetting the idle state, so swapping episodes does not flash the consumers
+ * back into view.
+ */
 @injectable('Singleton')
 export class PlayerIdleService {
   private logger: ILogger
   private tracker: IdleTracker | null = null
-  private trackerUnsubscribe: (() => void) | null = null
   private listeners = new Set<Listener>()
-  private lastActive = true
+  private currentVideo: HTMLVideoElement | null = null
 
   constructor(
     @inject(VideoNodeObserverService)
@@ -33,12 +39,26 @@ export class PlayerIdleService {
   }
 
   start() {
-    const current = this.videoNodeObs.activeVideo
-    if (current) {
-      this.swapTarget(current)
+    if (this.tracker) {
+      return
     }
+    this.currentVideo = this.videoNodeObs.activeVideo
+    this.tracker = createIdleTracker(document, {
+      shouldCount: (event) => {
+        return (
+          this.currentVideo !== null &&
+          isWithinVideoSubtree(event, this.currentVideo)
+        )
+      },
+    })
+    this.tracker.subscribe((active) => {
+      for (const listener of this.listeners) {
+        listener(active)
+      }
+    })
     this.videoNodeObs.addEventListener('videoNodeChange', (video) => {
-      this.swapTarget(video)
+      this.logger.debug('Following idle target to new video', video)
+      this.currentVideo = video
     })
   }
 
@@ -50,28 +70,6 @@ export class PlayerIdleService {
   }
 
   getActive(): boolean {
-    return this.tracker?.getActive() ?? this.lastActive
-  }
-
-  private swapTarget(video: HTMLVideoElement) {
-    this.logger.debug('Swapping idle tracker target', video)
-    this.trackerUnsubscribe?.()
-    this.tracker?.destroy()
-    this.tracker = createIdleTracker(document, {
-      shouldCount: (event) => isWithinVideoSubtree(event, video),
-    })
-    this.trackerUnsubscribe = this.tracker.subscribe((active) => {
-      this.lastActive = active
-      for (const listener of this.listeners) {
-        listener(active)
-      }
-    })
-    const next = this.tracker.getActive()
-    if (next !== this.lastActive) {
-      this.lastActive = next
-      for (const listener of this.listeners) {
-        listener(next)
-      }
-    }
+    return this.tracker?.getActive() ?? true
   }
 }

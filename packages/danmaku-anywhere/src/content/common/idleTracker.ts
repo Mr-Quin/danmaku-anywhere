@@ -54,7 +54,9 @@ export function createIdleTracker(
       passive: true,
     } as AddEventListenerOptions
   )
-  timeoutId = setTimeout(() => setActive(false), idleMs)
+  // Stay active until the first activity arrives. Arming the idle timer here
+  // would hide the consumer a few seconds after load even if the user never
+  // interacted, which removes the only entry point on touch devices.
 
   return {
     subscribe(listener) {

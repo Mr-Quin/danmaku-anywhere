@@ -13,10 +13,7 @@ import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
 import { isConfigIncomplete } from '@/common/options/mountConfig/isPermissive'
 import { createVirtualElement } from '@/common/utils/utils'
-import {
-  useAutoHideOnIdle,
-  useWindowIdleTracker,
-} from '@/content/common/hooks/useAutoHideOnIdle'
+import { useWindowIdle } from '@/content/common/hooks/useWindowIdle'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useStore } from '@/content/controller/store/store'
 import { DraggableContainer } from '@/content/controller/ui/components/DraggableContainer'
@@ -53,8 +50,7 @@ export const FloatingButton = forwardRef<
 >(({ onOpen, isOpen }: FloatingButtonProps, ref) => {
   const isLoading = useAnyLoading()
 
-  const idleTracker = useWindowIdleTracker()
-  const showFab = useAutoHideOnIdle(idleTracker)
+  const showFab = useWindowIdle()
 
   const [contextMenuAnchor, setContextMenuAnchor] =
     useState<PopoverVirtualElement | null>(null)

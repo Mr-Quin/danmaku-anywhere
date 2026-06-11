@@ -3,7 +3,7 @@ import { createIdleTracker } from './idleTracker'
 
 /**
  * Exercises the vanilla idle tracker shared by the density chart and info
- * panel. Verifies activity dispatches subscriber callbacks, the idle timer
+ * panel. Verifies it stays active until the first activity, the idle timer
  * flips state after the configured timeout, repeated activity resets the
  * timer, and destroy detaches listeners and clears subscribers.
  */
@@ -20,13 +20,19 @@ describe('createIdleTracker', () => {
     target.dispatchEvent(new MouseEvent('mousemove', { bubbles: true }))
   }
 
-  it('starts active and flips to idle after the timeout', () => {
+  it('stays active until the first activity, then flips to idle after the timeout', () => {
     const target = document.createElement('div')
     const tracker = createIdleTracker(target, { idleMs: 1000 })
     const listener = vi.fn()
     tracker.subscribe(listener)
 
     expect(tracker.getActive()).toBe(true)
+    // No idle timer is armed before any interaction.
+    vi.advanceTimersByTime(5000)
+    expect(tracker.getActive()).toBe(true)
+    expect(listener).not.toHaveBeenCalled()
+
+    activity(target)
     vi.advanceTimersByTime(1000)
     expect(tracker.getActive()).toBe(false)
     expect(listener).toHaveBeenCalledWith(false)
@@ -39,6 +45,7 @@ describe('createIdleTracker', () => {
     const tracker = createIdleTracker(target, { idleMs: 1000 })
     tracker.subscribe(() => {})
 
+    activity(target)
     vi.advanceTimersByTime(1000)
     expect(tracker.getActive()).toBe(false)
 
@@ -60,6 +67,7 @@ describe('createIdleTracker', () => {
     const unsubA = tracker.subscribe(a)
     tracker.subscribe(b)
 
+    activity(target)
     vi.advanceTimersByTime(1000)
     expect(a).toHaveBeenCalledWith(false)
     expect(b).toHaveBeenCalledWith(false)
@@ -78,6 +86,7 @@ describe('createIdleTracker', () => {
     const listener = vi.fn()
     tracker.subscribe(listener)
 
+    activity(target)
     vi.advanceTimersByTime(1000)
     listener.mockClear()
 
