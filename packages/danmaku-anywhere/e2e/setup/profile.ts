@@ -1,7 +1,4 @@
-import {
-  DanDanChConvert,
-  DanmakuSourceType,
-} from '@danmaku-anywhere/danmaku-converter'
+import { DanDanChConvert } from '@danmaku-anywhere/danmaku-converter'
 import type { BrowserContext, Route } from '@playwright/test'
 import type { ExtensionOptions } from '../../src/common/options/extensionOptions/schema'
 import type { ProviderConfig } from '../../src/common/options/providerConfig/schema'
@@ -73,9 +70,7 @@ function buildBuiltInProviderConfigs(
       id: 'dandanplay',
       manifestId: 'dandanplay',
       name: 'DanDanPlay',
-      impl: DanmakuSourceType.DanDanPlay,
       enabled: dandanplay.enabled ?? false,
-      isBuiltIn: true,
       configValues: {
         baseUrl: PROXY_DDP_BASE_URL,
         chConvert: DanDanChConvert.None,
@@ -86,9 +81,7 @@ function buildBuiltInProviderConfigs(
       id: 'bilibili',
       manifestId: 'bilibili',
       name: 'Bilibili',
-      impl: DanmakuSourceType.Bilibili,
       enabled: bilibili.enabled ?? false,
-      isBuiltIn: true,
       configValues: {
         danmakuFormat: 'xml',
         ...bilibili.options,
@@ -98,9 +91,7 @@ function buildBuiltInProviderConfigs(
       id: 'tencent',
       manifestId: 'tencent',
       name: 'Tencent',
-      impl: DanmakuSourceType.Tencent,
       enabled: tencent.enabled ?? false,
-      isBuiltIn: true,
       configValues: {},
     },
   ]

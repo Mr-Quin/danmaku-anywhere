@@ -10,8 +10,6 @@ import {
   getObjectFields,
 } from './components/forms/schemaForm'
 
-// impl is just a label on imported configs, but it can't be Custom: the
-// provider factory rejects Custom for anything that isn't maccms.
 export function createConfigFromManifest(
   manifest: ProviderManifestInfo
 ): ProviderConfig {
@@ -19,7 +17,6 @@ export function createConfigFromManifest(
     id: getRandomUUID(),
     manifestId: manifest.id,
     name: manifest.name,
-    impl: DanmakuSourceType.DanDanPlay,
     enabled: true,
     configValues: buildDefaultValues(manifest.configSchema, {}),
   }

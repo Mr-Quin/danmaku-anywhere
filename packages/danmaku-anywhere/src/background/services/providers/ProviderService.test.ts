@@ -2,6 +2,7 @@ import {
   DanmakuSourceType,
   type EpisodeMeta,
   LEGACY_MACCMS_ID,
+  providerTypeFromManifestId,
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -37,17 +38,12 @@ const silentExtensionOptions = {
   get: async () => ({ lang: 'zh' }),
 } as unknown as ExtensionOptionsService
 
-function makeConfig(
-  manifestId: string,
-  impl: DanmakuSourceType
-): ProviderConfig {
+function makeConfig(manifestId: string): ProviderConfig {
   return {
     id: `${manifestId}-1`,
     manifestId,
-    impl,
     name: manifestId,
     enabled: true,
-    isBuiltIn: false,
     configValues: {},
   }
 }
@@ -82,7 +78,7 @@ function build(
     id: 1,
     providerConfigId: config.id,
     providerIds: { animeId: 42 },
-    provider: config.impl,
+    provider: providerTypeFromManifestId(config.manifestId),
     title: 'Show',
   }
 
@@ -230,10 +226,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
       const provider = makeProvider({
         getEpisodes: vi.fn(async () => []),
       })
-      const { service } = build(
-        makeConfig('iqiyi', DanmakuSourceType.DanDanPlay),
-        provider
-      )
+      const { service } = build(makeConfig('iqiyi'), provider)
 
       await expect(service.fetchEpisodesBySeason(1)).resolves.toEqual([])
       expect(provider.getEpisodes).toHaveBeenCalledWith({ animeId: 42 })
@@ -241,10 +234,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
 
     it('throws for a legacy MacCMS config', async () => {
       const provider = makeProvider()
-      const { service } = build(
-        makeConfig(LEGACY_MACCMS_ID, DanmakuSourceType.MacCMS),
-        provider
-      )
+      const { service } = build(makeConfig(LEGACY_MACCMS_ID), provider)
 
       await expect(service.fetchEpisodesBySeason(1)).rejects.toThrow(
         'MacCMS does not support fetching episodes'
@@ -254,11 +244,9 @@ describe('ProviderService legacy-maccms decoupling', () => {
 
     it('throws a source-removed error when the season is orphaned', async () => {
       const provider = makeProvider()
-      const { service } = build(
-        makeConfig('iqiyi', DanmakuSourceType.DanDanPlay),
-        provider,
-        { configMissing: true }
-      )
+      const { service } = build(makeConfig('iqiyi'), provider, {
+        configMissing: true,
+      })
 
       await expect(service.fetchEpisodesBySeason(1)).rejects.toThrow(
         'This source has been removed'
@@ -276,11 +264,9 @@ describe('ProviderService legacy-maccms decoupling', () => {
       }
       const existing = { ...insert, id: 99 }
       const provider = makeProvider({ search: vi.fn(async () => [insert]) })
-      const { service, seasonService } = build(
-        makeConfig('iqiyi', DanmakuSourceType.DanDanPlay),
-        provider,
-        { findExisting: existing }
-      )
+      const { service, seasonService } = build(makeConfig('iqiyi'), provider, {
+        findExisting: existing,
+      })
 
       const result = await service.searchSeason({
         providerConfigId: 'iqiyi-1',
@@ -303,7 +289,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
         search: vi.fn(async () => [customSeason]),
       })
       const { service, seasonService } = build(
-        makeConfig(LEGACY_MACCMS_ID, DanmakuSourceType.MacCMS),
+        makeConfig(LEGACY_MACCMS_ID),
         provider,
         { findExisting: { ...customSeason, id: 7 } }
       )
@@ -329,10 +315,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
 
     it('fetches danmaku for a generic source', async () => {
       const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
-      const { service } = build(
-        makeConfig('iqiyi', DanmakuSourceType.DanDanPlay),
-        provider
-      )
+      const { service } = build(makeConfig('iqiyi'), provider)
 
       await service.getDanmaku({ type: 'by-meta', meta, options: {} })
 
@@ -342,11 +325,9 @@ describe('ProviderService legacy-maccms decoupling', () => {
     it('serves cached danmaku without fetching or resolving the config', async () => {
       const cached = { id: 5, comments: [] }
       const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
-      const { service } = build(
-        makeConfig('iqiyi', DanmakuSourceType.DanDanPlay),
-        provider,
-        { existingDanmaku: [cached] }
-      )
+      const { service } = build(makeConfig('iqiyi'), provider, {
+        existingDanmaku: [cached],
+      })
 
       const result = await service.getDanmaku({
         type: 'by-meta',
@@ -364,10 +345,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
         ...meta,
         season: { id: 1, providerConfigId: `${LEGACY_MACCMS_ID}-1` },
       } as unknown as WithSeason<EpisodeMeta>
-      const { service } = build(
-        makeConfig(LEGACY_MACCMS_ID, DanmakuSourceType.MacCMS),
-        provider
-      )
+      const { service } = build(makeConfig(LEGACY_MACCMS_ID), provider)
 
       await expect(
         service.getDanmaku({ type: 'by-meta', meta: maccmsMeta, options: {} })
@@ -377,11 +355,9 @@ describe('ProviderService legacy-maccms decoupling', () => {
 
     it('throws a source-removed error when forcing an orphaned season', async () => {
       const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
-      const { service } = build(
-        makeConfig('iqiyi', DanmakuSourceType.DanDanPlay),
-        provider,
-        { configMissing: true }
-      )
+      const { service } = build(makeConfig('iqiyi'), provider, {
+        configMissing: true,
+      })
 
       await expect(
         service.getDanmaku({
@@ -419,9 +395,7 @@ describe('ProviderService.refreshCatalog', () => {
 
     const providerConfigService = {
       getAll: vi.fn(async () =>
-        opts.installedManifestIds.map((manifestId) =>
-          makeConfig(manifestId, DanmakuSourceType.DanDanPlay)
-        )
+        opts.installedManifestIds.map((manifestId) => makeConfig(manifestId))
       ),
       hasSeeded: vi.fn(async () => true),
     } as unknown as ProviderConfigService

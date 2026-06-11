@@ -1,4 +1,3 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import type { ProviderConfig } from '../../../src/common/options/providerConfig/schema'
 import { mockLoginProbes } from '../../network/loginProbes'
 import { Popup } from '../../pom/Popup'
@@ -22,9 +21,7 @@ const customDdp: ProviderConfig = {
   id: 'custom-ddp-form',
   manifestId: 'dandanplay',
   name: 'My DDP Server',
-  impl: DanmakuSourceType.DanDanPlay,
   enabled: true,
-  isBuiltIn: false,
   configValues: {
     baseUrl: '',
     auth: { enabled: false, headers: [] },
@@ -122,9 +119,7 @@ const orphanedProvider: ProviderConfig = {
   id: 'orphaned-source',
   manifestId: 'manifest-that-failed-to-load',
   name: 'Orphaned Source',
-  impl: DanmakuSourceType.DanDanPlay,
   enabled: true,
-  isBuiltIn: false,
   configValues: {
     baseUrl: 'https://orphaned.example.invalid',
     auth: { enabled: false, headers: [] },

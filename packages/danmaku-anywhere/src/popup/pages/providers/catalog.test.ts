@@ -1,6 +1,5 @@
 import type { ConfigSchema } from '@mr-quin/dango'
 import { describe, expect, it } from 'vitest'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { PROXY_DDP_BASE_URL } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
@@ -17,8 +16,7 @@ import {
 
 /**
  * Catalog import builds a ProviderConfig from a registered manifest. Asserts
- * the config is tagged with the DanDanPlay impl (never Custom, per the
- * fail-fast resolution invariant), defaults its values from the manifest's
+ * the config references the manifest, defaults its values from the manifest's
  * configSchema, and that the form is only required when a required field has
  * no default to fall back on.
  */
@@ -31,12 +29,10 @@ const manifest: ProviderManifestInfo = {
 }
 
 describe('createConfigFromManifest', () => {
-  it('references the manifest and never tags impl as Custom', () => {
+  it('references the manifest', () => {
     const config = createConfigFromManifest(manifest)
     expect(config.manifestId).toBe('iqiyi')
     expect(config.name).toBe('iQIYI')
-    expect(config.impl).toBe(DanmakuSourceType.DanDanPlay)
-    expect(config.impl).not.toBe(DanmakuSourceType.Custom)
     expect(config.enabled).toBe(true)
     expect(config.id).toBeTruthy()
   })
@@ -103,7 +99,6 @@ function cfg(id: string, manifestId: string): ProviderConfig {
     id,
     manifestId,
     name: id,
-    impl: DanmakuSourceType.DanDanPlay,
     enabled: true,
     configValues: {},
   }
