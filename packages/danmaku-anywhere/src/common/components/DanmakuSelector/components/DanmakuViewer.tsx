@@ -10,7 +10,7 @@ import { CommentsTable } from '@/common/components/CommentsTable'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useCustomEpisodeSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
 import { useEpisodesSuspense } from '@/common/danmaku/queries/useEpisodes'
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isCustomEpisode } from '@/common/danmaku/utils'
 import { useRefreshDanmaku } from '@/popup/hooks/useRefreshDanmaku'
 import { FullPageSpinner } from '../../FullPageSpinner'
 
@@ -28,7 +28,7 @@ const CommentsLoader = ({
 
   let episode: GenericEpisode | undefined
 
-  const isCustom = !isNotCustom(episodeLite)
+  const isCustom = isCustomEpisode(episodeLite)
 
   if (isCustom) {
     const { data } = useCustomEpisodeSuspense({ id: episodeLite.id })

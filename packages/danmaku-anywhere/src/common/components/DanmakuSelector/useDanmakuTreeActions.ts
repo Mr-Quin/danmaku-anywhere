@@ -5,7 +5,7 @@ import { useDeleteSeason } from '@/common/anime/queries/useDeleteSeason'
 import type { DanmakuTreeApi } from '@/common/components/DanmakuSelector/tree/DanmakuTree'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isCustomEpisode } from '@/common/danmaku/utils'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'
 
@@ -51,10 +51,12 @@ export const useDanmakuTreeActions = ({
     const { allEpisodes } = getSelection()
     exportXmlMutation.mutate({
       filter: {
-        ids: allEpisodes.filter((ep) => isNotCustom(ep)).map((ep) => ep.id),
+        ids: allEpisodes
+          .filter((ep) => !isCustomEpisode(ep))
+          .map((ep) => ep.id),
       },
       customFilter: {
-        ids: allEpisodes.filter((ep) => !isNotCustom(ep)).map((ep) => ep.id),
+        ids: allEpisodes.filter((ep) => isCustomEpisode(ep)).map((ep) => ep.id),
       },
     })
   }
@@ -63,10 +65,12 @@ export const useDanmakuTreeActions = ({
     const { allEpisodes } = getSelection()
     exportBackupMutation.mutate({
       filter: {
-        ids: allEpisodes.filter((ep) => isNotCustom(ep)).map((ep) => ep.id),
+        ids: allEpisodes
+          .filter((ep) => !isCustomEpisode(ep))
+          .map((ep) => ep.id),
       },
       customFilter: {
-        ids: allEpisodes.filter((ep) => !isNotCustom(ep)).map((ep) => ep.id),
+        ids: allEpisodes.filter((ep) => isCustomEpisode(ep)).map((ep) => ep.id),
       },
     })
   }

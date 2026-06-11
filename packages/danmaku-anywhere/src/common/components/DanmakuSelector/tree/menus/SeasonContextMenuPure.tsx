@@ -11,7 +11,7 @@ import { useTranslation } from 'react-i18next'
 import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
 import { DrilldownContextMenu } from '@/common/components/Menu/DrilldownContextMenu'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isCustomSeason } from '@/common/danmaku/utils'
 
 export interface SeasonContextMenuPureProps {
   season: Season | CustomSeason
@@ -76,7 +76,7 @@ export const SeasonContextMenuPure = ({
     },
   ]
 
-  if (isNotCustom(season)) {
+  if (!isCustomSeason(season)) {
     const sourceRemovedTooltip = orphaned
       ? t('anime.sourceRemovedTooltip', 'This source has been deleted.')
       : undefined

@@ -1,4 +1,9 @@
-import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  CustomEpisodeLite,
+  CustomSeason,
+  GenericEpisodeLite,
+  Season,
+} from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 
 class UnsupportedProviderException extends Error {
@@ -41,12 +46,14 @@ export function isNotCustom<T extends { provider: DanmakuSourceType }>(
 }
 
 // Source-backed episodes carry a seasonId; custom episodes do not.
-export function isCustomEpisode(x: { seasonId?: number }): boolean {
+export function isCustomEpisode(x: GenericEpisodeLite): x is CustomEpisodeLite {
   return !('seasonId' in x)
 }
 
-export function isCustomSeason(season: { isCustom?: true }): boolean {
-  return season.isCustom === true
+export function isCustomSeason(
+  season: Season | CustomSeason
+): season is CustomSeason {
+  return !('providerConfigId' in season)
 }
 
 export const episodeToString = (episode: GenericEpisodeLite) => {
