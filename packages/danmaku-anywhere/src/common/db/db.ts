@@ -13,13 +13,19 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import { Dexie } from 'dexie'
 import { injectable } from 'inversify'
-import type { ProviderConfigOptions } from '@/common/options/providerConfig/schema'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
 import { resolveSeasonManifestId } from './backfillSeasonManifestId'
 
 export const DANMAKU_DB_NAME = 'danmaku-anywhere'
 
 type WithoutId<T> = Omit<T, 'id'>
+
+// Minimal provider config shape for the v15 backfill, kept local so this
+// historical migration does not couple to the evolving provider config schema.
+interface MigrationProviderConfig {
+  id?: string
+  manifestId?: string
+}
 
 @injectable('Singleton')
 export class DanmakuAnywhereDb extends Dexie {
@@ -451,7 +457,7 @@ export class DanmakuAnywhereDb extends Dexie {
         // A storage read failure must not brick the DB upgrade: builtins still
         // stamp structurally and non-builtin seasons stay unset, behaving as
         // they do today.
-        let configs: ProviderConfigOptions['data'] = []
+        let configs: MigrationProviderConfig[] = []
         try {
           // Dexie.waitFor keeps the upgrade transaction alive while we await a
           // non-IndexedDB promise; awaiting chrome.storage directly would let
@@ -460,7 +466,9 @@ export class DanmakuAnywhereDb extends Dexie {
             chrome.storage.sync.get('providerConfig')
           )
           const data = (
-            stored.providerConfig as ProviderConfigOptions | undefined
+            stored.providerConfig as
+              | { data?: MigrationProviderConfig[] }
+              | undefined
           )?.data
           configs = Array.isArray(data) ? data : []
         } catch {
