@@ -134,10 +134,13 @@ export const useLoadDanmaku = () => {
   )
 
   const loadMutation = useMutation({
-    mutationFn: async (data: DanmakuFetchDto) => {
-      return fetchMutation.mutateAsync(data, {
+    mutationFn: async ({
+      mode = 'manual',
+      ...data
+    }: DanmakuFetchDto & { mode?: DanmakuMountMode }) => {
+      return fetchMutation.mutateAsync(data as DanmakuFetchDto, {
         onSuccess: (cache) => {
-          mountDanmaku([cache])
+          mountDanmaku([cache], mode)
         },
         onError: (err) => {
           toast.error(err.message)
@@ -147,10 +150,13 @@ export const useLoadDanmaku = () => {
   })
 
   const loadGenericMutation = useMutation({
-    mutationFn: async (data: MacCMSFetchData) => {
-      return fetchGenericMutation.mutateAsync(data, {
+    mutationFn: async ({
+      mode = 'manual',
+      ...data
+    }: MacCMSFetchData & { mode?: DanmakuMountMode }) => {
+      return fetchGenericMutation.mutateAsync(data as MacCMSFetchData, {
         onSuccess: (cache) => {
-          mountDanmaku([cache])
+          mountDanmaku([cache], mode)
         },
         onError: (err) => {
           toast.error(err.message)

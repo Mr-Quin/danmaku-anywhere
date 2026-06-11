@@ -70,7 +70,10 @@ export class TelemetryManager {
       surface,
     })
 
-    if (this.buffer.length >= FLUSH_AT_EVENTS) {
+    // Background-origin events (e.g. the daily heartbeat) are rare and fire
+    // while the worker is awake; flush now so a size-1 buffer is not lost when
+    // MV3 suspends the worker before the timer elapses.
+    if (this.buffer.length >= FLUSH_AT_EVENTS || surface === 'background') {
       void this.flush()
     } else {
       this.scheduleFlush()
