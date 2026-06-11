@@ -380,14 +380,21 @@ export function ensureBuiltinProviders(
 }
 
 // Records from before v5 persisted `impl` and `isBuiltIn`. Neither is read at
-// runtime now that the provider tag comes from manifestId, so re-parse each
-// record to drop them. A record that fails the schema is left untouched rather
-// than aborting the whole migration.
+// runtime now that the provider tag comes from manifestId, so drop just those
+// two keys and keep the rest of the record intact. Dropping them explicitly
+// rather than re-parsing through the schema keeps this migration independent of
+// later schema changes. Non-object entries are passed through untouched.
 export function migrateDropDeadProviderFields(
   data: ProviderConfig[]
 ): ProviderConfig[] {
   return data.map((config) => {
-    const parsed = providerConfigSchema.safeParse(config)
-    return parsed.success ? parsed.data : config
+    if (config === null || typeof config !== 'object') {
+      return config
+    }
+    const { impl, isBuiltIn, ...rest } = config as ProviderConfig & {
+      impl?: unknown
+      isBuiltIn?: unknown
+    }
+    return rest
   })
 }

@@ -888,8 +888,7 @@ describe('migrateDropDeadProviderFields', () => {
     expect(migrateDropDeadProviderFields(clean)).toEqual(clean)
   })
 
-  it('leaves a corrupt record untouched while cleaning valid ones', () => {
-    const corrupt = { id: 'broken', impl: DanmakuSourceType.Bilibili }
+  it('passes non-object entries through untouched while cleaning valid ones', () => {
     const stored = [
       {
         id: 'tencent',
@@ -900,13 +899,14 @@ describe('migrateDropDeadProviderFields', () => {
         isBuiltIn: true,
         configValues: {},
       },
-      corrupt as never,
+      null as never,
     ]
 
     const out = migrateDropDeadProviderFields(stored)
 
     expect(out).toHaveLength(2)
     expect(out[0]).not.toHaveProperty('impl')
-    expect(out[1]).toBe(corrupt)
+    expect(out[0]).not.toHaveProperty('isBuiltIn')
+    expect(out[1]).toBeNull()
   })
 })
