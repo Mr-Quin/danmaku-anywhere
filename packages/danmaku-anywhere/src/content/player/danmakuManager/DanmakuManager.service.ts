@@ -65,6 +65,8 @@ export class DanmakuManagerService {
   private occlusionModel: OcclusionModel = 'people'
   private occlusionStatusListener?: (status: OcclusionStatus) => void
   private occlusionRunning = false
+  private runningModel?: OcclusionModel
+  private runningQuality?: OcclusionQuality
   private debug = false
 
   constructor(
@@ -347,10 +349,17 @@ export class DanmakuManagerService {
     })
     this.occlusionService.start(this.video)
 
-    // Only on a genuine off->on activation: configureOcclusion re-runs on any
-    // style change (updateConfig), which must not re-emit occlusionStart.
-    if (!this.occlusionRunning) {
+    // configureOcclusion re-runs on any style change (updateConfig). Emit only
+    // on a genuine off->on activation, or when the model/quality actually
+    // changed, not on every unrelated reconfigure.
+    if (
+      !this.occlusionRunning ||
+      this.runningModel !== this.occlusionModel ||
+      this.runningQuality !== this.occlusionQuality
+    ) {
       this.occlusionRunning = true
+      this.runningModel = this.occlusionModel
+      this.runningQuality = this.occlusionQuality
       getTrackingService().track('occlusionStart', {
         model: this.occlusionModel,
         quality: this.occlusionQuality,
