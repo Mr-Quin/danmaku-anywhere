@@ -22,6 +22,10 @@ export const zSeasonInsertV1 = zBaseSeasonV1.extend({
   provider: z.enum(DanmakuSourceType),
   providerIds: z.record(z.string(), z.unknown()),
   providerConfigId: z.string(),
+  // Durable identity of the source manifest. providerConfigId is only the
+  // instance handle used at fetch time and changes when a config is deleted
+  // and re-added; manifestId survives that, so orphaned seasons can reparent.
+  manifestId: z.string().optional(),
 })
 
 export type SeasonInsertV1 = z.infer<typeof zSeasonInsertV1>

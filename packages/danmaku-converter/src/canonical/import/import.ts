@@ -65,11 +65,13 @@ const zEpisodeInsertV4WithSeasonV1Preprocessed = z.preprocess((data) => {
   const d = data as any
   const provider = d?.season?.provider
   if (provider && provider in PROVIDER_TO_BUILTIN_ID) {
+    const builtinId = PROVIDER_TO_BUILTIN_ID[provider as DanmakuSourceType]
     return {
       ...d,
       season: {
         ...d.season,
-        providerConfigId: PROVIDER_TO_BUILTIN_ID[provider as DanmakuSourceType],
+        providerConfigId: builtinId,
+        manifestId: builtinId,
       },
     }
   }

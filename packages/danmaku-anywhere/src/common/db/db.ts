@@ -13,7 +13,9 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import { Dexie } from 'dexie'
 import { injectable } from 'inversify'
+import type { ProviderConfigOptions } from '@/common/options/providerConfig/schema'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
+import { resolveSeasonManifestId } from './backfillSeasonManifestId'
 
 export const DANMAKU_DB_NAME = 'danmaku-anywhere'
 
@@ -428,6 +430,48 @@ export class DanmakuAnywhereDb extends Dexie {
               remapped[stripBuiltinPrefix(configId)] = seasonId as number
             }
             entry.seasons = remapped
+          })
+      })
+
+    /**
+     * Add a plain manifestId index to seasons and backfill it. Runs after v14's
+     * prefix strip, so season.providerConfigId is already bare here.
+     */
+    this.version(15)
+      .stores({
+        episode:
+          '++id, provider, indexedId, &[seasonId+indexedId], seasonId, timeUpdated, lastChecked',
+        season:
+          '++id, provider, providerConfigId, manifestId, indexedId, &[providerConfigId+indexedId]',
+        customEpisode: '++id, title',
+        seasonMap: 'key, *seasonIds',
+        bookmark: '++id, &seasonId, providerConfigId',
+      })
+      .upgrade(async (tx) => {
+        // Dexie.waitFor keeps the upgrade transaction alive while we await a
+        // non-IndexedDB promise; awaiting chrome.storage directly would let the
+        // transaction auto-commit before the modify below runs.
+        const stored = await Dexie.waitFor(
+          chrome.storage.sync.get('providerConfig')
+        )
+        const configs =
+          (stored.providerConfig as ProviderConfigOptions | undefined)?.data ??
+          []
+        const manifestIdByConfigId = new Map(
+          configs.map((config) => [config.id, config.manifestId])
+        )
+
+        await tx
+          .table('season')
+          .toCollection()
+          .modify((season) => {
+            const manifestId = resolveSeasonManifestId(
+              season.providerConfigId,
+              manifestIdByConfigId
+            )
+            if (manifestId !== undefined) {
+              season.manifestId = manifestId
+            }
           })
       })
 

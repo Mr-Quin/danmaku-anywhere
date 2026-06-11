@@ -120,6 +120,7 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   const postSync = await readSyncSnapshot(probe)
   const postIdb = await readIdbCounts(probe)
   const postSeasonConfigIds = await readSeasonConfigIds(probe)
+  const postSeasonManifestIds = await readSeasonManifestIds(probe)
   const postCustomDdpBaseUrl = await readCustomDdpBaseUrl(probe)
   const postManifest = await probe.evaluate(
     () => chrome.runtime.getManifest().version
@@ -179,6 +180,15 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
       configIds.has(id),
       `season provider id ${id} resolves to a config`
     ).toBe(true)
+  }
+  // Every seeded season resolves to a live config (asserted above), so the v15
+  // backfill must stamp manifestId on all of them via the live-config branch.
+  expect(
+    postSeasonManifestIds.length,
+    'fixture should have at least one season'
+  ).toBeGreaterThan(0)
+  for (const { id, manifestId } of postSeasonManifestIds) {
+    expect(manifestId, `season ${id} backfilled a manifestId`).toBeTruthy()
   }
 
   return context
@@ -295,6 +305,42 @@ async function readSeasonConfigIds(page: Page): Promise<string[]> {
           }
         }
       }),
+    DANMAKU_DB_NAME
+  )
+}
+
+async function readSeasonManifestIds(
+  page: Page
+): Promise<Array<{ id: number; manifestId?: string }>> {
+  return page.evaluate(
+    (dbName) =>
+      new Promise<Array<{ id: number; manifestId?: string }>>(
+        (resolve, reject) => {
+          const req = indexedDB.open(dbName)
+          req.onerror = () => reject(req.error)
+          req.onsuccess = () => {
+            const db = req.result
+            try {
+              const tx = db.transaction(['season'], 'readonly')
+              const getAll = tx.objectStore('season').getAll()
+              tx.oncomplete = () => {
+                db.close()
+                const seasons = getAll.result as Array<{
+                  id: number
+                  manifestId?: string
+                }>
+                resolve(
+                  seasons.map((s) => ({ id: s.id, manifestId: s.manifestId }))
+                )
+              }
+              tx.onerror = () => reject(tx.error)
+            } catch (e) {
+              db.close()
+              reject(e)
+            }
+          }
+        }
+      ),
     DANMAKU_DB_NAME
   )
 }

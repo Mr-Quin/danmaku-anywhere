@@ -108,6 +108,7 @@ export class ManifestProviderService implements IDanmakuProvider {
       title: stripHtml(row.title),
       provider: this.forProvider,
       providerConfigId: this.config.providerConfigId,
+      manifestId: this.config.manifestId,
       schemaVersion: SEASON_SCHEMA_VERSION,
     }))
   }
@@ -137,6 +138,7 @@ export class ManifestProviderService implements IDanmakuProvider {
       title: stripHtml(row.title),
       provider: this.forProvider,
       providerConfigId: this.config.providerConfigId,
+      manifestId: this.config.manifestId,
       schemaVersion: SEASON_SCHEMA_VERSION,
     }
   }
@@ -223,6 +225,7 @@ export class ManifestProviderService implements IDanmakuProvider {
         title: stripHtml(result.seasonInsert.title),
         provider: this.forProvider,
         providerConfigId: this.config.providerConfigId,
+        manifestId: this.config.manifestId,
         schemaVersion: SEASON_SCHEMA_VERSION,
       },
       episodeMeta: {
