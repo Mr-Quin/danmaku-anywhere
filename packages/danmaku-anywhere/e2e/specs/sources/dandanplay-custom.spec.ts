@@ -1,4 +1,3 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import type { ProviderConfig } from '../../../src/common/options/providerConfig/schema'
 import { mockDandanplayCustom } from '../../network/dandanplay'
 import { Popup } from '../../pom/Popup'
@@ -19,9 +18,7 @@ const customConfig: ProviderConfig = {
   id: 'custom-ddp-1',
   manifestId: 'dandanplay',
   name: 'CustomDdp',
-  impl: DanmakuSourceType.DanDanPlay,
   enabled: true,
-  isBuiltIn: false,
   configValues: {
     baseUrl: CUSTOM_BASE_URL,
     auth: { enabled: false, headers: [] },

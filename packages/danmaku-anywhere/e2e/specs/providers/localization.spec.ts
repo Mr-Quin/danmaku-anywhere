@@ -1,4 +1,3 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { Language } from '../../../src/common/localization/language'
 import type { ProviderConfig } from '../../../src/common/options/providerConfig/schema'
 import { mockCatalog } from '../../network/catalog'
@@ -18,9 +17,7 @@ const localDdp: ProviderConfig = {
   id: 'localized-ddp',
   manifestId: 'dandanplay',
   name: 'My DDP',
-  impl: DanmakuSourceType.DanDanPlay,
   enabled: true,
-  isBuiltIn: false,
   configValues: {
     baseUrl: '',
     auth: { enabled: false, headers: [] },

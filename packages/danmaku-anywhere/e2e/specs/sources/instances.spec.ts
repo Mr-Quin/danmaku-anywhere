@@ -1,4 +1,3 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import type { ProviderConfig } from '../../../src/common/options/providerConfig/schema'
 import { Popup } from '../../pom/Popup'
 import { expect, test } from '../../setup/fixtures'
@@ -14,7 +13,6 @@ const homeServer: ProviderConfig = {
   id: 'home-ddp',
   manifestId: 'dandanplay',
   name: 'Home NAS',
-  impl: DanmakuSourceType.DanDanPlay,
   enabled: true,
   configValues: {
     baseUrl: 'https://ddp.home.invalid',

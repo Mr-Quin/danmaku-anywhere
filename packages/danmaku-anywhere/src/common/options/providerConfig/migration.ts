@@ -145,8 +145,6 @@ export function migrateDanmakuSourcesToProviders(
           id: LEGACY_MACCMS_ID,
           manifestId: LEGACY_MACCMS_ID,
           name: 'MacCMS',
-          impl: DanmakuSourceType.MacCMS,
-          isBuiltIn: false,
           enabled: oldSources.custom.enabled ?? true,
           configValues: pruneUndefined({
             danmakuBaseUrl: baseUrl,
@@ -216,8 +214,6 @@ export function migrateProviderConfigsToFlat(
     const base = {
       id: old.id as string,
       name: old.name as string,
-      impl: old.impl as DanmakuSourceType,
-      isBuiltIn: !!old.isBuiltIn,
       // Default to visible when the field is missing.
       enabled: old.enabled ?? true,
     }
@@ -349,7 +345,6 @@ export function migrateDanDanPlayApiBaseUrl(
     if (
       config === null ||
       typeof config !== 'object' ||
-      config.isBuiltIn ||
       config.manifestId !== ddpManifestId
     ) {
       return config
@@ -382,4 +377,28 @@ export function ensureBuiltinProviders(
     }
   }
   return additions.length > 0 ? [...data, ...additions] : data
+}
+
+// Records from before v5 persisted `impl` and `isBuiltIn`. Neither is read at
+// runtime now that the provider tag comes from manifestId, so drop just those
+// two keys and keep the rest of the record intact. Dropping them explicitly
+// rather than re-parsing through the schema keeps this migration independent of
+// later schema changes. A non-array store and non-object entries are passed
+// through untouched.
+export function migrateDropDeadProviderFields(
+  data: ProviderConfig[]
+): ProviderConfig[] {
+  if (!Array.isArray(data)) {
+    return data
+  }
+  return data.map((config) => {
+    if (config === null || typeof config !== 'object') {
+      return config
+    }
+    const { impl, isBuiltIn, ...rest } = config as ProviderConfig & {
+      impl?: unknown
+      isBuiltIn?: unknown
+    }
+    return rest
+  })
 }

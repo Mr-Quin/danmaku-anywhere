@@ -18,10 +18,9 @@ import type { ManifestRegistry } from './ManifestRegistry'
  * a ManifestProviderService configured for the source, or the legacy
  * MacCmsProviderService for `legacy:maccms` configs. Any non-maccms
  * manifestId (built-in or catalog) resolves to a ManifestProviderService
- * whose provider tag is derived from the manifestId, not read from the
- * persisted `config.impl`. Custom DanDanPlay servers share the `dandanplay`
- * manifest and thread their baseUrl/auth through configValues; there is no
- * DDP-compat special case.
+ * whose provider tag is derived from the manifestId. Custom DanDanPlay servers
+ * share the `dandanplay` manifest and thread their baseUrl/auth through
+ * configValues; there is no DDP-compat special case.
  */
 
 const RUN_OPTS = MANIFEST_RUN_OPTIONS
@@ -79,10 +78,8 @@ function customDdp(opts: {
   return {
     id: 'custom-1',
     manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-    impl: DanmakuSourceType.DanDanPlay,
     name: 'Custom DDP',
     enabled: true,
-    isBuiltIn: false,
     configValues: opts,
   }
 }
@@ -93,10 +90,8 @@ describe('ProviderFactory dispatch', () => {
     const service = factory({
       id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
       manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-      impl: DanmakuSourceType.DanDanPlay,
       name: 'DanDanPlay',
       enabled: true,
-      isBuiltIn: true,
       configValues: {},
     })
 
@@ -110,10 +105,8 @@ describe('ProviderFactory dispatch', () => {
     const service = factory({
       id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
       manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
-      impl: DanmakuSourceType.Bilibili,
       name: 'Bilibili',
       enabled: true,
-      isBuiltIn: true,
       configValues: { danmakuFormat: 'protobuf' },
     })
 
@@ -133,10 +126,8 @@ describe('ProviderFactory dispatch', () => {
     const service = factory({
       id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
       manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
-      impl: DanmakuSourceType.Tencent,
       name: 'Tencent',
       enabled: true,
-      isBuiltIn: true,
       configValues: {},
     })
 
@@ -171,10 +162,8 @@ describe('ProviderFactory dispatch', () => {
     const service = factory({
       id: LEGACY_MACCMS_ID,
       manifestId: LEGACY_MACCMS_ID,
-      impl: DanmakuSourceType.MacCMS,
       name: 'MacCMS',
       enabled: true,
-      isBuiltIn: false,
       configValues: {},
     })
 
@@ -182,15 +171,13 @@ describe('ProviderFactory dispatch', () => {
     expect((service as unknown as { tag?: string }).tag).toBe('maccms-legacy')
   })
 
-  it('resolves a non-built-in catalog manifestId to ManifestProviderService with the derived tag, ignoring a stale impl', async () => {
+  it('resolves a non-built-in catalog manifestId to ManifestProviderService with the tag derived from the manifestId', async () => {
     const factory = await buildFactory()
     const service = factory({
       id: 'iqiyi-1',
       manifestId: 'iqiyi',
-      impl: DanmakuSourceType.Bilibili,
       name: 'iQIYI',
       enabled: true,
-      isBuiltIn: false,
       configValues: { region: 'cn' },
     })
 
@@ -201,21 +188,5 @@ describe('ProviderFactory dispatch', () => {
       { q: 'x', region: 'cn' },
       RUN_OPTS
     )
-  })
-
-  it('derives the tag from the manifestId even when the stored impl is Custom', async () => {
-    const factory = await buildFactory()
-    const service = factory({
-      id: 'iqiyi-2',
-      manifestId: 'iqiyi',
-      impl: DanmakuSourceType.Custom,
-      name: 'iQIYI',
-      enabled: true,
-      isBuiltIn: false,
-      configValues: {},
-    })
-
-    expect(service).toBeInstanceOf(ManifestProviderService)
-    expect(service.forProvider).toBe(DanmakuSourceType.DanDanPlay)
   })
 })

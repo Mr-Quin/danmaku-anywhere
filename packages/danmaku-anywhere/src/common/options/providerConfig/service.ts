@@ -16,6 +16,7 @@ import {
   ensureBuiltinProviders,
   migrateBuiltinPrefixedProviderIds,
   migrateDanDanPlayApiBaseUrl,
+  migrateDropDeadProviderFields,
   migrateProviderConfigsToFlat,
 } from './migration'
 import type { ProviderConfig } from './schema'
@@ -80,6 +81,21 @@ export class ProviderConfigService implements IStoreService {
             // leave the data untouched rather than reset to defaults.
             console.error(
               '[providerConfig] DanDanPlay baseUrl migration failed, leaving configs unchanged:',
+              error
+            )
+            return data
+          }
+        },
+      })
+      .version(5, {
+        upgrade: (data) => {
+          try {
+            return migrateDropDeadProviderFields(data)
+          } catch (error) {
+            // Dropping dead fields is cosmetic; never cost the user their
+            // configs over it.
+            console.error(
+              '[providerConfig] dead-field migration failed, leaving configs unchanged:',
               error
             )
             return data

@@ -67,7 +67,7 @@ test('current build migrates an imported v1.5.0 backup and danmaku export', asyn
     'provider config ids migrated to bare'
   ).toEqual([])
   const ddpBaseUrls = providers
-    .filter((p) => p.isBuiltIn === false && p.manifestId === 'dandanplay')
+    .filter((p) => p.manifestId === 'dandanplay' && p.id !== 'dandanplay')
     .map((p) => p.configValues.baseUrl as string | undefined)
   expect(
     ddpBaseUrls,

@@ -11,14 +11,12 @@ export const PROXY_DDP_BASE_URL = `${import.meta.env.VITE_PROXY_URL}/ddp`
 
 export interface AutoImportProvider {
   manifestId: string
-  impl: DanmakuSourceType
   configValues: Record<string, unknown>
 }
 
 export const AUTO_IMPORT_PROVIDERS: AutoImportProvider[] = [
   {
     manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-    impl: DanmakuSourceType.DanDanPlay,
     configValues: {
       baseUrl: PROXY_DDP_BASE_URL,
       chConvert: DanDanChConvert.None,
@@ -26,7 +24,6 @@ export const AUTO_IMPORT_PROVIDERS: AutoImportProvider[] = [
   },
   {
     manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
-    impl: DanmakuSourceType.Bilibili,
     // Pin xml; the manifest defaults to protobuf, which would change the format
     // for users who never picked it.
     configValues: {
@@ -35,7 +32,6 @@ export const AUTO_IMPORT_PROVIDERS: AutoImportProvider[] = [
   },
   {
     manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
-    impl: DanmakuSourceType.Tencent,
     configValues: {},
   },
 ]
@@ -49,7 +45,6 @@ export function autoImportToProviderConfig(
     id: entry.manifestId,
     manifestId: entry.manifestId,
     name,
-    impl: entry.impl,
     enabled: true,
     configValues: { ...entry.configValues },
   }
@@ -74,7 +69,6 @@ export function createCustomDanDanPlayProvider(
     id: input.id ?? getRandomUUID(),
     manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
     name: input.name ?? 'DanDanPlay',
-    impl: DanmakuSourceType.DanDanPlay,
     enabled: true,
     configValues: {
       baseUrl: inputValues.baseUrl ?? '',
@@ -98,7 +92,6 @@ export function createCustomMacCmsProvider(
     id: input.id ?? getRandomUUID(),
     manifestId: LEGACY_MACCMS_ID,
     name: input.name ?? 'MacCMS',
-    impl: DanmakuSourceType.MacCMS,
     enabled: true,
     configValues: {
       danmakuBaseUrl: inputValues.danmakuBaseUrl ?? '',
