@@ -40,6 +40,15 @@ export function isNotCustom<T extends { provider: DanmakuSourceType }>(
   return data.provider !== DanmakuSourceType.MacCMS
 }
 
+// Source-backed episodes carry a seasonId; custom episodes do not.
+export function isCustomEpisode(x: { seasonId?: number }): boolean {
+  return !('seasonId' in x)
+}
+
+export function isCustomSeason(season: { isCustom?: true }): boolean {
+  return season.isCustom === true
+}
+
 export const episodeToString = (episode: GenericEpisodeLite) => {
   if (isNotCustom(episode)) {
     return `${episode.season.title} - ${episode.title}`

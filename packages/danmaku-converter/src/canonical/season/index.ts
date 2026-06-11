@@ -12,5 +12,6 @@ export type SeasonInsert = SeasonInsertV1
 export type CustomSeasonInsert = z.infer<typeof zBaseSeasonV1> & {
   provider: DanmakuSourceType.MacCMS
   providerIds: {}
+  isCustom?: true
 }
 export type CustomSeason = DbEntity<CustomSeasonInsert>

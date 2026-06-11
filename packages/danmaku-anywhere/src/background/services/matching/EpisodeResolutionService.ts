@@ -5,11 +5,11 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from '../providers/ProviderFactory'
-import { resolveSeasonConfig } from '../providers/resolveSeasonConfig'
 
 @injectable('Singleton')
 export class EpisodeResolutionService {

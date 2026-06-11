@@ -26,6 +26,7 @@ import {
 } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import type {
   ProviderLoginStatus,
   ProviderManifestList,
@@ -42,7 +43,6 @@ import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from './ProviderFactory'
-import { resolveSeasonConfig } from './resolveSeasonConfig'
 
 function enrichEpisode(
   episode: OmitSeasonId<EpisodeMeta>,

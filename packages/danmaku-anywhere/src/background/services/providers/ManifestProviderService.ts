@@ -12,6 +12,7 @@ import type { ManifestRunner, RunOptions } from '@mr-quin/dango'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ILogger } from '@/common/Logger'
+import { computeNamespaceKey } from '@/common/providers/namespaceKey'
 import { findEpisodeByNumber } from './common/findEpisodeByNumber'
 import type {
   IDanmakuProvider,
@@ -21,7 +22,6 @@ import type {
 } from './IDanmakuProvider'
 import type { ManifestRegistry } from './ManifestRegistry'
 import { resolveManifestInputs } from './manifestInputs'
-import { computeNamespaceKey } from './namespaceKey'
 
 // Manifest output shapes — the canonical fields a search/episodes/danmaku
 // pipeline must emit. The host adds `provider` / `providerConfigId` /

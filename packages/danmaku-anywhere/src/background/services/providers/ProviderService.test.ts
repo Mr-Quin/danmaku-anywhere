@@ -60,7 +60,7 @@ function makeProvider(
   } as unknown as IDanmakuProvider
 }
 
-import { computeNamespaceKey } from './namespaceKey'
+import { computeNamespaceKey } from '@/common/providers/namespaceKey'
 
 function build(
   config: ProviderConfig,
