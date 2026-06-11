@@ -43,8 +43,11 @@ intakeRouter.post(
 
     const receivedAt = new Date().toISOString()
     const country = c.req.raw.cf?.country ?? null
+    // Staging and production share one dataset; tag the ingesting worker so the
+    // two are filterable (server-set, unlike the client-build `environment`).
+    const serverEnvironment = c.env.ENVIRONMENT
     const enriched = events.map((event) => {
-      return { ...event, receivedAt, country }
+      return { ...event, receivedAt, country, serverEnvironment }
     })
 
     c.executionCtx.waitUntil(forwardToAxiom(c.env, enriched))

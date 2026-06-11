@@ -61,6 +61,7 @@ describe('intake API', () => {
       installId: 'install-1',
       event: 'heartbeat',
       country: null,
+      serverEnvironment: env.ENVIRONMENT,
     })
     expect(typeof forwarded[0].receivedAt).toBe('string')
   })

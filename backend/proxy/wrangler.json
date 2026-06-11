@@ -27,7 +27,7 @@
     {
       "binding": "AXIOM_TOKEN",
       "store_id": "4a9ca50edba84431879f34b0b67f9998",
-      "secret_name": "AXIOM_TOKEN_STG"
+      "secret_name": "AXIOM_DA_STG_INTAKE"
     },
     {
       "binding": "DANMAKU_GEMINI_API_KEY",
@@ -112,7 +112,7 @@
         {
           "binding": "AXIOM_TOKEN",
           "store_id": "4a9ca50edba84431879f34b0b67f9998",
-          "secret_name": "AXIOM_TOKEN_STG"
+          "secret_name": "AXIOM_DA_STG_INTAKE"
         },
         {
           "binding": "DANMAKU_GEMINI_API_KEY",
@@ -198,7 +198,7 @@
         {
           "binding": "AXIOM_TOKEN",
           "store_id": "4a9ca50edba84431879f34b0b67f9998",
-          "secret_name": "AXIOM_TOKEN"
+          "secret_name": "AXIOM_DA_INTAKE"
         },
         {
           "binding": "DANMAKU_GEMINI_API_KEY",
