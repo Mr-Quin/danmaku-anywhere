@@ -10,8 +10,9 @@ import type { TrackingService } from './TrackingService'
 export const useSetupTracking = () => {
   const { data } = useExtensionOptions()
   const { environment, type } = useEnvironmentContext()
+  const surface = type === 'popup' ? 'popup' : 'content'
   const trackingServiceRef = useRef<TrackingService>(
-    createTrackingService(environment, type)
+    createTrackingService(environment, surface)
   )
 
   useEffect(() => {

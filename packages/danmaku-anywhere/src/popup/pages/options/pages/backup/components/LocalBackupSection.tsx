@@ -6,6 +6,7 @@ import { type ChangeEvent, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { createDownload } from '@/common/utils/utils'
 import {
   SettingsGroup,
@@ -44,6 +45,7 @@ export function LocalBackupSection({
             'Backup exported successfully'
           )
         )
+        getTrackingService().track('backupExport', {})
       })
     },
   })

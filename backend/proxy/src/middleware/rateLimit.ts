@@ -2,7 +2,7 @@ import { HTTPException } from 'hono/http-exception'
 import { factory } from '@/factory'
 import { getIsTestEnv } from '@/utils/getIsTestEnv'
 
-type RateLimiterKeys = 'DDP_RATE_LIMITER'
+type RateLimiterKeys = 'DDP_RATE_LIMITER' | 'INTAKE_RATE_LIMITER'
 
 interface RateLimitOptions {
   rateLimiter: RateLimiterKeys

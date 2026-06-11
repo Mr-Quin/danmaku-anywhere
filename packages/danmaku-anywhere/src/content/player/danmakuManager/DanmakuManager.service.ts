@@ -14,6 +14,7 @@ import type {
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type { SegmentationStats } from '@/common/rpcClient/background/types'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { injectCss } from '@/content/common/injectCss'
 import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
 import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayout.service'
@@ -342,6 +343,11 @@ export class DanmakuManagerService {
       onStatus: (status) => this.occlusionStatusListener?.(status),
     })
     this.occlusionService.start(this.video)
+
+    getTrackingService().track('occlusionStart', {
+      model: this.occlusionModel,
+      quality: this.occlusionQuality,
+    })
   }
 
   resize() {

@@ -20,7 +20,7 @@ export const useManualDanmaku = () => {
 
   const handleUnsetDanmaku = useEventCallback(() => {
     Logger.debug('Requested to unmount danmaku')
-    return unmountMutation.mutateAsync()
+    return unmountMutation.mutateAsync({})
   })
 
   return {

@@ -25,6 +25,7 @@ import {
   useProviderConfig,
 } from '@/common/options/providerConfig/useProviderConfig'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import {
   createConfigFromManifest,
   groupInstalled,
@@ -186,6 +187,7 @@ export const ProvidersPage = (): ReactElement => {
         await deleteManifest.mutateAsync(manifestId, {
           onSuccess: () => {
             toast.success(t('providers.alert.deleted', 'Provider deleted'))
+            getTrackingService().track('manifestDelete', {})
           },
           onError: (error) => {
             toast.error(error.message)

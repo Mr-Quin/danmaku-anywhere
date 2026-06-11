@@ -6,7 +6,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { DocIcon } from '@/common/components/DocIcon'
@@ -18,6 +18,7 @@ import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { useResetForm } from '@/common/hooks/useResetForm'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { useDanmakuOptions } from '@/common/options/danmakuOptions/useDanmakuOptions'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { FontSelector } from './FontSelector'
 import { LabeledScrubber } from './LabeledScrubber'
 import { LabeledSlider } from './LabeledSlider'
@@ -208,6 +209,34 @@ const convertDisplaySpeedToActual = (displaySpeed: number) => {
 
 export type SaveStatus = 'idle' | 'saving' | 'saved'
 
+const occlusionKeys: (keyof DanmakuOptions)[] = [
+  'occlusion',
+  'occlusionModel',
+  'occlusionConfidence',
+  'occlusionEdgeSoftness',
+  'occlusionQuality',
+]
+
+function trackStyleChange(next: DanmakuOptions, previous: DanmakuOptions) {
+  const changedKeys = (Object.keys(next) as (keyof DanmakuOptions)[]).filter(
+    (key) => JSON.stringify(next[key]) !== JSON.stringify(previous[key])
+  )
+
+  if (changedKeys.length === 0) {
+    return
+  }
+
+  getTrackingService().track('styleUpdate', { changedKeys })
+
+  if (changedKeys.some((key) => occlusionKeys.includes(key))) {
+    getTrackingService().track('occlusionToggle', {
+      enabled: next.occlusion,
+      model: next.occlusionModel,
+      quality: next.occlusionQuality,
+    })
+  }
+}
+
 export type DanmakuStylesFormProps = {
   onSaveStatusChange?: (status: SaveStatus) => void
 }
@@ -226,8 +255,13 @@ export const DanmakuStylesForm = ({
 
   const { control, setValue, getValues, watch, handleSubmit, subscribe } = form
 
+  const lastTrackedRef = useRef<DanmakuOptions>(config)
+
   const onSave = async (formData: DanmakuOptions) => {
     onSaveStatusChange?.('saving')
+
+    trackStyleChange(formData, lastTrackedRef.current)
+    lastTrackedRef.current = formData
 
     await partialUpdate(formData)
 

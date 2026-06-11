@@ -1,8 +1,17 @@
 import { type Core, clarity } from 'clarity-js'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import type {
+  Surface,
+  TelemetryEventMap,
+  TelemetryEventName,
+} from '@/common/telemetry/events'
 
 export abstract class TrackingService {
   abstract identify(userId: string): void
-  abstract track(name: string, attributes?: object): void
+  abstract track<E extends TelemetryEventName>(
+    name: E,
+    properties: TelemetryEventMap[E]
+  ): void
   abstract tag(key: string, value: string): void
   abstract init(): void
 }
@@ -12,7 +21,10 @@ export class NoopTrackingService implements TrackingService {
     // noop
   }
 
-  track(name: string, attributes?: object): void {
+  track<E extends TelemetryEventName>(
+    name: E,
+    properties: TelemetryEventMap[E]
+  ): void {
     // noop
   }
 
@@ -26,25 +38,50 @@ export class NoopTrackingService implements TrackingService {
 }
 
 export class CombinedTrackingService implements TrackingService {
-  constructor(private clarityOptions: Core.Config) {}
+  constructor(
+    private surface: Surface,
+    private clarityOptions?: Core.Config
+  ) {}
 
   identify(userId: string) {
-    clarity.identify(userId)
-  }
-
-  track(name: string, attributes?: object) {
-    try {
-      clarity.event(name, JSON.stringify(attributes))
-    } catch {
-      // ignore
+    if (this.clarityOptions) {
+      clarity.identify(userId)
     }
   }
 
+  track<E extends TelemetryEventName>(
+    name: E,
+    properties: TelemetryEventMap[E]
+  ) {
+    if (this.clarityOptions) {
+      try {
+        clarity.event(name, JSON.stringify(properties))
+      } catch {
+        // ignore
+      }
+    }
+
+    void chromeRpcClient
+      .telemetryEvent({
+        event: name,
+        properties,
+        surface: this.surface,
+        clientTs: Date.now(),
+      })
+      .catch(() => {
+        // telemetry is fire-and-forget; a relay failure must never surface
+      })
+  }
+
   tag(key: string, value: string) {
-    clarity.set(key, value)
+    if (this.clarityOptions) {
+      clarity.set(key, value)
+    }
   }
 
   init() {
-    clarity.start(this.clarityOptions)
+    if (this.clarityOptions) {
+      clarity.start(this.clarityOptions)
+    }
   }
 }

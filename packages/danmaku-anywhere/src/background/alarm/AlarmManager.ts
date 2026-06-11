@@ -1,7 +1,9 @@
 import { inject, injectable } from 'inversify'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { ProviderService } from '@/background/services/providers/ProviderService'
+import { TelemetryManager } from '@/background/telemetry/TelemetryManager'
 import { alarmKeys } from '@/common/alarms/constants'
+import { IS_FIREFOX } from '@/common/constants'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 
@@ -16,6 +18,8 @@ export class AlarmManager {
     private extensionOptionsService: ExtensionOptionsService,
     @inject(ProviderService)
     private providerService: ProviderService,
+    @inject(TelemetryManager)
+    private telemetryManager: TelemetryManager,
     @inject(LoggerSymbol) logger: ILogger
   ) {
     this.logger = logger.sub('[AlarmManager]')
@@ -38,6 +42,7 @@ export class AlarmManager {
     // if this happens, we may miss an alarm
     void this.createDanmakuPurgeAlarm()
     void this.createManifestRefreshAlarm()
+    void this.createHeartbeatAlarm()
 
     const handleDanmakuPurgeAlarm = this.createHandleDanmakuPurgeAlarm()
 
@@ -47,6 +52,34 @@ export class AlarmManager {
     if (!chrome.alarms.onAlarm.hasListener(this.handleManifestRefreshAlarm)) {
       chrome.alarms.onAlarm.addListener(this.handleManifestRefreshAlarm)
     }
+    if (!chrome.alarms.onAlarm.hasListener(this.handleHeartbeatAlarm)) {
+      chrome.alarms.onAlarm.addListener(this.handleHeartbeatAlarm)
+    }
+  }
+
+  private async createHeartbeatAlarm() {
+    const alarm = await chrome.alarms.get(alarmKeys.HEARTBEAT)
+
+    if (alarm) {
+      return
+    }
+
+    await chrome.alarms.create(alarmKeys.HEARTBEAT, {
+      periodInMinutes: 60 * 24,
+    })
+  }
+
+  private handleHeartbeatAlarm = (alarm: chrome.alarms.Alarm) => {
+    if (alarm.name !== alarmKeys.HEARTBEAT) {
+      return
+    }
+
+    this.telemetryManager.track(
+      'heartbeat',
+      { browser: IS_FIREFOX ? 'firefox' : 'chrome' },
+      'background',
+      Date.now()
+    )
   }
 
   // Create an alarm to purge old data
