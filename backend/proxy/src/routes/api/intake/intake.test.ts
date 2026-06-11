@@ -107,6 +107,16 @@ describe('intake API', () => {
     expect(fetchSpy).not.toHaveBeenCalled()
   })
 
+  it('measures the per-item cap in bytes, not UTF-16 code units', async () => {
+    // Each CJK char is 1 code unit but 3 UTF-8 bytes; this stays under the cap
+    // by length yet exceeds it by bytes.
+    const cjk = '危'.repeat(MAX_EVENT_BYTES - 100)
+    const response = await postBatch([validEvent({ properties: { cjk } })])
+
+    expect(response.status).toBe(413)
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
+
   it('rejects when the rate limit is exceeded', async () => {
     env.INTAKE_RATE_LIMITER = createRateLimiterMock({ success: false })
 
