@@ -60,6 +60,9 @@ export class TelemetryManager {
     this.installId = options.id
 
     this.extensionOptionsService.onChange((next) => {
+      if (!next) {
+        return
+      }
       this.consent = next.enableAnalytics
       this.installId = next.id
     })
