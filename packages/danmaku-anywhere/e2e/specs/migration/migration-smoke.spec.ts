@@ -253,14 +253,16 @@ async function readCustomDdpBaseUrl(page: Page): Promise<string | undefined> {
     const pc = sync.providerConfig as
       | {
           data?: Array<{
-            isBuiltIn?: boolean
+            id?: string
             manifestId?: string
             configValues?: { baseUrl?: string }
           }>
         }
       | undefined
+    // The hosted built-in DDP keeps id === manifestId; a custom server has its
+    // own distinct id.
     const custom = (pc?.data ?? []).find(
-      (p) => p.isBuiltIn === false && p.manifestId === 'dandanplay'
+      (p) => p.manifestId === 'dandanplay' && p.id !== 'dandanplay'
     )
     return custom?.configValues?.baseUrl
   })
