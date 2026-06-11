@@ -18,7 +18,7 @@
     "BETTER_AUTH_URL": "https://api.danmaku-staging.weeblify.app",
     "GOOGLE_CLIENT_ID": "",
     "EMAIL_FROM": "Danmaku Anywhere <hello@danmaku.weeblify.app>",
-    "AXIOM_DATASET": "da-events"
+    "AXIOM_INTAKE_URL": "https://us-east-1.aws.edge.axiom.co/v1/ingest/da-events"
   },
   "version_metadata": {
     "binding": "CF_VERSION_METADATA"
@@ -103,7 +103,7 @@
         "BETTER_AUTH_URL": "https://api.danmaku-staging.weeblify.app",
         "GOOGLE_CLIENT_ID": "",
         "EMAIL_FROM": "Danmaku Anywhere <hello@danmaku.weeblify.app>",
-        "AXIOM_DATASET": "da-events"
+        "AXIOM_INTAKE_URL": "https://us-east-1.aws.edge.axiom.co/v1/ingest/da-events"
       },
       "version_metadata": {
         "binding": "CF_VERSION_METADATA"
@@ -189,7 +189,7 @@
         "BETTER_AUTH_URL": "https://api.danmaku.weeblify.app",
         "GOOGLE_CLIENT_ID": "",
         "EMAIL_FROM": "Danmaku Anywhere <hello@danmaku.weeblify.app>",
-        "AXIOM_DATASET": "da-events"
+        "AXIOM_INTAKE_URL": "https://us-east-1.aws.edge.axiom.co/v1/ingest/da-events"
       },
       "version_metadata": {
         "binding": "CF_VERSION_METADATA"

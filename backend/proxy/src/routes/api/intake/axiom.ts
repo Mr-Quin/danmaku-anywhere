@@ -1,24 +1,19 @@
 import { serializeError } from '@/utils/serializeError'
 
-const AXIOM_INGEST_ORIGIN = 'https://api.axiom.co'
-
 export async function forwardToAxiom(
   env: Env,
   events: unknown[]
 ): Promise<void> {
   try {
     const token = await env.AXIOM_TOKEN.get()
-    const response = await fetch(
-      `${AXIOM_INGEST_ORIGIN}/v1/ingest/${env.AXIOM_DATASET}`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(events),
-      }
-    )
+    const response = await fetch(env.AXIOM_INTAKE_URL, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(events),
+    })
 
     if (!response.ok) {
       console.error(

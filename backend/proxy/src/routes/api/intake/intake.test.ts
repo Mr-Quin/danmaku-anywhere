@@ -52,7 +52,7 @@ describe('intake API', () => {
 
     expect(fetchSpy).toHaveBeenCalledTimes(1)
     const [url, init] = fetchSpy.mock.calls[0]
-    expect(url).toBe('https://api.axiom.co/v1/ingest/da-events')
+    expect(url).toBe(env.AXIOM_INTAKE_URL)
     expect(init.headers.Authorization).toBe('Bearer axiom-token')
 
     const forwarded = JSON.parse(init.body)
