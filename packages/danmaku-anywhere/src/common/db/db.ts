@@ -478,7 +478,10 @@ export class DanmakuAnywhereDb extends Dexie {
         // rather than let a single bad record throw and abort the upgrade.
         const manifestIdByConfigId = new Map<string, string>()
         for (const config of configs) {
-          if (config?.id && config?.manifestId) {
+          if (
+            typeof config?.id === 'string' &&
+            typeof config?.manifestId === 'string'
+          ) {
             manifestIdByConfigId.set(config.id, config.manifestId)
           }
         }
