@@ -383,10 +383,14 @@ export function ensureBuiltinProviders(
 // runtime now that the provider tag comes from manifestId, so drop just those
 // two keys and keep the rest of the record intact. Dropping them explicitly
 // rather than re-parsing through the schema keeps this migration independent of
-// later schema changes. Non-object entries are passed through untouched.
+// later schema changes. A non-array store and non-object entries are passed
+// through untouched.
 export function migrateDropDeadProviderFields(
   data: ProviderConfig[]
 ): ProviderConfig[] {
+  if (!Array.isArray(data)) {
+    return data
+  }
   return data.map((config) => {
     if (config === null || typeof config !== 'object') {
       return config

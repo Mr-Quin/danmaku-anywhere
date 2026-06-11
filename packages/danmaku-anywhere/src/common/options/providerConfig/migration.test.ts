@@ -909,4 +909,9 @@ describe('migrateDropDeadProviderFields', () => {
     expect(out[0]).not.toHaveProperty('isBuiltIn')
     expect(out[1]).toBeNull()
   })
+
+  it('passes a non-array store through without throwing', () => {
+    const corrupt = null as never
+    expect(migrateDropDeadProviderFields(corrupt)).toBe(corrupt)
+  })
 })
