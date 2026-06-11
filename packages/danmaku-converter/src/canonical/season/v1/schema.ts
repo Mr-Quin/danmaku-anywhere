@@ -26,6 +26,10 @@ export const zSeasonInsertV1 = zBaseSeasonV1.extend({
   // instance handle used at fetch time and changes when a config is deleted
   // and re-added; manifestId survives that, so orphaned seasons can reparent.
   manifestId: z.string().optional(),
+  // The content namespace the providerIds are valid in. Self-hosted instances
+  // that share a manifest have separate id spaces, so this is what a live
+  // config is matched against to reparent (manifestId alone is too coarse).
+  namespaceKey: z.string().optional(),
 })
 
 export type SeasonInsertV1 = z.infer<typeof zSeasonInsertV1>
