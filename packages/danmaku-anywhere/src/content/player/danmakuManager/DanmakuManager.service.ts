@@ -68,6 +68,7 @@ export class DanmakuManagerService {
   private occlusionActiveListener?: () => void
   private occlusionDisengagedListener?: () => void
   private occlusionEngaged = false
+  private occlusionRunning = false
   private debug = false
 
   constructor(
@@ -320,6 +321,7 @@ export class DanmakuManagerService {
         this.occlusionDisengagedListener?.()
       }
       this.occlusionService.reset()
+      this.occlusionRunning = false
       return
     }
     this.occlusionEngaged = true
@@ -338,6 +340,7 @@ export class DanmakuManagerService {
       // leave a stale model running while the UI shows a different one.
       this.logger.error(e)
       this.occlusionService.reset()
+      this.occlusionRunning = false
       return
     }
     // A newer update may have superseded this resolve while it was in flight
@@ -370,10 +373,15 @@ export class DanmakuManagerService {
     })
     this.occlusionService.start(this.video)
 
-    getTrackingService().track('occlusionStart', {
-      model: this.occlusionModel,
-      quality: this.occlusionQuality,
-    })
+    // Only on a genuine off->on activation: configureOcclusion re-runs on any
+    // style change (updateConfig), which must not re-emit occlusionStart.
+    if (!this.occlusionRunning) {
+      this.occlusionRunning = true
+      getTrackingService().track('occlusionStart', {
+        model: this.occlusionModel,
+        quality: this.occlusionQuality,
+      })
+    }
   }
 
   resize() {
