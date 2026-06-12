@@ -25,7 +25,12 @@ function episodeLabel(media: PanelMediaInfo): string | null {
   if (media.episode === undefined) {
     return null
   }
-  return typeof media.episode === 'number' ? `E${media.episode}` : media.episode
+  if (typeof media.episode === 'number') {
+    return i18n.t('anime.numericEpisode', 'Episode {{episode}}', {
+      episode: media.episode,
+    })
+  }
+  return media.episode
 }
 
 function MediaBlock({ media }: { media: PanelMediaInfo }) {
