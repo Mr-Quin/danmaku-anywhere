@@ -6,12 +6,11 @@ import { type PanelStateInputs, selectPanelState } from './selectPanelState'
 
 /**
  * Exercises the pure derivation of the pipeline panel entry. Covers the null
- * gate (disabled, and manual mode before a successful mount), the substate
- * priority (disconnected > error > mounted > matched > loading > noMatch), and
- * the payload shape.
+ * gate (manual mode before a successful mount), the substate priority
+ * (disconnected > error > mounted > matched > loading > noMatch), and the
+ * payload shape. The infoPanel.enabled gate lives in the player, not here.
  */
 const base: PanelStateInputs = {
-  enabled: true,
   isDisconnected: false,
   isManual: false,
   isMounted: false,
@@ -28,31 +27,6 @@ function assertEntry(inputs: PanelStateInputs): PipelineEntry {
 }
 
 describe('selectPanelState — null gate (display policy)', () => {
-  it('returns null when enabled is false, regardless of substate', () => {
-    const cases: PanelStateInputs[] = [
-      { ...base, enabled: false },
-      { ...base, enabled: false, isDisconnected: true },
-      { ...base, enabled: false, isMounted: true },
-      {
-        ...base,
-        enabled: false,
-        integration: {
-          active: true,
-          mediaInfo: new MediaInfo({ title: 'X', episode: 1 }),
-        },
-      },
-      { ...base, enabled: false, integration: { active: true } },
-      {
-        ...base,
-        enabled: false,
-        integration: { active: false, errorMessage: 'boom' },
-      },
-    ]
-    for (const inputs of cases) {
-      expect(selectPanelState(inputs)).toBeNull()
-    }
-  })
-
   it('returns null in manual mode when substate is loading', () => {
     expect(
       selectPanelState({
@@ -285,11 +259,5 @@ describe('selectPanelState — payload shape', () => {
       },
     })
     expect(entry.media?.title).toBe('Integration Match')
-  })
-
-  it('omits enabled and isManual from the returned entry', () => {
-    const entry = assertEntry({ ...base, isMounted: true, commentCount: 1 })
-    expect(entry).not.toHaveProperty('enabled')
-    expect(entry).not.toHaveProperty('isManual')
   })
 })

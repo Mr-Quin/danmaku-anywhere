@@ -11,51 +11,64 @@ const LOADING_REASONS: ReadonlySet<OcclusionStatusReason> = new Set([
 ])
 
 /**
- * Folds the occlusion service's two signal streams (status reasons and the
- * running flag) into the current occlusion panel entry, or undefined when the
- * feature is not engaged so the row is absent. Running wins: an error only
- * surfaces once the loop has actually stopped.
+ * Occlusion as a small state machine. The loop reports "running" before it
+ * produces anything (model load, warm-up), so running-but-not-yet-active is
+ * loading; on begins the moment the first mask is applied.
  */
 export class OcclusionEntryDeriver {
   private running = false
+  private active = false
   private error?: string
-  private loading?: string
+  private loadingMessage?: string
 
   setRunning(running: boolean): void {
     this.running = running
     if (running) {
       this.error = undefined
-      this.loading = undefined
+      this.loadingMessage = undefined
+    } else {
+      this.active = false
     }
+  }
+
+  setActive(): void {
+    this.active = true
+    this.error = undefined
+    this.loadingMessage = undefined
   }
 
   setStatus(status: OcclusionStatus): void {
     if (LOADING_REASONS.has(status.reason)) {
-      this.loading = status.message
-      this.error = undefined
+      this.loadingMessage = status.message
     } else {
       this.error = status.message
-      this.loading = undefined
     }
   }
 
-  // The feature was turned off (or unmounted): drop any error/loading the loop
-  // left behind so no occlusion row lingers while occlusion is not engaged.
+  // The feature was turned off (or unmounted): drop everything so no occlusion
+  // row lingers while occlusion is not engaged.
   reset(): void {
     this.running = false
+    this.active = false
     this.error = undefined
-    this.loading = undefined
+    this.loadingMessage = undefined
   }
 
   current(): OcclusionEntry | undefined {
-    if (this.running) {
+    if (this.active) {
       return { source: 'occlusion', state: 'on' }
     }
     if (this.error !== undefined) {
       return { source: 'occlusion', state: 'error', message: this.error }
     }
-    if (this.loading !== undefined) {
-      return { source: 'occlusion', state: 'loading', message: this.loading }
+    if (this.running) {
+      return this.loadingMessage !== undefined
+        ? {
+            source: 'occlusion',
+            state: 'loading',
+            message: this.loadingMessage,
+          }
+        : { source: 'occlusion', state: 'loading' }
     }
     return undefined
   }

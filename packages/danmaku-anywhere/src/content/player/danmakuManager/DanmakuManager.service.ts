@@ -64,6 +64,7 @@ export class DanmakuManagerService {
   private occlusionModel: OcclusionModel = 'people'
   private occlusionStatusListener?: (status: OcclusionStatus) => void
   private occlusionRunningListener?: (running: boolean) => void
+  private occlusionActiveListener?: () => void
   private occlusionDisengagedListener?: () => void
   private occlusionEngaged = false
   private debug = false
@@ -299,6 +300,10 @@ export class DanmakuManagerService {
     this.occlusionRunningListener = listener
   }
 
+  onOcclusionActive(listener: () => void) {
+    this.occlusionActiveListener = listener
+  }
+
   onOcclusionDisengaged(listener: () => void) {
     this.occlusionDisengagedListener = listener
   }
@@ -360,6 +365,7 @@ export class DanmakuManagerService {
       applyMask: (url) => this.setOcclusionMaskUrl(url),
       onStatus: (status) => this.occlusionStatusListener?.(status),
       onRunningChange: (running) => this.occlusionRunningListener?.(running),
+      onActive: () => this.occlusionActiveListener?.(),
     })
     this.occlusionService.start(this.video)
   }

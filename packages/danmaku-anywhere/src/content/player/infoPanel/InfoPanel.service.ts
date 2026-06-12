@@ -54,6 +54,10 @@ export class InfoPanelService {
     usePanelStateStore.getState().setEntry('occlusion', entry)
   }
 
+  setEnabled(enabled: boolean) {
+    usePanelStateStore.getState().setEnabled(enabled)
+  }
+
   setPipActive(pipActive: boolean) {
     usePanelStateStore.getState().setPipActive(pipActive)
   }

@@ -51,6 +51,7 @@ export class OcclusionService {
   private applyMask: (url?: string) => void = () => undefined
   private onStatus?: (status: OcclusionStatus) => void
   private onRunningChange?: (running: boolean) => void
+  private onActive?: () => void
   private captureSize = DEFAULT_CAPTURE_SIZE
   private capturePreserveAspect = false
   private minIntervalMs = DEFAULT_MIN_INTERVAL_MS
@@ -80,6 +81,7 @@ export class OcclusionService {
     this.applyMask = config.applyMask
     this.onStatus = config.onStatus
     this.onRunningChange = config.onRunningChange
+    this.onActive = config.onActive
     this.captureSize = config.captureSize
     this.capturePreserveAspect = config.capturePreserveAspect
     this.minIntervalMs = config.minIntervalMs
@@ -341,6 +343,7 @@ export class OcclusionService {
     this.lastAppliedTs = appliedAt
     if (!this.appliedOnce) {
       this.appliedOnce = true
+      this.onActive?.()
       const { width, height } = composed.mask
       this.log(
         `first mask applied (${width}x${height}) in ${Math.round(appliedAt - t0)}ms`

@@ -41,4 +41,7 @@ export interface OcclusionConfig {
   // Fires when the segmentation loop starts or stops running, so a status
   // surface can show the steady on/off state, which has no status reason.
   onRunningChange?: (running: boolean) => void
+  // Fires once the first mask is applied, i.e. occlusion is actually producing
+  // output, so a status surface can distinguish "starting" from "on".
+  onActive?: () => void
 }

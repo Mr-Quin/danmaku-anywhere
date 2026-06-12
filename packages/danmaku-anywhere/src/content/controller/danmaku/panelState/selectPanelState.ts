@@ -11,7 +11,6 @@ import type { MediaInfo } from '@/content/controller/danmaku/integration/models/
 import { episodeToPanelMedia } from './episodeToPanelMedia'
 
 export interface PanelStateInputs {
-  enabled: boolean
   isDisconnected: boolean
   isManual: boolean
   isMounted: boolean
@@ -57,17 +56,13 @@ function resolveMedia(inputs: PanelStateInputs): PanelMediaInfo | undefined {
 }
 
 /**
- * Derives the pipeline's panel entry from controller store inputs, or `null`
- * when the pipeline has nothing to show. Visibility policy lives here (not in
- * the player leaf): disabled, and manual mode before a successful mount, both
- * yield `null` so no pipeline row renders.
+ * Derives the pipeline's panel entry, or null when the pipeline has nothing to
+ * show. Manual mode only surfaces a successful mount, to avoid noise. Whether
+ * the panel is enabled is a panel-wide gate applied in the player, not here.
  */
 export function selectPanelState(
   inputs: PanelStateInputs
 ): PipelineEntry | null {
-  if (!inputs.enabled) {
-    return null
-  }
   const substate = deriveSubstate(inputs)
   if (inputs.isManual && substate !== 'mounted') {
     return null

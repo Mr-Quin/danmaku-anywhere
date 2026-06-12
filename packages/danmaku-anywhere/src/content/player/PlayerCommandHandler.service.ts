@@ -171,7 +171,9 @@ export class PlayerCommandHandler {
       showDanmakuTimeline: boolean
       enableFullscreenInteraction: boolean
     }
+    infoPanel: { enabled: boolean }
   }) {
+    this.infoPanel.setEnabled(options.infoPanel.enabled)
     if (options.playerOptions.showSkipButton) {
       this.videoSkip.enable()
     } else {
@@ -199,6 +201,9 @@ export class PlayerCommandHandler {
     })
     this.manager.onOcclusionRunningChange((running) => {
       this.applyOcclusion(() => this.occlusionDeriver.setRunning(running))
+    })
+    this.manager.onOcclusionActive(() => {
+      this.applyOcclusion(() => this.occlusionDeriver.setActive())
     })
     this.manager.onOcclusionDisengaged(() => {
       this.applyOcclusion(() => this.occlusionDeriver.reset())
