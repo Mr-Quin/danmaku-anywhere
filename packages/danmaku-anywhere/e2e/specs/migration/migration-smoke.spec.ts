@@ -206,17 +206,23 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
       ).toBeTruthy()
     }
   }
-  // The custom self-hosted DanDanPlay season must carry the namespaceKey derived
-  // from its (post-upgrade) config, proving the backfill recomputes it rather
-  // than collapsing self-hosted instances onto the bare manifestId.
-  expect(postCustomDdpConfig, 'custom DanDanPlay config survived').toBeDefined()
-  if (postCustomDdpConfig) {
-    const expectedNamespaceKey = computeNamespaceKey(postCustomDdpConfig)
+  // The fixture's seasons all came from builtin configs, where the namespaceKey
+  // is the bare builtin id (== manifestId). A self-hosted config would hash its
+  // baseUrl instead; that branch is covered by the resolveSeasonNamespaceKey
+  // unit tests. The custom DanDanPlay config in this fixture is config-only (no
+  // season points at it), so assert it survived the upgrade rather than asserting
+  // a season carries its namespace.
+  for (const row of postSeasonIdentity) {
     expect(
-      postSeasonIdentity.some((s) => s.namespaceKey === expectedNamespaceKey),
-      `a season carries the custom DDP namespaceKey ${expectedNamespaceKey}`
-    ).toBe(true)
+      row.namespaceKey,
+      `builtin season ${row.id} namespaceKey equals its manifestId`
+    ).toBe(row.manifestId)
   }
+  expect(postCustomDdpConfig, 'custom DanDanPlay config survived').toBeDefined()
+  expect(
+    postCustomDdpConfig && computeNamespaceKey(postCustomDdpConfig),
+    'a self-hosted config hashes to a ns: namespaceKey, distinct from a builtin'
+  ).toMatch(/^ns:/)
 
   return context
 }
