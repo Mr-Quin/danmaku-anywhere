@@ -22,6 +22,7 @@ export class SeasonService {
     data: T
   ): Promise<DbEntity<T> | undefined> {
     return this.db.season.get({
+      manifestId: data.manifestId,
       namespaceKey: data.namespaceKey,
       indexedId: data.indexedId,
     }) as Promise<DbEntity<T> | undefined>
@@ -30,6 +31,7 @@ export class SeasonService {
   async upsert<T extends SeasonInsert>(data: T): Promise<DbEntity<T>> {
     return this.db.transaction('rw', this.db.season, async () => {
       const existing = await this.db.season.get({
+        manifestId: data.manifestId,
         namespaceKey: data.namespaceKey,
         indexedId: data.indexedId,
       })

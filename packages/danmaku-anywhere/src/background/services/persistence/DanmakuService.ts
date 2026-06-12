@@ -298,6 +298,7 @@ export class DanmakuService {
               this.db.episode,
               async () => {
                 let [existingSeason] = await this.seasonService.filter({
+                  manifestId: item.season.manifestId,
                   namespaceKey: item.season.namespaceKey,
                   indexedId: item.season.indexedId,
                 })

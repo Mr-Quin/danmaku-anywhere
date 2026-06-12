@@ -20,6 +20,7 @@ export interface SeasonGetAllRequest {
 export type SeasonQueryFilter = {
   id?: number
   ids?: number[]
+  manifestId?: string
   namespaceKey?: string
   indexedId?: string
 }
