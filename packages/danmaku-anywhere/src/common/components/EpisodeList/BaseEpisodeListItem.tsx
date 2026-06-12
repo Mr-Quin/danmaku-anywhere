@@ -1,8 +1,10 @@
-import type {
-  CustomEpisodeLite,
-  EpisodeLite,
-  EpisodeMeta,
-  WithSeason,
+import {
+  type CustomEpisodeLite,
+  DanmakuSourceType,
+  type EpisodeLite,
+  type EpisodeMeta,
+  providerTypeFromManifestId,
+  type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Check, Download } from '@mui/icons-material'
 import {
@@ -16,7 +18,6 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useImage } from '@/common/components/image/useImage'
-import { seasonSourceKey } from '@/common/danmaku/seasonLabel'
 import { isCustomEpisode, isSourceEpisode } from '@/common/danmaku/utils'
 
 const isEpisodeLite = (
@@ -109,7 +110,9 @@ export function BaseEpisodeListItem<
   const number = deriveEpisodeNumber(ep, index)
 
   const testIdSuffix = isSourceEpisode(ep) ? ep.indexedId : ep.id
-  const sourceKey = isSourceEpisode(ep) ? seasonSourceKey(ep.season) : 'custom'
+  const sourceKey = isSourceEpisode(ep)
+    ? providerTypeFromManifestId(ep.season.manifestId ?? '')
+    : DanmakuSourceType.MacCMS
   const testId = `episode-list-item-${sourceKey}-${testIdSuffix}`
 
   const thumbSrc = isSourceEpisode(ep) ? ep.imageUrl : undefined
