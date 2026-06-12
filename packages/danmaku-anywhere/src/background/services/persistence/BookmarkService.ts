@@ -78,10 +78,12 @@ export class BookmarkService {
     await this.db.bookmark.where({ seasonId }).delete()
   }
 
-  async deleteByProviderConfigId(providerConfigId: string): Promise<void> {
-    const seasonIds = await this.db.season
-      .where({ providerConfigId })
-      .primaryKeys()
+  // Delete the bookmarks of every season in a content namespace. Used when a
+  // provider config is removed: its seasons stay as orphans, but their bookmarks
+  // (which only exist to fetch new episodes) go. Callers pass the config's
+  // namespaceKey, computed before the config is deleted from storage.
+  async deleteByNamespaceKey(namespaceKey: string): Promise<void> {
+    const seasonIds = await this.db.season.where({ namespaceKey }).primaryKeys()
     if (seasonIds.length > 0) {
       await this.db.bookmark.where('seasonId').anyOf(seasonIds).delete()
     }

@@ -26,6 +26,7 @@ import {
 } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { computeNamespaceKey } from '@/common/providers/namespaceKey'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import type {
   ProviderLoginStatus,
@@ -306,8 +307,9 @@ export class ProviderService {
     const configs = await this.providerConfigService.getAll()
     for (const config of configs) {
       if (config.manifestId === manifestId) {
+        const namespaceKey = computeNamespaceKey(config)
         await this.providerConfigService.deleteFromStorage(config.id)
-        await this.bookmarkService.deleteByProviderConfigId(config.id)
+        await this.bookmarkService.deleteByNamespaceKey(namespaceKey)
       }
     }
     await this.manifestRegistry.unregister(manifestId)
