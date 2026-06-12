@@ -1,5 +1,7 @@
 import type { PipelineEntry } from '@/common/rpcClient/background/types'
 
+export type { PipelineEntry } from '@/common/rpcClient/background/types'
+
 /**
  * Sources that can contribute a status row to the info panel. `pipeline` is
  * pushed from the controller frame; `occlusion` is written locally in the

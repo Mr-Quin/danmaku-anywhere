@@ -172,4 +172,22 @@ export class IntegrationPage {
   infoPanelCount(): Locator {
     return this.inPlayer('.da-ip-count-num')
   }
+
+  // One status row per source; severity is carried on the row, not the panel.
+  infoPanelRow(source: 'pipeline' | 'occlusion'): Locator {
+    return this.inPlayer(`[data-da-ip-row][data-source="${source}"]`)
+  }
+
+  infoPanelRowWithSev(
+    source: 'pipeline' | 'occlusion',
+    sev: 'neutral' | 'info' | 'success' | 'danger'
+  ): Locator {
+    return this.inPlayer(
+      `[data-da-ip-row][data-source="${source}"][data-sev="${sev}"]`
+    )
+  }
+
+  infoPanelSourceChip(): Locator {
+    return this.infoPanelRow('pipeline').locator('[data-da-ip-source]')
+  }
 }

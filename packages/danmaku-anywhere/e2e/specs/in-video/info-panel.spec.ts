@@ -9,10 +9,11 @@ import {
 import { applyProfile } from '../../setup/profile'
 
 /**
- * In-video info panel on the auto-mount happy path. After an integration match
- * mounts danmaku on a native <video>, the panel renders in the player shadow
- * root, its headline reflects the mounted substate, and hovering expands it to
- * surface the comment count. Asserts the rendered panel DOM, not just state.
+ * In-video info panel as a multi-source surface. After an integration match
+ * mounts danmaku on a native <video>, the pipeline row renders in the player
+ * shadow root with its source and (mounted) success severity on the row, its
+ * headline reflects the mounted substate, and hovering expands it to show the
+ * comment count and the localized provider chip. Asserts rendered panel DOM.
  */
 
 const ORIGIN = 'https://da-test.invalid'
@@ -59,16 +60,19 @@ test('info panel reflects the mounted state in-video', async ({
 
   await integrationPage.playVideo()
 
-  await expect(integrationPage.infoPanel()).toBeVisible()
-  await expect(integrationPage.infoPanelHeadline()).toHaveText(
-    /Mounted|已加载/,
-    {
-      timeout: 5_000,
-    }
-  )
+  // The pipeline row renders with its source and the mounted (success) severity.
+  await expect(integrationPage.infoPanelRow('pipeline')).toBeVisible({
+    timeout: 5_000,
+  })
+  await expect(
+    integrationPage.infoPanelRowWithSev('pipeline', 'success')
+  ).toBeVisible()
+  await expect(integrationPage.infoPanelHeadline()).toHaveText(/Mounted|已加载/)
 
   await integrationPage.infoPanel().hover()
   await expect(integrationPage.infoPanelCount()).toHaveText(
     String(COMMENTS.length)
   )
+  // The provider is localized, not the raw enum (MacCMS, not "Custom").
+  await expect(integrationPage.infoPanelSourceChip()).toHaveText(/MacCMS/)
 })
