@@ -6,6 +6,7 @@ import type { PipelineEntry } from '@/common/rpcClient/background/types'
 import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayout.service'
 import { PlayerIdleService } from '@/content/player/idle/PlayerIdle.service'
 import { PlayerInfoPanel } from './PlayerInfoPanel'
+import type { OcclusionEntry } from './panelEntry'
 import { usePanelStateStore } from './panelStateStore'
 
 @injectable('Singleton')
@@ -47,6 +48,10 @@ export class InfoPanelService {
 
   setPipelineEntry(entry: PipelineEntry | null) {
     usePanelStateStore.getState().setEntry('pipeline', entry ?? undefined)
+  }
+
+  setOcclusionEntry(entry: OcclusionEntry | undefined) {
+    usePanelStateStore.getState().setEntry('occlusion', entry)
   }
 
   setPipActive(pipActive: boolean) {

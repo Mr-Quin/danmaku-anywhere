@@ -63,6 +63,7 @@ export class DanmakuManagerService {
   private occlusionQuality: OcclusionQuality = 'medium'
   private occlusionModel: OcclusionModel = 'people'
   private occlusionStatusListener?: (status: OcclusionStatus) => void
+  private occlusionRunningListener?: (running: boolean) => void
   private debug = false
 
   constructor(
@@ -292,6 +293,10 @@ export class DanmakuManagerService {
     this.occlusionStatusListener = listener
   }
 
+  onOcclusionRunningChange(listener: (running: boolean) => void) {
+    this.occlusionRunningListener = listener
+  }
+
   private updateOcclusion() {
     const shouldRun = this.occlusion && this.isMounted && this.video !== null
     if (!shouldRun) {
@@ -340,6 +345,7 @@ export class DanmakuManagerService {
       debug: this.debug,
       applyMask: (url) => this.setOcclusionMaskUrl(url),
       onStatus: (status) => this.occlusionStatusListener?.(status),
+      onRunningChange: (running) => this.occlusionRunningListener?.(running),
     })
     this.occlusionService.start(this.video)
   }

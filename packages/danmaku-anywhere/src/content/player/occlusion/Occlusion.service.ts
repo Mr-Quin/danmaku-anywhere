@@ -50,6 +50,7 @@ export class OcclusionService {
   // Replaced by configure(); a no-op until then.
   private applyMask: (url?: string) => void = () => undefined
   private onStatus?: (status: OcclusionStatus) => void
+  private onRunningChange?: (running: boolean) => void
   private captureSize = DEFAULT_CAPTURE_SIZE
   private capturePreserveAspect = false
   private minIntervalMs = DEFAULT_MIN_INTERVAL_MS
@@ -78,6 +79,7 @@ export class OcclusionService {
   configure(config: OcclusionConfig): void {
     this.applyMask = config.applyMask
     this.onStatus = config.onStatus
+    this.onRunningChange = config.onRunningChange
     this.captureSize = config.captureSize
     this.capturePreserveAspect = config.capturePreserveAspect
     this.minIntervalMs = config.minIntervalMs
@@ -121,6 +123,14 @@ export class OcclusionService {
     }
   }
 
+  private setRunning(running: boolean): void {
+    if (running === this.running) {
+      return
+    }
+    this.running = running
+    this.onRunningChange?.(running)
+  }
+
   getStats(): OcclusionStats {
     return {
       running: this.running,
@@ -153,7 +163,7 @@ export class OcclusionService {
     this.fps = null
     this.lastAppliedTs = 0
     this.video = video
-    this.running = true
+    this.setRunning(true)
     this.log('starting')
     void this.run()
   }
@@ -163,7 +173,7 @@ export class OcclusionService {
       this.video.cancelVideoFrameCallback(this.callbackId)
     }
     this.callbackId = null
-    this.running = false
+    this.setRunning(false)
     this.video = null
     this.lastSegmentTs = 0
     this.busy = false
@@ -209,7 +219,7 @@ export class OcclusionService {
       // Init failed (wasm/model load, WebGPU unavailable). Give up for now
       // without breaking playback; a later start() can retry a fresh provider.
       if (this.video === video) {
-        this.running = false
+        this.setRunning(false)
       }
       const detail = e instanceof Error ? e.message : String(e)
       const reason = /webgpu/i.test(detail) ? 'webgpu' : 'init'

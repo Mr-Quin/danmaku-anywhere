@@ -16,6 +16,7 @@ import { DanmakuDensityService } from '@/content/player/densityPlot/DanmakuDensi
 import densityPlotCss from '@/content/player/densityPlot/DanmakuDensityChart.css?inline'
 import { PlayerIdleService } from '@/content/player/idle/PlayerIdle.service'
 import { InfoPanelService } from '@/content/player/infoPanel/InfoPanel.service'
+import { OcclusionEntryDeriver } from '@/content/player/infoPanel/occlusionEntry'
 import infoPanelCss from '@/content/player/infoPanel/PlayerInfoPanel.css?inline'
 import { buildSakuraCssVars } from '@/content/player/infoPanel/sakuraCssVars'
 import { createPipWindow, moveElement } from '@/content/player/pipUtils'
@@ -36,6 +37,7 @@ export class PlayerCommandHandler {
   private frameId = -1
   private root!: HTMLDivElement
   private enableFullscreenInteraction = true
+  private readonly occlusionDeriver = new OcclusionEntryDeriver()
   private sendPlayerReady: () => void = () => {
     // no-op, replace in start()
   }
@@ -181,6 +183,12 @@ export class PlayerCommandHandler {
         },
         { optional: true }
       )
+      this.occlusionDeriver.setStatus(status)
+      this.infoPanel.setOcclusionEntry(this.occlusionDeriver.current())
+    })
+    this.manager.onOcclusionRunningChange((running) => {
+      this.occlusionDeriver.setRunning(running)
+      this.infoPanel.setOcclusionEntry(this.occlusionDeriver.current())
     })
   }
 

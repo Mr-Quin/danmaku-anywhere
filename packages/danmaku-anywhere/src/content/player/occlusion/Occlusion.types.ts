@@ -38,4 +38,7 @@ export interface OcclusionConfig {
   // Classified failure gates a higher layer (settings/toast) surfaces; also
   // tracked as lastError in stats.
   onStatus?: (status: OcclusionStatus) => void
+  // Fires when the segmentation loop starts or stops running, so a status
+  // surface can show the steady on/off state, which has no status reason.
+  onRunningChange?: (running: boolean) => void
 }
