@@ -4,7 +4,6 @@ import type {
   Season,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { MatchingStrategyType } from './MatchingStrategyType'
 
@@ -21,8 +20,7 @@ export interface SeasonGetAllRequest {
 export type SeasonQueryFilter = {
   id?: number
   ids?: number[]
-  provider?: DanmakuSourceType
-  providerConfigId?: string
+  namespaceKey?: string
   indexedId?: string
 }
 

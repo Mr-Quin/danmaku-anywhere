@@ -11,7 +11,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuFetchDto, MacCMSFetchData } from '@/common/danmaku/dto'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
-import { episodeToString, isNotCustom } from '@/common/danmaku/utils'
+import { episodeToString, isSourceEpisode } from '@/common/danmaku/utils'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { concatArr } from '@/common/utils/utils'
 import { useStore } from '@/content/controller/store/store'
@@ -71,7 +71,7 @@ export const useLoadDanmaku = () => {
   const canRefresh =
     !!episodes &&
     episodes.length === 1 &&
-    isNotCustom(episodes[0]) &&
+    isSourceEpisode(episodes[0]) &&
     episodes[0].season.manifestId === 'dandanplay'
 
   const mountDanmaku = useEventCallback((episodes: GenericEpisode[]) => {
@@ -91,7 +91,7 @@ export const useLoadDanmaku = () => {
             ),
             {
               actionFn:
-                isNotCustom(episode) &&
+                isSourceEpisode(episode) &&
                 episode.season.manifestId === 'dandanplay'
                   ? refreshComments
                   : undefined,
@@ -142,7 +142,10 @@ export const useLoadDanmaku = () => {
   const refreshComments = useEventCallback(async () => {
     if (!canRefresh) return
     const episode = episodes[0]
-    if (!isNotCustom(episode) || episode.season.manifestId !== 'dandanplay') {
+    if (
+      !isSourceEpisode(episode) ||
+      episode.season.manifestId !== 'dandanplay'
+    ) {
       return
     }
 

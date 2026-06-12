@@ -21,7 +21,6 @@ import type {
   DanmakuImportResult,
   EpisodeQueryFilter,
 } from '@/common/danmaku/dto'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { DanmakuAnywhereDb } from '@/common/db/db'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { DbEntity } from '@/common/types/dbEntity'
@@ -64,7 +63,6 @@ export class DanmakuService {
     comments: CommentEntity[]
   }): Promise<CustomEpisode> {
     return this.addCustom({
-      provider: DanmakuSourceType.MacCMS,
       comments: importData.comments,
       commentCount: importData.comments.length,
       title: importData.title,
@@ -300,7 +298,7 @@ export class DanmakuService {
               this.db.episode,
               async () => {
                 let [existingSeason] = await this.seasonService.filter({
-                  providerConfigId: item.season.providerConfigId,
+                  namespaceKey: item.season.namespaceKey,
                   indexedId: item.season.indexedId,
                 })
                 if (!existingSeason) {
@@ -316,7 +314,7 @@ export class DanmakuService {
               }
             )
             imported.push({
-              type: item.season.manifestId ?? item.season.providerConfigId,
+              type: item.season.manifestId ?? 'unknown',
               title: item.episode.title,
               seasonId: savedSeasonId,
               seasonTitle: savedSeasonTitle,

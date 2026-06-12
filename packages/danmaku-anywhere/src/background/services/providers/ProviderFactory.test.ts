@@ -95,7 +95,6 @@ describe('ProviderFactory dispatch', () => {
       configValues: {},
     })
 
-    expect(service.forProvider).toBe(DanmakuSourceType.DanDanPlay)
     await service.search({ keyword: 'x' })
     expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' }, RUN_OPTS)
   })
@@ -110,7 +109,6 @@ describe('ProviderFactory dispatch', () => {
       configValues: { danmakuFormat: 'protobuf' },
     })
 
-    expect(service.forProvider).toBe(DanmakuSourceType.Bilibili)
     await service.search({ keyword: 'frieren' })
     expect(mockRunner.runSearch).toHaveBeenCalledWith(
       {
@@ -131,7 +129,6 @@ describe('ProviderFactory dispatch', () => {
       configValues: {},
     })
 
-    expect(service.forProvider).toBe(DanmakuSourceType.Tencent)
     await service.search({ keyword: 'x' })
     expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' }, RUN_OPTS)
   })
@@ -145,7 +142,6 @@ describe('ProviderFactory dispatch', () => {
       })
     )
 
-    expect(service.forProvider).toBe(DanmakuSourceType.DanDanPlay)
     await service.search({ keyword: 'x' })
     expect(mockRunner.runSearch).toHaveBeenCalledWith(
       {
@@ -167,7 +163,6 @@ describe('ProviderFactory dispatch', () => {
       configValues: {},
     })
 
-    expect(service.forProvider).toBe(DanmakuSourceType.MacCMS)
     expect((service as unknown as { tag?: string }).tag).toBe('maccms-legacy')
   })
 
@@ -182,7 +177,6 @@ describe('ProviderFactory dispatch', () => {
     })
 
     expect(service).toBeInstanceOf(ManifestProviderService)
-    expect(service.forProvider).toBe(DanmakuSourceType.DanDanPlay)
     await service.search({ keyword: 'x' })
     expect(mockRunner.runSearch).toHaveBeenCalledWith(
       { q: 'x', region: 'cn' },

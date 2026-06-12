@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { zCommentImport } from '../comment'
-import { DanmakuSourceType } from '../provider/provider'
 import { parseBackupMany } from './import.js'
 import validCommentData from './test-data/common/validComment.json' with {
   type: 'json',
@@ -122,7 +121,8 @@ describe('importBackup with legacy data (V1-V3)', () => {
       assertIsImportedDataArray(result.parsed)
       const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Regular')
-      expect(importedItem.episode.provider).toBe(DanmakuSourceType.DanDanPlay)
+      if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
+      expect(importedItem.season.manifestId).toBe('dandanplay')
     })
 
     it('accepts valid custom danmaku', () => {
@@ -132,7 +132,6 @@ describe('importBackup with legacy data (V1-V3)', () => {
       assertIsImportedDataArray(result.parsed)
       const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Custom')
-      expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
     })
   })
 
@@ -144,7 +143,8 @@ describe('importBackup with legacy data (V1-V3)', () => {
       assertIsImportedDataArray(result.parsed)
       const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Regular')
-      expect(importedItem.episode.provider).toBe(DanmakuSourceType.DanDanPlay)
+      if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
+      expect(importedItem.season.manifestId).toBe('dandanplay')
     })
 
     it('accepts valid custom danmaku', () => {
@@ -154,7 +154,6 @@ describe('importBackup with legacy data (V1-V3)', () => {
       assertIsImportedDataArray(result.parsed)
       const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Custom')
-      expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
     })
 
     it('accepts valid bilibili danmaku', () => {
@@ -164,7 +163,8 @@ describe('importBackup with legacy data (V1-V3)', () => {
       assertIsImportedDataArray(result.parsed)
       const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Regular')
-      expect(importedItem.episode.provider).toBe(DanmakuSourceType.Bilibili)
+      if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
+      expect(importedItem.season.manifestId).toBe('bilibili')
     })
 
     it('accepts valid tencent danmaku', () => {
@@ -174,7 +174,8 @@ describe('importBackup with legacy data (V1-V3)', () => {
       assertIsImportedDataArray(result.parsed)
       const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Regular')
-      expect(importedItem.episode.provider).toBe(DanmakuSourceType.Tencent)
+      if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
+      expect(importedItem.season.manifestId).toBe('tencent')
     })
   })
 
@@ -187,7 +188,8 @@ describe('importBackup with legacy data (V1-V3)', () => {
       const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Regular')
       if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
-      expect(importedItem.episode.provider).toBe(DanmakuSourceType.DanDanPlay)
+      expect(importedItem.season.manifestId).toBe('dandanplay')
+      expect(importedItem.season.namespaceKey).toBe('dandanplay')
       expect(importedItem.episode.title).toBe(v3DanDanPlayData.episodeTitle)
       // Ensure season is present and its title matches
       expect(importedItem.season?.title).toBe(v3DanDanPlayData.seasonTitle)
@@ -200,7 +202,6 @@ describe('importBackup with legacy data (V1-V3)', () => {
       assertIsImportedDataArray(result.parsed)
       const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Custom')
-      expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
       // episodeTitle is empty, fallback to seasonTitle
       expect(importedItem.episode.title).toBe(v3CustomData.seasonTitle)
     })
@@ -213,7 +214,7 @@ describe('importBackup with legacy data (V1-V3)', () => {
       const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Regular')
       if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
-      expect(importedItem.episode.provider).toBe(DanmakuSourceType.Bilibili)
+      expect(importedItem.season.manifestId).toBe('bilibili')
       expect(importedItem.episode.title).toBe(v3BilibiliData.episodeTitle)
       expect(importedItem.season?.title).toBe(v3BilibiliData.seasonTitle)
     })
@@ -226,7 +227,7 @@ describe('importBackup with legacy data (V1-V3)', () => {
       const [, importedItem] = result.parsed[0]
       expect(importedItem.type).toBe('Regular')
       if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
-      expect(importedItem.episode.provider).toBe(DanmakuSourceType.Tencent)
+      expect(importedItem.season.manifestId).toBe('tencent')
       expect(importedItem.episode.title).toBe(v3TencentData.episodeTitle)
       expect(importedItem.season?.title).toBe(v3TencentData.seasonTitle)
     })
@@ -241,7 +242,8 @@ describe('importBackup with V4 and mixed data', () => {
     expect(backupResult.skipped).toHaveLength(0)
     const [, importedItem] = backupResult.parsed[0]
     expect(importedItem.type).toBe('Regular')
-    expect(importedItem.episode.provider).toBe(DanmakuSourceType.DanDanPlay)
+    if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
+    expect(importedItem.season.manifestId).toBe('dandanplay')
   })
 
   it('should correctly import valid V3 Custom data array', () => {
@@ -251,7 +253,6 @@ describe('importBackup with V4 and mixed data', () => {
     expect(backupResult.skipped).toHaveLength(0)
     const [, importedItem] = backupResult.parsed[0]
     expect(importedItem.type).toBe('Custom')
-    expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
   })
 
   it('should correctly import valid V4 CustomEpisode data array', () => {
@@ -261,7 +262,6 @@ describe('importBackup with V4 and mixed data', () => {
     expect(backupResult.skipped).toHaveLength(0)
     const [, importedItem] = backupResult.parsed[0]
     expect(importedItem.type).toBe('Custom')
-    expect(importedItem.episode.provider).toBe(DanmakuSourceType.Custom)
     expect(importedItem.episode.title).toBe(customV4EpisodeData.title)
     expect(importedItem.episode.schemaVersion).toBe(4)
     expect(importedItem.episode.comments).toEqual(customV4EpisodeData.comments)
@@ -275,7 +275,6 @@ describe('importBackup with V4 and mixed data', () => {
     expect(importedItem.type).toBe('Regular')
     if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
 
-    expect(importedItem.episode.provider).toBe(DanmakuSourceType.DanDanPlay) // From our sample regularV4EpisodeData
     expect(importedItem.episode.title).toBe(regularV4EpisodeData.title)
     expect(importedItem.episode.schemaVersion).toBe(4)
     expect(importedItem.season?.title).toBe(regularV4EpisodeData.season.title)
@@ -315,13 +314,11 @@ describe('importBackup with V4 and mixed data', () => {
     assertIsImportedDataArray(backupResult.parsed)
 
     // Check first imported item (v3DanDanPlayData)
-    expect(backupResult.parsed[0][1].type).toBe('Regular')
-    expect(backupResult.parsed[0][1].episode.provider).toBe(
-      DanmakuSourceType.DanDanPlay
-    )
-    expect(backupResult.parsed[0][1].episode.title).toBe(
-      v3DanDanPlayData.episodeTitle
-    )
+    const firstItem = backupResult.parsed[0][1]
+    expect(firstItem.type).toBe('Regular')
+    if (firstItem.type !== 'Regular') throw new Error('Unexpected type')
+    expect(firstItem.season.manifestId).toBe('dandanplay')
+    expect(firstItem.episode.title).toBe(v3DanDanPlayData.episodeTitle)
 
     // Check second imported item (customV4EpisodeData)
     expect(backupResult.parsed[1][1].type).toBe('Custom')

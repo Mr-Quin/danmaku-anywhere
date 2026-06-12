@@ -5,7 +5,6 @@ describe('SeasonMap', () => {
   it('serializes mappings created from a season', () => {
     const map = SeasonMap.fromSeason('media-key', {
       namespaceKey: 'ddp',
-      providerConfigId: 'config-ddp',
       id: 10,
     })
 
@@ -15,6 +14,17 @@ describe('SeasonMap', () => {
         ddp: 10,
       },
       seasonIds: [10],
+      local: undefined,
+    })
+  })
+
+  it('creates an empty map for a season with no namespaceKey', () => {
+    const map = SeasonMap.fromSeason('media-key', { id: 10 })
+
+    expect(map.toSnapshot()).toEqual({
+      key: 'media-key',
+      seasons: {},
+      seasonIds: [],
       local: undefined,
     })
   })

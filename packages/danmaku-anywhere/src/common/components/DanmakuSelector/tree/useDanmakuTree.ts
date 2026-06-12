@@ -5,6 +5,7 @@ import {
   type EpisodeLite,
   type EpisodeStub,
   type GenericEpisodeLite,
+  providerTypeFromManifestId,
 } from '@danmaku-anywhere/danmaku-converter'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -16,17 +17,26 @@ import type {
 } from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
 import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
 import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
-import { isCustomEpisode, splitCustomEpisodePath } from '@/common/danmaku/utils'
+import { isSourceEpisode, splitCustomEpisodePath } from '@/common/danmaku/utils'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import { compareLocale } from '@/common/utils/collator'
 import { matchWithPinyin } from '@/common/utils/utils'
 
 const stringifyDanmakuMeta = (episode: GenericEpisodeLite) => {
-  if (isCustomEpisode(episode)) {
-    return episode.title
+  if (isSourceEpisode(episode)) {
+    return `${episode.season.title} ${episode.title}`
   }
-  return `${episode.season.title} ${episode.title}`
+  return episode.title
+}
+
+const episodeProviderType = (
+  episode: GenericEpisodeLite
+): DanmakuSourceType => {
+  if (isSourceEpisode(episode)) {
+    return providerTypeFromManifestId(episode.season.manifestId ?? '')
+  }
+  return DanmakuSourceType.MacCMS
 }
 
 const filterEpisodes = <T extends GenericEpisodeLite>(
@@ -35,11 +45,13 @@ const filterEpisodes = <T extends GenericEpisodeLite>(
   typeFilter: DanmakuSourceType[]
 ) => {
   if (!filter) {
-    return options.filter((option) => typeFilter.includes(option.provider))
+    return options.filter((option) =>
+      typeFilter.includes(episodeProviderType(option))
+    )
   }
 
   return options.filter((option) => {
-    if (!typeFilter.includes(option.provider)) {
+    if (!typeFilter.includes(episodeProviderType(option))) {
       return false
     }
     return matchWithPinyin(
@@ -65,7 +77,7 @@ const filterCustomEpisodes = <T extends GenericEpisodeLite>(
 const getEpisodeNumber = (item: ExtendedTreeItem): number | undefined => {
   if (
     item.kind === 'episode' &&
-    !isCustomEpisode(item.data) &&
+    isSourceEpisode(item.data) &&
     item.data.episodeNumber !== undefined
   ) {
     const num = Number(item.data.episodeNumber)
@@ -217,7 +229,6 @@ export const useDanmakuTree = (
         version: 0,
         timeUpdated: 0,
         id: -1,
-        provider: DanmakuSourceType.MacCMS,
         providerIds: {},
         isCustom: true,
       }
@@ -248,7 +259,7 @@ export const useDanmakuTree = (
       const resolvedConfig = resolveSeasonConfig(season, configs)
       const orphaned = resolvedConfig === undefined
       const provider =
-        resolvedConfig ?? getProviderById(season.providerConfigId)
+        resolvedConfig ?? getProviderById(season.manifestId ?? '')
 
       const children = groupEpisodes.map((ep) =>
         register({
@@ -278,7 +289,7 @@ export const useDanmakuTree = (
     // Merge bookmark stubs into season nodes
     // Pre-group episodes by seasonId for O(1) lookup
     const episodesBySeason = Object.groupBy(
-      episodes.filter((ep) => !isCustomEpisode(ep)),
+      episodes.filter(isSourceEpisode),
       (ep) => ep.seasonId
     )
 
@@ -328,7 +339,7 @@ export const useDanmakuTree = (
         // Season has no fetched episodes, create node from stubs only
         const resolvedConfig = resolveSeasonConfig(season, configs)
         const provider =
-          resolvedConfig ?? getProviderById(season.providerConfigId)
+          resolvedConfig ?? getProviderById(season.manifestId ?? '')
         const seasonNode = register({
           id: `season-${season.id}`,
           label: season.title,

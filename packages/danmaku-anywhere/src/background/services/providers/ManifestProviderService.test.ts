@@ -1,6 +1,5 @@
 import {
   type CommentEntity,
-  DanmakuSourceType,
   EPISODE_SCHEMA_VERSION,
   SEASON_SCHEMA_VERSION,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -70,7 +69,6 @@ describe('ManifestProviderService.search', () => {
     const svc = new ManifestProviderService(
       {
         manifestId: 'bilibili',
-        provider: DanmakuSourceType.Bilibili,
         providerConfigId: 'bilibili',
       },
       makeRegistry(runner),
@@ -83,8 +81,6 @@ describe('ManifestProviderService.search', () => {
     expect(result[0]).toMatchObject({
       providerIds: { seasonId: 123 },
       title: 'Frieren',
-      provider: DanmakuSourceType.Bilibili,
-      providerConfigId: 'bilibili',
       manifestId: 'bilibili',
       namespaceKey: 'bilibili',
       schemaVersion: SEASON_SCHEMA_VERSION,
@@ -97,7 +93,6 @@ describe('ManifestProviderService.search', () => {
     const svc = new ManifestProviderService(
       {
         manifestId: 'dandanplay',
-        provider: DanmakuSourceType.DanDanPlay,
         providerConfigId: 'custom-ddp-1',
         configValues: {
           baseUrl: 'https://compat.example',
@@ -127,7 +122,6 @@ describe('ManifestProviderService.getSeason', () => {
     const svc = new ManifestProviderService(
       {
         manifestId: 'tencent',
-        provider: DanmakuSourceType.Tencent,
         providerConfigId: 'tencent',
       },
       makeRegistry(runner),
@@ -150,7 +144,6 @@ describe('ManifestProviderService.getSeason', () => {
     const svc = new ManifestProviderService(
       {
         manifestId: 'bilibili',
-        provider: DanmakuSourceType.Bilibili,
         providerConfigId: 'bilibili',
       },
       makeRegistry(runner),
@@ -160,8 +153,6 @@ describe('ManifestProviderService.getSeason', () => {
     expect(result).toMatchObject({
       providerIds: { seasonId: 41410 },
       title: '新标题',
-      provider: DanmakuSourceType.Bilibili,
-      providerConfigId: 'bilibili',
       manifestId: 'bilibili',
       namespaceKey: 'bilibili',
       schemaVersion: SEASON_SCHEMA_VERSION,
@@ -174,7 +165,6 @@ describe('ManifestProviderService.getSeason', () => {
     const svc = new ManifestProviderService(
       {
         manifestId: 'bilibili',
-        provider: DanmakuSourceType.Bilibili,
         providerConfigId: 'bilibili',
       },
       makeRegistry(runner),
@@ -198,7 +188,6 @@ describe('ManifestProviderService.getEpisodes', () => {
     const svc = new ManifestProviderService(
       {
         manifestId: 'bilibili',
-        provider: DanmakuSourceType.Bilibili,
         providerConfigId: 'bilibili',
       },
       makeRegistry(runner),
@@ -211,7 +200,6 @@ describe('ManifestProviderService.getEpisodes', () => {
     expect(result[0]).toMatchObject({
       providerIds: { cid: 555 },
       title: 'Episode 1',
-      provider: DanmakuSourceType.Bilibili,
       schemaVersion: EPISODE_SCHEMA_VERSION,
     })
     expect(typeof result[0].lastChecked).toBe('number')
@@ -227,7 +215,6 @@ describe('ManifestProviderService.getDanmaku', () => {
       type: 'by-meta',
       meta: {
         season: {} as DanmakuFetchByMeta['meta']['season'],
-        provider: DanmakuSourceType.DanDanPlay,
         providerIds,
         title: 'x',
         indexedId: 'x',
@@ -244,7 +231,6 @@ describe('ManifestProviderService.getDanmaku', () => {
     const svc = new ManifestProviderService(
       {
         manifestId: 'dandanplay',
-        provider: DanmakuSourceType.DanDanPlay,
         providerConfigId: 'dandanplay',
       },
       makeRegistry(runner),
@@ -286,7 +272,6 @@ describe('ManifestProviderService.parseUrl', () => {
     const svc = new ManifestProviderService(
       {
         manifestId: 'dandanplay',
-        provider: DanmakuSourceType.DanDanPlay,
         providerConfigId: 'custom-ddp-1',
         configValues: { baseUrl: 'https://my-server/api' },
       },
@@ -301,10 +286,9 @@ describe('ManifestProviderService.parseUrl', () => {
       undefined,
       RUN_OPTS
     )
-    // manifestId is the durable config identity, distinct from the instance
-    // providerConfigId.
+    // manifestId is the durable config identity; the per-instance namespaceKey
+    // is derived separately and is distinct from the bare manifestId.
     expect(result?.seasonInsert).toMatchObject({
-      providerConfigId: 'custom-ddp-1',
       manifestId: 'dandanplay',
     })
     expect(result?.seasonInsert?.namespaceKey).toMatch(/^ns:/)

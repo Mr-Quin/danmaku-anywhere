@@ -10,7 +10,6 @@ import {
 } from '@danmaku-anywhere/danmaku-provider/maccms'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ILogger } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderConfigService } from '@/common/options/providerConfig/service'
@@ -22,7 +21,6 @@ import type {
 } from './IDanmakuProvider'
 
 export class MacCmsProviderService implements IDanmakuProvider {
-  readonly forProvider = DanmakuSourceType.MacCMS
   private logger: ILogger
 
   constructor(
@@ -79,7 +77,6 @@ export class MacCmsProviderService implements IDanmakuProvider {
           ? Number.parseInt(item.vod_year) || undefined
           : undefined,
         schemaVersion: 1,
-        provider: DanmakuSourceType.MacCMS,
         isCustom: true as const,
         providerIds: {},
         episodes: item.parsedPlayUrls,

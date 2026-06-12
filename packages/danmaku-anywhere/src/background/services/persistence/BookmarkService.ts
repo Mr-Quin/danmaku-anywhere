@@ -14,12 +14,11 @@ import { invariant, isServiceWorker } from '@/common/utils/utils'
 type WithoutId<T> = Omit<T, 'id'>
 
 const toStub = (meta: WithSeason<EpisodeMeta>): EpisodeStub => {
-  const { title, episodeNumber, indexedId, provider, providerIds } = meta
+  const { title, episodeNumber, indexedId, providerIds } = meta
   return {
     title,
     episodeNumber,
     indexedId,
-    provider,
     providerIds,
   } as EpisodeStub
 }
@@ -61,7 +60,6 @@ export class BookmarkService {
 
       const toInsert: WithoutId<Bookmark> = {
         seasonId,
-        providerConfigId: season.providerConfigId,
         episodes: stubs,
         lastRefreshed: Date.now(),
         timeUpdated: Date.now(),

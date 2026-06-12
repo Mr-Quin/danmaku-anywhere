@@ -61,7 +61,8 @@ export type BackupParseResult = {
 }
 
 const zEpisodeInsertV4WithSeasonV1Preprocessed = z.preprocess((data) => {
-  // preprocessing to set providerConfigId based on provider
+  // Old backups are builtins, so manifestId and namespaceKey are both the
+  // builtin id derived from the legacy season.provider tag.
   const d = data as any
   const provider = d?.season?.provider
   if (provider && provider in PROVIDER_TO_BUILTIN_ID) {
@@ -70,8 +71,8 @@ const zEpisodeInsertV4WithSeasonV1Preprocessed = z.preprocess((data) => {
       ...d,
       season: {
         ...d.season,
-        providerConfigId: builtinId,
         manifestId: builtinId,
+        namespaceKey: builtinId,
       },
     }
   }
@@ -89,25 +90,28 @@ const parseBackup = (data: unknown): BackupParseData | BackupParseError => {
     errors.push(parse.error)
   }
 
-  // try custom v4
-  {
-    const parse = zCustomEpisodeInsertV4.safeParse(data)
-    if (parse.success) {
-      return {
-        type: 'Custom',
-        episode: parse.data,
-      }
-    }
-    errors.push(parse.error)
-  }
-
-  // try regular v4
+  // Try regular v4 before custom: a custom episode has no `season`, so it fails
+  // the with-season schema and falls through. The reverse order would misparse
+  // a regular episode as custom, since the custom schema no longer carries a
+  // discriminating field and zod ignores the extra regular-only keys.
   {
     const parse = zEpisodeInsertV4WithSeasonV1Preprocessed.safeParse(data)
     if (parse.success) {
       return {
         type: 'Regular',
         season: parse.data.season,
+        episode: parse.data,
+      }
+    }
+    errors.push(parse.error)
+  }
+
+  // try custom v4
+  {
+    const parse = zCustomEpisodeInsertV4.safeParse(data)
+    if (parse.success) {
+      return {
+        type: 'Custom',
         episode: parse.data,
       }
     }

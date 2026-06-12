@@ -68,7 +68,10 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
   const seasonsByNamespace = useMemo(() => {
     const grouped = new Map<string, Season[]>()
     for (const season of allSeasons) {
-      const ns = season.namespaceKey ?? season.providerConfigId
+      const ns = season.namespaceKey
+      if (ns === undefined) {
+        continue
+      }
       const existing = grouped.get(ns) ?? []
       existing.push(season)
       grouped.set(ns, existing)

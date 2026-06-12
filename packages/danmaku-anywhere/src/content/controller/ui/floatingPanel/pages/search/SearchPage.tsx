@@ -59,7 +59,7 @@ export const SearchPage = (): React.ReactElement | null => {
           !SeasonMap.hasMapping(
             seasonMaps,
             mediaInfo.getKey(),
-            persisted.providerConfigId,
+            persisted.namespaceKey ?? '',
             persisted.id
           )
         ) {

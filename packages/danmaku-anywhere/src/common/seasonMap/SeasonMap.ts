@@ -11,7 +11,6 @@ export type SeasonMapSnapshot = {
 
 type SeasonLike = {
   namespaceKey?: string
-  providerConfigId: string
   id: number
 }
 
@@ -27,10 +26,12 @@ export class SeasonMap {
   }
 
   static fromSeason(key: string, season: SeasonLike) {
-    return SeasonMap.empty(key).withMapping(
-      season.namespaceKey ?? season.providerConfigId,
-      season.id
-    )
+    // A season whose config was deleted before the migration has no namespace
+    // and no live config, so it could never be retrieved by namespace anyway.
+    if (season.namespaceKey === undefined) {
+      return SeasonMap.empty(key)
+    }
+    return SeasonMap.empty(key).withMapping(season.namespaceKey, season.id)
   }
 
   static fromSnapshot(snapshot: SeasonMapSnapshot) {

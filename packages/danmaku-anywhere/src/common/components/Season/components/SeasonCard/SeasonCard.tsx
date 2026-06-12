@@ -1,6 +1,6 @@
 import {
   type CustomSeason,
-  DanmakuSourceType,
+  providerTypeFromManifestId,
   type Season,
   type SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
@@ -42,7 +42,7 @@ import { ProviderLogo } from '@/common/components/ProviderLogo'
 import type { HandleSeasonClick } from '@/common/components/Season/types'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { seasonSourceKey } from '@/common/danmaku/seasonLabel'
-import { isProvider } from '@/common/danmaku/utils'
+import { isCustomSeason } from '@/common/danmaku/utils'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'
 
@@ -177,7 +177,7 @@ export const SeasonCard = ({
     if (!isPersistedSeason(season)) {
       return null
     }
-    if (isProvider(season, DanmakuSourceType.MacCMS)) {
+    if (isCustomSeason(season)) {
       return (
         <CardCornerInfo position="bottom-right" sx={{ p: 0 }}>
           <DrilldownMenu
@@ -348,9 +348,11 @@ export const SeasonCard = ({
         {season.year && (
           <CardCornerInfo position="bottom-left">{season.year}</CardCornerInfo>
         )}
-        {!isProvider(season, DanmakuSourceType.MacCMS) && (
+        {!isCustomSeason(season) && (
           <Logo>
-            <ProviderLogo provider={season.provider} />
+            <ProviderLogo
+              provider={providerTypeFromManifestId(season.manifestId ?? '')}
+            />
           </Logo>
         )}
         {renderMenu()}

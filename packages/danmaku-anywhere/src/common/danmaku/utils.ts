@@ -1,40 +1,41 @@
 import type {
-  CustomEpisodeLite,
   CustomSeason,
+  GenericEpisode,
   GenericEpisodeLite,
   Season,
+  SeasonInsert,
+  WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
 
-// Boolean predicate only — does not narrow `providerIds`.
-export function isProvider(
-  data: { provider: DanmakuSourceType },
-  provider: DanmakuSourceType
-): boolean {
-  return data.provider === provider
+type AnyEpisode =
+  | GenericEpisode
+  | GenericEpisodeLite
+  | (WithSeason<object> & { seasonId: number })
+
+// Source-backed episodes carry a seasonId; custom episodes do not. The split
+// keys on seasonId because, with `provider` gone, a source episode is
+// structurally a superset of a custom one, so narrowing must go through the
+// distinguishing seasonId rather than the custom types.
+export function isSourceEpisode<T extends AnyEpisode>(
+  x: T
+): x is Extract<T, { seasonId: number }> {
+  return 'seasonId' in x
 }
 
-// Episode vs CustomEpisode is a structural distinction (CustomEpisode lacks
-// a season and uses a different shape entirely), so the guard still narrows.
-export function isNotCustom<T extends { provider: DanmakuSourceType }>(
-  data: T
-): data is Exclude<T, { provider: DanmakuSourceType.MacCMS }> {
-  return data.provider !== DanmakuSourceType.MacCMS
-}
-
-// Source-backed episodes carry a seasonId; custom episodes do not.
-export function isCustomEpisode(x: GenericEpisodeLite): x is CustomEpisodeLite {
+export function isCustomEpisode<T extends AnyEpisode>(
+  x: T
+): x is Exclude<T, { seasonId: number }> {
   return !('seasonId' in x)
 }
 
 export function isCustomSeason(
-  season: Season | CustomSeason
+  season: Season | SeasonInsert | CustomSeason
 ): season is CustomSeason {
   return 'isCustom' in season && season.isCustom === true
 }
 
 export const episodeToString = (episode: GenericEpisodeLite) => {
-  if (isNotCustom(episode)) {
+  if (isSourceEpisode(episode)) {
     return `${episode.season.title} - ${episode.title}`
   }
   return episode.title

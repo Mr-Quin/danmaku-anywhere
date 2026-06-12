@@ -1,4 +1,3 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import {
   createExtResponse,
   DA_EXT_SOURCE_APP,
@@ -9,7 +8,6 @@ import {
   setExtensionAttr,
 } from '@danmaku-anywhere/web-scraper'
 import { EXTENSION_VERSION } from '@/common/constants'
-import { isProvider } from '@/common/danmaku/utils'
 import { uiContainer } from '@/common/ioc/uiIoc'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { portNames } from '@/common/ports/portNames'
@@ -149,7 +147,9 @@ window.addEventListener(
       case 'danmakuGet': {
         const data = request.data
         const { id } = data
-        if (isProvider(data, DanmakuSourceType.MacCMS)) {
+        // The external web app payload carries its own `provider` tag to route
+        // custom danmaku, which the stored episode shape no longer has.
+        if ((data as { provider?: string }).provider === 'Custom') {
           return wrapRpc(() =>
             chromeRpcClient.episodeFilterCustom({
               id,
