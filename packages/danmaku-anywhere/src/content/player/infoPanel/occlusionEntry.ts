@@ -39,6 +39,14 @@ export class OcclusionEntryDeriver {
     }
   }
 
+  // The feature was turned off (or unmounted): drop any error/loading the loop
+  // left behind so no occlusion row lingers while occlusion is not engaged.
+  reset(): void {
+    this.running = false
+    this.error = undefined
+    this.loading = undefined
+  }
+
   current(): OcclusionEntry | undefined {
     if (this.running) {
       return { source: 'occlusion', state: 'on' }

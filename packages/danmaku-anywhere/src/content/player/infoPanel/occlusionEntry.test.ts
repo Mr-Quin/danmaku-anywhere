@@ -97,4 +97,20 @@ describe('OcclusionEntryDeriver', () => {
     d.setRunning(false)
     expect(d.current()).toBeUndefined()
   })
+
+  it('clears a stranded error row when the feature is disengaged', () => {
+    const d = new OcclusionEntryDeriver()
+    d.setStatus(status('init', 'init failed'))
+    expect(d.current()?.state).toBe('error')
+    d.reset()
+    expect(d.current()).toBeUndefined()
+  })
+
+  it('clears a stranded loading row when the feature is disengaged', () => {
+    const d = new OcclusionEntryDeriver()
+    d.setStatus(status('downloading'))
+    expect(d.current()?.state).toBe('loading')
+    d.reset()
+    expect(d.current()).toBeUndefined()
+  })
 })

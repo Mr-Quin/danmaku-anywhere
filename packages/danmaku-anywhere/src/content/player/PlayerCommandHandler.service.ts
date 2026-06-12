@@ -195,13 +195,19 @@ export class PlayerCommandHandler {
         },
         { optional: true }
       )
-      this.occlusionDeriver.setStatus(status)
-      this.infoPanel.setOcclusionEntry(this.occlusionDeriver.current())
+      this.applyOcclusion(() => this.occlusionDeriver.setStatus(status))
     })
     this.manager.onOcclusionRunningChange((running) => {
-      this.occlusionDeriver.setRunning(running)
-      this.infoPanel.setOcclusionEntry(this.occlusionDeriver.current())
+      this.applyOcclusion(() => this.occlusionDeriver.setRunning(running))
     })
+    this.manager.onOcclusionDisengaged(() => {
+      this.applyOcclusion(() => this.occlusionDeriver.reset())
+    })
+  }
+
+  private applyOcclusion(mutate: () => void) {
+    mutate()
+    this.infoPanel.setOcclusionEntry(this.occlusionDeriver.current())
   }
 
   private wireWindowEvents() {
