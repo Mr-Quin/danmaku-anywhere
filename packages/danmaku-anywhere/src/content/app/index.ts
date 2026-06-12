@@ -146,6 +146,9 @@ window.addEventListener(
       }
       case 'danmakuGet': {
         const data = request.data
+        if (!data) {
+          return
+        }
         const { id } = data
         // The external web app payload carries its own `provider` tag to route
         // custom danmaku, which the stored episode shape no longer has.

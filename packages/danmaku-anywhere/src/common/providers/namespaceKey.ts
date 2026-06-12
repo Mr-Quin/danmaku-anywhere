@@ -2,13 +2,20 @@ function fnv1a32(str: string): string {
   let hash = 0x811c9dc5
   for (let i = 0; i < str.length; i++) {
     hash ^= str.charCodeAt(i)
-    hash = (hash * 0x01000193) >>> 0
+    // Math.imul keeps this an exact 32-bit multiply; plain `*` overflows
+    // MAX_SAFE_INTEGER and loses the low bits the hash depends on.
+    hash = Math.imul(hash, 0x01000193)
   }
-  return hash.toString(16).padStart(8, '0')
+  return (hash >>> 0).toString(16).padStart(8, '0')
 }
 
 function normalizeBaseUrl(raw: string): string {
-  return raw.replace(/\/api\/?$/, '').replace(/\/$/, '')
+  // Hostnames are case-insensitive, so lowercase before hashing or two
+  // differently-cased URLs for one server would key to different namespaces.
+  return raw
+    .toLowerCase()
+    .replace(/\/api\/?$/, '')
+    .replace(/\/$/, '')
 }
 
 export function computeNamespaceKey(config: {
