@@ -24,7 +24,6 @@
   position: absolute;
   bottom: 40px;
   left: 20px;
-  z-index: 10000;
   pointer-events: auto;
   font-family: var(--da-font);
 

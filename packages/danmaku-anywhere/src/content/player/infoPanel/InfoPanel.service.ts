@@ -27,14 +27,14 @@ export class InfoPanelService {
     if (this.mountNode) {
       return
     }
-    // Mount into the video-aligned wrapper so the panel positions itself
-    // relative to the video rect. The wrapper is pointer-events: none; the
-    // panel re-enables pointer events on itself.
+    // Mount into the UI layer, which is sized to the video rect, so the panel
+    // positions itself relative to the video. The layer is pointer-events: none;
+    // the panel re-enables pointer events on itself.
     this.mountNode = document.createElement('div')
     this.mountNode.style.position = 'absolute'
     this.mountNode.style.inset = '0'
     this.mountNode.style.pointerEvents = 'none'
-    this.layout.wrapper.appendChild(this.mountNode)
+    this.layout.uiLayer.appendChild(this.mountNode)
     this.root = createRoot(this.mountNode)
     this.root.render(createElement(PlayerInfoPanel))
 

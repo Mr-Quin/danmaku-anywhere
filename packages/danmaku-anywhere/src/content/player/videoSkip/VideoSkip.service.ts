@@ -144,7 +144,7 @@ export class VideoSkipService {
     this.logger.debug('Creating skip buttons', target)
 
     const mountNode = document.createElement('div')
-    this.layoutManager.wrapper.appendChild(mountNode)
+    this.layoutManager.uiLayer.appendChild(mountNode)
 
     const root = createRoot(mountNode)
     root.render(
