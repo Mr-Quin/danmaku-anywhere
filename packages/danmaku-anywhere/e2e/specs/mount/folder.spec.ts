@@ -1,4 +1,3 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { Popup } from '../../pom/Popup'
 import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
@@ -21,14 +20,12 @@ test('mount tree: custom episodes with shared path render under a folder node', 
   await applyProfile(context, da, {})
 
   const ep1 = await da.episode.addCustom({
-    provider: DanmakuSourceType.MacCMS,
     title: `${FOLDER}/ep1.xml`,
     comments: [],
     commentCount: 0,
     schemaVersion: 4,
   })
   const ep2 = await da.episode.addCustom({
-    provider: DanmakuSourceType.MacCMS,
     title: `${FOLDER}/ep2.xml`,
     comments: [],
     commentCount: 0,

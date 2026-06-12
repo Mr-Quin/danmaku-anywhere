@@ -85,11 +85,12 @@ test('current build migrates an imported v1.5.0 backup and danmaku export', asyn
   expect(seasons.length, 'seasons imported').toBeGreaterThan(0)
   const customEpisodes = await da.episode.listCustom()
   expect(customEpisodes.length, 'custom danmaku imported').toBeGreaterThan(0)
-  const providerIds = new Set(providers.map((p) => p.id))
+  const providerManifestIds = new Set(providers.map((p) => p.manifestId))
   for (const season of seasons) {
     expect(
-      providerIds.has(season.providerConfigId),
-      `season provider id ${season.providerConfigId} resolves to a config`
+      season.manifestId !== undefined &&
+        providerManifestIds.has(season.manifestId),
+      `season manifestId ${season.manifestId} resolves to a live config`
     ).toBe(true)
   }
 })
