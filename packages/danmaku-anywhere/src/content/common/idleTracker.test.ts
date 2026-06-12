@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createIdleTracker } from './idleTracker'
+import { IdleTracker } from './idleTracker'
 
 /**
  * Exercises the vanilla idle tracker shared by the density chart and info
@@ -7,7 +7,7 @@ import { createIdleTracker } from './idleTracker'
  * flips state after the configured timeout, repeated activity resets the
  * timer, and destroy detaches listeners and clears subscribers.
  */
-describe('createIdleTracker', () => {
+describe('IdleTracker', () => {
   beforeEach(() => {
     vi.useFakeTimers()
   })
@@ -22,7 +22,7 @@ describe('createIdleTracker', () => {
 
   it('stays active until the first activity, then flips to idle after the timeout', () => {
     const target = document.createElement('div')
-    const tracker = createIdleTracker(target, { idleMs: 1000 })
+    const tracker = new IdleTracker(target, { idleMs: 1000 })
     const listener = vi.fn()
     tracker.subscribe(listener)
 
@@ -42,7 +42,7 @@ describe('createIdleTracker', () => {
 
   it('resets the idle timer on activity', () => {
     const target = document.createElement('div')
-    const tracker = createIdleTracker(target, { idleMs: 1000 })
+    const tracker = new IdleTracker(target, { idleMs: 1000 })
     tracker.subscribe(() => {})
 
     activity(target)
@@ -61,7 +61,7 @@ describe('createIdleTracker', () => {
 
   it('notifies all subscribers on state transitions and stops on unsubscribe', () => {
     const target = document.createElement('div')
-    const tracker = createIdleTracker(target, { idleMs: 1000 })
+    const tracker = new IdleTracker(target, { idleMs: 1000 })
     const a = vi.fn()
     const b = vi.fn()
     const unsubA = tracker.subscribe(a)
@@ -82,7 +82,7 @@ describe('createIdleTracker', () => {
 
   it('detaches event listeners and clears subscribers on destroy', () => {
     const target = document.createElement('div')
-    const tracker = createIdleTracker(target, { idleMs: 1000 })
+    const tracker = new IdleTracker(target, { idleMs: 1000 })
     const listener = vi.fn()
     tracker.subscribe(listener)
 

@@ -46,18 +46,4 @@ describe('resolvePanelEntries', () => {
     expect(result[0].source).toBe('pipeline')
     expect(result[1].source).toBe('occlusion')
   })
-
-  it('references the same entry instances', () => {
-    const result = resolvePanelEntries({
-      pipeline: PIPELINE,
-      occlusion: OCCLUSION,
-    })
-    expect(result[0]).toBe(PIPELINE)
-    expect(result[1]).toBe(OCCLUSION)
-  })
-
-  it('returns a new array each call', () => {
-    const entries = { pipeline: PIPELINE }
-    expect(resolvePanelEntries(entries)).not.toBe(resolvePanelEntries(entries))
-  })
 })

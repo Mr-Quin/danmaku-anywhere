@@ -1,9 +1,6 @@
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
-import {
-  createIdleTracker,
-  type IdleTracker,
-} from '@/content/common/idleTracker'
+import { IdleTracker } from '@/content/common/idleTracker'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
 
 type Listener = (active: boolean) => void
@@ -43,7 +40,7 @@ export class PlayerIdleService {
       return
     }
     this.currentVideo = this.videoNodeObs.activeVideo
-    this.tracker = createIdleTracker(document, {
+    this.tracker = new IdleTracker(document, {
       shouldCount: (event) => {
         return (
           this.currentVideo !== null &&

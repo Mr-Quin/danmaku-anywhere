@@ -1,84 +1,77 @@
 export interface IdleTrackerOptions {
   idleMs?: number
   /**
-   * Optional filter for activity events. When provided, only events
-   * accepted by the filter reset the idle timer. Useful when listening
-   * on a broad target like `document` while gating activity to a
+   * Only events accepted by this filter reset the idle timer. Useful when
+   * listening on a broad target like `document` but gating activity to a
    * subtree (e.g. the video element and its overlay siblings).
    */
   shouldCount?: (event: Event) => boolean
 }
 
-export interface IdleTracker {
-  subscribe(listener: (active: boolean) => void): () => void
-  getActive(): boolean
-  destroy(): void
-}
-
 const DEFAULT_IDLE_MS = 3000
 
-export function createIdleTracker(
-  target: HTMLElement | Document | Window,
-  options: IdleTrackerOptions = {}
-): IdleTracker {
-  const idleMs = options.idleMs ?? DEFAULT_IDLE_MS
-  const listeners = new Set<(active: boolean) => void>()
-  let active = true
-  let timeoutId: ReturnType<typeof setTimeout> | undefined
+/**
+ * Tracks whether the user has been active within `idleMs`. Stays active until
+ * the first activity, so a freshly mounted consumer is not hidden a few seconds
+ * after load with no interaction.
+ */
+export class IdleTracker {
+  private readonly target: EventTarget
+  private readonly idleMs: number
+  private readonly shouldCount?: (event: Event) => boolean
+  private readonly listeners = new Set<(active: boolean) => void>()
+  private readonly onActivity: EventListener
+  private active = true
+  private timeoutId?: ReturnType<typeof setTimeout>
 
-  function setActive(next: boolean) {
-    if (active === next) {
+  constructor(target: EventTarget, options: IdleTrackerOptions = {}) {
+    this.target = target
+    this.idleMs = options.idleMs ?? DEFAULT_IDLE_MS
+    this.shouldCount = options.shouldCount
+    this.onActivity = (event) => this.handleActivity(event)
+    target.addEventListener('mousemove', this.onActivity)
+    target.addEventListener('touchmove', this.onActivity, {
+      capture: true,
+      passive: true,
+    })
+  }
+
+  subscribe(listener: (active: boolean) => void): () => void {
+    this.listeners.add(listener)
+    return () => {
+      this.listeners.delete(listener)
+    }
+  }
+
+  getActive(): boolean {
+    return this.active
+  }
+
+  destroy(): void {
+    clearTimeout(this.timeoutId)
+    this.target.removeEventListener('mousemove', this.onActivity)
+    this.target.removeEventListener('touchmove', this.onActivity, {
+      capture: true,
+    })
+    this.listeners.clear()
+  }
+
+  private setActive(next: boolean): void {
+    if (this.active === next) {
       return
     }
-    active = next
-    for (const listener of listeners) {
+    this.active = next
+    for (const listener of this.listeners) {
       listener(next)
     }
   }
 
-  function onActivity(event: Event) {
-    if (options.shouldCount && !options.shouldCount(event)) {
+  private handleActivity(event: Event): void {
+    if (this.shouldCount && !this.shouldCount(event)) {
       return
     }
-    setActive(true)
-    clearTimeout(timeoutId)
-    timeoutId = setTimeout(() => setActive(false), idleMs)
-  }
-
-  target.addEventListener('mousemove', onActivity as EventListener)
-  target.addEventListener(
-    'touchmove',
-    onActivity as EventListener,
-    {
-      capture: true,
-      passive: true,
-    } as AddEventListenerOptions
-  )
-  // Stay active until the first activity arrives. Arming the idle timer here
-  // would hide the consumer a few seconds after load even if the user never
-  // interacted, which removes the only entry point on touch devices.
-
-  return {
-    subscribe(listener) {
-      listeners.add(listener)
-      return () => {
-        listeners.delete(listener)
-      }
-    },
-    getActive() {
-      return active
-    },
-    destroy() {
-      clearTimeout(timeoutId)
-      target.removeEventListener('mousemove', onActivity as EventListener)
-      target.removeEventListener(
-        'touchmove',
-        onActivity as EventListener,
-        {
-          capture: true,
-        } as EventListenerOptions
-      )
-      listeners.clear()
-    },
+    this.setActive(true)
+    clearTimeout(this.timeoutId)
+    this.timeoutId = setTimeout(() => this.setActive(false), this.idleMs)
   }
 }

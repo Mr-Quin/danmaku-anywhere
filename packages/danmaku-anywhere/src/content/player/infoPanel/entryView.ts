@@ -27,11 +27,7 @@ const OCCLUSION_VIEW: Record<OcclusionState, EntryView> = {
   },
 }
 
-/**
- * The shared-chrome view for a row (status dot color/pulse + headline),
- * resolved per source. Pipeline reuses the substate view; occlusion maps its
- * state. Bodies are rendered separately, switched on source.
- */
+/** The shared-chrome view (dot severity/pulse + headline) for a row. */
 export function entryView(entry: PanelEntry): EntryView {
   if (entry.source === 'pipeline') {
     const view = panelView(entry.substate)
