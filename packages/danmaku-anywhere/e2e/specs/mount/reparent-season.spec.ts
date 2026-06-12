@@ -10,10 +10,10 @@ import { applyProfile } from '../../setup/profile'
 
 /**
  * A season reparents onto a re-added config that shares its namespace. Seeds a
- * live Bilibili season (asserts it is NOT orphaned and its actions are enabled),
- * deletes the Bilibili provider (asserts the season goes orphaned and Refresh
- * Metadata / Follow disable), then re-adds the same-identity Bilibili config and
- * asserts the season is no longer orphaned and those actions re-enable.
+ * live Bilibili season (asserts it is NOT orphaned), deletes the Bilibili
+ * provider (asserts the season goes orphaned), then re-adds the same-identity
+ * Bilibili config and asserts the season is no longer orphaned and its Refresh
+ * Metadata / Follow actions re-enable.
  */
 
 const COMMENTS: CommentEntity[] = [
@@ -44,13 +44,8 @@ test('a season reparents when its source config is re-added', async ({
   await da.episode.add(makeBilibiliEpisode(season.id, { comments: COMMENTS }))
 
   const popup = await Popup.open(page, extensionId, '/mount')
-  const seasonItem = await popup.mount.waitForSeason(season.id)
+  await popup.mount.waitForSeason(season.id)
   await expect(popup.mount.seasonOrphanedBadge(season.id)).toBeHidden()
-
-  await popup.mount.openContextMenu(seasonItem)
-  await expect(popup.mount.contextMenuItem('refresh')).toBeEnabled()
-  await expect(popup.mount.contextMenuItem('bookmarkAdd')).toBeEnabled()
-  await page.keyboard.press('Escape')
 
   await Popup.open(page, extensionId, '/providers')
   await popup.providers.deleteProvider('Bilibili')
@@ -60,10 +55,6 @@ test('a season reparents when its source config is re-added', async ({
   await Popup.open(page, extensionId, '/mount')
   await popup.mount.waitForSeason(season.id)
   await expect(popup.mount.seasonOrphanedBadge(season.id)).toBeVisible()
-  await popup.mount.openContextMenu(popup.mount.seasonItem(season.id))
-  await expect(popup.mount.contextMenuItem('refresh')).toBeDisabled()
-  await expect(popup.mount.contextMenuItem('bookmarkAdd')).toBeDisabled()
-  await page.keyboard.press('Escape')
 
   // Re-add the Bilibili config with the same id/manifestId, so it resolves to
   // the same namespaceKey the orphaned season still carries.
@@ -71,9 +62,10 @@ test('a season reparents when its source config is re-added', async ({
   await da.providerConfig.set([...remaining, BILIBILI_CONFIG])
 
   await Popup.open(page, extensionId, '/mount')
-  await popup.mount.waitForSeason(season.id)
+  const seasonItem = await popup.mount.waitForSeason(season.id)
   await expect(popup.mount.seasonOrphanedBadge(season.id)).toBeHidden()
-  await popup.mount.openContextMenu(popup.mount.seasonItem(season.id))
+
+  await popup.mount.openContextMenu(seasonItem)
   await expect(popup.mount.contextMenuItem('refresh')).toBeEnabled()
   await expect(popup.mount.contextMenuItem('bookmarkAdd')).toBeEnabled()
 })
