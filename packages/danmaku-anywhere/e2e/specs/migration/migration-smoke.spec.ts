@@ -10,6 +10,7 @@ import type { BrowserContext, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import packageJson from '../../../package.json' with { type: 'json' }
 import { DANMAKU_DB_NAME } from '../../../src/common/db/db'
+import { computeNamespaceKey } from '../../../src/common/providers/namespaceKey'
 import migrationConfig from '../../migration.config.json' with { type: 'json' }
 import { mockCatalog } from '../../network/catalog'
 import { MigrationLegacyPopup } from '../../poms/legacy/v1.5.0/MigrationLegacyPopup'
@@ -121,7 +122,9 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   const postIdb = await readIdbCounts(probe)
   const postSeasonConfigIds = await readSeasonConfigIds(probe)
   const postSeasonManifestIds = await readSeasonManifestIds(probe)
+  const postSeasonIdentity = await readSeasonNamespaceKeys(probe)
   const postCustomDdpBaseUrl = await readCustomDdpBaseUrl(probe)
+  const postCustomDdpConfig = await readCustomDdpConfig(probe)
   const postManifest = await probe.evaluate(
     () => chrome.runtime.getManifest().version
   )
@@ -168,18 +171,20 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
     postCustomDdpBaseUrl,
     'custom DanDanPlay baseUrl had its /api suffix stripped'
   ).toBe('https://api.dandanplay.net')
-  // The v14 DB migration must strip `builtin:` from season.providerConfigId,
-  // and every season must still point at a provider config that exists.
+  // v15 deletes the legacy provider / providerConfigId fields from every season
+  // row. readSeasonConfigIds reads providerConfigId, so it must come back empty.
   expect(
-    postSeasonConfigIds.some((id) => id.startsWith('builtin:')),
-    'no season retains a builtin: provider id'
-  ).toBe(false)
-  const configIds = new Set(postSync.providerConfigIds)
-  for (const id of postSeasonConfigIds) {
+    postSeasonConfigIds,
+    'no season retains a providerConfigId after v15'
+  ).toEqual([])
+  for (const row of postSeasonIdentity) {
+    expect(row.hasProvider, `season ${row.id} dropped its provider field`).toBe(
+      false
+    )
     expect(
-      configIds.has(id),
-      `season provider id ${id} resolves to a config`
-    ).toBe(true)
+      row.hasProviderConfigId,
+      `season ${row.id} dropped its providerConfigId field`
+    ).toBe(false)
   }
   // The fixture's seasons all point at live configs, so v15 must stamp a
   // manifestId on every one, not just some.
@@ -189,6 +194,28 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   ).toBeGreaterThan(0)
   for (const { id, manifestId } of postSeasonManifestIds) {
     expect(manifestId, `season ${id} backfilled a manifestId`).toBeTruthy()
+  }
+  // Every season that got a manifestId must also get a namespaceKey: the two are
+  // backfilled together from the same providerConfigId, so a manifestId without
+  // a namespaceKey would mean the season can never be matched at lookup.
+  for (const row of postSeasonIdentity) {
+    if (row.manifestId !== undefined) {
+      expect(
+        row.namespaceKey,
+        `season ${row.id} backfilled a namespaceKey alongside its manifestId`
+      ).toBeTruthy()
+    }
+  }
+  // The custom self-hosted DanDanPlay season must carry the namespaceKey derived
+  // from its (post-upgrade) config, proving the backfill recomputes it rather
+  // than collapsing self-hosted instances onto the bare manifestId.
+  expect(postCustomDdpConfig, 'custom DanDanPlay config survived').toBeDefined()
+  if (postCustomDdpConfig) {
+    const expectedNamespaceKey = computeNamespaceKey(postCustomDdpConfig)
+    expect(
+      postSeasonIdentity.some((s) => s.namespaceKey === expectedNamespaceKey),
+      `a season carries the custom DDP namespaceKey ${expectedNamespaceKey}`
+    ).toBe(true)
   }
 
   return context
@@ -278,6 +305,40 @@ async function readCustomDdpBaseUrl(page: Page): Promise<string | undefined> {
   })
 }
 
+interface CustomDdpConfig {
+  id: string
+  manifestId: string
+  configValues?: Record<string, unknown>
+}
+
+async function readCustomDdpConfig(
+  page: Page
+): Promise<CustomDdpConfig | undefined> {
+  return page.evaluate(async () => {
+    const sync = await chrome.storage.sync.get('providerConfig')
+    const pc = sync.providerConfig as
+      | {
+          data?: Array<{
+            id?: string
+            manifestId?: string
+            configValues?: Record<string, unknown>
+          }>
+        }
+      | undefined
+    const custom = (pc?.data ?? []).find(
+      (p) => p.manifestId === 'dandanplay' && p.id !== 'dandanplay'
+    )
+    if (!custom?.id || !custom.manifestId) {
+      return undefined
+    }
+    return {
+      id: custom.id,
+      manifestId: custom.manifestId,
+      configValues: custom.configValues,
+    }
+  })
+}
+
 async function readSeasonConfigIds(page: Page): Promise<string[]> {
   return page.evaluate(
     (dbName) =>
@@ -341,6 +402,57 @@ async function readSeasonManifestIds(
           }
         }
       ),
+    DANMAKU_DB_NAME
+  )
+}
+
+interface SeasonIdentityRow {
+  id: number
+  manifestId?: string
+  namespaceKey?: string
+  hasProvider: boolean
+  hasProviderConfigId: boolean
+}
+
+async function readSeasonNamespaceKeys(
+  page: Page
+): Promise<SeasonIdentityRow[]> {
+  return page.evaluate(
+    (dbName) =>
+      new Promise<SeasonIdentityRow[]>((resolve, reject) => {
+        const req = indexedDB.open(dbName)
+        req.onerror = () => reject(req.error)
+        req.onsuccess = () => {
+          const db = req.result
+          try {
+            const tx = db.transaction(['season'], 'readonly')
+            const getAll = tx.objectStore('season').getAll()
+            tx.oncomplete = () => {
+              db.close()
+              const seasons = getAll.result as Array<{
+                id: number
+                manifestId?: string
+                namespaceKey?: string
+                provider?: unknown
+                providerConfigId?: unknown
+              }>
+              resolve(
+                seasons.map((s) => ({
+                  id: s.id,
+                  manifestId: s.manifestId,
+                  namespaceKey: s.namespaceKey,
+                  hasProvider: 'provider' in s,
+                  hasProviderConfigId: 'providerConfigId' in s,
+                }))
+              )
+            }
+            tx.onerror = () => reject(tx.error)
+          } catch (e) {
+            db.close()
+            reject(e)
+          }
+        }
+      }),
     DANMAKU_DB_NAME
   )
 }
