@@ -1,11 +1,10 @@
-import type { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { useDrag } from '@use-gesture/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { localizedDanmakuSourceType } from '@/common/danmaku/enums'
 import { i18n } from '@/common/localization/i18n'
 import type {
   PanelMediaInfo,
-  PanelStateSnapshot,
+  PipelineEntry,
 } from '@/common/rpcClient/background/types'
 import {
   clampOffset,
@@ -13,9 +12,12 @@ import {
 } from '@/content/common/hooks/clampOffset'
 import { usePersistedPosition } from '@/content/common/hooks/usePersistedPosition'
 import type { DragOffset } from '@/content/controller/ui/components/dragOffset'
+import { entryView } from './entryView'
 import { computePanelBounds } from './panelBounds'
+import type { OcclusionEntry, PanelEntry } from './panelEntry'
 import { usePanelStateStore } from './panelStateStore'
 import { panelView } from './panelView'
+import { resolvePanelEntries } from './resolvePanelEntries'
 
 const DEFAULT_OFFSET: DragOffset = { x: 16, y: 16 }
 
@@ -48,50 +50,98 @@ function MediaBlock({ media }: { media: PanelMediaInfo }) {
   )
 }
 
-function CountRow({
-  count,
-  provider,
-}: {
-  count: number
-  provider?: DanmakuSourceType
-}) {
+function PipelineBody({ entry }: { entry: PipelineEntry }) {
+  const view = panelView(entry.substate)
   return (
-    <div className="da-ip-count">
-      <span className="da-ip-count-num">{count.toLocaleString()}</span>
-      <span className="da-ip-count-label">
-        {i18n.t('infoPanel.comments', 'comments')}
-      </span>
-      {provider ? (
-        <span className="da-ip-source">
-          {localizedDanmakuSourceType(provider)}
-        </span>
+    <div className="da-ip-body">
+      {view.showMedia && entry.media ? (
+        <MediaBlock media={entry.media} />
+      ) : null}
+      {view.showCount && entry.commentCount !== undefined ? (
+        <div className="da-ip-count">
+          <span data-da-ip-count className="da-ip-count-num">
+            {entry.commentCount.toLocaleString()}
+          </span>
+          <span className="da-ip-count-label">
+            {i18n.t('infoPanel.comments', 'comments')}
+          </span>
+          {entry.provider ? (
+            <span data-da-ip-source className="da-ip-source">
+              {localizedDanmakuSourceType(entry.provider)}
+            </span>
+          ) : null}
+        </div>
       ) : null}
     </div>
   )
 }
 
-function shouldRender(
-  snapshot: PanelStateSnapshot | undefined,
-  pipActive: boolean
-): boolean {
-  if (pipActive) {
-    // The panel's styles live in the player shadow root, which a PiP window
-    // does not inherit, so it would render unstyled there.
-    return false
+function OcclusionBody({ entry }: { entry: OcclusionEntry }) {
+  if (!entry.message) {
+    return null
   }
-  if (!snapshot || !snapshot.enabled) {
-    return false
+  return (
+    <div className="da-ip-body">
+      <p data-da-ip-message className="da-ip-message">
+        {entry.message}
+      </p>
+    </div>
+  )
+}
+
+function RowGlanceTag({ entry }: { entry: PanelEntry }) {
+  if (entry.source !== 'pipeline') {
+    return null
   }
-  // Manual mode has no integration match; only surface a successful mount so
-  // the panel indicates the manually-mounted danmaku rather than noise.
-  if (snapshot.isManual && snapshot.state !== 'mounted') {
-    return false
+  const ep = entry.media ? episodeLabel(entry.media) : null
+  if (!ep) {
+    return null
   }
-  return true
+  return (
+    <span data-da-ip-tag className="da-ip-tag">
+      {ep}
+    </span>
+  )
+}
+
+function RowBody({ entry }: { entry: PanelEntry }) {
+  if (entry.source === 'pipeline') {
+    return <PipelineBody entry={entry} />
+  }
+  return <OcclusionBody entry={entry} />
+}
+
+function PanelRow({
+  entry,
+  expanded,
+}: {
+  entry: PanelEntry
+  expanded: boolean
+}) {
+  const view = entryView(entry)
+  return (
+    <div
+      data-da-ip-row
+      data-source={entry.source}
+      data-sev={view.severity}
+      className="da-ip-row"
+    >
+      <div className="da-ip-row-header">
+        <span
+          className={view.pulse ? 'da-ip-dot da-ip-dot--pulse' : 'da-ip-dot'}
+        />
+        <span data-da-ip-headline className="da-ip-headline">
+          {view.headline()}
+        </span>
+        {!expanded ? <RowGlanceTag entry={entry} /> : null}
+      </div>
+      {expanded ? <RowBody entry={entry} /> : null}
+    </div>
+  )
 }
 
 export function PlayerInfoPanel() {
-  const snapshot = usePanelStateStore.use.snapshot()
+  const entries = resolvePanelEntries(usePanelStateStore.use.entries())
   const active = usePanelStateStore.use.active()
   const pipActive = usePanelStateStore.use.pipActive()
   const [hovered, setHovered] = useState(false)
@@ -139,17 +189,15 @@ export function PlayerInfoPanel() {
     return start
   })
 
-  const rendered = shouldRender(snapshot, pipActive)
+  const rendered = !pipActive && entries.length > 0
 
-  // The panel mounts before the first snapshot arrives, so this re-runs once
-  // the panel actually renders: it clamps the restored offset into the current
-  // bounds and keeps it in bounds as the video resizes.
+  // Re-runs once the panel actually renders, then keeps the offset clamped: the
+  // parent observer covers video resizes, the panel observer covers the panel
+  // growing or shrinking as rows appear and disappear.
   useEffect(() => {
-    if (!rendered) {
-      return
-    }
-    const parent = panelRef.current?.offsetParent as HTMLElement | null
-    if (!parent) {
+    const el = panelRef.current
+    const parent = el?.offsetParent as HTMLElement | null
+    if (!rendered || !el || !parent) {
       return
     }
     applyOffset(clampOffset(offsetRef.current, currentBounds()))
@@ -157,14 +205,14 @@ export function PlayerInfoPanel() {
       applyOffset(clampOffset(offsetRef.current, currentBounds()))
     })
     observer.observe(parent)
+    observer.observe(el)
     return () => observer.disconnect()
   }, [rendered, applyOffset, currentBounds])
 
-  if (!rendered || !snapshot) {
+  if (!rendered) {
     return null
   }
 
-  const view = panelView(snapshot.state)
   const expanded = hovered || dragging
   const visible = active || expanded
   const className = [
@@ -180,48 +228,22 @@ export function PlayerInfoPanel() {
     <div
       ref={panelRef}
       className={className}
-      data-sev={view.severity}
       style={{ left: `${offset.x}px`, top: `${offset.y}px` }}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}
     >
-      <div className="da-ip-header">
-        <span
-          className={view.pulse ? 'da-ip-dot da-ip-dot--pulse' : 'da-ip-dot'}
-        />
-        <span className="da-ip-headline">{view.headline()}</span>
-        {expanded ? (
-          <span
-            {...bind()}
-            className="da-ip-grip"
-            data-da-ip-grip
-            aria-hidden="true"
-          />
-        ) : null}
+      <div className="da-ip-rows">
+        {entries.map((entry) => (
+          <PanelRow key={entry.source} entry={entry} expanded={expanded} />
+        ))}
       </div>
-
-      {!expanded && view.showMedia && snapshot.media ? (
-        <div className="da-ip-collapsed">
-          {episodeLabel(snapshot.media) ? (
-            <span className="da-ip-episode">
-              {episodeLabel(snapshot.media)}
-            </span>
-          ) : null}
-        </div>
-      ) : null}
-
       {expanded ? (
-        <div className="da-ip-body">
-          {view.showMedia && snapshot.media ? (
-            <MediaBlock media={snapshot.media} />
-          ) : null}
-          {view.showCount && snapshot.commentCount !== undefined ? (
-            <CountRow
-              count={snapshot.commentCount}
-              provider={snapshot.provider}
-            />
-          ) : null}
-        </div>
+        <span
+          {...bind()}
+          className="da-ip-grip"
+          data-da-ip-grip
+          aria-hidden="true"
+        />
       ) : null}
     </div>
   )

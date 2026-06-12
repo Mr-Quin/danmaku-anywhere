@@ -4,9 +4,10 @@ import { MediaInfo } from '@/content/controller/danmaku/integration/models/Media
 import { type PanelStateInputs, selectPanelState } from './selectPanelState'
 
 /**
- * Exercises the pure derivation of the info-panel snapshot from controller
- * store inputs. Verifies the priority of disconnected > error > mounted >
- * matched > loading > noMatch and the media payload shape.
+ * Exercises the pure derivation of the pipeline panel entry from controller
+ * store inputs. Verifies the substate priority (disconnected > error > mounted >
+ * matched > loading > noMatch), the media payload shape, and the visibility
+ * policy (disabled and manual-before-mount both yield null, i.e. no entry).
  */
 describe('selectPanelState', () => {
   const baseInputs: PanelStateInputs = {
@@ -20,8 +21,22 @@ describe('selectPanelState', () => {
     },
   }
 
+  it('returns null when the info panel is disabled', () => {
+    expect(selectPanelState({ ...baseInputs, enabled: false })).toBeNull()
+  })
+
+  it('returns null in manual mode until danmaku is mounted', () => {
+    expect(
+      selectPanelState({
+        ...baseInputs,
+        isManual: true,
+        integration: { ...baseInputs.integration, active: true },
+      })
+    ).toBeNull()
+  })
+
   it('reports disconnected when the controller is disconnected', () => {
-    const snapshot = selectPanelState({
+    const entry = selectPanelState({
       ...baseInputs,
       isDisconnected: true,
       isMounted: true,
@@ -30,11 +45,11 @@ describe('selectPanelState', () => {
         mediaInfo: new MediaInfo({ title: 'Show', episode: 1 }),
       },
     })
-    expect(snapshot.state).toBe('disconnected')
+    expect(entry?.substate).toBe('disconnected')
   })
 
   it('reports error before mounted or matched when an errorMessage is set', () => {
-    const snapshot = selectPanelState({
+    const entry = selectPanelState({
       ...baseInputs,
       isMounted: true,
       integration: {
@@ -43,11 +58,11 @@ describe('selectPanelState', () => {
         mediaInfo: new MediaInfo({ title: 'Show', episode: 1 }),
       },
     })
-    expect(snapshot.state).toBe('error')
+    expect(entry?.substate).toBe('error')
   })
 
   it('reports mounted when danmaku is mounted', () => {
-    const snapshot = selectPanelState({
+    const entry = selectPanelState({
       ...baseInputs,
       isMounted: true,
       commentCount: 42,
@@ -56,12 +71,12 @@ describe('selectPanelState', () => {
         mediaInfo: new MediaInfo({ title: 'Show', episode: 1 }),
       },
     })
-    expect(snapshot.state).toBe('mounted')
-    expect(snapshot.commentCount).toBe(42)
+    expect(entry?.substate).toBe('mounted')
+    expect(entry?.commentCount).toBe(42)
   })
 
   it('reports matched when mediaInfo is set but danmaku is not mounted yet', () => {
-    const snapshot = selectPanelState({
+    const entry = selectPanelState({
       ...baseInputs,
       integration: {
         ...baseInputs.integration,
@@ -69,23 +84,23 @@ describe('selectPanelState', () => {
         mediaInfo: new MediaInfo({ title: 'Show', episode: 1 }),
       },
     })
-    expect(snapshot.state).toBe('matched')
-    expect(snapshot.commentCount).toBeUndefined()
+    expect(entry?.substate).toBe('matched')
+    expect(entry?.commentCount).toBeUndefined()
   })
 
   it('reports loading while the integration is active without a match', () => {
-    const snapshot = selectPanelState({
+    const entry = selectPanelState({
       ...baseInputs,
       integration: {
         ...baseInputs.integration,
         active: true,
       },
     })
-    expect(snapshot.state).toBe('loading')
+    expect(entry?.substate).toBe('loading')
   })
 
   it('reports noMatch when the integration is inactive with no match', () => {
-    expect(selectPanelState(baseInputs).state).toBe('noMatch')
+    expect(selectPanelState(baseInputs)?.substate).toBe('noMatch')
   })
 
   it('forwards media fields and provider', () => {
@@ -96,7 +111,7 @@ describe('selectPanelState', () => {
       episodeTitle: 'Pilot',
       originalTitle: 'Original',
     })
-    const snapshot = selectPanelState({
+    const entry = selectPanelState({
       ...baseInputs,
       provider: DanmakuSourceType.DanDanPlay,
       integration: {
@@ -104,18 +119,18 @@ describe('selectPanelState', () => {
         mediaInfo: media,
       },
     })
-    expect(snapshot.media).toEqual({
+    expect(entry?.media).toEqual({
       title: 'Show',
       episode: 3,
       seasonDecorator: '2',
       episodeTitle: 'Pilot',
       originalTitle: 'Original',
     })
-    expect(snapshot.provider).toBe(DanmakuSourceType.DanDanPlay)
+    expect(entry?.provider).toBe(DanmakuSourceType.DanDanPlay)
   })
 
   it('derives media from the mounted episode in manual mode', () => {
-    const snapshot = selectPanelState({
+    const entry = selectPanelState({
       ...baseInputs,
       isManual: true,
       isMounted: true,
@@ -146,18 +161,17 @@ describe('selectPanelState', () => {
         },
       ] as unknown as PanelStateInputs['mountedEpisodes'],
     })
-    expect(snapshot.state).toBe('mounted')
-    expect(snapshot.isManual).toBe(true)
-    expect(snapshot.media).toEqual({
+    expect(entry?.substate).toBe('mounted')
+    expect(entry?.media).toEqual({
       title: 'Manual Show',
       episode: 5,
       episodeTitle: 'Episode Title',
     })
-    expect(snapshot.commentCount).toBe(7)
+    expect(entry?.commentCount).toBe(7)
   })
 
   it('prefers integration mediaInfo over mounted episodes when both exist', () => {
-    const snapshot = selectPanelState({
+    const entry = selectPanelState({
       ...baseInputs,
       isMounted: true,
       mountedEpisodes: [
@@ -168,6 +182,6 @@ describe('selectPanelState', () => {
         mediaInfo: new MediaInfo({ title: 'Matched', episode: 1 }),
       },
     })
-    expect(snapshot.media?.title).toBe('Matched')
+    expect(entry?.media?.title).toBe('Matched')
   })
 })

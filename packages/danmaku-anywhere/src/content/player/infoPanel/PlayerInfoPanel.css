@@ -1,9 +1,17 @@
+/*
+ * Injected into the player shadow root. Uses only `--da-*` tokens and no global
+ * selectors. The container is source-agnostic chrome; each `.da-ip-row` is one
+ * source. Collapsed vs expanded is driven by `.da-ip--expanded` on the
+ * container, so the row DOM stays stable.
+ */
+
 .da-ip {
   position: absolute;
   box-sizing: border-box;
   display: inline-flex;
   flex-direction: column;
   max-width: 280px;
+  min-width: 168px;
   font-family: var(--da-font);
   color: var(--da-text);
   background: color-mix(in srgb, var(--da-surface) 88%, transparent);
@@ -39,18 +47,43 @@
     0 0 0 1px var(--da-primary-soft);
 }
 
-.da-ip-header {
+.da-ip-rows {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Each source owns one row. Rows stack; a hairline separates adjacent rows. */
+.da-ip-row {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.da-ip-row + .da-ip-row {
+  border-top: 1px solid var(--da-divider);
+}
+
+.da-ip-row-header {
   display: flex;
   align-items: center;
   gap: 7px;
   padding: 7px 10px;
+  min-width: 0;
 }
 
-.da-ip--expanded .da-ip-header {
-  padding: 9px 11px 8px;
-  border-bottom: 1px solid var(--da-divider);
+/* Reserve room on the right of the first row so the panel grip never overlaps
+   the headline or tag. */
+.da-ip--expanded .da-ip-row:first-child .da-ip-row-header {
+  padding-right: 26px;
 }
 
+.da-ip--expanded .da-ip-row-header {
+  padding-top: 9px;
+  padding-bottom: 8px;
+}
+
+/* Status dot. Color + glow come from the row's data-sev; pulse from --pulse. */
 .da-ip-dot {
   flex: 0 0 auto;
   width: 8px;
@@ -59,16 +92,16 @@
   background: rgba(255, 255, 255, 0.55);
 }
 
-.da-ip[data-sev="info"] .da-ip-dot {
+[data-da-ip-row][data-sev="info"] .da-ip-dot {
   background: var(--da-info);
 }
 
-.da-ip[data-sev="success"] .da-ip-dot {
+[data-da-ip-row][data-sev="success"] .da-ip-dot {
   background: var(--da-success);
   box-shadow: 0 0 6px color-mix(in srgb, var(--da-success) 70%, transparent);
 }
 
-.da-ip[data-sev="danger"] .da-ip-dot {
+[data-da-ip-row][data-sev="danger"] .da-ip-dot {
   background: var(--da-danger);
   box-shadow: 0 0 6px color-mix(in srgb, var(--da-danger) 70%, transparent);
 }
@@ -83,24 +116,42 @@
   letter-spacing: 0.4px;
   text-transform: uppercase;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: rgba(255, 255, 255, 0.85);
 }
 
-.da-ip[data-sev="info"] .da-ip-headline {
+[data-da-ip-row][data-sev="info"] .da-ip-headline {
   color: var(--da-info-ink);
 }
 
-.da-ip[data-sev="success"] .da-ip-headline {
+[data-da-ip-row][data-sev="success"] .da-ip-headline {
   color: var(--da-success-ink);
 }
 
-.da-ip[data-sev="danger"] .da-ip-headline {
+[data-da-ip-row][data-sev="danger"] .da-ip-headline {
   color: var(--da-danger-ink);
 }
 
-.da-ip-grip {
+/* Collapsed glance tag (episode for pipeline, optional). Hidden when expanded. */
+.da-ip-tag {
   flex: 0 0 auto;
   margin-left: auto;
+  font-size: var(--da-fs-caption);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+}
+
+.da-ip--expanded .da-ip-tag {
+  display: none;
+}
+
+/* Panel-level drag handle, top-right, only while expanded. */
+.da-ip-grip {
+  position: absolute;
+  top: 8px;
+  right: 9px;
   width: 14px;
   height: 14px;
   cursor: grab;
@@ -109,28 +160,35 @@
   background-image: radial-gradient(currentColor 1px, transparent 1px);
   background-size: 4px 4px;
   background-position: center;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.da-ip--expanded .da-ip-grip {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .da-ip-grip:active {
   cursor: grabbing;
 }
 
-.da-ip-collapsed {
-  padding: 0 10px 8px;
-}
-
-.da-ip-episode {
-  font-size: var(--da-fs-caption);
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
-}
-
+/* Expanded detail body. Hidden when collapsed. Source-specific children below. */
 .da-ip-body {
   display: flex;
   flex-direction: column;
-  padding: 10px 11px 11px;
+  padding: 2px 11px 11px;
 }
 
+.da-ip-row:not(:first-child) .da-ip-body {
+  padding-top: 8px;
+}
+
+.da-ip:not(.da-ip--expanded) .da-ip-body {
+  display: none;
+}
+
+/* Pipeline body: media block. */
 .da-ip-media {
   display: flex;
   flex-direction: column;
@@ -174,6 +232,7 @@
   content: "· ";
 }
 
+/* Pipeline body: comment count + provider chip. */
 .da-ip-count {
   display: flex;
   align-items: center;
@@ -210,6 +269,18 @@
   color: rgba(255, 255, 255, 0.78);
 }
 
+/* Occlusion body (and any source that only needs a one-line detail message). */
+.da-ip-message {
+  margin: 0;
+  font-size: var(--da-fs-caption);
+  line-height: 1.35;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+[data-da-ip-row][data-sev="danger"] .da-ip-message {
+  color: var(--da-danger-ink);
+}
+
 @keyframes da-ip-pulse {
   0%,
   100% {
@@ -217,5 +288,14 @@
   }
   50% {
     opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .da-ip-dot--pulse {
+    animation: none;
+  }
+  .da-ip {
+    transition: none;
   }
 }

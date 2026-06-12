@@ -325,6 +325,11 @@
   },
   "infoPanel": {
     "comments": "comments",
+    "occlusion": {
+      "error": "Occlusion error",
+      "loading": "Occlusion starting",
+      "on": "Occlusion on"
+    },
     "state": {
       "disconnected": "Disconnected",
       "error": "Error",

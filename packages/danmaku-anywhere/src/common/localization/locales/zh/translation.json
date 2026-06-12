@@ -314,6 +314,11 @@
   },
   "infoPanel": {
     "comments": "弹幕",
+    "occlusion": {
+      "error": "遮挡错误",
+      "loading": "遮挡加载中",
+      "on": "遮挡已开启"
+    },
     "state": {
       "disconnected": "已断开",
       "error": "错误",

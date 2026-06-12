@@ -341,10 +341,12 @@ export interface PanelMediaInfo {
   originalTitle?: string
 }
 
-export interface PanelStateSnapshot {
-  enabled: boolean
-  isManual: boolean
-  state: PanelSubstate
+// The danmaku pipeline's contribution to the info panel. Derived in the
+// controller frame and pushed to player frames; `null` over the wire means the
+// pipeline has nothing to show (disabled, or manual mode before mount).
+export interface PipelineEntry {
+  source: 'pipeline'
+  substate: PanelSubstate
   media?: PanelMediaInfo
   commentCount?: number
   provider?: DanmakuSourceType
@@ -384,7 +386,7 @@ export type PlayerRelayCommands = {
     FrameContext
   >
   'relay:command:syncPanelState': RPCDef<
-    InputWithFrameId<PanelStateSnapshot>,
+    InputWithFrameId<PipelineEntry | null>,
     void,
     FrameContext
   >

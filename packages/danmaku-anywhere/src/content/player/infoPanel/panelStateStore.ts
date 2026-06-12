@@ -1,21 +1,33 @@
 import { create } from 'zustand'
-import type { PanelStateSnapshot } from '@/common/rpcClient/background/types'
 import { createSelectors } from '@/common/utils/createSelectors'
+import type { PanelEntry, PanelSource } from './panelEntry'
 
 interface PanelStateStore {
-  snapshot: PanelStateSnapshot | undefined
+  // Each source owns its key. Controller-pushed sources (pipeline) and
+  // player-local sources (occlusion) write into the same map; the panel renders
+  // the present entries in resolve order.
+  entries: Partial<Record<PanelSource, PanelEntry>>
   active: boolean
   pipActive: boolean
-  setSnapshot: (snapshot: PanelStateSnapshot) => void
+  setEntry: (source: PanelSource, entry: PanelEntry | undefined) => void
   setActive: (active: boolean) => void
   setPipActive: (pipActive: boolean) => void
 }
 
 const usePanelStateStoreBase = create<PanelStateStore>()((set) => ({
-  snapshot: undefined,
+  entries: {},
   active: true,
   pipActive: false,
-  setSnapshot: (snapshot) => set({ snapshot }),
+  setEntry: (source, entry) =>
+    set((state) => {
+      const entries = { ...state.entries }
+      if (entry) {
+        entries[source] = entry
+      } else {
+        delete entries[source]
+      }
+      return { entries }
+    }),
   setActive: (active) => set({ active }),
   setPipActive: (pipActive) => set({ pipActive }),
 }))

@@ -2,7 +2,7 @@ import { inject, injectable } from 'inversify'
 import { createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
-import type { PanelStateSnapshot } from '@/common/rpcClient/background/types'
+import type { PipelineEntry } from '@/common/rpcClient/background/types'
 import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayout.service'
 import { PlayerIdleService } from '@/content/player/idle/PlayerIdle.service'
 import { PlayerInfoPanel } from './PlayerInfoPanel'
@@ -45,8 +45,8 @@ export class InfoPanelService {
     this.logger.debug('Info panel mounted')
   }
 
-  setSnapshot(snapshot: PanelStateSnapshot) {
-    usePanelStateStore.getState().setSnapshot(snapshot)
+  setPipelineEntry(entry: PipelineEntry | null) {
+    usePanelStateStore.getState().setEntry('pipeline', entry ?? undefined)
   }
 
   setPipActive(pipActive: boolean) {

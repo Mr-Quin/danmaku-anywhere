@@ -4,8 +4,8 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import type {
   PanelMediaInfo,
-  PanelStateSnapshot,
   PanelSubstate,
+  PipelineEntry,
 } from '@/common/rpcClient/background/types'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import { episodeToPanelMedia } from './episodeToPanelMedia'
@@ -56,11 +56,25 @@ function resolveMedia(inputs: PanelStateInputs): PanelMediaInfo | undefined {
   return undefined
 }
 
-export function selectPanelState(inputs: PanelStateInputs): PanelStateSnapshot {
+/**
+ * Derives the pipeline's panel entry from controller store inputs, or `null`
+ * when the pipeline has nothing to show. Visibility policy lives here (not in
+ * the player leaf): disabled, and manual mode before a successful mount, both
+ * yield `null` so no pipeline row renders.
+ */
+export function selectPanelState(
+  inputs: PanelStateInputs
+): PipelineEntry | null {
+  if (!inputs.enabled) {
+    return null
+  }
+  const substate = deriveSubstate(inputs)
+  if (inputs.isManual && substate !== 'mounted') {
+    return null
+  }
   return {
-    enabled: inputs.enabled,
-    isManual: inputs.isManual,
-    state: deriveSubstate(inputs),
+    source: 'pipeline',
+    substate,
     media: resolveMedia(inputs),
     commentCount: inputs.isMounted ? inputs.commentCount : undefined,
     provider: inputs.provider,

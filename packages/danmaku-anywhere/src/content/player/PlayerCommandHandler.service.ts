@@ -277,8 +277,8 @@ export class PlayerCommandHandler {
         'relay:command:setOcclusionDebugOverlay': async ({ data: enabled }) => {
           this.manager.setOcclusionDebugOverlay(enabled)
         },
-        'relay:command:syncPanelState': async ({ data: snapshot }) => {
-          this.infoPanel.setSnapshot(snapshot)
+        'relay:command:syncPanelState': async ({ data: entry }) => {
+          this.infoPanel.setPipelineEntry(entry)
         },
       },
       {

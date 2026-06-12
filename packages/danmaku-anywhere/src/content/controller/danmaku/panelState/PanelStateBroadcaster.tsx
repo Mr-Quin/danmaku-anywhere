@@ -2,17 +2,17 @@ import { useEffect, useMemo } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
-import type { PanelStateSnapshot } from '@/common/rpcClient/background/types'
+import type { PipelineEntry } from '@/common/rpcClient/background/types'
 import { useStore } from '@/content/controller/store/store'
 import { selectPanelState } from './selectPanelState'
 
-function usePanelStateSnapshot(): PanelStateSnapshot {
+function usePipelineEntry(): PipelineEntry | null {
   const { data: options } = useExtensionOptions()
   const isDisconnected = useStore.use.isDisconnected()
   const { isManual, isMounted, episodes, comments } = useStore.use.danmaku()
   const integration = useStore.use.integration()
 
-  return useMemo<PanelStateSnapshot>(() => {
+  return useMemo<PipelineEntry | null>(() => {
     return selectPanelState({
       enabled: options.infoPanel.enabled,
       isDisconnected,
@@ -41,7 +41,7 @@ function usePanelStateSnapshot(): PanelStateSnapshot {
 }
 
 export function PanelStateBroadcaster() {
-  const snapshot = usePanelStateSnapshot()
+  const entry = usePipelineEntry()
   const startedFrameIds = useStore(
     useShallow((s) => {
       const ids: number[] = []
@@ -57,11 +57,11 @@ export function PanelStateBroadcaster() {
   useEffect(() => {
     for (const frameId of startedFrameIds) {
       void playerRpcClient.player['relay:command:syncPanelState'](
-        { frameId, data: snapshot },
+        { frameId, data: entry },
         { optional: true, silent: true }
       )
     }
-  }, [snapshot, startedFrameIds])
+  }, [entry, startedFrameIds])
 
   return null
 }
