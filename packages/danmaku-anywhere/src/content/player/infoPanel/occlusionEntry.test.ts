@@ -66,4 +66,35 @@ describe('OcclusionEntryDeriver', () => {
     d.setRunning(false)
     expect(d.current()).toBeUndefined()
   })
+
+  it('replaces loading with error when a failure follows a download', () => {
+    const d = new OcclusionEntryDeriver()
+    d.setStatus(status('downloading'))
+    d.setStatus(status('init', 'init failed'))
+    expect(d.current()).toEqual({
+      source: 'occlusion',
+      state: 'error',
+      message: 'init failed',
+    })
+  })
+
+  it('keeps showing loading when the loop stops mid-download', () => {
+    const d = new OcclusionEntryDeriver()
+    d.setStatus(status('downloading', 'downloading model'))
+    // Stopping does not clear loading; only a successful run does.
+    d.setRunning(false)
+    expect(d.current()).toEqual({
+      source: 'occlusion',
+      state: 'loading',
+      message: 'downloading model',
+    })
+  })
+
+  it('returns to no entry across a full error, run, stop cycle', () => {
+    const d = new OcclusionEntryDeriver()
+    d.setStatus(status('segment'))
+    d.setRunning(true)
+    d.setRunning(false)
+    expect(d.current()).toBeUndefined()
+  })
 })
