@@ -67,9 +67,12 @@ test('info panel reflects the mounted state in-video', async ({
   await expect(
     integrationPage.infoPanelRowWithSev('pipeline', 'success')
   ).toBeVisible()
-  await expect(integrationPage.infoPanelHeadline()).toHaveText(/Mounted|已加载/)
+  // Collapsed, the glance shows the title rather than the status word.
+  await expect(integrationPage.infoPanelGlanceTitle()).toBeVisible()
 
   await integrationPage.infoPanel().hover()
+  // Expanded, the header shows the status headline and the body the details.
+  await expect(integrationPage.infoPanelHeadline()).toHaveText(/Mounted|已加载/)
   await expect(integrationPage.infoPanelCount()).toHaveText(
     String(COMMENTS.length)
   )

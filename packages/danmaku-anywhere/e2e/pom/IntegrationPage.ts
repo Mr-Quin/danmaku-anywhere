@@ -190,4 +190,9 @@ export class IntegrationPage {
   infoPanelSourceChip(): Locator {
     return this.infoPanelRow('pipeline').locator('[data-da-ip-source]')
   }
+
+  // The title shown in the collapsed glance (before hover).
+  infoPanelGlanceTitle(): Locator {
+    return this.infoPanelRow('pipeline').locator('.da-ip-glance-title')
+  }
 }

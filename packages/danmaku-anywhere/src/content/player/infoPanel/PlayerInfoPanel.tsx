@@ -89,18 +89,31 @@ function OcclusionBody({ entry }: { entry: OcclusionEntry }) {
   )
 }
 
-function RowGlanceTag({ entry }: { entry: PanelEntry }) {
-  if (entry.source !== 'pipeline') {
-    return null
-  }
-  const ep = entry.media ? episodeLabel(entry.media) : null
-  if (!ep) {
-    return null
-  }
+function RowHeadline({ entry }: { entry: PanelEntry }) {
   return (
-    <span data-da-ip-tag className="da-ip-tag">
-      {ep}
+    <span data-da-ip-headline className="da-ip-headline">
+      {entryView(entry).headline()}
     </span>
+  )
+}
+
+// Collapsed, a pipeline row with media glances the title and episode (more
+// useful than the status word, which the dot already conveys); everything else
+// falls back to the status headline.
+function CollapsedGlance({ entry }: { entry: PanelEntry }) {
+  if (entry.source !== 'pipeline' || !entry.media) {
+    return <RowHeadline entry={entry} />
+  }
+  const ep = episodeLabel(entry.media)
+  return (
+    <>
+      <span className="da-ip-glance-title">{entry.media.title}</span>
+      {ep ? (
+        <span data-da-ip-tag className="da-ip-tag">
+          {ep}
+        </span>
+      ) : null}
+    </>
   )
 }
 
@@ -130,10 +143,11 @@ function PanelRow({
         <span
           className={view.pulse ? 'da-ip-dot da-ip-dot--pulse' : 'da-ip-dot'}
         />
-        <span data-da-ip-headline className="da-ip-headline">
-          {view.headline()}
-        </span>
-        {!expanded ? <RowGlanceTag entry={entry} /> : null}
+        {expanded ? (
+          <RowHeadline entry={entry} />
+        ) : (
+          <CollapsedGlance entry={entry} />
+        )}
       </div>
       {expanded ? <RowBody entry={entry} /> : null}
     </div>
@@ -142,6 +156,7 @@ function PanelRow({
 
 export function PlayerInfoPanel() {
   const entries = resolvePanelEntries(usePanelStateStore.use.entries())
+  const enabled = usePanelStateStore.use.enabled()
   const active = usePanelStateStore.use.active()
   const pipActive = usePanelStateStore.use.pipActive()
   const [hovered, setHovered] = useState(false)
@@ -189,7 +204,7 @@ export function PlayerInfoPanel() {
     return start
   })
 
-  const rendered = !pipActive && entries.length > 0
+  const rendered = enabled && !pipActive && entries.length > 0
 
   // Re-runs once the panel actually renders, then keeps the offset clamped: the
   // parent observer covers video resizes, the panel observer covers the panel

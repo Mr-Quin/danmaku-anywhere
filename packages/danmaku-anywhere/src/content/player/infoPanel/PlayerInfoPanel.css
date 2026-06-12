@@ -10,23 +10,21 @@
   box-sizing: border-box;
   display: inline-flex;
   flex-direction: column;
-  max-width: 280px;
-  min-width: 168px;
+  width: 248px;
   font-family: var(--da-font);
   color: var(--da-text);
   background: color-mix(in srgb, var(--da-surface) 88%, transparent);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
   backdrop-filter: blur(20px) saturate(140%);
   border: 1px solid var(--da-divider);
-  border-radius: var(--da-radius-control);
+  border-radius: var(--da-radius-card);
   box-shadow: 0 18px 36px -20px rgba(0, 0, 0, 0.55);
   overflow: hidden;
   opacity: 0;
   transform: translateY(-2px);
   transition:
     opacity 0.2s ease,
-    transform 0.2s ease,
-    border-radius 0.2s ease;
+    transform 0.2s ease;
   pointer-events: none;
 }
 
@@ -34,10 +32,6 @@
   opacity: 1;
   transform: none;
   pointer-events: auto;
-}
-
-.da-ip--expanded {
-  border-radius: var(--da-radius-card);
 }
 
 .da-ip--dragging {
@@ -68,19 +62,17 @@
   display: flex;
   align-items: center;
   gap: 7px;
-  padding: 7px 10px;
+  padding: 8px 10px;
   min-width: 0;
+  /* Fixed line height so switching the headline font for the collapsed title
+     does not change the header height and nudge the dot between states. */
+  line-height: 17px;
 }
 
 /* Reserve room on the right of the first row so the panel grip never overlaps
    the headline or tag. */
 .da-ip--expanded .da-ip-row:first-child .da-ip-row-header {
   padding-right: 26px;
-}
-
-.da-ip--expanded .da-ip-row-header {
-  padding-top: 9px;
-  padding-bottom: 8px;
 }
 
 /* Status dot. Color + glow come from the row's data-sev; pulse from --pulse. */
@@ -133,13 +125,25 @@
   color: var(--da-danger-ink);
 }
 
+/* Collapsed glance: the localized title, truncated to the panel width. */
+.da-ip-glance-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: var(--da-fs-body2);
+  font-weight: 600;
+  color: var(--da-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Collapsed glance tag (episode for pipeline, optional). Hidden when expanded. */
 .da-ip-tag {
   flex: 0 0 auto;
   margin-left: auto;
   font-size: var(--da-fs-caption);
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--da-text-muted);
   white-space: nowrap;
 }
 
