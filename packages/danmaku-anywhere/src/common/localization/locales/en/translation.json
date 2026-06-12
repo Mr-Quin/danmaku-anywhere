@@ -325,11 +325,13 @@
   },
   "infoPanel": {
     "comments": "comments",
+    "hide": "Hide info panel",
     "occlusion": {
       "error": "Occlusion error",
       "loading": "Occlusion starting",
       "on": "Occlusion on"
     },
+    "show": "Show info panel",
     "state": {
       "disconnected": "Disconnected",
       "error": "Error",

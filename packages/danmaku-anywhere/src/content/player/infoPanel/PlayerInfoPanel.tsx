@@ -21,6 +21,8 @@ import { resolvePanelEntries } from './resolvePanelEntries'
 
 const DEFAULT_OFFSET: DragOffset = { x: 16, y: 16 }
 
+type DragBind = ReturnType<typeof useDrag>
+
 function episodeLabel(media: PanelMediaInfo): string | null {
   if (media.episode === undefined) {
     return null
@@ -132,9 +134,11 @@ function RowBody({ entry }: { entry: PanelEntry }) {
 function PanelRow({
   entry,
   expanded,
+  dragBind,
 }: {
   entry: PanelEntry
   expanded: boolean
+  dragBind: DragBind
 }) {
   const view = entryView(entry)
   return (
@@ -144,7 +148,8 @@ function PanelRow({
       data-sev={view.severity}
       className="da-ip-row"
     >
-      <div className="da-ip-row-header">
+      {/* The header row is the drag handle. */}
+      <div className="da-ip-row-header" {...dragBind()}>
         <span
           className={view.pulse ? 'da-ip-dot da-ip-dot--pulse' : 'da-ip-dot'}
         />
@@ -166,6 +171,7 @@ export function PlayerInfoPanel() {
   const pipActive = usePanelStateStore.use.pipActive()
   const [hovered, setHovered] = useState(false)
   const [dragging, setDragging] = useState(false)
+  const [dismissed, setDismissed] = useState(false)
 
   const panelRef = useRef<HTMLDivElement>(null)
   const { initialOffset, persistOffset } = usePersistedPosition(
@@ -227,10 +233,22 @@ export function PlayerInfoPanel() {
     observer.observe(parent)
     observer.observe(el)
     return () => observer.disconnect()
-  }, [rendered, applyOffset, currentBounds])
+  }, [rendered, dismissed, applyOffset, currentBounds])
 
   if (!rendered) {
     return null
+  }
+
+  if (dismissed) {
+    return (
+      <button
+        type="button"
+        className="da-ip-restore"
+        style={{ left: `${offset.x}px`, top: `${offset.y}px` }}
+        onClick={() => setDismissed(false)}
+        aria-label={i18n.t('infoPanel.show', 'Show info panel')}
+      />
+    )
   }
 
   const expanded = hovered || dragging
@@ -254,15 +272,20 @@ export function PlayerInfoPanel() {
     >
       <div className="da-ip-rows">
         {entries.map((entry) => (
-          <PanelRow key={entry.source} entry={entry} expanded={expanded} />
+          <PanelRow
+            key={entry.source}
+            entry={entry}
+            expanded={expanded}
+            dragBind={bind}
+          />
         ))}
       </div>
       {expanded ? (
-        <span
-          {...bind()}
-          className="da-ip-grip"
-          data-da-ip-grip
-          aria-hidden="true"
+        <button
+          type="button"
+          className="da-ip-collapse"
+          onClick={() => setDismissed(true)}
+          aria-label={i18n.t('infoPanel.hide', 'Hide info panel')}
         />
       ) : null}
     </div>

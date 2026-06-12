@@ -58,6 +58,7 @@
   border-top: 1px solid var(--da-divider);
 }
 
+/* The header row is the drag handle. */
 .da-ip-row-header {
   display: flex;
   align-items: center;
@@ -67,12 +68,18 @@
   /* Fixed line height so switching the headline font for the collapsed title
      does not change the header height and nudge the dot between states. */
   line-height: 17px;
+  cursor: grab;
+  touch-action: none;
 }
 
-/* Reserve room on the right of the first row so the panel grip never overlaps
-   the headline or tag. */
+.da-ip--dragging .da-ip-row-header {
+  cursor: grabbing;
+}
+
+/* Reserve room on the right of the first row so the collapse button never
+   overlaps the headline or tag. */
 .da-ip--expanded .da-ip-row:first-child .da-ip-row-header {
-  padding-right: 26px;
+  padding-right: 28px;
 }
 
 /* Status dot. Color + glow come from the row's data-sev; pulse from --pulse. */
@@ -151,30 +158,72 @@
   display: none;
 }
 
-/* Panel-level drag handle, top-right, only while expanded. */
-.da-ip-grip {
+/* Collapse button, top-right corner, only while expanded. */
+.da-ip-collapse {
   position: absolute;
-  top: 8px;
-  right: 9px;
-  width: 14px;
-  height: 14px;
-  cursor: grab;
-  touch-action: none;
-  color: rgba(255, 255, 255, 0.35);
-  background-image: radial-gradient(currentColor 1px, transparent 1px);
-  background-size: 4px 4px;
-  background-position: center;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.da-ip--expanded .da-ip-grip {
-  opacity: 1;
+  top: 6px;
+  right: 6px;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
   pointer-events: auto;
 }
 
-.da-ip-grip:active {
-  cursor: grabbing;
+.da-ip-collapse:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Chevron pointing left: collapse toward the left edge. */
+.da-ip-collapse::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-left: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: translateX(1px) rotate(45deg);
+}
+
+/* Collapsed: a small handle in place of the panel; click to restore. */
+.da-ip-restore {
+  position: absolute;
+  width: 22px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid var(--da-divider);
+  border-radius: var(--da-radius-control);
+  background: color-mix(in srgb, var(--da-surface) 88%, transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  backdrop-filter: blur(20px) saturate(140%);
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  pointer-events: auto;
+  box-shadow: 0 18px 36px -20px rgba(0, 0, 0, 0.55);
+}
+
+.da-ip-restore:hover {
+  color: var(--da-text);
+}
+
+/* Chevron pointing right: expand back out. */
+.da-ip-restore::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 1.5px solid currentColor;
+  border-top: 1.5px solid currentColor;
+  transform: translateX(-1px) rotate(45deg);
 }
 
 /* Expanded detail body. Hidden when collapsed. Source-specific children below. */
