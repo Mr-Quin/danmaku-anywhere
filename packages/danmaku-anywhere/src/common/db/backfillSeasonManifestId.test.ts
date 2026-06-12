@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { resolveSeasonManifestId } from './backfillSeasonManifestId'
+import { computeNamespaceKey } from '@/common/providers/namespaceKey'
+import {
+  type BackfillProviderConfig,
+  resolveSeasonManifestId,
+  resolveSeasonNamespaceKey,
+} from './backfillSeasonManifestId'
 
 describe('resolveSeasonManifestId', () => {
   it('takes the manifestId of a matching live config', () => {
@@ -52,5 +57,56 @@ describe('resolveSeasonManifestId', () => {
     const configs = new Map([['dandanplay', 'dandanplay']])
 
     expect(resolveSeasonManifestId('dandanplay', configs)).toBe('dandanplay')
+  })
+})
+
+describe('resolveSeasonNamespaceKey', () => {
+  const selfHosted: BackfillProviderConfig = {
+    id: 'uuid-1',
+    manifestId: 'dandanplay',
+    configValues: { baseUrl: 'https://my-ddp.example/api' },
+  }
+
+  it('recomputes the namespaceKey from a matching self-hosted config', () => {
+    const configs = new Map([['uuid-1', selfHosted]])
+
+    const result = resolveSeasonNamespaceKey('uuid-1', configs)
+    expect(result).toBe(computeNamespaceKey(selfHosted))
+    expect(result).toMatch(/^ns:/)
+  })
+
+  it('returns the builtin id itself for a matching builtin config', () => {
+    const builtin: BackfillProviderConfig = {
+      id: 'bilibili',
+      manifestId: 'bilibili',
+    }
+    const configs = new Map([['bilibili', builtin]])
+
+    expect(resolveSeasonNamespaceKey('bilibili', configs)).toBe('bilibili')
+  })
+
+  it('returns a bare builtin id as the namespaceKey with no live config', () => {
+    expect(resolveSeasonNamespaceKey('tencent', new Map())).toBe('tencent')
+  })
+
+  it('strips a stray builtin: prefix before matching the builtin set', () => {
+    expect(resolveSeasonNamespaceKey('builtin:bilibili', new Map())).toBe(
+      'bilibili'
+    )
+  })
+
+  it('leaves an unrecoverable uuid orphan unset', () => {
+    expect(resolveSeasonNamespaceKey('uuid-orphan', new Map())).toBeUndefined()
+  })
+
+  it('returns unset for a non-string providerConfigId', () => {
+    expect(resolveSeasonNamespaceKey(undefined, new Map())).toBeUndefined()
+    expect(resolveSeasonNamespaceKey(null, new Map())).toBeUndefined()
+  })
+
+  it('does not treat legacy:maccms as a structural builtin namespaceKey', () => {
+    expect(
+      resolveSeasonNamespaceKey('legacy:maccms', new Map())
+    ).toBeUndefined()
   })
 })

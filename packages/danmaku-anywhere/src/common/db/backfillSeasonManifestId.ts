@@ -3,12 +3,21 @@ import {
   PROVIDER_TO_BUILTIN_ID,
   stripBuiltinPrefix,
 } from '@danmaku-anywhere/danmaku-converter'
+import { computeNamespaceKey } from '@/common/providers/namespaceKey'
 
 // legacy:maccms is in PROVIDER_TO_BUILTIN_ID for migration mapping but is not a
 // real manifest, so it must not be treated as a structural manifestId.
 const BUILTIN_CONFIG_IDS = new Set<string>(
   Object.values(PROVIDER_TO_BUILTIN_ID).filter((id) => id !== LEGACY_MACCMS_ID)
 )
+
+// The config fields the v15 backfill needs to recompute a namespaceKey, kept
+// permissive so it can read raw pre-migration rows.
+export interface BackfillProviderConfig {
+  id: string
+  manifestId: string
+  configValues?: Record<string, unknown>
+}
 
 /**
  * Derive a season's manifestId during the v15 backfill.
@@ -36,6 +45,37 @@ export function resolveSeasonManifestId(
   const liveManifestId = manifestIdByConfigId.get(providerConfigId)
   if (liveManifestId !== undefined) {
     return liveManifestId
+  }
+
+  const bareId = stripBuiltinPrefix(providerConfigId)
+  if (BUILTIN_CONFIG_IDS.has(bareId)) {
+    return bareId
+  }
+
+  return undefined
+}
+
+/**
+ * Derive a season's namespaceKey during the v15 backfill, mirroring the
+ * manifestId precedence:
+ *
+ * 1. The providerConfigId matches a live config: recompute the namespaceKey
+ *    from that config (self-hosted instances hash their baseUrl).
+ * 2. Otherwise the providerConfigId is a builtin id: builtins share one global
+ *    namespace, so the namespaceKey is the bare builtin id (== its manifestId).
+ * 3. Otherwise leave it unset: an unrecoverable orphan, same as manifestId.
+ */
+export function resolveSeasonNamespaceKey(
+  providerConfigId: string | undefined | null,
+  configByConfigId: Map<string, BackfillProviderConfig>
+): string | undefined {
+  if (typeof providerConfigId !== 'string') {
+    return undefined
+  }
+
+  const liveConfig = configByConfigId.get(providerConfigId)
+  if (liveConfig !== undefined) {
+    return computeNamespaceKey(liveConfig)
   }
 
   const bareId = stripBuiltinPrefix(providerConfigId)
