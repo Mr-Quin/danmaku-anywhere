@@ -14,7 +14,11 @@ import {
 import { Dexie } from 'dexie'
 import { injectable } from 'inversify'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
-import { resolveSeasonManifestId } from './backfillSeasonManifestId'
+import {
+  type BackfillProviderConfig,
+  resolveSeasonManifestId,
+  resolveSeasonNamespaceKey,
+} from './backfillSeasonManifestId'
 
 export const DANMAKU_DB_NAME = 'danmaku-anywhere'
 
@@ -25,6 +29,7 @@ type WithoutId<T> = Omit<T, 'id'>
 interface MigrationProviderConfig {
   id?: string
   manifestId?: string
+  configValues?: Record<string, unknown>
 }
 
 @injectable('Singleton')
@@ -440,18 +445,25 @@ export class DanmakuAnywhereDb extends Dexie {
       })
 
     /**
-     * Add a plain manifestId index to seasons and backfill it. Runs after v14's
-     * prefix strip, so season.providerConfigId is already bare here.
+     * Make manifestId + namespaceKey the durable season identity. Backfills both
+     * from the old providerConfigId (read raw off pre-migration rows), then drops
+     * the dead provider / providerConfigId fields and their indexes. Runs after
+     * v14's prefix strip, so season.providerConfigId is already bare here.
+     *
+     * The compound index is NON-unique on purpose: namespaceKey is optional
+     * (orphans whose config was deleted have none), so a unique index would
+     * collide un-backfilled rows during creation and abort the upgrade.
+     * SeasonService.upsert enforces season identity at the app layer instead.
      */
     this.version(15)
       .stores({
         episode:
-          '++id, provider, indexedId, &[seasonId+indexedId], seasonId, timeUpdated, lastChecked',
+          '++id, indexedId, &[seasonId+indexedId], seasonId, timeUpdated, lastChecked',
         season:
-          '++id, provider, providerConfigId, manifestId, indexedId, &[providerConfigId+indexedId]',
+          '++id, manifestId, namespaceKey, indexedId, [manifestId+namespaceKey+indexedId]',
         customEpisode: '++id, title',
         seasonMap: 'key, *seasonIds',
-        bookmark: '++id, &seasonId, providerConfigId',
+        bookmark: '++id, &seasonId',
       })
       .upgrade(async (tx) => {
         // A storage read failure must not brick the DB upgrade: builtins still
@@ -477,12 +489,18 @@ export class DanmakuAnywhereDb extends Dexie {
         // configs come from external storage, so skip malformed entries
         // rather than let a single bad record throw and abort the upgrade.
         const manifestIdByConfigId = new Map<string, string>()
+        const configByConfigId = new Map<string, BackfillProviderConfig>()
         for (const config of configs) {
           if (
             typeof config?.id === 'string' &&
             typeof config?.manifestId === 'string'
           ) {
             manifestIdByConfigId.set(config.id, config.manifestId)
+            configByConfigId.set(config.id, {
+              id: config.id,
+              manifestId: config.manifestId,
+              configValues: config.configValues,
+            })
           }
         }
 
@@ -497,6 +515,64 @@ export class DanmakuAnywhereDb extends Dexie {
             if (manifestId !== undefined) {
               season.manifestId = manifestId
             }
+            const namespaceKey = resolveSeasonNamespaceKey(
+              season.providerConfigId,
+              configByConfigId
+            )
+            if (namespaceKey !== undefined) {
+              season.namespaceKey = namespaceKey
+            }
+            delete season.provider
+            delete season.providerConfigId
+          })
+
+        await tx
+          .table('episode')
+          .toCollection()
+          .modify((episode) => {
+            delete episode.provider
+          })
+
+        await tx
+          .table('customEpisode')
+          .toCollection()
+          .modify((customEpisode) => {
+            delete customEpisode.provider
+          })
+
+        // Rekey seasonMap entries from providerConfigId to namespaceKey, mirroring
+        // the v14 remap loop. Orphans whose key resolves to no namespaceKey are
+        // dropped: a namespaceKey-less mapping can never be matched at lookup.
+        await tx
+          .table('seasonMap')
+          .toCollection()
+          .modify((entry) => {
+            if (
+              !entry.seasons ||
+              typeof entry.seasons !== 'object' ||
+              Array.isArray(entry.seasons)
+            ) {
+              return
+            }
+            const remapped: Record<string, number> = {}
+            for (const [configId, seasonId] of Object.entries(entry.seasons)) {
+              const namespaceKey = resolveSeasonNamespaceKey(
+                configId,
+                configByConfigId
+              )
+              if (namespaceKey !== undefined) {
+                remapped[namespaceKey] = seasonId as number
+              }
+            }
+            entry.seasons = remapped
+            entry.seasonIds = Array.from(new Set(Object.values(remapped)))
+          })
+
+        await tx
+          .table('bookmark')
+          .toCollection()
+          .modify((bookmark) => {
+            delete bookmark.providerConfigId
           })
       })
 
