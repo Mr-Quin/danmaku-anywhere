@@ -193,34 +193,48 @@
 }
 
 /* Collapsed: a small handle in place of the panel; click to restore. */
-.da-ip-restore {
+/* Docked: the panel slides off to the left edge, leaving the tab. */
+.da-ip--docked {
+  opacity: 0;
+  transform: translateX(-110%);
+  pointer-events: none;
+}
+
+/* Left-edge tab when docked: drag it vertically along the edge, tap to restore. */
+.da-ip-tab {
   position: absolute;
-  width: 22px;
-  height: 30px;
+  left: 0;
+  width: 15px;
+  height: 46px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   padding: 0;
   border: 1px solid var(--da-divider);
-  border-radius: var(--da-radius-control);
-  background: color-mix(in srgb, var(--da-surface) 88%, transparent);
+  border-left: none;
+  border-radius: 0 var(--da-radius-control) var(--da-radius-control) 0;
+  background: color-mix(in srgb, var(--da-surface) 90%, transparent);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
   backdrop-filter: blur(20px) saturate(140%);
-  color: rgba(255, 255, 255, 0.7);
-  cursor: pointer;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: grab;
+  touch-action: none;
   pointer-events: auto;
-  box-shadow: 0 18px 36px -20px rgba(0, 0, 0, 0.55);
 }
 
-.da-ip-restore:hover {
+.da-ip-tab:active {
+  cursor: grabbing;
+}
+
+.da-ip-tab:hover {
   color: var(--da-text);
 }
 
 /* Chevron pointing right: expand back out. */
-.da-ip-restore::before {
+.da-ip-tab::before {
   content: "";
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-right: 1.5px solid currentColor;
   border-top: 1.5px solid currentColor;
   transform: translateX(-1px) rotate(45deg);

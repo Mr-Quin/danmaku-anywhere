@@ -215,6 +215,27 @@ export function PlayerInfoPanel() {
     return start
   })
 
+  // The docked tab is draggable vertically along the left edge; a tap restores.
+  const tabBind = useDrag(
+    ({ tap, last, movement: [, my], memo }) => {
+      if (tap) {
+        setDismissed(false)
+        return
+      }
+      const startY = (memo as number | undefined) ?? offsetRef.current.y
+      const next = clampOffset(
+        { x: offsetRef.current.x, y: startY + my },
+        currentBounds()
+      )
+      applyOffset(next)
+      if (last) {
+        persistOffset(next)
+      }
+      return startY
+    },
+    { filterTaps: true }
+  )
+
   const rendered = enabled && !pipActive && entries.length > 0
 
   // Re-runs once the panel actually renders, then keeps the offset clamped: the
@@ -239,22 +260,11 @@ export function PlayerInfoPanel() {
     return null
   }
 
-  if (dismissed) {
-    return (
-      <button
-        type="button"
-        className="da-ip-restore"
-        style={{ left: `${offset.x}px`, top: `${offset.y}px` }}
-        onClick={() => setDismissed(false)}
-        aria-label={i18n.t('infoPanel.show', 'Show info panel')}
-      />
-    )
-  }
-
-  const expanded = hovered || dragging
-  const visible = active || expanded
+  const expanded = !dismissed && (hovered || dragging)
+  const visible = !dismissed && (active || expanded)
   const className = [
     'da-ip',
+    dismissed ? 'da-ip--docked' : '',
     expanded ? 'da-ip--expanded' : '',
     visible ? 'da-ip--visible' : '',
     dragging ? 'da-ip--dragging' : '',
@@ -263,31 +273,43 @@ export function PlayerInfoPanel() {
     .join(' ')
 
   return (
-    <div
-      ref={panelRef}
-      className={className}
-      style={{ left: `${offset.x}px`, top: `${offset.y}px` }}
-      onPointerEnter={() => setHovered(true)}
-      onPointerLeave={() => setHovered(false)}
-    >
-      <div className="da-ip-rows">
-        {entries.map((entry) => (
-          <PanelRow
-            key={entry.source}
-            entry={entry}
-            expanded={expanded}
-            dragBind={bind}
+    <>
+      {/* Kept mounted while docked so it slides off rather than vanishing. */}
+      <div
+        ref={panelRef}
+        className={className}
+        style={{ left: `${offset.x}px`, top: `${offset.y}px` }}
+        onPointerEnter={() => setHovered(true)}
+        onPointerLeave={() => setHovered(false)}
+      >
+        <div className="da-ip-rows">
+          {entries.map((entry) => (
+            <PanelRow
+              key={entry.source}
+              entry={entry}
+              expanded={expanded}
+              dragBind={bind}
+            />
+          ))}
+        </div>
+        {expanded ? (
+          <button
+            type="button"
+            className="da-ip-collapse"
+            onClick={() => setDismissed(true)}
+            aria-label={i18n.t('infoPanel.hide', 'Hide info panel')}
           />
-        ))}
+        ) : null}
       </div>
-      {expanded ? (
+      {dismissed ? (
         <button
           type="button"
-          className="da-ip-collapse"
-          onClick={() => setDismissed(true)}
-          aria-label={i18n.t('infoPanel.hide', 'Hide info panel')}
+          className="da-ip-tab"
+          style={{ top: `${offset.y}px` }}
+          aria-label={i18n.t('infoPanel.show', 'Show info panel')}
+          {...tabBind()}
         />
       ) : null}
-    </div>
+    </>
   )
 }
