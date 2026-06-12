@@ -10,6 +10,9 @@
   box-sizing: border-box;
   display: inline-flex;
   flex-direction: column;
+  /* Above the danmaku comments (z 9-10), in the same UI tier as the skip
+     button, and below the occlusion debug overlay (z 2147483646). */
+  z-index: 10000;
   width: 248px;
   font-family: var(--da-font);
   color: var(--da-text);
