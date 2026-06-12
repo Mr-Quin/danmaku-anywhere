@@ -428,4 +428,7 @@ export type PlayerRelayEvents = {
   'relay:event:showPopover': RPCDef<InputWithFrameId<void>, void>
   'relay:event:userInteraction': RPCDef<InputWithFrameId<void>, void>
   'relay:event:occlusionStatus': RPCDef<InputWithFrameId<OcclusionStatus>, void>
+  // The player pulls the current pipeline entry once its full server is up, so a
+  // push that dropped during the handshake does not leave it stale.
+  'relay:event:requestPanelState': RPCDef<InputWithFrameId<void>, void>
 }

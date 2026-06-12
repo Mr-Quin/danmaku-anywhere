@@ -73,9 +73,21 @@ export class PlayerCommandHandler {
     this.wireOcclusionStatus()
     this.wireWindowEvents()
     this.createRpcServer()
+    this.requestPanelState()
 
     this.playerIdle.start()
     this.manager.start(ctx.query)
+  }
+
+  /**
+   * Pull the current pipeline entry now that the full server is listening, in
+   * case the controller's push raced or dropped during the handshake.
+   */
+  private requestPanelState() {
+    void playerRpcClient.controller['relay:event:requestPanelState'](
+      { frameId: this.frameId },
+      { optional: true, silent: true }
+    )
   }
 
   private async setupDom() {

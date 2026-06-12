@@ -4,6 +4,7 @@ import { useExtensionOptions } from '@/common/options/extensionOptions/useExtens
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { PipelineEntry } from '@/common/rpcClient/background/types'
 import { useStore } from '@/content/controller/store/store'
+import { setLatestPipelineEntry } from './latestPipelineEntry'
 import { selectPanelState } from './selectPanelState'
 
 function usePipelineEntry(): PipelineEntry | null {
@@ -55,6 +56,7 @@ export function PanelStateBroadcaster() {
   )
 
   useEffect(() => {
+    setLatestPipelineEntry(entry)
     for (const frameId of startedFrameIds) {
       void playerRpcClient.player['relay:command:syncPanelState'](
         { frameId, data: entry },

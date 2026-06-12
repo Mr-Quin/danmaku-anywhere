@@ -546,6 +546,9 @@ export class RpcManager {
         'relay:event:occlusionStatus': passThrough(
           relayFrameClient['relay:event:occlusionStatus']
         ),
+        'relay:event:requestPanelState': passThrough(
+          relayFrameClient['relay:event:requestPanelState']
+        ),
       },
       {
         logger: this.logger,

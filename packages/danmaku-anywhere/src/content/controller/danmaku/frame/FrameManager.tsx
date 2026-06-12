@@ -20,6 +20,7 @@ import { FrameRegistry } from '@/content/controller/danmaku/frame/FrameRegistry.
 import { selectBestFrame } from '@/content/controller/danmaku/frame/selectBestFrame'
 import { useMigrateDanmaku } from '@/content/controller/danmaku/frame/useMigrateDanmaku'
 import { usePreloadNextEpisode } from '@/content/controller/danmaku/frame/usePreloadNextEpisode'
+import { getLatestPipelineEntry } from '@/content/controller/danmaku/panelState/latestPipelineEntry'
 import { useStore } from '@/content/controller/store/store'
 import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.types'
 
@@ -205,6 +206,12 @@ export const FrameManager = () => {
         },
         'relay:event:occlusionStatus': async ({ data }) => {
           handleOcclusionStatus(data)
+        },
+        'relay:event:requestPanelState': async ({ frameId }) => {
+          void playerRpcClient.player['relay:command:syncPanelState'](
+            { frameId, data: getLatestPipelineEntry() },
+            { optional: true, silent: true }
+          )
         },
       },
       { logger }
