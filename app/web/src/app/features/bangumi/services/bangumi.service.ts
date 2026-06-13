@@ -32,7 +32,10 @@ export class BangumiService {
       queryKey: queryKeys.bangumi.calendar(),
       queryFn: async (): Promise<BgmCalendar> => {
         const res = await this.bgmNext.GET('/p1/calendar')
-        const weeks = Object.values(res.data ?? {})
+        if (res.error || !res.data) {
+          throw new Error('Failed to fetch calendar')
+        }
+        const weeks = Object.values(res.data)
         return weeks.map((day) => {
           return day.filter(
             (item) => item.subject.type === 2 && item.subject.nameCN !== ''

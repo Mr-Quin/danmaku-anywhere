@@ -246,9 +246,11 @@ export class ColumnShell {
       handle.releasePointerCapture(event.pointerId)
       handle.removeEventListener('pointermove', onMove)
       handle.removeEventListener('pointerup', onUp)
+      handle.removeEventListener('pointercancel', onUp)
     }
     handle.addEventListener('pointermove', onMove)
     handle.addEventListener('pointerup', onUp)
+    handle.addEventListener('pointercancel', onUp)
   }
 
   readonly icon = computed(() => iconFor(this.col().kind))

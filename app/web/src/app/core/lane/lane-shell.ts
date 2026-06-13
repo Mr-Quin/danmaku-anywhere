@@ -440,6 +440,9 @@ export class LaneShell {
   }
 
   private listenWheel(lane: HTMLDivElement) {
+    // getComputedStyle forces synchronous layout, so cache the per-element
+    // scrollability to keep this non-passive wheel handler off the hot path.
+    const scrollableCache = new WeakMap<HTMLElement, boolean>()
     const onWheel = (event: WheelEvent) => {
       if (Math.abs(event.deltaX) > Math.abs(event.deltaY)) {
         return
@@ -455,8 +458,13 @@ export class LaneShell {
         let el: Element | null = target
         while (el) {
           if (el instanceof HTMLElement && el.scrollHeight > el.clientHeight) {
-            const overflowY = getComputedStyle(el).overflowY
-            if (overflowY === 'auto' || overflowY === 'scroll') {
+            let scrollable = scrollableCache.get(el)
+            if (scrollable === undefined) {
+              const overflowY = getComputedStyle(el).overflowY
+              scrollable = overflowY === 'auto' || overflowY === 'scroll'
+              scrollableCache.set(el, scrollable)
+            }
+            if (scrollable) {
               const atTop = el.scrollTop <= 0
               const atBottom =
                 el.scrollTop + el.clientHeight >= el.scrollHeight - 1
