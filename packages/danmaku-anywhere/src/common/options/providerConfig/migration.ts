@@ -144,7 +144,7 @@ export function migrateDanmakuSourcesToProviders(
         return {
           id: LEGACY_MACCMS_ID,
           manifestId: LEGACY_MACCMS_ID,
-          name: 'MacCMS',
+          name: 'VOD',
           enabled: oldSources.custom.enabled ?? true,
           configValues: pruneUndefined({
             danmakuBaseUrl: baseUrl,

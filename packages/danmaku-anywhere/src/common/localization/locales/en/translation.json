@@ -213,7 +213,7 @@
     "type": {
       "bilibili": "Bilibili",
       "danDanPlay": "DanDanPlay",
-      "macCms": "MacCMS",
+      "macCms": "VOD",
       "tencent": "Tencent"
     },
     "unmount": "Unmount",
@@ -708,7 +708,7 @@
       "title": {
         "add": "Add Provider",
         "addDanDanPlay": "Add DanDanPlay Compatible Provider",
-        "addMacCms": "Add MacCMS Provider",
+        "addMacCms": "Add VOD Provider",
         "edit": "Edit Provider: {{name}}"
       },
       "validation": {
