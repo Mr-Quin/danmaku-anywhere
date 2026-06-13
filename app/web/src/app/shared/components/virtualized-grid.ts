@@ -6,6 +6,7 @@ import {
   Component,
   computed,
   contentChild,
+  DestroyRef,
   type ElementRef,
   effect,
   inject,
@@ -112,6 +113,7 @@ function findScrollAncestor(start: Element | null): Element | null {
 export class VirtualizedGrid {
   protected layoutService = inject(LayoutService)
   private readonly platformId = inject(PLATFORM_ID)
+  private readonly destroyRef = inject(DestroyRef)
   private readonly isBrowser = isPlatformBrowser(this.platformId)
 
   skeleton = contentChild<TemplateRef<unknown>>('skeleton')
@@ -268,6 +270,7 @@ export class VirtualizedGrid {
         }
       })
       observer.observe(rootEl)
+      this.destroyRef.onDestroy(() => observer.disconnect())
 
       if (!this.windowVirtualizer() && !this.scrollElement()) {
         this.$resolvedScrollElement.set(findScrollAncestor(rootEl))
@@ -313,15 +316,15 @@ export class VirtualizedGrid {
     const provided = this.scrollElement()?.nativeElement
     const target: Element | Window =
       provided ?? this.$resolvedScrollElement() ?? window
-    target.addEventListener(
-      'scroll',
-      () => {
-        if (this.isInfiniteScroll()) {
-          this.maybeLoadMore()
-        }
-      },
-      { passive: true }
-    )
+    const onScroll = () => {
+      if (this.isInfiniteScroll()) {
+        this.maybeLoadMore()
+      }
+    }
+    target.addEventListener('scroll', onScroll, { passive: true })
+    this.destroyRef.onDestroy(() => {
+      target.removeEventListener('scroll', onScroll)
+    })
   }
 
   private nearBottom(): boolean {
