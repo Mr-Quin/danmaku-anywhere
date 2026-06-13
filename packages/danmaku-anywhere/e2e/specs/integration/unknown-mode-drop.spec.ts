@@ -13,6 +13,8 @@ import { applyProfile } from '../../setup/profile'
  * comments and silently drops the malformed one. Guards the parser throwing on
  * an unrecognized mode, which would break rendering of the whole batch. The
  * console-error baseline asserts no error surfaces from the dropped comment.
+ * Also verifies that mode-2 (an rtl scrolling variant) is normalized and rendered
+ * rather than dropped.
  */
 
 const ORIGIN = 'https://da-test.invalid'
@@ -22,10 +24,12 @@ const MOUNT_PATTERN = `${ORIGIN}/*`
 const EPISODE_TITLE = 'DA Integration Test'
 const VALID_TEXT = 'valid-comment'
 const INVALID_TEXT = 'unknown-mode-comment'
-// Both sit at the same timestamp, so a dropped-vs-rendered comparison is fair.
+const MODE_2_TEXT = 'mode-2-comment'
+// All three sit at the same timestamp, so a dropped-vs-rendered comparison is fair.
 const COMMENTS = [
   { p: '12,99,16777215,bad', m: INVALID_TEXT },
   { p: '12,1,16777215,e2e-1', m: VALID_TEXT },
+  { p: '12,2,16777215,e2e-2', m: MODE_2_TEXT },
 ]
 const SEEK_TIME_S = 15
 
@@ -83,4 +87,8 @@ test('unknown comment mode is dropped without breaking the batch', async ({
   await expect(
     integrationPage.commentElements().filter({ hasText: INVALID_TEXT })
   ).toHaveCount(0)
+
+  await expect(
+    integrationPage.commentElements().filter({ hasText: MODE_2_TEXT })
+  ).toBeVisible()
 })
