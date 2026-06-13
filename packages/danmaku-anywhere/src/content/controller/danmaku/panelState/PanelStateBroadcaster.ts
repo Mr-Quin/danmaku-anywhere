@@ -7,47 +7,53 @@ import { selectPanelState } from './selectPanelState'
 
 type StoreState = ReturnType<typeof useStore.getState>
 
-let prevEntry: PipelineEntry | null = null
+class PanelStateBroadcaster {
+  #prevEntry: PipelineEntry | null = null
 
-function sync(state: StoreState): void {
-  const { isDisconnected, danmaku, integration } = state
-  const entry = selectPanelState({
-    isDisconnected,
-    isManual: danmaku.isManual,
-    isMounted: danmaku.isMounted,
-    commentCount: danmaku.comments.length,
-    provider: danmaku.episodes?.[0]?.provider,
-    mountedEpisodes: danmaku.episodes,
-    integration: {
-      active: integration.active,
-      errorMessage: integration.errorMessage,
-      mediaInfo: integration.mediaInfo,
-    },
-  })
+  start(): () => void {
+    this.#sync(useStore.getState())
+    return useStore.subscribe((state) => this.#sync(state))
+  }
 
-  const startedFrameIds: number[] = []
-  for (const frame of state.frame.allFrames.values()) {
-    if (frame.started) {
-      startedFrameIds.push(frame.frameId)
+  #sync(state: StoreState): void {
+    const { isDisconnected, danmaku, integration } = state
+    const entry = selectPanelState({
+      isDisconnected,
+      isManual: danmaku.isManual,
+      isMounted: danmaku.isMounted,
+      commentCount: danmaku.comments.length,
+      provider: danmaku.episodes?.[0]?.provider,
+      mountedEpisodes: danmaku.episodes,
+      integration: {
+        active: integration.active,
+        errorMessage: integration.errorMessage,
+        mediaInfo: integration.mediaInfo,
+      },
+    })
+
+    const startedFrameIds: number[] = []
+    for (const frame of state.frame.allFrames.values()) {
+      if (frame.started) {
+        startedFrameIds.push(frame.frameId)
+      }
     }
-  }
 
-  setLatestPipelineEntry(entry)
+    setLatestPipelineEntry(entry)
 
-  if (prevEntry !== null && panelEntriesEqual(prevEntry, entry)) {
-    return
-  }
-  prevEntry = entry
+    if (this.#prevEntry !== null && panelEntriesEqual(this.#prevEntry, entry)) {
+      return
+    }
+    this.#prevEntry = entry
 
-  for (const frameId of startedFrameIds) {
-    void playerRpcClient.player['relay:command:syncPanelState'](
-      { frameId, data: entry },
-      { optional: true, silent: true }
-    )
+    for (const frameId of startedFrameIds) {
+      void playerRpcClient.player['relay:command:syncPanelState'](
+        { frameId, data: entry },
+        { optional: true, silent: true }
+      )
+    }
   }
 }
 
 export function startPanelStateBroadcaster(): () => void {
-  sync(useStore.getState())
-  return useStore.subscribe(sync)
+  return new PanelStateBroadcaster().start()
 }
