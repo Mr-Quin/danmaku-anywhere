@@ -79,7 +79,7 @@ test('info panel reflects the mounted state in-video', async ({
 
   await integrationPage.infoPanel().hover()
   // Expanded, the header shows the status headline and the body the details.
-  await expect(integrationPage.infoPanelHeadline()).toHaveText(/Mounted|已加载/)
+  await expect(integrationPage.infoPanelHeadline()).toHaveText(/Mounted|已装填/)
   await expect(integrationPage.infoPanelCount()).toHaveText(
     String(COMMENTS.length)
   )

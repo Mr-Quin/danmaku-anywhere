@@ -324,9 +324,10 @@
     "state": {
       "disconnected": "已断开",
       "error": "错误",
+      "idle": "未装填弹幕",
       "loading": "匹配中",
       "matched": "已匹配",
-      "mounted": "已加载",
+      "mounted": "已装填",
       "noMatch": "无匹配"
     }
   },

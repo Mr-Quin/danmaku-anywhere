@@ -328,6 +328,7 @@ export type PanelSubstate =
   | 'matched'
   | 'mounted'
   | 'noMatch'
+  | 'idle'
   | 'error'
   | 'disconnected'
 
@@ -342,8 +343,8 @@ export interface PanelMediaInfo {
 }
 
 // The danmaku pipeline's contribution to the info panel. Derived in the
-// controller frame and pushed to player frames; `null` over the wire means the
-// pipeline has nothing to show (disabled, or manual mode before mount).
+// controller frame and pushed to player frames; `null` over the wire means no
+// state has been derived yet.
 export interface PipelineEntry {
   source: 'pipeline'
   substate: PanelSubstate

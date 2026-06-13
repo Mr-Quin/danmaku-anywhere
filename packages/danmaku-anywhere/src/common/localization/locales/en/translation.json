@@ -335,6 +335,7 @@
     "state": {
       "disconnected": "Disconnected",
       "error": "Error",
+      "idle": "No danmaku mounted",
       "loading": "Searching",
       "matched": "Matched",
       "mounted": "Mounted",

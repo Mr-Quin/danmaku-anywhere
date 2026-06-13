@@ -34,6 +34,11 @@ function deriveSubstate(inputs: PanelStateInputs): PanelSubstate {
   if (inputs.isMounted) {
     return 'mounted'
   }
+  // Manual mode never runs the auto-match pipeline, so it rests in a dormant
+  // state until the user mounts something.
+  if (inputs.isManual) {
+    return 'idle'
+  }
   if (inputs.integration.mediaInfo) {
     return 'matched'
   }
@@ -56,20 +61,13 @@ function resolveMedia(inputs: PanelStateInputs): PanelMediaInfo | undefined {
 }
 
 /**
- * Derives the pipeline's panel entry, or null when the pipeline has nothing to
- * show. Manual mode only surfaces a successful mount, to avoid noise. Whether
- * the panel is enabled is a panel-wide gate applied in the player, not here.
+ * Derives the pipeline's panel entry. Whether the panel is enabled is a
+ * panel-wide gate applied in the player, not here.
  */
-export function selectPanelState(
-  inputs: PanelStateInputs
-): PipelineEntry | null {
-  const substate = deriveSubstate(inputs)
-  if (inputs.isManual && substate !== 'mounted') {
-    return null
-  }
+export function selectPanelState(inputs: PanelStateInputs): PipelineEntry {
   return {
     source: 'pipeline',
-    substate,
+    substate: deriveSubstate(inputs),
     media: resolveMedia(inputs),
     commentCount: inputs.isMounted ? inputs.commentCount : undefined,
     provider: inputs.provider,

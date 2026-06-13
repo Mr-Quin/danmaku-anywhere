@@ -5,10 +5,10 @@ import { MediaInfo } from '@/content/controller/danmaku/integration/models/Media
 import { type PanelStateInputs, selectPanelState } from './selectPanelState'
 
 /**
- * Exercises the pure derivation of the pipeline panel entry. Covers the null
- * gate (manual mode before a successful mount), the substate priority
- * (disconnected > error > mounted > matched > loading > noMatch), and the
- * payload shape. The infoPanel.enabled gate lives in the player, not here.
+ * Exercises the pure derivation of the pipeline panel entry. Covers the manual
+ * dormant state, the substate priority (disconnected > error > mounted > manual
+ * idle > matched > loading > noMatch), and the payload shape. The
+ * infoPanel.enabled gate lives in the player, not here.
  */
 const base: PanelStateInputs = {
   isDisconnected: false,
@@ -21,23 +21,15 @@ const base: PanelStateInputs = {
 }
 
 function assertEntry(inputs: PanelStateInputs): PipelineEntry {
-  const result = selectPanelState(inputs)
-  expect(result).not.toBeNull()
-  return result as PipelineEntry
+  return selectPanelState(inputs)
 }
 
-describe('selectPanelState — null gate (display policy)', () => {
-  it('returns null in manual mode when substate is loading', () => {
-    expect(
-      selectPanelState({
-        ...base,
-        isManual: true,
-        integration: { active: true },
-      })
-    ).toBeNull()
+describe('selectPanelState — manual mode', () => {
+  it('rests in idle when nothing is mounted', () => {
+    expect(selectPanelState({ ...base, isManual: true }).substate).toBe('idle')
   })
 
-  it('returns null in manual mode when substate is matched', () => {
+  it('stays idle even where an integration would otherwise match or load', () => {
     expect(
       selectPanelState({
         ...base,
@@ -46,40 +38,33 @@ describe('selectPanelState — null gate (display policy)', () => {
           active: true,
           mediaInfo: new MediaInfo({ title: 'X', episode: 1 }),
         },
-      })
-    ).toBeNull()
+      }).substate
+    ).toBe('idle')
   })
 
-  it('returns null in manual mode when substate is noMatch', () => {
-    expect(selectPanelState({ ...base, isManual: true })).toBeNull()
-  })
-
-  it('returns null in manual mode when substate is error', () => {
-    expect(
-      selectPanelState({
-        ...base,
-        isManual: true,
-        integration: { active: false, errorMessage: 'boom' },
-      })
-    ).toBeNull()
-  })
-
-  it('returns null in manual mode when substate is disconnected', () => {
-    // Manual mode only surfaces a mounted pipeline, to avoid noise.
-    expect(
-      selectPanelState({ ...base, isManual: true, isDisconnected: true })
-    ).toBeNull()
-  })
-
-  it('returns a PipelineEntry in manual mode when substate is mounted', () => {
-    const result = selectPanelState({
+  it('shows mounted once danmaku is mounted', () => {
+    const entry = selectPanelState({
       ...base,
       isManual: true,
       isMounted: true,
       commentCount: 5,
     })
-    expect(result).not.toBeNull()
-    expect((result as PipelineEntry).substate).toBe('mounted')
+    expect(entry.substate).toBe('mounted')
+    expect(entry.commentCount).toBe(5)
+  })
+
+  it('still surfaces disconnected and error over the dormant state', () => {
+    expect(
+      selectPanelState({ ...base, isManual: true, isDisconnected: true })
+        .substate
+    ).toBe('disconnected')
+    expect(
+      selectPanelState({
+        ...base,
+        isManual: true,
+        integration: { active: false, errorMessage: 'boom' },
+      }).substate
+    ).toBe('error')
   })
 })
 
@@ -237,13 +222,12 @@ describe('selectPanelState — payload shape', () => {
         },
       ] as unknown as PanelStateInputs['mountedEpisodes'],
     })
-    expect(entry).not.toBeNull()
-    expect((entry as PipelineEntry).media).toMatchObject({
+    expect(entry.media).toMatchObject({
       title: 'Manual Show',
       episode: 2,
       episodeTitle: 'Episode Title',
     })
-    expect((entry as PipelineEntry).commentCount).toBe(3)
+    expect(entry.commentCount).toBe(3)
   })
 
   it('prefers integration mediaInfo over mounted episodes', () => {

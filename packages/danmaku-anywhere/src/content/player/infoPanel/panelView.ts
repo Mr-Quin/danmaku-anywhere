@@ -45,6 +45,13 @@ const VIEW: Record<PanelSubstate, PanelView> = {
     showCount: false,
     pulse: false,
   },
+  idle: {
+    severity: 'neutral',
+    headline: () => i18n.t('infoPanel.state.idle', 'No danmaku mounted'),
+    showMedia: false,
+    showCount: false,
+    pulse: false,
+  },
   error: {
     severity: 'danger',
     headline: () => i18n.t('infoPanel.state.error', 'Error'),

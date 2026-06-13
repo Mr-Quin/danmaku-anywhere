@@ -9,6 +9,7 @@ describe('panelView', () => {
       'matched',
       'mounted',
       'noMatch',
+      'idle',
       'error',
       'disconnected',
     ]
@@ -40,6 +41,7 @@ describe('panelView', () => {
       'matched',
       'mounted',
       'noMatch',
+      'idle',
       'error',
       'disconnected',
     ]
