@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
-import type {
-  CustomEpisodeLite,
-  EpisodeLite,
+import {
+  type CustomEpisodeLite,
+  type EpisodeLite,
+  type GenericEpisodeLite,
+  providerTypeFromManifestId,
 } from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuService } from '../../danmaku/danmaku.service'
 
@@ -29,7 +31,7 @@ import { DanmakuService } from '../../danmaku/danmaku.service'
               <div class="flex items-center justify-between">
                 <div class="flex-1">
                   <h4 class="font-medium text-sm truncate">{{ episode.title }}</h4>
-                  <p class="text-xs text-gray-400">{{ episode.provider }}</p>
+                  <p class="text-xs text-gray-400">{{ source(episode) }}</p>
                 </div>
                 @if (episode.commentCount > 0) {
                   <div class="flex items-center text-xs text-gray-500">
@@ -53,5 +55,11 @@ export class EpisodeList {
 
   onEpisodeClick(episode: EpisodeLite | CustomEpisodeLite) {
     // noop
+  }
+
+  protected source(episode: GenericEpisodeLite): string {
+    return 'season' in episode
+      ? providerTypeFromManifestId(episode.season.manifestId ?? '')
+      : ''
   }
 }
