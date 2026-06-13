@@ -1,5 +1,5 @@
 import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isSourceEpisode } from '@/common/danmaku/utils'
 import type { PanelMediaInfo } from '@/common/rpcClient/background/types'
 
 /**
@@ -8,7 +8,7 @@ import type { PanelMediaInfo } from '@/common/rpcClient/background/types'
  * (show), episode number, and episode title; a custom episode has only a title.
  */
 export function episodeToPanelMedia(episode: GenericEpisode): PanelMediaInfo {
-  if (isNotCustom(episode)) {
+  if (isSourceEpisode(episode)) {
     return {
       title: episode.season.title,
       episode: episode.episodeNumber,
