@@ -158,6 +158,10 @@ export const extensionOptionsSchema = z.object({
    * shows can preload. Off by default.
    */
   autoBookmark: z.boolean(),
+
+  infoPanel: z.object({
+    enabled: z.boolean(),
+  }),
 })
 
 export type ExtensionOptions = z.infer<typeof extensionOptionsSchema>

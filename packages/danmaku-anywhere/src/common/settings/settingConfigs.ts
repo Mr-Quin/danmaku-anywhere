@@ -247,6 +247,16 @@ const playerSettings: ToggleSettingConfig<ExtensionOptions>[] = [
       },
     }),
   },
+  {
+    id: 'toggle.infoPanel.enabled',
+    label: () => i18n.t('optionsPage.infoPanel.enabled', 'Show info panel'),
+    category: 'player',
+    type: 'toggle',
+    getValue: (options) => options.infoPanel.enabled,
+    createUpdate: (options, newValue) => ({
+      infoPanel: { ...options.infoPanel, enabled: newValue },
+    }),
+  },
 ]
 
 export const settingConfigs = {

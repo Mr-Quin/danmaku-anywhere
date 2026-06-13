@@ -151,4 +151,57 @@ export class IntegrationPage {
     }
     return this.page.locator(selector)
   }
+
+  private inPlayer(selector: string): Locator {
+    const full = `#danmaku-anywhere-player ${selector}`
+    if (this.iframeSelector) {
+      return this.page.frameLocator(this.iframeSelector).locator(full)
+    }
+    return this.page.locator(full)
+  }
+
+  // The in-video info panel and its parts, inside the player shadow root.
+  infoPanel(): Locator {
+    return this.inPlayer('.da-ip')
+  }
+
+  infoPanelHeadline(): Locator {
+    return this.inPlayer('.da-ip-headline')
+  }
+
+  infoPanelCount(): Locator {
+    return this.inPlayer('.da-ip-count-num')
+  }
+
+  // One status row per source; severity is carried on the row, not the panel.
+  infoPanelRow(source: 'pipeline' | 'occlusion'): Locator {
+    return this.inPlayer(`[data-da-ip-row][data-source="${source}"]`)
+  }
+
+  infoPanelRowWithSev(
+    source: 'pipeline' | 'occlusion',
+    sev: 'neutral' | 'info' | 'success' | 'danger'
+  ): Locator {
+    return this.inPlayer(
+      `[data-da-ip-row][data-source="${source}"][data-sev="${sev}"]`
+    )
+  }
+
+  infoPanelSourceChip(): Locator {
+    return this.infoPanelRow('pipeline').locator('[data-da-ip-source]')
+  }
+
+  // The title shown in the collapsed glance (before hover).
+  infoPanelGlanceTitle(): Locator {
+    return this.infoPanelRow('pipeline').locator('.da-ip-glance-title')
+  }
+
+  infoPanelCollapseButton(): Locator {
+    return this.inPlayer('.da-ip-collapse')
+  }
+
+  // The left-edge tab left behind once the panel is docked.
+  infoPanelTab(): Locator {
+    return this.inPlayer('.da-ip-tab')
+  }
 }

@@ -63,6 +63,10 @@ export class DanmakuManagerService {
   private occlusionQuality: OcclusionQuality = 'medium'
   private occlusionModel: OcclusionModel = 'people'
   private occlusionStatusListener?: (status: OcclusionStatus) => void
+  private occlusionRunningListener?: (running: boolean) => void
+  private occlusionActiveListener?: () => void
+  private occlusionDisengagedListener?: () => void
+  private occlusionEngaged = false
   private debug = false
 
   constructor(
@@ -292,12 +296,32 @@ export class DanmakuManagerService {
     this.occlusionStatusListener = listener
   }
 
+  onOcclusionRunningChange(listener: (running: boolean) => void) {
+    this.occlusionRunningListener = listener
+  }
+
+  onOcclusionActive(listener: () => void) {
+    this.occlusionActiveListener = listener
+  }
+
+  onOcclusionDisengaged(listener: () => void) {
+    this.occlusionDisengagedListener = listener
+  }
+
   private updateOcclusion() {
     const shouldRun = this.occlusion && this.isMounted && this.video !== null
     if (!shouldRun) {
+      // Notify once per engaged -> disengaged transition so a status surface can
+      // drop a stranded error/loading row (stop() alone is invisible when the
+      // loop was already stopped).
+      if (this.occlusionEngaged) {
+        this.occlusionEngaged = false
+        this.occlusionDisengagedListener?.()
+      }
       this.occlusionService.reset()
       return
     }
+    this.occlusionEngaged = true
     void this.configureOcclusion()
   }
 
@@ -340,6 +364,8 @@ export class DanmakuManagerService {
       debug: this.debug,
       applyMask: (url) => this.setOcclusionMaskUrl(url),
       onStatus: (status) => this.occlusionStatusListener?.(status),
+      onRunningChange: (running) => this.occlusionRunningListener?.(running),
+      onActive: () => this.occlusionActiveListener?.(),
     })
     this.occlusionService.start(this.video)
   }

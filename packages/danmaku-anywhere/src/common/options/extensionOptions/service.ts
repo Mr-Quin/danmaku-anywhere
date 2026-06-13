@@ -277,6 +277,14 @@ export class ExtensionOptionsService implements IStoreService {
             draft.autoBookmark = false
           }),
       })
+      .version(27, {
+        upgrade: (data) =>
+          produce<ExtensionOptions>(data, (draft) => {
+            draft.infoPanel = {
+              enabled: true,
+            }
+          }),
+      })
   }
 
   async get() {

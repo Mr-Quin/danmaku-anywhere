@@ -4,6 +4,7 @@ import type {
   CustomEpisode,
   CustomEpisodeLite,
   CustomSeason,
+  DanmakuSourceType,
   Episode,
   EpisodeLite,
   EpisodeMeta,
@@ -322,6 +323,36 @@ type FrameContext = {
   frameId: number
 }
 
+export type PanelSubstate =
+  | 'loading'
+  | 'matched'
+  | 'mounted'
+  | 'noMatch'
+  | 'idle'
+  | 'error'
+  | 'disconnected'
+
+export interface PanelMediaInfo {
+  title: string
+  seasonDecorator?: string
+  // Auto-match always yields a numeric episode; manually-mounted episodes may
+  // carry a string label (or none) since their numbering is free-form.
+  episode?: number | string
+  episodeTitle?: string
+  originalTitle?: string
+}
+
+// The danmaku pipeline's contribution to the info panel. Derived in the
+// controller frame and pushed to player frames; `null` over the wire means no
+// state has been derived yet.
+export interface PipelineEntry {
+  source: 'pipeline'
+  substate: PanelSubstate
+  media?: PanelMediaInfo
+  commentCount?: number
+  provider?: DanmakuSourceType
+}
+
 // Controller -> Player communication
 // Here the frameId is used to identify the DESTINATION frame
 export type PlayerRelayCommands = {
@@ -352,6 +383,11 @@ export type PlayerRelayCommands = {
   >
   'relay:command:setOcclusionDebugOverlay': RPCDef<
     InputWithFrameId<boolean>,
+    void,
+    FrameContext
+  >
+  'relay:command:syncPanelState': RPCDef<
+    InputWithFrameId<PipelineEntry | null>,
     void,
     FrameContext
   >
@@ -393,4 +429,7 @@ export type PlayerRelayEvents = {
   'relay:event:showPopover': RPCDef<InputWithFrameId<void>, void>
   'relay:event:userInteraction': RPCDef<InputWithFrameId<void>, void>
   'relay:event:occlusionStatus': RPCDef<InputWithFrameId<OcclusionStatus>, void>
+  // The player pulls the current pipeline entry once its full server is up, so a
+  // push that dropped during the handshake does not leave it stale.
+  'relay:event:requestPanelState': RPCDef<InputWithFrameId<void>, void>
 }

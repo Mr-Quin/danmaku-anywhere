@@ -14,6 +14,11 @@ import { PLAYER_ROOT_ID } from '@/content/player/constants/rootId'
 import { DanmakuManagerService } from '@/content/player/danmakuManager/DanmakuManager.service'
 import { DanmakuDensityService } from '@/content/player/densityPlot/DanmakuDensity.service'
 import densityPlotCss from '@/content/player/densityPlot/DanmakuDensityChart.css?inline'
+import { PlayerIdleService } from '@/content/player/idle/PlayerIdle.service'
+import { InfoPanelService } from '@/content/player/infoPanel/InfoPanel.service'
+import { OcclusionEntryDeriver } from '@/content/player/infoPanel/occlusionEntry'
+import infoPanelCss from '@/content/player/infoPanel/PlayerInfoPanel.css?inline'
+import { buildSakuraCssVars } from '@/content/player/infoPanel/sakuraCssVars'
 import { createPipWindow, moveElement } from '@/content/player/pipUtils'
 import { VideoEventService } from '@/content/player/videoEvent/VideoEvent.service'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
@@ -32,6 +37,7 @@ export class PlayerCommandHandler {
   private frameId = -1
   private root!: HTMLDivElement
   private enableFullscreenInteraction = true
+  private readonly occlusionDeriver = new OcclusionEntryDeriver()
   private sendPlayerReady: () => void = () => {
     // no-op, replace in start()
   }
@@ -43,6 +49,8 @@ export class PlayerCommandHandler {
     @inject(VideoEventService) private videoEvent: VideoEventService,
     @inject(VideoSkipService) private videoSkip: VideoSkipService,
     @inject(DanmakuDensityService) private density: DanmakuDensityService,
+    @inject(PlayerIdleService) private playerIdle: PlayerIdleService,
+    @inject(InfoPanelService) private infoPanel: InfoPanelService,
     @inject(DanmakuOptionsService)
     private danmakuOptions: DanmakuOptionsService,
     @inject(ExtensionOptionsService)
@@ -65,8 +73,21 @@ export class PlayerCommandHandler {
     this.wireOcclusionStatus()
     this.wireWindowEvents()
     this.createRpcServer()
+    this.requestPanelState()
 
+    this.playerIdle.start()
     this.manager.start(ctx.query)
+  }
+
+  /**
+   * Pull the current pipeline entry now that the full server is listening, in
+   * case the controller's push raced or dropped during the handshake.
+   */
+  private requestPanelState() {
+    void playerRpcClient.controller['relay:event:requestPanelState'](
+      { frameId: this.frameId },
+      { optional: true, silent: true }
+    )
   }
 
   private async setupDom() {
@@ -74,7 +95,14 @@ export class PlayerCommandHandler {
     this.root = root
 
     this.manager.setParent(shadowRoot)
-    injectCss(shadowRoot, [skipButtonCss, densityPlotCss, danmakuComponentCss])
+    injectCss(shadowRoot, [
+      buildSakuraCssVars(),
+      skipButtonCss,
+      densityPlotCss,
+      danmakuComponentCss,
+      infoPanelCss,
+    ])
+    this.infoPanel.mount()
   }
 
   private wireLifecycleEvents() {
@@ -143,7 +171,9 @@ export class PlayerCommandHandler {
       showDanmakuTimeline: boolean
       enableFullscreenInteraction: boolean
     }
+    infoPanel: { enabled: boolean }
   }) {
+    this.infoPanel.setEnabled(options.infoPanel.enabled)
     if (options.playerOptions.showSkipButton) {
       this.videoSkip.enable()
     } else {
@@ -167,7 +197,22 @@ export class PlayerCommandHandler {
         },
         { optional: true }
       )
+      this.applyOcclusion(() => this.occlusionDeriver.setStatus(status))
     })
+    this.manager.onOcclusionRunningChange((running) => {
+      this.applyOcclusion(() => this.occlusionDeriver.setRunning(running))
+    })
+    this.manager.onOcclusionActive(() => {
+      this.applyOcclusion(() => this.occlusionDeriver.setActive())
+    })
+    this.manager.onOcclusionDisengaged(() => {
+      this.applyOcclusion(() => this.occlusionDeriver.reset())
+    })
+  }
+
+  private applyOcclusion(mutate: () => void) {
+    mutate()
+    this.infoPanel.setOcclusionEntry(this.occlusionDeriver.current())
   }
 
   private wireWindowEvents() {
@@ -263,6 +308,9 @@ export class PlayerCommandHandler {
         'relay:command:setOcclusionDebugOverlay': async ({ data: enabled }) => {
           this.manager.setOcclusionDebugOverlay(enabled)
         },
+        'relay:command:syncPanelState': async ({ data: entry }) => {
+          this.infoPanel.setPipelineEntry(entry)
+        },
       },
       {
         logger: this.logger,
@@ -317,11 +365,17 @@ export class PlayerCommandHandler {
       pipWindow.document.body
     )
 
+    // The panel's styles live in the player shadow root, which the PiP window
+    // does not inherit. Hide it for the PiP session so it does not render as an
+    // unstyled block, and restore it when PiP closes.
+    this.infoPanel.setPipActive(true)
+
     delayResize()
 
     pipWindow.addEventListener('pagehide', () => {
       restoreVideo()
       restoreWrapper()
+      this.infoPanel.setPipActive(false)
       delayResize()
     })
   }

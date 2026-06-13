@@ -312,6 +312,25 @@
     },
     "willImport_other": "将导入{{count}}个文件"
   },
+  "infoPanel": {
+    "comments": "弹幕",
+    "hide": "隐藏信息面板",
+    "occlusion": {
+      "error": "遮挡错误",
+      "loading": "遮挡加载中",
+      "on": "遮挡已开启"
+    },
+    "show": "显示信息面板",
+    "state": {
+      "disconnected": "已断开",
+      "error": "错误",
+      "idle": "未装填弹幕",
+      "loading": "匹配中",
+      "matched": "已匹配",
+      "mounted": "已装填",
+      "noMatch": "无匹配"
+    }
+  },
   "integration": {
     "ai": {
       "cannotEditBuiltIn": "内置AI源不可编辑。要使用自定义提示词，请添加并切换至别的AI源",
@@ -533,6 +552,9 @@
       "toggleEnableDanmaku": "显示/隐藏弹幕",
       "togglePip": "画中画（实验）",
       "unmountComments": "卸载弹幕"
+    },
+    "infoPanel": {
+      "enabled": "显示信息面板"
     },
     "language": "语言",
     "matchLocalDanmaku": "匹配本地弹幕",

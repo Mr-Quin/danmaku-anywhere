@@ -73,12 +73,12 @@ Always prefer scripts defined in `package.json` over ad-hoc commands. Run `pnpm 
   - Nested ternaries beyond one level — flatten with early returns, a lookup, or an if/else cascade
 - **Decouple business logic**: keep logic decoupled from UI frameworks for testability — single source of truth over scattered state
 - **No sectional comments**: sectional comments in a class are a code smell — split the class instead
-- **Test header comment (e2e only)**: every e2e spec under `packages/danmaku-anywhere/e2e/` has a 3-6 line JSDoc block immediately after imports describing what the test exercises and what it asserts, before the first `test()`/`describe()` call. Unit and integration tests do not require this header.
+- **Test header comment**: every e2e spec under `packages/danmaku-anywhere/e2e/` MUST have a 3-6 line JSDoc block immediately after imports describing what the test exercises and what it asserts, before the first `test()`/`describe()` call. For unit and integration tests the same header is OPTIONAL and welcome (not discouraged): add it when it helps, skip it when the `describe`/`it` names already say enough. Do not strip an existing header from a unit/integration test just because it is optional.
 
 ## Comments
 
 - Default to no comments. Add one only when the **what** or **why** is non-obvious from the code itself — a hidden constraint, a subtle invariant, a workaround, behavior that would surprise a future reader.
-- **Tests get a header.** The standing exception to "default to no comments": e2e specs carry a short header block (see the e2e test-header rule under Code style). The rest of these rules still apply inside that header and inside tests.
+- **Tests get a header.** The standing exception to "default to no comments": a test file may carry a short header block describing what it exercises (see the test-header rule under Code style). It is required for e2e specs and optional but welcome for unit/integration tests. The rest of these rules still apply inside that header and inside tests.
 - **No narration.** Don't restate what the next few lines do. Well-named identifiers carry that load.
 - **No conversation summaries.** Comments are not changelogs, review-response notes, or rationalizations for a decision someone questioned. Those belong in commit messages and PR descriptions.
 - **Don't reference invisible-from-code context.** No `// Added for DA-XXX`, `// Per Gemini review`, `// As discussed`, `// Phase 2 fix`, `// Previously…`. If a future reader can't see it in the tree, the comment is dead weight.

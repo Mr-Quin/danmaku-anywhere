@@ -6,6 +6,7 @@ import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayo
 import { computeDensityBins } from '@/content/player/densityPlot/computeDensityBins'
 import { DanmakuDensityChart } from '@/content/player/densityPlot/DanmakuDensityChart'
 import type { DensityPoint } from '@/content/player/densityPlot/types'
+import { PlayerIdleService } from '@/content/player/idle/PlayerIdle.service'
 import { VideoEventService } from '@/content/player/videoEvent/VideoEvent.service'
 
 @injectable('Singleton')
@@ -21,12 +22,11 @@ export class DanmakuDensityService {
   private binSizeSec = 10
   private chartHeight = 28
 
-  private showChartTimeout: ReturnType<typeof setTimeout> | null = null
   private resizeObserver: ResizeObserver | null = null
+  private idleUnsubscribe: (() => void) | null = null
 
   private readonly boundHandleTimeUpdate: (event: Event) => void
   private readonly boundHandleSeeked: () => void
-  private readonly boundHandleMouseMove: (event: MouseEvent) => void
   private readonly boundHandleResize: () => void
 
   constructor(
@@ -34,12 +34,13 @@ export class DanmakuDensityService {
     private readonly videoEventService: VideoEventService,
     @inject(DanmakuLayoutService)
     private readonly layoutService: DanmakuLayoutService,
+    @inject(PlayerIdleService)
+    private readonly playerIdle: PlayerIdleService,
     @inject(LoggerSymbol) logger: ILogger
   ) {
     this.logger = logger.sub('[DanmakuDensityService]')
     this.boundHandleTimeUpdate = this.handleTimeUpdate.bind(this)
     this.boundHandleSeeked = this.handleSeeked.bind(this)
-    this.boundHandleMouseMove = this.handleMouseMove.bind(this)
     this.boundHandleResize = debounce(this.handleResize.bind(this), 100)
     this.chart = new DanmakuDensityChart(this.layoutService.wrapper, {
       height: this.chartHeight,
@@ -94,9 +95,18 @@ export class DanmakuDensityService {
       'loadedmetadata',
       this.boundHandleTimeUpdate
     )
-    document.addEventListener('mousemove', this.boundHandleMouseMove)
 
-    // Set up video resize observation
+    this.idleUnsubscribe = this.playerIdle.subscribe((active) => {
+      if (active) {
+        this.chart.show()
+      } else {
+        this.chart.hide()
+      }
+    })
+    if (this.playerIdle.getActive()) {
+      this.chart.show()
+    }
+
     const videoElement = this.videoEventService.getVideoElement()
     if (videoElement) {
       this.setupVideoResizeObserver(videoElement)
@@ -116,7 +126,8 @@ export class DanmakuDensityService {
       'loadedmetadata',
       this.boundHandleTimeUpdate
     )
-    document.removeEventListener('mousemove', this.boundHandleMouseMove)
+    this.idleUnsubscribe?.()
+    this.idleUnsubscribe = null
     this.cleanupVideoResizeObserver()
   }
 
@@ -152,27 +163,6 @@ export class DanmakuDensityService {
     } else {
       this.chart.updateProgress(this.currentVideo.currentTime)
     }
-  }
-
-  private handleMouseMove(event: MouseEvent) {
-    const videoElement = this.videoEventService.getVideoElement()
-    if (!(event.target instanceof Element) || !videoElement) {
-      return
-    }
-    if (
-      !videoElement.isEqualNode(event.target) &&
-      !event.target.contains(videoElement) &&
-      !videoElement.contains(event.target)
-    ) {
-      return
-    }
-    this.chart.show()
-    if (this.showChartTimeout) {
-      clearTimeout(this.showChartTimeout)
-    }
-    this.showChartTimeout = setTimeout(() => {
-      this.chart.hide()
-    }, 2000)
   }
 
   private setupVideoResizeObserver(videoElement: HTMLVideoElement) {

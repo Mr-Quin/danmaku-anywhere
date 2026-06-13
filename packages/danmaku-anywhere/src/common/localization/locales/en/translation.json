@@ -323,6 +323,25 @@
     "willImport_one": "Will import {{count}} file",
     "willImport_other": "Will import {{count}} files"
   },
+  "infoPanel": {
+    "comments": "comments",
+    "hide": "Hide info panel",
+    "occlusion": {
+      "error": "Occlusion error",
+      "loading": "Occlusion starting",
+      "on": "Occlusion on"
+    },
+    "show": "Show info panel",
+    "state": {
+      "disconnected": "Disconnected",
+      "error": "Error",
+      "idle": "No danmaku mounted",
+      "loading": "Searching",
+      "matched": "Matched",
+      "mounted": "Mounted",
+      "noMatch": "No match"
+    }
+  },
   "integration": {
     "ai": {
       "cannotEditBuiltIn": "Settings for the built-in provider cannot be changed. To use custom prompts, change to another AI provider.",
@@ -548,6 +567,9 @@
       "toggleEnableDanmaku": "Show/Hide danmaku",
       "togglePip": "Picture-in-picture",
       "unmountComments": "Unmount comments"
+    },
+    "infoPanel": {
+      "enabled": "Show info panel"
     },
     "language": "Language",
     "matchLocalDanmaku": "Enable matching local Danmaku",

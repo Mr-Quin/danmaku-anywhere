@@ -30,4 +30,7 @@ export const defaultExtensionOptions: ExtensionOptions = {
   restrictInitiatorDomain: true,
   showFloatingButton: true,
   autoBookmark: false,
+  infoPanel: {
+    enabled: true,
+  },
 }

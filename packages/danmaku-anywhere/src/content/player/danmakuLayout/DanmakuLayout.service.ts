@@ -4,6 +4,10 @@ import { injectable } from 'inversify'
 export class DanmakuLayoutService {
   public readonly wrapper: HTMLDivElement
   public readonly container: HTMLDivElement
+  // The UI control layer: in-player controls (skip button, info panel) mount
+  // here so they share one tier above the danmaku comments (z 9-10) and below
+  // the occlusion debug overlay (z 2147483646).
+  public readonly uiLayer: HTMLDivElement
 
   constructor() {
     const wrapper = document.createElement('div')
@@ -22,9 +26,18 @@ export class DanmakuLayoutService {
     container.style.width = '100%'
     container.style.height = '100%'
 
+    const uiLayer = document.createElement('div')
+    uiLayer.id = 'danmaku-anywhere-ui-layer'
+    uiLayer.style.position = 'absolute'
+    uiLayer.style.inset = '0'
+    uiLayer.style.pointerEvents = 'none'
+    uiLayer.style.zIndex = '10000'
+
     wrapper.appendChild(container)
+    wrapper.appendChild(uiLayer)
 
     this.wrapper = wrapper
     this.container = container
+    this.uiLayer = uiLayer
   }
 }
