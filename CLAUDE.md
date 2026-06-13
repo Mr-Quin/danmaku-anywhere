@@ -133,4 +133,3 @@ Lefthook runs Biome check on staged files before each commit (auto-fixes formatt
 - The web app requires the browser extension to be installed for scraping features
 - `pnpm-lock.yaml` is in `.cursorignore` — don't try to read it
 - The project uses `pnpm@10.11.0` — do not use npm or yarn
-- The shell is zsh: unquoted `for x in $var` does not word-split. Iterate lists with `while read -r x` or zsh's `${(f)var}`, not a bare `for` loop.
