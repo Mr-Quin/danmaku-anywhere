@@ -20,9 +20,11 @@ import { tryCatchSync } from '@/common/utils/tryCatch'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
 import { attachMountMirror } from '@/content/controller/common/devMountMirror'
+import { startPanelStateBroadcaster } from '@/content/controller/danmaku/panelState/PanelStateBroadcaster'
 import { useStore } from '@/content/controller/store/store'
 
 await ensureStandaloneReady()
+startPanelStateBroadcaster()
 
 if (!IS_DA_PROD) {
   attachMountMirror(useStore)
