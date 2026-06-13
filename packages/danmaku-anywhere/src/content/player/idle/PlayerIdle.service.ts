@@ -19,12 +19,14 @@ function pointerPoint(event: Event): { x: number; y: number } | null {
 // The overlays (danmaku, info panel, skip button) sit on top of the video, so
 // their pointer events land within its rect; checking geometry counts activity
 // over the whole player region without counting the rest of the page.
-export function isOverVideo(event: Event, video: HTMLVideoElement): boolean {
+export function isOverRect(
+  event: Event,
+  rect: { left: number; top: number; right: number; bottom: number }
+): boolean {
   const point = pointerPoint(event)
   if (!point) {
     return false
   }
-  const rect = video.getBoundingClientRect()
   return (
     point.x >= rect.left &&
     point.x <= rect.right &&
@@ -46,6 +48,9 @@ export class PlayerIdleService {
   private tracker: IdleTracker | null = null
   private listeners = new Set<Listener>()
   private currentVideo: HTMLVideoElement | null = null
+  private videoRect: DOMRect | null = null
+  private rectObserver: ResizeObserver | null = null
+  private readonly boundRefreshRect: () => void
 
   constructor(
     @inject(VideoNodeObserverService)
@@ -53,18 +58,17 @@ export class PlayerIdleService {
     @inject(LoggerSymbol) logger: ILogger
   ) {
     this.logger = logger.sub('[PlayerIdleService]')
+    this.boundRefreshRect = this.refreshRect.bind(this)
   }
 
   start() {
     if (this.tracker) {
       return
     }
-    this.currentVideo = this.videoNodeObs.activeVideo
+    this.followVideo(this.videoNodeObs.activeVideo)
     this.tracker = new IdleTracker(document, {
       shouldCount: (event) => {
-        return (
-          this.currentVideo !== null && isOverVideo(event, this.currentVideo)
-        )
+        return this.videoRect !== null && isOverRect(event, this.videoRect)
       },
     })
     this.tracker.subscribe((active) => {
@@ -72,10 +76,32 @@ export class PlayerIdleService {
         listener(active)
       }
     })
+    // The cached rect is viewport-relative, so refresh it when the page scrolls
+    // or resizes rather than reading layout on every pointer move.
+    window.addEventListener('scroll', this.boundRefreshRect, {
+      capture: true,
+      passive: true,
+    })
+    window.addEventListener('resize', this.boundRefreshRect, { passive: true })
     this.videoNodeObs.addEventListener('videoNodeChange', (video) => {
       this.logger.debug('Following idle target to new video', video)
-      this.currentVideo = video
+      this.followVideo(video)
     })
+  }
+
+  private followVideo(video: HTMLVideoElement | null) {
+    this.currentVideo = video
+    this.rectObserver?.disconnect()
+    this.rectObserver = null
+    if (video) {
+      this.rectObserver = new ResizeObserver(this.boundRefreshRect)
+      this.rectObserver.observe(video)
+    }
+    this.refreshRect()
+  }
+
+  private refreshRect() {
+    this.videoRect = this.currentVideo?.getBoundingClientRect() ?? null
   }
 
   subscribe(listener: Listener): () => void {
