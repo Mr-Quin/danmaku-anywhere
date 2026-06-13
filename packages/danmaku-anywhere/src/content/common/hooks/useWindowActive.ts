@@ -6,7 +6,7 @@ import { IdleTracker } from '@/content/common/idleTracker'
  * tracker is created inside the effect so its listeners attach and tear down
  * symmetrically under React.StrictMode's mount/unmount/remount.
  */
-export function useWindowIdle(idleMs = 3000): boolean {
+export function useWindowActive(idleMs = 3000): boolean {
   const [active, setActive] = useState(true)
 
   useEffect(() => {

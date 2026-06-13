@@ -87,6 +87,11 @@ export class PlayerIdleService {
       this.logger.debug('Following idle target to new video', video)
       this.followVideo(video)
     })
+    // Drop the detached video so it can be collected and activity stops counting
+    // until a new one appears.
+    this.videoNodeObs.addEventListener('videoNodeRemove', () => {
+      this.followVideo(null)
+    })
   }
 
   private followVideo(video: HTMLVideoElement | null) {

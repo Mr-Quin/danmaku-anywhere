@@ -253,8 +253,8 @@ const playerSettings: ToggleSettingConfig<ExtensionOptions>[] = [
     category: 'player',
     type: 'toggle',
     getValue: (options) => options.infoPanel.enabled,
-    createUpdate: (_, newValue) => ({
-      infoPanel: { enabled: newValue },
+    createUpdate: (options, newValue) => ({
+      infoPanel: { ...options.infoPanel, enabled: newValue },
     }),
   },
 ]

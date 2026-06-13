@@ -79,12 +79,14 @@ test('info panel reflects the mounted state in-video', async ({
 
   await integrationPage.infoPanel().hover()
   // Expanded, the header shows the status headline and the body the details.
-  await expect(integrationPage.infoPanelHeadline()).toHaveText(/Mounted|已装填/)
+  await expect(integrationPage.infoPanelHeadline()).toHaveText(
+    /^(Mounted|已装填)$/
+  )
   await expect(integrationPage.infoPanelCount()).toHaveText(
     String(COMMENTS.length)
   )
   // The provider is localized, not the raw enum (MacCMS, not "Custom").
-  await expect(integrationPage.infoPanelSourceChip()).toHaveText(/MacCMS/)
+  await expect(integrationPage.infoPanelSourceChip()).toHaveText(/^MacCMS$/)
 })
 
 test('collapsing docks the panel to a tab and tapping it restores', async ({

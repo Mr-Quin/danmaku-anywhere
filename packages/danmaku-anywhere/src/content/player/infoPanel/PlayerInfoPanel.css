@@ -84,7 +84,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.55);
+  background: color-mix(in srgb, var(--da-text) 55%, transparent);
 }
 
 [data-da-ip-row][data-sev="info"] .da-ip-dot {
@@ -113,7 +113,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  color: rgba(255, 255, 255, 0.85);
+  color: color-mix(in srgb, var(--da-text) 85%, transparent);
 }
 
 [data-da-ip-row][data-sev="info"] .da-ip-headline {
@@ -164,15 +164,15 @@
   padding: 0;
   border: none;
   border-radius: 6px;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.55);
+  background: color-mix(in srgb, var(--da-text) 6%, transparent);
+  color: color-mix(in srgb, var(--da-text) 55%, transparent);
   cursor: pointer;
   pointer-events: auto;
 }
 
 .da-ip-collapse:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.85);
+  background: color-mix(in srgb, var(--da-text) 12%, transparent);
+  color: color-mix(in srgb, var(--da-text) 85%, transparent);
 }
 
 /* Left-pointing chevron. */
@@ -208,7 +208,7 @@
   background: color-mix(in srgb, var(--da-surface) 90%, transparent);
   -webkit-backdrop-filter: blur(20px) saturate(140%);
   backdrop-filter: blur(20px) saturate(140%);
-  color: rgba(255, 255, 255, 0.6);
+  color: color-mix(in srgb, var(--da-text) 60%, transparent);
   cursor: grab;
   touch-action: none;
   pointer-events: auto;
@@ -265,12 +265,12 @@
 .da-ip-season {
   margin-left: 6px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.5);
+  color: color-mix(in srgb, var(--da-text) 50%, transparent);
 }
 
 .da-ip-epline {
   font-size: var(--da-fs-caption);
-  color: rgba(255, 255, 255, 0.7);
+  color: color-mix(in srgb, var(--da-text) 70%, transparent);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -309,7 +309,7 @@
   font-size: var(--da-fs-meta);
   letter-spacing: 0.3px;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.55);
+  color: color-mix(in srgb, var(--da-text) 55%, transparent);
 }
 
 .da-ip-source {
@@ -318,11 +318,11 @@
   margin-left: auto;
   padding: 2px 7px;
   border-radius: 99px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: color-mix(in srgb, var(--da-text) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--da-text) 7%, transparent);
   font-size: var(--da-fs-meta);
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.78);
+  color: color-mix(in srgb, var(--da-text) 78%, transparent);
 }
 
 /* Occlusion body (and any source that only needs a one-line detail message). */
@@ -330,7 +330,7 @@
   margin: 0;
   font-size: var(--da-fs-caption);
   line-height: 1.35;
-  color: rgba(255, 255, 255, 0.7);
+  color: color-mix(in srgb, var(--da-text) 70%, transparent);
 }
 
 [data-da-ip-row][data-sev="danger"] .da-ip-message {

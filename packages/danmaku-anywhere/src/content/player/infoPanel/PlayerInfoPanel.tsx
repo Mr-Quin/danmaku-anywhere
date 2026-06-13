@@ -186,6 +186,9 @@ export function PlayerInfoPanel() {
   const offsetRef = useRef(offset)
 
   const applyOffset = useCallback((next: DragOffset) => {
+    if (offsetRef.current.x === next.x && offsetRef.current.y === next.y) {
+      return
+    }
     offsetRef.current = next
     setOffset(next)
   }, [])
@@ -206,10 +209,13 @@ export function PlayerInfoPanel() {
     (fraction: DragOffset) => {
       fractionRef.current = fraction
       const m = measure()
-      if (m) {
-        applyOffset(fractionToOffset(fraction, m.parent, m.panel))
-        setPlaced(true)
+      // While the player is collapsed to zero size the bounds are meaningless;
+      // keep the last offset so the position is not lost during the transition.
+      if (!m || m.parent.width === 0 || m.parent.height === 0) {
+        return
       }
+      applyOffset(fractionToOffset(fraction, m.parent, m.panel))
+      setPlaced(true)
     },
     [measure, applyOffset]
   )
@@ -343,6 +349,7 @@ export function PlayerInfoPanel() {
           className="da-ip-tab"
           style={{ top: `${offset.y}px` }}
           aria-label={i18n.t('infoPanel.show', 'Show info panel')}
+          onClick={() => setDismissed(false)}
           {...tabBind()}
         />
       ) : null}
