@@ -6,7 +6,7 @@ import type { PipelineEntry } from '@/common/rpcClient/background/types'
 // PanelStateBroadcaster; it is the sole writer.
 let latest: PipelineEntry | null = null
 
-export function setLatestPipelineEntry(entry: PipelineEntry | null): void {
+export function setLatestPipelineEntry(entry: PipelineEntry): void {
   latest = entry
 }
 
