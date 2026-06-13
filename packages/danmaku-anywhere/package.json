@@ -60,7 +60,7 @@
     "@fontsource-variable/noto-sans-tc": "^5.2.10",
     "@fontsource-variable/plus-jakarta-sans": "^5.2.8",
     "@hookform/resolvers": "^5.2.2",
-    "@mr-quin/dango": "^0.6.0",
+    "@mr-quin/dango": "^0.7.0",
     "@mui/icons-material": "^9.0.1",
     "@mui/lab": "9.0.0-beta.3",
     "@mui/material": "^9.0.1",
@@ -100,7 +100,7 @@
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "2.2.1",
-    "@mr-quin/dango-manifests": "^0.6.0",
+    "@mr-quin/dango-manifests": "^0.7.0",
     "@playwright/test": "^1.59.1",
     "@types/chrome": "^0.0.326",
     "@types/d3": "^7.4.3",
