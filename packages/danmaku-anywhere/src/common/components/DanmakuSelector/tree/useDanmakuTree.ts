@@ -299,6 +299,14 @@ export const useDanmakuTree = (
         continue
       }
 
+      if (
+        !typeFilter.includes(
+          providerTypeFromManifestId(season.manifestId ?? '')
+        )
+      ) {
+        continue
+      }
+
       if (resolveSeasonConfig(season, configs) === undefined) {
         continue
       }
