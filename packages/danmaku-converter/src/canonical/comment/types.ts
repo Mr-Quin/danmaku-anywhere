@@ -8,6 +8,14 @@ export enum CommentMode {
   bottom = 4,
 }
 
+// Modes 1/2/3 are all right-to-left scrolling variants per the danmaku spec; normalize to mode 1.
+export function normalizeCommentMode(n: number): number {
+  if (n === 2 || n === 3) {
+    return 1
+  }
+  return n
+}
+
 export const zCommentEntity = z.object({
   /**
    * Comment id, if available
@@ -49,7 +57,10 @@ export const zCommentImport = z
         z
           .tuple([
             zTime, // time
-            z.coerce.number<string>().pipe(z.enum(CommentMode)),
+            z.coerce
+              .number<string>()
+              .transform(normalizeCommentMode)
+              .pipe(z.enum(CommentMode)),
             zRgb888, // decimal color
           ])
           .rest(z.string())
