@@ -74,6 +74,22 @@ describe('commentSchema', () => {
     expect(() => zCommentImport.parse(invalidTime)).toThrow()
     expect(() => zCommentImport.parse(invalidColor)).toThrow()
   })
+
+  it('normalizes mode 2 to 1 (rtl)', () => {
+    const result = zCommentImport.parse({ p: '12.5,2,16777215', m: 'test' })
+    expect(result.p).toBe('12.5,1,16777215')
+  })
+
+  it('normalizes mode 3 to 1 (rtl)', () => {
+    const result = zCommentImport.parse({ p: '12.5,3,16777215', m: 'test' })
+    expect(result.p).toBe('12.5,1,16777215')
+  })
+
+  it('rejects comment with unknown mode', () => {
+    expect(() =>
+      zCommentImport.parse({ p: '12.5,99,16777215', m: 'test' })
+    ).toThrow()
+  })
 })
 
 // Updated assert function for the `imported` array structure

@@ -30,4 +30,22 @@ describe('comment entity conversion', () => {
   it('should return null for an unknown mode', () => {
     expect(parseCommentEntityP('658.73,99,16777215,0')).toBeNull()
   })
+
+  it('should normalize mode 2 to rtl', () => {
+    expect(parseCommentEntityP('12,2,16777215,uid')).toEqual({
+      time: 12,
+      mode: 'rtl',
+      color: '#ffffff',
+      uid: 'uid',
+    })
+  })
+
+  it('should normalize mode 3 to rtl', () => {
+    expect(parseCommentEntityP('12,3,16777215,uid')).toEqual({
+      time: 12,
+      mode: 'rtl',
+      color: '#ffffff',
+      uid: 'uid',
+    })
+  })
 })
