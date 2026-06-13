@@ -5,20 +5,40 @@ import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNo
 
 type Listener = (active: boolean) => void
 
-function isWithinVideoSubtree(event: Event, video: HTMLVideoElement): boolean {
-  const target = event.target
-  if (!(target instanceof Element)) {
+function pointerPoint(event: Event): { x: number; y: number } | null {
+  if (event instanceof MouseEvent) {
+    return { x: event.clientX, y: event.clientY }
+  }
+  if (typeof TouchEvent !== 'undefined' && event instanceof TouchEvent) {
+    const touch = event.touches[0] ?? event.changedTouches[0]
+    return touch ? { x: touch.clientX, y: touch.clientY } : null
+  }
+  return null
+}
+
+// The overlays (danmaku, info panel, skip button) sit on top of the video, so
+// their pointer events land within its rect; checking geometry counts activity
+// over the whole player region without counting the rest of the page.
+export function isOverVideo(event: Event, video: HTMLVideoElement): boolean {
+  const point = pointerPoint(event)
+  if (!point) {
     return false
   }
-  return target === video || video.contains(target) || target.contains(video)
+  const rect = video.getBoundingClientRect()
+  return (
+    point.x >= rect.left &&
+    point.x <= rect.right &&
+    point.y >= rect.top &&
+    point.y <= rect.bottom
+  )
 }
 
 /**
- * Shared idle state for the player frame, derived from pointer activity within
- * the active video's subtree. Consumers (density chart, info panel) subscribe
- * once; the underlying tracker follows the active video as it changes without
- * resetting the idle state, so swapping episodes does not flash the consumers
- * back into view.
+ * Shared idle state for the player frame, derived from pointer activity over the
+ * active video. Consumers (density chart, info panel) subscribe once; the
+ * underlying tracker follows the active video as it changes without resetting
+ * the idle state, so swapping episodes does not flash the consumers back into
+ * view.
  */
 @injectable('Singleton')
 export class PlayerIdleService {
@@ -43,8 +63,7 @@ export class PlayerIdleService {
     this.tracker = new IdleTracker(document, {
       shouldCount: (event) => {
         return (
-          this.currentVideo !== null &&
-          isWithinVideoSubtree(event, this.currentVideo)
+          this.currentVideo !== null && isOverVideo(event, this.currentVideo)
         )
       },
     })
