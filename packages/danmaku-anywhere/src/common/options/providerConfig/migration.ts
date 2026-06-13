@@ -379,12 +379,9 @@ export function ensureBuiltinProviders(
   return additions.length > 0 ? [...data, ...additions] : data
 }
 
-// Records from before v5 persisted `impl` and `isBuiltIn`. Neither is read at
-// runtime now that the provider tag comes from manifestId, so drop just those
-// two keys and keep the rest of the record intact. Dropping them explicitly
-// rather than re-parsing through the schema keeps this migration independent of
-// later schema changes. A non-array store and non-object entries are passed
-// through untouched.
+// The provider tag comes from manifestId, so `impl` and `isBuiltIn` are no
+// longer read. Drop just those two keys rather than re-parsing through the
+// schema, which keeps this migration independent of later schema changes.
 export function migrateDropDeadProviderFields(
   data: ProviderConfig[]
 ): ProviderConfig[] {

@@ -65,7 +65,7 @@ describe('selectPanelState — null gate (display policy)', () => {
   })
 
   it('returns null in manual mode when substate is disconnected', () => {
-    // Intentional: manual mode only surfaces mounted state to avoid noise.
+    // Manual mode only surfaces a mounted pipeline, to avoid noise.
     expect(
       selectPanelState({ ...base, isManual: true, isDisconnected: true })
     ).toBeNull()
