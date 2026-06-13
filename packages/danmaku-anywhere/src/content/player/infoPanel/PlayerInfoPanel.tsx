@@ -16,10 +16,12 @@ import {
   offsetToFraction,
   type Size,
 } from './panelBounds'
-import type { OcclusionEntry, PanelEntry } from './panelEntry'
+import type { OcclusionEntry, PanelEntry, PanelSource } from './panelEntry'
 import { usePanelStateStore } from './panelStateStore'
 import { panelView } from './panelView'
-import { resolvePanelEntries } from './resolvePanelEntries'
+
+// Fixed display order, one row per source; a new source slots in here.
+const SOURCE_ORDER: readonly PanelSource[] = ['pipeline', 'occlusion']
 
 const DEFAULT_FRACTION: DragOffset = { x: 0.1, y: 0.06 }
 
@@ -169,7 +171,10 @@ function PanelRow({
 }
 
 export function PlayerInfoPanel() {
-  const entries = resolvePanelEntries(usePanelStateStore.use.entries())
+  const stored = usePanelStateStore.use.entries()
+  const entries = SOURCE_ORDER.map((source) => stored[source]).filter(
+    (entry): entry is PanelEntry => entry !== undefined
+  )
   const enabled = usePanelStateStore.use.enabled()
   const active = usePanelStateStore.use.active()
   const pipActive = usePanelStateStore.use.pipActive()
