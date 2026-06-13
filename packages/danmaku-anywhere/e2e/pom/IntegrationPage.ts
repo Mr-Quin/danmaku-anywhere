@@ -195,4 +195,13 @@ export class IntegrationPage {
   infoPanelGlanceTitle(): Locator {
     return this.infoPanelRow('pipeline').locator('.da-ip-glance-title')
   }
+
+  infoPanelCollapseButton(): Locator {
+    return this.inPlayer('.da-ip-collapse')
+  }
+
+  // The left-edge tab left behind once the panel is docked.
+  infoPanelTab(): Locator {
+    return this.inPlayer('.da-ip-tab')
+  }
 }

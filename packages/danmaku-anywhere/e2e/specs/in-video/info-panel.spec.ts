@@ -1,4 +1,5 @@
 import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import type { BrowserContext, Page } from '@playwright/test'
 import { IntegrationPage } from '../../pom/IntegrationPage'
 import { getDaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
@@ -13,7 +14,8 @@ import { applyProfile } from '../../setup/profile'
  * mounts danmaku on a native <video>, the pipeline row renders in the player
  * shadow root with its source and (mounted) success severity on the row, its
  * headline reflects the mounted substate, and hovering expands it to show the
- * comment count and the localized provider chip. Asserts rendered panel DOM.
+ * comment count and the localized provider chip. A second case collapses the
+ * panel and asserts it docks to a left-edge tab and restores. Asserts panel DOM.
  */
 
 const ORIGIN = 'https://da-test.invalid'
@@ -27,10 +29,7 @@ const COMMENTS = [
   { p: '36,1,16777215,e2e-3', m: 'third' },
 ]
 
-test('info panel reflects the mounted state in-video', async ({
-  context,
-  page,
-}) => {
+async function mountPanel(context: BrowserContext, page: Page) {
   const da = await getDaClient(context)
 
   await applyProfile(context, da, {
@@ -59,6 +58,14 @@ test('info panel reflects the mounted state in-video', async ({
   expect(mirror.episodeIds).toEqual([episode.id])
 
   await integrationPage.playVideo()
+  return integrationPage
+}
+
+test('info panel reflects the mounted state in-video', async ({
+  context,
+  page,
+}) => {
+  const integrationPage = await mountPanel(context, page)
 
   // The pipeline row renders with its source and the mounted (success) severity.
   await expect(integrationPage.infoPanelRow('pipeline')).toBeVisible({
@@ -78,4 +85,27 @@ test('info panel reflects the mounted state in-video', async ({
   )
   // The provider is localized, not the raw enum (MacCMS, not "Custom").
   await expect(integrationPage.infoPanelSourceChip()).toHaveText(/MacCMS/)
+})
+
+test('collapsing docks the panel to a tab and tapping it restores', async ({
+  context,
+  page,
+}) => {
+  const integrationPage = await mountPanel(context, page)
+
+  const panel = integrationPage.infoPanel()
+  await expect(panel).toBeVisible({ timeout: 5_000 })
+
+  await panel.hover()
+  await integrationPage.infoPanelCollapseButton().click()
+
+  // The panel docks (slides off) but stays mounted, leaving the edge tab.
+  await expect(panel).toHaveClass(/da-ip--docked/)
+  await expect(integrationPage.infoPanelTab()).toBeVisible()
+
+  await integrationPage.infoPanelTab().click()
+
+  await expect(panel).not.toHaveClass(/da-ip--docked/)
+  await expect(integrationPage.infoPanelTab()).toHaveCount(0)
+  await expect(integrationPage.infoPanelRow('pipeline')).toBeVisible()
 })

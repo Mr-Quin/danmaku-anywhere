@@ -6,19 +6,24 @@ import type {
   PanelMediaInfo,
   PipelineEntry,
 } from '@/common/rpcClient/background/types'
-import {
-  clampOffset,
-  type OffsetBounds,
-} from '@/content/common/hooks/clampOffset'
+import { clampOffset } from '@/content/common/hooks/clampOffset'
 import { usePersistedPosition } from '@/content/common/hooks/usePersistedPosition'
 import type { DragOffset } from '@/content/controller/ui/components/dragOffset'
 import { entryView } from './entryView'
-import { computePanelBounds } from './panelBounds'
+import {
+  computePanelBounds,
+  fractionToOffset,
+  offsetToFraction,
+  type Size,
+} from './panelBounds'
 import type { OcclusionEntry, PanelEntry } from './panelEntry'
 import { usePanelStateStore } from './panelStateStore'
 import { panelView } from './panelView'
 import { resolvePanelEntries } from './resolvePanelEntries'
 
+const DEFAULT_FRACTION: DragOffset = { x: 0.1, y: 0.06 }
+
+// First paint before the panel is measured; the fraction takes over on mount.
 const DEFAULT_OFFSET: DragOffset = { x: 16, y: 16 }
 
 type DragBind = ReturnType<typeof useDrag>
@@ -148,7 +153,6 @@ function PanelRow({
       data-sev={view.severity}
       className="da-ip-row"
     >
-      {/* The header row is the drag handle. */}
       <div className="da-ip-row-header" {...dragBind()}>
         <span
           className={view.pulse ? 'da-ip-dot da-ip-dot--pulse' : 'da-ip-dot'}
@@ -172,13 +176,13 @@ export function PlayerInfoPanel() {
   const [hovered, setHovered] = useState(false)
   const [dragging, setDragging] = useState(false)
   const [dismissed, setDismissed] = useState(false)
+  const [placed, setPlaced] = useState(false)
 
   const panelRef = useRef<HTMLDivElement>(null)
-  const { initialOffset, persistOffset } = usePersistedPosition(
-    'infoPanelOffset',
-    DEFAULT_OFFSET
-  )
-  const [offset, setOffset] = useState<DragOffset>(initialOffset)
+  const { initialOffset: initialFraction, persistOffset: persistFraction } =
+    usePersistedPosition('infoPanelPosition', DEFAULT_FRACTION)
+  const fractionRef = useRef<DragOffset>(initialFraction)
+  const [offset, setOffset] = useState<DragOffset>(DEFAULT_OFFSET)
   const offsetRef = useRef(offset)
 
   const applyOffset = useCallback((next: DragOffset) => {
@@ -186,36 +190,68 @@ export function PlayerInfoPanel() {
     setOffset(next)
   }, [])
 
-  const currentBounds = useCallback((): OffsetBounds | undefined => {
+  const measure = useCallback((): { parent: Size; panel: Size } | null => {
     const el = panelRef.current
     const parent = el?.offsetParent as HTMLElement | null
     if (!el || !parent) {
-      return undefined
+      return null
     }
-    return computePanelBounds(
-      { width: parent.clientWidth, height: parent.clientHeight },
-      { width: el.offsetWidth, height: el.offsetHeight }
-    )
+    return {
+      parent: { width: parent.clientWidth, height: parent.clientHeight },
+      panel: { width: el.offsetWidth, height: el.offsetHeight },
+    }
   }, [])
+
+  const placeFromFraction = useCallback(
+    (fraction: DragOffset) => {
+      fractionRef.current = fraction
+      const m = measure()
+      if (m) {
+        applyOffset(fractionToOffset(fraction, m.parent, m.panel))
+        setPlaced(true)
+      }
+    },
+    [measure, applyOffset]
+  )
+
+  const clampCurrent = useCallback(() => {
+    const m = measure()
+    if (m) {
+      applyOffset(
+        clampOffset(offsetRef.current, computePanelBounds(m.parent, m.panel))
+      )
+    }
+  }, [measure, applyOffset])
+
+  const moveTo = useCallback(
+    (next: DragOffset, persist: boolean) => {
+      const m = measure()
+      const clamped = m
+        ? clampOffset(next, computePanelBounds(m.parent, m.panel))
+        : next
+      applyOffset(clamped)
+      if (m) {
+        fractionRef.current = offsetToFraction(clamped, m.parent, m.panel)
+        if (persist) {
+          persistFraction(fractionRef.current)
+        }
+      }
+    },
+    [measure, applyOffset, persistFraction]
+  )
 
   const bind = useDrag(({ first, last, movement: [mx, my], memo }) => {
     const start = (memo as DragOffset | undefined) ?? offsetRef.current
     if (first) {
       setDragging(true)
     }
-    const next = clampOffset(
-      { x: start.x + mx, y: start.y + my },
-      currentBounds()
-    )
-    applyOffset(next)
+    moveTo({ x: start.x + mx, y: start.y + my }, last)
     if (last) {
       setDragging(false)
-      persistOffset(next)
     }
     return start
   })
 
-  // The docked tab is draggable vertically along the left edge; a tap restores.
   const tabBind = useDrag(
     ({ tap, last, movement: [, my], memo }) => {
       if (tap) {
@@ -223,14 +259,7 @@ export function PlayerInfoPanel() {
         return
       }
       const startY = (memo as number | undefined) ?? offsetRef.current.y
-      const next = clampOffset(
-        { x: offsetRef.current.x, y: startY + my },
-        currentBounds()
-      )
-      applyOffset(next)
-      if (last) {
-        persistOffset(next)
-      }
+      moveTo({ x: offsetRef.current.x, y: startY + my }, last)
       return startY
     },
     { filterTaps: true }
@@ -238,30 +267,37 @@ export function PlayerInfoPanel() {
 
   const rendered = enabled && !pipActive && entries.length > 0
 
-  // Re-runs once the panel actually renders, then keeps the offset clamped: the
-  // parent observer covers video resizes, the panel observer covers the panel
-  // growing or shrinking as rows appear and disappear.
+  // A container resize (e.g. fullscreen) re-places the panel from its stored
+  // fraction so it keeps its proportional spot. The panel's own size changes
+  // (expanding on hover) only re-clamp, so it grows from a fixed top-left rather
+  // than recentering and sliding out from under the pointer.
   useEffect(() => {
     const el = panelRef.current
     const parent = el?.offsetParent as HTMLElement | null
     if (!rendered || !el || !parent) {
       return
     }
-    applyOffset(clampOffset(offsetRef.current, currentBounds()))
-    const observer = new ResizeObserver(() => {
-      applyOffset(clampOffset(offsetRef.current, currentBounds()))
-    })
-    observer.observe(parent)
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [rendered, dismissed, applyOffset, currentBounds])
+    placeFromFraction(fractionRef.current)
+    const containerObserver = new ResizeObserver(() =>
+      placeFromFraction(fractionRef.current)
+    )
+    containerObserver.observe(parent)
+    const panelObserver = new ResizeObserver(() => clampCurrent())
+    panelObserver.observe(el)
+    return () => {
+      containerObserver.disconnect()
+      panelObserver.disconnect()
+    }
+  }, [rendered, dismissed, placeFromFraction, clampCurrent])
 
   if (!rendered) {
     return null
   }
 
-  const expanded = !dismissed && (hovered || dragging)
-  const visible = !dismissed && (active || expanded)
+  // Not gated on `dismissed`: the panel keeps its current form while it slides
+  // off, so the rows do not swap content mid-transition and flash.
+  const expanded = hovered || dragging
+  const visible = placed && !dismissed && (active || expanded)
   const className = [
     'da-ip',
     dismissed ? 'da-ip--docked' : '',
