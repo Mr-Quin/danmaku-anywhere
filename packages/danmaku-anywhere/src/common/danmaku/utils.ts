@@ -1,10 +1,12 @@
-import type {
-  CustomSeason,
-  GenericEpisode,
-  GenericEpisodeLite,
-  Season,
-  SeasonInsert,
-  WithSeason,
+import {
+  type CustomSeason,
+  DanmakuSourceType,
+  type GenericEpisode,
+  type GenericEpisodeLite,
+  providerTypeFromManifestId,
+  type Season,
+  type SeasonInsert,
+  type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 
 type AnyEpisode =
@@ -32,6 +34,20 @@ export function isCustomSeason(
   season: Season | SeasonInsert | CustomSeason
 ): season is CustomSeason {
   return 'isCustom' in season && season.isCustom === true
+}
+
+// Source episodes derive their type from the season's manifestId; custom
+// episodes are always VOD (MacCMS). An orphaned source season has no manifestId,
+// so it resolves to undefined rather than a wrong default.
+export function episodeProviderType(
+  episode: GenericEpisodeLite
+): DanmakuSourceType | undefined {
+  if (!isSourceEpisode(episode)) {
+    return DanmakuSourceType.MacCMS
+  }
+  return episode.season.manifestId
+    ? providerTypeFromManifestId(episode.season.manifestId)
+    : undefined
 }
 
 export const episodeToString = (episode: GenericEpisodeLite) => {

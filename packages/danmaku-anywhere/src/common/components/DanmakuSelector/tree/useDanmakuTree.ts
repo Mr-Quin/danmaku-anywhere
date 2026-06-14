@@ -17,7 +17,11 @@ import type {
 } from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
 import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
 import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
-import { isSourceEpisode, splitCustomEpisodePath } from '@/common/danmaku/utils'
+import {
+  episodeProviderType,
+  isSourceEpisode,
+  splitCustomEpisodePath,
+} from '@/common/danmaku/utils'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import { compareLocale } from '@/common/utils/collator'
@@ -28,17 +32,6 @@ const stringifyDanmakuMeta = (episode: GenericEpisodeLite) => {
     return `${episode.season.title} ${episode.title}`
   }
   return episode.title
-}
-
-const episodeProviderType = (
-  episode: GenericEpisodeLite
-): DanmakuSourceType | undefined => {
-  if (isSourceEpisode(episode)) {
-    return episode.season.manifestId
-      ? providerTypeFromManifestId(episode.season.manifestId)
-      : undefined
-  }
-  return DanmakuSourceType.MacCMS
 }
 
 const matchesTypeFilter = (

@@ -1,7 +1,6 @@
-import { providerTypeFromManifestId } from '@danmaku-anywhere/danmaku-converter'
 import { useEffect, useMemo } from 'react'
 import { useShallow } from 'zustand/react/shallow'
-import { isSourceEpisode } from '@/common/danmaku/utils'
+import { episodeProviderType } from '@/common/danmaku/utils'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { PipelineEntry } from '@/common/rpcClient/background/types'
 import { useStore } from '@/content/controller/store/store'
@@ -15,10 +14,9 @@ function usePipelineEntry(): PipelineEntry | null {
 
   return useMemo<PipelineEntry | null>(() => {
     const firstEpisode = episodes?.[0]
-    const provider =
-      firstEpisode && isSourceEpisode(firstEpisode)
-        ? providerTypeFromManifestId(firstEpisode.season.manifestId ?? '')
-        : undefined
+    const provider = firstEpisode
+      ? episodeProviderType(firstEpisode)
+      : undefined
     return selectPanelState({
       isDisconnected,
       isManual,
