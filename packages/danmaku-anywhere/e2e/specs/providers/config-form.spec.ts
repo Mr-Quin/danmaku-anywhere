@@ -126,6 +126,7 @@ const constrainedManifest = {
   name: 'Constrained Source',
   version: '1.0.0',
   hosts: ['example.com'],
+  identityFields: ['baseUrl'],
   configSchema: {
     type: 'object',
     properties: {

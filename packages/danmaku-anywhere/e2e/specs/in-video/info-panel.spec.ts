@@ -85,8 +85,8 @@ test('info panel reflects the mounted state in-video', async ({
   await expect(integrationPage.infoPanelCount()).toHaveText(
     String(COMMENTS.length)
   )
-  // The provider is localized, not the raw enum (MacCMS, not "Custom").
-  await expect(integrationPage.infoPanelSourceChip()).toHaveText(/^MacCMS$/)
+  // The provider is localized, not the raw enum (VOD, not "Custom").
+  await expect(integrationPage.infoPanelSourceChip()).toHaveText(/^VOD$/)
 })
 
 test('collapsing docks the panel to a tab and tapping it restores', async ({
