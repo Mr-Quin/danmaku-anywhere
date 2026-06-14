@@ -121,7 +121,6 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   const postSync = await readSyncSnapshot(probe)
   const postIdb = await readIdbCounts(probe)
   const postSeasonConfigIds = await readSeasonConfigIds(probe)
-  const postSeasonManifestIds = await readSeasonManifestIds(probe)
   const postSeasonIdentity = await readSeasonNamespaceKeys(probe)
   const postCustomDdpBaseUrl = await readCustomDdpBaseUrl(probe)
   const postCustomDdpConfig = await readCustomDdpConfig(probe)
@@ -186,38 +185,30 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
       `season ${row.id} dropped its providerConfigId field`
     ).toBe(false)
   }
-  // The fixture's seasons all point at live configs, so v15 must stamp a
-  // manifestId on every one, not just some.
   expect(
-    postSeasonManifestIds.length,
+    postSeasonIdentity.length,
     'fixture should have at least one season'
   ).toBeGreaterThan(0)
-  for (const { id, manifestId } of postSeasonManifestIds) {
-    expect(manifestId, `season ${id} backfilled a manifestId`).toBeTruthy()
-  }
-  // Every season that got a manifestId must also get a namespaceKey: the two are
-  // backfilled together from the same providerConfigId, so a manifestId without
-  // a namespaceKey would mean the season can never be matched at lookup.
-  for (const row of postSeasonIdentity) {
-    if (row.manifestId !== undefined) {
-      expect(
-        row.namespaceKey,
-        `season ${row.id} backfilled a namespaceKey alongside its manifestId`
-      ).toBeTruthy()
-    }
-  }
-  // The fixture's seasons all came from builtin configs, where the namespaceKey
-  // is the bare builtin id (== manifestId). A self-hosted config would hash its
-  // baseUrl instead; that branch is covered by the resolveSeasonNamespaceKey
-  // unit tests. The custom DanDanPlay config in this fixture is config-only (no
-  // season points at it), so assert it survived the upgrade rather than asserting
-  // a season carries its namespace.
+  // Every seeded season heals to a builtin identity (namespaceKey == manifestId ==
+  // the bare builtin id): the fixture's seasons all resolve to the three builtin
+  // sources by the time v15 runs. The self-hosted DanDanPlay config migrates but
+  // stays config-only (no season carries its ns: namespace); it is asserted below.
   for (const row of postSeasonIdentity) {
     expect(
+      row.manifestId,
+      `season ${row.id} backfilled a manifestId`
+    ).toBeTruthy()
+    expect(
       row.namespaceKey,
-      `builtin season ${row.id} namespaceKey equals its manifestId`
+      `season ${row.id} namespaceKey equals its manifestId`
     ).toBe(row.manifestId)
+    expect(
+      ['dandanplay', 'bilibili', 'tencent'],
+      `season ${row.id} healed to a builtin manifestId`
+    ).toContain(row.manifestId)
   }
+  // The self-hosted DanDanPlay config still migrates and survives as config-only;
+  // it hashes to a ns: namespace distinct from any builtin.
   expect(postCustomDdpConfig, 'custom DanDanPlay config survived').toBeDefined()
   expect(
     postCustomDdpConfig && computeNamespaceKey(postCustomDdpConfig),
@@ -372,42 +363,6 @@ async function readSeasonConfigIds(page: Page): Promise<string[]> {
           }
         }
       }),
-    DANMAKU_DB_NAME
-  )
-}
-
-async function readSeasonManifestIds(
-  page: Page
-): Promise<Array<{ id: number; manifestId?: string }>> {
-  return page.evaluate(
-    (dbName) =>
-      new Promise<Array<{ id: number; manifestId?: string }>>(
-        (resolve, reject) => {
-          const req = indexedDB.open(dbName)
-          req.onerror = () => reject(req.error)
-          req.onsuccess = () => {
-            const db = req.result
-            try {
-              const tx = db.transaction(['season'], 'readonly')
-              const getAll = tx.objectStore('season').getAll()
-              tx.oncomplete = () => {
-                db.close()
-                const seasons = getAll.result as Array<{
-                  id: number
-                  manifestId?: string
-                }>
-                resolve(
-                  seasons.map((s) => ({ id: s.id, manifestId: s.manifestId }))
-                )
-              }
-              tx.onerror = () => reject(tx.error)
-            } catch (e) {
-              db.close()
-              reject(e)
-            }
-          }
-        }
-      ),
     DANMAKU_DB_NAME
   )
 }
