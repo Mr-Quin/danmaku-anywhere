@@ -13,8 +13,6 @@ import { DANMAKU_DB_NAME, DanmakuAnywhereDb } from './db'
 
 const CUSTOM_DDP_ID = 'd9d068cc-d7a5-4277-990b-73b28f7637f8'
 
-// v14 schema: the season shape before identity backfill, with the now-dead
-// provider / providerConfigId fields and their indexes.
 const V14_STORES = {
   episode:
     '++id, provider, indexedId, &[seasonId+indexedId], seasonId, timeUpdated, lastChecked',

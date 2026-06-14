@@ -36,17 +36,25 @@ export function isCustomSeason(
   return 'isCustom' in season && season.isCustom === true
 }
 
-// Source episodes derive their type from the season's manifestId; custom
-// episodes are always VOD (MacCMS). An orphaned source season has no manifestId,
-// so it resolves to undefined rather than a wrong default.
-export function episodeProviderType(
-  episode: GenericEpisodeLite
+export function episodeProviderType<T extends AnyEpisode>(
+  episode: T
 ): DanmakuSourceType | undefined {
   if (!isSourceEpisode(episode)) {
     return DanmakuSourceType.MacCMS
   }
   return episode.season.manifestId
     ? providerTypeFromManifestId(episode.season.manifestId)
+    : undefined
+}
+
+export function seasonProviderType(
+  season: Season | SeasonInsert | CustomSeason
+): DanmakuSourceType | undefined {
+  if (isCustomSeason(season)) {
+    return DanmakuSourceType.MacCMS
+  }
+  return season.manifestId
+    ? providerTypeFromManifestId(season.manifestId)
     : undefined
 }
 

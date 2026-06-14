@@ -1,16 +1,14 @@
-import {
-  type CustomSeason,
-  DanmakuSourceType,
-  providerTypeFromManifestId,
-  type Season,
-  type SeasonInsert,
+import type {
+  CustomSeason,
+  Season,
+  SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Check } from '@mui/icons-material'
 import { Box, ButtonBase, Skeleton, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { isPersistedSeason } from '@/common/anime/utils'
 import { useImage } from '@/common/components/image/useImage'
-import { isCustomSeason } from '@/common/danmaku/utils'
+import { seasonProviderType } from '@/common/danmaku/utils'
 import { IMAGE_ASSETS } from '@/images/ImageAssets'
 
 type SeasonOrInsert = Season | SeasonInsert | CustomSeason
@@ -49,9 +47,7 @@ export function SeasonResultRow({ season, onClick }: SeasonResultRowProps) {
 
   const downloaded =
     season.localEpisodeCount !== undefined && season.localEpisodeCount > 0
-  const sourceType = isCustomSeason(season)
-    ? DanmakuSourceType.MacCMS
-    : providerTypeFromManifestId(season.manifestId ?? '')
+  const sourceType = seasonProviderType(season) ?? 'unknown'
   const testId = `season-card-${sourceType}-${
     isPersistedSeason(season) ? season.id : season.indexedId
   }`

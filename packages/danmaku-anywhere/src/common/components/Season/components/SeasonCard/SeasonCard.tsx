@@ -1,6 +1,5 @@
 import {
   type CustomSeason,
-  DanmakuSourceType,
   providerTypeFromManifestId,
   type Season,
   type SeasonInsert,
@@ -42,7 +41,7 @@ import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { ProviderLogo } from '@/common/components/ProviderLogo'
 import type { HandleSeasonClick } from '@/common/components/Season/types'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
-import { isCustomSeason } from '@/common/danmaku/utils'
+import { isCustomSeason, seasonProviderType } from '@/common/danmaku/utils'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'
 
@@ -306,11 +305,9 @@ export const SeasonCard = ({
 
   return (
     <Card
-      data-testid={`season-card-${
-        isCustomSeason(season)
-          ? DanmakuSourceType.MacCMS
-          : providerTypeFromManifestId(season.manifestId ?? '')
-      }-${isPersistedSeason(season) ? season.id : season.indexedId}`}
+      data-testid={`season-card-${seasonProviderType(season) ?? 'unknown'}-${
+        isPersistedSeason(season) ? season.id : season.indexedId
+      }`}
     >
       <div
         style={{
@@ -350,10 +347,10 @@ export const SeasonCard = ({
         {season.year && (
           <CardCornerInfo position="bottom-left">{season.year}</CardCornerInfo>
         )}
-        {!isCustomSeason(season) && (
+        {!isCustomSeason(season) && season.manifestId && (
           <Logo>
             <ProviderLogo
-              provider={providerTypeFromManifestId(season.manifestId ?? '')}
+              provider={providerTypeFromManifestId(season.manifestId)}
             />
           </Logo>
         )}

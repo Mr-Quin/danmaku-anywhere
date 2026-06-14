@@ -11,12 +11,10 @@ const BUILTIN_MANIFEST_IDS = new Set<string>(
 )
 
 /**
- * Recover a season's durable identity (manifestId === namespaceKey) from its old
- * providerConfigId, using only the season row. Built-in sources heal: their
- * providerConfigId is structurally the manifest id. Custom self-hosted sources
- * cannot: their namespace derives from a server baseUrl that lives in provider
- * config storage, not on the row, so they are left orphaned (the row and its
- * danmaku survive; re-searching the source recreates the link).
+ * Recover a season's durable identity (manifestId === namespaceKey) from the
+ * season row alone. A built-in providerConfigId is structurally the manifest id;
+ * a custom one keys off a baseUrl that lives in config storage, not on the row,
+ * so it cannot be recovered and the season orphans.
  */
 export function resolveBuiltinSeasonIdentity(
   providerConfigId: string | undefined | null

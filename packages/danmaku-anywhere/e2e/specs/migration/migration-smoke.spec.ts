@@ -189,10 +189,9 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
     postSeasonIdentity.length,
     'fixture should have at least one season'
   ).toBeGreaterThan(0)
-  // Every seeded season heals to a builtin identity (namespaceKey == manifestId ==
-  // the bare builtin id): the fixture's seasons all resolve to the three builtin
-  // sources by the time v15 runs. The self-hosted DanDanPlay config migrates but
-  // stays config-only (no season carries its ns: namespace); it is asserted below.
+  // Every seeded season heals to a builtin identity (namespaceKey == manifestId);
+  // the fixture's custom DanDanPlay season resolves to the builtin dandanplay, so
+  // the self-hosted config stays config-only (asserted below).
   for (const row of postSeasonIdentity) {
     expect(
       row.manifestId,

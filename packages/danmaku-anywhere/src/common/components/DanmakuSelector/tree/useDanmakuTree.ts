@@ -300,8 +300,6 @@ export const useDanmakuTree = (
         continue
       }
 
-      // Skip orphaned seasons (no live config) first, so the type-filter check
-      // never resolves an absent manifestId.
       if (resolveSeasonConfig(season, configs) === undefined) {
         continue
       }
