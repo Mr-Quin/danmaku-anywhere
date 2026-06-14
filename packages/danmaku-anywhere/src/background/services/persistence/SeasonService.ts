@@ -21,6 +21,11 @@ export class SeasonService {
   async findExisting<T extends SeasonInsert>(
     data: T
   ): Promise<DbEntity<T> | undefined> {
+    // An orphaned season has no identity to match on, and querying the compound
+    // index with nullish components throws a DataError.
+    if (data.manifestId == null || data.namespaceKey == null) {
+      return undefined
+    }
     return this.db.season.get({
       manifestId: data.manifestId,
       namespaceKey: data.namespaceKey,
@@ -30,11 +35,7 @@ export class SeasonService {
 
   async upsert<T extends SeasonInsert>(data: T): Promise<DbEntity<T>> {
     return this.db.transaction('rw', this.db.season, async () => {
-      const existing = await this.db.season.get({
-        manifestId: data.manifestId,
-        namespaceKey: data.namespaceKey,
-        indexedId: data.indexedId,
-      })
+      const existing = await this.findExisting(data)
       if (existing) {
         const toInsert = {
           ...existing,

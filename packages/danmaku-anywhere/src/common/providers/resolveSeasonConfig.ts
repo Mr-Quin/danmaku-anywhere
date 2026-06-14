@@ -5,7 +5,7 @@ export function resolveSeasonConfig(
   season: { manifestId?: string; namespaceKey?: string },
   configs: ProviderConfig[]
 ): ProviderConfig | undefined {
-  if (season.manifestId === undefined || season.namespaceKey === undefined) {
+  if (season.manifestId == null || season.namespaceKey == null) {
     return undefined
   }
   return configs.find(

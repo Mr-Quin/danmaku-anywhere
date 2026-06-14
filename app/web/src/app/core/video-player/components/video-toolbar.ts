@@ -98,8 +98,8 @@ export class VideoToolbar {
   }
 
   protected source(episode: GenericEpisodeLite): string {
-    return 'season' in episode
-      ? providerTypeFromManifestId(episode.season.manifestId ?? '')
+    return 'season' in episode && episode.season.manifestId
+      ? providerTypeFromManifestId(episode.season.manifestId)
       : ''
   }
 }

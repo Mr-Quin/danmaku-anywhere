@@ -69,7 +69,7 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
     const grouped = new Map<string, Season[]>()
     for (const season of allSeasons) {
       const ns = season.namespaceKey
-      if (ns === undefined) {
+      if (ns == null) {
         continue
       }
       const existing = grouped.get(ns) ?? []

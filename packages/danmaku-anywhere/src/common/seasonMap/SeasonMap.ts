@@ -28,7 +28,7 @@ export class SeasonMap {
   static fromSeason(key: string, season: SeasonLike) {
     // A season whose config was deleted before the migration has no namespace
     // and no live config, so it could never be retrieved by namespace anyway.
-    if (season.namespaceKey === undefined) {
+    if (season.namespaceKey == null) {
       return SeasonMap.empty(key)
     }
     return SeasonMap.empty(key).withMapping(season.namespaceKey, season.id)

@@ -32,11 +32,21 @@ const stringifyDanmakuMeta = (episode: GenericEpisodeLite) => {
 
 const episodeProviderType = (
   episode: GenericEpisodeLite
-): DanmakuSourceType => {
+): DanmakuSourceType | undefined => {
   if (isSourceEpisode(episode)) {
-    return providerTypeFromManifestId(episode.season.manifestId ?? '')
+    return episode.season.manifestId
+      ? providerTypeFromManifestId(episode.season.manifestId)
+      : undefined
   }
   return DanmakuSourceType.MacCMS
+}
+
+const matchesTypeFilter = (
+  episode: GenericEpisodeLite,
+  typeFilter: DanmakuSourceType[]
+): boolean => {
+  const type = episodeProviderType(episode)
+  return type !== undefined && typeFilter.includes(type)
 }
 
 const filterEpisodes = <T extends GenericEpisodeLite>(
@@ -45,13 +55,11 @@ const filterEpisodes = <T extends GenericEpisodeLite>(
   typeFilter: DanmakuSourceType[]
 ) => {
   if (!filter) {
-    return options.filter((option) =>
-      typeFilter.includes(episodeProviderType(option))
-    )
+    return options.filter((option) => matchesTypeFilter(option, typeFilter))
   }
 
   return options.filter((option) => {
-    if (!typeFilter.includes(episodeProviderType(option))) {
+    if (!matchesTypeFilter(option, typeFilter)) {
       return false
     }
     return matchWithPinyin(
@@ -299,15 +307,17 @@ export const useDanmakuTree = (
         continue
       }
 
+      // Skip orphaned seasons (no live config) first, so the type-filter check
+      // never resolves an absent manifestId.
+      if (resolveSeasonConfig(season, configs) === undefined) {
+        continue
+      }
+
       if (
         !typeFilter.includes(
           providerTypeFromManifestId(season.manifestId ?? '')
         )
       ) {
-        continue
-      }
-
-      if (resolveSeasonConfig(season, configs) === undefined) {
         continue
       }
 
