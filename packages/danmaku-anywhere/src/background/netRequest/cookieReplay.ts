@@ -47,7 +47,11 @@ function parseSetCookie(line: string): ParsedSetCookie | null {
   if (eq === -1) {
     return null
   }
-  return { name: nv.slice(0, eq).trim(), value: nv.slice(eq + 1).trim() }
+  const name = nv.slice(0, eq).trim()
+  if (!name) {
+    return null
+  }
+  return { name, value: nv.slice(eq + 1).trim() }
 }
 
 export function setupCookieReplay(): void {
