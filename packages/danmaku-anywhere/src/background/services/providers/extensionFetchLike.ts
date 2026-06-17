@@ -18,7 +18,9 @@ export const extensionFetchLike: FetchLike = async (input, init) => {
   try {
     const urlHost = new URL(input).hostname
     const capturedCookies = getCookiesForHost(urlHost)
-    if (capturedCookies && !rewrite?.['Cookie']) {
+    const hasCookie =
+      rewrite && Object.keys(rewrite).some((k) => k.toLowerCase() === 'cookie')
+    if (capturedCookies && !hasCookie) {
       effectiveRewrite = { ...rewrite, Cookie: capturedCookies }
     }
   } catch {
