@@ -91,6 +91,11 @@ describe('cookieReplay', () => {
     )
   })
 
+  it('is idempotent: calling setupCookieReplay twice registers the listener only once', () => {
+    setupCookieReplay()
+    expect(addListener).toHaveBeenCalledTimes(1)
+  })
+
   it('ignores traffic from real tabs (tabId !== -1)', () => {
     capturedListener(
       makeDetails({
@@ -147,6 +152,28 @@ describe('cookieReplay', () => {
     const cookieHeader = getCookiesForHost('acs.youku.com')
     expect(cookieHeader).toContain('_m_h5_tk=HASH_TIMESTAMP')
     expect(cookieHeader).toContain('_m_h5_tk_enc=ENC_VALUE')
+  })
+
+  it('removes a cookie from the jar when an empty-value Set-Cookie arrives', () => {
+    capturedListener(
+      makeDetails({
+        url: 'https://acs.youku.com/step1',
+        responseHeaders: [
+          { name: 'set-cookie', value: '_m_h5_tk=abc123; Secure' },
+        ],
+      })
+    )
+    expect(getCookiesForHost('acs.youku.com')).toBe('_m_h5_tk=abc123')
+
+    capturedListener(
+      makeDetails({
+        url: 'https://acs.youku.com/step2',
+        responseHeaders: [
+          { name: 'set-cookie', value: '_m_h5_tk=; Max-Age=0; Path=/' },
+        ],
+      })
+    )
+    expect(getCookiesForHost('acs.youku.com')).toBeNull()
   })
 
   it('overwrites a cookie in the jar when the same name arrives again', () => {

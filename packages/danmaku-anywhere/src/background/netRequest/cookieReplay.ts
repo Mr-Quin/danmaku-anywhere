@@ -10,6 +10,7 @@ interface Captured {
 
 const setCookieByUrl = new Map<string, Captured>()
 const cookieJarByHost = new Map<string, Map<string, string>>()
+let isSetUp = false
 
 export function consumeSetCookies(url: string): string | null {
   const entry = setCookieByUrl.get(url)
@@ -58,6 +59,10 @@ export function setupCookieReplay(): void {
   if (typeof chrome === 'undefined' || !chrome.webRequest) {
     return
   }
+  if (isSetUp) {
+    return
+  }
+  isSetUp = true
   chrome.webRequest.onHeadersReceived.addListener(
     (details): chrome.webRequest.BlockingResponse => {
       // tabId === -1 means the request originated from the extension service
@@ -88,7 +93,11 @@ export function setupCookieReplay(): void {
           jar = new Map()
           cookieJarByHost.set(host, jar)
         }
-        jar.set(parsed.name, parsed.value)
+        if (parsed.value === '') {
+          jar.delete(parsed.name)
+        } else {
+          jar.set(parsed.name, parsed.value)
+        }
       }
 
       if (captured.length > 0) {
