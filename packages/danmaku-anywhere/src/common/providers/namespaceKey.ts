@@ -9,13 +9,33 @@ function fnv1a32(str: string): string {
   return (hash >>> 0).toString(16).padStart(8, '0')
 }
 
+function stripApiSuffix(pathname: string): string {
+  return pathname.replace(/\/api\/?$/, '').replace(/\/$/, '')
+}
+
+// Key an instance by host + non-default port + path, ignoring scheme, so the
+// same server keys the same as http or https. url.host drops 80/443 for free.
 function normalizeBaseUrl(raw: string): string {
-  // Hostnames are case-insensitive, so lowercase before hashing or two
-  // differently-cased URLs for one server would key to different namespaces.
-  return raw
-    .toLowerCase()
-    .replace(/\/api\/?$/, '')
-    .replace(/\/$/, '')
+  const parse = (input: string): URL | undefined => {
+    try {
+      return new URL(input)
+    } catch {
+      return undefined
+    }
+  }
+
+  // new URL('host:8080') reads `host:` as the scheme and loses the host, so
+  // detect the scheme ourselves instead of relying on new URL() to throw.
+  const hasScheme = /^[a-z][a-z0-9+.-]*:\/\//i.test(raw)
+  const url = parse(hasScheme ? raw : `https://${raw}`)
+  if (!url) {
+    return raw
+      .toLowerCase()
+      .replace(/\/api\/?$/, '')
+      .replace(/\/$/, '')
+  }
+
+  return `${url.host.toLowerCase()}${stripApiSuffix(url.pathname)}`
 }
 
 export function computeNamespaceKey(config: {

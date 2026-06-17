@@ -2,12 +2,25 @@ import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
 import type { SeasonGetAllRequest, SeasonQueryFilter } from '@/common/anime/dto'
 import { DanmakuAnywhereDb } from '@/common/db/db'
+import { reconcileSeasonIdentity } from '@/common/db/seasonIdentityReconciler'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import type { DbEntity } from '@/common/types/dbEntity'
 
 @injectable('Singleton')
 export class SeasonService {
   constructor(@inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb) {}
+
+  // Heal v15-orphaned seasons against live configs. See reconcileSeasonIdentity.
+  async reconcileIdentities(
+    configs: {
+      id: string
+      manifestId: string
+      configValues?: Record<string, unknown>
+    }[]
+  ): Promise<number> {
+    return reconcileSeasonIdentity(this.db, configs)
+  }
+
   async bulkUpsert<T extends SeasonInsert>(data: T[]): Promise<DbEntity<T>[]> {
     const results: DbEntity<T>[] = []
 

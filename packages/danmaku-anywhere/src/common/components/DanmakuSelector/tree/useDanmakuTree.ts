@@ -39,7 +39,11 @@ const matchesTypeFilter = (
   typeFilter: DanmakuSourceType[]
 ): boolean => {
   const type = episodeProviderType(episode)
-  return type !== undefined && typeFilter.includes(type)
+  // An orphan has no provider type and no chip can select it; keep it visible.
+  if (type === undefined) {
+    return true
+  }
+  return typeFilter.includes(type)
 }
 
 const filterEpisodes = <T extends GenericEpisodeLite>(

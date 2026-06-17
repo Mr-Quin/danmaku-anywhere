@@ -440,7 +440,9 @@ export class DanmakuAnywhereDb extends Dexie {
      * Identity is recovered from the season row alone (see
      * resolveBuiltinSeasonIdentity), never from provider config storage: reading
      * it here would couple this upgrade to a second, racing migration system and
-     * orphan custom seasons nondeterministically.
+     * orphan custom seasons nondeterministically. A row that cannot be resolved
+     * keeps its providerConfigId so the runtime reconciler can heal it later
+     * from live config storage, where there is no migration race.
      *
      * The compound index is non-unique on purpose: orphaned seasons have no
      * namespaceKey, so a unique index would collide them during creation and
@@ -467,9 +469,9 @@ export class DanmakuAnywhereDb extends Dexie {
             if (identity !== undefined) {
               season.manifestId = identity
               season.namespaceKey = identity
+              delete season.providerConfigId
             }
             delete season.provider
-            delete season.providerConfigId
           })
 
         await tx

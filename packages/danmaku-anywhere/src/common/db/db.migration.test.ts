@@ -93,7 +93,8 @@ describe('season identity migration (v15)', () => {
     expect(season.manifestId).toBeUndefined()
     expect(season.namespaceKey).toBeUndefined()
     expect('provider' in season).toBe(false)
-    expect('providerConfigId' in season).toBe(false)
+    // Unresolved rows keep providerConfigId for the runtime reconciler.
+    expect(season.providerConfigId).toBe(CUSTOM_DDP_ID)
     // The upgrade must recover identity from the row alone; reading provider
     // config storage here would race the options migration.
     expect(chrome.storage.sync.get).not.toHaveBeenCalled()
@@ -129,6 +130,9 @@ describe('season identity migration (v15)', () => {
       manifestId: 'dandanplay',
       namespaceKey: 'dandanplay',
     })
+    // A resolved row no longer needs the old fetch handle.
+    expect('providerConfigId' in (bili as Record<string, unknown>)).toBe(false)
+    expect('providerConfigId' in (ddp as Record<string, unknown>)).toBe(false)
   })
 
   it('keeps an orphaned season row and its episodes', async () => {

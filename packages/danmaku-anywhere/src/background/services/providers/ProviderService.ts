@@ -332,6 +332,25 @@ export class ProviderService {
         this.logger.error('Install handling failed:', e)
       })
     })
+    void this.reconcileSeasonIdentities().catch((e) => {
+      this.logger.error('Season identity reconciliation failed:', e)
+    })
+  }
+
+  // Heal v15-orphaned seasons against live configs, once per browser session,
+  // best-effort: a failure must never block service-worker startup.
+  private async reconcileSeasonIdentities(): Promise<void> {
+    const RECONCILED_KEY = 'seasonIdentityReconciled'
+    const stored = await chrome.storage.session.get(RECONCILED_KEY)
+    if (stored[RECONCILED_KEY]) {
+      return
+    }
+    const configs = await this.providerConfigService.getAll()
+    const healed = await this.seasonService.reconcileIdentities(configs)
+    await chrome.storage.session.set({ [RECONCILED_KEY]: true })
+    if (healed > 0) {
+      this.logger.debug(`Reconciled identity for ${healed} orphaned season(s)`)
+    }
   }
 
   private async onInstalled(reason: string): Promise<void> {

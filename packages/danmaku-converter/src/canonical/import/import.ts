@@ -12,6 +12,7 @@ import { zEpisodeImportV3 } from '../episode/v3/schemaZod.js'
 import {
   DanmakuSourceType,
   PROVIDER_TO_BUILTIN_ID,
+  resolveBuiltinManifestId,
 } from '../provider/provider.js'
 import type { SeasonInsertV1 } from '../season/index.js'
 
@@ -60,23 +61,59 @@ export type BackupParseResult = {
   skipped: [number, unknown[]][]
 }
 
-const zEpisodeInsertV4WithSeasonV1Preprocessed = z.preprocess((data) => {
-  // Old backups are builtins, so manifestId and namespaceKey are both the
-  // builtin id derived from the legacy season.provider tag.
-  const d = data as any
-  const provider = d?.season?.provider
-  if (provider && provider in PROVIDER_TO_BUILTIN_ID) {
-    const builtinId = PROVIDER_TO_BUILTIN_ID[provider as DanmakuSourceType]
-    return {
-      ...d,
-      season: {
-        ...d.season,
-        manifestId: builtinId,
-        namespaceKey: builtinId,
-      },
-    }
+// Recover builtin identity from a backup the way the v15 migration does:
+// structurally, from providerConfigId. A built-in id stamps manifestId; a
+// self-hosted uuid stays unstamped (imports as an orphan, not mislabeled as the
+// public instance); a backup predating providerConfigId falls back to its
+// provider tag (safe: self-hosted didn't exist then).
+//
+// An imported self-hosted orphan is permanent, unlike a migrated one: the uuid
+// is meaningless off its origin machine, so the schema drops it and the
+// reconciler can't match it. It still imports and renders, but can't reparent.
+function recoverBackupManifestId(season: {
+  manifestId?: unknown
+  providerConfigId?: unknown
+  provider?: unknown
+}): string | undefined {
+  const fromConfigId = resolveBuiltinManifestId(
+    typeof season.providerConfigId === 'string'
+      ? season.providerConfigId
+      : undefined
+  )
+  if (fromConfigId) {
+    return fromConfigId
   }
-  return data
+  if (season.providerConfigId != null) {
+    return undefined
+  }
+  const fromProviderTag =
+    typeof season.provider === 'string' &&
+    season.provider in PROVIDER_TO_BUILTIN_ID
+      ? PROVIDER_TO_BUILTIN_ID[season.provider as DanmakuSourceType]
+      : undefined
+  return resolveBuiltinManifestId(fromProviderTag)
+}
+
+const zEpisodeInsertV4WithSeasonV1Preprocessed = z.preprocess((data) => {
+  const d = data as { season?: Record<string, unknown> } & Record<
+    string,
+    unknown
+  >
+  if (!d?.season || typeof d.season.manifestId === 'string') {
+    return data
+  }
+  const builtinId = recoverBackupManifestId(d.season)
+  if (!builtinId) {
+    return data
+  }
+  return {
+    ...d,
+    season: {
+      ...d.season,
+      manifestId: builtinId,
+      namespaceKey: builtinId,
+    },
+  }
 }, zEpisodeInsertV4WithSeasonV1)
 
 const parseBackup = (data: unknown): BackupParseData | BackupParseError => {

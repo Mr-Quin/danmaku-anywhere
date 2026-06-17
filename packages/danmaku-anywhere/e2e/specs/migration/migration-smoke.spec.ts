@@ -13,6 +13,7 @@ import { DANMAKU_DB_NAME } from '../../../src/common/db/db'
 import { computeNamespaceKey } from '../../../src/common/providers/namespaceKey'
 import migrationConfig from '../../migration.config.json' with { type: 'json' }
 import { mockCatalog } from '../../network/catalog'
+import { ImportPage } from '../../pom/ImportPage'
 import { MigrationLegacyPopup } from '../../poms/legacy/v1.5.0/MigrationLegacyPopup'
 import { attachConsoleWatcher } from '../../setup/console-watcher'
 import { MIGRATION_EXTENSION_ID } from '../../setup/extensionKey'
@@ -214,7 +215,36 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
     'a self-hosted config hashes to a ns: namespaceKey, distinct from a builtin'
   ).toMatch(/^ns:/)
 
+  await assertPostMigrationReimport(context)
+
   return context
+}
+
+// Post-migration sanity: re-importing the original backup into the upgraded DB
+// must behave under the new identity rules. Built-in seasons dedup against the
+// migrated rows (no duplicates), and the self-hosted entry re-imports as a fresh
+// orphan: not dropped on a nullish-identity lookup, not mislabeled as a builtin.
+async function assertPostMigrationReimport(
+  context: BrowserContext
+): Promise<void> {
+  const page = await context.newPage()
+  const importPage = await ImportPage.open(page, MIGRATION_EXTENSION_ID)
+  const before = await readIdbCounts(page)
+
+  await importPage.selectFiles(DANMAKU_ZIP)
+  await importPage.result.confirm()
+  await importPage.result.expectSuccess()
+
+  const after = await readIdbCounts(page)
+  const identities = await readSeasonNamespaceKeys(page)
+  await page.close()
+
+  const orphans = identities.filter((s) => !s.manifestId)
+  expect(orphans.length, 'self-hosted entry re-imported as an orphan').toBe(1)
+  expect(
+    after.seasons,
+    'built-in seasons dedup; only the orphan is added'
+  ).toBe(before.seasons + 1)
 }
 
 async function openProbePage(context: BrowserContext): Promise<Page> {

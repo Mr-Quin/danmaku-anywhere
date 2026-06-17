@@ -297,11 +297,11 @@ export class DanmakuService {
               this.db.season,
               this.db.episode,
               async () => {
-                let [existingSeason] = await this.seasonService.filter({
-                  manifestId: item.season.manifestId,
-                  namespaceKey: item.season.namespaceKey,
-                  indexedId: item.season.indexedId,
-                })
+                // findExisting guards a nullish identity that filter() would
+                // turn into a DataError; an orphan falls through to insert.
+                let existingSeason = await this.seasonService.findExisting(
+                  item.season
+                )
                 if (!existingSeason) {
                   existingSeason = await this.seasonService.upsert(item.season)
                 }

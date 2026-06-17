@@ -20,13 +20,22 @@ import v3DanDanPlayData from './test-data/v3/danDanPlay.json' with {
   type: 'json',
 }
 import v3TencentData from './test-data/v3/tencent.json' with { type: 'json' }
+import builtinWithConfigIdV4Data from './test-data/v4/builtinWithConfigIdRegularEpisodeV4.json' with {
+  type: 'json',
+}
 import customV4EpisodeData from './test-data/v4/customEpisodeV4.json' with {
   type: 'json',
 }
 import invalidV4Data from './test-data/v4/invalidData.json' with {
   type: 'json',
 }
+import postManifestV4Data from './test-data/v4/postManifestRegularEpisodeV4.json' with {
+  type: 'json',
+}
 import regularV4EpisodeData from './test-data/v4/regularEpisodeWithSeasonV4.json' with {
+  type: 'json',
+}
+import selfHostedV4Data from './test-data/v4/selfHostedRegularEpisodeV4.json' with {
   type: 'json',
 }
 
@@ -279,6 +288,37 @@ describe('importBackup with V4 and mixed data', () => {
     expect(importedItem.episode.schemaVersion).toBe(4)
     expect(importedItem.season?.title).toBe(regularV4EpisodeData.season.title)
     expect(importedItem.season?.schemaVersion).toBe(1)
+  })
+
+  it('stamps builtin identity from the provider tag of a pre-config-id backup', () => {
+    const [, importedItem] = parseBackupMany([regularV4EpisodeData]).parsed[0]
+    if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
+    expect(importedItem.season.manifestId).toBe('dandanplay')
+    expect(importedItem.season.namespaceKey).toBe('dandanplay')
+  })
+
+  it('stamps builtin identity structurally from a builtin providerConfigId', () => {
+    const [, importedItem] = parseBackupMany([builtinWithConfigIdV4Data])
+      .parsed[0]
+    if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
+    expect(importedItem.season.manifestId).toBe('dandanplay')
+    expect(importedItem.season.namespaceKey).toBe('dandanplay')
+  })
+
+  it('imports a self-hosted (uuid providerConfigId) backup as an identity-less orphan, not the public instance', () => {
+    const result = parseBackupMany([selfHostedV4Data])
+    expect(result.skipped).toHaveLength(0)
+    const [, importedItem] = result.parsed[0]
+    if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
+    expect(importedItem.season.manifestId).toBeUndefined()
+    expect(importedItem.season.namespaceKey).toBeUndefined()
+  })
+
+  it('preserves manifestId and namespaceKey from a post-manifest backup so it can reparent by manifest', () => {
+    const [, importedItem] = parseBackupMany([postManifestV4Data]).parsed[0]
+    if (importedItem.type !== 'Regular') throw new Error('Unexpected type')
+    expect(importedItem.season.manifestId).toBe('dandanplay')
+    expect(importedItem.season.namespaceKey).toBe('ns:abc12345')
   })
 
   it('should skip invalid data in an array', () => {

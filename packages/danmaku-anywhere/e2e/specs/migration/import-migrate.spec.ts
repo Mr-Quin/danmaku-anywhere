@@ -85,12 +85,20 @@ test('current build migrates an imported v1.5.0 backup and danmaku export', asyn
   expect(seasons.length, 'seasons imported').toBeGreaterThan(0)
   const customEpisodes = await da.episode.listCustom()
   expect(customEpisodes.length, 'custom danmaku imported').toBeGreaterThan(0)
+  // Built-in backups carry a structural config id, so they resolve to a live
+  // config. A self-hosted backup's namespace lived in config storage the old
+  // format never embedded, so it imports as an orphan (manifestId undefined)
+  // instead of being mislabeled as the public instance. The orphan must still
+  // import, not get dropped on a nullish-identity lookup.
   const providerManifestIds = new Set(providers.map((p) => p.manifestId))
-  for (const season of seasons) {
+  const resolved = seasons.filter((s) => s.manifestId !== undefined)
+  const orphaned = seasons.filter((s) => s.manifestId === undefined)
+  for (const season of resolved) {
     expect(
-      season.manifestId !== undefined &&
-        providerManifestIds.has(season.manifestId),
+      providerManifestIds.has(season.manifestId as string),
       `season manifestId ${season.manifestId} resolves to a live config`
     ).toBe(true)
   }
+  expect(resolved.length, 'built-in seasons resolve to a live config').toBe(3)
+  expect(orphaned.length, 'self-hosted season imported as an orphan').toBe(1)
 })
