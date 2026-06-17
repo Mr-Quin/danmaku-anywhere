@@ -99,7 +99,7 @@ const zEpisodeInsertV4WithSeasonV1Preprocessed = z.preprocess((data) => {
     string,
     unknown
   >
-  if (!d?.season || typeof d.season.manifestId === 'string') {
+  if (!d?.season || typeof d.season['manifestId'] === 'string') {
     return data
   }
   const builtinId = recoverBackupManifestId(d.season)
