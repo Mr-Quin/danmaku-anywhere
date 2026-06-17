@@ -1,0 +1,28 @@
+{
+  "productName": "Release Manager",
+  "version": "0.1.0",
+  "identifier": "fish.quin.danmaku-anywhere.release-manager",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "pnpm vite",
+    "beforeBuildCommand": "pnpm vite build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Release Manager",
+        "width": 1024,
+        "height": 720
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["appimage"],
+    "icon": []
+  }
+}

@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import * as api from './api.js'
 import type {
   Channel,
   PreviewSubtype,
   PublicState,
   ReleaseAsset,
-} from '../core/types.js'
-import * as api from './api.js'
+} from './types.js'
 
 interface Row {
   tag: string
@@ -84,7 +84,7 @@ function ReleaseRow(props: ReleaseRowProps) {
             Remove
           </button>
         ) : null}
-        {busy ? <span className="working">Working…</span> : null}
+        {busy ? <span className="working">Working...</span> : null}
         {error ? <div className="row-error">{error}</div> : null}
       </td>
     </tr>
@@ -144,7 +144,6 @@ export function App() {
   const [globalError, setGlobalError] = useState<string | undefined>()
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({})
   const [busyTag, setBusyTag] = useState<string | undefined>()
-  const [token, setToken] = useState('')
 
   const refreshState = useCallback(async () => {
     try {
@@ -207,16 +206,6 @@ export function App() {
     [runRowAction]
   )
 
-  const onSaveToken = useCallback(async () => {
-    try {
-      setState(await api.updateToken(token))
-      setToken('')
-      await loadReleases()
-    } catch (error) {
-      setGlobalError(error instanceof Error ? error.message : String(error))
-    }
-  }, [token, loadReleases])
-
   const { stable, previews } = useMemo(() => {
     const rows: Row[] = releases.map((r) => ({
       tag: r.tag,
@@ -253,7 +242,7 @@ export function App() {
   }
 
   if (!state) {
-    return <main className="container">Loading…</main>
+    return <main className="container">Loading...</main>
   }
 
   return (
@@ -310,19 +299,6 @@ export function App() {
 
       <section className="settings">
         <h2>Settings</h2>
-        <label htmlFor="token">GitHub token (optional)</label>
-        <div className="token-row">
-          <input
-            id="token"
-            type="password"
-            value={token}
-            placeholder={state.hasToken ? 'token saved' : 'paste a token'}
-            onChange={(e) => setToken(e.target.value)}
-          />
-          <button type="button" onClick={() => void onSaveToken()}>
-            Save
-          </button>
-        </div>
         <label htmlFor="datadir">Data dir</label>
         <input id="datadir" type="text" value={state.dataDir} readOnly />
       </section>
