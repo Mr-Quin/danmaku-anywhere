@@ -5,12 +5,9 @@ import {
 } from '@/background/netRequest/cookieReplay'
 import { setSessionHeader } from '@/background/netRequest/setSessionHeader'
 
-// `fetch` silently drops forbidden request headers like Origin / Referer /
-// User-Agent, so when a manifest step declares `rewriteHeaders` we install a
-// short-lived `chrome.declarativeNetRequest` session rule for the call.
-//
-// We also inject any cookies captured by the cookieReplay listener for the
-// target host (Partitioned cookies are not auto-attached by the SW fetcher).
+// fetch() drops forbidden request headers, so rewriteHeaders steps use a
+// short-lived DNR session rule. Captured cookies are also injected since
+// Partitioned cookies are not auto-attached on service-worker fetch() calls.
 export const extensionFetchLike: FetchLike = async (input, init) => {
   const rewrite = init?.rewriteHeaders
   let effectiveRewrite = rewrite
@@ -37,9 +34,11 @@ export const extensionFetchLike: FetchLike = async (input, init) => {
     const headers = new Map<string, string>()
     res.headers.forEach((value, key) => headers.set(key, value))
     if (!headers.has('set-cookie')) {
-      // Use res.url (final URL after redirects) since the listener keys on
-      // the URL that actually received the Set-Cookie response.
-      const captured = consumeSetCookies(res.url)
+      // Try the final URL first; fall back to input if a redirect moved the response.
+      let captured = consumeSetCookies(res.url)
+      if (captured === null && input !== res.url) {
+        captured = consumeSetCookies(input)
+      }
       if (captured !== null) {
         headers.set('set-cookie', captured)
       }

@@ -65,9 +65,7 @@ export function setupCookieReplay(): void {
   isSetUp = true
   chrome.webRequest.onHeadersReceived.addListener(
     (details): chrome.webRequest.BlockingResponse => {
-      // tabId === -1 means the request originated from the extension service
-      // worker, not from a tab. Skip page traffic so normal browsing doesn't
-      // populate the cookie cache.
+      // tabId === -1: SW request, not a user tab.
       if (details.tabId !== -1 || !details.responseHeaders) {
         return {}
       }
@@ -93,7 +91,7 @@ export function setupCookieReplay(): void {
           jar = new Map()
           cookieJarByHost.set(host, jar)
         }
-        if (parsed.value === '') {
+        if (parsed.value === '' || /\bmax-age=0\b/i.test(h.value)) {
           jar.delete(parsed.name)
         } else {
           jar.set(parsed.name, parsed.value)

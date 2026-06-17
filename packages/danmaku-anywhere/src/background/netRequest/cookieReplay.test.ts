@@ -2,9 +2,6 @@
  * Tests for cookieReplay: the webRequest listener that captures Set-Cookie
  * headers (stripped by fetch) and exposes them to extensionFetchLike via
  * consumeSetCookies / getCookiesForHost.
- *
- * Verifies: header capture keyed by URL, per-host cookie jar population,
- * multi-value Set-Cookie joining, cookie overwrite, and tab-id filtering.
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -152,6 +149,28 @@ describe('cookieReplay', () => {
     const cookieHeader = getCookiesForHost('acs.youku.com')
     expect(cookieHeader).toContain('_m_h5_tk=HASH_TIMESTAMP')
     expect(cookieHeader).toContain('_m_h5_tk_enc=ENC_VALUE')
+  })
+
+  it('removes a cookie from the jar when Max-Age=0 arrives with a non-empty dummy value', () => {
+    capturedListener(
+      makeDetails({
+        url: 'https://acs.youku.com/step1',
+        responseHeaders: [
+          { name: 'set-cookie', value: '_m_h5_tk=abc123; Secure' },
+        ],
+      })
+    )
+    expect(getCookiesForHost('acs.youku.com')).toBe('_m_h5_tk=abc123')
+
+    capturedListener(
+      makeDetails({
+        url: 'https://acs.youku.com/step2',
+        responseHeaders: [
+          { name: 'set-cookie', value: '_m_h5_tk=deleted; Max-Age=0; Path=/' },
+        ],
+      })
+    )
+    expect(getCookiesForHost('acs.youku.com')).toBeNull()
   })
 
   it('removes a cookie from the jar when an empty-value Set-Cookie arrives', () => {
