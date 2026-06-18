@@ -12,9 +12,8 @@ pub fn active_path(data_dir: &Path) -> PathBuf {
 }
 
 async fn ensure_real_dir(dir: &Path) -> Result<(), RmError> {
-    // Remove a symlink if present before creating the directory.
     if let Ok(meta) = fs::symlink_metadata(dir).await {
-        if meta.file_type().is_symlink() {
+        if !meta.file_type().is_dir() {
             fs::remove_file(dir).await.map_err(|e| RmError::Swap {
                 message: e.to_string(),
             })?;

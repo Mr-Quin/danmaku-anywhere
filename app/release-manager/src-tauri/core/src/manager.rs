@@ -174,8 +174,9 @@ impl ReleaseManager {
             config.active_tag.as_deref() == Some(tag)
         };
 
-        // Phase 4: refresh active dir if this was the active build (outside config_lock).
+        // Phase 4: refresh active dir under config_lock to serialize all active/ swaps.
         if tag_is_active {
+            let _lock = self.config_lock.lock().await;
             set_active(&self.data_dir, tag).await?;
         }
 

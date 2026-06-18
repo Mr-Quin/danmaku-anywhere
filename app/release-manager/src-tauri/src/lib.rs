@@ -15,7 +15,8 @@ pub fn run() {
             let data_dir = std::env::var("DA_RELEASE_MANAGER_DIR")
                 .map(PathBuf::from)
                 .unwrap_or_else(|_| {
-                    dirs::home_dir()
+                    app.path()
+                        .home_dir()
                         .expect("cannot resolve home directory")
                         .join(".da-release-manager")
                 });

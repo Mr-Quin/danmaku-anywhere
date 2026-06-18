@@ -77,7 +77,7 @@ pub fn parse_releases(payload: &serde_json::Value) -> Vec<ReleaseAsset> {
     };
     arr.iter()
         .filter_map(|v| {
-            let raw: RawRelease = serde_json::from_value(v.clone()).ok()?;
+            let raw = RawRelease::deserialize(v).ok()?;
             to_release_asset(&raw)
         })
         .collect()
