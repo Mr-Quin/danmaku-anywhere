@@ -104,7 +104,7 @@ pub async fn set_active(data_dir: &Path, tag: &str) -> Result<String, RmError> {
     let target = cache_dir(data_dir, tag);
     let dir = active_path(data_dir);
 
-    if !target.exists() {
+    if !tokio::fs::try_exists(&target).await.unwrap_or(false) {
         return Err(RmError::Swap {
             message: format!("cache dir for {tag} is missing"),
         });

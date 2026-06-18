@@ -168,7 +168,7 @@ export function App() {
       const page1 = await api.getReleases(1)
       setReleases(page1)
       setReleasePage(1)
-      setHasMoreReleases(page1.length >= 100)
+      setHasMoreReleases(page1.length > 0)
     } catch (error) {
       setGlobalError(error instanceof Error ? error.message : String(error))
     }
@@ -310,7 +310,7 @@ export function App() {
         return [...prev, ...fresh]
       })
       setReleasePage(nextPage)
-      setHasMoreReleases(more.length >= 100)
+      setHasMoreReleases(more.length > 0)
     } catch (error) {
       setGlobalError(error instanceof Error ? error.message : String(error))
     } finally {

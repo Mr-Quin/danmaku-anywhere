@@ -88,7 +88,7 @@ pub async fn fetch_releases(
     base_url: &str,
     token: Option<&str>,
     page: u32,
-) -> Result<Vec<ReleaseAsset>, RmError> {
+) -> Result<(Vec<ReleaseAsset>, usize), RmError> {
     let mut req = client
         .get(base_url)
         .query(&[("per_page", "100"), ("page", &page.to_string())])
@@ -138,7 +138,8 @@ pub async fn fetch_releases(
         message: e.to_string(),
     })?;
 
-    Ok(parse_releases(&payload))
+    let raw_count = payload.as_array().map(|a| a.len()).unwrap_or(0);
+    Ok((parse_releases(&payload), raw_count))
 }
 
 #[cfg(test)]

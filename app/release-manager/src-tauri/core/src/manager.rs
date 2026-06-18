@@ -1,9 +1,7 @@
 use std::collections::HashSet;
 use std::ffi::OsStr;
 use std::path::PathBuf;
-use std::sync::Arc;
-
-use tokio::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use crate::active::{clear_active, set_active};
 use crate::cache::{download_build, reconcile_builds, remove_build};
@@ -41,7 +39,8 @@ pub struct ReleaseManager {
 }
 
 // RAII guard: removes the tag from in_flight on drop, even if the future is cancelled.
-// try_lock() is safe here because in_flight is only held briefly (never across an await).
+// std::sync::Mutex is used because in_flight is only held for brief synchronous sections,
+// never across an await, so a sync lock is both correct and reliably cleans up on drop.
 struct InFlightGuard {
     in_flight: Arc<Mutex<HashSet<String>>>,
     tag: String,
@@ -49,9 +48,7 @@ struct InFlightGuard {
 
 impl Drop for InFlightGuard {
     fn drop(&mut self) {
-        if let Ok(mut guard) = self.in_flight.try_lock() {
-            guard.remove(&self.tag);
-        }
+        self.in_flight.lock().unwrap().remove(&self.tag);
     }
 }
 
@@ -121,14 +118,16 @@ impl ReleaseManager {
     }
 
     pub async fn list_releases(&self, page: u32) -> Result<Vec<ReleaseAsset>, RmError> {
-        fetch_releases(&self.client, &self.github_base, None, page).await
+        fetch_releases(&self.client, &self.github_base, None, page)
+            .await
+            .map(|(assets, _)| assets)
     }
 
     pub async fn download_build(&self, tag: &str) -> Result<PublicState, RmError> {
         validate_tag(tag)?;
 
         {
-            let mut in_flight = self.in_flight.lock().await;
+            let mut in_flight = self.in_flight.lock().unwrap();
             if in_flight.contains(tag) {
                 return Err(RmError::Conflict {
                     message: format!("a download for {tag} is already running"),
@@ -149,11 +148,12 @@ impl ReleaseManager {
         // Phase 1: locate the release across pages (network, outside config_lock).
         let mut page = 1u32;
         let asset = loop {
-            let releases = fetch_releases(&self.client, &self.github_base, None, page).await?;
+            let (releases, raw_count) =
+                fetch_releases(&self.client, &self.github_base, None, page).await?;
             if let Some(found) = releases.iter().find(|r| r.tag == tag) {
                 break found.clone();
             }
-            if releases.len() < 100 || page >= 10 {
+            if raw_count < 100 || page >= 10 {
                 return Err(RmError::NotFound {
                     message: format!("no release tagged {tag}"),
                 });
