@@ -63,8 +63,11 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           projectPath: app/release-manager
-          tagName: release-manager-v__VERSION__
-          releaseName: 'Release Manager v__VERSION__'
+          # Only a real tag push produces a release; a manual workflow_dispatch run
+          # builds without releasing (empty tagName), so it cannot create a draft that,
+          # if published, would clobber the floating updater feed.
+          tagName: ${{ github.event_name == 'push' && 'release-manager-v__VERSION__' || '' }}
+          releaseName: ${{ github.event_name == 'push' && 'Release Manager v__VERSION__' || '' }}
           releaseDraft: true
           prerelease: false
           generateReleaseNotes: true
