@@ -3116,7 +3116,6 @@ dependencies = [
  "tauri-plugin-opener",
  "tauri-plugin-process",
  "tauri-plugin-updater",
- "tokio",
 ]
 
 [[package]]
