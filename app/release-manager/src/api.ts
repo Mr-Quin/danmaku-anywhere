@@ -17,8 +17,8 @@ export async function getState(): Promise<PublicState> {
   return invoke<PublicState>('get_state').catch(unwrapError)
 }
 
-export async function getReleases(): Promise<ReleaseAsset[]> {
-  return invoke<ReleaseAsset[]>('list_releases').catch(unwrapError)
+export async function getReleases(page = 1): Promise<ReleaseAsset[]> {
+  return invoke<ReleaseAsset[]>('list_releases', { page }).catch(unwrapError)
 }
 
 export async function downloadBuild(tag: string): Promise<PublicState> {

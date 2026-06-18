@@ -124,7 +124,7 @@ async fn full_release_manager_flow() {
         ReleaseManager::with_client(data_dir.clone(), Some(format!("{base}/releases")), client);
 
     // step 1: list_releases returns both releases with correct classification
-    let releases = manager.list_releases().await.expect("list_releases");
+    let releases = manager.list_releases(1).await.expect("list_releases");
     assert_eq!(releases.len(), 2);
 
     let stable = releases.iter().find(|r| r.tag == TAG_STABLE).expect("stable release");

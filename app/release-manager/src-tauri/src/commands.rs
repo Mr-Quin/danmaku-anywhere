@@ -12,8 +12,8 @@ pub async fn get_state(state: State<'_>) -> Result<PublicState, RmError> {
 }
 
 #[tauri::command]
-pub async fn list_releases(state: State<'_>) -> Result<Vec<ReleaseAsset>, RmError> {
-    state.lock().await.list_releases().await
+pub async fn list_releases(state: State<'_>, page: Option<u32>) -> Result<Vec<ReleaseAsset>, RmError> {
+    state.lock().await.list_releases(page.unwrap_or(1)).await
 }
 
 #[tauri::command]

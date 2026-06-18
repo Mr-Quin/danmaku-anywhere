@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as api from './api.js'
+import { openFolder } from './shell.js'
 import type {
   Channel,
   PreviewSubtype,
@@ -146,6 +147,9 @@ export function App() {
   const [globalError, setGlobalError] = useState<string | undefined>()
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({})
   const [busyTag, setBusyTag] = useState<string | undefined>()
+  const [releasePage, setReleasePage] = useState(1)
+  const [hasMoreReleases, setHasMoreReleases] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [pendingUpdate, setPendingUpdate] = useState<Update | null>(null)
   const [updateError, setUpdateError] = useState<string | undefined>()
   const [updateBusy, setUpdateBusy] = useState(false)
@@ -161,7 +165,10 @@ export function App() {
   const loadReleases = useCallback(async () => {
     setGlobalError(undefined)
     try {
-      setReleases(await api.getReleases())
+      const page1 = await api.getReleases(1)
+      setReleases(page1)
+      setReleasePage(1)
+      setHasMoreReleases(page1.length >= 100)
     } catch (error) {
       setGlobalError(error instanceof Error ? error.message : String(error))
     }
@@ -285,6 +292,32 @@ export function App() {
     }
   }
 
+  function openActivePath() {
+    if (state?.activePath) {
+      void openFolder(state.activePath)
+    }
+  }
+
+  async function handleLoadMore() {
+    const nextPage = releasePage + 1
+    setLoadingMore(true)
+    setGlobalError(undefined)
+    try {
+      const more = await api.getReleases(nextPage)
+      setReleases((prev) => {
+        const seen = new Set(prev.map((r) => r.tag))
+        const fresh = more.filter((r) => !seen.has(r.tag))
+        return [...prev, ...fresh]
+      })
+      setReleasePage(nextPage)
+      setHasMoreReleases(more.length >= 100)
+    } catch (error) {
+      setGlobalError(error instanceof Error ? error.message : String(error))
+    } finally {
+      setLoadingMore(false)
+    }
+  }
+
   if (!state) {
     return <main className="container">Loading...</main>
   }
@@ -298,9 +331,14 @@ export function App() {
           <div className="active-path">
             <code>{state.activePath ?? 'none selected'}</code>
             {state.activePath ? (
-              <button type="button" onClick={copyActivePath}>
-                Copy
-              </button>
+              <>
+                <button type="button" onClick={copyActivePath}>
+                  Copy
+                </button>
+                <button type="button" onClick={openActivePath}>
+                  Open folder
+                </button>
+              </>
             ) : null}
           </div>
           <p className="hint">
@@ -340,6 +378,20 @@ export function App() {
         onSetActive={onSetActive}
         onRemove={onRemove}
       />
+
+      {hasMoreReleases ? (
+        <div className="load-more">
+          <button
+            type="button"
+            onClick={() => {
+              void handleLoadMore()
+            }}
+            disabled={loadingMore}
+          >
+            {loadingMore ? 'Loading...' : 'Load more'}
+          </button>
+        </div>
+      ) : null}
 
       <section className="settings">
         <h2>Settings</h2>

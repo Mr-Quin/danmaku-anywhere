@@ -13,7 +13,7 @@ use crate::store::ConfigStore;
 use crate::types::{Config, PublicState, ReleaseAsset};
 
 const GITHUB_RELEASES_URL: &str =
-    "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases?per_page=100";
+    "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases";
 
 pub(crate) fn validate_tag(tag: &str) -> Result<(), RmError> {
     if tag.is_empty()
@@ -96,8 +96,8 @@ impl ReleaseManager {
         reconciled
     }
 
-    pub async fn list_releases(&self) -> Result<Vec<ReleaseAsset>, RmError> {
-        fetch_releases(&self.client, &self.github_base, None).await
+    pub async fn list_releases(&self, page: u32) -> Result<Vec<ReleaseAsset>, RmError> {
+        fetch_releases(&self.client, &self.github_base, None, page).await
     }
 
     pub async fn download_build(&self, tag: &str) -> Result<PublicState, RmError> {
@@ -124,7 +124,7 @@ impl ReleaseManager {
     }
 
     async fn do_download(&self, tag: &str) -> Result<PublicState, RmError> {
-        let releases = fetch_releases(&self.client, &self.github_base, None).await?;
+        let releases = fetch_releases(&self.client, &self.github_base, None, 1).await?;
 
         let asset = releases
             .iter()

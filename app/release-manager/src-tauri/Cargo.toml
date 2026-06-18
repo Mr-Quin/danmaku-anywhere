@@ -17,6 +17,7 @@ path = "src/main.rs"
 
 [dependencies]
 tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 release-manager-core = { path = "core" }

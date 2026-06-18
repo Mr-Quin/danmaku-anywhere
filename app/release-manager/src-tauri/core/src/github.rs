@@ -87,9 +87,11 @@ pub async fn fetch_releases(
     client: &reqwest::Client,
     base_url: &str,
     token: Option<&str>,
+    page: u32,
 ) -> Result<Vec<ReleaseAsset>, RmError> {
     let mut req = client
         .get(base_url)
+        .query(&[("per_page", "100"), ("page", &page.to_string())])
         .header("Accept", "application/vnd.github+json");
 
     if let Some(t) = token {

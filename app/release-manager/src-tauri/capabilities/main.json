@@ -3,5 +3,10 @@
   "identifier": "main",
   "description": "Capability for the main window",
   "windows": ["main"],
-  "permissions": ["core:default", "updater:default", "process:default"]
+  "permissions": [
+    "core:default",
+    "opener:allow-reveal-item-in-dir",
+    "updater:default",
+    "process:default"
+  ]
 }
