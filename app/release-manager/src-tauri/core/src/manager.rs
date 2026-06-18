@@ -37,6 +37,22 @@ pub struct ReleaseManager {
     github_base: String,
     client: reqwest::Client,
     in_flight: Arc<Mutex<HashSet<String>>>,
+    config_lock: tokio::sync::Mutex<()>,
+}
+
+// RAII guard: removes the tag from in_flight on drop, even if the future is cancelled.
+// try_lock() is safe here because in_flight is only held briefly (never across an await).
+struct InFlightGuard {
+    in_flight: Arc<Mutex<HashSet<String>>>,
+    tag: String,
+}
+
+impl Drop for InFlightGuard {
+    fn drop(&mut self) {
+        if let Ok(mut guard) = self.in_flight.try_lock() {
+            guard.remove(&self.tag);
+        }
+    }
 }
 
 impl ReleaseManager {
@@ -57,17 +73,25 @@ impl ReleaseManager {
             github_base,
             client,
             in_flight: Arc::new(Mutex::new(HashSet::new())),
+            config_lock: tokio::sync::Mutex::new(()),
         }
     }
 
     pub async fn get_state(&self) -> PublicState {
-        let config = self.store.load().await;
-        let reconciled = self.reconcile_config(config).await;
-        self.store.to_public_state(&reconciled, None)
+        let config = {
+            let _lock = self.config_lock.lock().await;
+            let config = self.store.load().await;
+            self.reconcile_config(config).await
+        };
+        self.store.to_public_state(&config, None)
     }
 
+    // Called with config_lock held.
     async fn reconcile_config(&self, config: Config) -> Config {
-        let builds = reconcile_builds(&self.data_dir, config.builds.clone()).await;
+        let builds = match reconcile_builds(&self.data_dir, config.builds.clone()).await {
+            Ok(b) => b,
+            Err(_) => return config,
+        };
         let active_still_present = config
             .active_tag
             .as_deref()
@@ -113,24 +137,23 @@ impl ReleaseManager {
             in_flight.insert(tag.to_string());
         }
 
-        let result = self.do_download(tag).await;
+        let _guard = InFlightGuard {
+            in_flight: Arc::clone(&self.in_flight),
+            tag: tag.to_string(),
+        };
 
-        {
-            let mut in_flight = self.in_flight.lock().await;
-            in_flight.remove(tag);
-        }
-
-        result
+        self.do_download(tag).await
     }
 
     async fn do_download(&self, tag: &str) -> Result<PublicState, RmError> {
+        // Phase 1: locate the release across pages (network, outside config_lock).
         let mut page = 1u32;
         let asset = loop {
             let releases = fetch_releases(&self.client, &self.github_base, None, page).await?;
             if let Some(found) = releases.iter().find(|r| r.tag == tag) {
                 break found.clone();
             }
-            if releases.len() < 100 {
+            if releases.len() < 100 || page >= 10 {
                 return Err(RmError::NotFound {
                     message: format!("no release tagged {tag}"),
                 });
@@ -138,14 +161,21 @@ impl ReleaseManager {
             page += 1;
         };
 
+        // Phase 2: download the zip (network + filesystem, outside config_lock).
         let downloaded = download_build(&self.data_dir, &asset, &self.client, None).await?;
 
-        let mut config = self.store.load().await;
-        config.builds.retain(|b| b.tag != tag);
-        config.builds.push(downloaded);
-        self.store.save(&config).await?;
+        // Phase 3: update config atomically (config_lock).
+        let tag_is_active = {
+            let _lock = self.config_lock.lock().await;
+            let mut config = self.store.load().await;
+            config.builds.retain(|b| b.tag != tag);
+            config.builds.push(downloaded);
+            self.store.save(&config).await?;
+            config.active_tag.as_deref() == Some(tag)
+        };
 
-        if config.active_tag.as_deref() == Some(tag) {
+        // Phase 4: refresh active dir if this was the active build (outside config_lock).
+        if tag_is_active {
             set_active(&self.data_dir, tag).await?;
         }
 
@@ -155,18 +185,21 @@ impl ReleaseManager {
     pub async fn set_active(&self, tag: &str) -> Result<PublicState, RmError> {
         validate_tag(tag)?;
 
-        let config = self.store.load().await;
-        if !config.builds.iter().any(|b| b.tag == tag) {
-            return Err(RmError::NotFound {
-                message: format!("{tag} is not cached"),
-            });
+        {
+            let _lock = self.config_lock.lock().await;
+            let config = self.store.load().await;
+            if !config.builds.iter().any(|b| b.tag == tag) {
+                return Err(RmError::NotFound {
+                    message: format!("{tag} is not cached"),
+                });
+            }
+
+            set_active(&self.data_dir, tag).await?;
+
+            let mut updated = config;
+            updated.active_tag = Some(tag.to_string());
+            self.store.save(&updated).await?;
         }
-
-        set_active(&self.data_dir, tag).await?;
-
-        let mut updated = config;
-        updated.active_tag = Some(tag.to_string());
-        self.store.save(&updated).await?;
 
         Ok(self.get_state().await)
     }
@@ -174,23 +207,29 @@ impl ReleaseManager {
     pub async fn remove_build(&self, tag: &str) -> Result<PublicState, RmError> {
         validate_tag(tag)?;
 
-        let config = self.store.load().await;
-        if config.active_tag.as_deref() == Some(tag) {
-            return Err(RmError::Conflict {
-                message: format!("{tag} is active; set another build active before removing it"),
-            });
+        {
+            let _lock = self.config_lock.lock().await;
+            let config = self.store.load().await;
+            if config.active_tag.as_deref() == Some(tag) {
+                return Err(RmError::Conflict {
+                    message: format!(
+                        "{tag} is active; set another build active before removing it"
+                    ),
+                });
+            }
+
+            remove_build(&self.data_dir, tag).await?;
+
+            let mut updated = config;
+            updated.builds.retain(|b| b.tag != tag);
+            self.store.save(&updated).await?;
         }
-
-        remove_build(&self.data_dir, tag).await?;
-
-        let mut updated = config;
-        updated.builds.retain(|b| b.tag != tag);
-        self.store.save(&updated).await?;
 
         Ok(self.get_state().await)
     }
 
     pub async fn reconcile(&self) {
+        let _lock = self.config_lock.lock().await;
         let config = self.store.load().await;
         self.reconcile_config(config).await;
     }

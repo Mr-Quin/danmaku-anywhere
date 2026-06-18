@@ -28,11 +28,29 @@ async fn ensure_real_dir(dir: &Path) -> Result<(), RmError> {
 async fn empty_dir(dir: &Path) -> Result<(), RmError> {
     let mut entries = match fs::read_dir(dir).await {
         Ok(e) => e,
-        Err(_) => return Ok(()),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(e) => {
+            return Err(RmError::Swap {
+                message: e.to_string(),
+            })
+        }
     };
-    while let Ok(Some(entry)) = entries.next_entry().await {
+    loop {
+        let entry = entries.next_entry().await.map_err(|e| RmError::Swap {
+            message: e.to_string(),
+        })?;
+        let Some(entry) = entry else {
+            break;
+        };
         let path = entry.path();
-        if entry.file_type().await.map(|t| t.is_dir()).unwrap_or(false) {
+        let is_dir = entry
+            .file_type()
+            .await
+            .map_err(|e| RmError::Swap {
+                message: e.to_string(),
+            })?
+            .is_dir();
+        if is_dir {
             fs::remove_dir_all(&path).await.map_err(|e| RmError::Swap {
                 message: e.to_string(),
             })?;
@@ -52,10 +70,23 @@ async fn copy_dir_all(src: &Path, dst: &Path) -> Result<(), RmError> {
     let mut entries = fs::read_dir(src).await.map_err(|e| RmError::Swap {
         message: e.to_string(),
     })?;
-    while let Ok(Some(entry)) = entries.next_entry().await {
+    loop {
+        let entry = entries.next_entry().await.map_err(|e| RmError::Swap {
+            message: e.to_string(),
+        })?;
+        let Some(entry) = entry else {
+            break;
+        };
         let src_path = entry.path();
         let dst_path = dst.join(entry.file_name());
-        if entry.file_type().await.map(|t| t.is_dir()).unwrap_or(false) {
+        let is_dir = entry
+            .file_type()
+            .await
+            .map_err(|e| RmError::Swap {
+                message: e.to_string(),
+            })?
+            .is_dir();
+        if is_dir {
             Box::pin(copy_dir_all(&src_path, &dst_path)).await?;
         } else {
             fs::copy(&src_path, &dst_path).await.map_err(|e| RmError::Swap {

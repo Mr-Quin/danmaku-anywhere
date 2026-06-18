@@ -142,18 +142,18 @@ pub async fn download_build(
         message: e.to_string(),
     })?;
 
-    write_unzipped(&tmp, &files).await.map_err(|e| {
-        let _ = std::fs::remove_dir_all(&tmp);
-        e
-    })?;
+    if let Err(e) = write_unzipped(&tmp, &files).await {
+        let _ = fs::remove_dir_all(&tmp).await;
+        return Err(e);
+    }
 
     let _ = fs::remove_dir_all(&final_dir).await;
-    fs::rename(&tmp, &final_dir).await.map_err(|e| {
-        let _ = std::fs::remove_dir_all(&tmp);
-        RmError::Swap {
+    if let Err(e) = fs::rename(&tmp, &final_dir).await {
+        let _ = fs::remove_dir_all(&tmp).await;
+        return Err(RmError::Swap {
             message: e.to_string(),
-        }
-    })?;
+        });
+    }
 
     let now = chrono_now();
     Ok(CachedBuild {
@@ -177,25 +177,42 @@ pub async fn remove_build(data_dir: &Path, tag: &str) -> Result<(), RmError> {
 pub async fn reconcile_builds(
     data_dir: &Path,
     index: Vec<CachedBuild>,
-) -> Vec<CachedBuild> {
+) -> Result<Vec<CachedBuild>, RmError> {
     let root = cache_root(data_dir);
-    let entries = match fs::read_dir(&root).await {
-        Ok(mut dir) => {
-            let mut names = std::collections::HashSet::new();
-            while let Ok(Some(entry)) = dir.next_entry().await {
-                let name = entry.file_name().to_string_lossy().to_string();
-                if !name.starts_with(TMP_PREFIX) {
-                    if entry.file_type().await.map(|t| t.is_dir()).unwrap_or(false) {
-                        names.insert(name);
-                    }
-                }
-            }
-            names
+    let mut dir = match fs::read_dir(&root).await {
+        Ok(d) => d,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(vec![]),
+        Err(e) => {
+            return Err(RmError::Swap {
+                message: e.to_string(),
+            })
         }
-        Err(_) => return vec![],
     };
 
-    index.into_iter().filter(|b| entries.contains(&b.tag)).collect()
+    let mut names = std::collections::HashSet::new();
+    loop {
+        let entry = dir.next_entry().await.map_err(|e| RmError::Swap {
+            message: e.to_string(),
+        })?;
+        let Some(entry) = entry else {
+            break;
+        };
+        let name = entry.file_name().to_string_lossy().to_string();
+        if !name.starts_with(TMP_PREFIX) {
+            let is_dir = entry
+                .file_type()
+                .await
+                .map_err(|e| RmError::Swap {
+                    message: e.to_string(),
+                })?
+                .is_dir();
+            if is_dir {
+                names.insert(name);
+            }
+        }
+    }
+
+    Ok(index.into_iter().filter(|b| names.contains(&b.tag)).collect())
 }
 
 fn chrono_now() -> String {

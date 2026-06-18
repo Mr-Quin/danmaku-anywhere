@@ -60,6 +60,7 @@ impl ConfigStore {
         let json = serde_json::to_string_pretty(config).map_err(|e| RmError::Invalid {
             message: e.to_string(),
         })?;
+        let tmp_path = self.config_path.with_extension("json.tmp");
         #[cfg(unix)]
         {
             use tokio::io::AsyncWriteExt;
@@ -68,7 +69,7 @@ impl ConfigStore {
                 .create(true)
                 .truncate(true)
                 .mode(0o600)
-                .open(&self.config_path)
+                .open(&tmp_path)
                 .await
                 .map_err(|e| RmError::Swap {
                     message: e.to_string(),
@@ -78,20 +79,26 @@ impl ConfigStore {
                 .map_err(|e| RmError::Swap {
                     message: e.to_string(),
                 })?;
-            // tokio::fs::File does not flush on drop; without this an immediately
-            // following load() can read the still-truncated file and lose the config.
             file.flush().await.map_err(|e| RmError::Swap {
+                message: e.to_string(),
+            })?;
+            file.sync_all().await.map_err(|e| RmError::Swap {
                 message: e.to_string(),
             })?;
         }
         #[cfg(not(unix))]
         {
-            fs::write(&self.config_path, &json)
+            fs::write(&tmp_path, &json)
                 .await
                 .map_err(|e| RmError::Swap {
                     message: e.to_string(),
                 })?;
         }
+        fs::rename(&tmp_path, &self.config_path)
+            .await
+            .map_err(|e| RmError::Swap {
+                message: e.to_string(),
+            })?;
         Ok(())
     }
 

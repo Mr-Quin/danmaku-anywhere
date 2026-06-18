@@ -29,7 +29,7 @@ pub fn run() {
                 .expect("failed to build HTTP client");
 
             let manager = ReleaseManager::with_client(data_dir, github_base, client);
-            app.manage(tokio::sync::Mutex::new(manager));
+            app.manage(manager);
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![

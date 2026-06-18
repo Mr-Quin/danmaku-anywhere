@@ -334,3 +334,67 @@ async fn download_build_searches_past_page_one() {
 
     server.abort();
 }
+
+// Pagination loop is capped at 10 pages. A server that always returns 100 dummy
+// releases (never the target) must cause NotFound, not an infinite loop.
+#[tokio::test]
+async fn download_build_page_cap_returns_not_found() {
+    let full_page: Vec<u8> = {
+        let entries: Vec<String> = (0u32..100)
+            .map(|i| {
+                format!(
+                    r#"{{"tag_name":"filler-{i}","prerelease":false,"published_at":"2025-01-01T00:00:00Z","assets":[{{"name":"danmaku-anywhere-0.0.0-chrome.zip","url":"http://localhost/none"}}]}}"#
+                )
+            })
+            .collect();
+        format!("[{}]", entries.join(",")).into_bytes()
+    };
+
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let port = listener.local_addr().unwrap().port();
+
+    let full_page = Arc::new(full_page);
+    let server = {
+        let full_page = Arc::clone(&full_page);
+        tokio::spawn(async move {
+            loop {
+                let Ok((mut stream, _)) = listener.accept().await else {
+                    break;
+                };
+                let body = Arc::clone(&full_page);
+                tokio::spawn(async move {
+                    let mut buf = vec![0u8; 4096];
+                    let _ = stream.read(&mut buf).await;
+                    let header = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: {}\r\nConnection: close\r\n\r\n",
+                        body.len()
+                    );
+                    let _ = stream.write_all(header.as_bytes()).await;
+                    let _ = stream.write_all(body.as_ref()).await;
+                });
+            }
+        })
+    };
+
+    let dir = tempdir().unwrap();
+    let client = reqwest::Client::builder()
+        .user_agent("e2e-test")
+        .build()
+        .unwrap();
+    let manager = ReleaseManager::with_client(
+        dir.path().to_path_buf(),
+        Some(format!("http://127.0.0.1:{port}/releases")),
+        client,
+    );
+
+    let err = manager
+        .download_build("nonexistent-tag")
+        .await
+        .expect_err("must return NotFound after page cap");
+    assert!(
+        matches!(err, RmError::NotFound { .. }),
+        "expected NotFound, got {err:?}"
+    );
+
+    server.abort();
+}
