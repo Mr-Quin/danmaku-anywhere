@@ -2,16 +2,13 @@ use std::path::{Path, PathBuf};
 
 use tokio::fs;
 
+use crate::cache::cache_dir;
 use crate::error::RmError;
 
 const ACTIVE_DIR: &str = "active";
 
 pub fn active_path(data_dir: &Path) -> PathBuf {
     data_dir.join(ACTIVE_DIR)
-}
-
-pub fn cache_path(data_dir: &Path, tag: &str) -> PathBuf {
-    data_dir.join("cache").join(tag)
 }
 
 async fn ensure_real_dir(dir: &Path) -> Result<(), RmError> {
@@ -73,7 +70,7 @@ async fn copy_dir_all(src: &Path, dst: &Path) -> Result<(), RmError> {
 // On Linux with Flatpak, the document portal resolves paths at access time and cannot
 // follow symlinks outside the sandbox boundary.
 pub async fn set_active(data_dir: &Path, tag: &str) -> Result<String, RmError> {
-    let target = cache_path(data_dir, tag);
+    let target = cache_dir(data_dir, tag);
     let dir = active_path(data_dir);
 
     if !target.exists() {

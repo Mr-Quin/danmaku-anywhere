@@ -124,15 +124,19 @@ impl ReleaseManager {
     }
 
     async fn do_download(&self, tag: &str) -> Result<PublicState, RmError> {
-        let releases = fetch_releases(&self.client, &self.github_base, None, 1).await?;
-
-        let asset = releases
-            .iter()
-            .find(|r| r.tag == tag)
-            .ok_or_else(|| RmError::NotFound {
-                message: format!("no release tagged {tag}"),
-            })?
-            .clone();
+        let mut page = 1u32;
+        let asset = loop {
+            let releases = fetch_releases(&self.client, &self.github_base, None, page).await?;
+            if let Some(found) = releases.iter().find(|r| r.tag == tag) {
+                break found.clone();
+            }
+            if releases.len() < 100 {
+                return Err(RmError::NotFound {
+                    message: format!("no release tagged {tag}"),
+                });
+            }
+            page += 1;
+        };
 
         let downloaded = download_build(&self.data_dir, &asset, &self.client, None).await?;
 

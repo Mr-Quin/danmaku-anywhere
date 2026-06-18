@@ -43,23 +43,16 @@ pub struct PublicState {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum Channel {
-    #[serde(rename = "stable")]
     Stable,
-    #[serde(rename = "preview")]
     Preview,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum PreviewSubtype {
-    #[serde(rename = "nightly")]
     Nightly,
-    #[serde(rename = "pr")]
     Pr,
-    #[serde(rename = "branch")]
     Branch,
-    #[serde(rename = "manual")]
     Manual,
-    #[serde(rename = "generic")]
     Generic,
 }

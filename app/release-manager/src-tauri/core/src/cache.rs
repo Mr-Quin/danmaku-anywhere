@@ -69,9 +69,8 @@ async fn write_unzipped(dest: &Path, files: &HashMap<String, Vec<u8>>) -> Result
     fs::create_dir_all(dest).await.map_err(|e| RmError::Swap {
         message: e.to_string(),
     })?;
-    // Use the same lexical normalization for the root and each candidate path,
-    // matching the TS isContained logic which used path.resolve() on both sides.
-    // canonicalize() would fail on a symlinked data-dir component and is not needed here.
+    // Normalize both the root and each candidate path lexically so zip-slip entries
+    // are rejected without canonicalize(), which fails on symlinked path components.
     let root = normalize_path(dest);
 
     for (name, bytes) in files {
@@ -166,11 +165,13 @@ pub async fn download_build(
 }
 
 pub async fn remove_build(data_dir: &Path, tag: &str) -> Result<(), RmError> {
-    fs::remove_dir_all(cache_dir(data_dir, tag))
-        .await
-        .map_err(|e| RmError::Swap {
+    match fs::remove_dir_all(cache_dir(data_dir, tag)).await {
+        Ok(()) => Ok(()),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()),
+        Err(e) => Err(RmError::Swap {
             message: e.to_string(),
-        })
+        }),
+    }
 }
 
 pub async fn reconcile_builds(

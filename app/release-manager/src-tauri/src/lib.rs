@@ -28,12 +28,7 @@ pub fn run() {
                 .build()
                 .expect("failed to build HTTP client");
 
-            let manager = tauri::async_runtime::block_on(async {
-                let manager = ReleaseManager::with_client(data_dir, github_base, client);
-                manager.reconcile().await;
-                manager
-            });
-
+            let manager = ReleaseManager::with_client(data_dir, github_base, client);
             app.manage(tokio::sync::Mutex::new(manager));
             Ok(())
         })
