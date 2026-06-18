@@ -6,7 +6,6 @@ import { SwitchLanguage } from '@/content/controller/common/components/SwitchLan
 import { ControllerRpcServer } from '@/content/controller/controllerRpc/ControllerRpcServer'
 import { FrameManager } from '@/content/controller/danmaku/frame/FrameManager'
 import { RegisterIntegration } from '@/content/controller/danmaku/integration/RegisterIntegration'
-import { PanelStateBroadcaster } from '@/content/controller/danmaku/panelState/PanelStateBroadcaster'
 import { IconManagerComponent } from '@/content/controller/iconManager/IconManagerComponent'
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
@@ -23,7 +22,6 @@ export const Content = () => {
         <IconManagerComponent />
         {isVisible && <RegisterIntegration />}
         <FrameManager />
-        <PanelStateBroadcaster />
       </Suspense>
       <ControllerRpcServer />
       <Suspense fallback={null}>
