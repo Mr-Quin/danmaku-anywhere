@@ -78,6 +78,11 @@ impl ConfigStore {
                 .map_err(|e| RmError::Swap {
                     message: e.to_string(),
                 })?;
+            // tokio::fs::File does not flush on drop; without this an immediately
+            // following load() can read the still-truncated file and lose the config.
+            file.flush().await.map_err(|e| RmError::Swap {
+                message: e.to_string(),
+            })?;
         }
         #[cfg(not(unix))]
         {
