@@ -17,6 +17,8 @@ path = "src/main.rs"
 
 [dependencies]
 tauri = { version = "2", features = [] }
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
 release-manager-core = { path = "core" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -25,4 +27,4 @@ tokio = { version = "1", features = ["sync"] }
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
 
 [build-dependencies]
-tauri-build = { version = "2" }
+tauri-build = { version = "2", features = [] }

@@ -6,6 +6,8 @@ import type {
   PublicState,
   ReleaseAsset,
 } from './types.js'
+import type { Update } from './updater.js'
+import { checkForUpdate, installUpdate, relaunchApp } from './updater.js'
 
 interface Row {
   tag: string
@@ -144,6 +146,9 @@ export function App() {
   const [globalError, setGlobalError] = useState<string | undefined>()
   const [rowErrors, setRowErrors] = useState<Record<string, string>>({})
   const [busyTag, setBusyTag] = useState<string | undefined>()
+  const [pendingUpdate, setPendingUpdate] = useState<Update | null>(null)
+  const [updateError, setUpdateError] = useState<string | undefined>()
+  const [updateBusy, setUpdateBusy] = useState(false)
 
   const refreshState = useCallback(async () => {
     try {
@@ -166,6 +171,18 @@ export function App() {
     void refreshState()
     void loadReleases()
   }, [refreshState, loadReleases])
+
+  // Check once on mount. The endpoint 404s until the update feed is published,
+  // so errors are swallowed here. The manual button surfaces them.
+  useEffect(() => {
+    void checkForUpdate()
+      .then((u) => {
+        setPendingUpdate(u)
+      })
+      .catch((_err: unknown) => {
+        return undefined
+      })
+  }, [])
 
   const runRowAction = useCallback(
     async (tag: string, action: () => Promise<PublicState>) => {
@@ -235,6 +252,33 @@ export function App() {
     }
   }, [releases, state])
 
+  async function handleCheckUpdate() {
+    setUpdateBusy(true)
+    setUpdateError(undefined)
+    try {
+      setPendingUpdate(await checkForUpdate())
+    } catch (error) {
+      setUpdateError(error instanceof Error ? error.message : String(error))
+    } finally {
+      setUpdateBusy(false)
+    }
+  }
+
+  async function handleInstallUpdate() {
+    if (!pendingUpdate) {
+      return
+    }
+    setUpdateBusy(true)
+    setUpdateError(undefined)
+    try {
+      await installUpdate(pendingUpdate)
+      await relaunchApp()
+    } catch (error) {
+      setUpdateError(error instanceof Error ? error.message : String(error))
+      setUpdateBusy(false)
+    }
+  }
+
   function copyActivePath() {
     if (state?.activePath) {
       void navigator.clipboard.writeText(state.activePath)
@@ -301,6 +345,36 @@ export function App() {
         <h2>Settings</h2>
         <label htmlFor="datadir">Data dir</label>
         <input id="datadir" type="text" value={state.dataDir} readOnly />
+      </section>
+
+      <section className="update-section">
+        <h2>App Update</h2>
+        <div className="update-controls">
+          <button
+            type="button"
+            onClick={() => {
+              void handleCheckUpdate()
+            }}
+            disabled={updateBusy}
+          >
+            Check for updates
+          </button>
+          {pendingUpdate ? (
+            <div className="update-available">
+              <span>Version {pendingUpdate.version} is available</span>
+              <button
+                type="button"
+                onClick={() => {
+                  void handleInstallUpdate()
+                }}
+                disabled={updateBusy}
+              >
+                Install and restart
+              </button>
+            </div>
+          ) : null}
+        </div>
+        {updateError ? <div className="error">{updateError}</div> : null}
       </section>
     </main>
   )
