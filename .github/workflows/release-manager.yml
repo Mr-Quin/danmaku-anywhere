@@ -1,0 +1,95 @@
+name: Release Manager App
+
+# Builds and releases the standalone release-manager desktop app (app/release-manager).
+# Independent of the extension's release.yml / preview-build.yml: it triggers only on
+# the release-manager-v* tag namespace so its updater feed never collides with the
+# extension's v*/preview-*/nightly-* tags that the app consumes.
+#
+# Flow:
+#   1. Push a release-manager-v<version> tag (or run manually) -> the build job compiles,
+#      signs, and creates a DRAFT GitHub release with the AppImage, its signature, and a
+#      latest.json updater manifest. Nothing is published automatically.
+#   2. A human reviews and PUBLISHES that draft release.
+#   3. Publishing fires the promote job, which copies latest.json onto the floating
+#      release-manager-latest release. That is the stable URL the in-app updater polls,
+#      so updates only go live after the versioned AppImage is public.
+
+on:
+  push:
+    tags:
+      - 'release-manager-v*'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.event_name != 'release'
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/release-manager/src-tauri -> target
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build, sign, and draft release
+        uses: tauri-apps/tauri-action@v0.6.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: app/release-manager
+          tagName: release-manager-v__VERSION__
+          releaseName: 'Release Manager v__VERSION__'
+          releaseDraft: true
+          prerelease: false
+          generateReleaseNotes: true
+          uploadUpdaterJson: true
+          args: '--bundles appimage'
+
+  promote-latest:
+    # When a human publishes a release-manager-v* draft, copy its updater manifest onto
+    # the floating release-manager-latest release that the in-app updater endpoint polls.
+    if: github.event_name == 'release' && startsWith(github.event.release.tag_name, 'release-manager-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PUBLISHED_TAG: ${{ github.event.release.tag_name }}
+    steps:
+      - name: Fetch the published manifest
+        run: gh release download "$PUBLISHED_TAG" --repo "$GITHUB_REPOSITORY" --pattern latest.json --dir .
+
+      - name: Promote to the floating updater feed
+        run: |
+          gh release view release-manager-latest --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1 || \
+            gh release create release-manager-latest --repo "$GITHUB_REPOSITORY" \
+              --title 'Release Manager (updater manifest)' \
+              --notes 'Auto-updated pointer consumed by the in-app updater. Do not edit or publish manually.' \
+              --latest=false
+          gh release upload release-manager-latest latest.json --repo "$GITHUB_REPOSITORY" --clobber
