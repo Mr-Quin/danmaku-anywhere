@@ -75,7 +75,16 @@ async fn write_unzipped(dest: &Path, files: &HashMap<String, Vec<u8>>) -> Result
 
     for (name, bytes) in files {
         let rel = Path::new(name);
-        if rel.is_absolute() {
+        // A build archive never needs an absolute path or a parent ref; reject both
+        // outright so no entry can escape the destination, then keep the containment
+        // check below as a second guard.
+        let unsafe_entry = rel.components().any(|c| {
+            matches!(
+                c,
+                std::path::Component::ParentDir | std::path::Component::RootDir
+            )
+        });
+        if rel.is_absolute() || unsafe_entry {
             continue;
         }
         let file_path = dest.join(rel);
@@ -309,6 +318,26 @@ mod tests {
 
         assert!(dest.join("manifest.json").exists());
         assert!(!dir.path().join("escape.txt").exists());
+    }
+
+    #[tokio::test]
+    async fn write_unzipped_skips_deep_parent_traversal_entries() {
+        let dir = tempdir().unwrap();
+        let dest = dir.path().join("a").join("b").join("out");
+        tokio::fs::create_dir_all(&dest).await.unwrap();
+
+        let mut files = HashMap::new();
+        files.insert("manifest.json".to_string(), br#"{"version":"1.0"}"#.to_vec());
+        files.insert(
+            "sub/../../../../../escape.txt".to_string(),
+            b"pwned".to_vec(),
+        );
+
+        write_unzipped(&dest, &files).await.unwrap();
+
+        assert!(dest.join("manifest.json").exists());
+        assert!(!dir.path().join("escape.txt").exists());
+        assert!(!dir.path().join("a").join("escape.txt").exists());
     }
 
     #[tokio::test]
