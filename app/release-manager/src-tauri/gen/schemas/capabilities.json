@@ -1,0 +1,9 @@
+{
+  "main": {
+    "identifier": "main",
+    "description": "Capability for the main window",
+    "local": true,
+    "windows": ["main"],
+    "permissions": ["core:default"]
+  }
+}

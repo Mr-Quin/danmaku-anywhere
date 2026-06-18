@@ -41,9 +41,16 @@ pub struct ReleaseManager {
 
 impl ReleaseManager {
     pub fn new(data_dir: PathBuf, github_base: Option<String>) -> Self {
+        Self::with_client(data_dir, github_base, reqwest::Client::new())
+    }
+
+    pub fn with_client(
+        data_dir: PathBuf,
+        github_base: Option<String>,
+        client: reqwest::Client,
+    ) -> Self {
         let store = ConfigStore::new(&data_dir);
         let github_base = github_base.unwrap_or_else(|| GITHUB_RELEASES_URL.to_string());
-        let client = reqwest::Client::new();
         ReleaseManager {
             data_dir,
             store,
