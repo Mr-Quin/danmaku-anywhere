@@ -164,20 +164,18 @@ impl ReleaseManager {
         // Phase 2: download the zip (network + filesystem, outside config_lock).
         let downloaded = download_build(&self.data_dir, &asset, &self.client, None).await?;
 
-        // Phase 3: update config atomically (config_lock).
-        let tag_is_active = {
+        // Phase 3: record the build and, if it is the active one, refresh active/
+        // under a single config_lock hold so the active tag cannot change between
+        // the decision and the swap.
+        {
             let _lock = self.config_lock.lock().await;
             let mut config = self.store.load().await;
             config.builds.retain(|b| b.tag != tag);
             config.builds.push(downloaded);
             self.store.save(&config).await?;
-            config.active_tag.as_deref() == Some(tag)
-        };
-
-        // Phase 4: refresh active dir under config_lock to serialize all active/ swaps.
-        if tag_is_active {
-            let _lock = self.config_lock.lock().await;
-            set_active(&self.data_dir, tag).await?;
+            if config.active_tag.as_deref() == Some(tag) {
+                set_active(&self.data_dir, tag).await?;
+            }
         }
 
         Ok(self.get_state().await)
