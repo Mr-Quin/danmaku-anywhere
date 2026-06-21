@@ -12,6 +12,11 @@
     "test": "cargo test -p release-manager-core --manifest-path src-tauri/Cargo.toml"
   },
   "dependencies": {
+    "@emotion/react": "^11",
+    "@emotion/styled": "^11",
+    "@fontsource-variable/plus-jakarta-sans": "^5.2.8",
+    "@mui/icons-material": "^9",
+    "@mui/material": "^9",
     "@tauri-apps/api": "^2",
     "@tauri-apps/plugin-opener": "^2",
     "@tauri-apps/plugin-process": "^2",

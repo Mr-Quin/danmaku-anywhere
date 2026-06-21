@@ -24,3 +24,11 @@ export interface PublicState {
   dataDir: string
   builds: CachedBuild[]
 }
+
+export interface Row {
+  tag: string
+  version: string
+  channel: Channel
+  previewSubtype?: PreviewSubtype
+  publishedAt?: string
+}

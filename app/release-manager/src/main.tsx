@@ -1,13 +1,16 @@
+import '@fontsource-variable/plus-jakarta-sans'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { App } from './App.js'
-import './styles.css'
+import { Theme } from './theme/Theme.js'
 
 const container = document.getElementById('root')
 if (container) {
   createRoot(container).render(
     <StrictMode>
-      <App />
+      <Theme>
+        <App />
+      </Theme>
     </StrictMode>
   )
 }

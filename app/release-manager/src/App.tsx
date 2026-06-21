@@ -1,145 +1,24 @@
+import RefreshIcon from '@mui/icons-material/Refresh'
+import SystemUpdateAltIcon from '@mui/icons-material/SystemUpdateAlt'
+import Alert from '@mui/material/Alert'
+import AppBar from '@mui/material/AppBar'
+import Badge from '@mui/material/Badge'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
+import IconButton from '@mui/material/IconButton'
+import Stack from '@mui/material/Stack'
+import Toolbar from '@mui/material/Toolbar'
+import Tooltip from '@mui/material/Tooltip'
+import Typography from '@mui/material/Typography'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import * as api from './api.js'
+import { ActiveBuildCard } from './components/ActiveBuildCard.js'
+import { ReleasesCard } from './components/ReleasesCard.js'
 import { openFolder } from './shell.js'
-import type {
-  Channel,
-  PreviewSubtype,
-  PublicState,
-  ReleaseAsset,
-} from './types.js'
+import type { PublicState, ReleaseAsset, Row } from './types.js'
 import type { Update } from './updater.js'
 import { checkForUpdate, installUpdate, relaunchApp } from './updater.js'
-
-interface Row {
-  tag: string
-  version: string
-  channel: Channel
-  previewSubtype?: PreviewSubtype
-  publishedAt?: string
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleString()
-}
-
-interface ReleaseRowProps {
-  row: Row
-  state: PublicState
-  busy: boolean
-  error?: string
-  onDownload: (tag: string) => void
-  onSetActive: (tag: string) => void
-  onRemove: (tag: string) => void
-}
-
-function ReleaseRow(props: ReleaseRowProps) {
-  const { row, state, busy, error } = props
-  const cached = state.builds.some((b) => b.tag === row.tag)
-  const isActive = state.activeTag === row.tag
-  const disabled = busy
-
-  function renderAction() {
-    if (isActive) {
-      return <span className="tag-active">Active</span>
-    }
-    if (cached) {
-      return (
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => props.onSetActive(row.tag)}
-        >
-          Set active
-        </button>
-      )
-    }
-    return (
-      <button
-        type="button"
-        disabled={disabled}
-        onClick={() => props.onDownload(row.tag)}
-      >
-        Download
-      </button>
-    )
-  }
-
-  return (
-    <tr>
-      <td>
-        <code>{row.tag}</code>
-        {row.previewSubtype ? (
-          <span className="subtype">{row.previewSubtype}</span>
-        ) : null}
-      </td>
-      <td>{row.version}</td>
-      <td>{row.publishedAt ? formatDate(row.publishedAt) : '-'}</td>
-      <td>{cached ? <span className="cached">cached</span> : null}</td>
-      <td className="actions">
-        {renderAction()}
-        {cached && !isActive ? (
-          <button
-            type="button"
-            className="danger"
-            disabled={disabled}
-            onClick={() => props.onRemove(row.tag)}
-          >
-            Remove
-          </button>
-        ) : null}
-        {busy ? <span className="working">Working...</span> : null}
-        {error ? <div className="row-error">{error}</div> : null}
-      </td>
-    </tr>
-  )
-}
-
-interface GroupProps {
-  title: string
-  rows: Row[]
-  state: PublicState
-  busyTag?: string
-  rowErrors: Record<string, string>
-  onDownload: (tag: string) => void
-  onSetActive: (tag: string) => void
-  onRemove: (tag: string) => void
-}
-
-function ReleaseGroup(props: GroupProps) {
-  if (props.rows.length === 0) {
-    return null
-  }
-  return (
-    <section>
-      <h2>{props.title}</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Tag</th>
-            <th>Version</th>
-            <th>Published</th>
-            <th>Cached</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {props.rows.map((row) => (
-            <ReleaseRow
-              key={row.tag}
-              row={row}
-              state={props.state}
-              busy={props.busyTag === row.tag}
-              error={props.rowErrors[row.tag]}
-              onDownload={props.onDownload}
-              onSetActive={props.onSetActive}
-              onRemove={props.onRemove}
-            />
-          ))}
-        </tbody>
-      </table>
-    </section>
-  )
-}
 
 export function App() {
   const [state, setState] = useState<PublicState | null>(null)
@@ -153,6 +32,7 @@ export function App() {
   const [pendingUpdate, setPendingUpdate] = useState<Update | null>(null)
   const [updateError, setUpdateError] = useState<string | undefined>()
   const [updateBusy, setUpdateBusy] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
 
   const refreshState = useCallback(async () => {
     try {
@@ -318,116 +198,137 @@ export function App() {
     }
   }
 
-  if (!state) {
-    return <main className="container">Loading...</main>
+  async function handleRefresh() {
+    setRefreshing(true)
+    try {
+      await refreshState()
+      await loadReleases()
+    } finally {
+      setRefreshing(false)
+    }
   }
 
   return (
-    <main className="container">
-      <header>
-        <h1>Extension Release Manager</h1>
-        <div className="active-box">
-          <div className="active-label">Active loaded folder</div>
-          <div className="active-path">
-            <code>{state.activePath ?? 'none selected'}</code>
-            {state.activePath ? (
-              <>
-                <button type="button" onClick={copyActivePath}>
-                  Copy
-                </button>
-                <button type="button" onClick={openActivePath}>
-                  Open folder
-                </button>
-              </>
-            ) : null}
-          </div>
-          <p className="hint">
-            Load unpacked in chrome://extensions and select this folder, once.
-          </p>
-          {state.activeTag ? (
-            <p className="hint">
-              Active build: <code>{state.activeTag}</code>
-            </p>
-          ) : null}
-        </div>
-      </header>
-
-      {globalError ? <div className="error">{globalError}</div> : null}
-
-      {stable.length === 0 && previews.length === 0 ? (
-        <p className="empty">No releases found</p>
-      ) : null}
-
-      <ReleaseGroup
-        title="Stable"
-        rows={stable}
-        state={state}
-        busyTag={busyTag}
-        rowErrors={rowErrors}
-        onDownload={onDownload}
-        onSetActive={onSetActive}
-        onRemove={onRemove}
-      />
-      <ReleaseGroup
-        title="Previews"
-        rows={previews}
-        state={state}
-        busyTag={busyTag}
-        rowErrors={rowErrors}
-        onDownload={onDownload}
-        onSetActive={onSetActive}
-        onRemove={onRemove}
-      />
-
-      {hasMoreReleases ? (
-        <div className="load-more">
-          <button
-            type="button"
-            onClick={() => {
-              void handleLoadMore()
-            }}
-            disabled={loadingMore}
-          >
-            {loadingMore ? 'Loading...' : 'Load more'}
-          </button>
-        </div>
-      ) : null}
-
-      <section className="settings">
-        <h2>Settings</h2>
-        <label htmlFor="datadir">Data dir</label>
-        <input id="datadir" type="text" value={state.dataDir} readOnly />
-      </section>
-
-      <section className="update-section">
-        <h2>App Update</h2>
-        <div className="update-controls">
-          <button
-            type="button"
-            onClick={() => {
-              void handleCheckUpdate()
-            }}
-            disabled={updateBusy}
-          >
-            Check for updates
-          </button>
-          {pendingUpdate ? (
-            <div className="update-available">
-              <span>Version {pendingUpdate.version} is available</span>
-              <button
-                type="button"
-                onClick={() => {
-                  void handleInstallUpdate()
-                }}
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <AppBar>
+        <Toolbar variant="dense" sx={{ minHeight: 44 }}>
+          <Typography variant="h3" sx={{ flex: 1 }}>
+            Release Manager
+          </Typography>
+          <Tooltip title="Check for updates">
+            <span>
+              <IconButton
+                color="inherit"
                 disabled={updateBusy}
+                onClick={() => {
+                  void handleCheckUpdate()
+                }}
               >
-                Install and restart
-              </button>
-            </div>
-          ) : null}
-        </div>
-        {updateError ? <div className="error">{updateError}</div> : null}
-      </section>
-    </main>
+                <Badge
+                  variant="dot"
+                  color="success"
+                  invisible={pendingUpdate === null}
+                >
+                  <SystemUpdateAltIcon />
+                </Badge>
+              </IconButton>
+            </span>
+          </Tooltip>
+          <Tooltip title="Reload">
+            <span>
+              <IconButton
+                color="inherit"
+                disabled={state === null || refreshing}
+                onClick={() => {
+                  void handleRefresh()
+                }}
+              >
+                <RefreshIcon />
+              </IconButton>
+            </span>
+          </Tooltip>
+        </Toolbar>
+      </AppBar>
+      <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
+        <Stack spacing={2} sx={{ maxWidth: 860, mx: 'auto' }}>
+          {state === null ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <>
+              {globalError ? (
+                <Alert
+                  severity="error"
+                  onClose={() => {
+                    setGlobalError(undefined)
+                  }}
+                >
+                  {globalError}
+                </Alert>
+              ) : null}
+              {pendingUpdate ? (
+                <Alert
+                  severity="success"
+                  action={
+                    <Button
+                      color="inherit"
+                      size="small"
+                      disabled={updateBusy}
+                      onClick={() => {
+                        void handleInstallUpdate()
+                      }}
+                    >
+                      Install and restart
+                    </Button>
+                  }
+                >
+                  Version {pendingUpdate.version} is available
+                </Alert>
+              ) : null}
+              {updateError ? (
+                <Alert severity="error">{updateError}</Alert>
+              ) : null}
+              <ActiveBuildCard
+                state={state}
+                onCopyPath={copyActivePath}
+                onOpenPath={openActivePath}
+              />
+              <ReleasesCard
+                stable={stable}
+                previews={previews}
+                state={state}
+                busyTag={busyTag}
+                rowErrors={rowErrors}
+                onDownload={onDownload}
+                onSetActive={onSetActive}
+                onRemove={onRemove}
+              />
+              {hasMoreReleases ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                  <Button
+                    variant="outlined"
+                    disabled={loadingMore}
+                    onClick={() => {
+                      void handleLoadMore()
+                    }}
+                  >
+                    {loadingMore ? 'Loading...' : 'Load more'}
+                  </Button>
+                </Box>
+              ) : null}
+              <Box>
+                <Typography variant="caption" color="text.secondary">
+                  Data dir:{' '}
+                  <Box component="span" sx={{ fontFamily: 'monospace' }}>
+                    {state.dataDir}
+                  </Box>
+                </Typography>
+              </Box>
+            </>
+          )}
+        </Stack>
+      </Box>
+    </Box>
   )
 }

@@ -26,6 +26,21 @@ importers:
 
   app/release-manager:
     dependencies:
+      '@emotion/react':
+        specifier: ^11
+        version: 11.14.0(@types/react@19.2.15)(react@19.2.0)
+      '@emotion/styled':
+        specifier: ^11
+        version: 11.14.1(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.0))(@types/react@19.2.15)(react@19.2.0)
+      '@fontsource-variable/plus-jakarta-sans':
+        specifier: ^5.2.8
+        version: 5.2.8
+      '@mui/icons-material':
+        specifier: ^9
+        version: 9.0.1(@mui/material@9.0.1(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.0))(@types/react@19.2.15)(react@19.2.0))(@types/react@19.2.15)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@types/react@19.2.15)(react@19.2.0)
+      '@mui/material':
+        specifier: ^9
+        version: 9.0.1(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.0))(@types/react@19.2.15)(react@19.2.0))(@types/react@19.2.15)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
       '@tauri-apps/api':
         specifier: ^2
         version: 2.11.0
