@@ -5,7 +5,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { HttpException } from '../../exceptions/HttpException'
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
-import { mockFetch, mockFetchResponse } from '../utils/testUtils'
+import {
+  createTestUniChunk,
+  mockFetch,
+  mockFetchResponse,
+} from '../utils/testUtils'
 
 import {
   getBangumiInfo,
@@ -143,26 +147,26 @@ describe('Bilibili', () => {
   })
 
   describe('get danmaku xml', () => {
-    it('should parse and return danmaku xml', async () => {
+    it('should parse and return danmaku in UniChunk', async () => {
       mockFetchResponse(mockDanmakuXml)
 
-      const result = await getDanmakuXml(1)
+      const uchunk = await createTestUniChunk()
+      const result = await getDanmakuXml(uchunk, 1)
 
       expect(result.success).toBe(true)
       if (result.success) {
-        const data = result.data
-        expect(data).toHaveLength(17)
-        expect(data).toContainEqual({
-          m: '分多少----、',
-          p: '3771.649,1,16777215',
-        })
+        const danmakus = await result.data.$danmakus
+        expect(danmakus).toHaveLength(17)
+        expect(danmakus[0]).toHaveProperty('content')
+        expect(danmakus[0]).toHaveProperty('progress')
       }
     })
 
     it('should return error if response is not xml', async () => {
       mockFetch(new Response('not xml'))
 
-      const result = await getDanmakuXml(1)
+      const uchunk = await createTestUniChunk()
+      const result = await getDanmakuXml(uchunk, 1)
       expect(result.success).toBe(false)
       if (!result.success) {
         expect(result.error).toBeInstanceOf(ResponseParseException)
@@ -178,18 +182,21 @@ describe('Bilibili', () => {
 
       mockFetchResponse(mockProtoResponse)
 
-      const generator = getDanmakuProtoSegment(1)
+      const uchunk = await createTestUniChunk()
+      const generator = getDanmakuProtoSegment(uchunk, 1)
 
       const firstResult = await generator.next()
       expect(firstResult.value.success).toBe(true)
       if (firstResult.value.success) {
-        expect(firstResult.value.data).toHaveLength(937)
+        const count1 = await firstResult.value.data.$count
+        expect(count1).toBe(937)
       }
 
       const secondResult = await generator.next()
       expect(secondResult.value.success).toBe(true)
       if (secondResult.value.success) {
-        expect(secondResult.value.data).toHaveLength(937)
+        const count2 = await secondResult.value.data.$count
+        expect(count2).toBe(937 * 2)
       }
 
       mockFetchResponse(mockProtoResponse, 304)
@@ -218,17 +225,20 @@ describe('Bilibili', () => {
         } as any
       })
 
-      const result = await getDanmakuProto(1)
+      const uchunk = await createTestUniChunk()
+      const result = await getDanmakuProto(uchunk, 1)
       expect(result.success).toBe(true)
       if (result.success) {
-        expect(result.data).toHaveLength(937 * 3)
+        const count = await result.data.$count
+        expect(count).toBe(937 * 3)
       }
     })
 
     it('should return error when data is invalid', async () => {
       mockFetchResponse(new TextEncoder().encode('invalid').buffer)
 
-      const result = await getDanmakuProto(1)
+      const uchunk = await createTestUniChunk()
+      const result = await getDanmakuProto(uchunk, 1)
       expect(result.success).toBe(false)
     })
   })

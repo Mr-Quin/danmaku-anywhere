@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
-import { mockFetchResponse } from '../utils/testUtils'
+import { createTestUniChunk, mockFetchResponse } from '../utils/testUtils'
 import {
   commentGetComment,
   getBangumiAnime,
@@ -107,13 +107,12 @@ describe('DanDanPlay API', () => {
 
   describe('commentGetComment', () => {
     it('should return error on unexpected data', async () => {
-      mockFetchResponse({})
+      mockFetchResponse()
 
-      const result = await commentGetComment(1)
+      const uchunk = await createTestUniChunk()
+      const result = await commentGetComment(uchunk, 1)
       expect(result.success).toBe(false)
       if (!result.success) {
-        // Since commentGetComment doesn't throw DDP exception (it just returns comments),
-        // but if parsing fails, it returns ResponseParseException.
         expect(result.error).toBeInstanceOf(ResponseParseException)
       }
     })
