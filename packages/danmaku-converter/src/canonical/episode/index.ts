@@ -13,6 +13,7 @@ import type {
 export * from './migration/migration.js'
 export * from './v3/schema.js'
 export * from './v4/schema.js'
+export * from './v5/index.js'
 
 export const EPISODE_SCHEMA_VERSION = 4 as const
 

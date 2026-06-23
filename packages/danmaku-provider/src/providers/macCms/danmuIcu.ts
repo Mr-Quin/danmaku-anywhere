@@ -1,3 +1,5 @@
+import { VodAdapter } from '@dan-uni/dan-any/adapters'
+import type { UniChunk } from '@dan-uni/dan-any/core'
 import {
   type CommentEntity,
   CommentMode,
@@ -5,6 +7,7 @@ import {
   zHex,
   zTime,
 } from '@danmaku-anywhere/danmaku-converter'
+import { ok, type Result } from '@danmaku-anywhere/result'
 import { z } from 'zod'
 
 export const zDanmuIcuDanmaku = z
@@ -15,7 +18,7 @@ export const zDanmuIcuDanmaku = z
     danmuku: z.array(
       z
         .tuple([
-          zTime, // time
+          zTime,
           z.string().transform((mode) => {
             switch (mode) {
               case 'top':
@@ -25,10 +28,10 @@ export const zDanmuIcuDanmaku = z
               default:
                 return CommentMode.rtl
             }
-          }), // mode
-          zHex, // color
-          z.string().prefault(''), // ?
-          z.string(), // text
+          }),
+          zHex,
+          z.string().default(''),
+          z.string(),
         ])
         .rest(z.any())
         .transform((data) => {
@@ -42,6 +45,30 @@ export const zDanmuIcuDanmaku = z
     ),
   })
   .transform((data): CommentEntity[] => {
-    // the danmaku list often has extra items in the beginning, use slice to remove them
     return data.danmuku.slice(-data.danum)
   })
+
+export async function getDanmakuFromDanmuIcu(
+  uchunk: UniChunk,
+  videoId: string,
+  domain?: string
+): Promise<Result<UniChunk, Error>> {
+  try {
+    const url = `https://danmu.icu/api/v1/danmaku/${videoId}`
+    const response = await fetch(url)
+
+    if (!response.ok) {
+      return { success: false, error: new Error(`HTTP ${response.status}`) }
+    }
+
+    const json = await response.json()
+    await uchunk.import(VodAdapter(json, videoId, domain))
+
+    return ok(uchunk)
+  } catch (e) {
+    return {
+      success: false,
+      error: e instanceof Error ? e : new Error(String(e)),
+    }
+  }
+}
