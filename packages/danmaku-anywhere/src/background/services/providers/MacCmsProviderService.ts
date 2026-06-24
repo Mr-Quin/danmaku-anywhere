@@ -1,3 +1,4 @@
+import type { UniChunk } from '@dan-uni/dan-any/core'
 import {
   type CommentEntity,
   type CustomSeason,
@@ -128,7 +129,10 @@ export class MacCmsProviderService implements IDanmakuProvider {
     throw new Error('Method not implemented.')
   }
 
-  async getDanmaku(_request: DanmakuFetchByMeta): Promise<CommentEntity[]> {
+  async getDanmaku(
+    _uchunk: UniChunk,
+    _request: DanmakuFetchByMeta
+  ): Promise<CommentEntity[]> {
     throw new Error('Method not implemented.')
   }
 }

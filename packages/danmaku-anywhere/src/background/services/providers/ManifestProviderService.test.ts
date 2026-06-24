@@ -1,3 +1,4 @@
+import { UniDB } from '@dan-uni/dan-any/core/main/pure'
 import {
   type CommentEntity,
   DanmakuSourceType,
@@ -247,7 +248,10 @@ describe('ManifestProviderService.getDanmaku', () => {
       silentLogger
     )
 
-    const result = await svc.getDanmaku(makeRequest({ episodeId: 42 }))
+    const result = await svc.getDanmaku(
+      new UniDB().init().makeChunk({}),
+      makeRequest({ episodeId: 42 })
+    )
 
     expect(result).toBe(raw)
     expect(runner.runDanmaku).toHaveBeenCalledWith(

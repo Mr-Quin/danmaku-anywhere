@@ -1,3 +1,4 @@
+import type { UniChunk } from '@dan-uni/dan-any/core'
 import {
   DanmakuSourceType,
   type EpisodeMeta,
@@ -9,6 +10,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { SeasonService } from '@/background/services/persistence/SeasonService'
+import type { UniDBService } from '@/background/services/UniDBService'
 import type { ILogger } from '@/common/Logger'
 import type { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
@@ -37,6 +39,12 @@ const silentLogger = {
 const silentExtensionOptions = {
   get: async () => ({ lang: 'zh' }),
 } as unknown as ExtensionOptionsService
+
+const mockUniDBService = {
+  getUniDB: vi.fn(async () => ({
+    makeChunk: vi.fn(async () => ({}) as UniChunk),
+  })),
+} as unknown as UniDBService
 
 function makeConfig(manifestId: string): ProviderConfig {
   return {
@@ -106,7 +114,8 @@ function build(
     registry,
     {} as unknown as BookmarkService,
     silentLogger,
-    silentExtensionOptions
+    silentExtensionOptions,
+    mockUniDBService
   )
 
   return { service, provider, danmakuService, seasonService }
@@ -127,7 +136,8 @@ describe('ProviderService.probeLogin', () => {
       registry,
       {} as unknown as BookmarkService,
       silentLogger,
-      silentExtensionOptions
+      silentExtensionOptions,
+      mockUniDBService
     )
 
     await service.probeLogin('dandanplay')
@@ -150,7 +160,8 @@ describe('ProviderService.getManifestSpec', () => {
       registry,
       {} as unknown as BookmarkService,
       silentLogger,
-      silentExtensionOptions
+      silentExtensionOptions,
+      mockUniDBService
     )
   }
 
@@ -209,7 +220,8 @@ describe('ProviderService.getManifestSpec', () => {
       registry,
       {} as unknown as BookmarkService,
       silentLogger,
-      silentExtensionOptions
+      silentExtensionOptions,
+      mockUniDBService
     )
 
     await expect(service.getManifestSpec('missing')).rejects.toThrow()
@@ -408,7 +420,8 @@ describe('ProviderService.refreshCatalog', () => {
       registry,
       {} as unknown as BookmarkService,
       silentLogger,
-      silentExtensionOptions
+      silentExtensionOptions,
+      mockUniDBService
     )
 
     return { service, applyUpdates, recordChecked, getPendingUpdates }
@@ -486,7 +499,8 @@ describe('ProviderService.refreshCatalog', () => {
       registry,
       {} as unknown as BookmarkService,
       silentLogger,
-      silentExtensionOptions
+      silentExtensionOptions,
+      mockUniDBService
     )
 
     await expect(service.refreshCatalog()).rejects.toThrow(
@@ -515,7 +529,8 @@ describe('ProviderService.setup', () => {
       registry,
       {} as unknown as BookmarkService,
       silentLogger,
-      silentExtensionOptions
+      silentExtensionOptions,
+      mockUniDBService
     )
 
     service.setup()
@@ -574,7 +589,8 @@ describe('ProviderService.seedDefaultProviders', () => {
       registry,
       {} as unknown as BookmarkService,
       silentLogger,
-      extensionOptions
+      extensionOptions,
+      mockUniDBService
     )
 
     return { service, set, markSeeded, hasSeeded, listManifests }
@@ -720,7 +736,8 @@ describe('ProviderService.deleteUserManifest', () => {
       registry,
       bookmarkService,
       silentLogger,
-      silentExtensionOptions
+      silentExtensionOptions,
+      mockUniDBService
     )
     return { service, unregister, deleteFromStorage, deleteByProviderConfigId }
   }

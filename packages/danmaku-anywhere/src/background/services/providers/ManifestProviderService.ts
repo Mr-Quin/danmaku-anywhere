@@ -1,3 +1,4 @@
+import type { UniChunk } from '@dan-uni/dan-any/core'
 import {
   type CommentEntity,
   EPISODE_SCHEMA_VERSION,
@@ -165,7 +166,10 @@ export class ManifestProviderService implements IDanmakuProvider {
     }))
   }
 
-  async getDanmaku(request: DanmakuFetchByMeta): Promise<CommentEntity[]> {
+  async getDanmaku(
+    uchunk: UniChunk,
+    request: DanmakuFetchByMeta
+  ): Promise<CommentEntity[]> {
     const { meta } = request
     this.logger.debug(
       'Get danmaku via manifest',
@@ -173,12 +177,12 @@ export class ManifestProviderService implements IDanmakuProvider {
       meta.providerIds
     )
     const runner = this.registry.getRunner(this.config.manifestId)
-    // meta.params holds per-episode hints stashed at search/episodes time
-    // (e.g. chConvert/withRelated). providerIds take precedence on key collision.
     const inputs = this.resolveInputs(runner, {
       ...meta.params,
       ...meta.providerIds,
     })
+    // Manifest runner returns CommentEntity[] directly
+    // uchunk is reserved for future use when manifests support UDanmaku
     return runner.runDanmaku<CommentEntity[]>(inputs, DANMAKU_RUN_OPTIONS)
   }
 

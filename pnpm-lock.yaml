@@ -251,6 +251,9 @@ importers:
       '@ai-sdk/openai-compatible':
         specifier: ^2.0.1
         version: 2.0.47(zod@4.4.3)
+      '@dan-uni/dan-any':
+        specifier: ^2.2.7
+        version: 2.2.7(@opentelemetry/api@1.9.1)
       '@danmaku-anywhere/danmaku-converter':
         specifier: workspace:*
         version: link:../danmaku-converter

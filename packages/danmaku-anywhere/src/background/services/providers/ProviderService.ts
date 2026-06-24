@@ -12,6 +12,7 @@ import { inject, injectable } from 'inversify'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
+import { UniDBService } from '@/background/services/UniDBService'
 import type { SeasonQueryFilter, SeasonSearchRequest } from '@/common/anime/dto'
 import type {
   DanmakuFetchByMeta,
@@ -72,7 +73,9 @@ export class ProviderService {
     private bookmarkService: BookmarkService,
     @inject(LoggerSymbol) logger: ILogger,
     @inject(ExtensionOptionsService)
-    private extensionOptions: ExtensionOptionsService
+    private extensionOptions: ExtensionOptionsService,
+    @inject(UniDBService)
+    private uniDBService: UniDBService
   ) {
     invariant(
       isServiceWorker(),
@@ -219,7 +222,10 @@ export class ProviderService {
 
     const service = this.danmakuProviderFactory(config)
 
-    const comments = await service.getDanmaku(resolved)
+    const udb = await this.uniDBService.getUniDB()
+    const uchunk = await udb.makeChunk({})
+
+    const comments = await service.getDanmaku(uchunk, resolved)
 
     const { season, ...rest } = meta
 
