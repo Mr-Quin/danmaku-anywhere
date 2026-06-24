@@ -1,6 +1,6 @@
+import type { UDanmaku } from '@dan-uni/dan-any/core'
 import type {
   Bookmark,
-  CommentEntity,
   CustomEpisode,
   CustomEpisodeLite,
   CustomSeason,
@@ -214,7 +214,7 @@ export type BackgroundMethods = {
   episodeDelete: RPCDef<EpisodeQueryFilter, void>
   episodeGetComments: RPCDef<
     { episodeId: number; isCustom?: boolean },
-    CommentEntity[]
+    UDanmaku[]
   >
   episodeFilterCustom: RPCDef<CustomEpisodeQueryFilter, CustomEpisode[]>
   episodeFilterCustomLite: RPCDef<CustomEpisodeQueryFilter, CustomEpisodeLite[]>
@@ -361,7 +361,7 @@ export interface PipelineEntry {
 // Here the frameId is used to identify the DESTINATION frame
 export type PlayerRelayCommands = {
   'relay:command:mount': RPCDef<
-    InputWithFrameId<CommentEntity[]>,
+    InputWithFrameId<UDanmaku[]>,
     boolean,
     FrameContext
   >

@@ -1,7 +1,4 @@
-import {
-  toCommentEntities,
-  V4EpisodeAdapter,
-} from '@danmaku-anywhere/danmaku-converter'
+import { V4EpisodeAdapter } from '@danmaku-anywhere/danmaku-converter'
 import {
   getDanmuicuConfig,
   getMaccmsConfig,
@@ -328,9 +325,9 @@ export class RpcManager {
                 `Migrated episode ${episodeId} to v5, chunk ${chunkId}`
               )
 
-              // Return the migrated comments
+              // Return the migrated UDanmaku[]
               const danmakus = await this.chunkService.getChunkData(chunkId)
-              return danmakus ? toCommentEntities(danmakus) : []
+              return danmakus || []
             }
 
             // No inline comments, return empty
@@ -340,7 +337,7 @@ export class RpcManager {
             return []
           }
 
-          // v5 format: load from chunk
+          // v5 format: load UDanmaku[] from chunk
           const danmakus = await this.chunkService.getChunkData(
             episode.commentsChunkId
           )
@@ -352,7 +349,7 @@ export class RpcManager {
             return []
           }
 
-          return toCommentEntities(danmakus)
+          return danmakus
         },
         episodeFilterCustom: async (filter) => {
           return this.danmakuService.filterCustom(filter)

@@ -1,4 +1,5 @@
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import type { UDanmaku } from '@dan-uni/dan-any/core'
+import { toCommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
@@ -330,7 +331,9 @@ export class PlayerCommandHandler {
     server.listen(chrome.runtime.onMessage)
   }
 
-  private mount(comments: CommentEntity[]) {
+  private mount(udanmakus: UDanmaku[]) {
+    // Convert UDanmaku[] to CommentEntity[] for the danmaku engine
+    const comments = udanmakus.map((u) => toCommentEntity(u))
     this.manager.mount(comments)
     this.videoSkip.setComments(comments)
     this.density.setComments(comments)

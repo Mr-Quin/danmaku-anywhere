@@ -1,5 +1,5 @@
+import type { UDanmaku } from '@dan-uni/dan-any/core'
 import type {
-  CommentEntity,
   Episode,
   GenericEpisode,
   WithSeason,
@@ -32,7 +32,7 @@ const useMountDanmaku = () => {
         throw new Error('No active frame to mount danmaku')
       }
 
-      // Load comments from chunks via RPC
+      // Load UDanmaku[] from chunks via RPC
       const commentsArrays = await Promise.all(
         episodes.map((episode) =>
           chromeRpcClient
@@ -44,7 +44,7 @@ const useMountDanmaku = () => {
         )
       )
 
-      const comments: CommentEntity[] = commentsArrays.flat()
+      const comments: UDanmaku[] = commentsArrays.flat()
 
       const res = await playerRpcClient.player['relay:command:mount']({
         frameId: activeFrame.frameId,
