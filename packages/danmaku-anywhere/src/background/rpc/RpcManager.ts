@@ -286,43 +286,48 @@ export class RpcManager {
             throw new Error(`Episode ${episodeId} not found`)
           }
 
-          // Check if episode has a chunk (v5 format)
-          if (!episode.commentsChunkId || episode.commentsChunkId === 0) {
-            // v4 format: migrate to v5 on first access
+          // Check if episode needs lazy migration (commentsChunkId === -1)
+          if (episode.commentsChunkId === -1) {
+            // v4 episode marked for migration: create chunk on first access
             this.logger.info(
-              `Migrating episode ${episodeId} from v4 to v5 format`
+              `Lazy migrating episode ${episodeId} from v4 to v5 format`
             )
 
-            // Check if episode has inline comments (v4)
             const episodeV4 = episode as any
             if (episodeV4.comments && Array.isArray(episodeV4.comments)) {
-              // Migrate: create chunk from inline comments
+              // Create chunk from inline comments
               const udb = await this.uniDBService.getUniDB()
               const chunk = await udb.makeChunk({})
 
               const adapter = V4EpisodeAdapter({
                 comments: episodeV4.comments,
                 commentCount: episodeV4.comments.length,
-              } as any)
+              })
 
               await adapter(udb, chunk)
 
-              // Save chunk and update episode
+              // Save chunk
               const chunkId = await this.chunkService.saveChunk(chunk)
 
-              // Update episode with chunkId and remove inline comments
-              const updatedEpisode = {
-                ...episode,
-                commentsChunkId: chunkId,
-                commentCount: episodeV4.comments.length,
-                schemaVersion: 5,
-              }
-              delete (updatedEpisode as any).comments
+              this.logger.info(
+                `Created chunk ${chunkId} with ${episodeV4.comments.length} comments`
+              )
 
-              await this.danmakuService.update(updatedEpisode as any)
+              // Update episode: set real chunkId and remove comments
+              if (isCustom) {
+                await this.danmakuService.updateCustomFields(episode.id, {
+                  commentsChunkId: chunkId,
+                  comments: undefined,
+                })
+              } else {
+                await this.danmakuService.updateFields(episode.id, {
+                  commentsChunkId: chunkId,
+                  comments: undefined,
+                })
+              }
 
               this.logger.info(
-                `Migrated episode ${episodeId} to v5, chunk ${chunkId}`
+                `Completed lazy migration for episode ${episodeId}`
               )
 
               // Return the migrated UDanmaku[]
@@ -330,14 +335,21 @@ export class RpcManager {
               return danmakus || []
             }
 
-            // No inline comments, return empty
+            // No comments, return empty
             this.logger.warn(
-              `Episode ${episodeId} has no chunk and no inline comments`
+              `Episode ${episodeId} marked for migration but has no comments`
             )
             return []
           }
 
           // v5 format: load UDanmaku[] from chunk
+          if (!episode.commentsChunkId || episode.commentsChunkId === 0) {
+            this.logger.warn(
+              `Episode ${episodeId} has no chunk (should have been migrated)`
+            )
+            return []
+          }
+
           const danmakus = await this.chunkService.getChunkData(
             episode.commentsChunkId
           )

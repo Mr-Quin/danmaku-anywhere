@@ -267,6 +267,20 @@ export class DanmakuService {
     return toUpdate
   }
 
+  async updateFields(
+    id: number,
+    fields: Record<string, unknown>
+  ): Promise<void> {
+    await this.db.episode.update(id, fields)
+  }
+
+  async updateCustomFields(
+    id: number,
+    fields: Record<string, unknown>
+  ): Promise<void> {
+    await this.db.customEpisode.update(id, fields)
+  }
+
   // Filtering by seasonId — the common path — returns N episodes that
   // share one season, so a per-episode lookup reads the same row N times.
   private async joinSeasons<T extends EpisodeLite>(

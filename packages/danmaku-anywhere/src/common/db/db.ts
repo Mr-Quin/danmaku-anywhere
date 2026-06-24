@@ -459,6 +459,44 @@ export class DanmakuAnywhereDb extends Dexie {
       chunks: '++id, createdAt, updatedAt',
     })
 
+    /**
+     * Version 16: Mark v4 episodes for lazy chunk migration
+     * - Set commentsChunkId to -1 to indicate pending migration
+     * - Keep comments array for now (will be converted on first access)
+     * - Update schemaVersion to 5
+     *
+     * We cannot use UniDB here because it requires Buffer (Node.js API)
+     * which is not available in Service Worker environment.
+     */
+    this.version(16).upgrade(async (tx) => {
+      // Mark regular episodes for migration
+      const episodes = await tx.table('episode').toArray()
+      for (const episode of episodes) {
+        // Check if this is a v4 episode (has comments array)
+        if ('comments' in episode && Array.isArray(episode.comments)) {
+          // Mark for lazy migration (chunk will be created on first access)
+          await tx.table('episode').update(episode.id, {
+            commentsChunkId: -1, // -1 indicates pending migration
+            commentCount: episode.comments.length,
+            schemaVersion: 5,
+            // Keep comments array for now
+          })
+        }
+      }
+
+      // Mark custom episodes for migration
+      const customEpisodes = await tx.table('customEpisode').toArray()
+      for (const episode of customEpisodes) {
+        if ('comments' in episode && Array.isArray(episode.comments)) {
+          await tx.table('customEpisode').update(episode.id, {
+            commentsChunkId: -1,
+            commentCount: episode.comments.length,
+            schemaVersion: 5,
+          })
+        }
+      }
+    })
+
     this.open()
   }
 }
