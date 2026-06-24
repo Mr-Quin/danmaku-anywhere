@@ -42,9 +42,23 @@ const silentExtensionOptions = {
 
 const mockUniDBService = {
   getUniDB: vi.fn(async () => ({
-    makeChunk: vi.fn(async () => ({}) as UniChunk),
+    makeChunk: vi.fn(
+      async () =>
+        ({
+          $danmakus: Promise.resolve([]),
+          $db: {},
+        }) as any as UniChunk
+    ),
   })),
 } as unknown as UniDBService
+
+const mockChunkService = {
+  saveChunk: vi.fn(async () => 1),
+  loadChunk: vi.fn(async () => null),
+  updateChunk: vi.fn(async () => {}),
+  deleteChunk: vi.fn(async () => {}),
+  getChunkCount: vi.fn(async () => 0),
+} as unknown as any
 
 function makeConfig(manifestId: string): ProviderConfig {
   return {
@@ -63,7 +77,7 @@ function makeProvider(
     forProvider: DanmakuSourceType.DanDanPlay,
     search: vi.fn(async () => []),
     getEpisodes: vi.fn(async () => []),
-    getDanmaku: vi.fn(async () => []),
+    getDanmaku: vi.fn(async (uchunk: UniChunk) => uchunk),
     ...overrides,
   } as unknown as IDanmakuProvider
 }
@@ -115,7 +129,8 @@ function build(
     {} as unknown as BookmarkService,
     silentLogger,
     silentExtensionOptions,
-    mockUniDBService
+    mockUniDBService,
+    mockChunkService
   )
 
   return { service, provider, danmakuService, seasonService }
@@ -137,7 +152,8 @@ describe('ProviderService.probeLogin', () => {
       {} as unknown as BookmarkService,
       silentLogger,
       silentExtensionOptions,
-      mockUniDBService
+      mockUniDBService,
+      mockChunkService
     )
 
     await service.probeLogin('dandanplay')
@@ -161,7 +177,8 @@ describe('ProviderService.getManifestSpec', () => {
       {} as unknown as BookmarkService,
       silentLogger,
       silentExtensionOptions,
-      mockUniDBService
+      mockUniDBService,
+      mockChunkService
     )
   }
 
@@ -221,7 +238,8 @@ describe('ProviderService.getManifestSpec', () => {
       {} as unknown as BookmarkService,
       silentLogger,
       silentExtensionOptions,
-      mockUniDBService
+      mockUniDBService,
+      mockChunkService
     )
 
     await expect(service.getManifestSpec('missing')).rejects.toThrow()
@@ -326,7 +344,9 @@ describe('ProviderService legacy-maccms decoupling', () => {
     } as unknown as WithSeason<EpisodeMeta>
 
     it('fetches danmaku for a generic source', async () => {
-      const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
+      const provider = makeProvider({
+        getDanmaku: vi.fn(async (uchunk: UniChunk) => uchunk),
+      })
       const { service } = build(makeConfig('iqiyi'), provider)
 
       await service.getDanmaku({ type: 'by-meta', meta, options: {} })
@@ -336,7 +356,9 @@ describe('ProviderService legacy-maccms decoupling', () => {
 
     it('serves cached danmaku without fetching or resolving the config', async () => {
       const cached = { id: 5, comments: [] }
-      const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
+      const provider = makeProvider({
+        getDanmaku: vi.fn(async (uchunk: UniChunk) => uchunk),
+      })
       const { service } = build(makeConfig('iqiyi'), provider, {
         existingDanmaku: [cached],
       })
@@ -366,7 +388,9 @@ describe('ProviderService legacy-maccms decoupling', () => {
     })
 
     it('throws a source-removed error when forcing an orphaned season', async () => {
-      const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
+      const provider = makeProvider({
+        getDanmaku: vi.fn(async (uchunk: UniChunk) => uchunk),
+      })
       const { service } = build(makeConfig('iqiyi'), provider, {
         configMissing: true,
       })
@@ -421,7 +445,8 @@ describe('ProviderService.refreshCatalog', () => {
       {} as unknown as BookmarkService,
       silentLogger,
       silentExtensionOptions,
-      mockUniDBService
+      mockUniDBService,
+      mockChunkService
     )
 
     return { service, applyUpdates, recordChecked, getPendingUpdates }
@@ -500,7 +525,8 @@ describe('ProviderService.refreshCatalog', () => {
       {} as unknown as BookmarkService,
       silentLogger,
       silentExtensionOptions,
-      mockUniDBService
+      mockUniDBService,
+      mockChunkService
     )
 
     await expect(service.refreshCatalog()).rejects.toThrow(
@@ -530,7 +556,8 @@ describe('ProviderService.setup', () => {
       {} as unknown as BookmarkService,
       silentLogger,
       silentExtensionOptions,
-      mockUniDBService
+      mockUniDBService,
+      mockChunkService
     )
 
     service.setup()
@@ -590,7 +617,8 @@ describe('ProviderService.seedDefaultProviders', () => {
       {} as unknown as BookmarkService,
       silentLogger,
       extensionOptions,
-      mockUniDBService
+      mockUniDBService,
+      mockChunkService
     )
 
     return { service, set, markSeeded, hasSeeded, listManifests }
@@ -737,7 +765,8 @@ describe('ProviderService.deleteUserManifest', () => {
       bookmarkService,
       silentLogger,
       silentExtensionOptions,
-      mockUniDBService
+      mockUniDBService,
+      mockChunkService
     )
     return { service, unregister, deleteFromStorage, deleteByProviderConfigId }
   }

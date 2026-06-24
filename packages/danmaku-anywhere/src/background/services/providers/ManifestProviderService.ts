@@ -7,6 +7,7 @@ import {
   type Season,
   type SeasonInsert,
   stripHtml,
+  V4EpisodeAdapter,
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { ManifestRunner, RunOptions } from '@mr-quin/dango'
@@ -157,19 +158,20 @@ export class ManifestProviderService implements IDanmakuProvider {
       MANIFEST_RUN_OPTIONS
     )
     const now = Date.now()
+    // Type assertion: manifestId determines provider type at runtime
     return rows.map((row) => ({
       ...row,
       title: stripHtml(row.title),
       provider: this.forProvider,
       schemaVersion: EPISODE_SCHEMA_VERSION,
       lastChecked: now,
-    }))
+    })) as any[]
   }
 
   async getDanmaku(
     uchunk: UniChunk,
     request: DanmakuFetchByMeta
-  ): Promise<CommentEntity[]> {
+  ): Promise<UniChunk> {
     const { meta } = request
     this.logger.debug(
       'Get danmaku via manifest',
@@ -178,12 +180,26 @@ export class ManifestProviderService implements IDanmakuProvider {
     )
     const runner = this.registry.getRunner(this.config.manifestId)
     const inputs = this.resolveInputs(runner, {
-      ...meta.params,
+      ...((meta as any).params ?? {}),
       ...meta.providerIds,
     })
     // Manifest runner returns CommentEntity[] directly
-    // uchunk is reserved for future use when manifests support UDanmaku
-    return runner.runDanmaku<CommentEntity[]>(inputs, DANMAKU_RUN_OPTIONS)
+    const rawComments = await runner.runDanmaku<CommentEntity[]>(
+      inputs,
+      DANMAKU_RUN_OPTIONS
+    )
+
+    // Use V4EpisodeAdapter to convert and import CommentEntity[] to UDanmaku
+    const tempEpisode = {
+      comments: rawComments,
+      commentCount: rawComments.length,
+    }
+
+    const adapter = V4EpisodeAdapter(tempEpisode as any)
+    // adapter populates the chunk and returns it
+    const populatedChunk = await adapter(uchunk.$UniDB, uchunk)
+
+    return populatedChunk
   }
 
   async findEpisode(
@@ -235,7 +251,7 @@ export class ManifestProviderService implements IDanmakuProvider {
         provider: this.forProvider,
         schemaVersion: EPISODE_SCHEMA_VERSION,
         lastChecked: now,
-      },
+      } as any,
     }
   }
 }

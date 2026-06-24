@@ -7,8 +7,8 @@ import { Box, IconButton, Stack, Typography } from '@mui/material'
 import type { ReactElement } from 'react'
 import { Suspense } from 'react'
 import { CommentsTable } from '@/common/components/CommentsTable'
-import { NothingHere } from '@/common/components/NothingHere'
 import { useCustomEpisodeSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
+import { useEpisodeComments } from '@/common/danmaku/queries/useEpisodeComments'
 import { useEpisodesSuspense } from '@/common/danmaku/queries/useEpisodes'
 import { isNotCustom } from '@/common/danmaku/utils'
 import { useRefreshDanmaku } from '@/popup/hooks/useRefreshDanmaku'
@@ -38,6 +38,12 @@ const CommentsLoader = ({
     episode = data[0]
   }
 
+  // Load comments separately via RPC
+  const { data: comments = [], isLoading } = useEpisodeComments(
+    episodeLite.id,
+    isCustom
+  )
+
   const canRefresh = episode !== undefined && !isCustom
 
   const handleRefresh = () => {
@@ -47,7 +53,7 @@ const CommentsLoader = ({
     void refreshDanmaku(episodeLite)
   }
 
-  if (!episode) {
+  if (!episode || isLoading) {
     return (
       <Box
         sx={{
@@ -55,14 +61,14 @@ const CommentsLoader = ({
           flexGrow: 1,
         }}
       >
-        <NothingHere />
+        <FullPageSpinner />
       </Box>
     )
   }
 
   return (
     <CommentsTable
-      comments={episode.comments}
+      comments={comments}
       onRefresh={handleRefresh}
       showRefresh={canRefresh}
       isRefreshing={mutation.isPending}

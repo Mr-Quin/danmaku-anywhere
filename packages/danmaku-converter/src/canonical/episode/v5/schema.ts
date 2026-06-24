@@ -28,6 +28,7 @@ const zBaseEpisodeV5 = z.object({
   commentCount: z.number(),
   schemaVersion: z.literal(5),
   lastChecked: z.number(),
+  params: z.record(z.string(), z.unknown()).optional(),
 })
 
 export const zDanDanPlayProviderIds = z.object({

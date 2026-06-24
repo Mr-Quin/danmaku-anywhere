@@ -151,9 +151,9 @@ const useStoreBase = create<StoreState>()(
         set((state) => {
           state.danmaku.isMounted = true
           state.danmaku.episodes = episodes
-          state.danmaku.comments = episodes.flatMap((episode) => {
-            return episode.comments
-          })
+          // Comments are loaded separately via RPC in useMountDanmaku
+          // and sent directly to the player. Store doesn't need them anymore.
+          state.danmaku.comments = []
         })
       },
       unmount: () => {

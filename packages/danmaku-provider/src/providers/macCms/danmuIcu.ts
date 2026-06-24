@@ -1,7 +1,6 @@
 import { VodAdapter } from '@dan-uni/dan-any/adapters'
 import type { UniChunk } from '@dan-uni/dan-any/core'
 import {
-  type CommentEntity,
   CommentMode,
   hexToRgb888,
   zHex,
@@ -10,43 +9,39 @@ import {
 import { ok, type Result } from '@danmaku-anywhere/result'
 import { z } from 'zod'
 
-export const zDanmuIcuDanmaku = z
-  .object({
-    code: z.number(),
-    name: z.string(),
-    danum: z.number(),
-    danmuku: z.array(
-      z
-        .tuple([
-          zTime,
-          z.string().transform((mode) => {
-            switch (mode) {
-              case 'top':
-                return CommentMode.top
-              case 'bottom':
-                return CommentMode.bottom
-              default:
-                return CommentMode.rtl
-            }
-          }),
-          zHex,
-          z.string().default(''),
-          z.string(),
-        ])
-        .rest(z.any())
-        .transform((data) => {
-          const [time, mode, color, , text] = data
-
-          return {
-            p: `${time},${mode},${hexToRgb888(color)}`,
-            m: text,
+export const zDanmuIcuDanmaku = z.object({
+  code: z.number(),
+  name: z.string(),
+  danum: z.number(),
+  danmuku: z.array(
+    z
+      .tuple([
+        zTime,
+        z.string().transform((mode) => {
+          switch (mode) {
+            case 'top':
+              return CommentMode.top
+            case 'bottom':
+              return CommentMode.bottom
+            default:
+              return CommentMode.rtl
           }
-        })
-    ),
-  })
-  .transform((data): CommentEntity[] => {
-    return data.danmuku.slice(-data.danum)
-  })
+        }),
+        zHex,
+        z.string().default(''),
+        z.string(),
+      ])
+      .rest(z.any())
+      .transform((data) => {
+        const [time, mode, color, , text] = data
+
+        return {
+          p: `${time},${mode},${hexToRgb888(color)}`,
+          m: text,
+        }
+      })
+  ),
+})
 
 export async function getDanmakuFromDanmuIcu(
   uchunk: UniChunk,

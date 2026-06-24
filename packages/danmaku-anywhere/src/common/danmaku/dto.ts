@@ -49,7 +49,11 @@ export type DanmakuFetchDto = DanmakuFetchRequest
 
 export type DanmakuImportData = {
   title: string
-  data: unknown
+  danmakus: Record<string, unknown>[] // Serialized UDanmaku (Date → ISO string)
+  metadata?: {
+    originalFileName: string
+    source: 'bilibili-xml' | 'bilibili-grpc' | 'dandanplay' | 'custom-json'
+  }
 }
 
 export type DanmakuImportResult = {

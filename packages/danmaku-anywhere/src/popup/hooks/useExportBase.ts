@@ -32,7 +32,7 @@ export interface ExportFile {
 }
 
 export interface ExportFormatter {
-  formatEpisode: (episode: GenericEpisode) => ExportFile
+  formatEpisode: (episode: GenericEpisode) => ExportFile | Promise<ExportFile>
   fileExtension: string
   successMessage: () => string
   errorMessage: (errorMessage: string) => string
@@ -71,24 +71,24 @@ export const useExportWithFormat = (formatter: ExportFormatter) => {
       const files: ExportFile[] = []
 
       // Add regular episodes
-      episodes.forEach((ep) => {
-        const formatted = formatter.formatEpisode(ep)
+      for (const ep of episodes) {
+        const formatted = await formatter.formatEpisode(ep)
         const fileName = `${sanitizeFilename(`${ep.season.provider} (${ep.season.providerConfigId})`)}/${sanitizeFilename(ep.season.title)}/${sanitizeFilename(formatted.name)}`
 
         files.push({
           name: fileName,
           data: formatted.data,
         })
-      })
+      }
 
       // Add custom episodes
-      customEpisodes.forEach((ep) => {
-        const formatted = formatter.formatEpisode(ep)
+      for (const ep of customEpisodes) {
+        const formatted = await formatter.formatEpisode(ep)
         files.push({
           name: `custom/${sanitizeFilename(formatted.name)}`,
           data: formatted.data,
         })
-      })
+      }
 
       if (files.length === 1) {
         downloadSingleFile(files[0])

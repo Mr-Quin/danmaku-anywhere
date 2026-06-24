@@ -1,10 +1,10 @@
 import {
   type Bookmark,
-  type CustomEpisode,
+  type CustomEpisodeV5,
   type DanmakuSourceType,
   type DanmakuV3,
-  type Episode,
   type EpisodeV4,
+  type EpisodeV5,
   episodeMigration,
   PROVIDER_TO_BUILTIN_ID,
   type Season,
@@ -19,13 +19,28 @@ export const DANMAKU_DB_NAME = 'danmaku-anywhere'
 
 type WithoutId<T> = Omit<T, 'id'>
 
+/**
+ * Serialized UniChunk data for storage
+ */
+export interface StoredChunk {
+  id?: number
+  data: unknown // Serialized chunk data from UniDB.dump()
+  createdAt: number
+  updatedAt: number
+}
+
 @injectable('Singleton')
 export class DanmakuAnywhereDb extends Dexie {
-  episode!: Dexie.Table<Episode, number, WithoutId<Episode>>
-  customEpisode!: Dexie.Table<CustomEpisode, number, WithoutId<CustomEpisode>>
+  episode!: Dexie.Table<EpisodeV5, number, WithoutId<EpisodeV5>>
+  customEpisode!: Dexie.Table<
+    CustomEpisodeV5,
+    number,
+    WithoutId<CustomEpisodeV5>
+  >
   season!: Dexie.Table<Season, number, WithoutId<Season>>
   seasonMap!: Dexie.Table<SeasonMapSnapshot, string>
   bookmark!: Dexie.Table<Bookmark, number, WithoutId<Bookmark>>
+  chunks!: Dexie.Table<StoredChunk, number, WithoutId<StoredChunk>>
 
   isReady = new Promise<boolean>((resolve) => {
     this.on('ready', () => resolve(true))
@@ -430,6 +445,19 @@ export class DanmakuAnywhereDb extends Dexie {
             entry.seasons = remapped
           })
       })
+
+    // Version 15: Add chunks table for storing UniChunk data
+    // This enables storing UDanmaku data instead of CommentEntity
+    this.version(15).stores({
+      episode:
+        '++id, provider, indexedId, &[provider+indexedId], seasonId, timeUpdated, lastChecked',
+      customEpisode: '++id, title',
+      season:
+        '++id, provider, providerConfigId, indexedId, &[providerConfigId+indexedId]',
+      seasonMap: 'key, *seasonIds',
+      bookmark: '++id, &seasonId, providerConfigId',
+      chunks: '++id, createdAt, updatedAt',
+    })
 
     this.open()
   }

@@ -1,3 +1,4 @@
+import type { UDanmaku } from '@dan-uni/dan-any/core'
 import {
   type BackupParseResult,
   type CommentEntity,
@@ -14,7 +15,9 @@ import {
   zCombinedDanmaku,
 } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
+import type { ChunkService } from '@/background/services/persistence/ChunkService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
+import type { UniDBService } from '@/background/services/UniDBService'
 import type {
   CustomEpisodeQueryFilter,
   DanmakuImportData,
@@ -45,6 +48,14 @@ export class DanmakuService {
     this.logger = logger.sub('[DanmakuService]')
   }
 
+  async get(id: number): Promise<Episode | undefined> {
+    return this.db.episode.get(id)
+  }
+
+  async getCustom(id: number): Promise<CustomEpisode | undefined> {
+    return this.db.customEpisode.get(id)
+  }
+
   async addCustom(data: CustomEpisodeInsert): Promise<CustomEpisode> {
     const toAdd = {
       ...data,
@@ -63,10 +74,47 @@ export class DanmakuService {
     title: string
     comments: CommentEntity[]
   }): Promise<CustomEpisode> {
+    // V5: Must create chunk, no longer store comments array
+    // This is a temporary bridge for backward compatibility
+    throw new Error(
+      'importCustom is deprecated. Use importCustomFromChunk instead.'
+    )
+  }
+
+  async importCustomFromChunk(
+    importData: {
+      title: string
+      danmakus: Record<string, unknown>[]
+    },
+    deps: {
+      chunkService: ChunkService
+      uniDBService: UniDBService
+    }
+  ): Promise<CustomEpisode> {
+    // Deserialize danmakus: convert ISO date strings back to Date objects
+    const deserializedDanmakus: UDanmaku[] = importData.danmakus.map((d) => ({
+      ...d,
+      ctime:
+        typeof d.ctime === 'string' ? new Date(d.ctime) : (d.ctime as Date),
+    })) as UDanmaku[]
+
+    // Create a UniChunk and populate it with the danmakus
+    const udb = await deps.uniDBService.getUniDB()
+    const chunk = await udb.makeChunk({})
+
+    // Import danmakus into chunk
+    if (deserializedDanmakus.length > 0) {
+      await chunk.upsertDanmakus(deserializedDanmakus)
+    }
+
+    // Save chunk and get ID
+    const chunkId = await deps.chunkService.saveChunk(chunk)
+
+    // V5: Only store chunkId, no comments array
     return this.addCustom({
       provider: DanmakuSourceType.MacCMS,
-      comments: importData.comments,
-      commentCount: importData.comments.length,
+      commentsChunkId: chunkId,
+      commentCount: deserializedDanmakus.length,
       title: importData.title,
       schemaVersion: EPISODE_SCHEMA_VERSION,
     })
@@ -88,11 +136,8 @@ export class DanmakuService {
   async filterCustomLite(
     filter: CustomEpisodeQueryFilter
   ): Promise<CustomEpisodeLite[]> {
-    const episodes = await this.filterCustom(filter)
-    return episodes.map((episode) => {
-      const { comments: _, ...rest } = episode
-      return rest
-    })
+    // V5: CustomEpisodeLite and CustomEpisode are the same (no comments field to remove)
+    return this.filterCustom(filter)
   }
 
   async getCustomByTitle(title: string): Promise<CustomEpisode | undefined> {
@@ -117,16 +162,32 @@ export class DanmakuService {
     return customEpisodes[0]
   }
 
-  async deleteCustom(filter: CustomEpisodeQueryFilter) {
+  async deleteCustom(
+    filter: CustomEpisodeQueryFilter,
+    chunkService?: ChunkService
+  ) {
+    // Get chunkIds before deletion
+    let chunkIds: number[] = []
+    if (chunkService) {
+      const episodes = await this.filterCustom(filter)
+      chunkIds = episodes
+        .map((e) => e.commentsChunkId)
+        .filter((id): id is number => id != null && id !== 0)
+    }
+
+    // Delete episodes
     if (filter.all) {
       await this.db.customEpisode.clear()
-      return
-    }
-    if (filter.ids) {
+    } else if (filter.ids) {
       await this.db.customEpisode.bulkDelete(filter.ids)
-      return
+    } else {
+      await this.db.customEpisode.where(filter).delete()
     }
-    await this.db.customEpisode.where(filter).delete()
+
+    // Delete associated chunks
+    if (chunkService && chunkIds.length > 0) {
+      await Promise.all(chunkIds.map((id) => chunkService.deleteChunk(id)))
+    }
   }
 
   async bulkUpsert(data: EpisodeInsert[]): Promise<Episode[]> {
@@ -235,12 +296,8 @@ export class DanmakuService {
   async filterLite(
     filter: EpisodeQueryFilter
   ): Promise<WithSeason<EpisodeLite>[]> {
-    const res = await this.filter(filter)
-
-    return res.map((item) => {
-      const { comments: _, ...rest } = item
-      return rest
-    })
+    // V5: EpisodeLite and Episode are the same (no comments field to remove)
+    return this.filter(filter) as Promise<WithSeason<EpisodeLite>[]>
   }
 
   async filter(filter: EpisodeQueryFilter): Promise<WithSeason<Episode>[]> {
@@ -261,146 +318,148 @@ export class DanmakuService {
     )
   }
 
-  async delete(filter: EpisodeQueryFilter) {
+  async delete(filter: EpisodeQueryFilter, chunkService?: ChunkService) {
     if (filter.all) {
       // don't delete everything at once
       return
     }
+
+    // Get chunkIds before deletion
+    let chunkIds: number[] = []
+    if (chunkService) {
+      const episodes = await this.filter(filter)
+      chunkIds = episodes
+        .map((e) => e.commentsChunkId)
+        .filter((id): id is number => id != null && id !== 0)
+    }
+
+    // Delete episodes
     if (filter.ids) {
       await this.db.episode.bulkDelete(filter.ids)
-      return
+    } else {
+      await this.db.episode.where(filter).delete()
     }
-    await this.db.episode.where(filter).delete()
+
+    // Delete associated chunks
+    if (chunkService && chunkIds.length > 0) {
+      await Promise.all(chunkIds.map((id) => chunkService.deleteChunk(id)))
+    }
   }
 
-  async import(importData: DanmakuImportData[]): Promise<DanmakuImportResult> {
+  async import(
+    importData: DanmakuImportData[],
+    deps: {
+      chunkService: ChunkService
+      uniDBService: UniDBService
+    }
+  ): Promise<DanmakuImportResult> {
     const results: DanmakuImportResult = {
       success: [],
       error: [],
     }
 
-    const importBackup = async (data: BackupParseResult) => {
-      let skipped = data.skipped.length
-      const imported = []
-
-      for (const [i, item] of data.parsed) {
-        try {
-          if (item.type === 'Custom') {
-            await this.addCustom(item.episode)
-            results.success.push({
-              title: item.episode.title,
-              type: 'Custom',
-            })
-          } else {
-            let savedSeasonId = -1
-            let savedSeasonTitle = ''
-            await this.db.transaction(
-              'rw',
-              this.db.season,
-              this.db.episode,
-              async () => {
-                let [existingSeason] = await this.seasonService.filter({
-                  providerConfigId: item.season.providerConfigId,
-                  indexedId: item.season.indexedId,
-                })
-                if (!existingSeason) {
-                  existingSeason = await this.seasonService.upsert(item.season)
-                }
-                savedSeasonId = existingSeason.id
-                savedSeasonTitle = existingSeason.title
-
-                await this.upsert({
-                  ...item.episode,
-                  seasonId: existingSeason.id,
-                })
-              }
-            )
-            imported.push({
-              type: item.season.provider,
-              title: item.episode.title,
-              seasonId: savedSeasonId,
-              seasonTitle: savedSeasonTitle,
-            })
-          }
-        } catch (e) {
-          this.logger.error(`Failed to import backup item ${i}`, e)
-          skipped += 1
-        }
-      }
-
-      const grouped = Object.groupBy(
-        imported,
-        (item) => item.seasonTitle
-      ) as Record<
-        string,
-        {
-          type: DanmakuSourceType
-          title: string
-          seasonId: number
-          seasonTitle: string
-        }[]
-      >
-
-      return {
-        skipped,
-        imported: grouped,
-      }
+    const _importBackup = async (data: BackupParseResult) => {
+      // V5 migration: Backup import needs complete refactoring to support chunks
+      // TODO: Convert backup episodes (v4 format with comments array) to v5 (chunks)
+      throw new Error(
+        'Backup import is temporarily disabled during v5 migration. ' +
+          'Please use file import instead (.xml, .bin, .json files).'
+      )
     }
 
-    for (const { title, data } of importData) {
+    for (const item of importData) {
       const [, err] = await tryCatch(async () => {
-        // aggregate errors
-        const errors: unknown[] = []
-
-        // 1. parse as custom
-        const customParse = zCombinedDanmaku.safeParse(data)
-
-        if (customParse.success) {
-          await this.importCustom({
-            comments: customParse.data,
-            title,
-          })
+        // New format: danmakus are already parsed as UDanmaku[]
+        if ('danmakus' in item && Array.isArray(item.danmakus)) {
+          await this.importCustomFromChunk(
+            {
+              title: item.title,
+              danmakus: item.danmakus,
+            },
+            deps
+          )
           results.success.push({
-            title,
+            title: item.title,
             type: 'Custom',
           })
           return
         }
-        errors.push(customParse.error)
 
-        // 2. parse as backup
-        const backupParseResult = parseBackupMany(
-          Array.isArray(data) ? data : [data]
-        )
+        // Fallback: old format with 'data' field (for backward compatibility during transition)
+        if ('data' in item) {
+          const { title, data } = item as any
+          const errors: unknown[] = []
 
-        if (backupParseResult.parsed.length > 0) {
-          const importResult = await importBackup(backupParseResult)
+          // 1. parse as custom (old format with comments array)
+          const customParse = zCombinedDanmaku.safeParse(data)
 
-          if (
-            Object.keys(importResult.imported).length > 0 ||
-            importResult.skipped > 0
-          ) {
+          if (customParse.success) {
+            // Convert CommentEntity[] to UDanmaku[] using V4EpisodeAdapter
+            const { V4EpisodeAdapter } = await import(
+              '@danmaku-anywhere/danmaku-converter'
+            )
+            const udb = await deps.uniDBService.getUniDB()
+            const chunk = await udb.makeChunk({})
+
+            const adapter = V4EpisodeAdapter({
+              comments: customParse.data,
+              commentCount: customParse.data.length,
+            } as any)
+
+            await adapter(udb, chunk)
+            const danmakus = await chunk.$danmakus
+
+            // Serialize for RPC-like structure
+            const serialized = danmakus.map((d: any) => ({
+              ...d,
+              ctime: d.ctime instanceof Date ? d.ctime.toISOString() : d.ctime,
+            }))
+
+            await this.importCustomFromChunk(
+              {
+                title,
+                danmakus: serialized,
+              },
+              deps
+            )
+
             results.success.push({
               title,
-              type: 'Backup',
-              result: importResult,
+              type: 'Custom',
             })
+            return
           }
+          errors.push(customParse.error)
+
+          // 2. parse as backup
+          const backupParseResult = parseBackupMany(
+            Array.isArray(data) ? data : [data]
+          )
+
+          if (backupParseResult.parsed.length > 0) {
+            // V5: Backup import temporarily disabled
+            results.error.push({
+              title,
+              message:
+                'Backup import is temporarily disabled during v5 migration. ' +
+                'Please use file import instead (.xml, .bin, .json files).',
+            })
+            return
+          }
+
+          // 3. unable to import, return aggregated errors
+          errors.push(backupParseResult.skipped)
+
+          results.error.push({
+            title,
+            message: JSON.stringify(errors, null, 2),
+          })
           return
         }
-
-        // 3. unable to import, return aggregated errors
-        errors.push(backupParseResult.skipped)
-
-        results.error.push({
-          title,
-          message: JSON.stringify(errors, null, 2),
-        })
-        return
       })
       if (err) {
         results.error.push({
-          title,
+          title: item.title,
           message: err.message,
         })
       }

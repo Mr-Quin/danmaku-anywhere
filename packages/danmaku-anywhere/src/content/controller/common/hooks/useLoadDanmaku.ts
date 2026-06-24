@@ -13,8 +13,10 @@ import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
 import { episodeToString, isProvider } from '@/common/danmaku/utils'
-import { playerRpcClient } from '@/common/rpcClient/background/client'
-import { concatArr } from '@/common/utils/utils'
+import {
+  chromeRpcClient,
+  playerRpcClient,
+} from '@/common/rpcClient/background/client'
 import { useStore } from '@/content/controller/store/store'
 
 const useMountDanmaku = () => {
@@ -30,11 +32,19 @@ const useMountDanmaku = () => {
         throw new Error('No active frame to mount danmaku')
       }
 
-      const comments: CommentEntity[] = []
+      // Load comments from chunks via RPC
+      const commentsArrays = await Promise.all(
+        episodes.map((episode) =>
+          chromeRpcClient
+            .episodeGetComments({
+              episodeId: episode.id,
+              isCustom: 'season' in episode ? false : true,
+            })
+            .then((res) => res.data)
+        )
+      )
 
-      episodes.forEach((episode) => {
-        concatArr(comments, episode.comments)
-      })
+      const comments: CommentEntity[] = commentsArrays.flat()
 
       const res = await playerRpcClient.player['relay:command:mount']({
         frameId: activeFrame.frameId,

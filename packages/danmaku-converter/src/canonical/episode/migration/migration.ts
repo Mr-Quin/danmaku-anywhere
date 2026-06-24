@@ -53,10 +53,12 @@ function v1ToV3(v1Data: z.infer<typeof zEpisodeImportV1>): DanmakuInsertV3 {
         provider: DanmakuSourceType.MacCMS,
         seasonTitle: v1Data.meta.animeTitle, // Rename animeTitle to seasonTitle
         episodeTitle:
-          v1Data.meta.episodeTitle ?? v1Data.meta.episodeNumber!.toString(),
+          v1Data.meta.episodeTitle ??
+          v1Data.meta.episodeNumber?.toString() ??
+          '',
       },
       episodeTitle:
-        v1Data.meta.episodeTitle ?? v1Data.meta.episodeNumber!.toString(),
+        v1Data.meta.episodeTitle ?? v1Data.meta.episodeNumber?.toString() ?? '',
       seasonTitle: v1Data.meta.animeTitle,
     }
   }

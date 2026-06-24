@@ -1,10 +1,17 @@
 import { commentsToXml } from '@danmaku-anywhere/danmaku-converter'
 import { i18n } from '@/common/localization/i18n'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { type ExportFormatter, useExportWithFormat } from './useExportBase'
 
 const xmlFormatter: ExportFormatter = {
-  formatEpisode: (episode) => {
-    const formattedComments = episode.comments.map((comment) => ({
+  formatEpisode: async (episode) => {
+    // V5: Load comments from chunk via RPC
+    const { data: comments } = await chromeRpcClient.episodeGetComments({
+      episodeId: episode.id,
+      isCustom: !('season' in episode),
+    })
+
+    const formattedComments = comments.map((comment) => ({
       p: comment.p,
       m: comment.m,
     }))
