@@ -1,5 +1,7 @@
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import { TencentAdapter } from '@dan-uni/dan-any/adapters'
+import type { UniChunk } from '@dan-uni/dan-any/core'
 import { ok, type Result } from '@danmaku-anywhere/result'
+import { z } from 'zod'
 import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
 import { createThrottle } from '../utils/createThrottle.js'
 import { fetchData } from '../utils/fetchData.js'
@@ -13,7 +15,6 @@ import type {
   TencentVideoSeason,
 } from './schema.js'
 import {
-  zTencentComment,
   zTencentCommentSegment,
   zTencentEpisodeListResponse,
   zTencentPageDetailResponse,
@@ -239,9 +240,10 @@ export const getDanmakuSegments = async (
 }
 
 export async function* getDanmakuGenerator(
+  uchunk: UniChunk,
   vid: string,
   segmentData: TencentCommentSegmentData
-): AsyncGenerator<Result<CommentEntity[], DanmakuProviderError>> {
+): AsyncGenerator<Result<UniChunk, DanmakuProviderError>> {
   const segments = Object.values(segmentData.segment_index)
 
   if (segmentData.segment_span === 0) return
@@ -253,32 +255,35 @@ export async function* getDanmakuGenerator(
 
     const result = await fetchData({
       url,
-      responseSchema: zTencentComment,
+      responseSchema: z
+        .object({ barrage_list: z.array(z.any()) })
+        .transform(async (d) => {
+          await uchunk.import(TencentAdapter(d, vid))
+          return uchunk
+        }),
     })
 
     if (!result.success) {
       yield result
     } else {
-      yield ok(result.data.barrage_list)
+      yield result
     }
   }
 }
 
 export const getDanmaku = async (
+  uchunk: UniChunk,
   vid: string
-): Promise<Result<CommentEntity[], DanmakuProviderError>> => {
+): Promise<Result<UniChunk, DanmakuProviderError>> => {
   const segmentDataResult = await getDanmakuSegments(vid)
 
   if (!segmentDataResult.success) return segmentDataResult
 
-  const generator = getDanmakuGenerator(vid, segmentDataResult.data)
-
-  const comments: CommentEntity[] = []
+  const generator = getDanmakuGenerator(uchunk, vid, segmentDataResult.data)
 
   for await (const segmentResult of generator) {
     if (!segmentResult.success) return segmentResult
-    comments.push(...segmentResult.data)
   }
 
-  return ok(comments)
+  return ok(uchunk)
 }

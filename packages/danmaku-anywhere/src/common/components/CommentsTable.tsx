@@ -1,5 +1,8 @@
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-import { parseCommentEntityP } from '@danmaku-anywhere/danmaku-converter'
+import type { UDanmaku } from '@dan-uni/dan-any/core'
+import {
+  parseCommentEntityP,
+  toCommentEntity,
+} from '@danmaku-anywhere/danmaku-converter'
 import {
   compile,
   type Decision,
@@ -34,7 +37,7 @@ import { compareLocale } from '@/common/utils/collator'
 import { ScrollBox } from './layout/ScrollBox'
 
 interface CommentListProps {
-  comments: CommentEntity[]
+  comments: UDanmaku[]
   isTimeClickable?: boolean
   onTimeClick?: (time: number) => void
   onFilterComment?: (comment: string) => void
@@ -145,10 +148,16 @@ export const CommentsTable = ({
   const [hoverRow, setHoverRow] = useState<number>()
   const [filter, setFilter] = useState('')
 
+  // Convert UDanmaku[] to CommentEntity[] for display
+  const commentEntities = useMemo(
+    () => comments.map((udanmaku) => toCommentEntity(udanmaku)),
+    [comments]
+  )
+
   const { validComments, timeOf } = useMemo(() => {
-    const timeByComment = new Map<CommentEntity, number>()
-    const valid: CommentEntity[] = []
-    for (const c of comments) {
+    const timeByComment = new Map<ReturnType<typeof toCommentEntity>, number>()
+    const valid: ReturnType<typeof toCommentEntity>[] = []
+    for (const c of commentEntities) {
       const options = parseCommentEntityP(c.p)
       if (!options) continue
       timeByComment.set(c, options.time)
@@ -156,9 +165,10 @@ export const CommentsTable = ({
     }
     return {
       validComments: valid,
-      timeOf: (c: CommentEntity) => timeByComment.get(c) ?? 0,
+      timeOf: (c: ReturnType<typeof toCommentEntity>) =>
+        timeByComment.get(c) ?? 0,
     }
-  }, [comments])
+  }, [commentEntities])
 
   const { decisionByComment, headLabelByIndex } = useMemo(() => {
     const inTimeOrder = validComments.toSorted((a, b) => timeOf(a) - timeOf(b))
@@ -171,7 +181,10 @@ export const CommentsTable = ({
           STAGE_DURATION_MS / 1000 / Math.max(danmakuOptions.speed, 0.1),
       }
     )
-    const decisionByComment = new Map<CommentEntity, Decision>()
+    const decisionByComment = new Map<
+      ReturnType<typeof toCommentEntity>,
+      Decision
+    >()
     const headLabelByIndex = new Map<number, string>()
     inTimeOrder.forEach((c, i) => {
       decisionByComment.set(c, decisions[i])

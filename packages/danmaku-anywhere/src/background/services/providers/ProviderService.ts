@@ -1,6 +1,7 @@
 import type {
   CustomSeason,
   Episode,
+  EpisodeInsert,
   EpisodeMeta,
   Season,
   SeasonInsert,
@@ -10,8 +11,10 @@ import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import { getDisplayStrings } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
+import { ChunkService } from '@/background/services/persistence/ChunkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
+import { UniDBService } from '@/background/services/UniDBService'
 import type { SeasonQueryFilter, SeasonSearchRequest } from '@/common/anime/dto'
 import type {
   DanmakuFetchByMeta,
@@ -72,7 +75,11 @@ export class ProviderService {
     private bookmarkService: BookmarkService,
     @inject(LoggerSymbol) logger: ILogger,
     @inject(ExtensionOptionsService)
-    private extensionOptions: ExtensionOptionsService
+    private extensionOptions: ExtensionOptionsService,
+    @inject(UniDBService)
+    private uniDBService: UniDBService,
+    @inject(ChunkService)
+    private chunkService: ChunkService
   ) {
     invariant(
       isServiceWorker(),
@@ -180,9 +187,9 @@ export class ProviderService {
     const meta = enrichEpisode(
       {
         ...request.stub,
-        schemaVersion: 4 as const,
+        schemaVersion: 5 as const,
         lastChecked: 0,
-      },
+      } as any,
       season
     )
     return { type: 'by-meta', meta, options: request.options }
@@ -219,16 +226,30 @@ export class ProviderService {
 
     const service = this.danmakuProviderFactory(config)
 
-    const comments = await service.getDanmaku(resolved)
+    const udb = await this.uniDBService.getUniDB()
+    const uchunk = await udb.makeChunk({})
 
-    const { season, ...rest } = meta
+    // Get danmaku as UniChunk
+    const filledChunk = await service.getDanmaku(uchunk, resolved)
 
-    const saved = await this.danmakuService.upsert({
-      ...rest,
+    // Save the chunk and get its ID
+    const chunkId = await this.chunkService.saveChunk(filledChunk)
+
+    // Get comment count
+    const danmakus = await filledChunk.$danmakus
+    const commentCount = danmakus.length
+
+    const { season, ...metaFields } = meta
+
+    // V5: Build EpisodeInsert with all required fields
+    const episodeInsert = {
+      ...metaFields,
       seasonId: season.id,
-      comments,
-      commentCount: comments.length,
-    })
+      commentsChunkId: chunkId,
+      commentCount,
+    } as EpisodeInsert
+
+    const saved = await this.danmakuService.upsert(episodeInsert)
 
     return {
       ...saved,

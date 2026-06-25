@@ -1,5 +1,5 @@
 import { ok, type Result } from '@danmaku-anywhere/result'
-import type { ZodType, z } from 'zod'
+import type { ZodType } from 'zod'
 import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
 import { fetchData } from '../utils/fetchData.js'
 import { zDanmuIcuDanmaku } from './danmuIcu.js'
@@ -40,7 +40,7 @@ export const fetchDanmuIcuComments = async (
   baseUrl: string,
   videoUrl: string,
   stripColor: boolean
-): Promise<Result<z.infer<typeof zDanmuIcuDanmaku>, DanmakuProviderError>> => {
+): Promise<Result<Array<{ p: string; m: string }>, DanmakuProviderError>> => {
   const url = withQuery(baseUrl, '/', {
     ac: 'dm',
     url: videoUrl,
@@ -51,7 +51,7 @@ export const fetchDanmuIcuComments = async (
     return commentsResult
   }
 
-  const comments = commentsResult.data
+  const comments = commentsResult.data.danmuku
 
   if (stripColor) {
     // set color to white if stripColor is true

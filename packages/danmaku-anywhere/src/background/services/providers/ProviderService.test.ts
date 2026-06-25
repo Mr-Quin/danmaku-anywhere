@@ -1,3 +1,4 @@
+import type { UniChunk } from '@dan-uni/dan-any/core'
 import {
   DanmakuSourceType,
   type EpisodeMeta,
@@ -9,6 +10,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { SeasonService } from '@/background/services/persistence/SeasonService'
+import type { UniDBService } from '@/background/services/UniDBService'
 import type { ILogger } from '@/common/Logger'
 import type { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
@@ -38,6 +40,26 @@ const silentExtensionOptions = {
   get: async () => ({ lang: 'zh' }),
 } as unknown as ExtensionOptionsService
 
+const mockUniDBService = {
+  getUniDB: vi.fn(async () => ({
+    makeChunk: vi.fn(
+      async () =>
+        ({
+          $danmakus: Promise.resolve([]),
+          $db: {},
+        }) as any as UniChunk
+    ),
+  })),
+} as unknown as UniDBService
+
+const mockChunkService = {
+  saveChunk: vi.fn(async () => 1),
+  loadChunk: vi.fn(async () => null),
+  updateChunk: vi.fn(async () => {}),
+  deleteChunk: vi.fn(async () => {}),
+  getChunkCount: vi.fn(async () => 0),
+} as unknown as any
+
 function makeConfig(manifestId: string): ProviderConfig {
   return {
     id: `${manifestId}-1`,
@@ -55,7 +77,7 @@ function makeProvider(
     forProvider: DanmakuSourceType.DanDanPlay,
     search: vi.fn(async () => []),
     getEpisodes: vi.fn(async () => []),
-    getDanmaku: vi.fn(async () => []),
+    getDanmaku: vi.fn(async (uchunk: UniChunk) => uchunk),
     ...overrides,
   } as unknown as IDanmakuProvider
 }
@@ -106,7 +128,9 @@ function build(
     registry,
     {} as unknown as BookmarkService,
     silentLogger,
-    silentExtensionOptions
+    silentExtensionOptions,
+    mockUniDBService,
+    mockChunkService
   )
 
   return { service, provider, danmakuService, seasonService }
@@ -127,7 +151,9 @@ describe('ProviderService.probeLogin', () => {
       registry,
       {} as unknown as BookmarkService,
       silentLogger,
-      silentExtensionOptions
+      silentExtensionOptions,
+      mockUniDBService,
+      mockChunkService
     )
 
     await service.probeLogin('dandanplay')
@@ -150,7 +176,9 @@ describe('ProviderService.getManifestSpec', () => {
       registry,
       {} as unknown as BookmarkService,
       silentLogger,
-      silentExtensionOptions
+      silentExtensionOptions,
+      mockUniDBService,
+      mockChunkService
     )
   }
 
@@ -209,7 +237,9 @@ describe('ProviderService.getManifestSpec', () => {
       registry,
       {} as unknown as BookmarkService,
       silentLogger,
-      silentExtensionOptions
+      silentExtensionOptions,
+      mockUniDBService,
+      mockChunkService
     )
 
     await expect(service.getManifestSpec('missing')).rejects.toThrow()
@@ -314,7 +344,9 @@ describe('ProviderService legacy-maccms decoupling', () => {
     } as unknown as WithSeason<EpisodeMeta>
 
     it('fetches danmaku for a generic source', async () => {
-      const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
+      const provider = makeProvider({
+        getDanmaku: vi.fn(async (uchunk: UniChunk) => uchunk),
+      })
       const { service } = build(makeConfig('iqiyi'), provider)
 
       await service.getDanmaku({ type: 'by-meta', meta, options: {} })
@@ -324,7 +356,9 @@ describe('ProviderService legacy-maccms decoupling', () => {
 
     it('serves cached danmaku without fetching or resolving the config', async () => {
       const cached = { id: 5, comments: [] }
-      const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
+      const provider = makeProvider({
+        getDanmaku: vi.fn(async (uchunk: UniChunk) => uchunk),
+      })
       const { service } = build(makeConfig('iqiyi'), provider, {
         existingDanmaku: [cached],
       })
@@ -354,7 +388,9 @@ describe('ProviderService legacy-maccms decoupling', () => {
     })
 
     it('throws a source-removed error when forcing an orphaned season', async () => {
-      const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
+      const provider = makeProvider({
+        getDanmaku: vi.fn(async (uchunk: UniChunk) => uchunk),
+      })
       const { service } = build(makeConfig('iqiyi'), provider, {
         configMissing: true,
       })
@@ -408,7 +444,9 @@ describe('ProviderService.refreshCatalog', () => {
       registry,
       {} as unknown as BookmarkService,
       silentLogger,
-      silentExtensionOptions
+      silentExtensionOptions,
+      mockUniDBService,
+      mockChunkService
     )
 
     return { service, applyUpdates, recordChecked, getPendingUpdates }
@@ -486,7 +524,9 @@ describe('ProviderService.refreshCatalog', () => {
       registry,
       {} as unknown as BookmarkService,
       silentLogger,
-      silentExtensionOptions
+      silentExtensionOptions,
+      mockUniDBService,
+      mockChunkService
     )
 
     await expect(service.refreshCatalog()).rejects.toThrow(
@@ -515,7 +555,9 @@ describe('ProviderService.setup', () => {
       registry,
       {} as unknown as BookmarkService,
       silentLogger,
-      silentExtensionOptions
+      silentExtensionOptions,
+      mockUniDBService,
+      mockChunkService
     )
 
     service.setup()
@@ -574,7 +616,9 @@ describe('ProviderService.seedDefaultProviders', () => {
       registry,
       {} as unknown as BookmarkService,
       silentLogger,
-      extensionOptions
+      extensionOptions,
+      mockUniDBService,
+      mockChunkService
     )
 
     return { service, set, markSeeded, hasSeeded, listManifests }
@@ -720,7 +764,9 @@ describe('ProviderService.deleteUserManifest', () => {
       registry,
       bookmarkService,
       silentLogger,
-      silentExtensionOptions
+      silentExtensionOptions,
+      mockUniDBService,
+      mockChunkService
     )
     return { service, unregister, deleteFromStorage, deleteByProviderConfigId }
   }

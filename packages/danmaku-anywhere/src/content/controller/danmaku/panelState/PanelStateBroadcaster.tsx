@@ -8,15 +8,23 @@ import { selectPanelState } from './selectPanelState'
 
 function usePipelineEntry(): PipelineEntry | null {
   const isDisconnected = useStore.use.isDisconnected()
-  const { isManual, isMounted, episodes, comments } = useStore.use.danmaku()
+  const { isManual, isMounted, episodes } = useStore.use.danmaku()
   const integration = useStore.use.integration()
+
+  // Calculate total comment count from all mounted episodes
+  const totalCommentCount = useMemo(() => {
+    if (!episodes || episodes.length === 0) {
+      return 0
+    }
+    return episodes.reduce((sum, episode) => sum + episode.commentCount, 0)
+  }, [episodes])
 
   return useMemo<PipelineEntry | null>(() => {
     return selectPanelState({
       isDisconnected,
       isManual,
       isMounted,
-      commentCount: comments.length,
+      commentCount: totalCommentCount,
       provider: episodes?.[0]?.provider,
       mountedEpisodes: episodes,
       integration: {
@@ -29,7 +37,7 @@ function usePipelineEntry(): PipelineEntry | null {
     isDisconnected,
     isManual,
     isMounted,
-    comments.length,
+    totalCommentCount,
     episodes,
     integration.active,
     integration.errorMessage,

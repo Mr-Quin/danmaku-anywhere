@@ -42,6 +42,7 @@
   "dependencies": {
     "@ai-sdk/openai": "^3.0.1",
     "@ai-sdk/openai-compatible": "^2.0.1",
+    "@dan-uni/dan-any": "^2.3.0",
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "@danmaku-anywhere/danmaku-engine": "workspace:*",
     "@danmaku-anywhere/danmaku-provider": "workspace:*",

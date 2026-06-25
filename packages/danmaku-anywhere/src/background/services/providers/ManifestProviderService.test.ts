@@ -1,3 +1,4 @@
+import { UniDB } from '@dan-uni/dan-any/core/main/pure'
 import {
   type CommentEntity,
   DanmakuSourceType,
@@ -14,6 +15,12 @@ import {
   ManifestProviderService,
 } from './ManifestProviderService'
 import type { ManifestRegistry } from './ManifestRegistry'
+
+async function createTestUniChunk() {
+  const udb = new UniDB()
+  const initedUdb = udb.init()
+  return initedUdb.makeChunk({})
+}
 
 /**
  * Covers ManifestProviderService's host-side responsibilities: applying
@@ -224,7 +231,7 @@ describe('ManifestProviderService.getDanmaku', () => {
       meta: {
         season: {} as DanmakuFetchByMeta['meta']['season'],
         provider: DanmakuSourceType.DanDanPlay,
-        providerIds,
+        providerIds: providerIds as any,
         title: 'x',
         indexedId: 'x',
         seasonId: 1,
@@ -247,9 +254,17 @@ describe('ManifestProviderService.getDanmaku', () => {
       silentLogger
     )
 
-    const result = await svc.getDanmaku(makeRequest({ episodeId: 42 }))
+    const uchunk = await createTestUniChunk()
+    const result = await svc.getDanmaku(uchunk, makeRequest({ episodeId: 42 }))
 
-    expect(result).toBe(raw)
+    // Result should be a UniChunk
+    expect(result).toBeDefined()
+    expect(result).toHaveProperty('$danmakus')
+
+    // Verify the comments were imported
+    const danmakus = await result.$danmakus
+    expect(danmakus.length).toBeGreaterThan(0)
+
     expect(runner.runDanmaku).toHaveBeenCalledWith(
       { episodeId: 42 },
       DANMAKU_RUN_OPTIONS

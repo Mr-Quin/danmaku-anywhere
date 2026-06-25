@@ -18,9 +18,8 @@ export const usePreloadNextEpisode = () => {
     if (!isNotCustom(episode)) {
       return
     }
-    // Drop comments so the message stays small; preload is best-effort.
-    const { comments: _, ...meta } = episode
-    await chromeRpcClient.episodePreloadNext(meta, { optional: true })
+    // V5: No comments field to drop, episode is already lean
+    await chromeRpcClient.episodePreloadNext(episode, { optional: true })
   }
 
   return { canLoadNext, preloadNext }

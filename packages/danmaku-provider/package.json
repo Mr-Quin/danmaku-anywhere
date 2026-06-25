@@ -66,6 +66,7 @@
     "openapi-ts": "openapi-ts"
   },
   "dependencies": {
+    "@dan-uni/dan-any": "^2.3.0",
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "@danmaku-anywhere/result": "workspace:*",
     "protobufjs": "^7.5.4",

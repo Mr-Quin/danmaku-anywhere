@@ -1,7 +1,5 @@
-import type {
-  CommentEntity,
-  GenericEpisode,
-} from '@danmaku-anywhere/danmaku-converter'
+import type { UDanmaku } from '@dan-uni/dan-any/core'
+import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
 import { enableMapSet } from 'immer'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
@@ -59,7 +57,7 @@ interface StoreState {
     /**
      * Danmaku to be displayed
      */
-    comments: CommentEntity[]
+    comments: UDanmaku[]
 
     /**
      * Information about the current danmaku. This is an array since multiple episodes can be mounted at once.
@@ -151,9 +149,9 @@ const useStoreBase = create<StoreState>()(
         set((state) => {
           state.danmaku.isMounted = true
           state.danmaku.episodes = episodes
-          state.danmaku.comments = episodes.flatMap((episode) => {
-            return episode.comments
-          })
+          // Comments are loaded separately via RPC in useMountDanmaku
+          // and sent directly to the player. Store doesn't need them anymore.
+          state.danmaku.comments = []
         })
       },
       unmount: () => {

@@ -1,5 +1,5 @@
+import type { UniChunk } from '@dan-uni/dan-any/core'
 import {
-  type CommentEntity,
   type CustomSeason,
   type EpisodeMeta,
   LEGACY_MACCMS_ID,
@@ -128,8 +128,15 @@ export class MacCmsProviderService implements IDanmakuProvider {
     throw new Error('Method not implemented.')
   }
 
-  async getDanmaku(_request: DanmakuFetchByMeta): Promise<CommentEntity[]> {
-    throw new Error('Method not implemented.')
+  async getDanmaku(
+    uchunk: UniChunk,
+    _request: DanmakuFetchByMeta
+  ): Promise<UniChunk> {
+    // MacCMS doesn't support refetching by meta
+    // Danmaku is fetched directly via fetchDanmakuForUrl
+    throw new Error(
+      'MacCMS getDanmaku not implemented - use fetchDanmakuForUrl'
+    )
   }
 }
 

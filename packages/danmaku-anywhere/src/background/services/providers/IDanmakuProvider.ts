@@ -1,5 +1,5 @@
+import type { UniChunk } from '@dan-uni/dan-any/core'
 import type {
-  CommentEntity,
   CustomSeason,
   DanmakuSourceType,
   EpisodeMeta,
@@ -33,7 +33,7 @@ export interface IDanmakuProvider {
     seasonRemoteIds: Season['providerIds']
   ): Promise<OmitSeasonId<EpisodeMeta>[]>
 
-  getDanmaku(request: DanmakuFetchByMeta): Promise<CommentEntity[]>
+  getDanmaku(uchunk: UniChunk, request: DanmakuFetchByMeta): Promise<UniChunk>
 
   findEpisode?(
     season: Season,

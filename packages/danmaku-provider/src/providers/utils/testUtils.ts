@@ -1,3 +1,4 @@
+import { UniDB } from '@dan-uni/dan-any/core/main/pure'
 import { vi } from 'vitest'
 
 const asText = (data: unknown) => {
@@ -44,4 +45,10 @@ export const createFetchOverride = () => {
       })
     )
   }
+}
+
+export async function createTestUniChunk() {
+  const udb = new UniDB()
+  const initedUdb = udb.init()
+  return initedUdb.makeChunk({})
 }

@@ -1,3 +1,5 @@
+import { DdplayAdapter } from '@dan-uni/dan-any/adapters'
+import type { Episode } from '@danmaku-anywhere/danmaku-converter'
 import {
   getDanmuicuConfig,
   getMaccmsConfig,
@@ -16,12 +18,14 @@ import { KazumiService } from '@/background/services/KazumiService'
 import { LogService } from '@/background/services/Logging/Log.service'
 import { OcclusionModelService } from '@/background/services/OcclusionModelService'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
+import { ChunkService } from '@/background/services/persistence/ChunkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
 import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
 import { ManifestRegistry } from '@/background/services/providers/ManifestRegistry'
 import { ManifestSandbox } from '@/background/services/providers/ManifestSandbox'
+import { UniDBService } from '@/background/services/UniDBService'
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import { AuthClientService } from '@/common/auth/AuthClientService'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
@@ -84,7 +88,11 @@ export class RpcManager {
     @inject(ManifestRegistry)
     private manifestRegistry: ManifestRegistry,
     @inject(ManifestSandbox)
-    private manifestSandbox: ManifestSandbox
+    private manifestSandbox: ManifestSandbox,
+    @inject(ChunkService)
+    private chunkService: ChunkService,
+    @inject(UniDBService)
+    private uniDBService: UniDBService
   ) {
     this.logger = logger.sub('[RpcManager]')
   }
@@ -254,14 +262,107 @@ export class RpcManager {
           }
         },
         episodeImport: async (data, sender) => {
-          const result = await this.danmakuService.import(data)
+          const result = await this.danmakuService.import(data, {
+            chunkService: this.chunkService,
+            uniDBService: this.uniDBService,
+          })
           void invalidateContentScriptData(sender.tab?.id)
           return result
         },
         episodeDelete: async (filter, sender) => {
-          const result = await this.danmakuService.delete(filter)
+          const result = await this.danmakuService.delete(
+            filter,
+            this.chunkService
+          )
           void invalidateContentScriptData(sender.tab?.id)
           return result
+        },
+        episodeGetComments: async ({ episodeId, isCustom }) => {
+          // Load episode from database
+          const episode = isCustom
+            ? await this.danmakuService.getCustom(episodeId)
+            : await this.danmakuService.get(episodeId)
+
+          if (!episode) {
+            throw new Error(`Episode ${episodeId} not found`)
+          }
+
+          // Check if episode needs lazy migration (commentsChunkId === -1)
+          if (episode.commentsChunkId === -1) {
+            // v4 episode marked for migration: create chunk on first access
+            this.logger.info(
+              `Lazy migrating episode ${episodeId} from v4 to v5 format`
+            )
+
+            const episodeV4 = episode as any
+            if (episodeV4.comments && Array.isArray(episodeV4.comments)) {
+              // Create chunk from inline comments
+              const udb = await this.uniDBService.getUniDB()
+              const chunk = await udb.makeChunk({})
+
+              await chunk.import(
+                DdplayAdapter({
+                  comments: episodeV4.comments,
+                  count: episodeV4.comments.length,
+                })
+              )
+
+              // Save chunk
+              const chunkId = await this.chunkService.saveChunk(chunk)
+
+              this.logger.info(
+                `Created chunk ${chunkId} with ${episodeV4.comments.length} comments`
+              )
+
+              // Update episode: set real chunkId and remove comments
+              if (isCustom) {
+                await this.danmakuService.updateCustomFields(episode.id, {
+                  commentsChunkId: chunkId,
+                  comments: undefined,
+                })
+              } else {
+                await this.danmakuService.updateFields(episode.id, {
+                  commentsChunkId: chunkId,
+                  comments: undefined,
+                } as Episode & { comments?: unknown })
+              }
+
+              this.logger.info(
+                `Completed lazy migration for episode ${episodeId}`
+              )
+
+              // Return the migrated UDanmaku[]
+              const danmakus = await this.chunkService.getChunkData(chunkId)
+              return danmakus || []
+            }
+
+            // No comments, return empty
+            this.logger.warn(
+              `Episode ${episodeId} marked for migration but has no comments`
+            )
+            return []
+          }
+
+          // v5 format: load UDanmaku[] from chunk
+          if (!episode.commentsChunkId || episode.commentsChunkId === 0) {
+            this.logger.warn(
+              `Episode ${episodeId} has no chunk (should have been migrated)`
+            )
+            return []
+          }
+
+          const danmakus = await this.chunkService.getChunkData(
+            episode.commentsChunkId
+          )
+
+          if (!danmakus) {
+            this.logger.warn(
+              `Chunk ${episode.commentsChunkId} not found for episode ${episodeId}`
+            )
+            return []
+          }
+
+          return danmakus
         },
         episodeFilterCustom: async (filter) => {
           return this.danmakuService.filterCustom(filter)
@@ -270,7 +371,10 @@ export class RpcManager {
           return this.danmakuService.filterCustomLite(filter)
         },
         episodeDeleteCustom: async (filter, sender) => {
-          const result = await this.danmakuService.deleteCustom(filter)
+          const result = await this.danmakuService.deleteCustom(
+            filter,
+            this.chunkService
+          )
           void invalidateContentScriptData(sender.tab?.id)
           return result
         },

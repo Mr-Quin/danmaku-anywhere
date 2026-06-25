@@ -18,6 +18,7 @@
     "dev": "tsgo -w"
   },
   "dependencies": {
+    "@dan-uni/dan-any": "^2.3.0",
     "xml-js": "^1.6.11",
     "zod": "^4.3.5"
   },

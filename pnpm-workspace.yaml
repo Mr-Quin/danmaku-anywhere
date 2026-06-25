@@ -18,3 +18,4 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@mr-quin/dango'
   - '@mr-quin/dango-manifests'
+  - '@dan-uni/dan-any'

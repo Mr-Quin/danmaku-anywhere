@@ -1,3 +1,5 @@
+import { DdplayAdapter } from '@dan-uni/dan-any/adapters'
+import type { UniChunk } from '@dan-uni/dan-any/core'
 import {
   commentOptionsToString,
   parseCommentEntityP,
@@ -167,22 +169,30 @@ export const searchSearchEpisodes = async (
 }
 
 export const commentGetComment = async (
+  uchunk: UniChunk,
   episodeId: number,
   query: GetCommentQuery = {},
   context?: DanDanPlayQueryContext
-): Promise<Result<CommentData[], DanmakuProviderError>> => {
+): Promise<Result<UniChunk, DanmakuProviderError>> => {
   const result = await fetchDanDanPlay(
     {
       path: `/v2/comment/${episodeId.toString()}`,
       query,
-      responseSchema: zCommentResponseV2,
+      responseSchema: zCommentResponseV2.transform(async (data) => {
+        const normalizedData = {
+          count: data.count,
+          comments: data.comments.map((c) => ({ ...c, cid: c.cid ?? 0 })),
+        }
+        await uchunk.import(DdplayAdapter(normalizedData))
+        return uchunk
+      }),
       requestSchema: { query: zGetCommentQuery },
     },
     context
   )
 
   if (!result.success) return result
-  return ok(result.data.comments)
+  return result
 }
 
 export const commentSendComment = async (
@@ -233,21 +243,22 @@ export const commentGetExtComment = async (
 }
 
 export const commentGetCommentManualWithRelated = async (
+  uchunk: UniChunk,
   episodeId: number,
   params: GetCommentQuery = {},
   context?: DanDanPlayQueryContext
-): Promise<Result<CommentData[], DanmakuProviderError>> => {
+): Promise<Result<UniChunk, DanmakuProviderError>> => {
   const commentsResult = await commentGetComment(
+    uchunk,
     episodeId,
     {
       ...params,
-      withRelated: false, // disable this flag to fetch related comments manually
+      withRelated: false,
     },
     context
   )
 
   if (!commentsResult.success) return commentsResult
-  const comments = commentsResult.data
 
   if (params.withRelated) {
     try {
@@ -264,8 +275,7 @@ export const commentGetCommentManualWithRelated = async (
           )
 
           if (additionalCommentsResult.success) {
-            additionalCommentsResult.data.forEach((comment) => {
-              // if the shift is not 0, we need to adjust the time of the comments
+            for (const comment of additionalCommentsResult.data) {
               if (entry.shift !== 0) {
                 const options = parseCommentEntityP(comment.p)
                 if (options) {
@@ -273,9 +283,20 @@ export const commentGetCommentManualWithRelated = async (
                   comment.p = commentOptionsToString(options)
                 }
               }
+            }
 
-              comments.push(comment)
-            })
+            const tempChunk = await uchunk.$db.makeChunk()
+            await tempChunk.import(
+              DdplayAdapter({
+                comments: additionalCommentsResult.data.map((c) => ({
+                  ...c,
+                  cid: c.cid ?? 0,
+                })),
+                count: additionalCommentsResult.data.length,
+              })
+            )
+            const danmakus = await tempChunk.$danmakus
+            await uchunk.upsertDanmakus(danmakus)
           }
         }
       }
@@ -284,7 +305,7 @@ export const commentGetCommentManualWithRelated = async (
     }
   }
 
-  return ok(comments)
+  return ok(uchunk)
 }
 
 export const relatedGetRelated = async (

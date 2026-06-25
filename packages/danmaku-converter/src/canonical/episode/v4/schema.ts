@@ -12,6 +12,8 @@ export const zCustomEpisodeInsertV4 = z.object({
   title: z.string().refine(stripHtml),
   comments: z.array(zCommentEntity),
   commentCount: z.number(),
+  // Optional: foreign key to chunks table for UDanmaku storage
+  chunkId: z.number().optional(),
   schemaVersion: z.literal(4),
 })
 
@@ -47,6 +49,9 @@ export const zEpisodeInsertV4 = z.object({
   seasonId: z.number(),
   comments: z.array(zCommentEntity),
   commentCount: z.number(),
+  // Optional: foreign key to chunks table for UDanmaku storage
+  // When present, prefer loading from chunks over comments array
+  chunkId: z.number().optional(),
   schemaVersion: z.literal(4),
   // The last time we checked for updates
   lastChecked: z.number(),

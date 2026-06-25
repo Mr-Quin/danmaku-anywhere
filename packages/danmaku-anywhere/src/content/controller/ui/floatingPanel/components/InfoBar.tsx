@@ -18,7 +18,7 @@ import { useStore } from '@/content/controller/store/store'
 export const InfoBar = () => {
   const { t } = useTranslation()
 
-  const { isMounted, episodes, comments } = useStore.use.danmaku()
+  const { isMounted, episodes } = useStore.use.danmaku()
 
   const hasEpisodes = episodes && episodes.length > 0
 
@@ -29,18 +29,26 @@ export const InfoBar = () => {
     unmountMutation.mutate()
   }
 
-  const { titles, title } = useMemo(() => {
+  const { titles, title, totalCommentCount } = useMemo(() => {
     if (!episodes || episodes.length === 0) {
       return {
         title: '',
         titles: [],
+        totalCommentCount: 0,
       }
     }
+
+    const totalCommentCount = episodes.reduce(
+      (sum, episode) => sum + episode.commentCount,
+      0
+    )
+
     return {
       title: episodeToString(episodes[0]),
       titles: episodes.map((e) => {
         return <div key={e.id}>{episodeToString(e)}</div>
       }),
+      totalCommentCount,
     }
   }, [episodes])
 
@@ -69,7 +77,7 @@ export const InfoBar = () => {
             <Typography
               sx={{ color: 'text.secondary', pl: 0.5, flexShrink: 0 }}
             >
-              ({comments.length})
+              ({totalCommentCount})
             </Typography>
           </Box>
           <Box

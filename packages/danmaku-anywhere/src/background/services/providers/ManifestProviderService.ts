@@ -1,3 +1,5 @@
+import { DdplayAdapter } from '@dan-uni/dan-any/adapters'
+import type { UniChunk } from '@dan-uni/dan-any/core'
 import {
   type CommentEntity,
   EPISODE_SCHEMA_VERSION,
@@ -156,16 +158,20 @@ export class ManifestProviderService implements IDanmakuProvider {
       MANIFEST_RUN_OPTIONS
     )
     const now = Date.now()
+    // Type assertion: manifestId determines provider type at runtime
     return rows.map((row) => ({
       ...row,
       title: stripHtml(row.title),
       provider: this.forProvider,
       schemaVersion: EPISODE_SCHEMA_VERSION,
       lastChecked: now,
-    }))
+    })) as OmitSeasonId<EpisodeMeta>[]
   }
 
-  async getDanmaku(request: DanmakuFetchByMeta): Promise<CommentEntity[]> {
+  async getDanmaku(
+    uchunk: UniChunk,
+    request: DanmakuFetchByMeta
+  ): Promise<UniChunk> {
     const { meta } = request
     this.logger.debug(
       'Get danmaku via manifest',
@@ -173,13 +179,26 @@ export class ManifestProviderService implements IDanmakuProvider {
       meta.providerIds
     )
     const runner = this.registry.getRunner(this.config.manifestId)
-    // meta.params holds per-episode hints stashed at search/episodes time
-    // (e.g. chConvert/withRelated). providerIds take precedence on key collision.
     const inputs = this.resolveInputs(runner, {
-      ...meta.params,
+      ...(meta.params ?? {}),
       ...meta.providerIds,
     })
-    return runner.runDanmaku<CommentEntity[]>(inputs, DANMAKU_RUN_OPTIONS)
+    // Manifest runner returns CommentEntity[] directly
+    const rawComments = await runner.runDanmaku<CommentEntity[]>(
+      inputs,
+      DANMAKU_RUN_OPTIONS
+    )
+
+    // Use V4EpisodeAdapter to convert and import CommentEntity[] to UDanmaku
+    const tempEpisode = {
+      comments: rawComments as (Omit<CommentEntity, 'cid'> & { cid: number })[],
+      count: rawComments.length,
+    }
+
+    // adapter populates the chunk and returns it
+    const populatedChunk = uchunk.import(DdplayAdapter(tempEpisode))
+
+    return populatedChunk
   }
 
   async findEpisode(
@@ -228,10 +247,10 @@ export class ManifestProviderService implements IDanmakuProvider {
       episodeMeta: {
         ...result.episodeMeta,
         title: stripHtml(result.episodeMeta.title),
-        provider: this.forProvider,
+        provider: this.forProvider as any,
         schemaVersion: EPISODE_SCHEMA_VERSION,
         lastChecked: now,
-      },
+      } as OmitSeasonId<EpisodeMeta>,
     }
   }
 }

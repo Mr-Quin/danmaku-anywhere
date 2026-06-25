@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "dan-any": {
+      "source": "ani-uni/dan-any",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/dan-any/SKILL.md",
+      "computedHash": "6317e028c1e45f6218dc08ab71d8c3d0fbb32e1a833e9b4297452234aa202869"
+    }
+  }
+}

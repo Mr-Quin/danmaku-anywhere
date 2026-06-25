@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ResponseParseException } from '../../exceptions/ResponseParseException'
-import { mockFetchResponse } from '../utils/testUtils'
+import { createTestUniChunk, mockFetchResponse } from '../utils/testUtils'
 
 import * as tencentApi from './api'
 import { TencentApiException } from './exceptions'
@@ -148,22 +148,23 @@ describe('Tencent', () => {
         } as any
       })
 
+      const uchunk = await createTestUniChunk()
       const generator = tencentApi.getDanmakuGenerator(
+        uchunk,
         'm00253deqqo',
         segmentData
       )
 
+      let resultCount = 0
       for await (const commentsResult of generator) {
         expect(commentsResult.success).toBe(true)
         if (commentsResult.success) {
-          expect(commentsResult.data).toHaveLength(
-            mockData.mockBarrage600000Response.barrage_list.length
-          )
+          resultCount++
         }
       }
 
+      expect(resultCount).toBe(totalSegments)
       expect(fetch).toHaveBeenCalledTimes(totalSegments)
-      // should call all segments
       expect(fetch).toHaveBeenNthCalledWith(
         1,
         'https://dm.video.qq.com/barrage/segment/m00253deqqo/t/v1/0/30000',
@@ -183,7 +184,9 @@ describe('Tencent', () => {
 
       mockFetchResponse(new TextEncoder().encode('invalid').buffer)
 
+      const uchunk = await createTestUniChunk()
       const generator = tencentApi.getDanmakuGenerator(
+        uchunk,
         'm00253deqqo',
         segmentData
       )

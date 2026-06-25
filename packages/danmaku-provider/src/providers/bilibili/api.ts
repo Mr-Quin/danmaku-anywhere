@@ -1,13 +1,11 @@
-import {
-  type CommentEntity,
-  zGenericXml,
-} from '@danmaku-anywhere/danmaku-converter'
+import { BiliGrpcAdapter, BiliXmlAdapter } from '@dan-uni/dan-any/adapters'
+import type { UniChunk } from '@dan-uni/dan-any/core'
 import { err, ok, type Result } from '@danmaku-anywhere/result'
+import { z } from 'zod'
 import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
 import { HttpException } from '../../exceptions/HttpException.js'
 import { InputError } from '../../exceptions/InputError.js'
 import { ResponseParseException } from '../../exceptions/ResponseParseException.js'
-import { bilibili as bilibiliProto } from '../../protobuf/protobuf.js'
 import { createThrottle } from '../utils/createThrottle.js'
 import { fetchData } from '../utils/fetchData.js'
 import type {
@@ -19,7 +17,6 @@ import type {
 } from './schema.js'
 import {
   zBilibiliBangumiInfoResponse,
-  zBilibiliCommentProto,
   zBilibiliSearchResponse,
   zBilibiliUserInfo,
 } from './schema.js'
@@ -118,8 +115,9 @@ export const getBangumiInfo = async ({
 }
 
 export const getDanmakuXml = async (
+  uchunk: UniChunk,
   cid: number
-): Promise<Result<CommentEntity[], DanmakuProviderError>> => {
+): Promise<Result<UniChunk, DanmakuProviderError>> => {
   await throttle()
 
   const url = `${BILIBILI_API_URL_ROOT}/x/v1/dm/list.so?oid=${cid}`
@@ -127,7 +125,9 @@ export const getDanmakuXml = async (
   const response = await fetchData({
     url,
     responseType: 'text',
-    responseSchema: zGenericXml,
+    responseSchema: z
+      .string()
+      .transform(async (xml) => await uchunk.import(BiliXmlAdapter(xml))),
   })
 
   if (!response.success) return response
@@ -136,15 +136,16 @@ export const getDanmakuXml = async (
 }
 
 export async function* getDanmakuProtoSegment(
+  uchunk: UniChunk,
   oid: number,
   pid?: number
-): AsyncGenerator<Result<CommentEntity[], DanmakuProviderError>> {
-  const MAX_SEGMENT = 100 // arbitrary number
+): AsyncGenerator<Result<UniChunk, DanmakuProviderError>> {
+  const MAX_SEGMENT = 100
 
   let segmentIndex = 1
 
   const params = new URLSearchParams({
-    type: '1', // 1 for video, 2 for comics
+    type: '1',
     oid: oid.toString(),
     segment_index: segmentIndex.toString(),
   })
@@ -182,30 +183,13 @@ export async function* getDanmakuProtoSegment(
 
       const buffer = await response.arrayBuffer()
 
-      let parsed: bilibiliProto.community.service.dm.v1.IDmSegMobileReply
-
       try {
-        parsed = bilibiliProto.community.service.dm.v1.DmSegMobileReply.decode(
-          new Uint8Array(buffer)
-        )
+        await uchunk.import(BiliGrpcAdapter(buffer))
+        yield ok(uchunk)
       } catch (e) {
         yield err(
           new ResponseParseException({
             message: 'Failed to decode protobuf',
-            cause: e,
-            url,
-            responseBody: 'protobuf',
-          })
-        )
-        return
-      }
-
-      try {
-        const comments = await zBilibiliCommentProto.parseAsync(parsed)
-        yield ok(comments.elems)
-      } catch (e) {
-        yield err(
-          new ResponseParseException({
             cause: e,
             url,
             responseBody: 'protobuf',
@@ -233,35 +217,18 @@ export async function* getDanmakuProtoSegment(
   }
 }
 
-// Evenly pick a sample from an array up to a limit
-const sample = <T>(arr: T[], limit: number): T[] => {
-  if (arr.length <= limit) return arr
-
-  const sample: T[] = []
-  const step = Math.ceil(arr.length / limit)
-
-  for (let i = 0; i < arr.length; i += step) {
-    sample.push(arr[i])
-  }
-
-  return sample
-}
-
-// oid = cid, pid = avids
 export const getDanmakuProto = async (
+  uchunk: UniChunk,
   oid: number,
-  pid?: number,
-  { limitPerMinute = 1000 }: { limitPerMinute?: number } = {}
-): Promise<Result<CommentEntity[], DanmakuProviderError>> => {
-  const segments = getDanmakuProtoSegment(oid, pid)
-  const comments: CommentEntity[][] = []
+  pid?: number
+): Promise<Result<UniChunk, DanmakuProviderError>> => {
+  const segments = getDanmakuProtoSegment(uchunk, oid, pid)
 
   for await (const result of segments) {
     if (!result.success) {
       return result
     }
-    comments.push(sample(result.data, limitPerMinute * 6)) // each segment is 6 minutes
   }
 
-  return ok(comments.flat())
+  return ok(uchunk)
 }
