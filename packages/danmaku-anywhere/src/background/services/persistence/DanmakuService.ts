@@ -173,7 +173,7 @@ export class DanmakuService {
       const episodes = await this.filterCustom(filter)
       chunkIds = episodes
         .map((e) => e.commentsChunkId)
-        .filter((id): id is number => id != null && id !== 0)
+        .filter((id): id is number => id != null && id > 0)
     }
 
     // Delete episodes
@@ -347,7 +347,7 @@ export class DanmakuService {
       const episodes = await this.filter(filter)
       chunkIds = episodes
         .map((e) => e.commentsChunkId)
-        .filter((id): id is number => id != null && id !== 0)
+        .filter((id): id is number => id != null && id > 0)
     }
 
     // Delete episodes
@@ -404,7 +404,7 @@ export class DanmakuService {
 
         // Fallback: old format with 'data' field (for backward compatibility during transition)
         if ('data' in item) {
-          const { title, data } = item as any
+          const { title, data } = item
           const errors: unknown[] = []
 
           // 1. parse as custom (old format with comments array)
@@ -414,12 +414,12 @@ export class DanmakuService {
             const udb = await deps.uniDBService.getUniDB()
             const chunk = await udb.makeChunk({})
 
-            const adapter = DdplayAdapter({
-              comments: customParse.data,
-              count: customParse.data.length,
-            } as any)
-
-            await adapter(udb, chunk)
+            await chunk.import(
+              DdplayAdapter({
+                comments: customParse.data,
+                count: customParse.data.length,
+              })
+            )
             const danmakus = await chunk.$danmakus
 
             // Serialize for RPC-like structure

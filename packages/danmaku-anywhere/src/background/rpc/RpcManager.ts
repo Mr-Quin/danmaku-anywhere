@@ -1,4 +1,5 @@
 import { DdplayAdapter } from '@dan-uni/dan-any/adapters'
+import type { Episode } from '@danmaku-anywhere/danmaku-converter'
 import {
   getDanmuicuConfig,
   getMaccmsConfig,
@@ -299,12 +300,12 @@ export class RpcManager {
               const udb = await this.uniDBService.getUniDB()
               const chunk = await udb.makeChunk({})
 
-              const adapter = DdplayAdapter({
-                comments: episodeV4.comments,
-                count: episodeV4.comments.length,
-              })
-
-              await adapter(udb, chunk)
+              await chunk.import(
+                DdplayAdapter({
+                  comments: episodeV4.comments,
+                  count: episodeV4.comments.length,
+                })
+              )
 
               // Save chunk
               const chunkId = await this.chunkService.saveChunk(chunk)
@@ -322,8 +323,8 @@ export class RpcManager {
               } else {
                 await this.danmakuService.updateFields(episode.id, {
                   commentsChunkId: chunkId,
-                  // comments: undefined,
-                })
+                  comments: undefined,
+                } as Episode & { comments?: unknown })
               }
 
               this.logger.info(
