@@ -52,7 +52,13 @@ export type DanmakuImportData = {
   danmakus: Record<string, unknown>[] // Serialized UDanmaku (Date → ISO string)
   metadata?: {
     originalFileName: string
-    source: 'bilibili-xml' | 'bilibili-grpc' | 'dandanplay' | 'custom-json'
+    source:
+      | 'auto-detected' // wildcardAdapterUtil auto-detects format
+      | 'bilibili-xml'
+      | 'bilibili-grpc'
+      | 'dandanplay'
+      | 'danuni-json'
+      | 'custom-json'
   }
 }
 

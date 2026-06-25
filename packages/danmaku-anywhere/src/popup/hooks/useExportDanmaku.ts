@@ -8,7 +8,7 @@ import { type ExportFormatter, useExportWithFormat } from './useExportBase'
 /**
  * Deserialize UDanmaku from RPC: convert ISO date strings back to Date objects
  */
-function deserializeUDanmaku(serialized: Record<string, unknown>): UDanmaku {
+function deserializeUDanmaku(serialized: UDanmaku): UDanmaku {
   return {
     ...serialized,
     ctime:

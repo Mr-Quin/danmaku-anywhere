@@ -1,3 +1,4 @@
+import { DdplayAdapter } from '@dan-uni/dan-any/adapters'
 import type { UDanmaku } from '@dan-uni/dan-any/core'
 import {
   type BackupParseResult,
@@ -269,7 +270,9 @@ export class DanmakuService {
 
   async updateFields(
     id: number,
-    fields: Record<string, unknown>
+    fields: Partial<
+      Omit<Episode, 'id' | 'seasonId' | 'indexedId' | 'version' | 'timeUpdated'>
+    >
   ): Promise<void> {
     await this.db.episode.update(id, fields)
   }
@@ -408,16 +411,12 @@ export class DanmakuService {
           const customParse = zCombinedDanmaku.safeParse(data)
 
           if (customParse.success) {
-            // Convert CommentEntity[] to UDanmaku[] using V4EpisodeAdapter
-            const { V4EpisodeAdapter } = await import(
-              '@danmaku-anywhere/danmaku-converter'
-            )
             const udb = await deps.uniDBService.getUniDB()
             const chunk = await udb.makeChunk({})
 
-            const adapter = V4EpisodeAdapter({
+            const adapter = DdplayAdapter({
               comments: customParse.data,
-              commentCount: customParse.data.length,
+              count: customParse.data.length,
             } as any)
 
             await adapter(udb, chunk)

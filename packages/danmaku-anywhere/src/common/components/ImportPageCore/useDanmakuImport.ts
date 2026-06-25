@@ -1,5 +1,31 @@
-import { BiliGrpcAdapter, BiliXmlAdapter } from '@dan-uni/dan-any/adapters'
-import type { UDanmaku } from '@dan-uni/dan-any/core'
+import {
+  type Adapter,
+  ArtplayerAdapter,
+  ArtplayerMetadata,
+  BiliCommandGrpcAdapter,
+  BiliCommandGrpcMetadata,
+  BiliGrpcAdapter,
+  BiliGrpcMetadata,
+  BiliUpAdapter,
+  BiliUpMetadata,
+  BiliXmlAdapter,
+  BiliXmlMetadata,
+  DanuniJsonAdapter,
+  DanuniJsonMetadata,
+  DanuniPbAdapter,
+  DanuniPbMetadata,
+  DdplayAdapter,
+  DdplayMetadata,
+  DplayerAdapter,
+  DplayerMetadata,
+  type Metadata,
+  TencentAdapter,
+  TencentMetadata,
+  VodAdapter,
+  VodMetadata,
+} from '@dan-uni/dan-any/adapters'
+import { type UDanmaku, UniChunk } from '@dan-uni/dan-any/core'
+import { fileParser, WildcardAdapterUtil } from '@dan-uni/dan-any/utils'
 import { useMutation } from '@tanstack/react-query'
 
 import type { DanmakuImportData } from '@/common/danmaku/dto'
@@ -7,7 +33,25 @@ import { useInvalidateSeasonAndEpisode } from '@/common/hooks/useInvalidateSeaso
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { createUniDB } from '@/common/services/UniDBService'
 
-export const VALID_EXTENSIONS = ['.json', '.xml', '.bin'] as const
+// Build handlerList for WildcardAdapterUtil
+const handlerList: [Metadata, Adapter][] = [
+  [BiliXmlMetadata, BiliXmlAdapter],
+  [BiliGrpcMetadata, BiliGrpcAdapter],
+  [BiliCommandGrpcMetadata, BiliCommandGrpcAdapter],
+  [BiliUpMetadata, BiliUpAdapter],
+  [DanuniJsonMetadata, DanuniJsonAdapter],
+  [DanuniPbMetadata, DanuniPbAdapter],
+  [ArtplayerMetadata, ArtplayerAdapter],
+  [DplayerMetadata, DplayerAdapter],
+  [DdplayMetadata, DdplayAdapter],
+  [TencentMetadata, TencentAdapter],
+  [VodMetadata, VodAdapter],
+]
+
+// Support all common danmaku formats
+export const VALID_EXTENSIONS = [
+  ...new Set(handlerList.flatMap(([metadata]) => metadata.ext)),
+]
 
 function getExtension(file: File): string {
   const idx = file.name.lastIndexOf('.')
@@ -18,7 +62,7 @@ function getExtension(file: File): string {
 }
 
 function isFileValid(file: File) {
-  return (VALID_EXTENSIONS as readonly string[]).includes(getExtension(file))
+  return VALID_EXTENSIONS.includes(getExtension(file))
 }
 
 /**
@@ -49,46 +93,35 @@ function serializeUDanmaku(danmaku: UDanmaku): Record<string, unknown> {
 }
 
 /**
- * Parse danmaku file directly to UDanmaku[] using dan-any adapters.
- * No intermediate JSON format - parse once in the frontend.
+ * Parse danmaku file using dan-any WildcardAdapterUtil.
+ * Automatically detects format and uses appropriate adapter.
+ * Supports all formats registered in handlerList.
  */
 async function parseFile(file: File): Promise<UDanmaku[]> {
-  const ext = getExtension(file)
   const udb = createUniDB()
   const chunk = await udb.makeChunk({})
 
-  if (ext === '.bin') {
-    // Bilibili protobuf format
-    const buffer = await file.arrayBuffer()
-    await chunk.import(BiliGrpcAdapter(buffer))
-  } else if (ext === '.xml') {
-    // Bilibili XML format
-    const text = await file.text()
-    await chunk.import(BiliXmlAdapter(text))
-  } else if (ext === '.json') {
-    // JSON format - could be DanDanPlay, Tencent, or custom format
-    // For now, treat as custom format (array of CommentEntity)
-    const text = await file.text()
-    const json = JSON.parse(text)
+  // Use WildcardAdapterUtil to automatically detect and import
+  const result = await WildcardAdapterUtil(chunk, handlerList, file)
 
-    // If it's an array of CommentEntity objects, use V4EpisodeAdapter
-    if (Array.isArray(json)) {
-      const { V4EpisodeAdapter } = await import(
-        '@danmaku-anywhere/danmaku-converter'
-      )
-      const adapter = V4EpisodeAdapter({
-        comments: json,
-        commentCount: json.length,
-      } as any)
-      await adapter(udb, chunk)
-    } else {
-      throw new Error('Unsupported JSON format')
-    }
-  } else {
-    throw new Error(`Unsupported file extension: ${ext}`)
-  }
+  if (result === null)
+    throw new Error(`Unsupported danmaku file format: ${file.name}`)
 
-  // Extract UDanmaku array from chunk
+  if (result instanceof UniChunk) return chunk.$danmakus
+
+  const adapter = result
+  if (adapter === ArtplayerAdapter)
+    chunk.import(ArtplayerAdapter(await fileParser(file, 'json')))
+  else if (adapter === DplayerAdapter)
+    chunk.import(DplayerAdapter(await fileParser(file, 'json')))
+  else if (adapter === DdplayAdapter)
+    chunk.import(DdplayAdapter(await fileParser(file, 'json')))
+  else if (adapter === TencentAdapter)
+    chunk.import(TencentAdapter(await fileParser(file, 'json')))
+  else if (adapter === VodAdapter)
+    chunk.import(VodAdapter(await fileParser(file, 'json')))
+  else throw new Error(`Unsupported danmaku adapter: ${adapter.name}`)
+
   return chunk.$danmakus
 }
 
@@ -109,12 +142,7 @@ export const useDanmakuImport = () => {
             danmakus: serializedDanmakus,
             metadata: {
               originalFileName: file.name,
-              source:
-                getExtension(file) === '.bin'
-                  ? ('bilibili-grpc' as const)
-                  : getExtension(file) === '.xml'
-                    ? ('bilibili-xml' as const)
-                    : ('custom-json' as const),
+              source: 'auto-detected' as const, // wildcardAdapterUtil auto-detects
             },
           } satisfies DanmakuImportData
         })

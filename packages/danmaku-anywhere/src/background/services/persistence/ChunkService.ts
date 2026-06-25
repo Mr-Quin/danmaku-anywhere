@@ -1,10 +1,5 @@
 import type { UniChunk } from '@dan-uni/dan-any/core'
-import {
-  toCommentEntities,
-  V4EpisodeAdapter,
-} from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
-import { UniDBService } from '@/background/services/UniDBService'
 import type { StoredChunk } from '@/common/db/db'
 import { DanmakuAnywhereDb } from '@/common/db/db'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
@@ -22,7 +17,6 @@ export class ChunkService {
 
   constructor(
     @inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb,
-    @inject(UniDBService) private uniDBService: UniDBService,
     @inject(LoggerSymbol) logger: ILogger
   ) {
     invariant(
@@ -50,47 +44,6 @@ export class ChunkService {
     const id = await this.db.chunks.add(chunkRecord)
     this.logger.debug('Saved chunk', id, 'with', danmakus.length, 'danmakus')
     return id
-  }
-
-  /**
-   * Load a UniChunk by ID
-   */
-  async loadChunk(chunkId: number): Promise<UniChunk | null> {
-    const record = await this.db.chunks.get(chunkId)
-
-    if (!record) {
-      this.logger.warn('Chunk not found', chunkId)
-      return null
-    }
-
-    if (!Array.isArray(record.data) || record.data.length === 0) {
-      this.logger.warn('Chunk has no data', chunkId)
-      const udb = await this.uniDBService.getUniDB()
-      return udb.makeChunk({})
-    }
-
-    // Convert UDanmaku[] to CommentEntity[] for adapter
-    const comments = toCommentEntities(record.data)
-
-    // Use V4EpisodeAdapter to import
-    const udb = await this.uniDBService.getUniDB()
-
-    const adapter = V4EpisodeAdapter({
-      comments,
-      commentCount: comments.length,
-    } as any)
-
-    // adapter returns a function that creates and populates a chunk
-    const chunk = await adapter(udb)
-
-    this.logger.debug(
-      'Loaded chunk',
-      chunkId,
-      'with',
-      record.data.length,
-      'danmakus'
-    )
-    return chunk
   }
 
   /**

@@ -1,3 +1,4 @@
+import { DdplayAdapter } from '@dan-uni/dan-any/adapters'
 import type { UniChunk } from '@dan-uni/dan-any/core'
 import {
   type CommentEntity,
@@ -7,7 +8,6 @@ import {
   type Season,
   type SeasonInsert,
   stripHtml,
-  V4EpisodeAdapter,
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { ManifestRunner, RunOptions } from '@mr-quin/dango'
@@ -165,7 +165,7 @@ export class ManifestProviderService implements IDanmakuProvider {
       provider: this.forProvider,
       schemaVersion: EPISODE_SCHEMA_VERSION,
       lastChecked: now,
-    })) as any[]
+    })) as OmitSeasonId<EpisodeMeta>[]
   }
 
   async getDanmaku(
@@ -180,7 +180,7 @@ export class ManifestProviderService implements IDanmakuProvider {
     )
     const runner = this.registry.getRunner(this.config.manifestId)
     const inputs = this.resolveInputs(runner, {
-      ...((meta as any).params ?? {}),
+      ...(meta.params ?? {}),
       ...meta.providerIds,
     })
     // Manifest runner returns CommentEntity[] directly
@@ -191,13 +191,12 @@ export class ManifestProviderService implements IDanmakuProvider {
 
     // Use V4EpisodeAdapter to convert and import CommentEntity[] to UDanmaku
     const tempEpisode = {
-      comments: rawComments,
-      commentCount: rawComments.length,
+      comments: rawComments as (Omit<CommentEntity, 'cid'> & { cid: number })[],
+      count: rawComments.length,
     }
 
-    const adapter = V4EpisodeAdapter(tempEpisode as any)
     // adapter populates the chunk and returns it
-    const populatedChunk = await adapter(uchunk.$UniDB, uchunk)
+    const populatedChunk = uchunk.import(DdplayAdapter(tempEpisode))
 
     return populatedChunk
   }
@@ -248,10 +247,10 @@ export class ManifestProviderService implements IDanmakuProvider {
       episodeMeta: {
         ...result.episodeMeta,
         title: stripHtml(result.episodeMeta.title),
-        provider: this.forProvider,
+        provider: this.forProvider as any,
         schemaVersion: EPISODE_SCHEMA_VERSION,
         lastChecked: now,
-      } as any,
+      } as OmitSeasonId<EpisodeMeta>,
     }
   }
 }
