@@ -29,6 +29,9 @@ jobs:
   build:
     if: github.event_name != 'release'
     runs-on: ubuntu-22.04
+    # The minisign signing key lives in this Environment, not in repo-wide
+    # secrets, so only this job can read it and forks never see it.
+    environment: release-manager-signing
     permissions:
       contents: write
     steps:
