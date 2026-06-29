@@ -52,6 +52,10 @@ unauthenticated requests suffice.
 - There is deliberately **no `build` script**, so the root `pnpm -r build` skips
   this package. It still participates in the root `test`, `type-check`, and
   `lint:ci` sweeps via its own scripts.
+- The app icon is set on the window at startup as well as bundled. GNOME Wayland
+  ignores window-set icons and matches the installed `.desktop` file instead, so
+  under `pnpm dev` there it shows a generic icon. The installed AppImage and X11
+  desktops show the real icon.
 
 ## Tests
 

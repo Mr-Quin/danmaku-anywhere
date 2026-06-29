@@ -31,6 +31,17 @@ pub fn run() {
 
             let manager = ReleaseManager::with_client(data_dir, github_base, client);
             app.manage(manager);
+
+            // The bundle icon only covers the installed app. Set it on the window
+            // too so the title bar and switcher show the real icon in dev and on
+            // X11 desktops. GNOME Wayland ignores window icons and matches the
+            // installed .desktop instead, so dev there still shows a generic icon.
+            if let Some(window) = app.get_webview_window("main") {
+                let icon = tauri::image::Image::from_bytes(include_bytes!(
+                    "../icons/128x128.png"
+                ))?;
+                let _ = window.set_icon(icon);
+            }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
