@@ -1,0 +1,35 @@
+{
+  "name": "@danmaku-anywhere/release-manager",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tauri dev",
+    "tauri": "tauri",
+    "type-check": "tsgo --noEmit",
+    "lint": "biome check --fix",
+    "lint:ci": "biome ci",
+    "test": "cargo test -p release-manager-core --manifest-path src-tauri/Cargo.toml"
+  },
+  "dependencies": {
+    "@emotion/react": "^11",
+    "@emotion/styled": "^11",
+    "@fontsource-variable/plus-jakarta-sans": "^5.2.8",
+    "@mui/icons-material": "^9",
+    "@mui/material": "^9",
+    "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-opener": "^2",
+    "@tauri-apps/plugin-process": "^2",
+    "@tauri-apps/plugin-updater": "^2",
+    "react": "19.2.0",
+    "react-dom": "19.2.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.6",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
+    "vite": "^7.2.4"
+  }
+}

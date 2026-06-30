@@ -1,0 +1,43 @@
+{
+  "productName": "Release Manager",
+  "version": "0.1.0",
+  "identifier": "fish.quin.danmaku-anywhere.release-manager",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:1420",
+    "beforeDevCommand": "pnpm vite",
+    "beforeBuildCommand": "pnpm vite build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Release Manager",
+        "width": 1024,
+        "height": 720
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["appimage"],
+    "createUpdaterArtifacts": true,
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVCODdCRThGOTlBRUM3NzIKUldSeXg2NlpqNzZIVys5Y1Y4QnhxaVB0OG94RTZPNWllT1Y3M0hZb1JLMDJKQUxYNDNXNGVNRkkK",
+      "endpoints": [
+        "https://github.com/Mr-Quin/danmaku-anywhere/releases/download/release-manager-latest/latest.json"
+      ]
+    }
+  }
+}
