@@ -84,12 +84,8 @@ export function BrowseCard({
       )}
       {hasMore ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 1.5 }}>
-          <Button
-            variant="outlined"
-            disabled={loadingMore}
-            onClick={onLoadMore}
-          >
-            {loadingMore ? 'Loading...' : 'Load more'}
+          <Button variant="outlined" loading={loadingMore} onClick={onLoadMore}>
+            Load more
           </Button>
         </Box>
       ) : null}

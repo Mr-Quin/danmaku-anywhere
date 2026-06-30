@@ -335,7 +335,7 @@ export function App() {
                     <Button
                       color="inherit"
                       size="small"
-                      disabled={updateBusy}
+                      loading={updateBusy}
                       onClick={() => {
                         void handleInstallUpdate()
                       }}
