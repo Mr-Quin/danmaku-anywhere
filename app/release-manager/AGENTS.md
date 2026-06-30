@@ -44,6 +44,13 @@ unauthenticated requests suffice.
   `NO_STRIP=1` for `tauri build`. linuxdeploy bundles an older `strip` that
   cannot parse that section and fails otherwise. The CI runner (ubuntu-22.04)
   does not need this.
+- Host webkit vs bundled: the AppImage bundles the ubuntu-22.04 webkit and
+  libwayland. On a much newer host the bundled libwayland can't negotiate EGL
+  with the host compositor/Mesa, so the window fails to start. `main.rs`
+  preloads the host libwayland and re-execs once (only when launched from the
+  AppImage) to work around it. The bundled webkit still renders in software on
+  newer GPUs, so it can feel sluggish; the real fix is to use the host webkit
+  (ship rpm/deb, or a non-bundling AppImage), not done in v1.
 
 ## How to run
 
