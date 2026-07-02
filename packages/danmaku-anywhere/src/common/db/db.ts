@@ -14,6 +14,7 @@ import {
 import { Dexie } from 'dexie'
 import { injectable } from 'inversify'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
+import { resolveBuiltinSeasonIdentity } from './seasonIdentityBackfill'
 
 export const DANMAKU_DB_NAME = 'danmaku-anywhere'
 
@@ -428,6 +429,95 @@ export class DanmakuAnywhereDb extends Dexie {
               remapped[stripBuiltinPrefix(configId)] = seasonId as number
             }
             entry.seasons = remapped
+          })
+      })
+
+    /**
+     * Make manifestId + namespaceKey the durable season identity, then drop the
+     * dead provider / providerConfigId fields and their indexes. Runs after
+     * v14's prefix strip, so season.providerConfigId is already bare here.
+     *
+     * Identity is recovered from the season row alone (see
+     * resolveBuiltinSeasonIdentity), never from provider config storage: reading
+     * it here would couple this upgrade to a second, racing migration system and
+     * orphan custom seasons nondeterministically. A row that cannot be resolved
+     * keeps its providerConfigId so the runtime reconciler can heal it later
+     * from live config storage, where there is no migration race.
+     *
+     * The compound index is non-unique on purpose: orphaned seasons have no
+     * namespaceKey, so a unique index would collide them during creation and
+     * abort the upgrade. SeasonService.upsert enforces identity at the app layer.
+     */
+    this.version(15)
+      .stores({
+        episode:
+          '++id, indexedId, &[seasonId+indexedId], seasonId, timeUpdated, lastChecked',
+        season:
+          '++id, manifestId, namespaceKey, indexedId, [manifestId+namespaceKey+indexedId]',
+        customEpisode: '++id, title',
+        seasonMap: 'key, *seasonIds',
+        bookmark: '++id, &seasonId',
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table('season')
+          .toCollection()
+          .modify((season) => {
+            const identity = resolveBuiltinSeasonIdentity(
+              season.providerConfigId
+            )
+            if (identity !== undefined) {
+              season.manifestId = identity
+              season.namespaceKey = identity
+              delete season.providerConfigId
+            }
+            delete season.provider
+          })
+
+        await tx
+          .table('episode')
+          .toCollection()
+          .modify((episode) => {
+            delete episode.provider
+          })
+
+        await tx
+          .table('customEpisode')
+          .toCollection()
+          .modify((customEpisode) => {
+            delete customEpisode.provider
+          })
+
+        // Rekey seasonMap entries from providerConfigId to namespaceKey. Custom
+        // keys resolve to no identity and are dropped: a namespaceKey-less
+        // mapping can never be matched at lookup.
+        await tx
+          .table('seasonMap')
+          .toCollection()
+          .modify((entry) => {
+            if (
+              !entry.seasons ||
+              typeof entry.seasons !== 'object' ||
+              Array.isArray(entry.seasons)
+            ) {
+              return
+            }
+            const remapped: Record<string, number> = {}
+            for (const [configId, seasonId] of Object.entries(entry.seasons)) {
+              const identity = resolveBuiltinSeasonIdentity(configId)
+              if (identity !== undefined) {
+                remapped[identity] = seasonId as number
+              }
+            }
+            entry.seasons = remapped
+            entry.seasonIds = Array.from(new Set(Object.values(remapped)))
+          })
+
+        await tx
+          .table('bookmark')
+          .toCollection()
+          .modify((bookmark) => {
+            delete bookmark.providerConfigId
           })
       })
 

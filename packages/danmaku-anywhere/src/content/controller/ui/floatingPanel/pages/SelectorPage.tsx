@@ -1,14 +1,11 @@
-import {
-  DanmakuSourceType,
-  type Season,
-} from '@danmaku-anywhere/danmaku-converter'
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
 import { Box, Button, Divider, Stack, Typography } from '@mui/material'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isPersistedSeason } from '@/common/anime/utils'
 import { SeasonGrid } from '@/common/components/Season/SeasonGrid'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isCustomEpisode, isCustomSeason } from '@/common/danmaku/utils'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
 import { usePopup } from '@/content/controller/store/popupStore'
@@ -50,7 +47,7 @@ export const SelectorPage = () => {
       onSuccess: (result) => {
         if (
           result.data.status !== 'success' ||
-          result.data.data.provider === DanmakuSourceType.MacCMS // shouldn't happen here
+          isCustomEpisode(result.data.data) // shouldn't happen here
         ) {
           return
         }
@@ -122,7 +119,7 @@ export const SelectorPage = () => {
               setSelectedSeason(undefined)
               return
             }
-            if (isNotCustom(season) && isPersistedSeason(season)) {
+            if (!isCustomSeason(season) && isPersistedSeason(season)) {
               handleAnimeSelect(season)
             }
           }}

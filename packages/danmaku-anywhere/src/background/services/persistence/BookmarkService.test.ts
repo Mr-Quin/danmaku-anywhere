@@ -4,14 +4,12 @@ import type {
   EpisodeStub,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ProviderService } from '@/background/services/providers/ProviderService'
 import type { DanmakuAnywhereDb } from '@/common/db/db'
 import { BookmarkService } from './BookmarkService'
 
 const stub = (indexedId: string, episodeNumber?: number): EpisodeStub => ({
-  provider: DanmakuSourceType.DanDanPlay,
   providerIds: {},
   title: `ep ${indexedId}`,
   episodeNumber,
@@ -27,7 +25,6 @@ const current = {
 const bookmark = (episodes: EpisodeStub[]): Bookmark => ({
   id: 1,
   seasonId: 7,
-  providerConfigId: 'DanDanPlay',
   episodes,
   lastRefreshed: 0,
   timeUpdated: 0,

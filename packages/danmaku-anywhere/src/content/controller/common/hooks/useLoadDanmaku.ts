@@ -9,10 +9,9 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuFetchDto, MacCMSFetchData } from '@/common/danmaku/dto'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
-import { episodeToString, isProvider } from '@/common/danmaku/utils'
+import { episodeToString, isSourceEpisode } from '@/common/danmaku/utils'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { concatArr } from '@/common/utils/utils'
 import { useStore } from '@/content/controller/store/store'
@@ -72,7 +71,8 @@ export const useLoadDanmaku = () => {
   const canRefresh =
     !!episodes &&
     episodes.length === 1 &&
-    isProvider(episodes[0], DanmakuSourceType.DanDanPlay)
+    isSourceEpisode(episodes[0]) &&
+    episodes[0].season.manifestId === 'dandanplay'
 
   const mountDanmaku = useEventCallback((episodes: GenericEpisode[]) => {
     return mountMutation.mutateAsync(episodes, {
@@ -90,9 +90,11 @@ export const useLoadDanmaku = () => {
               }
             ),
             {
-              actionFn: isProvider(episode, DanmakuSourceType.DanDanPlay)
-                ? refreshComments
-                : undefined,
+              actionFn:
+                isSourceEpisode(episode) &&
+                episode.season.manifestId === 'dandanplay'
+                  ? refreshComments
+                  : undefined,
               actionLabel: t('danmaku.refresh', 'Refresh Danmaku'),
             }
           )
@@ -140,7 +142,12 @@ export const useLoadDanmaku = () => {
   const refreshComments = useEventCallback(async () => {
     if (!canRefresh) return
     const episode = episodes[0]
-    if (!isProvider(episode, DanmakuSourceType.DanDanPlay)) return
+    if (
+      !isSourceEpisode(episode) ||
+      episode.season.manifestId !== 'dandanplay'
+    ) {
+      return
+    }
 
     toast.info(t('danmaku.alert.refreshingDanmaku', 'Refreshing danmaku'))
     loadMutation.mutate(

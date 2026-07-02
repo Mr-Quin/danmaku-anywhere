@@ -1,4 +1,3 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { IntegrationPage } from '../../pom/IntegrationPage'
 import type { DaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
@@ -40,7 +39,6 @@ async function seedFixtureProfile(
   // Title matches what the policy extracts from the fixture; LocalMatching
   // resolves it via fuzzy title fallback (no naming rules needed).
   const customEpisode = await da.episode.addCustom({
-    provider: DanmakuSourceType.MacCMS,
     title: EPISODE_TITLE,
     comments: COMMENTS,
     commentCount: COMMENTS.length,

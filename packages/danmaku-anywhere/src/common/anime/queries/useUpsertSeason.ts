@@ -6,8 +6,7 @@ import type {
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { isProvider } from '@/common/danmaku/utils'
+import { isCustomSeason } from '@/common/danmaku/utils'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
@@ -22,10 +21,10 @@ export function useUpsertSeason() {
       input: SeasonOrInsert
     ): Promise<Season | CustomSeason> => {
       // Custom seasons live in customEpisode, not the seasons table.
-      if (isProvider(input, DanmakuSourceType.MacCMS)) {
-        return input as CustomSeason
+      if (isCustomSeason(input)) {
+        return input
       }
-      const res = await chromeRpcClient.seasonUpsert(input as SeasonInsert)
+      const res = await chromeRpcClient.seasonUpsert(input)
       return res.data
     },
     meta: {

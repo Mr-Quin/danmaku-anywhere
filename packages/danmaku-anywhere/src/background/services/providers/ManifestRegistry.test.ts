@@ -39,6 +39,7 @@ function makeManifest(
     name: id,
     version,
     hosts: ['example.com'],
+    identityFields: [],
   }
 }
 

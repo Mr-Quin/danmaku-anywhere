@@ -40,6 +40,24 @@ export function stripBuiltinPrefix(id: string): string {
     : id
 }
 
+// legacy:maccms appears in PROVIDER_TO_BUILTIN_ID for config-migration mapping
+// but is not a real manifest, so it is not a built-in season identity.
+const BUILTIN_MANIFEST_IDS = new Set<string>(
+  Object.values(PROVIDER_TO_BUILTIN_ID).filter((id) => id !== LEGACY_MACCMS_ID)
+)
+
+// A built-in config id is itself the manifest id (minus any builtin: prefix). A
+// custom id keys off a baseUrl that isn't on the id, so it can't be recovered.
+export function resolveBuiltinManifestId(
+  providerConfigId: string | undefined | null
+): string | undefined {
+  if (typeof providerConfigId !== 'string') {
+    return undefined
+  }
+  const bareId = stripBuiltinPrefix(providerConfigId)
+  return BUILTIN_MANIFEST_IDS.has(bareId) ? bareId : undefined
+}
+
 export type RemoteDanmakuSourceType = Exclude<
   DanmakuSourceType,
   DanmakuSourceType.MacCMS

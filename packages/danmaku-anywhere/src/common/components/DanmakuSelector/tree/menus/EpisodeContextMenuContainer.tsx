@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isSourceEpisode } from '@/common/danmaku/utils'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'
 import { useDanmakuTreeContext } from '../DanmakuTreeContext'
@@ -32,7 +32,9 @@ export const EpisodeContextMenuContainer = ({
     useDanmakuTreeContext()
 
   const handleFetchDanmaku = async () => {
-    if (!isNotCustom(episode)) return
+    if (!isSourceEpisode(episode)) {
+      return
+    }
 
     await load({
       type: 'by-meta',
@@ -44,7 +46,7 @@ export const EpisodeContextMenuContainer = ({
   }
 
   const handleExport = () => {
-    if (isNotCustom(episode)) {
+    if (isSourceEpisode(episode)) {
       exportDanmaku.mutate({
         filter: { ids: [episode.id] },
       })
@@ -56,7 +58,7 @@ export const EpisodeContextMenuContainer = ({
   }
 
   const handleExportBackup = () => {
-    if (isNotCustom(episode)) {
+    if (isSourceEpisode(episode)) {
       exportBackup.mutate({
         filter: { ids: [episode.id] },
       })
@@ -76,7 +78,7 @@ export const EpisodeContextMenuContainer = ({
       ),
       confirmText: t('common.delete', 'Delete'),
       onConfirm: async () => {
-        if (isNotCustom(episode)) {
+        if (isSourceEpisode(episode)) {
           await deleteDanmakuMutation.mutateAsync({
             isCustom: false,
             filter: { ids: [episode.id] },
@@ -97,7 +99,7 @@ export const EpisodeContextMenuContainer = ({
 
   return (
     <EpisodeContextMenuPure
-      canRefresh={isNotCustom(episode) && !orphaned}
+      canRefresh={isSourceEpisode(episode) && !orphaned}
       isRefreshing={isPending}
       onViewDanmaku={() => setViewingDanmaku(episode)}
       onRefresh={handleFetchDanmaku}

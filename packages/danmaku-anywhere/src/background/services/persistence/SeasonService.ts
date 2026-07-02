@@ -1,15 +1,26 @@
 import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
 import type { SeasonGetAllRequest, SeasonQueryFilter } from '@/common/anime/dto'
-import type { RemoteDanmakuSourceType } from '@/common/danmaku/enums'
-import { isProvider } from '@/common/danmaku/utils'
 import { DanmakuAnywhereDb } from '@/common/db/db'
+import { reconcileSeasonIdentity } from '@/common/db/seasonIdentityReconciler'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import type { DbEntity } from '@/common/types/dbEntity'
 
 @injectable('Singleton')
 export class SeasonService {
   constructor(@inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb) {}
+
+  // Heal v15-orphaned seasons against live configs. See reconcileSeasonIdentity.
+  async reconcileIdentities(
+    configs: {
+      id: string
+      manifestId: string
+      configValues?: Record<string, unknown>
+    }[]
+  ): Promise<number> {
+    return reconcileSeasonIdentity(this.db, configs)
+  }
+
   async bulkUpsert<T extends SeasonInsert>(data: T[]): Promise<DbEntity<T>[]> {
     const results: DbEntity<T>[] = []
 
@@ -23,18 +34,21 @@ export class SeasonService {
   async findExisting<T extends SeasonInsert>(
     data: T
   ): Promise<DbEntity<T> | undefined> {
+    // An orphaned season has no identity to match on, and querying the compound
+    // index with nullish components throws a DataError.
+    if (data.manifestId == null || data.namespaceKey == null) {
+      return undefined
+    }
     return this.db.season.get({
-      providerConfigId: data.providerConfigId,
+      manifestId: data.manifestId,
+      namespaceKey: data.namespaceKey,
       indexedId: data.indexedId,
     }) as Promise<DbEntity<T> | undefined>
   }
 
   async upsert<T extends SeasonInsert>(data: T): Promise<DbEntity<T>> {
     return this.db.transaction('rw', this.db.season, async () => {
-      const existing = await this.db.season.get({
-        providerConfigId: data.providerConfigId,
-        indexedId: data.indexedId,
-      })
+      const existing = await this.findExisting(data)
       if (existing) {
         const toInsert = {
           ...existing,
@@ -69,21 +83,6 @@ export class SeasonService {
 
   async getById(id: number): Promise<Season | undefined> {
     return this.db.season.get(id)
-  }
-
-  async getByType<T extends RemoteDanmakuSourceType>(
-    id: number,
-    expectedType: T
-  ): Promise<Extract<Season, { provider: T }>> {
-    const season = await this.mustGetById(id)
-
-    if (!isProvider(season, expectedType)) {
-      throw new Error(
-        `Type mismatch getting season: Expected ${expectedType}, got ${season.provider}`
-      )
-    }
-
-    return season as Extract<Season, { provider: T }>
   }
 
   async getAll(options: SeasonGetAllRequest) {

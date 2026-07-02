@@ -29,6 +29,7 @@ import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { computeNamespaceKey } from '@/common/providers/namespaceKey'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
 import type { RRPServerHandler } from '@/common/rpc/server'
 import { createRpcServer } from '@/common/rpc/server'
@@ -382,14 +383,19 @@ export class RpcManager {
           return res.data
         },
         providerConfigDelete: async (id, sender) => {
-          // Seasons and episodes are kept (orphaned: no config matches their
-          // providerConfigId) so downloaded danmaku stays viewable. Bookmarks
-          // are removed: they only exist to fetch new episodes, which an
-          // orphaned season can no longer do.
-          // deleteFromStorage throws if the config does not exist, so it runs
-          // first to keep a failed delete free of side effects.
+          // Seasons and episodes are kept (orphaned: no live config matches their
+          // namespace) so downloaded danmaku stays viewable. Bookmarks are
+          // removed: they only exist to fetch new episodes, which an orphaned
+          // season can no longer do.
+          // Resolve the config's namespaceKey before deleting it; the read has no
+          // side effects, and deleteFromStorage (which throws if the config does
+          // not exist) still runs before any mutation.
+          const config = await this.providerConfigService.get(id)
+          const namespaceKey = config ? computeNamespaceKey(config) : undefined
           await this.providerConfigService.deleteFromStorage(id)
-          await this.bookmarkService.deleteByProviderConfigId(id)
+          if (namespaceKey !== undefined) {
+            await this.bookmarkService.deleteByNamespaceKey(namespaceKey)
+          }
 
           void invalidateContentScriptData(sender.tab?.id)
         },

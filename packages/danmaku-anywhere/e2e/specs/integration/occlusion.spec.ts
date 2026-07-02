@@ -1,4 +1,3 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { defaultDanmakuOptions } from '../../../src/common/options/danmakuOptions/constant'
 import { IntegrationPage } from '../../pom/IntegrationPage'
 import { Toast } from '../../pom/Toast'
@@ -63,7 +62,6 @@ test('occlusion: mask applied to danmu container when enabled', async ({
   })
 
   await da.episode.addCustom({
-    provider: DanmakuSourceType.MacCMS,
     title: EPISODE_TITLE,
     comments: COMMENTS,
     commentCount: COMMENTS.length,
@@ -102,7 +100,6 @@ test('occlusion: no mask when disabled', async ({ context, page, da }) => {
   })
 
   await da.episode.addCustom({
-    provider: DanmakuSourceType.MacCMS,
     title: EPISODE_TITLE,
     comments: COMMENTS,
     commentCount: COMMENTS.length,
@@ -153,7 +150,6 @@ test('occlusion: anime model without WebGPU surfaces an error and applies no mas
   })
 
   await da.episode.addCustom({
-    provider: DanmakuSourceType.MacCMS,
     title: EPISODE_TITLE,
     comments: COMMENTS,
     commentCount: COMMENTS.length,
@@ -207,7 +203,6 @@ test('occlusion: debug mode shows the mask debug overlay', async ({
   })
 
   await da.episode.addCustom({
-    provider: DanmakuSourceType.MacCMS,
     title: EPISODE_TITLE,
     comments: COMMENTS,
     commentCount: COMMENTS.length,

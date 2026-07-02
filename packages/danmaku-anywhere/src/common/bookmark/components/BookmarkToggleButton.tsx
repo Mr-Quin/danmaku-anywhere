@@ -1,8 +1,4 @@
-import {
-  type CustomSeason,
-  DanmakuSourceType,
-  type Season,
-} from '@danmaku-anywhere/danmaku-converter'
+import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import { Favorite, FavoriteBorder } from '@mui/icons-material'
 import { Button, CircularProgress, Tooltip } from '@mui/material'
 import type { ReactElement } from 'react'
@@ -10,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { useBookmarkAdd } from '@/common/bookmark/queries/useBookmarkAdd'
 import { useBookmarkDeleteBySeason } from '@/common/bookmark/queries/useBookmarkDelete'
 import { useBookmarkedSeasonIds } from '@/common/bookmark/queries/useBookmarks'
-import { isProvider } from '@/common/danmaku/utils'
+import { isCustomSeason } from '@/common/danmaku/utils'
 
 interface BookmarkToggleButtonProps {
   season: Season | CustomSeason
@@ -26,7 +22,7 @@ export const BookmarkToggleButton = ({
   const bookmarkAdd = useBookmarkAdd()
   const bookmarkDelete = useBookmarkDeleteBySeason()
 
-  if (isProvider(season, DanmakuSourceType.MacCMS)) {
+  if (isCustomSeason(season)) {
     return null
   }
 

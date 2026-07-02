@@ -1,4 +1,4 @@
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isSourceEpisode } from '@/common/danmaku/utils'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useStore } from '@/content/controller/store/store'
 
@@ -15,7 +15,7 @@ export const usePreloadNextEpisode = () => {
     }
     const episode = episodes[0]
     // Custom episodes have no season to preload from.
-    if (!isNotCustom(episode)) {
+    if (!isSourceEpisode(episode)) {
       return
     }
     // Drop comments so the message stays small; preload is best-effort.

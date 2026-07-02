@@ -109,7 +109,7 @@ describe('migrateDanmakuSourcesToProviders', () => {
       const maccms = providers[3]
       expect(maccms.id).toBe('legacy:maccms')
       expect(maccms.manifestId).toBe('legacy:maccms')
-      expect(maccms.name).toBe('MacCMS')
+      expect(maccms.name).toBe('VOD')
       expect(maccms.enabled).toBe(true)
       expect(maccms.configValues.danmakuBaseUrl).toBe('https://vs.okcdn100.top')
       expect(maccms.configValues.danmuicuBaseUrl).toBe(
@@ -186,7 +186,7 @@ describe('migrateDanmakuSourcesToProviders', () => {
       const maccms = providers[3]
       expect(maccms.id).toBe('legacy:maccms')
       expect(maccms.manifestId).toBe('legacy:maccms')
-      expect(maccms.name).toBe('MacCMS')
+      expect(maccms.name).toBe('VOD')
       expect(maccms.enabled).toBe(true)
       expect(maccms.configValues.danmakuBaseUrl).toBe(
         'https://maccms.example.com'

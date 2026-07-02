@@ -6,6 +6,8 @@ import type { MatchEpisodeInput, MatchEpisodeResult } from '@/common/anime/dto'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { computeNamespaceKey } from '@/common/providers/namespaceKey'
+import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { serializeError } from '@/common/utils/serializeError'
 import { EpisodeResolutionService } from '../EpisodeResolutionService'
@@ -80,10 +82,11 @@ export class MappingMatchingStrategy implements IMatchingStrategy {
       if (!season) {
         return undefined
       }
-      const providerConfig = await this.providerConfigService.get(
-        season.providerConfigId
+      const providerConfig = resolveSeasonConfig(
+        season,
+        await this.providerConfigService.getAll()
       )
-      return { season, providerConfig: providerConfig ?? undefined }
+      return { season, providerConfig }
     }
 
     const mapping = await this.titleMappingService.get(mapKey)
@@ -98,7 +101,7 @@ export class MappingMatchingStrategy implements IMatchingStrategy {
           continue
         }
         this.logger.debug('Checking provider', autoProvider)
-        const mappedId = mapping.getSeasonId(autoProvider.id)
+        const mappedId = mapping.getSeasonId(computeNamespaceKey(autoProvider))
         if (mappedId) {
           this.logger.debug('Found mapped season id', mappedId)
           const season = await this.seasonService.getById(mappedId)

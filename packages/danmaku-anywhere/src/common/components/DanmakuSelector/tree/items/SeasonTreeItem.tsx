@@ -3,7 +3,7 @@ import { Favorite, Folder } from '@mui/icons-material'
 import { Chip, Skeleton, Stack, styled, Typography } from '@mui/material'
 import { type ReactElement, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isCustomSeason } from '@/common/danmaku/utils'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { SuspenseImage } from '../../../image/SuspenseImage'
 
@@ -57,7 +57,7 @@ export const SeasonTreeItem = ({
   bookmarked,
 }: SeasonTreeItemProps): ReactElement => {
   const { t } = useTranslation()
-  const isCustom = !isNotCustom(season)
+  const isCustom = isCustomSeason(season)
 
   const renderCounts = () => {
     const hasFetched = fetchedCount !== undefined && fetchedCount > 0

@@ -16,7 +16,11 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useImage } from '@/common/components/image/useImage'
-import { isNotCustom } from '@/common/danmaku/utils'
+import {
+  episodeProviderType,
+  isCustomEpisode,
+  isSourceEpisode,
+} from '@/common/danmaku/utils'
 
 const isEpisodeLite = (
   episode: WithSeason<EpisodeMeta> | CustomEpisodeLite
@@ -68,7 +72,7 @@ function deriveEpisodeNumber(
   episode: WithSeason<EpisodeMeta> | CustomEpisodeLite,
   index?: number
 ): string {
-  if (isNotCustom(episode) && episode.episodeNumber !== undefined) {
+  if (isSourceEpisode(episode) && episode.episodeNumber !== undefined) {
     return String(episode.episodeNumber)
   }
   if (typeof index === 'number') {
@@ -100,20 +104,18 @@ export function BaseEpisodeListItem<
 }: BaseEpisodeListItemProps<T>) {
   const { t } = useTranslation()
 
-  const isLite = isEpisodeLite(episode)
-  const isCustom = !isNotCustom(episode)
+  const ep: WithSeason<EpisodeMeta> | CustomEpisodeLite = episode
+  const isLite = isEpisodeLite(ep)
+  const isCustom = isCustomEpisode(ep)
   const downloaded = isLite
 
-  const number = deriveEpisodeNumber(episode, index)
+  const number = deriveEpisodeNumber(ep, index)
 
-  const testIdSuffix = isNotCustom(episode)
-    ? episode.indexedId
-    : (episode as CustomEpisodeLite).id
-  const testId = `episode-list-item-${episode.provider}-${testIdSuffix}`
+  const testIdSuffix = isSourceEpisode(ep) ? ep.indexedId : ep.id
+  const sourceKey = episodeProviderType(ep) ?? 'unknown'
+  const testId = `episode-list-item-${sourceKey}-${testIdSuffix}`
 
-  const thumbSrc = !isCustom
-    ? (episode as WithSeason<EpisodeMeta>).imageUrl
-    : undefined
+  const thumbSrc = isSourceEpisode(ep) ? ep.imageUrl : undefined
 
   const statusIcon = isLoading ? (
     <CircularProgress

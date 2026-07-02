@@ -20,6 +20,7 @@ function makeManifest(id = 'mine:one'): Record<string, unknown> {
     name: id,
     version: '1.0.0',
     hosts: ['example.com'],
+    identityFields: [],
   }
 }
 

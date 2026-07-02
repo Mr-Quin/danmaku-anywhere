@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isCustomEpisode } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
@@ -128,7 +128,7 @@ export const useIntegrationPolicy = () => {
               return
             }
             const matched = result.data.data
-            if (!isNotCustom(matched)) {
+            if (isCustomEpisode(matched)) {
               toast.success(
                 t(
                   'integration.alert.matchedLocalDanmaku',

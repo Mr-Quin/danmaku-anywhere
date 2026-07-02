@@ -127,8 +127,8 @@ const v3ExtractSeason = (
   switch (item.provider) {
     case DanmakuSourceType.DanDanPlay: {
       return {
-        provider: DanmakuSourceType.DanDanPlay,
-        providerConfigId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
+        manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
+        namespaceKey: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
         providerIds: {
           animeId: item.meta.animeId,
           bangumiId: item.meta.animeId.toString(),
@@ -141,8 +141,8 @@ const v3ExtractSeason = (
     }
     case DanmakuSourceType.Bilibili: {
       return {
-        provider: DanmakuSourceType.Bilibili,
-        providerConfigId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
+        manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
+        namespaceKey: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
         providerIds: {
           seasonId: item.meta.seasonId,
         },
@@ -154,8 +154,8 @@ const v3ExtractSeason = (
     }
     case DanmakuSourceType.Tencent: {
       return {
-        provider: DanmakuSourceType.Tencent,
-        providerConfigId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
+        manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
+        namespaceKey: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
         providerIds: {
           cid: item.meta.cid,
         },
@@ -185,7 +185,6 @@ const v3ToV4 = (
   if (item.provider === 'DanDanPlay') {
     return {
       ...baseUpdate,
-      provider: item.provider,
       seasonId,
       title: item.episodeTitle,
       providerIds: {
@@ -199,7 +198,6 @@ const v3ToV4 = (
     return {
       ...baseUpdate,
       title: stripHtml(item.meta.title),
-      provider: item.provider,
       seasonId,
       providerIds: {
         cid: item.meta.cid,
@@ -212,7 +210,6 @@ const v3ToV4 = (
   return {
     ...baseUpdate,
     title: stripHtml(item.episodeTitle),
-    provider: item.provider,
     seasonId,
     providerIds: {
       vid: item.meta.vid,
@@ -223,7 +220,6 @@ const v3ToV4 = (
 
 const customV3ToV4 = (item: CustomDanmakuInsertV3): CustomEpisodeInsertV4 => {
   return {
-    provider: item.provider,
     title: stripHtml(item.episodeTitle || item.seasonTitle),
     comments: item.comments,
     commentCount: item.commentCount,

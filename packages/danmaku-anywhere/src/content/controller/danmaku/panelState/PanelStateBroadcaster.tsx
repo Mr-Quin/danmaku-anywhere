@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { useShallow } from 'zustand/react/shallow'
+import { episodeProviderType } from '@/common/danmaku/utils'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type { PipelineEntry } from '@/common/rpcClient/background/types'
 import { useStore } from '@/content/controller/store/store'
@@ -12,12 +13,16 @@ function usePipelineEntry(): PipelineEntry | null {
   const integration = useStore.use.integration()
 
   return useMemo<PipelineEntry | null>(() => {
+    const firstEpisode = episodes?.[0]
+    const provider = firstEpisode
+      ? episodeProviderType(firstEpisode)
+      : undefined
     return selectPanelState({
       isDisconnected,
       isManual,
       isMounted,
       commentCount: comments.length,
-      provider: episodes?.[0]?.provider,
+      provider,
       mountedEpisodes: episodes,
       integration: {
         active: integration.active,

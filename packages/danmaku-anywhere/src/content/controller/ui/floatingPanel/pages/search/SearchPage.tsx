@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next'
 import { useUpsertSeason } from '@/common/anime/queries/useUpsertSeason'
 import { Center } from '@/common/components/Center'
 import { SearchPageCore } from '@/common/components/SearchPageCore/SearchPageCore'
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isCustomSeason } from '@/common/danmaku/utils'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { useAllSeasonMap } from '@/common/seasonMap/queries/useAllSeasonMap'
@@ -54,12 +54,12 @@ export const SearchPage = (): React.ReactElement | null => {
     upsertSeason.mutate(season, {
       onSuccess: (persisted) => {
         if (
-          isNotCustom(persisted) &&
+          !isCustomSeason(persisted) &&
           mediaInfo &&
           !SeasonMap.hasMapping(
             seasonMaps,
             mediaInfo.getKey(),
-            persisted.providerConfigId,
+            persisted.namespaceKey ?? '',
             persisted.id
           )
         ) {

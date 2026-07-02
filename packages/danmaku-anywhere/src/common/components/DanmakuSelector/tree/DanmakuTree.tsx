@@ -28,7 +28,7 @@ import type { ExtendedTreeItem } from '@/common/components/DanmakuSelector/tree/
 import { DanmakuTreeItem } from '@/common/components/DanmakuSelector/tree/items/DanmakuTreeItem'
 import { useDanmakuTree } from '@/common/components/DanmakuSelector/tree/useDanmakuTree'
 import { usePersistedExpandedItems } from '@/common/components/DanmakuSelector/tree/usePersistedExpandedItems'
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isCustomEpisode, isCustomSeason } from '@/common/danmaku/utils'
 import { useNamingRules } from '@/common/options/localMatchingRule/useLocalMatchingRule'
 import { EmptyDanmakuTree } from '../components/EmptyDanmakuTree'
 
@@ -69,7 +69,7 @@ function buildSelection(
     if (!item) {
       continue
     }
-    if (item.kind === 'season' && isNotCustom(item.data)) {
+    if (item.kind === 'season' && !isCustomSeason(item.data)) {
       seasons.push(item.data)
       const children = item.children ?? []
       for (const child of children) {
@@ -92,7 +92,7 @@ function buildSelection(
     countEpisode(id)
     const episode = item.data
 
-    if (isNotCustom(episode)) {
+    if (!isCustomEpisode(episode)) {
       episodes.push(episode)
     } else {
       customEpisodes.push(episode)

@@ -126,7 +126,6 @@ describe('episodeV4Migration', () => {
       const result = episodeMigration.v3ToV4(sampleDanDanPlayV3, seasonId)
 
       expect(result).toEqual({
-        provider: 'DanDanPlay',
         seasonId,
         title: sampleDanDanPlayV3.episodeTitle,
         providerIds: {
@@ -146,7 +145,6 @@ describe('episodeV4Migration', () => {
       const result = episodeMigration.v3ToV4(sampleBilibiliV3, seasonId)
 
       expect(result).toEqual({
-        provider: 'Bilibili',
         seasonId,
         title: sampleBilibiliV3.meta.title,
         providerIds: {
@@ -167,7 +165,6 @@ describe('episodeV4Migration', () => {
       const result = episodeMigration.v3ToV4(sampleTencentV3, seasonId)
 
       expect(result).toEqual({
-        provider: 'Tencent',
         seasonId,
         title: sampleTencentV3.episodeTitle,
         providerIds: {
@@ -187,7 +184,6 @@ describe('episodeV4Migration', () => {
       const result = episodeMigration.customV3ToV4(sampleCustomV3)
 
       expect(result).toEqual({
-        provider: 'Custom',
         title: sampleCustomV3.episodeTitle,
         comments: sampleCustomV3.comments,
         commentCount: sampleCustomV3.commentCount,

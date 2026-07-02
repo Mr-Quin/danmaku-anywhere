@@ -14,12 +14,11 @@ import { invariant, isServiceWorker } from '@/common/utils/utils'
 type WithoutId<T> = Omit<T, 'id'>
 
 const toStub = (meta: WithSeason<EpisodeMeta>): EpisodeStub => {
-  const { title, episodeNumber, indexedId, provider, providerIds } = meta
+  const { title, episodeNumber, indexedId, providerIds } = meta
   return {
     title,
     episodeNumber,
     indexedId,
-    provider,
     providerIds,
   } as EpisodeStub
 }
@@ -61,7 +60,6 @@ export class BookmarkService {
 
       const toInsert: WithoutId<Bookmark> = {
         seasonId,
-        providerConfigId: season.providerConfigId,
         episodes: stubs,
         lastRefreshed: Date.now(),
         timeUpdated: Date.now(),
@@ -80,8 +78,15 @@ export class BookmarkService {
     await this.db.bookmark.where({ seasonId }).delete()
   }
 
-  async deleteByProviderConfigId(providerConfigId: string): Promise<void> {
-    await this.db.bookmark.where({ providerConfigId }).delete()
+  // Delete the bookmarks of every season in a content namespace. Used when a
+  // provider config is removed: its seasons stay as orphans, but their bookmarks
+  // (which only exist to fetch new episodes) go. Callers pass the config's
+  // namespaceKey, computed before the config is deleted from storage.
+  async deleteByNamespaceKey(namespaceKey: string): Promise<void> {
+    const seasonIds = await this.db.season.where({ namespaceKey }).primaryKeys()
+    if (seasonIds.length > 0) {
+      await this.db.bookmark.where('seasonId').anyOf(seasonIds).delete()
+    }
   }
 
   async getAll(): Promise<Bookmark[]> {

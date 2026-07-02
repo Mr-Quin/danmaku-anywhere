@@ -13,6 +13,7 @@ import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeason
 import type { NamingRule } from '@/common/options/localMatchingRule/schema'
 import { useNamingRules } from '@/common/options/localMatchingRule/useLocalMatchingRule'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import { computeNamespaceKey } from '@/common/providers/namespaceKey'
 import { useSeasonMapMutations } from '@/common/seasonMap/queries/useAllSeasonMap'
 import type { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { compareLocale } from '@/common/utils/collator'
@@ -41,12 +42,12 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
   const { data: allSeasons } = useGetAllSeasonsSuspense({ includeEmpty: true })
 
   const handleChange = async (
-    providerConfigId: string,
+    namespaceKey: string,
     newValue: Season | null
   ) => {
     const updated = newValue
-      ? map.withMapping(providerConfigId, newValue.id)
-      : map.withoutProvider(providerConfigId)
+      ? map.withMapping(namespaceKey, newValue.id)
+      : map.withoutProvider(namespaceKey)
     await mutations.put.mutateAsync(updated)
   }
 
@@ -64,12 +65,16 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
     return namingRules.find((r) => r.folderPath === map.local) ?? null
   }, [map.local, namingRules])
 
-  const seasonsByProvider = useMemo(() => {
+  const seasonsByNamespace = useMemo(() => {
     const grouped = new Map<string, Season[]>()
     for (const season of allSeasons) {
-      const existing = grouped.get(season.providerConfigId) ?? []
+      const ns = season.namespaceKey
+      if (ns == null) {
+        continue
+      }
+      const existing = grouped.get(ns) ?? []
       existing.push(season)
-      grouped.set(season.providerConfigId, existing)
+      grouped.set(ns, existing)
     }
     // sort by title
     for (const seasons of grouped.values()) {
@@ -86,12 +91,13 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
     <Box>
       <BoxGrid>
         {configs.map((config) => {
-          const seasonId = map.getSeasonId(config.id)
+          const ns = computeNamespaceKey(config)
+          const seasonId = map.getSeasonId(ns)
           const selectedSeason = seasonId
             ? seasonsById.get(seasonId) || null
             : null
 
-          const options = seasonsByProvider.get(config.id) ?? []
+          const options = seasonsByNamespace.get(ns) ?? []
 
           return (
             <Fragment key={config.id}>
@@ -102,7 +108,7 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
                 getOptionLabel={(option) => `${option.title} (${option.year})`}
                 getOptionKey={(option) => option.id}
                 value={selectedSeason}
-                onChange={(_, newValue) => handleChange(config.id, newValue)}
+                onChange={(_, newValue) => handleChange(ns, newValue)}
                 renderInput={(params) => (
                   <TextField
                     {...params}
