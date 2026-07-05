@@ -364,7 +364,9 @@ export class ManifestRegistry {
   private loadEntry(id: string, entry: ManifestEntry): void {
     // Per-manifest, and runner construction can throw past safeParse, so one
     // bad stored spec can't take the whole registry down on startup.
-    const parsed = zManifest.safeParse(entry.manifest)
+    const parsed = zManifest.safeParse(
+      withDefaultIdentityFields(entry.manifest)
+    )
     if (!parsed.success) {
       this.log.error('Failed to load manifest:', id, parsed.error.issues)
       return
@@ -382,4 +384,19 @@ export class ManifestRegistry {
   private buildRunner(manifest: Manifest): ManifestRunner {
     return new ManifestRunner(manifest, { fetcher: extensionFetchLike })
   }
+}
+
+// Manifests stored before dango 0.7 predate the required identityFields
+// declaration. Default it when hydrating from the store, so an extension
+// update does not silently unload previously working sources. Authoring
+// paths (register/saveUserManifest) stay strict.
+function withDefaultIdentityFields(manifest: unknown): unknown {
+  if (
+    manifest !== null &&
+    typeof manifest === 'object' &&
+    !('identityFields' in manifest)
+  ) {
+    return { ...manifest, identityFields: [] }
+  }
+  return manifest
 }

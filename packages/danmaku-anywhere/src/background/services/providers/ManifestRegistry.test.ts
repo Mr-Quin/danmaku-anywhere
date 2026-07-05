@@ -651,6 +651,19 @@ describe('ManifestRegistry', () => {
     expect(() => registry.getRunner('test:one')).toThrow()
   })
 
+  it('hydrates a stored manifest that predates the identityFields field', async () => {
+    const legacy = makeManifest('legacy:one')
+    delete legacy.identityFields
+    const store = new InMemoryStore({
+      'legacy:one': { manifest: legacy, kind: 'user' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(registry.list()).toEqual(['legacy:one'])
+    expect(registry.getRunner('legacy:one')).toBeDefined()
+  })
+
   it('skips a manifest that fails safeParse without taking the registry down', async () => {
     const store = new InMemoryStore({
       'good:one': { manifest: makeManifest('good:one'), kind: 'user' },
