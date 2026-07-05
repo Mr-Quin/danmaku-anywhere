@@ -1,12 +1,15 @@
+import 'fake-indexeddb/auto'
 import type {
   Bookmark,
   EpisodeMeta,
   EpisodeStub,
+  SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
+import { Dexie } from 'dexie'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ProviderService } from '@/background/services/providers/ProviderService'
-import type { DanmakuAnywhereDb } from '@/common/db/db'
+import { DANMAKU_DB_NAME, DanmakuAnywhereDb } from '@/common/db/db'
 import { BookmarkService } from './BookmarkService'
 
 const stub = (indexedId: string, episodeNumber?: number): EpisodeStub => ({
@@ -120,5 +123,79 @@ describe('BookmarkService.preloadNextEpisode', () => {
     vi.spyOn(service, 'refresh').mockResolvedValue(bookmark([stub('a', 1)]))
     await run(false)
     expect(provider.getDanmaku).not.toHaveBeenCalled()
+  })
+})
+
+describe('BookmarkService.deleteBySeasonIdentity', () => {
+  let db: DanmakuAnywhereDb
+  let service: BookmarkService
+
+  function makeSeason(overrides: Partial<SeasonInsert>): SeasonInsert {
+    return {
+      title: 'Show',
+      type: '',
+      indexedId: 'idx-1',
+      providerIds: {},
+      version: 1,
+      timeUpdated: 0,
+      schemaVersion: 1,
+      ...overrides,
+    } as SeasonInsert
+  }
+
+  async function addBookmarkedSeason(
+    overrides: Partial<SeasonInsert>
+  ): Promise<number> {
+    const seasonId = (await db.season.add(makeSeason(overrides))) as number
+    await db.bookmark.add({
+      seasonId,
+      episodes: [],
+      lastRefreshed: 0,
+      timeUpdated: 0,
+      version: 1,
+    })
+    return seasonId
+  }
+
+  beforeEach(async () => {
+    await Dexie.delete(DANMAKU_DB_NAME)
+    db = new DanmakuAnywhereDb()
+    await db.open()
+    service = new BookmarkService(db)
+  })
+
+  afterEach(async () => {
+    db.close()
+    await Dexie.delete(DANMAKU_DB_NAME)
+  })
+
+  it('deletes only bookmarks of seasons matching both manifestId and namespaceKey', async () => {
+    const sharedNamespace = 'ns:abcd1234'
+    const deleted = await addBookmarkedSeason({
+      manifestId: 'alpha',
+      namespaceKey: sharedNamespace,
+    })
+    const otherManifest = await addBookmarkedSeason({
+      manifestId: 'beta',
+      namespaceKey: sharedNamespace,
+      indexedId: 'idx-2',
+    })
+    const otherNamespace = await addBookmarkedSeason({
+      manifestId: 'alpha',
+      namespaceKey: 'alpha',
+      indexedId: 'idx-3',
+    })
+
+    await service.deleteBySeasonIdentity('alpha', sharedNamespace)
+
+    expect(await db.bookmark.where({ seasonId: deleted }).first()).toBe(
+      undefined
+    )
+    expect(
+      await db.bookmark.where({ seasonId: otherManifest }).first()
+    ).toBeDefined()
+    expect(
+      await db.bookmark.where({ seasonId: otherNamespace }).first()
+    ).toBeDefined()
   })
 })

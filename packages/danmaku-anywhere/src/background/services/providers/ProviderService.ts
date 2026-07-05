@@ -309,7 +309,10 @@ export class ProviderService {
       if (config.manifestId === manifestId) {
         const namespaceKey = computeNamespaceKey(config)
         await this.providerConfigService.deleteFromStorage(config.id)
-        await this.bookmarkService.deleteByNamespaceKey(namespaceKey)
+        await this.bookmarkService.deleteBySeasonIdentity(
+          manifestId,
+          namespaceKey
+        )
       }
     }
     await this.manifestRegistry.unregister(manifestId)

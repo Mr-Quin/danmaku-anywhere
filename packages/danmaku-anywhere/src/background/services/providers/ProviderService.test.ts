@@ -725,9 +725,9 @@ describe('ProviderService.deleteUserManifest', () => {
       getAll: vi.fn(async () => opts.configs),
       deleteFromStorage,
     } as unknown as ProviderConfigService
-    const deleteByNamespaceKey = vi.fn(async () => {})
+    const deleteBySeasonIdentity = vi.fn(async () => {})
     const bookmarkService = {
-      deleteByNamespaceKey,
+      deleteBySeasonIdentity,
     } as unknown as BookmarkService
     const service = new ProviderService(
       {} as unknown as DanmakuService,
@@ -739,11 +739,11 @@ describe('ProviderService.deleteUserManifest', () => {
       silentLogger,
       silentExtensionOptions
     )
-    return { service, unregister, deleteFromStorage, deleteByNamespaceKey }
+    return { service, unregister, deleteFromStorage, deleteBySeasonIdentity }
   }
 
   it('removes the manifest configs and their bookmarks, then unregisters', async () => {
-    const { service, unregister, deleteFromStorage, deleteByNamespaceKey } =
+    const { service, unregister, deleteFromStorage, deleteBySeasonIdentity } =
       buildForDelete({
         kind: 'user',
         configs: [
@@ -757,7 +757,7 @@ describe('ProviderService.deleteUserManifest', () => {
     expect(deleteFromStorage).toHaveBeenCalledTimes(1)
     expect(deleteFromStorage).toHaveBeenCalledWith('cfg-1')
     // cfg-1 has no baseUrl, so its namespaceKey falls back to its manifestId.
-    expect(deleteByNamespaceKey).toHaveBeenCalledWith('mine:one')
+    expect(deleteBySeasonIdentity).toHaveBeenCalledWith('mine:one', 'mine:one')
     expect(unregister).toHaveBeenCalledWith('mine:one')
   })
 

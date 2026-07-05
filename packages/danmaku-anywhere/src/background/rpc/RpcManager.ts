@@ -387,14 +387,16 @@ export class RpcManager {
           // namespace) so downloaded danmaku stays viewable. Bookmarks are
           // removed: they only exist to fetch new episodes, which an orphaned
           // season can no longer do.
-          // Resolve the config's namespaceKey before deleting it; the read has no
+          // Resolve the config's identity before deleting it; the read has no
           // side effects, and deleteFromStorage (which throws if the config does
           // not exist) still runs before any mutation.
           const config = await this.providerConfigService.get(id)
-          const namespaceKey = config ? computeNamespaceKey(config) : undefined
           await this.providerConfigService.deleteFromStorage(id)
-          if (namespaceKey !== undefined) {
-            await this.bookmarkService.deleteByNamespaceKey(namespaceKey)
+          if (config) {
+            await this.bookmarkService.deleteBySeasonIdentity(
+              config.manifestId,
+              computeNamespaceKey(config)
+            )
           }
 
           void invalidateContentScriptData(sender.tab?.id)
