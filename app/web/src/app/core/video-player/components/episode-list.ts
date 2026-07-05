@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
-import {
-  type CustomEpisodeLite,
-  type EpisodeLite,
-  type GenericEpisodeLite,
-  providerTypeFromManifestId,
+import type {
+  CustomEpisodeLite,
+  EpisodeLite,
+  GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuService } from '../../danmaku/danmaku.service'
+import { episodeSourceLabel } from '../episode-source-label'
 
 @Component({
   selector: 'da-dropdown-episode-list',
@@ -58,8 +58,6 @@ export class EpisodeList {
   }
 
   protected source(episode: GenericEpisodeLite): string {
-    return 'season' in episode && episode.season.manifestId
-      ? providerTypeFromManifestId(episode.season.manifestId)
-      : ''
+    return episodeSourceLabel(episode)
   }
 }

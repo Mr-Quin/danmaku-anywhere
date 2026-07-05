@@ -1,9 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
-import {
-  type CustomEpisodeLite,
-  type EpisodeLite,
-  type GenericEpisodeLite,
-  providerTypeFromManifestId,
+import type {
+  CustomEpisodeLite,
+  EpisodeLite,
+  GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Button } from 'primeng/button'
 import { Popover } from 'primeng/popover'
@@ -11,6 +10,7 @@ import { ScrollPanel } from 'primeng/scrollpanel'
 import { Toolbar } from 'primeng/toolbar'
 import { MaterialIcon } from '../../../shared/components/material-icon'
 import { DanmakuService } from '../../danmaku/danmaku.service'
+import { episodeSourceLabel } from '../episode-source-label'
 
 @Component({
   selector: 'da-video-toolbar',
@@ -98,8 +98,6 @@ export class VideoToolbar {
   }
 
   protected source(episode: GenericEpisodeLite): string {
-    return 'season' in episode && episode.season.manifestId
-      ? providerTypeFromManifestId(episode.season.manifestId)
-      : ''
+    return episodeSourceLabel(episode)
   }
 }
