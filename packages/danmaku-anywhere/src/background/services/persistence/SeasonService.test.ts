@@ -7,9 +7,10 @@ import { SeasonService } from './SeasonService'
 
 /**
  * Exercises season identity at the persistence layer against a real (in-memory)
- * Dexie: a season carrying manifestId + namespaceKey dedups on upsert, while an
- * orphaned season with no identity neither throws nor dedups (findExisting
- * short-circuits the compound-index query that would otherwise DataError).
+ * Dexie: a season carrying manifestId + namespaceKey dedups on upsert via the
+ * compound index, while an orphaned season with no identity dedups structurally
+ * on indexedId + title against other orphans only (never onto an
+ * identity-bearing row), so multi-episode backups import into one season.
  */
 
 function makeSeason(overrides: Partial<SeasonInsert>): SeasonInsert {
@@ -71,5 +72,30 @@ describe('SeasonService identity', () => {
 
     expect(saved.id).toBeGreaterThan(0)
     expect(await db.season.count()).toBe(1)
+  })
+
+  it('dedups identity-less seasons on indexedId + title across upserts', async () => {
+    const first = await service.upsert(makeSeason({}))
+    const second = await service.upsert(makeSeason({}))
+
+    expect(second.id).toBe(first.id)
+    expect(await db.season.count()).toBe(1)
+  })
+
+  it('keeps identity-less seasons with different titles separate', async () => {
+    await service.upsert(makeSeason({ title: 'Show A' }))
+    await service.upsert(makeSeason({ title: 'Show B' }))
+
+    expect(await db.season.count()).toBe(2)
+  })
+
+  it('does not match an identity-less season onto an identity-bearing row', async () => {
+    const live = await service.upsert(
+      makeSeason({ manifestId: 'bilibili', namespaceKey: 'bilibili' })
+    )
+    const orphan = await service.upsert(makeSeason({}))
+
+    expect(orphan.id).not.toBe(live.id)
+    expect(await db.season.count()).toBe(2)
   })
 })
