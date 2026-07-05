@@ -297,8 +297,9 @@ export class DanmakuService {
               this.db.season,
               this.db.episode,
               async () => {
-                // findExisting guards a nullish identity that filter() would
-                // turn into a DataError; an orphan falls through to insert.
+                // Identity-bearing seasons match on the compound index;
+                // identity-less (orphan) seasons match structurally, so a
+                // multi-episode backup shares one season row.
                 let existingSeason = await this.seasonService.findExisting(
                   item.season
                 )
