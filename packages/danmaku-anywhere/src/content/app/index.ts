@@ -13,8 +13,8 @@ import { ExtensionOptionsService } from '@/common/options/extensionOptions/servi
 import { portNames } from '@/common/ports/portNames'
 import type { RPCClientResponse } from '@/common/rpc/client'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-
 import { tryCatch } from '@/common/utils/tryCatch'
+import { isCustomDanmakuGetPayload } from '@/content/app/danmakuGetRouting'
 
 const extensionOptionsService = uiContainer.get(ExtensionOptionsService)
 
@@ -150,9 +150,7 @@ window.addEventListener(
           return
         }
         const { id } = data
-        // The external web app payload carries its own `provider` tag to route
-        // custom danmaku, which the stored episode shape no longer has.
-        if ((data as { provider?: string }).provider === 'Custom') {
+        if (isCustomDanmakuGetPayload(data)) {
           return wrapRpc(() =>
             chromeRpcClient.episodeFilterCustom({
               id,
