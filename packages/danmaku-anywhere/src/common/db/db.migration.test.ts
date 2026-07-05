@@ -166,7 +166,7 @@ describe('season identity migration (v15)', () => {
     expect(episodes.every((e) => !('provider' in e))).toBe(true)
   })
 
-  it('rekeys built-in seasonMap entries and drops custom ones', async () => {
+  it('rekeys built-in seasonMap entries and keeps custom ones for the reconciler', async () => {
     await seedV14({
       seasonMaps: [
         {
@@ -184,8 +184,8 @@ describe('season identity migration (v15)', () => {
     }
     db.close()
 
-    expect(entry.seasons).toEqual({ bilibili: 1 })
-    expect(entry.seasonIds).toEqual([1])
+    expect(entry.seasons).toEqual({ bilibili: 1, [CUSTOM_DDP_ID]: 2 })
+    expect(entry.seasonIds.sort()).toEqual([1, 2])
   })
 
   it('drops providerConfigId from bookmarks and provider from custom episodes', async () => {

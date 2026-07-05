@@ -8,14 +8,15 @@ type ReconcilableConfig = {
 }
 
 /**
- * Heal seasons the v15 migration left orphaned. The migration keeps the old
- * providerConfigId on rows it couldn't resolve; here, at runtime, config storage
- * is safe to read, so we match each unresolved row to a live config and stamp
- * its manifestId + namespaceKey, dropping providerConfigId.
+ * Heal what the v15 migration left orphaned. The migration keeps the old
+ * providerConfigId on season rows (and seasonMap keys) it couldn't resolve;
+ * here, at runtime, config storage is safe to read, so we match each
+ * unresolved row to a live config and stamp its manifestId + namespaceKey,
+ * dropping providerConfigId, and rekey seasonMap entries the same way.
  *
  * Idempotent: a healed row has no providerConfigId; an unmatched row keeps it
  * for the next run (the caller schedules one per browser session). Returns the
- * number of rows healed.
+ * number of season rows healed.
  */
 export async function reconcileSeasonIdentity(
   db: DanmakuAnywhereDb,
@@ -32,7 +33,7 @@ export async function reconcileSeasonIdentity(
     return `${manifestId}\u0000${namespaceKey}\u0000${indexedId}`
   }
 
-  await db.transaction('rw', db.season, async () => {
+  await db.transaction('rw', db.season, db.seasonMap, async () => {
     const rows = await db.season.toArray()
     // Identities already held by a resolved row: healing must not converge an
     // orphan onto one (the v15 index is non-unique, so put() would duplicate).
@@ -63,6 +64,33 @@ export async function reconcileSeasonIdentity(
       claimed.add(key)
       healed += 1
     }
+
+    await db.seasonMap.toCollection().modify((entry) => {
+      if (
+        !entry.seasons ||
+        typeof entry.seasons !== 'object' ||
+        Array.isArray(entry.seasons)
+      ) {
+        return
+      }
+      let changed = false
+      for (const [key, seasonId] of Object.entries(entry.seasons)) {
+        const config = configById.get(key)
+        if (!config) {
+          continue
+        }
+        const namespaceKey = computeNamespaceKey(config)
+        delete entry.seasons[key]
+        // A mapping already keyed by the namespace is newer intent; keep it.
+        if (!(namespaceKey in entry.seasons)) {
+          entry.seasons[namespaceKey] = seasonId
+        }
+        changed = true
+      }
+      if (changed) {
+        entry.seasonIds = Array.from(new Set(Object.values(entry.seasons)))
+      }
+    })
   })
 
   return healed

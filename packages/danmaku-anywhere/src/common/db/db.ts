@@ -488,9 +488,10 @@ export class DanmakuAnywhereDb extends Dexie {
             delete customEpisode.provider
           })
 
-        // Rekey seasonMap entries from providerConfigId to namespaceKey. Custom
-        // keys resolve to no identity and are dropped: a namespaceKey-less
-        // mapping can never be matched at lookup.
+        // Rekey seasonMap entries from providerConfigId to namespaceKey. A
+        // custom key resolves to no identity here; keep it under the old config
+        // id so the runtime reconciler can rekey it against live configs, the
+        // same way orphaned season rows keep their providerConfigId.
         await tx
           .table('seasonMap')
           .toCollection()
@@ -505,9 +506,7 @@ export class DanmakuAnywhereDb extends Dexie {
             const remapped: Record<string, number> = {}
             for (const [configId, seasonId] of Object.entries(entry.seasons)) {
               const identity = resolveBuiltinSeasonIdentity(configId)
-              if (identity !== undefined) {
-                remapped[identity] = seasonId as number
-              }
+              remapped[identity ?? configId] = seasonId as number
             }
             entry.seasons = remapped
             entry.seasonIds = Array.from(new Set(Object.values(remapped)))
