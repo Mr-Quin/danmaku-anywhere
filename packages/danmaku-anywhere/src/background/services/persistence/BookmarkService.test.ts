@@ -146,7 +146,9 @@ describe('BookmarkService.deleteBySeasonIdentity', () => {
   async function addBookmarkedSeason(
     overrides: Partial<SeasonInsert>
   ): Promise<number> {
-    const seasonId = (await db.season.add(makeSeason(overrides))) as number
+    const seasonId = (await db.season.add(
+      makeSeason(overrides) as never
+    )) as number
     await db.bookmark.add({
       seasonId,
       episodes: [],

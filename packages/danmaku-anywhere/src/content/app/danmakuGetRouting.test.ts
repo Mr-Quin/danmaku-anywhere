@@ -42,7 +42,10 @@ describe('isCustomDanmakuGetPayload', () => {
   })
 
   it('honors the legacy Custom wire tag from older web apps', () => {
-    const legacy = { ...customLite, provider: 'Custom' } as GenericEpisodeLite
+    const legacy = {
+      ...customLite,
+      provider: 'Custom',
+    } as unknown as GenericEpisodeLite
     expect(isCustomDanmakuGetPayload(legacy)).toBe(true)
   })
 })
