@@ -73,18 +73,23 @@ export const DANMAKU_RUN_OPTIONS: RunOptions = {
 }
 
 export class ManifestProviderService implements IDanmakuProvider {
-  private readonly namespaceKey: string
-
   constructor(
     private readonly config: ManifestProviderConfig,
     private readonly registry: ManifestRegistry,
     private readonly logger: ILogger
-  ) {
-    this.namespaceKey = computeNamespaceKey({
-      id: config.providerConfigId,
-      manifestId: config.manifestId,
-      configValues: config.configValues,
-    })
+  ) {}
+
+  // Derived from the runner because the manifest declares which config fields
+  // identify an instance (identityFields).
+  private namespaceKeyFor(runner: ManifestRunner): string {
+    return computeNamespaceKey(
+      {
+        id: this.config.providerConfigId,
+        manifestId: this.config.manifestId,
+        configValues: this.config.configValues,
+      },
+      runner.manifest.identityFields
+    )
   }
 
   private resolveInputs(
@@ -110,7 +115,7 @@ export class ManifestProviderService implements IDanmakuProvider {
       ...row,
       title: stripHtml(row.title),
       manifestId: this.config.manifestId,
-      namespaceKey: this.namespaceKey,
+      namespaceKey: this.namespaceKeyFor(runner),
       schemaVersion: SEASON_SCHEMA_VERSION,
     }))
   }
@@ -139,7 +144,7 @@ export class ManifestProviderService implements IDanmakuProvider {
       ...row,
       title: stripHtml(row.title),
       manifestId: this.config.manifestId,
-      namespaceKey: this.namespaceKey,
+      namespaceKey: this.namespaceKeyFor(runner),
       schemaVersion: SEASON_SCHEMA_VERSION,
     }
   }
@@ -224,7 +229,7 @@ export class ManifestProviderService implements IDanmakuProvider {
         ...result.seasonInsert,
         title: stripHtml(result.seasonInsert.title),
         manifestId: this.config.manifestId,
-        namespaceKey: this.namespaceKey,
+        namespaceKey: this.namespaceKeyFor(runner),
         schemaVersion: SEASON_SCHEMA_VERSION,
       },
       episodeMeta: {

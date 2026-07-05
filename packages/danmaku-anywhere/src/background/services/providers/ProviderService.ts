@@ -124,7 +124,8 @@ export class ProviderService {
   }): Promise<ProviderConfig> {
     const config = resolveSeasonConfig(
       season,
-      await this.providerConfigService.getAll()
+      await this.providerConfigService.getAll(),
+      await this.manifestRegistry.getIdentityFieldsMap()
     )
     if (!config) {
       throw new Error(
@@ -309,7 +310,8 @@ export class ProviderService {
     const configs = await this.providerConfigService.getAll()
     for (const config of configs) {
       if (config.manifestId === manifestId) {
-        const namespaceKey = computeNamespaceKey(config)
+        // Resolve before unregistering, while the declaration is still known.
+        const namespaceKey = await this.computeConfigNamespaceKey(config)
         await this.providerConfigService.deleteFromStorage(config.id)
         await this.bookmarkService.deleteBySeasonIdentity(
           manifestId,
@@ -362,12 +364,26 @@ export class ProviderService {
     await chrome.storage.session.set({ [RECONCILED_KEY]: true })
   }
 
+  // Namespace of a config under its manifest's identityFields declaration.
+  async computeConfigNamespaceKey(config: ProviderConfig): Promise<string> {
+    return computeNamespaceKey(
+      config,
+      await this.manifestRegistry.getIdentityFields(config.manifestId)
+    )
+  }
+
   // Heal v15-orphaned seasons against live configs. Open extension pages hold
   // the season query cached, so a heal must broadcast an invalidation or they
   // keep rendering the orphan state.
   private async reconcileSeasonIdentities(): Promise<void> {
     const configs = await this.providerConfigService.getAll()
-    const healed = await this.seasonService.reconcileIdentities(configs)
+    const identityFields = await this.manifestRegistry.getIdentityFieldsMap()
+    const healed = await this.seasonService.reconcileIdentities(
+      configs.map((config) => ({
+        ...config,
+        identityFields: identityFields[config.manifestId] ?? [],
+      }))
+    )
     if (healed > 0) {
       this.logger.debug(`Reconciled identity for ${healed} orphaned season(s)`)
       publishDataChange({

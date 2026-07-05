@@ -5,6 +5,8 @@ type ReconcilableConfig = {
   id: string
   manifestId: string
   configValues?: Record<string, unknown>
+  // The manifest's identityFields declaration, resolved by the caller.
+  identityFields: readonly string[]
 }
 
 /**
@@ -52,7 +54,7 @@ export async function reconcileSeasonIdentity(
       if (!config) {
         continue
       }
-      const namespaceKey = computeNamespaceKey(config)
+      const namespaceKey = computeNamespaceKey(config, config.identityFields)
       const key = identityKey(config.manifestId, namespaceKey, row.indexedId)
       if (claimed.has(key)) {
         continue
@@ -79,7 +81,7 @@ export async function reconcileSeasonIdentity(
         if (!config) {
           continue
         }
-        const namespaceKey = computeNamespaceKey(config)
+        const namespaceKey = computeNamespaceKey(config, config.identityFields)
         delete entry.seasons[key]
         // A mapping already keyed by the namespace is newer intent; keep it.
         if (!(namespaceKey in entry.seasons)) {

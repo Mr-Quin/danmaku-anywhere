@@ -211,7 +211,8 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   // it hashes to a ns: namespace distinct from any builtin.
   expect(postCustomDdpConfig, 'custom DanDanPlay config survived').toBeDefined()
   expect(
-    postCustomDdpConfig && computeNamespaceKey(postCustomDdpConfig),
+    postCustomDdpConfig &&
+      computeNamespaceKey(postCustomDdpConfig, ['baseUrl']),
     'a self-hosted config hashes to a ns: namespaceKey, distinct from a builtin'
   ).toMatch(/^ns:/)
 

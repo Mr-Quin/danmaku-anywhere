@@ -3,6 +3,8 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { computeNamespaceKey } from './namespaceKey'
 import { resolveSeasonConfig } from './resolveSeasonConfig'
 
+const DDP_IDENTITY = { dandanplay: ['baseUrl'] }
+
 function makeConfig(
   id: string,
   manifestId: string,
@@ -15,8 +17,9 @@ describe('resolveSeasonConfig', () => {
   it('resolves a builtin season to its matching config', () => {
     const config = makeConfig('bilibili', 'bilibili')
     const result = resolveSeasonConfig(
-      { manifestId: 'bilibili', namespaceKey: computeNamespaceKey(config) },
-      [config]
+      { manifestId: 'bilibili', namespaceKey: computeNamespaceKey(config, []) },
+      [config],
+      {}
     )
     expect(result).toBe(config)
   })
@@ -31,9 +34,10 @@ describe('resolveSeasonConfig', () => {
     const result = resolveSeasonConfig(
       {
         manifestId: configB.manifestId,
-        namespaceKey: computeNamespaceKey(configB),
+        namespaceKey: computeNamespaceKey(configB, ['baseUrl']),
       },
-      [configA, configB]
+      [configA, configB],
+      DDP_IDENTITY
     )
     expect(result).toBe(configB)
   })
@@ -45,19 +49,45 @@ describe('resolveSeasonConfig', () => {
     const configB = makeConfig('uuid-b', 'dandanplay', {
       baseUrl: 'https://shared/api',
     })
-    const sharedKey = computeNamespaceKey(configA)
+    const sharedKey = computeNamespaceKey(configA, ['baseUrl'])
     const result = resolveSeasonConfig(
       { manifestId: 'dandanplay', namespaceKey: sharedKey },
-      [configA, configB]
+      [configA, configB],
+      DDP_IDENTITY
     )
     expect(result).toBeTruthy()
+  })
+
+  it('treats a manifest with no declared identity fields as one shared namespace', () => {
+    const config = makeConfig('uuid-a', 'mango', {
+      baseUrl: 'https://server-a/api',
+    })
+    const result = resolveSeasonConfig(
+      { manifestId: 'mango', namespaceKey: 'mango' },
+      [config],
+      { mango: [] }
+    )
+    expect(result).toBe(config)
+  })
+
+  it('falls back to an empty declaration for an unknown manifest', () => {
+    const config = makeConfig('uuid-a', 'gone:manifest', {
+      baseUrl: 'https://server-a/api',
+    })
+    const result = resolveSeasonConfig(
+      { manifestId: 'gone:manifest', namespaceKey: 'gone:manifest' },
+      [config],
+      {}
+    )
+    expect(result).toBe(config)
   })
 
   it('returns undefined when no config matches', () => {
     const config = makeConfig('bilibili', 'bilibili')
     const result = resolveSeasonConfig(
       { manifestId: 'iqiyi', namespaceKey: 'iqiyi' },
-      [config]
+      [config],
+      {}
     )
     expect(result).toBeUndefined()
   })
@@ -66,7 +96,8 @@ describe('resolveSeasonConfig', () => {
     const config = makeConfig('bilibili', 'bilibili')
     const result = resolveSeasonConfig(
       { manifestId: 'bilibili', namespaceKey: undefined },
-      [config]
+      [config],
+      {}
     )
     expect(result).toBeUndefined()
   })
@@ -75,7 +106,8 @@ describe('resolveSeasonConfig', () => {
     const config = makeConfig('bilibili', 'bilibili')
     const result = resolveSeasonConfig(
       { manifestId: undefined, namespaceKey: 'bilibili' },
-      [config]
+      [config],
+      {}
     )
     expect(result).toBeUndefined()
   })

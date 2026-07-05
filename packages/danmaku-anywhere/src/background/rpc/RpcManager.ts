@@ -29,7 +29,6 @@ import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import { computeNamespaceKey } from '@/common/providers/namespaceKey'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
 import type { RRPServerHandler } from '@/common/rpc/server'
 import { createRpcServer } from '@/common/rpc/server'
@@ -395,7 +394,7 @@ export class RpcManager {
           if (config) {
             await this.bookmarkService.deleteBySeasonIdentity(
               config.manifestId,
-              computeNamespaceKey(config)
+              await this.providerService.computeConfigNamespaceKey(config)
             )
           }
 

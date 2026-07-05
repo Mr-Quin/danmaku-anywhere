@@ -121,7 +121,7 @@ test('a v15 orphan heals when its config appears mid-session', async ({
     .toBe('dandanplay')
   await expect
     .poll(async () => (await da.season.get(season.id))?.namespaceKey)
-    .toBe(computeNamespaceKey(SELF_HOSTED_CONFIG))
+    .toBe(computeNamespaceKey(SELF_HOSTED_CONFIG, ['baseUrl']))
 
   await Popup.open(page, extensionId, '/mount')
   await popup.mount.waitForSeason(season.id)

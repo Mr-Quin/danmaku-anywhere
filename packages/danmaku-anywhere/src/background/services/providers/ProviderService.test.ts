@@ -80,7 +80,7 @@ function build(
     id: 1,
     providerConfigId: config.id,
     manifestId: config.manifestId,
-    namespaceKey: computeNamespaceKey(config),
+    namespaceKey: computeNamespaceKey(config, []),
     providerIds: { animeId: 42 },
     provider: providerTypeFromManifestId(config.manifestId),
     title: 'Show',
@@ -101,6 +101,7 @@ function build(
 
   const registry = {
     ready: Promise.resolve(true),
+    getIdentityFieldsMap: vi.fn(async () => ({})),
   } as unknown as ManifestRegistry
 
   const service = new ProviderService(
@@ -320,7 +321,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
         id: 1,
         providerConfigId: 'iqiyi-1',
         manifestId: iqiyiConfig.manifestId,
-        namespaceKey: computeNamespaceKey(iqiyiConfig),
+        namespaceKey: computeNamespaceKey(iqiyiConfig, []),
       },
     } as unknown as WithSeason<EpisodeMeta>
 
@@ -359,7 +360,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
           id: 1,
           providerConfigId: `${LEGACY_MACCMS_ID}-1`,
           manifestId: maccmsConfig.manifestId,
-          namespaceKey: computeNamespaceKey(maccmsConfig),
+          namespaceKey: computeNamespaceKey(maccmsConfig, []),
         },
       } as unknown as WithSeason<EpisodeMeta>
       const { service } = build(maccmsConfig, provider)
@@ -721,6 +722,7 @@ describe('ProviderService.deleteUserManifest', () => {
       getSource: vi.fn(async () =>
         opts.kind ? { manifest: {}, kind: opts.kind } : undefined
       ),
+      getIdentityFields: vi.fn(async () => []),
       unregister,
     } as unknown as ManifestRegistry
     const deleteFromStorage = vi.fn(async () => {})

@@ -29,6 +29,7 @@ const config = {
   id: CUSTOM_DDP_ID,
   manifestId: 'dandanplay',
   configValues: { baseUrl: BASE_URL },
+  identityFields: ['baseUrl'],
 }
 
 async function seedOrphanAndUpgrade(): Promise<DanmakuAnywhereDb> {
@@ -68,7 +69,9 @@ describe('reconcileSeasonIdentity', () => {
 
     expect(healed).toBe(1)
     expect(season.manifestId).toBe('dandanplay')
-    expect(season.namespaceKey).toBe(computeNamespaceKey(config))
+    expect(season.namespaceKey).toBe(
+      computeNamespaceKey(config, config.identityFields)
+    )
     expect('providerConfigId' in season).toBe(false)
   })
 
@@ -96,7 +99,7 @@ describe('reconcileSeasonIdentity', () => {
     const db = await seedOrphanAndUpgrade()
     await db.season.add({
       manifestId: 'dandanplay',
-      namespaceKey: computeNamespaceKey(config),
+      namespaceKey: computeNamespaceKey(config, config.identityFields),
       indexedId: 'custom-1',
       title: 'Already Here',
       providerIds: {},
@@ -127,7 +130,7 @@ describe('reconcileSeasonIdentity', () => {
     db.close()
 
     expect(entry?.seasons).toEqual({
-      [computeNamespaceKey(config)]: 1,
+      [computeNamespaceKey(config, config.identityFields)]: 1,
       bilibili: 3,
     })
     expect(entry?.seasonIds.sort()).toEqual([1, 3])
@@ -135,7 +138,7 @@ describe('reconcileSeasonIdentity', () => {
 
   it('keeps an unmatched seasonMap key and never clobbers an existing namespace mapping', async () => {
     const db = await seedOrphanAndUpgrade()
-    const namespaceKey = computeNamespaceKey(config)
+    const namespaceKey = computeNamespaceKey(config, config.identityFields)
     await db.seasonMap.add({
       key: 'tt-1',
       seasons: { [CUSTOM_DDP_ID]: 1, [namespaceKey]: 9, 'other-uuid': 5 },

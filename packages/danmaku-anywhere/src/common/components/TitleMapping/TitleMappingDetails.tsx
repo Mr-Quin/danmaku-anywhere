@@ -14,6 +14,7 @@ import type { NamingRule } from '@/common/options/localMatchingRule/schema'
 import { useNamingRules } from '@/common/options/localMatchingRule/useLocalMatchingRule'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { computeNamespaceKey } from '@/common/providers/namespaceKey'
+import { useIdentityFieldsByManifest } from '@/common/providers/useIdentityFieldsByManifest'
 import { useSeasonMapMutations } from '@/common/seasonMap/queries/useAllSeasonMap'
 import type { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { compareLocale } from '@/common/utils/collator'
@@ -36,6 +37,7 @@ type TitleMappingDetailsProps = {
 export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
   const { t } = useTranslation()
   const { configs } = useProviderConfig()
+  const identityFields = useIdentityFieldsByManifest()
   const mutations = useSeasonMapMutations()
   const { rules: namingRules } = useNamingRules()
 
@@ -91,7 +93,10 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
     <Box>
       <BoxGrid>
         {configs.map((config) => {
-          const ns = computeNamespaceKey(config)
+          const ns = computeNamespaceKey(
+            config,
+            identityFields[config.manifestId] ?? []
+          )
           const seasonId = map.getSeasonId(ns)
           const selectedSeason = seasonId
             ? seasonsById.get(seasonId) || null

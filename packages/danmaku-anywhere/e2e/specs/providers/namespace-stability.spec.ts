@@ -35,7 +35,7 @@ async function seedSeasonUnder(
 ): Promise<number> {
   const season = await da.season.add({
     manifestId: 'dandanplay',
-    namespaceKey: computeNamespaceKey(httpConfig),
+    namespaceKey: computeNamespaceKey(httpConfig, ['baseUrl']),
     indexedId: '12345',
     title: 'Self-hosted Show',
     type: '',

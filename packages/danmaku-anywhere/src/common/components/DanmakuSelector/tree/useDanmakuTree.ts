@@ -24,6 +24,7 @@ import {
 } from '@/common/danmaku/utils'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
+import { useIdentityFieldsByManifest } from '@/common/providers/useIdentityFieldsByManifest'
 import { compareLocale } from '@/common/utils/collator'
 import { matchWithPinyin } from '@/common/utils/utils'
 
@@ -158,6 +159,7 @@ export const useDanmakuTree = (
   const { data: seasons } = useGetAllSeasonsSuspense({ includeEmpty: true })
   const { data: bookmarks } = useBookmarksSuspense()
   const { getProviderById, configs } = useProviderConfig()
+  const identityFields = useIdentityFieldsByManifest()
 
   const { t } = useTranslation()
 
@@ -261,7 +263,11 @@ export const useDanmakuTree = (
         return
       }
 
-      const resolvedConfig = resolveSeasonConfig(season, configs)
+      const resolvedConfig = resolveSeasonConfig(
+        season,
+        configs,
+        identityFields
+      )
       const orphaned = resolvedConfig === undefined
       const provider =
         resolvedConfig ?? getProviderById(season.manifestId ?? '')
@@ -304,7 +310,11 @@ export const useDanmakuTree = (
         continue
       }
 
-      const resolvedConfig = resolveSeasonConfig(season, configs)
+      const resolvedConfig = resolveSeasonConfig(
+        season,
+        configs,
+        identityFields
+      )
       const orphaned = resolvedConfig === undefined
 
       // Mirror matchesTypeFilter: an orphan has no provider type and no chip
@@ -402,6 +412,7 @@ export const useDanmakuTree = (
     t,
     getProviderById,
     configs,
+    identityFields,
   ])
 
   return {

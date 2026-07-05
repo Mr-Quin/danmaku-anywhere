@@ -211,6 +211,7 @@ describe('ManifestRegistry', () => {
           version: '2.1.0',
           configSchema: undefined,
           kind: 'preinstalled',
+          identityFields: [],
         },
         {
           id: 'mine:one',
@@ -218,6 +219,7 @@ describe('ManifestRegistry', () => {
           version: '1.0.0',
           configSchema: undefined,
           kind: 'user',
+          identityFields: [],
         },
       ])
     )

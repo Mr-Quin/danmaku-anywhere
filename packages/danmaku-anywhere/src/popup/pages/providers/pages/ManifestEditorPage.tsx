@@ -213,10 +213,7 @@ function ManifestEditor({
               id: manifest.id,
               name:
                 typeof manifest.name === 'string' ? manifest.name : manifest.id,
-              version:
-                typeof manifest.version === 'string' ? manifest.version : '',
               configSchema: manifest.configSchema,
-              kind: 'user',
             }),
             {
               onSuccess: finish,

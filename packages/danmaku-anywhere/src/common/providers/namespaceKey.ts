@@ -38,20 +38,57 @@ function normalizeBaseUrl(raw: string): string {
   return `${url.host.toLowerCase()}${stripApiSuffix(url.pathname)}`
 }
 
-export function computeNamespaceKey(config: {
-  id: string
-  manifestId: string
-  configValues?: Record<string, unknown>
-}): string {
+// URL-shaped values get URL semantics; anything else is compared as-is
+// (tokens and the like can be case-sensitive, so no lowercasing).
+function normalizeIdentityValue(field: string, value: unknown): string {
+  if (typeof value !== 'string') {
+    return JSON.stringify(value) ?? ''
+  }
+  const trimmed = value.trim()
+  if (trimmed === '') {
+    return ''
+  }
+  return field === 'baseUrl' ? normalizeBaseUrl(trimmed) : trimmed
+}
+
+/**
+ * The content namespace a config's season/episode ids are valid in. The
+ * manifest declares which config fields identify an instance (identityFields);
+ * two configs whose declared values match share a namespace.
+ *
+ * A config whose id IS its manifestId is an auto-imported global instance
+ * (e.g. the builtin DanDanPlay pointed at the proxy) and always keys to the
+ * shared manifestId namespace, ahead of the declaration. A manifest declaring
+ * no identity fields, or a config with all declared values blank, also keys
+ * to manifestId.
+ */
+export function computeNamespaceKey(
+  config: {
+    id: string
+    manifestId: string
+    configValues?: Record<string, unknown>
+  },
+  identityFields: readonly string[]
+): string {
   if (config.id === config.manifestId) {
     return config.manifestId
   }
 
-  const rawBaseUrl = config.configValues?.['baseUrl']
-  if (typeof rawBaseUrl !== 'string' || rawBaseUrl.trim() === '') {
-    return config.manifestId
+  const pairs: string[] = []
+  for (const field of [...identityFields].sort()) {
+    const value = config.configValues?.[field]
+    if (value === undefined || value === null) {
+      continue
+    }
+    const normalized = normalizeIdentityValue(field, value)
+    if (normalized === '') {
+      continue
+    }
+    pairs.push(`${field}\u0000${normalized}`)
   }
 
-  const normalized = normalizeBaseUrl(rawBaseUrl.trim())
-  return `ns:${fnv1a32(normalized)}`
+  if (pairs.length === 0) {
+    return config.manifestId
+  }
+  return `ns:${fnv1a32(pairs.join('\u0000'))}`
 }
