@@ -527,7 +527,10 @@ describe('ProviderService.setup', () => {
     const service = new ProviderService(
       {} as unknown as DanmakuService,
       {} as unknown as SeasonService,
-      {} as unknown as ProviderConfigService,
+      {
+        options: { onChange: vi.fn() },
+        getAll: vi.fn(async () => []),
+      } as unknown as ProviderConfigService,
       vi.fn(),
       registry,
       {} as unknown as BookmarkService,
@@ -564,7 +567,7 @@ describe('ProviderService.seedDefaultProviders', () => {
     })
     const hasSeeded = vi.fn(async () => seeded)
     const providerConfigService = {
-      options: { set },
+      options: { set, onChange: vi.fn() },
       markSeeded,
       hasSeeded,
       getAll: vi.fn(async () => []),

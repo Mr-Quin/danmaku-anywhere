@@ -19,6 +19,7 @@ import type {
 } from '@/common/danmaku/dto'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { toManifestLocale } from '@/common/localization/language'
+import { publishDataChange } from '@/common/messaging/dataChangeChannel'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import {
   AUTO_IMPORT_PROVIDERS,
@@ -28,6 +29,7 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { computeNamespaceKey } from '@/common/providers/namespaceKey'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
+import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import type {
   ProviderLoginStatus,
   ProviderManifestList,
@@ -335,24 +337,43 @@ export class ProviderService {
         this.logger.error('Install handling failed:', e)
       })
     })
-    void this.reconcileSeasonIdentities().catch((e) => {
+    void this.reconcileSeasonIdentitiesOnce().catch((e) => {
       this.logger.error('Season identity reconciliation failed:', e)
+    })
+    // Configs can also appear mid-session (another device syncing in, a
+    // re-added config); heal orphans right away rather than waiting for the
+    // next browser session.
+    this.providerConfigService.options.onChange(() => {
+      void this.reconcileSeasonIdentities().catch((e) => {
+        this.logger.error('Season identity reconciliation failed:', e)
+      })
     })
   }
 
-  // Heal v15-orphaned seasons against live configs, once per browser session,
-  // best-effort: a failure must never block service-worker startup.
-  private async reconcileSeasonIdentities(): Promise<void> {
+  // Once per browser session at startup, so routine service-worker wakes skip
+  // the sweep. Best-effort: a failure must never block startup.
+  private async reconcileSeasonIdentitiesOnce(): Promise<void> {
     const RECONCILED_KEY = 'seasonIdentityReconciled'
     const stored = await chrome.storage.session.get(RECONCILED_KEY)
     if (stored[RECONCILED_KEY]) {
       return
     }
+    await this.reconcileSeasonIdentities()
+    await chrome.storage.session.set({ [RECONCILED_KEY]: true })
+  }
+
+  // Heal v15-orphaned seasons against live configs. Open extension pages hold
+  // the season query cached, so a heal must broadcast an invalidation or they
+  // keep rendering the orphan state.
+  private async reconcileSeasonIdentities(): Promise<void> {
     const configs = await this.providerConfigService.getAll()
     const healed = await this.seasonService.reconcileIdentities(configs)
-    await chrome.storage.session.set({ [RECONCILED_KEY]: true })
     if (healed > 0) {
       this.logger.debug(`Reconciled identity for ${healed} orphaned season(s)`)
+      publishDataChange({
+        type: 'invalidateQueries',
+        keys: [seasonQueryKeys.all()],
+      })
     }
   }
 

@@ -1,4 +1,5 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import { computeNamespaceKey } from '../../../src/common/providers/namespaceKey'
 import { mockLoginProbes } from '../../network/loginProbes'
 import { Popup } from '../../pom/Popup'
 import {
@@ -13,7 +14,9 @@ import { applyProfile } from '../../setup/profile'
  * live Bilibili season (asserts it is NOT orphaned), deletes the Bilibili
  * provider (asserts the season goes orphaned), then re-adds the same-identity
  * Bilibili config and asserts the season is no longer orphaned and its Refresh
- * Metadata / Follow actions re-enable.
+ * Metadata / Follow actions re-enable. Also covers the v15-orphan path: a
+ * season that kept its raw providerConfigId heals as soon as that config
+ * appears mid-session, without a browser restart.
  */
 
 const COMMENTS: CommentEntity[] = [
@@ -68,4 +71,59 @@ test('a season reparents when its source config is re-added', async ({
   await popup.mount.openContextMenu(seasonItem)
   await expect(popup.mount.contextMenuItem('refresh')).toBeEnabled()
   await expect(popup.mount.contextMenuItem('bookmarkAdd')).toBeEnabled()
+})
+
+const SELF_HOSTED_ID = 'd9d068cc-d7a5-4277-990b-73b28f7637f8'
+
+const SELF_HOSTED_CONFIG = {
+  id: SELF_HOSTED_ID,
+  manifestId: 'dandanplay',
+  name: 'SelfHosted',
+  enabled: true,
+  configValues: {
+    baseUrl: 'http://my-server.invalid/api',
+    auth: { enabled: false, headers: [] },
+  },
+}
+
+test('a v15 orphan heals when its config appears mid-session', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, {
+    providers: { bilibili: { enabled: true } },
+    network: mockLoginProbes(),
+  })
+
+  // A v15-style orphan: no identity, but the raw providerConfigId retained
+  // for the reconciler.
+  const season = await da.season.add({
+    title: 'Self-hosted Show',
+    type: '',
+    indexedId: '12345',
+    providerIds: { animeId: 12345 },
+    schemaVersion: 1,
+    providerConfigId: SELF_HOSTED_ID,
+  } as never)
+  await da.episode.add(makeBilibiliEpisode(season.id, { comments: COMMENTS }))
+
+  const popup = await Popup.open(page, extensionId, '/mount')
+  await popup.mount.waitForSeason(season.id)
+  await expect(popup.mount.seasonOrphanedBadge(season.id)).toBeVisible()
+
+  const remaining = await da.providerConfig.list()
+  await da.providerConfig.set([...remaining, SELF_HOSTED_CONFIG])
+
+  await expect
+    .poll(async () => (await da.season.get(season.id))?.manifestId)
+    .toBe('dandanplay')
+  await expect
+    .poll(async () => (await da.season.get(season.id))?.namespaceKey)
+    .toBe(computeNamespaceKey(SELF_HOSTED_CONFIG))
+
+  await Popup.open(page, extensionId, '/mount')
+  await popup.mount.waitForSeason(season.id)
+  await expect(popup.mount.seasonOrphanedBadge(season.id)).toBeHidden()
 })
