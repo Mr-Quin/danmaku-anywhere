@@ -304,32 +304,41 @@ export const useDanmakuTree = (
         continue
       }
 
-      if (resolveSeasonConfig(season, configs) === undefined) {
+      const resolvedConfig = resolveSeasonConfig(season, configs)
+      const orphaned = resolvedConfig === undefined
+
+      // Mirror matchesTypeFilter: an orphan has no provider type and no chip
+      // can select it; keep it visible.
+      const providerType = season.manifestId
+        ? providerTypeFromManifestId(season.manifestId)
+        : undefined
+      if (providerType !== undefined && !typeFilter.includes(providerType)) {
         continue
       }
 
-      if (
-        !typeFilter.includes(
-          providerTypeFromManifestId(season.manifestId ?? '')
-        )
-      ) {
-        continue
-      }
-
-      const filteredStubs = computeBookmarkStubs(
-        bookmark,
-        episodesBySeason[bookmark.seasonId] ?? [],
-        filter,
-        season.title
-      )
+      // An orphaned season shows no stubs (a stub exists to fetch an episode,
+      // which needs a live config) but keeps its node, orphan badge, and
+      // bookmark flag so the follow stays visible and removable.
+      const filteredStubs = orphaned
+        ? []
+        : computeBookmarkStubs(
+            bookmark,
+            episodesBySeason[bookmark.seasonId] ?? [],
+            filter,
+            season.title
+          )
 
       const existingNode = treeItemMap.get(`season-${season.id}`)
 
-      if (filteredStubs.length === 0) {
-        if (existingNode?.kind === 'season') {
-          existingNode.bookmarked = true
+      if (existingNode?.kind !== 'season' && filteredStubs.length === 0) {
+        // Nothing downloaded and nothing to show as a stub. Only a followed
+        // orphan still earns a node (subject to the text filter), so the user
+        // can see and unfollow it.
+        const matchesText =
+          !filter || matchWithPinyin(season.title, filter.toLocaleLowerCase())
+        if (!orphaned || !matchesText) {
+          continue
         }
-        continue
       }
 
       const stubNodes = filteredStubs.map((stub) =>
@@ -344,27 +353,32 @@ export const useDanmakuTree = (
       )
 
       if (existingNode?.kind === 'season') {
-        // Season node already exists (some episodes are fetched)
-        existingNode.children = [...(existingNode.children ?? []), ...stubNodes]
-        existingNode.children.sort(compareEpisodes)
+        if (stubNodes.length > 0) {
+          existingNode.children = [
+            ...(existingNode.children ?? []),
+            ...stubNodes,
+          ]
+          existingNode.children.sort(compareEpisodes)
+        }
         existingNode.bookmarked = true
-      } else {
-        // Season has no fetched episodes, create node from stubs only
-        const resolvedConfig = resolveSeasonConfig(season, configs)
-        const provider =
-          resolvedConfig ?? getProviderById(season.manifestId ?? '')
-        const seasonNode = register({
-          id: `season-${season.id}`,
-          label: season.title,
-          kind: 'season' as const,
-          data: season,
-          provider,
-          orphaned: resolvedConfig === undefined,
-          bookmarked: true,
-          children: stubNodes.sort(compareEpisodes),
-        })
-        treeItems.push(seasonNode)
+        continue
       }
+
+      // Season has no fetched episodes: create the node from its stubs (empty
+      // for an orphan).
+      const provider =
+        resolvedConfig ?? getProviderById(season.manifestId ?? '')
+      const seasonNode = register({
+        id: `season-${season.id}`,
+        label: season.title,
+        kind: 'season' as const,
+        data: season,
+        provider,
+        orphaned,
+        bookmarked: true,
+        children: stubNodes.sort(compareEpisodes),
+      })
+      treeItems.push(seasonNode)
     }
 
     treeItems.sort((a, b) => {

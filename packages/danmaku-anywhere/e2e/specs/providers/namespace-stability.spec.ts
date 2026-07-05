@@ -11,7 +11,9 @@ import { applyProfile } from '../../setup/profile'
  * edit that normalizes to the same instance (http -> https) must keep the
  * seasons resolved (no orphan badge); an edit to a genuinely different origin
  * (another host) must re-key and orphan them. Both are asserted via the mount
- * tree's orphan badge.
+ * tree's orphan badge. A followed season with no downloaded episodes must
+ * survive the orphaning visibly (badge shown, stubs hidden) so it can still
+ * be unfollowed.
  */
 
 const HOST = 'my-server.invalid'
@@ -27,7 +29,10 @@ const httpConfig: ProviderConfig = {
   },
 }
 
-async function seedSeasonUnder(da: DaClient): Promise<number> {
+async function seedSeasonUnder(
+  da: DaClient,
+  opts: { withEpisode: boolean } = { withEpisode: true }
+): Promise<number> {
   const season = await da.season.add({
     manifestId: 'dandanplay',
     namespaceKey: computeNamespaceKey(httpConfig),
@@ -37,11 +42,13 @@ async function seedSeasonUnder(da: DaClient): Promise<number> {
     providerIds: { animeId: 12345 },
     schemaVersion: 1,
   })
-  await da.episode.add(
-    makeBilibiliEpisode(season.id, {
-      comments: [{ p: '0.00,1,25,16777215,0,0,0,0', m: 'hi' }],
-    })
-  )
+  if (opts.withEpisode) {
+    await da.episode.add(
+      makeBilibiliEpisode(season.id, {
+        comments: [{ p: '0.00,1,25,16777215,0,0,0,0', m: 'hi' }],
+      })
+    )
+  }
   return season.id
 }
 
@@ -89,4 +96,36 @@ test('moving a self-hosted config to a different host orphans its seasons', asyn
   const reopened = await Popup.open(page, extensionId, '/mount')
   await reopened.mount.waitForSeason(seasonId)
   await expect(reopened.mount.seasonOrphanedBadge(seasonId)).toBeVisible()
+})
+
+test('a followed season with no downloaded episodes stays visible when orphaned', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, { customProviders: [httpConfig] })
+  const seasonId = await seedSeasonUnder(da, { withEpisode: false })
+  await da.bookmark.add(seasonId, [
+    {
+      providerIds: { animeId: 12345, episodeId: 123450001 },
+      indexedId: '123450001',
+      title: 'Ep1',
+      episodeNumber: '1',
+    },
+  ])
+
+  const popup = await Popup.open(page, extensionId, '/mount')
+  const seasonItem = await popup.mount.waitForSeason(seasonId)
+  await expect(popup.mount.seasonOrphanedBadge(seasonId)).toBeHidden()
+  await expect(seasonItem).toContainText(/\+1/)
+
+  await editBaseUrl(da, 'http://other-host.invalid/api')
+
+  const reopened = await Popup.open(page, extensionId, '/mount')
+  const orphanItem = await reopened.mount.waitForSeason(seasonId)
+  await expect(reopened.mount.seasonOrphanedBadge(seasonId)).toBeVisible()
+  // Stubs are hidden for an orphan: they exist to fetch new episodes, which
+  // needs a live config.
+  await expect(orphanItem).not.toContainText(/\+\d+/)
 })
