@@ -321,6 +321,17 @@ describe('importBackup with V4 and mixed data', () => {
     expect(importedItem.season.namespaceKey).toBe('ns:abc12345')
   })
 
+  it('skips a regular episode whose season is malformed instead of importing it as Custom', () => {
+    const malformed = {
+      ...regularV4EpisodeData,
+      season: { ...regularV4EpisodeData.season, title: 123 },
+    }
+    const backupResult = parseBackupMany([malformed])
+
+    expect(backupResult.parsed).toHaveLength(0)
+    expect(backupResult.skipped).toHaveLength(1)
+  })
+
   it('should skip invalid data in an array', () => {
     const backupResult = parseBackupMany([invalidV4Data])
     expect(backupResult.parsed).toHaveLength(0)

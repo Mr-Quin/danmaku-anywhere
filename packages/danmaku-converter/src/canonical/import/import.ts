@@ -143,8 +143,14 @@ const parseBackup = (data: unknown): BackupParseData | BackupParseError => {
     errors.push(parse.error)
   }
 
-  // try custom v4
-  {
+  // Try custom v4, but never for a season-bearing entry: that is a malformed
+  // regular episode, and parsing it as Custom would silently strip its season
+  // instead of reporting it as skipped.
+  const carriesSeason =
+    data !== null &&
+    typeof data === 'object' &&
+    ('season' in data || 'seasonId' in data)
+  if (!carriesSeason) {
     const parse = zCustomEpisodeInsertV4.safeParse(data)
     if (parse.success) {
       return {
