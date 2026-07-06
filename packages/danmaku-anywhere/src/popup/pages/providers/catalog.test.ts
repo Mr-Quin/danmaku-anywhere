@@ -25,6 +25,7 @@ const manifest: ProviderManifestInfo = {
   id: 'iqiyi',
   name: 'iQIYI',
   version: '0.3.0',
+  identityFields: [],
   kind: 'preinstalled',
 }
 

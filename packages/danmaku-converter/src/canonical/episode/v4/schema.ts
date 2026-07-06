@@ -1,14 +1,13 @@
 import { z } from 'zod'
 import { stripHtml } from '../../../utils/index.js'
 import { zCommentEntity } from '../../comment/index.js'
-import { DanmakuSourceType, type DbEntity } from '../../provider/provider.js'
+import type { DbEntity } from '../../provider/provider.js'
 import { type SeasonV1, zSeasonInsertV1 } from '../../season/index.js'
 
 /**
  * Custom episode schema
  */
 export const zCustomEpisodeInsertV4 = z.object({
-  provider: z.literal(DanmakuSourceType.MacCMS),
   title: z.string().refine(stripHtml),
   comments: z.array(zCommentEntity),
   commentCount: z.number(),
@@ -39,9 +38,8 @@ export const zEpisodeInsertV4 = z.object({
   externalLink: z.url().optional(),
   // alternative title
   alternativeTitle: z.array(z.string()).optional(),
-  provider: z.enum(DanmakuSourceType),
   providerIds: z.record(z.string(), z.unknown()),
-  // unique id within the provider for indexing
+  // unique id within the source for indexing
   indexedId: z.string(),
   // foreign key in the season table
   seasonId: z.number(),
@@ -70,6 +68,4 @@ export const zEpisodeInsertV4WithSeasonV1 = zEpisodeInsertV4.extend({
   season: zSeasonInsertV1,
 })
 
-export type WithSeasonV1<T extends { provider: DanmakuSourceType }> = Readonly<
-  T & { season: SeasonV1 }
->
+export type WithSeasonV1<T extends object> = Readonly<T & { season: SeasonV1 }>

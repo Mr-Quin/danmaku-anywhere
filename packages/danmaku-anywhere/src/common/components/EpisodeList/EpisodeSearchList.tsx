@@ -15,7 +15,7 @@ import type {
 } from '@/common/components/EpisodeList/types'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { useSearchEpisode } from '@/common/danmaku/queries/useSearchEpisode'
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isCustomSeason } from '@/common/danmaku/utils'
 import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
@@ -154,7 +154,7 @@ export function EpisodeSearchList({
       )}
     >
       <Suspense fallback={<FallbackEpisodeList />}>
-        {isNotCustom(season) ? (
+        {!isCustomSeason(season) ? (
           <EpisodeListInner
             season={season}
             renderEpisode={renderEpisode}

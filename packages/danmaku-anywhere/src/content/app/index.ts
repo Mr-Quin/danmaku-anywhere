@@ -1,4 +1,3 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import {
   createExtResponse,
   DA_EXT_SOURCE_APP,
@@ -9,14 +8,13 @@ import {
   setExtensionAttr,
 } from '@danmaku-anywhere/web-scraper'
 import { EXTENSION_VERSION } from '@/common/constants'
-import { isProvider } from '@/common/danmaku/utils'
 import { uiContainer } from '@/common/ioc/uiIoc'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { portNames } from '@/common/ports/portNames'
 import type { RPCClientResponse } from '@/common/rpc/client'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-
 import { tryCatch } from '@/common/utils/tryCatch'
+import { isCustomDanmakuGetPayload } from '@/content/app/danmakuGetRouting'
 
 const extensionOptionsService = uiContainer.get(ExtensionOptionsService)
 
@@ -148,8 +146,11 @@ window.addEventListener(
       }
       case 'danmakuGet': {
         const data = request.data
+        if (!data) {
+          return
+        }
         const { id } = data
-        if (isProvider(data, DanmakuSourceType.MacCMS)) {
+        if (isCustomDanmakuGetPayload(data)) {
           return wrapRpc(() =>
             chromeRpcClient.episodeFilterCustom({
               id,

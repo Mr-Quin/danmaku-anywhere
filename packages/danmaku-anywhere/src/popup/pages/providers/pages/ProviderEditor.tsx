@@ -73,7 +73,7 @@ export const ProviderEditor = ({
       )
     }
     if (provider.manifestId === LEGACY_MACCMS_ID) {
-      return t('providers.editor.title.addMacCms', 'Add MacCMS Provider')
+      return t('providers.editor.title.addMacCms', 'Add VOD Provider')
     }
     return t('providers.editor.title.add', 'Add Provider')
   }

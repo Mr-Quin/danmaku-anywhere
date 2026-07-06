@@ -1,5 +1,4 @@
 import type { EpisodeStub } from '@danmaku-anywhere/danmaku-converter'
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { describe, expect, it } from 'vitest'
 import { findNextStub } from './findNextStub'
 
@@ -8,7 +7,6 @@ const stub = (
   episodeNumber?: number | string,
   title = `ep ${indexedId}`
 ): EpisodeStub => ({
-  provider: DanmakuSourceType.DanDanPlay,
   providerIds: {},
   title,
   episodeNumber,

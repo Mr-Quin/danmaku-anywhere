@@ -1,8 +1,7 @@
-import {
-  type CommentEntity,
-  DanmakuSourceType,
-  type EpisodeInsert,
-  type SeasonInsert,
+import type {
+  CommentEntity,
+  EpisodeInsert,
+  SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
 
 // Canonical Bilibili season for mount-tree specs. providerIds/indexedId line
@@ -12,9 +11,9 @@ export function makeBilibiliSeason(
   overrides: Partial<SeasonInsert> = {}
 ): SeasonInsert {
   return {
-    provider: DanmakuSourceType.Bilibili,
     providerIds: { seasonId: 41410, mediaId: 28219412 },
-    providerConfigId: 'bilibili',
+    manifestId: 'bilibili',
+    namespaceKey: 'bilibili',
     indexedId: '41410',
     title: '葬送的芙莉莲',
     type: '番剧',
@@ -41,7 +40,6 @@ export function makeBilibiliEpisode(
 ): EpisodeInsert {
   const { cid = 1300001, episodeNumber = '1', comments = [] } = opts
   return {
-    provider: DanmakuSourceType.Bilibili,
     providerIds: { cid, aid: 100000 + cid, bvid: `BV${cid}` },
     indexedId: String(cid),
     title: `Ep${episodeNumber}`,

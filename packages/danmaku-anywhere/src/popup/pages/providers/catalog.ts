@@ -11,7 +11,7 @@ import {
 } from './components/forms/schemaForm'
 
 export function createConfigFromManifest(
-  manifest: ProviderManifestInfo
+  manifest: Pick<ProviderManifestInfo, 'id' | 'name' | 'configSchema'>
 ): ProviderConfig {
   return {
     id: getRandomUUID(),

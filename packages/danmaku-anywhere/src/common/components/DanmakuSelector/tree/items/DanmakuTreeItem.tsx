@@ -1,4 +1,3 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { styled } from '@mui/material'
 import {
   TreeItemCheckbox,
@@ -20,7 +19,7 @@ import { useDanmakuTreeContext } from '@/common/components/DanmakuSelector/tree/
 import { EpisodeTreeItem } from '@/common/components/DanmakuSelector/tree/items/EpisodeTreeItem'
 import { SeasonTreeItem } from '@/common/components/DanmakuSelector/tree/items/SeasonTreeItem'
 import { DanmakuContextMenu } from '@/common/components/DanmakuSelector/tree/menus/DanmakuContextMenu'
-import { isProvider } from '@/common/danmaku/utils'
+import { isCustomSeason } from '@/common/danmaku/utils'
 import { useLongPress } from '@/common/hooks/useLongPress'
 import { FolderTreeItem } from './FolderTreeItem'
 import { StubEpisodeTreeItem } from './StubEpisodeTreeItem'
@@ -71,9 +70,7 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
 
   const item = itemMap.get(itemId)
   const isSeason = item?.kind === 'season'
-  const isCustomSeason = isSeason
-    ? isProvider(item.data, DanmakuSourceType.MacCMS)
-    : false
+  const isCustomSeasonItem = isSeason ? isCustomSeason(item.data) : false
 
   function handleMouseEnter() {
     setHovering(true)
@@ -163,7 +160,9 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
           onMouseLeave: handleMouseLeave,
           sx: {
             borderBottom: (theme) =>
-              isCustomSeason ? `1px solid ${theme.palette.divider}` : undefined,
+              isCustomSeasonItem
+                ? `1px solid ${theme.palette.divider}`
+                : undefined,
           },
         })}
         data-testid={`tree-item-${itemId}`}

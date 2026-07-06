@@ -1,7 +1,6 @@
-import {
-  type CommentEntity,
-  DanmakuSourceType,
-  type EpisodeStub,
+import type {
+  CommentEntity,
+  EpisodeStub,
 } from '@danmaku-anywhere/danmaku-converter'
 import { mockLoginProbes } from '../../network/loginProbes'
 import { Popup } from '../../pom/Popup'
@@ -28,7 +27,6 @@ const COMMENTS: CommentEntity[] = [
 ]
 
 const UNFETCHED_STUB: EpisodeStub = {
-  provider: DanmakuSourceType.Bilibili,
   providerIds: { cid: 1300002, aid: 1400002, bvid: 'BV1300002' },
   indexedId: '1300002',
   title: 'Ep2',

@@ -9,7 +9,7 @@ import { useBookmarkRefresh } from '@/common/bookmark/queries/useBookmarkRefresh
 import { useBookmarksSuspense } from '@/common/bookmark/queries/useBookmarks'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isCustomSeason } from '@/common/danmaku/utils'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'
 import { useDanmakuTreeContext } from '../DanmakuTreeContext'
@@ -39,7 +39,7 @@ export const SeasonContextMenuContainer = ({
   const bookmarkDeleteBySeason = useBookmarkDeleteBySeason()
   const bookmarkRefresh = useBookmarkRefresh()
 
-  const bookmark = isNotCustom(season)
+  const bookmark = !isCustomSeason(season)
     ? bookmarks.find((b) => b.seasonId === season.id)
     : undefined
   const isBookmarked = !!bookmark
@@ -47,7 +47,7 @@ export const SeasonContextMenuContainer = ({
   const dialog = useDialog()
 
   const handleExport = () => {
-    if (isNotCustom(season)) {
+    if (!isCustomSeason(season)) {
       exportXml.mutate({
         filter: { seasonId: season.id },
       })
@@ -59,7 +59,7 @@ export const SeasonContextMenuContainer = ({
   }
 
   const handleExportBackup = () => {
-    if (isNotCustom(season)) {
+    if (!isCustomSeason(season)) {
       exportBackup.mutate({
         filter: { seasonId: season.id },
       })
@@ -79,7 +79,7 @@ export const SeasonContextMenuContainer = ({
       ),
       confirmText: t('common.delete', 'Delete'),
       onConfirm: async () => {
-        if (isNotCustom(season)) {
+        if (!isCustomSeason(season)) {
           await deleteSeasonMutation.mutateAsync(season.id)
         } else {
           await deleteEpisodeMutation.mutateAsync({
@@ -94,7 +94,7 @@ export const SeasonContextMenuContainer = ({
   const handleBookmarkToggle = () => {
     if (isBookmarked) {
       bookmarkDeleteBySeason.mutate(season.id)
-    } else if (isNotCustom(season)) {
+    } else if (!isCustomSeason(season)) {
       bookmarkAdd.mutate(season.id)
     }
   }

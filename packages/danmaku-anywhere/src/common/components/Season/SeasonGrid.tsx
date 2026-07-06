@@ -18,6 +18,7 @@ import {
   SeasonCard,
   SeasonCardSkeleton,
 } from '@/common/components/Season/components/SeasonCard/SeasonCard'
+import { seasonSourceKey } from '@/common/danmaku/seasonLabel'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
 import { ScrollBox } from '../layout/ScrollBox'
 
@@ -27,7 +28,7 @@ function itemKey(season: SeasonOrInsert): string | number {
   if (isPersistedSeason(season)) {
     return season.id
   }
-  return `${season.provider}-${season.indexedId}`
+  return `${seasonSourceKey(season)}-${season.indexedId}`
 }
 
 const useBreakpointValue = <T,>(values: Partial<Record<Breakpoint, T>>) => {

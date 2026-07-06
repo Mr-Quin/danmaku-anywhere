@@ -19,6 +19,7 @@ import type {
 } from '@/common/danmaku/dto'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { toManifestLocale } from '@/common/localization/language'
+import { publishDataChange } from '@/common/messaging/dataChangeChannel'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import {
   AUTO_IMPORT_PROVIDERS,
@@ -26,6 +27,9 @@ import {
 } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { computeNamespaceKey } from '@/common/providers/namespaceKey'
+import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
+import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import type {
   ProviderLoginStatus,
   ProviderManifestList,
@@ -114,10 +118,15 @@ export class ProviderService {
   // removed" error when the config has been deleted (the season is orphaned).
   // The UI blocks refresh affordances for orphaned seasons, so this is the
   // fallback for any path that still reaches a provider call.
-  private async getConfigForSeason(
-    providerConfigId: string
-  ): Promise<ProviderConfig> {
-    const config = await this.providerConfigService.get(providerConfigId)
+  private async getConfigForSeason(season: {
+    manifestId?: string
+    namespaceKey?: string
+  }): Promise<ProviderConfig> {
+    const config = resolveSeasonConfig(
+      season,
+      await this.providerConfigService.getAll(),
+      await this.manifestRegistry.getIdentityFieldsMap()
+    )
     if (!config) {
       throw new Error(
         'This source has been removed, so new danmaku cannot be fetched.'
@@ -132,9 +141,7 @@ export class ProviderService {
     await this.manifestRegistry.ready
     const season = await this.seasonService.mustGetById(seasonId)
 
-    const providerConfig = await this.getConfigForSeason(
-      season.providerConfigId
-    )
+    const providerConfig = await this.getConfigForSeason(season)
 
     if (providerConfig.manifestId === LEGACY_MACCMS_ID) {
       throw new Error('MacCMS does not support fetching episodes')
@@ -152,9 +159,7 @@ export class ProviderService {
       throw new Error('No season found for refresh filter')
     }
 
-    const providerConfig = await this.getConfigForSeason(
-      season.providerConfigId
-    )
+    const providerConfig = await this.getConfigForSeason(season)
 
     const service = this.danmakuProviderFactory(providerConfig)
     if (!service.getSeason) {
@@ -192,10 +197,8 @@ export class ProviderService {
     await this.manifestRegistry.ready
     const resolved = await this.resolveMeta(request)
     const { options = {}, meta } = resolved
-    const provider = meta.provider
 
     const [existingDanmaku] = await this.danmakuService.filter({
-      provider,
       indexedId: meta.indexedId,
       seasonId: meta.seasonId,
     })
@@ -211,7 +214,7 @@ export class ProviderService {
       this.logger.debug('Danmaku not found in db, fetching from server')
     }
 
-    const config = await this.getConfigForSeason(meta.season.providerConfigId)
+    const config = await this.getConfigForSeason(meta.season)
 
     if (config.manifestId === LEGACY_MACCMS_ID) {
       throw new Error('MacCMS episodes are not refetchable')
@@ -307,8 +310,13 @@ export class ProviderService {
     const configs = await this.providerConfigService.getAll()
     for (const config of configs) {
       if (config.manifestId === manifestId) {
+        // Resolve before unregistering, while the declaration is still known.
+        const namespaceKey = await this.computeConfigNamespaceKey(config)
         await this.providerConfigService.deleteFromStorage(config.id)
-        await this.bookmarkService.deleteByProviderConfigId(config.id)
+        await this.bookmarkService.deleteBySeasonIdentity(
+          manifestId,
+          namespaceKey
+        )
       }
     }
     await this.manifestRegistry.unregister(manifestId)
@@ -331,6 +339,58 @@ export class ProviderService {
         this.logger.error('Install handling failed:', e)
       })
     })
+    void this.reconcileSeasonIdentitiesOnce().catch((e) => {
+      this.logger.error('Season identity reconciliation failed:', e)
+    })
+    // Configs can also appear mid-session (another device syncing in, a
+    // re-added config); heal orphans right away rather than waiting for the
+    // next browser session.
+    this.providerConfigService.options.onChange(() => {
+      void this.reconcileSeasonIdentities().catch((e) => {
+        this.logger.error('Season identity reconciliation failed:', e)
+      })
+    })
+  }
+
+  // Once per browser session at startup, so routine service-worker wakes skip
+  // the sweep. Best-effort: a failure must never block startup.
+  private async reconcileSeasonIdentitiesOnce(): Promise<void> {
+    const RECONCILED_KEY = 'seasonIdentityReconciled'
+    const stored = await chrome.storage.session.get(RECONCILED_KEY)
+    if (stored[RECONCILED_KEY]) {
+      return
+    }
+    await this.reconcileSeasonIdentities()
+    await chrome.storage.session.set({ [RECONCILED_KEY]: true })
+  }
+
+  // Namespace of a config under its manifest's identityFields declaration.
+  async computeConfigNamespaceKey(config: ProviderConfig): Promise<string> {
+    return computeNamespaceKey(
+      config,
+      await this.manifestRegistry.getIdentityFields(config.manifestId)
+    )
+  }
+
+  // Heal v15-orphaned seasons against live configs. Open extension pages hold
+  // the season query cached, so a heal must broadcast an invalidation or they
+  // keep rendering the orphan state.
+  private async reconcileSeasonIdentities(): Promise<void> {
+    const configs = await this.providerConfigService.getAll()
+    const identityFields = await this.manifestRegistry.getIdentityFieldsMap()
+    const healed = await this.seasonService.reconcileIdentities(
+      configs.map((config) => ({
+        ...config,
+        identityFields: identityFields[config.manifestId] ?? [],
+      }))
+    )
+    if (healed > 0) {
+      this.logger.debug(`Reconciled identity for ${healed} orphaned season(s)`)
+      publishDataChange({
+        type: 'invalidateQueries',
+        keys: [seasonQueryKeys.all()],
+      })
+    }
   }
 
   private async onInstalled(reason: string): Promise<void> {

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import type {
   CustomEpisodeLite,
   EpisodeLite,
+  GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Button } from 'primeng/button'
 import { Popover } from 'primeng/popover'
@@ -9,6 +10,7 @@ import { ScrollPanel } from 'primeng/scrollpanel'
 import { Toolbar } from 'primeng/toolbar'
 import { MaterialIcon } from '../../../shared/components/material-icon'
 import { DanmakuService } from '../../danmaku/danmaku.service'
+import { episodeSourceLabel } from '../episode-source-label'
 
 @Component({
   selector: 'da-video-toolbar',
@@ -65,7 +67,7 @@ import { DanmakuService } from '../../danmaku/danmaku.service'
                         <div class="flex-1 min-w-0">
                           <h4 class="font-medium text-sm truncate mb-1">{{ episode.title }}</h4>
                           <div class="flex items-center gap-2 text-xs text-gray-500">
-                            <span class="px-2 py-1 rounded text-xs">{{ episode.provider }}</span>
+                            <span class="px-2 py-1 rounded text-xs">{{ source(episode) }}</span>
 
                             @if (episode.commentCount > 0) {
                               <span class="flex items-center gap-1">
@@ -93,5 +95,9 @@ export class VideoToolbar {
 
   onEpisodeClick(episode: EpisodeLite | CustomEpisodeLite) {
     // noop
+  }
+
+  protected source(episode: GenericEpisodeLite): string {
+    return episodeSourceLabel(episode)
   }
 }

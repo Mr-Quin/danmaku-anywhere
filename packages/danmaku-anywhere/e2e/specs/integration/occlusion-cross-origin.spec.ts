@@ -1,4 +1,3 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { defaultDanmakuOptions } from '../../../src/common/options/danmakuOptions/constant'
 import { IntegrationPage } from '../../pom/IntegrationPage'
 import { Toast } from '../../pom/Toast'
@@ -114,7 +113,6 @@ async function seedOcclusionMount(context: Parameters<typeof getDaClient>[0]) {
     ],
   })
   await da.episode.addCustom({
-    provider: DanmakuSourceType.MacCMS,
     title: EPISODE_TITLE,
     comments: COMMENTS,
     commentCount: COMMENTS.length,

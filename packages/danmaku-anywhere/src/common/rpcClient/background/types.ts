@@ -122,6 +122,9 @@ export interface ProviderManifestInfo {
   version: string
   configSchema?: ConfigSchema
   kind: 'preinstalled' | 'user'
+  // The manifest's declared instance-identity config fields; drives
+  // namespaceKey derivation wherever configs are matched to seasons.
+  identityFields: readonly string[]
 }
 
 export interface ProviderManifestList {

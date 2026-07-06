@@ -91,7 +91,7 @@ export function createCustomMacCmsProvider(
   return {
     id: input.id ?? getRandomUUID(),
     manifestId: LEGACY_MACCMS_ID,
-    name: input.name ?? 'MacCMS',
+    name: input.name ?? 'VOD',
     enabled: true,
     configValues: {
       danmakuBaseUrl: inputValues.danmakuBaseUrl ?? '',

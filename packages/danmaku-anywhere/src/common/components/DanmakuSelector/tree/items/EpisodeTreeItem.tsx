@@ -2,7 +2,7 @@ import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
 import { ChatBubbleOutlined, InsertDriveFile } from '@mui/icons-material'
 import { Stack, styled, Typography } from '@mui/material'
 import type { ReactElement } from 'react'
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isCustomEpisode } from '@/common/danmaku/utils'
 
 interface EpisodeTreeItemProps {
   episode: GenericEpisodeLite
@@ -43,7 +43,7 @@ export const EpisodeTreeItem = ({
   episode,
   label,
 }: EpisodeTreeItemProps): ReactElement => {
-  const isCustom = !isNotCustom(episode)
+  const isCustom = isCustomEpisode(episode)
 
   return (
     <>

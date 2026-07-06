@@ -8,6 +8,7 @@ import { Box, ButtonBase, Skeleton, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { isPersistedSeason } from '@/common/anime/utils'
 import { useImage } from '@/common/components/image/useImage'
+import { seasonProviderType } from '@/common/danmaku/utils'
 import { IMAGE_ASSETS } from '@/images/ImageAssets'
 
 type SeasonOrInsert = Season | SeasonInsert | CustomSeason
@@ -46,7 +47,8 @@ export function SeasonResultRow({ season, onClick }: SeasonResultRowProps) {
 
   const downloaded =
     season.localEpisodeCount !== undefined && season.localEpisodeCount > 0
-  const testId = `season-card-${season.provider}-${
+  const sourceType = seasonProviderType(season) ?? 'unknown'
+  const testId = `season-card-${sourceType}-${
     isPersistedSeason(season) ? season.id : season.indexedId
   }`
 

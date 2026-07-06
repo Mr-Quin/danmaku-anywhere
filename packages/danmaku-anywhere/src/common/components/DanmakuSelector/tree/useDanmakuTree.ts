@@ -5,6 +5,7 @@ import {
   type EpisodeLite,
   type EpisodeStub,
   type GenericEpisodeLite,
+  providerTypeFromManifestId,
 } from '@danmaku-anywhere/danmaku-converter'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -16,16 +17,34 @@ import type {
 } from '@/common/components/DanmakuSelector/tree/ExtendedTreeItem'
 import { useCustomEpisodeLiteSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
 import { useEpisodesLiteSuspense } from '@/common/danmaku/queries/useEpisodes'
-import { isNotCustom, splitCustomEpisodePath } from '@/common/danmaku/utils'
+import {
+  episodeProviderType,
+  isSourceEpisode,
+  splitCustomEpisodePath,
+} from '@/common/danmaku/utils'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
+import { useIdentityFieldsByManifest } from '@/common/providers/useIdentityFieldsByManifest'
 import { compareLocale } from '@/common/utils/collator'
 import { matchWithPinyin } from '@/common/utils/utils'
 
 const stringifyDanmakuMeta = (episode: GenericEpisodeLite) => {
-  if (!isNotCustom(episode)) {
-    return episode.title
+  if (isSourceEpisode(episode)) {
+    return `${episode.season.title} ${episode.title}`
   }
-  return `${episode.season.title} ${episode.title}`
+  return episode.title
+}
+
+const matchesTypeFilter = (
+  episode: GenericEpisodeLite,
+  typeFilter: DanmakuSourceType[]
+): boolean => {
+  const type = episodeProviderType(episode)
+  // An orphan has no provider type and no chip can select it; keep it visible.
+  if (type === undefined) {
+    return true
+  }
+  return typeFilter.includes(type)
 }
 
 const filterEpisodes = <T extends GenericEpisodeLite>(
@@ -34,13 +53,11 @@ const filterEpisodes = <T extends GenericEpisodeLite>(
   typeFilter: DanmakuSourceType[]
 ) => {
   if (!filter) {
-    return options.filter((option) => {
-      return typeFilter.includes(option.provider)
-    })
+    return options.filter((option) => matchesTypeFilter(option, typeFilter))
   }
 
   return options.filter((option) => {
-    if (!typeFilter.includes(option.provider)) {
+    if (!matchesTypeFilter(option, typeFilter)) {
       return false
     }
     return matchWithPinyin(
@@ -50,10 +67,23 @@ const filterEpisodes = <T extends GenericEpisodeLite>(
   })
 }
 
+const filterCustomEpisodes = <T extends GenericEpisodeLite>(
+  options: T[],
+  filter: string
+) => {
+  if (!filter) {
+    return options
+  }
+  const lowerFilter = filter.toLocaleLowerCase()
+  return options.filter((option) =>
+    matchWithPinyin(stringifyDanmakuMeta(option), lowerFilter)
+  )
+}
+
 const getEpisodeNumber = (item: ExtendedTreeItem): number | undefined => {
   if (
     item.kind === 'episode' &&
-    isNotCustom(item.data) &&
+    isSourceEpisode(item.data) &&
     item.data.episodeNumber !== undefined
   ) {
     const num = Number(item.data.episodeNumber)
@@ -128,7 +158,8 @@ export const useDanmakuTree = (
   const { data: customEpisodes } = useCustomEpisodeLiteSuspense({ all: true })
   const { data: seasons } = useGetAllSeasonsSuspense({ includeEmpty: true })
   const { data: bookmarks } = useBookmarksSuspense()
-  const { getProviderById } = useProviderConfig()
+  const { getProviderById, configs } = useProviderConfig()
+  const identityFields = useIdentityFieldsByManifest()
 
   const { t } = useTranslation()
 
@@ -142,11 +173,10 @@ export const useDanmakuTree = (
     }
 
     const filteredEpisodes = filterEpisodes(episodes, filter, typeFilter)
-    const filteredCustomEpisodes = filterEpisodes(
-      customEpisodes,
-      filter,
-      typeFilter
-    )
+    const showCustom = typeFilter.includes(DanmakuSourceType.MacCMS)
+    const filteredCustomEpisodes = showCustom
+      ? filterCustomEpisodes(customEpisodes, filter)
+      : []
 
     // Handle Custom Episodes (Local)
     if (filteredCustomEpisodes.length > 0) {
@@ -206,8 +236,8 @@ export const useDanmakuTree = (
         version: 0,
         timeUpdated: 0,
         id: -1,
-        provider: DanmakuSourceType.MacCMS,
         providerIds: {},
+        isCustom: true,
       }
 
       treeItems.push(
@@ -216,7 +246,6 @@ export const useDanmakuTree = (
           label: t('danmaku.local', 'Local Danmaku'),
           kind: 'season',
           data: customSeason,
-          provider: getProviderById(DanmakuSourceType.MacCMS),
           children: rootChildren,
         })
       )
@@ -234,8 +263,14 @@ export const useDanmakuTree = (
         return
       }
 
-      const provider = getProviderById(season.providerConfigId)
-      const orphaned = !provider
+      const resolvedConfig = resolveSeasonConfig(
+        season,
+        configs,
+        identityFields
+      )
+      const orphaned = resolvedConfig === undefined
+      const provider =
+        resolvedConfig ?? getProviderById(season.manifestId ?? '')
 
       const children = groupEpisodes.map((ep) =>
         register({
@@ -265,7 +300,7 @@ export const useDanmakuTree = (
     // Merge bookmark stubs into season nodes
     // Pre-group episodes by seasonId for O(1) lookup
     const episodesBySeason = Object.groupBy(
-      episodes.filter(isNotCustom),
+      episodes.filter(isSourceEpisode),
       (ep) => ep.seasonId
     )
 
@@ -275,24 +310,45 @@ export const useDanmakuTree = (
         continue
       }
 
-      if (!typeFilter.includes(season.provider)) {
+      const resolvedConfig = resolveSeasonConfig(
+        season,
+        configs,
+        identityFields
+      )
+      const orphaned = resolvedConfig === undefined
+
+      // Mirror matchesTypeFilter: an orphan has no provider type and no chip
+      // can select it; keep it visible.
+      const providerType = season.manifestId
+        ? providerTypeFromManifestId(season.manifestId)
+        : undefined
+      if (providerType !== undefined && !typeFilter.includes(providerType)) {
         continue
       }
 
-      const filteredStubs = computeBookmarkStubs(
-        bookmark,
-        episodesBySeason[bookmark.seasonId] ?? [],
-        filter,
-        season.title
-      )
+      // An orphaned season shows no stubs (a stub exists to fetch an episode,
+      // which needs a live config) but keeps its node, orphan badge, and
+      // bookmark flag so the follow stays visible and removable.
+      const filteredStubs = orphaned
+        ? []
+        : computeBookmarkStubs(
+            bookmark,
+            episodesBySeason[bookmark.seasonId] ?? [],
+            filter,
+            season.title
+          )
 
       const existingNode = treeItemMap.get(`season-${season.id}`)
 
-      if (filteredStubs.length === 0) {
-        if (existingNode?.kind === 'season') {
-          existingNode.bookmarked = true
+      if (existingNode?.kind !== 'season' && filteredStubs.length === 0) {
+        // Nothing downloaded and nothing to show as a stub. Only a followed
+        // orphan still earns a node (subject to the text filter), so the user
+        // can see and unfollow it.
+        const matchesText =
+          !filter || matchWithPinyin(season.title, filter.toLocaleLowerCase())
+        if (!orphaned || !matchesText) {
+          continue
         }
-        continue
       }
 
       const stubNodes = filteredStubs.map((stub) =>
@@ -307,25 +363,32 @@ export const useDanmakuTree = (
       )
 
       if (existingNode?.kind === 'season') {
-        // Season node already exists (some episodes are fetched)
-        existingNode.children = [...(existingNode.children ?? []), ...stubNodes]
-        existingNode.children.sort(compareEpisodes)
+        if (stubNodes.length > 0) {
+          existingNode.children = [
+            ...(existingNode.children ?? []),
+            ...stubNodes,
+          ]
+          existingNode.children.sort(compareEpisodes)
+        }
         existingNode.bookmarked = true
-      } else {
-        // Season has no fetched episodes, create node from stubs only
-        const provider = getProviderById(season.providerConfigId)
-        const seasonNode = register({
-          id: `season-${season.id}`,
-          label: season.title,
-          kind: 'season' as const,
-          data: season,
-          provider,
-          orphaned: !provider,
-          bookmarked: true,
-          children: stubNodes.sort(compareEpisodes),
-        })
-        treeItems.push(seasonNode)
+        continue
       }
+
+      // Season has no fetched episodes: create the node from its stubs (empty
+      // for an orphan).
+      const provider =
+        resolvedConfig ?? getProviderById(season.manifestId ?? '')
+      const seasonNode = register({
+        id: `season-${season.id}`,
+        label: season.title,
+        kind: 'season' as const,
+        data: season,
+        provider,
+        orphaned,
+        bookmarked: true,
+        children: stubNodes.sort(compareEpisodes),
+      })
+      treeItems.push(seasonNode)
     }
 
     treeItems.sort((a, b) => {
@@ -348,6 +411,8 @@ export const useDanmakuTree = (
     typeFilter,
     t,
     getProviderById,
+    configs,
+    identityFields,
   ])
 
   return {

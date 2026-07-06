@@ -1,7 +1,6 @@
 import type {
   CommentEntity,
   CustomSeason,
-  DanmakuSourceType,
   EpisodeMeta,
   Season,
   SeasonInsert,
@@ -21,8 +20,6 @@ export interface ParseUrlResult {
 }
 
 export interface IDanmakuProvider {
-  forProvider: DanmakuSourceType
-
   search(params: SeasonSearchParams): Promise<SeasonInsert[] | CustomSeason[]>
 
   getSeason?(

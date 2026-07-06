@@ -1,0 +1,20 @@
+{
+  "seasonId": 999,
+  "title": "Post-manifest ep 1",
+  "providerIds": { "episodeId": 444001 },
+  "indexedId": "444001",
+  "comments": [{ "cid": 1, "p": "0.01,1,16777215,user", "m": "hi" }],
+  "commentCount": 1,
+  "params": { "chConvert": 0, "withRelated": true, "from": 0 },
+  "schemaVersion": 4,
+  "lastChecked": 0,
+  "season": {
+    "manifestId": "dandanplay",
+    "namespaceKey": "ns:abc12345",
+    "providerIds": { "animeId": 444, "bangumiId": "444" },
+    "title": "Post-manifest Self-hosted Show",
+    "type": "",
+    "indexedId": "444",
+    "schemaVersion": 1
+  }
+}

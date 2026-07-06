@@ -7,6 +7,7 @@ import { Box, Button } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { NothingHere } from '@/common/components/NothingHere'
+import { seasonSourceKey } from '@/common/danmaku/seasonLabel'
 import { SeasonResultRow, SeasonResultRowSkeleton } from './SeasonResultRow'
 
 type SeasonOrInsert = Season | SeasonInsert | CustomSeason
@@ -90,7 +91,7 @@ export function SeasonResultsList({
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
       {data.map((season) => (
         <SeasonResultRow
-          key={`${season.provider}-${'id' in season ? season.id : season.indexedId}`}
+          key={`${seasonSourceKey(season)}-${'id' in season ? season.id : season.indexedId}`}
           season={season}
           onClick={onSeasonClick}
         />

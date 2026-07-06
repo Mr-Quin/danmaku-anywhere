@@ -21,7 +21,6 @@ import type {
   DanmakuImportResult,
   EpisodeQueryFilter,
 } from '@/common/danmaku/dto'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
 import { DanmakuAnywhereDb } from '@/common/db/db'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { DbEntity } from '@/common/types/dbEntity'
@@ -64,7 +63,6 @@ export class DanmakuService {
     comments: CommentEntity[]
   }): Promise<CustomEpisode> {
     return this.addCustom({
-      provider: DanmakuSourceType.MacCMS,
       comments: importData.comments,
       commentCount: importData.comments.length,
       title: importData.title,
@@ -299,10 +297,12 @@ export class DanmakuService {
               this.db.season,
               this.db.episode,
               async () => {
-                let [existingSeason] = await this.seasonService.filter({
-                  providerConfigId: item.season.providerConfigId,
-                  indexedId: item.season.indexedId,
-                })
+                // Identity-bearing seasons match on the compound index;
+                // identity-less (orphan) seasons match structurally, so a
+                // multi-episode backup shares one season row.
+                let existingSeason = await this.seasonService.findExisting(
+                  item.season
+                )
                 if (!existingSeason) {
                   existingSeason = await this.seasonService.upsert(item.season)
                 }
@@ -316,7 +316,7 @@ export class DanmakuService {
               }
             )
             imported.push({
-              type: item.season.provider,
+              type: item.season.manifestId ?? 'unknown',
               title: item.episode.title,
               seasonId: savedSeasonId,
               seasonTitle: savedSeasonTitle,
@@ -334,7 +334,7 @@ export class DanmakuService {
       ) as Record<
         string,
         {
-          type: DanmakuSourceType
+          type: string
           title: string
           seasonId: number
           seasonTitle: string

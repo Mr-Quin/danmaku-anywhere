@@ -382,14 +382,21 @@ export class RpcManager {
           return res.data
         },
         providerConfigDelete: async (id, sender) => {
-          // Seasons and episodes are kept (orphaned: no config matches their
-          // providerConfigId) so downloaded danmaku stays viewable. Bookmarks
-          // are removed: they only exist to fetch new episodes, which an
-          // orphaned season can no longer do.
-          // deleteFromStorage throws if the config does not exist, so it runs
-          // first to keep a failed delete free of side effects.
+          // Seasons and episodes are kept (orphaned: no live config matches their
+          // namespace) so downloaded danmaku stays viewable. Bookmarks are
+          // removed: they only exist to fetch new episodes, which an orphaned
+          // season can no longer do.
+          // Resolve the config's identity before deleting it; the read has no
+          // side effects, and deleteFromStorage (which throws if the config does
+          // not exist) still runs before any mutation.
+          const config = await this.providerConfigService.get(id)
           await this.providerConfigService.deleteFromStorage(id)
-          await this.bookmarkService.deleteByProviderConfigId(id)
+          if (config) {
+            await this.bookmarkService.deleteBySeasonIdentity(
+              config.manifestId,
+              await this.providerService.computeConfigNamespaceKey(config)
+            )
+          }
 
           void invalidateContentScriptData(sender.tab?.id)
         },

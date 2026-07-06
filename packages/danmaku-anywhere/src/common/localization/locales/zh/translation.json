@@ -206,7 +206,7 @@
     "type": {
       "bilibili": "B站",
       "danDanPlay": "弹弹play",
-      "macCms": "MacCMS",
+      "macCms": "VOD",
       "tencent": "腾讯"
     },
     "unmount": "卸载弹幕",
@@ -514,7 +514,7 @@
     },
     "danmakuSource": {
       "macCms": {
-        "baseUrl": "MacCMS API地址",
+        "baseUrl": "VOD API地址",
         "baseUrlHelper": "列表中的选项可能随时失效。你也可以手动输入地址。",
         "danmuicuBaseUrl": "弹幕库API地址",
         "help": {
@@ -686,7 +686,7 @@
       "title": {
         "add": "添加弹幕源",
         "addDanDanPlay": "添加弹弹play弹幕源",
-        "addMacCms": "添加MacCMS弹幕源",
+        "addMacCms": "添加VOD弹幕源",
         "edit": "编辑弹幕源: {{name}}"
       },
       "validation": {

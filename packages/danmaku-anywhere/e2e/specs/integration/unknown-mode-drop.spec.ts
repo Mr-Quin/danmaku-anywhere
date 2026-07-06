@@ -1,4 +1,3 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { IntegrationPage } from '../../pom/IntegrationPage'
 import type { DaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
@@ -42,7 +41,6 @@ async function seedFixtureProfile(
   })
 
   const customEpisode = await da.episode.addCustom({
-    provider: DanmakuSourceType.MacCMS,
     title: EPISODE_TITLE,
     comments: COMMENTS,
     commentCount: COMMENTS.length,
@@ -77,18 +75,18 @@ test('unknown comment mode is dropped without breaking the batch', async ({
 
   await integrationPage.playVideo()
 
+  // Rendered comments scroll off and despawn, so all three checks must happen
+  // within one seek attempt; a check outside the loop can miss the window.
   await expect(async () => {
     await integrationPage.setVideoTime(SEEK_TIME_S)
     await expect(
       integrationPage.commentElements().filter({ hasText: VALID_TEXT })
     ).toBeVisible({ timeout: 1_000 })
+    await expect(
+      integrationPage.commentElements().filter({ hasText: MODE_2_TEXT })
+    ).toBeVisible({ timeout: 1_000 })
+    await expect(
+      integrationPage.commentElements().filter({ hasText: INVALID_TEXT })
+    ).toHaveCount(0)
   }).toPass({ timeout: 15_000 })
-
-  await expect(
-    integrationPage.commentElements().filter({ hasText: INVALID_TEXT })
-  ).toHaveCount(0)
-
-  await expect(
-    integrationPage.commentElements().filter({ hasText: MODE_2_TEXT })
-  ).toBeVisible()
 })

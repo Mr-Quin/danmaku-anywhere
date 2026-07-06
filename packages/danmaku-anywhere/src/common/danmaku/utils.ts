@@ -1,47 +1,65 @@
-import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
-import { DanmakuSourceType } from '@/common/danmaku/enums'
+import {
+  type CustomSeason,
+  DanmakuSourceType,
+  type GenericEpisode,
+  type GenericEpisodeLite,
+  providerTypeFromManifestId,
+  type Season,
+  type SeasonInsert,
+  type WithSeason,
+} from '@danmaku-anywhere/danmaku-converter'
 
-class UnsupportedProviderException extends Error {
-  constructor(provider: DanmakuSourceType, message?: string) {
-    super(`Unsupported provider: ${provider}${message ? `: ${message}` : ''}`)
+type AnyEpisode =
+  | GenericEpisode
+  | GenericEpisodeLite
+  | (WithSeason<object> & { seasonId: number })
+
+// Source-backed episodes carry a seasonId; custom episodes do not. The split
+// keys on seasonId because, with `provider` gone, a source episode is
+// structurally a superset of a custom one, so narrowing must go through the
+// distinguishing seasonId rather than the custom types.
+export function isSourceEpisode<T extends AnyEpisode>(
+  x: T
+): x is Extract<T, { seasonId: number }> {
+  return 'seasonId' in x
+}
+
+export function isCustomEpisode<T extends AnyEpisode>(
+  x: T
+): x is Exclude<T, { seasonId: number }> {
+  return !('seasonId' in x)
+}
+
+export function isCustomSeason(
+  season: Season | SeasonInsert | CustomSeason
+): season is CustomSeason {
+  return 'isCustom' in season && season.isCustom === true
+}
+
+export function episodeProviderType<T extends AnyEpisode>(
+  episode: T
+): DanmakuSourceType | undefined {
+  if (!isSourceEpisode(episode)) {
+    return DanmakuSourceType.MacCMS
   }
+  return episode.season.manifestId
+    ? providerTypeFromManifestId(episode.season.manifestId)
+    : undefined
 }
 
-// Defensive runtime check. Does NOT narrow `providerIds` — that field is
-// opaque at the type level. Use service-local boundary helpers (e.g.
-// `seasonIds()`, `episodeIds()`) to read typed fields off `providerIds`
-// at the point of access.
-export function assertProviderType(
-  data: { provider: DanmakuSourceType },
-  provider: DanmakuSourceType
-): void {
-  if (data.provider !== provider) {
-    throw new UnsupportedProviderException(
-      data.provider,
-      `expected ${provider}`
-    )
+export function seasonProviderType(
+  season: Season | SeasonInsert | CustomSeason
+): DanmakuSourceType | undefined {
+  if (isCustomSeason(season)) {
+    return DanmakuSourceType.MacCMS
   }
-}
-
-// Boolean predicate only — does not narrow `providerIds`. See
-// `assertProviderType` for the rationale.
-export function isProvider(
-  data: { provider: DanmakuSourceType },
-  provider: DanmakuSourceType
-): boolean {
-  return data.provider === provider
-}
-
-// Episode vs CustomEpisode is a structural distinction (CustomEpisode lacks
-// a season and uses a different shape entirely), so the guard still narrows.
-export function isNotCustom<T extends { provider: DanmakuSourceType }>(
-  data: T
-): data is Exclude<T, { provider: DanmakuSourceType.MacCMS }> {
-  return data.provider !== DanmakuSourceType.MacCMS
+  return season.manifestId
+    ? providerTypeFromManifestId(season.manifestId)
+    : undefined
 }
 
 export const episodeToString = (episode: GenericEpisodeLite) => {
-  if (isNotCustom(episode)) {
+  if (isSourceEpisode(episode)) {
     return `${episode.season.title} - ${episode.title}`
   }
   return episode.title

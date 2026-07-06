@@ -1,7 +1,4 @@
-import {
-  LEGACY_MACCMS_ID,
-  providerTypeFromManifestId,
-} from '@danmaku-anywhere/danmaku-converter'
+import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import type { ResolutionContext } from 'inversify'
 import type { IDanmakuProvider } from '@/background/services/providers/IDanmakuProvider'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
@@ -28,7 +25,6 @@ function createDanmakuProvider(
   return new ManifestProviderService(
     {
       manifestId: config.manifestId,
-      provider: providerTypeFromManifestId(config.manifestId),
       providerConfigId: config.id,
       configValues: config.configValues,
     },

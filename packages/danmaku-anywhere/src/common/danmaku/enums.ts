@@ -15,7 +15,7 @@ export const danmakuSourceTypeList: DanmakuSourceType[] = [
 ]
 
 const DANMAKU_SOURCE_TYPE_LABEL = createLocalizationMap<DanmakuSourceType>({
-  [DanmakuSourceType.MacCMS]: () => i18n.t('danmaku.type.macCms', 'MacCMS'),
+  [DanmakuSourceType.MacCMS]: () => i18n.t('danmaku.type.macCms', 'VOD'),
   [DanmakuSourceType.DanDanPlay]: () =>
     i18n.t('danmaku.type.danDanPlay', 'DanDanPlay'),
   [DanmakuSourceType.Bilibili]: () =>

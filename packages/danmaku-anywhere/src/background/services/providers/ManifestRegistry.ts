@@ -98,8 +98,26 @@ export class ManifestRegistry {
         version: manifest.version,
         configSchema: display.configSchema,
         kind,
+        identityFields: manifest.identityFields,
       }
     })
+  }
+
+  // The manifest's identityFields declaration, for namespace derivation. An
+  // unregistered manifest (e.g. legacy:maccms, or one deleted since the config
+  // was created) resolves as declaring none.
+  async getIdentityFields(manifestId: string): Promise<readonly string[]> {
+    await this.ready
+    return this.runners.get(manifestId)?.runner.manifest.identityFields ?? []
+  }
+
+  async getIdentityFieldsMap(): Promise<Record<string, readonly string[]>> {
+    await this.ready
+    const map: Record<string, readonly string[]> = {}
+    for (const [id, { runner }] of this.runners) {
+      map[id] = runner.manifest.identityFields
+    }
+    return map
   }
 
   getLastCheckedAt(): Promise<number | null> {

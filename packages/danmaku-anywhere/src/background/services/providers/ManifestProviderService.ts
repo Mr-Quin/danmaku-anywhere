@@ -10,8 +10,8 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { ManifestRunner, RunOptions } from '@mr-quin/dango'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
-import type { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ILogger } from '@/common/Logger'
+import { computeNamespaceKey } from '@/common/providers/namespaceKey'
 import { findEpisodeByNumber } from './common/findEpisodeByNumber'
 import type {
   IDanmakuProvider,
@@ -22,8 +22,8 @@ import type {
 import type { ManifestRegistry } from './ManifestRegistry'
 import { resolveManifestInputs } from './manifestInputs'
 
-// Manifest output shapes — the canonical fields a search/episodes/danmaku
-// pipeline must emit. The host adds `provider` / `providerConfigId` /
+// Manifest output shapes: the canonical fields a search/episodes/danmaku
+// pipeline must emit. The host adds `manifestId` / `namespaceKey` /
 // `schemaVersion` and runs `stripHtml` on titles.
 interface ManifestSearchRow {
   providerIds: Record<string, unknown>
@@ -57,7 +57,6 @@ interface ManifestParseUrlOutput {
 
 export interface ManifestProviderConfig {
   manifestId: string
-  provider: DanmakuSourceType
   providerConfigId: string
   configValues?: Record<string, unknown>
 }
@@ -74,14 +73,23 @@ export const DANMAKU_RUN_OPTIONS: RunOptions = {
 }
 
 export class ManifestProviderService implements IDanmakuProvider {
-  readonly forProvider: DanmakuSourceType
-
   constructor(
     private readonly config: ManifestProviderConfig,
     private readonly registry: ManifestRegistry,
     private readonly logger: ILogger
-  ) {
-    this.forProvider = config.provider
+  ) {}
+
+  // Derived from the runner because the manifest declares which config fields
+  // identify an instance (identityFields).
+  private namespaceKeyFor(runner: ManifestRunner): string {
+    return computeNamespaceKey(
+      {
+        id: this.config.providerConfigId,
+        manifestId: this.config.manifestId,
+        configValues: this.config.configValues,
+      },
+      runner.manifest.identityFields
+    )
   }
 
   private resolveInputs(
@@ -106,8 +114,8 @@ export class ManifestProviderService implements IDanmakuProvider {
     return rows.map((row) => ({
       ...row,
       title: stripHtml(row.title),
-      provider: this.forProvider,
-      providerConfigId: this.config.providerConfigId,
+      manifestId: this.config.manifestId,
+      namespaceKey: this.namespaceKeyFor(runner),
       schemaVersion: SEASON_SCHEMA_VERSION,
     }))
   }
@@ -135,8 +143,8 @@ export class ManifestProviderService implements IDanmakuProvider {
     return {
       ...row,
       title: stripHtml(row.title),
-      provider: this.forProvider,
-      providerConfigId: this.config.providerConfigId,
+      manifestId: this.config.manifestId,
+      namespaceKey: this.namespaceKeyFor(runner),
       schemaVersion: SEASON_SCHEMA_VERSION,
     }
   }
@@ -159,7 +167,6 @@ export class ManifestProviderService implements IDanmakuProvider {
     return rows.map((row) => ({
       ...row,
       title: stripHtml(row.title),
-      provider: this.forProvider,
       schemaVersion: EPISODE_SCHEMA_VERSION,
       lastChecked: now,
     }))
@@ -221,14 +228,13 @@ export class ManifestProviderService implements IDanmakuProvider {
       seasonInsert: {
         ...result.seasonInsert,
         title: stripHtml(result.seasonInsert.title),
-        provider: this.forProvider,
-        providerConfigId: this.config.providerConfigId,
+        manifestId: this.config.manifestId,
+        namespaceKey: this.namespaceKeyFor(runner),
         schemaVersion: SEASON_SCHEMA_VERSION,
       },
       episodeMeta: {
         ...result.episodeMeta,
         title: stripHtml(result.episodeMeta.title),
-        provider: this.forProvider,
         schemaVersion: EPISODE_SCHEMA_VERSION,
         lastChecked: now,
       },

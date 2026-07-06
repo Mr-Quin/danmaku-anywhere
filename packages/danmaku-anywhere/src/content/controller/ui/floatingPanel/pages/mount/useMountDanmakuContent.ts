@@ -5,7 +5,7 @@ import type {
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { isNotCustom } from '@/common/danmaku/utils'
+import { isCustomEpisode } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import {
   customEpisodeQueryKeys,
@@ -30,10 +30,10 @@ export const useMountDanmakuContent = () => {
       episodesLite: GenericEpisodeLite[]
     ): Promise<GenericEpisode[]> => {
       const partition = Object.groupBy(episodesLite, (e) => {
-        if (isNotCustom(e)) {
-          return 'other'
+        if (isCustomEpisode(e)) {
+          return 'custom'
         }
-        return 'custom'
+        return 'other'
       })
 
       const episodes: GenericEpisode[] = []

@@ -5,6 +5,7 @@ export const STARTER_MANIFEST = `${JSON.stringify(
     name: 'New Source',
     version: '1.0.0',
     hosts: ['example.com'],
+    identityFields: [],
   },
   null,
   2

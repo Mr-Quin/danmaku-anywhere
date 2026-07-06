@@ -53,7 +53,6 @@ export class BookmarkNamespace implements DevNamespace {
           }
           const insert = {
             seasonId,
-            providerConfigId: season.providerConfigId,
             episodes: episodes ?? [],
             lastRefreshed: Date.now(),
             timeUpdated: Date.now(),
