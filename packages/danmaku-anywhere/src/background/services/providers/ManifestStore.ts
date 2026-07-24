@@ -2,7 +2,13 @@ import { Mutex } from 'async-mutex'
 import { injectable } from 'inversify'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
 
-export type ManifestKind = 'preinstalled' | 'user'
+// 'bundled' behaves like 'preinstalled' everywhere except getPendingUpdates
+// (auto-upgrades on the next reachable sync instead of surfacing as a manual
+// update) and applyUpdates (also eligible, so a direct call still replaces
+// it). It marks a manifest seeded from the build-time bundle rather than
+// fetched from the catalog; fetchAndStore always writes 'preinstalled', so
+// the tag clears the moment the catalog copy replaces the entry.
+export type ManifestKind = 'preinstalled' | 'user' | 'bundled'
 
 export interface ManifestEntry {
   manifest: unknown

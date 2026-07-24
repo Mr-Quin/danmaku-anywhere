@@ -121,7 +121,7 @@ export interface ProviderManifestInfo {
   name: string
   version: string
   configSchema?: ConfigSchema
-  kind: 'preinstalled' | 'user'
+  kind: 'preinstalled' | 'user' | 'bundled'
   // The manifest's declared instance-identity config fields; drives
   // namespaceKey derivation wherever configs are matched to seasons.
   identityFields: readonly string[]
@@ -166,7 +166,7 @@ export interface ManifestTestEpisodeRow {
 
 export interface ManifestSource {
   manifest: unknown
-  kind: 'preinstalled' | 'user'
+  kind: 'preinstalled' | 'user' | 'bundled'
 }
 
 export interface ManifestTestSearchInput {

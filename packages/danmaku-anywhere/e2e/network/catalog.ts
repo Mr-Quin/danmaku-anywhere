@@ -91,3 +91,15 @@ export function mockCatalog(
     },
   }
 }
+
+// Simulates a fully unreachable proxy: both the index and file endpoints
+// fail. Used to exercise the offline bundled-catalog fallback in
+// ManifestRegistry, which only kicks in once the index request fails.
+export function offlineCatalog(): NetworkMock {
+  return {
+    pattern: /\/manifest(\/file)?(\?|$)/,
+    respond: async (route: Route) => {
+      await route.fulfill({ status: 500, body: 'unavailable' })
+    },
+  }
+}

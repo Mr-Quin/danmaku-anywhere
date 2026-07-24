@@ -13,6 +13,7 @@ import type {
   ProviderManifestInfo,
 } from '@/common/rpcClient/background/types'
 import { invariant, sleep } from '@/common/utils/utils'
+import { bundledCatalogIndex, bundledManifestRaw } from './bundledCatalog'
 import { extensionFetchLike } from './extensionFetchLike'
 import {
   type IManifestStore,
@@ -159,18 +160,30 @@ export class ManifestRegistry {
     }
   }
 
-  // Add-only: seeds only manifests absent from the store; a changed preinstalled
-  // manifest surfaces via getPendingUpdates instead of being replaced here.
-  // Returns false when the catalog index could not be fetched.
+  // Add-only for everything except a bundle-seeded entry: a changed
+  // preinstalled manifest surfaces via getPendingUpdates instead of being
+  // replaced here, but a 'bundled' entry auto-upgrades to the catalog copy
+  // the moment the index is reachable again, with no manual apply. Returns
+  // false when the catalog index could not be fetched.
+  //
+  // Remote is primary because it's fresh; the bundled catalog is a same-shape
+  // fallback used only when remote is unreachable, so providers still exist
+  // offline. The bundle can be stale, so the first successful sync replaces
+  // any still-listed bundled entry outright rather than waiting for a manual
+  // update, since the user never chose to install the bundled version.
   async update(): Promise<boolean> {
     await this.ready
     const entries = await this.loadIndex()
     if (!entries) {
+      await this.seedFromBundle()
       return false
     }
     const stored = await this.store.getAll()
     const missing = entries.filter((entry) => !stored[entry.id])
-    await this.fetchAndStore(missing)
+    const bundledStale = entries.filter(
+      (entry) => stored[entry.id]?.kind === 'bundled'
+    )
+    await this.fetchAndStore([...missing, ...bundledStale])
     return true
   }
 
@@ -188,7 +201,14 @@ export class ManifestRegistry {
     const updates: ManifestUpdate[] = []
     for (const entry of entries) {
       const existing = stored[entry.id]
-      if (!existing || existing.kind === 'user') {
+      // 'user' is never replaced by the catalog. 'bundled' auto-upgrades in
+      // update() as soon as the index is reachable, so it must not also
+      // surface here as a manual "update available".
+      if (
+        !existing ||
+        existing.kind === 'user' ||
+        existing.kind === 'bundled'
+      ) {
         continue
       }
       const fromVersion = storedVersion(existing.manifest)
@@ -203,11 +223,12 @@ export class ManifestRegistry {
     return updates
   }
 
-  // Replace only the named manifests that are already stored as preinstalled.
-  // User imports and ids not already seeded are left untouched, so an apply
-  // can never clobber a user manifest or install a brand-new source. Throws on
-  // failure (unreachable catalog or a file that did not apply) so a user-driven
-  // update surfaces the error instead of silently no-op'ing.
+  // Replace only the named manifests that are already stored as preinstalled
+  // or bundled. User imports and ids not already seeded are left untouched,
+  // so an apply can never clobber a user manifest or install a brand-new
+  // source. Throws on failure (unreachable catalog or a file that did not
+  // apply) so a user-driven update surfaces the error instead of silently
+  // no-op'ing.
   async applyUpdates(manifestIds: string[]): Promise<void> {
     await this.ready
     const entries = await this.loadIndex()
@@ -218,7 +239,10 @@ export class ManifestRegistry {
     const stored = await this.store.getAll()
     const targets = entries.filter((entry) => {
       const existing = stored[entry.id]
-      return wanted.has(entry.id) && existing?.kind === 'preinstalled'
+      return (
+        wanted.has(entry.id) &&
+        (existing?.kind === 'preinstalled' || existing?.kind === 'bundled')
+      )
     })
     const applied = await this.fetchAndStore(targets)
     if (applied.length < targets.length) {
@@ -306,6 +330,46 @@ export class ManifestRegistry {
       })
     }
     return fetched.map(({ parsed }) => parsed.id)
+  }
+
+  // Add-only, same contract as fetchAndStore: only ids absent from the store
+  // are seeded. Each bundled manifest is re-validated with zManifest so a
+  // corrupt bundle entry is skipped rather than crashing startup. Tagged
+  // 'bundled' rather than 'preinstalled' so update() knows to replace it
+  // outright on the next reachable sync instead of treating it as a normal
+  // installed source pinned until a manual apply.
+  private async seedFromBundle(): Promise<void> {
+    const stored = await this.store.getAll()
+    const missing = bundledCatalogIndex().filter((entry) => !stored[entry.id])
+    if (missing.length === 0) {
+      return
+    }
+    const updates: Record<string, ManifestEntry> = {}
+    const toRegister: Manifest[] = []
+    for (const entry of missing) {
+      const raw = bundledManifestRaw(entry.id)
+      const parsed = zManifest.safeParse(raw)
+      if (!parsed.success) {
+        this.log.error(
+          'Skipping invalid bundled manifest:',
+          entry.id,
+          parsed.error.issues
+        )
+        continue
+      }
+      updates[parsed.data.id] = { manifest: raw, kind: 'bundled' }
+      toRegister.push(parsed.data)
+    }
+    if (toRegister.length === 0) {
+      return
+    }
+    await this.store.setMany(updates)
+    for (const manifest of toRegister) {
+      this.runners.set(manifest.id, {
+        runner: this.buildRunner(manifest),
+        kind: 'bundled',
+      })
+    }
   }
 
   private async loadIndex(): Promise<CatalogEntry[] | null> {
