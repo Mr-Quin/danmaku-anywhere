@@ -217,8 +217,80 @@ describe('ManifestRegistry', () => {
     }
     const stored = await store.getAll()
     for (const id of bundledIds) {
-      expect(stored[id]?.kind).toBe('preinstalled')
+      expect(stored[id]?.kind).toBe('bundled')
     }
+  })
+
+  it('update auto-upgrades a bundle-seeded entry once the index becomes reachable', async () => {
+    const store = new InMemoryStore({
+      dandanplay: {
+        manifest: makeManifest('dandanplay', 1, '0.5.0'),
+        kind: 'bundled',
+      },
+    })
+    stubCatalogFetch([catalogEntry('dandanplay', '0.6.0')], {
+      [manifestPath('dandanplay')]: makeManifest('dandanplay', 1, '0.6.0'),
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+    const result = await registry.update()
+
+    expect(result).toBe(true)
+    const stored = await store.get('dandanplay')
+    expect(stored?.kind).toBe('preinstalled')
+    expect(stored?.manifest).toMatchObject({ version: '0.6.0' })
+  })
+
+  it('update leaves a bundle-seeded entry the catalog no longer lists alone', async () => {
+    const store = new InMemoryStore({
+      'user:one': {
+        manifest: makeManifest('user:one', 1, '0.5.0'),
+        kind: 'bundled',
+      },
+    })
+    stubCatalogFetch([catalogEntry('other')], {
+      [manifestPath('other')]: makeManifest('other'),
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+    await registry.update()
+
+    const stored = await store.get('user:one')
+    expect(stored?.kind).toBe('bundled')
+    expect(stored?.manifest).toMatchObject({ version: '0.5.0' })
+  })
+
+  it('getPendingUpdates does not list a bundle-seeded entry even when the catalog has moved on', async () => {
+    const store = new InMemoryStore({
+      dandanplay: {
+        manifest: makeManifest('dandanplay', 1, '0.5.0'),
+        kind: 'bundled',
+      },
+    })
+    stubCatalogFetch([catalogEntry('dandanplay', '0.6.0')], {})
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(await registry.getPendingUpdates()).toEqual([])
+  })
+
+  it('applyUpdates replaces a bundle-seeded entry named directly', async () => {
+    const store = new InMemoryStore({
+      dandanplay: {
+        manifest: makeManifest('dandanplay', 1, '0.5.0'),
+        kind: 'bundled',
+      },
+    })
+    stubCatalogFetch([catalogEntry('dandanplay', '0.6.0')], {
+      [manifestPath('dandanplay')]: makeManifest('dandanplay', 1, '0.6.0'),
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+    await registry.applyUpdates(['dandanplay'])
+
+    const stored = await store.get('dandanplay')
+    expect(stored?.kind).toBe('preinstalled')
+    expect(stored?.manifest).toMatchObject({ version: '0.6.0' })
   })
 
   it('update does not seed the bundle when the index is reachable', async () => {

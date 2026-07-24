@@ -2,7 +2,7 @@ import { Chip } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 
 interface ManifestKindChipProps {
-  kind?: 'preinstalled' | 'user'
+  kind?: 'preinstalled' | 'user' | 'bundled'
 }
 
 export const ManifestKindChip = ({ kind }: ManifestKindChipProps) => {

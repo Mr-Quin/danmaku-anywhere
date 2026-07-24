@@ -1,4 +1,8 @@
-import { offlineCatalog } from '../../network/catalog'
+import {
+  manifestVersion,
+  mockCatalog,
+  offlineCatalog,
+} from '../../network/catalog'
 import { Popup } from '../../pom/Popup'
 import { expect, test } from '../../setup/fixtures'
 
@@ -8,8 +12,13 @@ import { expect, test } from '../../setup/fixtures'
  * manifest store. ManifestRegistry seeds its bundled dango manifests instead
  * of leaving the registry empty, so the built-in sources still appear in the
  * Providers page catalog with no successful network round trip, and the
- * catalog is reported as never having been checked.
+ * catalog is reported as never having been checked. Once the proxy recovers,
+ * the next reachable sync auto-replaces a bundle-seeded manifest with the
+ * catalog copy with no manual apply, since the tag on it (not surfaced as a
+ * pending update) exists only to mark it as not user-chosen.
  */
+
+const BUMPED = '9.9.9'
 
 test.use({
   catalogMock: offlineCatalog(),
@@ -56,4 +65,62 @@ test('built-in sources load from the bundled catalog when the proxy is unreachab
   ]) {
     await expect(popup.providers.importButton(name)).toBeVisible()
   }
+})
+
+test('a bundle-seeded source auto-upgrades to the catalog copy on the next reachable sync, no manual apply', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  const iqiyiName = /iQIYI|爱奇艺/
+  const bundledVersion = manifestVersion('iqiyi')
+
+  await expect
+    .poll(
+      async () => {
+        const stored = (await da.storage.get('local', 'manifests')) as Record<
+          string,
+          { kind: string }
+        >
+        return stored?.iqiyi?.kind
+      },
+      { timeout: 10_000 }
+    )
+    .toBe('bundled')
+
+  // The first reachable sync after an offline boot also runs the deferred
+  // default-provider seed (unseeded because the offline boot never reached
+  // it), auto-importing dandanplay/bilibili/tencent as provider configs and
+  // triggering their login probes. Orthogonal to the bundle auto-upgrade
+  // under test here, so mark seeding done up front to keep this test scoped
+  // to the manifest catalog.
+  await da.providerConfig.markSeeded()
+
+  const popup = await Popup.open(page, extensionId, '/providers')
+  await expect(popup.providers.catalogRow(iqiyiName)).toContainText(
+    `v${bundledVersion}`
+  )
+
+  // The proxy recovers: shadow the offline mock with a working one that
+  // advertises a newer iQIYI, same as a normal catalog update.
+  const recovered = mockCatalog(
+    ['dandanplay', 'bilibili', 'tencent', 'iqiyi'],
+    { iqiyi: BUMPED }
+  )
+  await context.route(recovered.pattern, recovered.respond)
+
+  await popup.providers.refreshCatalog()
+
+  await expect(popup.providers.catalogRow(iqiyiName)).toContainText(
+    `v${BUMPED}`
+  )
+  await expect(popup.providers.checkedNeverLabel()).toBeHidden()
+
+  const stored = (await da.storage.get('local', 'manifests')) as Record<
+    string,
+    { kind: string; manifest: { version: string } }
+  >
+  expect(stored.iqiyi.kind).toBe('preinstalled')
+  expect(stored.iqiyi.manifest.version).toBe(BUMPED)
 })
