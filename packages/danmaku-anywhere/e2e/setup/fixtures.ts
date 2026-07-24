@@ -9,6 +9,7 @@ import {
   attachNetworkWatcher,
   type NetworkWatcher,
 } from './network-watcher'
+import type { NetworkMock } from './profile'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // e2e/setup/fixtures.ts → ../../build
@@ -34,14 +35,21 @@ export const test = base.extend<{
   consoleErrors: () => string[]
   expectedConsoleErrors: ExpectedConsoleErrorPattern[]
   allowedNetworkOrigins: AllowedNetworkPattern[]
+  catalogMock: NetworkMock
   _assertNoUnexpectedConsoleErrors: void
   _assertNoUnmockedNetwork: void
 }>({
   // See e2e/AGENTS.md → Baselines for the opt-out / opt-in contract.
   expectedConsoleErrors: [[], { option: true }],
   allowedNetworkOrigins: [[], { option: true }],
+  // The pre-boot catalog mock. Defaults to a working catalog so every spec
+  // boots with the three built-ins seeded; override via test.use() to
+  // exercise boot against an unreachable catalog (the mock must be in place
+  // before the SW's first fetch, so this can't be swapped from inside a test
+  // body — see e2e/specs/providers/offline-fallback.spec.ts).
+  catalogMock: [mockCatalog(), { option: true }],
 
-  context: async ({ allowedNetworkOrigins }, use) => {
+  context: async ({ allowedNetworkOrigins, catalogMock }, use) => {
     const context = await chromium.launchPersistentContext('', {
       channel: 'chromium',
       args: [
@@ -56,8 +64,7 @@ export const test = base.extend<{
     )
     // Registered after the watcher so it wins (newest handler first), and
     // before the SW boots so the registry's catalog seed is mocked.
-    const catalog = mockCatalog()
-    await context.route(catalog.pattern, catalog.respond)
+    await context.route(catalogMock.pattern, catalogMock.respond)
     watchersByContext.set(context, {
       console: consoleWatcher,
       network: networkWatcher,

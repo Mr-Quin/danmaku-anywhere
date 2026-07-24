@@ -13,6 +13,7 @@ import type {
   ProviderManifestInfo,
 } from '@/common/rpcClient/background/types'
 import { invariant, sleep } from '@/common/utils/utils'
+import { bundledCatalogIndex, bundledManifestRaw } from './bundledCatalog'
 import { extensionFetchLike } from './extensionFetchLike'
 import {
   type IManifestStore,
@@ -162,10 +163,16 @@ export class ManifestRegistry {
   // Add-only: seeds only manifests absent from the store; a changed preinstalled
   // manifest surfaces via getPendingUpdates instead of being replaced here.
   // Returns false when the catalog index could not be fetched.
+  //
+  // Remote is primary because it's fresh; the bundled catalog is a same-shape
+  // fallback used only when remote is unreachable, so providers still exist
+  // offline. The bundle can be stale, but once online getPendingUpdates
+  // surfaces remote-newer-than-bundle so the user can update.
   async update(): Promise<boolean> {
     await this.ready
     const entries = await this.loadIndex()
     if (!entries) {
+      await this.seedFromBundle()
       return false
     }
     const stored = await this.store.getAll()
@@ -306,6 +313,43 @@ export class ManifestRegistry {
       })
     }
     return fetched.map(({ parsed }) => parsed.id)
+  }
+
+  // Add-only, same contract as fetchAndStore: only ids absent from the store
+  // are seeded. Each bundled manifest is re-validated with zManifest so a
+  // corrupt bundle entry is skipped rather than crashing startup.
+  private async seedFromBundle(): Promise<void> {
+    const stored = await this.store.getAll()
+    const missing = bundledCatalogIndex().filter((entry) => !stored[entry.id])
+    if (missing.length === 0) {
+      return
+    }
+    const updates: Record<string, ManifestEntry> = {}
+    const toRegister: Manifest[] = []
+    for (const entry of missing) {
+      const raw = bundledManifestRaw(entry.id)
+      const parsed = zManifest.safeParse(raw)
+      if (!parsed.success) {
+        this.log.error(
+          'Skipping invalid bundled manifest:',
+          entry.id,
+          parsed.error.issues
+        )
+        continue
+      }
+      updates[parsed.data.id] = { manifest: raw, kind: 'preinstalled' }
+      toRegister.push(parsed.data)
+    }
+    if (toRegister.length === 0) {
+      return
+    }
+    await this.store.setMany(updates)
+    for (const manifest of toRegister) {
+      this.runners.set(manifest.id, {
+        runner: this.buildRunner(manifest),
+        kind: 'preinstalled',
+      })
+    }
   }
 
   private async loadIndex(): Promise<CatalogEntry[] | null> {

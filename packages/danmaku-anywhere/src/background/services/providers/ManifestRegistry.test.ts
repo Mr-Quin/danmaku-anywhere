@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { ILogger } from '@/common/Logger'
+import { bundledCatalogIndex } from './bundledCatalog'
 import { ManifestRegistry } from './ManifestRegistry'
 import type {
   IManifestStore,
@@ -14,7 +15,8 @@ import type {
  * user imports), detect-vs-apply (getPendingUpdates diffs versions without
  * fetching files or applying; applyUpdates replaces only the named preinstalled
  * ids, never a user import or an unseeded id), skipping a bad/failed file,
- * index failures (one retry after a delay, then give up), that neither
+ * index failures (one retry after a delay, then give up), the offline bundle
+ * fallback seeding built-ins only when the index is unreachable, that neither
  * update() nor getPendingUpdates stamps
  * lastCheckedAt (only recordChecked does), and
  * register / unregister / hydrate-skip-invalid.
@@ -194,6 +196,63 @@ describe('ManifestRegistry', () => {
     }
   })
 
+  it('update seeds the bundled catalog when the index is unreachable and the store is empty', async () => {
+    const fetchMock = stubFetch(() => ({ status: 503, body: 'unavailable' }))
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    const result = await settleIndexRetry(() => registry.update())
+
+    expect(result).toBe(false)
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+
+    const bundledIds = bundledCatalogIndex()
+      .map((entry) => entry.id)
+      .sort()
+    expect(bundledIds).toEqual(
+      expect.arrayContaining(['dandanplay', 'bilibili', 'tencent'])
+    )
+    expect(registry.list().sort()).toEqual(bundledIds)
+    for (const id of bundledIds) {
+      expect(registry.getRunner(id)).toBeDefined()
+    }
+    const stored = await store.getAll()
+    for (const id of bundledIds) {
+      expect(stored[id]?.kind).toBe('preinstalled')
+    }
+  })
+
+  it('update does not seed the bundle when the index is reachable', async () => {
+    stubCatalogFetch([catalogEntry('one')], {
+      [manifestPath('one')]: makeManifest('one'),
+    })
+    const store = new InMemoryStore()
+    const setMany = vi.spyOn(store, 'setMany')
+    const registry = new ManifestRegistry(silentLogger, store)
+    const result = await registry.update()
+
+    expect(result).toBe(true)
+    expect(registry.list()).toEqual(['one'])
+    expect(setMany).toHaveBeenCalledTimes(1)
+    expect(Object.keys(setMany.mock.calls[0][0])).toEqual(['one'])
+  })
+
+  it('update bundle fallback does not overwrite a manifest already in the store', async () => {
+    stubFetch(() => ({ status: 503, body: 'unavailable' }))
+    const store = new InMemoryStore({
+      dandanplay: {
+        manifest: makeManifest('dandanplay', 1, '0.0.1-custom'),
+        kind: 'user',
+      },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+    await settleIndexRetry(() => registry.update())
+
+    const stored = await store.get('dandanplay')
+    expect(stored?.kind).toBe('user')
+    expect(stored?.manifest).toMatchObject({ version: '0.0.1-custom' })
+  })
+
   it('listManifests returns id/name/version/kind for each registered manifest', async () => {
     stubCatalogFetch([], {})
     const store = new InMemoryStore({
@@ -295,15 +354,18 @@ describe('ManifestRegistry', () => {
     )
   })
 
-  it('update retries once and leaves the store empty when the index fetch keeps failing', async () => {
+  it('update retries once, then falls back to the bundle when the index fetch keeps failing', async () => {
     const fetchMock = stubFetch(() => ({ status: 503, body: 'unavailable' }))
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
     await expect(settleIndexRetry(() => registry.update())).resolves.toBe(false)
 
     expect(fetchMock).toHaveBeenCalledTimes(2)
-    expect(await store.getAll()).toEqual({})
-    expect(registry.list()).toEqual([])
+    expect(Object.keys(await store.getAll()).sort()).toEqual(
+      bundledCatalogIndex()
+        .map((entry) => entry.id)
+        .sort()
+    )
   })
 
   it('update succeeds when the index fetch recovers on the retry', async () => {
@@ -326,7 +388,7 @@ describe('ManifestRegistry', () => {
     expect(registry.list()).toEqual(['one'])
   })
 
-  it('update leaves the store empty when the index body is malformed', async () => {
+  it('update falls back to the bundle when the index body is malformed', async () => {
     stubFetch((url) =>
       url.includes('/manifest/file')
         ? { status: 200, body: makeManifest('x') }
@@ -336,8 +398,11 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     await expect(settleIndexRetry(() => registry.update())).resolves.toBe(false)
 
-    expect(await store.getAll()).toEqual({})
-    expect(registry.list()).toEqual([])
+    expect(Object.keys(await store.getAll()).sort()).toEqual(
+      bundledCatalogIndex()
+        .map((entry) => entry.id)
+        .sort()
+    )
   })
 
   it('update skips a catalog file that fails schema validation', async () => {
