@@ -157,6 +157,10 @@
       "ratelimits": []
     },
     "production": {
+      "observability": {
+        "enabled": true,
+        "head_sampling_rate": 0.005
+      },
       "vars": {
         "ENVIRONMENT": "production",
         "ALLOWED_ORIGIN": "https://danmaku.weeblify.app",
