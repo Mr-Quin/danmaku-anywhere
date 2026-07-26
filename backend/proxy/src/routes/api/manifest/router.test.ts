@@ -35,6 +35,7 @@ describe('Manifest API', () => {
 
     expect(response.status).toBe(200)
     expect(fetchSpy).toHaveBeenCalledWith(`${dangoBaseUrl}/catalog.json`)
+    expect(response.headers.get('Cache-Control')).toBe('max-age=900')
 
     const content: any = await response.json()
     expect(content.packageVersion).toBe('0.2.0')
@@ -61,6 +62,7 @@ describe('Manifest API', () => {
     expect(fetchSpy).toHaveBeenCalledWith(
       `${dangoBaseUrl}/src/manifests/builtin-bilibili.json`
     )
+    expect(response.headers.get('Cache-Control')).toBe('max-age=900')
 
     const content: any = await response.json()
     expect(content.id).toBe('builtin:bilibili')
