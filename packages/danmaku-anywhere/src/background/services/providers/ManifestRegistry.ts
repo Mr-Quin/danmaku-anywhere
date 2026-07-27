@@ -40,6 +40,13 @@ type CatalogManifest = { raw: unknown; parsed: Manifest }
 export const CATALOG_UNREACHABLE_MESSAGE =
   'Failed to fetch the manifest catalog'
 
+// A catalog that answered but offers nothing this build can run is not a
+// network failure, so it must not be reported as one.
+export const CATALOG_EMPTY_MESSAGE =
+  'The manifest catalog has no sources this version can use'
+
+export type CatalogSyncResult = 'synced' | 'unreachable' | 'empty'
+
 function storedVersion(manifest: unknown): unknown {
   if (
     manifest !== null &&
@@ -163,23 +170,26 @@ export class ManifestRegistry {
   // Add-only for everything except a bundle-seeded entry: a changed
   // preinstalled manifest surfaces via getPendingUpdates instead of being
   // replaced here, but a 'bundled' entry auto-upgrades to the catalog copy
-  // the moment the index is reachable again, with no manual apply. Returns
-  // false when the catalog index yielded no usable manifests.
+  // the moment the index is reachable again, with no manual apply.
   //
   // Remote is primary because it's fresh; the bundled catalog is a same-shape
   // fallback used only when remote is unusable, so providers still exist
   // offline. The bundle can be stale, so the first successful sync replaces
   // any still-listed bundled entry outright rather than waiting for a manual
   // update, since the user never chose to install the bundled version.
-  async update(): Promise<boolean> {
+  async update(): Promise<CatalogSyncResult> {
     await this.ready
     const entries = await this.loadIndex()
+    if (!entries) {
+      await this.seedFromBundle()
+      return 'unreachable'
+    }
     // An index that parses but lists nothing usable (empty, or every entry
     // dropped by the api-version filter) leaves the user with no sources just
-    // as an unreachable one does, so both fall back to the bundle.
-    if (!entries || entries.length === 0) {
+    // as an unreachable one does, so it falls back to the bundle too.
+    if (entries.length === 0) {
       await this.seedFromBundle()
-      return false
+      return 'empty'
     }
     const stored = await this.store.getAll()
     const missing = entries.filter((entry) => !stored[entry.id])
@@ -187,7 +197,7 @@ export class ManifestRegistry {
       (entry) => stored[entry.id]?.kind === 'bundled'
     )
     await this.fetchAndStore([...missing, ...bundledStale])
-    return true
+    return 'synced'
   }
 
   // Index-only: diff stored versions against the catalog without fetching files

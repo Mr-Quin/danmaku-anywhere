@@ -39,7 +39,9 @@ import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { OmitSeasonId } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
 import {
+  CATALOG_EMPTY_MESSAGE,
   CATALOG_UNREACHABLE_MESSAGE,
+  type CatalogSyncResult,
   ManifestRegistry,
 } from './ManifestRegistry'
 import {
@@ -396,19 +398,37 @@ export class ProviderService {
 
   private async onInstalled(reason: string): Promise<void> {
     if (reason === 'update') {
-      // Lock the flag for an existing install so its configs are never
-      // re-seeded, even if the user has deleted them all.
-      await this.providerConfigService.markSeeded()
+      await this.lockSeedForExistingInstall()
     }
     await this.syncCatalog()
   }
 
-  // Throws on an unreachable catalog so a user-driven refresh surfaces the
-  // failure instead of silently returning the stale list.
+  // Lock the flag for an existing install so its configs are never re-seeded,
+  // even if the user has deleted them all. An unset flag with no configs is a
+  // different user: their first-run seed never happened, so leave them
+  // unlocked for the sync that follows to heal.
+  private async lockSeedForExistingInstall(): Promise<void> {
+    if (await this.providerConfigService.hasSeeded()) {
+      return
+    }
+    const configs = await this.providerConfigService.getAll()
+    if (configs.length === 0) {
+      return
+    }
+    await this.providerConfigService.markSeeded()
+  }
+
+  // Throws on a catalog that produced no usable list so a user-driven refresh
+  // surfaces the failure instead of silently returning the stale list, and
+  // says which failure it was: a catalog that answered but offers nothing this
+  // build can run is not a network problem.
   async refreshCatalog(locale?: string): Promise<ProviderManifestList> {
-    const synced = await this.syncCatalog()
-    if (!synced) {
+    const result = await this.syncCatalog()
+    if (result === 'unreachable') {
       throw new Error(CATALOG_UNREACHABLE_MESSAGE)
+    }
+    if (result === 'empty') {
+      throw new Error(CATALOG_EMPTY_MESSAGE)
     }
     return this.listManifests(locale)
   }
@@ -416,11 +436,11 @@ export class ProviderService {
   // Bring the catalog current: updates for uninstalled sources (no config or
   // user data to disturb) are applied here, while installed-source updates stay
   // manual via the Updates list. Records the check only on a real sync, so
-  // "checked Nm ago" never advances on a bare detection. Returns whether the
-  // catalog index yielded a usable manifest list.
-  async syncCatalog(): Promise<boolean> {
-    const fetched = await this.manifestRegistry.update()
-    if (fetched) {
+  // "checked Nm ago" never advances on a bare detection. Returns how the
+  // catalog index resolved.
+  async syncCatalog(): Promise<CatalogSyncResult> {
+    const result = await this.manifestRegistry.update()
+    if (result === 'synced') {
       // update() just reached the index, so a failure here means it died
       // mid-sync; skip the best-effort auto-apply rather than fail the sync.
       const pending = await this.manifestRegistry
@@ -446,10 +466,10 @@ export class ProviderService {
       await this.manifestRegistry.recordChecked()
     }
     // update() leaves the registry populated either way, from the catalog or
-    // from the bundle, so an unreachable catalog still seeds working sources
+    // from the bundle, so an unusable catalog still seeds working sources
     // instead of leaving a first-run user with an empty list.
     await this.seedDefaultProviders()
-    return fetched
+    return result
   }
 
   // syncCatalog can run concurrently (install, alarm, popup refresh) and the
@@ -467,6 +487,15 @@ export class ProviderService {
   // is present so a transient partial fetch never seeds a subset and then locks.
   private async runSeedDefaultProviders(): Promise<void> {
     if (await this.providerConfigService.hasSeeded()) {
+      return
+    }
+    // The flag and the configs share chrome.storage.sync, so on a signed-in
+    // profile the flag can still read as unset while the user's real configs
+    // are arriving. Any config at all means this is not a blank slate, and
+    // seeding over it would push the defaults out to every other device.
+    const existing = await this.providerConfigService.getAll()
+    if (existing.length > 0) {
+      await this.providerConfigService.markSeeded()
       return
     }
     await this.manifestRegistry.ready

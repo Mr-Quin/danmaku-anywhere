@@ -203,7 +203,7 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     const result = await settleIndexRetry(() => registry.update())
 
-    expect(result).toBe(false)
+    expect(result).toBe('unreachable')
     expect(fetchMock).toHaveBeenCalledTimes(2)
 
     const bundledIds = bundledCatalogIndex()
@@ -228,7 +228,7 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     const result = await registry.update()
 
-    expect(result).toBe(false)
+    expect(result).toBe('empty')
     expect(Object.keys(await store.getAll()).sort()).toEqual(
       bundledCatalogIndex()
         .map((entry) => entry.id)
@@ -248,7 +248,7 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     const result = await registry.update()
 
-    expect(result).toBe(false)
+    expect(result).toBe('empty')
     expect(fileFetches(fetchMock)).toEqual([])
     const bundledIds = bundledCatalogIndex()
       .map((entry) => entry.id)
@@ -271,7 +271,7 @@ describe('ManifestRegistry', () => {
     await registry.ready
     const result = await registry.update()
 
-    expect(result).toBe(true)
+    expect(result).toBe('synced')
     const stored = await store.get('dandanplay')
     expect(stored?.kind).toBe('preinstalled')
     expect(stored?.manifest).toMatchObject({ version: '0.6.0' })
@@ -338,7 +338,7 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     const result = await registry.update()
 
-    expect(result).toBe(true)
+    expect(result).toBe('synced')
     expect(registry.list()).toEqual(['one'])
     expect(setMany).toHaveBeenCalledTimes(1)
     expect(Object.keys(setMany.mock.calls[0][0])).toEqual(['one'])
@@ -466,7 +466,9 @@ describe('ManifestRegistry', () => {
     const fetchMock = stubFetch(() => ({ status: 503, body: 'unavailable' }))
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await expect(settleIndexRetry(() => registry.update())).resolves.toBe(false)
+    await expect(settleIndexRetry(() => registry.update())).resolves.toBe(
+      'unreachable'
+    )
 
     expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(Object.keys(await store.getAll()).sort()).toEqual(
@@ -490,7 +492,9 @@ describe('ManifestRegistry', () => {
     })
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await expect(settleIndexRetry(() => registry.update())).resolves.toBe(true)
+    await expect(settleIndexRetry(() => registry.update())).resolves.toBe(
+      'synced'
+    )
 
     expect(indexCalls).toBe(2)
     expect(registry.list()).toEqual(['one'])
@@ -504,7 +508,9 @@ describe('ManifestRegistry', () => {
     )
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await expect(settleIndexRetry(() => registry.update())).resolves.toBe(false)
+    await expect(settleIndexRetry(() => registry.update())).resolves.toBe(
+      'unreachable'
+    )
 
     expect(Object.keys(await store.getAll()).sort()).toEqual(
       bundledCatalogIndex()
