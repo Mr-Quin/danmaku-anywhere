@@ -1,8 +1,13 @@
-import { APP_URLS } from '@/common/appUrls'
+import { getAppUrls } from '@/common/appUrls'
 import { matchUrl } from '@/common/utils/matchUrl'
+import { tryCatchSync } from '@/common/utils/tryCatch'
 
 export function isAllowedAppOrigin(origin: string): boolean {
-  return APP_URLS.some((pattern) => {
-    return matchUrl(origin, pattern)
+  const [url, err] = tryCatchSync(() => new URL(origin))
+  if (err) {
+    return false
+  }
+  return getAppUrls(import.meta.env.DEV).some((pattern) => {
+    return matchUrl(url.origin, pattern)
   })
 }

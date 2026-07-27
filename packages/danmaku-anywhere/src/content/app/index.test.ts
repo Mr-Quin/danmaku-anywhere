@@ -1,11 +1,25 @@
-import { DA_EXT_SOURCE_APP } from '@danmaku-anywhere/web-scraper'
-import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
+import {
+  createExtRequest,
+  DA_EXT_SOURCE_APP,
+  type ExtRequest,
+} from '@danmaku-anywhere/web-scraper'
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from 'vitest'
 
 /**
  * The app bridge content script runs on every app URL, so a page that holds a
  * handle to an app window could otherwise post commands straight into it.
  * These tests drive the real window listener and assert it only acts on
- * messages this window posted to itself from an allowed app origin.
+ * messages this window posted to itself from an allowed app origin, with the
+ * localhost origin trusted in dev builds only.
  */
 
 const kazumiSearchContent = vi.fn(async () => ({ data: [] }))
@@ -28,17 +42,18 @@ vi.mock('@/common/rpcClient/background/client', () => {
   return { chromeRpcClient: { kazumiSearchContent } }
 })
 
-function createRequest() {
-  return {
-    source: DA_EXT_SOURCE_APP,
-    type: 'request',
-    action: 'kazumiSearch',
+const policy = { name: 'test-policy' } as unknown as KazumiPolicy
+
+function createRequest(): ExtRequest {
+  return createExtRequest({
     id: 'kazumiSearch-1',
-    data: { keyword: 'test', policy: {} },
-  }
+    action: 'kazumiSearch',
+    data: { keyword: 'test', policy },
+    source: DA_EXT_SOURCE_APP,
+  })
 }
 
-function post(origin: string, source: MessageEventSource | null) {
+function post(origin: string, source: MessageEventSource): Promise<void> {
   window.dispatchEvent(
     new MessageEvent('message', {
       data: createRequest(),
@@ -49,18 +64,26 @@ function post(origin: string, source: MessageEventSource | null) {
   return new Promise((resolve) => setTimeout(resolve, 0))
 }
 
-let otherWindow: MessageEventSource
+let otherWindow: Window
 
 beforeAll(async () => {
   const frame = document.createElement('iframe')
   document.body.appendChild(frame)
-  otherWindow = frame.contentWindow as MessageEventSource
+  if (!frame.contentWindow) {
+    throw new Error('iframe has no contentWindow')
+  }
+  otherWindow = frame.contentWindow
 
   await import('./index')
 })
 
 beforeEach(() => {
+  vi.stubEnv('DEV', true)
   kazumiSearchContent.mockClear()
+})
+
+afterEach(() => {
+  vi.unstubAllEnvs()
 })
 
 describe('app bridge message listener', () => {
@@ -70,14 +93,30 @@ describe('app bridge message listener', () => {
     expect(kazumiSearchContent).toHaveBeenCalledTimes(1)
   })
 
-  it('handles a request from the local dev app origin', async () => {
+  it('handles a request from a staging subdomain', async () => {
+    await post('https://danmaku-anywhere.quinfish.workers.dev', window)
+
+    expect(kazumiSearchContent).toHaveBeenCalledTimes(1)
+  })
+
+  it('handles a request from the local dev app origin in a dev build', async () => {
     await post('http://localhost:4200', window)
 
     expect(kazumiSearchContent).toHaveBeenCalledTimes(1)
   })
 
-  it('handles a request from a staging subdomain', async () => {
-    await post('https://danmaku-anywhere.quinfish.workers.dev', window)
+  it('ignores a request from the local dev app origin in a production build', async () => {
+    vi.stubEnv('DEV', false)
+
+    await post('http://localhost:4200', window)
+
+    expect(kazumiSearchContent).not.toHaveBeenCalled()
+  })
+
+  it('still handles the production app origin in a production build', async () => {
+    vi.stubEnv('DEV', false)
+
+    await post('https://danmaku.weeblify.app', window)
 
     expect(kazumiSearchContent).toHaveBeenCalledTimes(1)
   })

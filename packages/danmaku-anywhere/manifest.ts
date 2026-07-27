@@ -1,6 +1,6 @@
 import { defineManifest } from '@crxjs/vite-plugin'
 import { getBuildContext } from './scripts/getBuildContext'
-import { APP_URLS } from './src/common/appUrls'
+import { getAppUrls } from './src/common/appUrls'
 
 const { isDev, browser, appVersion } = getBuildContext()
 
@@ -43,7 +43,7 @@ export const manifest = defineManifest({
   },
   content_scripts: [
     {
-      matches: APP_URLS,
+      matches: getAppUrls(isDev),
       js: ['src/content/app/index.ts'],
       run_at: 'document_start',
     },
