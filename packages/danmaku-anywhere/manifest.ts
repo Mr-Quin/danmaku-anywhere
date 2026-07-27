@@ -1,5 +1,6 @@
 import { defineManifest } from '@crxjs/vite-plugin'
 import { getBuildContext } from './scripts/getBuildContext'
+import { APP_URLS } from './src/common/appUrls'
 
 const { isDev, browser, appVersion } = getBuildContext()
 
@@ -24,12 +25,6 @@ if (isChrome) {
 if (isDev) {
   permissions.push('declarativeNetRequestFeedback')
 }
-
-const APP_URLS = [
-  'https://danmaku.weeblify.app/*', // prod
-  'https://*.quinfish.workers.dev/*', // staging
-  'http://localhost:4200/*', // local dev
-]
 
 export const manifest = defineManifest({
   manifest_version: 3,
