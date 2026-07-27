@@ -37,7 +37,7 @@ describe('ConfigStateService', () => {
       get: vi.fn(),
       getVersion: vi.fn(),
       set: vi.fn(),
-      upgrade: vi.fn(),
+      upgrade: vi.fn().mockResolvedValue('upgraded'),
       latestVersion,
     },
   })
@@ -248,6 +248,114 @@ describe('ConfigStateService', () => {
         { opt: 'ext' },
         2
       )
+    })
+
+    it('should keep the good entries of a list payload and report the dropped ones', async () => {
+      mockMountConfigService.backupItemSchema = z.object({
+        name: z.string(),
+      })
+
+      const result = await service.restoreState({
+        meta: { version: 1, timestamp: 12345 },
+        services: {
+          mountConfig: {
+            data: [{ name: 'good' }, { name: 42 }, { name: 'also good' }],
+            version: 3,
+          },
+        },
+      })
+
+      expect(mockMountConfigService.options.set).toHaveBeenCalledWith(
+        [{ name: 'good' }, { name: 'also good' }],
+        3
+      )
+      expect(result.details.mountConfig).toEqual({
+        success: true,
+        droppedEntries: 1,
+      })
+      expect(result.success).toBe(false)
+    })
+
+    it('should refuse a list payload where nothing survives rather than writing an empty store', async () => {
+      mockMountConfigService.backupItemSchema = z.object({
+        name: z.string(),
+      })
+
+      const result = await service.restoreState({
+        meta: { version: 1, timestamp: 12345 },
+        services: {
+          mountConfig: { data: [{ name: 1 }, { name: 2 }], version: 3 },
+        },
+      })
+
+      expect(mockMountConfigService.options.set).not.toHaveBeenCalled()
+      expect(result.details.mountConfig?.success).toBe(false)
+      expect(result.details.mountConfig?.error).toContain('All 2 entries')
+      expect(result.success).toBe(false)
+    })
+
+    it('should refuse a list payload that is not a list', async () => {
+      mockMountConfigService.backupItemSchema = z.object({
+        name: z.string(),
+      })
+
+      const result = await service.restoreState({
+        meta: { version: 1, timestamp: 12345 },
+        services: {
+          mountConfig: { data: { name: 'not in a list' }, version: 3 },
+        },
+      })
+
+      expect(mockMountConfigService.options.set).not.toHaveBeenCalled()
+      expect(result.details.mountConfig?.error).toContain('list')
+    })
+
+    it('should accept an empty list payload', async () => {
+      mockMountConfigService.backupItemSchema = z.object({
+        name: z.string(),
+      })
+
+      const result = await service.restoreState({
+        meta: { version: 1, timestamp: 12345 },
+        services: {
+          mountConfig: { data: [], version: 3 },
+        },
+      })
+
+      expect(result.success).toBe(true)
+      expect(mockMountConfigService.options.set).toHaveBeenCalledWith([], 3)
+    })
+
+    it('should report a store whose migration failed and reset it to defaults', async () => {
+      mockDanmakuOptionsService.options.upgrade.mockResolvedValue('reset')
+
+      const result = await service.restoreState({
+        meta: { version: 1, timestamp: 12345 },
+        services: {
+          danmakuOptions: { data: { opt: 'danmaku' }, version: 1 },
+          extensionOptions: { data: { opt: 'ext' }, version: 2 },
+        },
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.details.danmakuOptions?.success).toBe(false)
+      expect(result.details.danmakuOptions?.error).toContain('reset')
+      expect(result.details.extensionOptions?.success).toBe(true)
+    })
+
+    it('should pass a version 0 payload through as version 0 so migrations run', async () => {
+      await service.restoreState({
+        meta: { version: 1, timestamp: 12345 },
+        services: {
+          danmakuOptions: { data: { legacyUnversioned: true }, version: 0 },
+        },
+      })
+
+      expect(mockDanmakuOptionsService.options.set).toHaveBeenCalledWith(
+        { legacyUnversioned: true },
+        0
+      )
+      expect(mockDanmakuOptionsService.options.upgrade).toHaveBeenCalled()
     })
 
     it('should accept a payload that matches its schema', async () => {

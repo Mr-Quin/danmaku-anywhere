@@ -12,6 +12,12 @@ export interface IStoreService {
    * checked against it.
    */
   backupSchema?: ZodType
+  /**
+   * Same idea for a store that holds a list, but applied to one entry at a
+   * time. Entries that fail are dropped and counted so that one bad entry in a
+   * restored file does not cost the user the good ones.
+   */
+  backupItemSchema?: ZodType
 }
 
 export const StoreServiceSymbol = Symbol.for('StoreService')

@@ -1,7 +1,12 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { gunzipSync } from 'node:zlib'
-import { createIntegrationInput } from '@danmaku-anywhere/integration-policy'
+import {
+  createIntegrationInput,
+  type IntegrationV1,
+  migrateV1ToV2,
+  migrateV2ToV3,
+} from '@danmaku-anywhere/integration-policy'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ILogger } from '@/common/Logger'
 import { AiProviderConfigService } from '@/common/options/aiProviderConfig/service'
@@ -182,7 +187,10 @@ describe('backup round trip', () => {
 
     expect(result.success).toBe(true)
     stores.forEach((store) => {
-      expect(result.details[store.name]).toEqual({ success: true })
+      expect(result.details[store.name]).toEqual({
+        success: true,
+        droppedEntries: 0,
+      })
     })
   })
 
@@ -211,6 +219,86 @@ describe('backup round trip', () => {
     )
   })
 
+  it('runs migrations on a version 0 payload instead of stamping it current', async () => {
+    await extensionOptionsService.update({ enabled: false })
+
+    await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        extensionOptions: { data: { legacyUnversioned: true }, version: 0 },
+      },
+    })
+
+    const restored = await extensionOptionsService.get()
+
+    expect(restored).toHaveProperty('legacyUnversioned', true)
+    expect(restored.hotkeys).toBeDefined()
+    expect(restored.theme).toBeDefined()
+  })
+
+  it('reports a store whose migration failed rather than silently resetting it', async () => {
+    await extensionOptionsService.update({ enabled: false })
+
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        extensionOptions: { data: null, version: 20 },
+      },
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.details.extensionOptions?.success).toBe(false)
+    expect(result.details.extensionOptions?.error).toContain('reset')
+  })
+
+  it('drops a v1 era integration the current schema rejects without losing the rest', async () => {
+    const legacy = migrateV2ToV3(
+      migrateV1ToV2([
+        {
+          name: 'legacy',
+          id: '3f2504e0-4f89-41d3-9a0c-0305e82c3301',
+          policy: {
+            title: { selector: [], regex: [] },
+            episode: { selector: ['//e'], regex: [] },
+            season: { selector: [], regex: [] },
+            episodeTitle: { selector: [], regex: [] },
+            titleOnly: false,
+            dandanplay: { useMatchApi: false },
+          },
+        },
+      ] as unknown as IntegrationV1[])
+    )
+    const usable = {
+      ...legacy[0],
+      id: '3f2504e0-4f89-41d3-9a0c-0305e82c3302',
+      name: 'usable',
+      policy: {
+        ...legacy[0].policy,
+        title: { selector: [{ value: '//h1', quick: false }], regex: [] },
+      },
+    }
+
+    expect(legacy[0].policy.title.selector).toEqual([])
+
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        integrationPolicy: {
+          data: [legacy[0], usable],
+          version: integrationPolicyService.options.latestVersion,
+        },
+      },
+    })
+
+    expect(result.details.integrationPolicy).toEqual({
+      success: true,
+      droppedEntries: 1,
+    })
+    expect(
+      (await integrationPolicyService.getAll()).map((i) => i.name)
+    ).toEqual(['usable'])
+  })
+
   it('restores the v1.5.0 backup file shipped as an e2e fixture', async () => {
     const legacyBackup = JSON.parse(
       gunzipSync(
@@ -226,13 +314,13 @@ describe('backup round trip', () => {
     const result = await configStateService.restoreState(legacyBackup)
 
     expect(result.details).toEqual({
-      extensionOptions: { success: true },
-      danmakuOptions: { success: true },
-      mountConfig: { success: true },
-      providerConfig: { success: true },
-      aiProviderConfig: { success: true },
-      integrationPolicy: { success: true },
-      localMatchingRule: { success: true },
+      extensionOptions: { success: true, droppedEntries: 0 },
+      danmakuOptions: { success: true, droppedEntries: 0 },
+      mountConfig: { success: true, droppedEntries: 0 },
+      providerConfig: { success: true, droppedEntries: 0 },
+      aiProviderConfig: { success: true, droppedEntries: 0 },
+      integrationPolicy: { success: true, droppedEntries: 0 },
+      localMatchingRule: { success: true, droppedEntries: 0 },
     })
     expect(result.success).toBe(true)
   })
