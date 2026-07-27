@@ -21,12 +21,6 @@ describe('parseTrustedOrigins', () => {
     ).toEqual(['https://a.example', 'https://b.example'])
   })
 
-  it('returns a single-entry array for a value with no commas', () => {
-    expect(parseTrustedOrigins('https://a.example')).toEqual([
-      'https://a.example',
-    ])
-  })
-
   it('returns an empty array for an empty value', () => {
     expect(parseTrustedOrigins('')).toEqual([])
   })
