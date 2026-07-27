@@ -10,7 +10,7 @@ import {
   zCommentEntity,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { ManifestRunner, RunOptions } from '@mr-quin/dango'
-import { z } from 'zod'
+import type { z } from 'zod'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { ILogger } from '@/common/Logger'
 import { computeNamespaceKey } from '@/common/providers/namespaceKey'
@@ -57,21 +57,43 @@ interface ManifestParseUrlOutput {
   episodeMeta?: ManifestEpisodeRow
 }
 
-const zDanmakuOutput = z.array(zCommentEntity)
+interface DanmakuParseResult {
+  comments: CommentEntity[]
+  dropped: number
+  firstIssue: string | undefined
+}
 
-const MAX_REPORTED_ISSUES = 3
+function formatFirstIssue(error: z.ZodError): string {
+  const [issue] = error.issues
+  return `${issue.path.join('.')}: ${issue.message}`
+}
 
-// A malformed pipeline can produce an issue per comment, so report only the
-// first few instead of a message thousands of entries long.
-function formatIssues(error: z.ZodError): string {
-  const shown = error.issues.slice(0, MAX_REPORTED_ISSUES).map((issue) => {
-    return `${issue.path.join('.')}: ${issue.message}`
-  })
-  const hidden = error.issues.length - shown.length
-  if (hidden > 0) {
-    shown.push(`(+${hidden} more)`)
+function describeType(value: unknown): string {
+  if (value === null) {
+    return 'null'
   }
-  return shown.join('; ')
+  return typeof value
+}
+
+// One malformed comment must not cost the user the rest of the episode, so
+// bad entries are dropped rather than rejecting the batch. Mirrors the
+// renderer, which drops comments it can't parse instead of throwing.
+function parseComments(rows: unknown[]): DanmakuParseResult {
+  const comments: CommentEntity[] = []
+  let dropped = 0
+  let firstIssue: string | undefined
+  for (const row of rows) {
+    const parsed = zCommentEntity.safeParse(row)
+    if (parsed.success) {
+      comments.push(parsed.data)
+      continue
+    }
+    dropped += 1
+    if (firstIssue === undefined) {
+      firstIssue = formatFirstIssue(parsed.error)
+    }
+  }
+  return { comments, dropped, firstIssue }
 }
 
 export interface ManifestProviderConfig {
@@ -206,13 +228,25 @@ export class ManifestProviderService implements IDanmakuProvider {
       ...meta.providerIds,
     })
     const output = await runner.runDanmaku<unknown>(inputs, DANMAKU_RUN_OPTIONS)
-    const parsed = zDanmakuOutput.safeParse(output)
-    if (!parsed.success) {
+    if (!Array.isArray(output)) {
       throw new Error(
-        `Invalid danmaku output from manifest ${this.config.manifestId}: ${formatIssues(parsed.error)}`
+        `Danmaku output from manifest ${this.config.manifestId} is not an array, got ${describeType(output)}`
       )
     }
-    return parsed.data
+    const { comments, dropped, firstIssue } = parseComments(output)
+    if (dropped > 0) {
+      this.logger.warn(
+        `Dropped ${dropped} malformed comment(s) from manifest ${this.config.manifestId}, first: ${firstIssue}`
+      )
+    }
+    // Rows in but nothing usable out means the pipeline itself is wrong, not
+    // an episode that happens to have no danmaku.
+    if (comments.length === 0 && output.length > 0) {
+      throw new Error(
+        `Every comment from manifest ${this.config.manifestId} was malformed, first: ${firstIssue}`
+      )
+    }
+    return comments
   }
 
   async findEpisode(

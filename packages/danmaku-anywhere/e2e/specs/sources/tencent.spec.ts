@@ -9,7 +9,9 @@ import { applyProfile } from '../../setup/profile'
  * /barrage/segment/{name}). The happy path asserts the exact count both
  * segments add up to, then opens the danmaku viewer and asserts each
  * segment's comment text rendered. The partial-failure path 404s one of two
- * segments and asserts only the surviving segment's two comments render.
+ * segments and asserts only the surviving segment's two comments render. The
+ * malformed-comment path serves a comment with no text and asserts it is
+ * dropped while the well-formed ones still land.
  */
 
 test('tencent: search → season → episode → fetch danmaku', async ({
@@ -77,4 +79,45 @@ test('tencent: a failed danmaku segment does not drop the overlay', async ({
   const episode =
     await popup.seasonDetails.fetchDanmakuForFirstEpisode('Tencent')
   await popup.seasonDetails.expectCommentCountToBe(episode, 2)
+})
+
+test('tencent: a malformed comment is dropped without losing the batch', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, {
+    providers: { tencent: { enabled: true } },
+    network: mockTencent({
+      search: loadJsonFixture('tencent-search.json'),
+      episodes: loadJsonFixture('tencent-episodes.json'),
+      danmakuBase: loadJsonFixture('tencent-danmaku-base.json'),
+      danmakuSegments: {
+        // The malformed segment's second entry has no `content`, so the
+        // pipeline emits it without the `m` the comment schema requires.
+        '0': loadJsonFixture('tencent-danmaku-segment-malformed.json'),
+        '30000': loadJsonFixture('tencent-danmaku-segment-30000.json'),
+      },
+    }),
+  })
+
+  const popup = await Popup.open(page, extensionId)
+  await popup.search.submit('frieren')
+  await popup.search.openFirstResult('Tencent')
+  const episode =
+    await popup.seasonDetails.fetchDanmakuForFirstEpisode('Tencent')
+  await popup.seasonDetails.expectCommentCountToBe(episode, 2)
+
+  const [season] = await da.season.list()
+  const mountPopup = await Popup.open(page, extensionId, '/mount')
+  await mountPopup.mount.waitForSeason(season.id)
+  await mountPopup.mount.expandSeason(season.id)
+  const episodeItem = mountPopup.mount.episodeItems().first()
+  await expect(episodeItem).toBeVisible()
+  await mountPopup.mount.openItemMenu(episodeItem, 'view')
+
+  await expect(mountPopup.danmakuViewer.commentRow('kept')).toBeVisible()
+  await expect(mountPopup.danmakuViewer.commentRow('world')).toBeVisible()
+  await expect(mountPopup.danmakuViewer.commentRows()).toHaveCount(2)
 })
