@@ -61,6 +61,7 @@ function enrichEpisode(
 @injectable('Singleton')
 export class ProviderService {
   private readonly logger: ILogger
+  private seeding: Promise<void> | null = null
 
   constructor(
     @inject(DanmakuService)
@@ -416,43 +417,55 @@ export class ProviderService {
   // user data to disturb) are applied here, while installed-source updates stay
   // manual via the Updates list. Records the check only on a real sync, so
   // "checked Nm ago" never advances on a bare detection. Returns whether the
-  // catalog index was reachable.
+  // catalog index yielded a usable manifest list.
   async syncCatalog(): Promise<boolean> {
     const fetched = await this.manifestRegistry.update()
-    if (!fetched) {
-      return false
-    }
-    // update() just reached the index, so a failure here means it died
-    // mid-sync; skip the best-effort auto-apply rather than fail the sync.
-    const pending = await this.manifestRegistry
-      .getPendingUpdates()
-      .catch((e) => {
-        this.logger.warn('Failed to detect pending updates mid-sync:', e)
-        return []
-      })
-    const configs = await this.providerConfigService.getAll()
-    const installed = new Set(configs.map((config) => config.manifestId))
-    const uninstalled = pending
-      .filter((update) => !installed.has(update.manifestId))
-      .map((update) => update.manifestId)
-    if (uninstalled.length > 0) {
-      try {
-        await this.manifestRegistry.applyUpdates(uninstalled)
-      } catch (e) {
-        // Best-effort: a failed background apply retries next sync and must not
-        // block recording the check or the rest of the refresh.
-        this.logger.warn('Failed to auto-apply catalog updates:', e)
+    if (fetched) {
+      // update() just reached the index, so a failure here means it died
+      // mid-sync; skip the best-effort auto-apply rather than fail the sync.
+      const pending = await this.manifestRegistry
+        .getPendingUpdates()
+        .catch((e) => {
+          this.logger.warn('Failed to detect pending updates mid-sync:', e)
+          return []
+        })
+      const configs = await this.providerConfigService.getAll()
+      const installed = new Set(configs.map((config) => config.manifestId))
+      const uninstalled = pending
+        .filter((update) => !installed.has(update.manifestId))
+        .map((update) => update.manifestId)
+      if (uninstalled.length > 0) {
+        try {
+          await this.manifestRegistry.applyUpdates(uninstalled)
+        } catch (e) {
+          // Best-effort: a failed background apply retries next sync and must
+          // not block recording the check or the rest of the refresh.
+          this.logger.warn('Failed to auto-apply catalog updates:', e)
+        }
       }
+      await this.manifestRegistry.recordChecked()
     }
-    await this.manifestRegistry.recordChecked()
+    // update() leaves the registry populated either way, from the catalog or
+    // from the bundle, so an unreachable catalog still seeds working sources
+    // instead of leaving a first-run user with an empty list.
     await this.seedDefaultProviders()
-    return true
+    return fetched
   }
 
-  // Seed the preloaded configs once, after the catalog loads so each name comes
-  // from its manifest. Skips entirely until every preloaded manifest is present
-  // so a transient partial fetch never seeds a subset and then locks.
-  async seedDefaultProviders(): Promise<void> {
+  // syncCatalog can run concurrently (install, alarm, popup refresh) and the
+  // seeded flag is read asynchronously, so two in-flight seeds can both pass
+  // the check. Sharing the run keeps the write single.
+  seedDefaultProviders(): Promise<void> {
+    this.seeding ??= this.runSeedDefaultProviders().finally(() => {
+      this.seeding = null
+    })
+    return this.seeding
+  }
+
+  // Seed the preloaded configs once, after the registry is populated so each
+  // name comes from its manifest. Skips entirely until every preloaded manifest
+  // is present so a transient partial fetch never seeds a subset and then locks.
+  private async runSeedDefaultProviders(): Promise<void> {
     if (await this.providerConfigService.hasSeeded()) {
       return
     }

@@ -499,7 +499,9 @@ describe('ProviderService.refreshCatalog', () => {
     const service = new ProviderService(
       {} as unknown as DanmakuService,
       {} as unknown as SeasonService,
-      {} as unknown as ProviderConfigService,
+      {
+        hasSeeded: vi.fn(async () => true),
+      } as unknown as ProviderConfigService,
       vi.fn(),
       registry,
       {} as unknown as BookmarkService,
@@ -560,6 +562,7 @@ describe('ProviderService.seedDefaultProviders', () => {
     seeded?: boolean
     manifests?: { id: string; name: string }[]
     lang?: string
+    synced?: boolean
   }) {
     let seeded = opts.seeded ?? false
     const set = vi.fn(async (_configs: ProviderConfig[]) => {})
@@ -575,11 +578,12 @@ describe('ProviderService.seedDefaultProviders', () => {
     } as unknown as ProviderConfigService
 
     const listManifests = vi.fn(() => opts.manifests ?? DEFAULT_MANIFESTS)
+    const recordChecked = vi.fn(async () => {})
     const registry = {
       ready: Promise.resolve(true),
-      update: vi.fn(async () => true),
+      update: vi.fn(async () => opts.synced ?? true),
       getPendingUpdates: vi.fn(async () => []),
-      recordChecked: vi.fn(async () => {}),
+      recordChecked,
       listManifests,
     } as unknown as ManifestRegistry
 
@@ -598,7 +602,7 @@ describe('ProviderService.seedDefaultProviders', () => {
       extensionOptions
     )
 
-    return { service, set, markSeeded, hasSeeded, listManifests }
+    return { service, set, markSeeded, hasSeeded, listManifests, recordChecked }
   }
 
   it('seeds the preloaded set with manifest-derived names on a fresh install', async () => {
@@ -705,6 +709,44 @@ describe('ProviderService.seedDefaultProviders', () => {
       reason: string
     }) => Promise<void>
     await listener({ reason: 'install' })
+
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(markSeeded).toHaveBeenCalledTimes(1)
+  })
+
+  it('seeds from the bundled manifests when the catalog is unreachable', async () => {
+    const { service, set, markSeeded, recordChecked } = buildForSeed({
+      synced: false,
+    })
+
+    await expect(service.syncCatalog()).resolves.toBe(false)
+
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(set.mock.calls[0][0].map((c) => c.manifestId)).toEqual([
+      'dandanplay',
+      'bilibili',
+      'tencent',
+    ])
+    expect(markSeeded).toHaveBeenCalledTimes(1)
+    expect(recordChecked).not.toHaveBeenCalled()
+  })
+
+  it('does not seed on an unreachable catalog once the flag is locked', async () => {
+    const { service, set, markSeeded } = buildForSeed({
+      seeded: true,
+      synced: false,
+    })
+
+    await service.syncCatalog()
+
+    expect(set).not.toHaveBeenCalled()
+    expect(markSeeded).not.toHaveBeenCalled()
+  })
+
+  it('seeds once when two syncs run at the same time', async () => {
+    const { service, set, markSeeded } = buildForSeed({})
+
+    await Promise.all([service.syncCatalog(), service.syncCatalog()])
 
     expect(set).toHaveBeenCalledTimes(1)
     expect(markSeeded).toHaveBeenCalledTimes(1)

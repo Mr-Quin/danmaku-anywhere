@@ -164,17 +164,20 @@ export class ManifestRegistry {
   // preinstalled manifest surfaces via getPendingUpdates instead of being
   // replaced here, but a 'bundled' entry auto-upgrades to the catalog copy
   // the moment the index is reachable again, with no manual apply. Returns
-  // false when the catalog index could not be fetched.
+  // false when the catalog index yielded no usable manifests.
   //
   // Remote is primary because it's fresh; the bundled catalog is a same-shape
-  // fallback used only when remote is unreachable, so providers still exist
+  // fallback used only when remote is unusable, so providers still exist
   // offline. The bundle can be stale, so the first successful sync replaces
   // any still-listed bundled entry outright rather than waiting for a manual
   // update, since the user never chose to install the bundled version.
   async update(): Promise<boolean> {
     await this.ready
     const entries = await this.loadIndex()
-    if (!entries) {
+    // An index that parses but lists nothing usable (empty, or every entry
+    // dropped by the api-version filter) leaves the user with no sources just
+    // as an unreachable one does, so both fall back to the bundle.
+    if (!entries || entries.length === 0) {
       await this.seedFromBundle()
       return false
     }

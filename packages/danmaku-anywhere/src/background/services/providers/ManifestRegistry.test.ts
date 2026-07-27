@@ -16,9 +16,10 @@ import type {
  * fetching files or applying; applyUpdates replaces only the named preinstalled
  * ids, never a user import or an unseeded id), skipping a bad/failed file,
  * index failures (one retry after a delay, then give up), the offline bundle
- * fallback seeding built-ins only when the index is unreachable, that neither
- * update() nor getPendingUpdates stamps
- * lastCheckedAt (only recordChecked does), and
+ * fallback seeding built-ins whenever the index yields no usable manifests
+ * (unreachable, empty, or all entries dropped by the apiVersion filter) and
+ * never when it yields some, that neither update() nor getPendingUpdates
+ * stamps lastCheckedAt (only recordChecked does), and
  * register / unregister / hydrate-skip-invalid.
  */
 
@@ -219,6 +220,41 @@ describe('ManifestRegistry', () => {
     for (const id of bundledIds) {
       expect(stored[id]?.kind).toBe('bundled')
     }
+  })
+
+  it('update seeds the bundled catalog when the index lists no manifests', async () => {
+    stubCatalogFetch([], {})
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    const result = await registry.update()
+
+    expect(result).toBe(false)
+    expect(Object.keys(await store.getAll()).sort()).toEqual(
+      bundledCatalogIndex()
+        .map((entry) => entry.id)
+        .sort()
+    )
+  })
+
+  it('update seeds the bundled catalog when every index entry fails the apiVersion check', async () => {
+    const fetchMock = stubCatalogFetch(
+      [
+        catalogEntry('future', '1.0.0', 999),
+        catalogEntry('later', '2.0.0', 998),
+      ],
+      {}
+    )
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    const result = await registry.update()
+
+    expect(result).toBe(false)
+    expect(fileFetches(fetchMock)).toEqual([])
+    const bundledIds = bundledCatalogIndex()
+      .map((entry) => entry.id)
+      .sort()
+    expect(Object.keys(await store.getAll()).sort()).toEqual(bundledIds)
+    expect(registry.list().sort()).toEqual(bundledIds)
   })
 
   it('update auto-upgrades a bundle-seeded entry once the index becomes reachable', async () => {
