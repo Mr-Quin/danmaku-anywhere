@@ -73,6 +73,14 @@ export default defineConfig({
               link: '/docs/danmaku',
             },
             {
+              label: 'danmaku-manifest',
+              translations: {
+                'zh-CN': '弹幕清单',
+                en: 'Danmaku Manifest',
+              },
+              link: '/docs/danmaku-manifest',
+            },
+            {
               label: 'mount-profile',
               translations: {
                 'zh-CN': '装填配置',
