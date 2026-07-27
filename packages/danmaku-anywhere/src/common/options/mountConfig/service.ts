@@ -12,6 +12,7 @@ import type {
 } from '@/common/options/mountConfig/schema'
 import {
   DEFAULT_MOUNT_CONFIG_AI_CONFIG,
+  mountConfigInputListSchema,
   mountConfigInputSchema,
 } from '@/common/options/mountConfig/schema'
 import {
@@ -29,6 +30,7 @@ import { LATEST_MOUNT_CONFIG_VERSION } from './version'
 export class MountConfigService implements IStoreService {
   public readonly name = 'mountConfig'
   public readonly options: OptionsService<MountConfig[]>
+  public readonly backupSchema = mountConfigInputListSchema
 
   constructor(
     @inject(LoggerSymbol)

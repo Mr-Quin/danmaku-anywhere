@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { z } from 'zod'
 import type { BackupData } from '@/common/backup/dto'
 import type { ILogger } from '@/common/Logger'
 import { mockChrome } from '@/tests/mockChromeApis'
@@ -30,22 +31,26 @@ describe('ConfigStateService', () => {
   let mockIntegrationPolicyService: any
   let mockLogger: any
 
-  const createMockOptionService = (name: string) => ({
+  const createMockOptionService = (name: string, latestVersion = 1) => ({
     name,
     options: {
       get: vi.fn(),
       getVersion: vi.fn(),
       set: vi.fn(),
       upgrade: vi.fn(),
+      latestVersion,
     },
   })
 
   beforeEach(() => {
-    mockDanmakuOptionsService = createMockOptionService('danmakuOptions')
-    mockExtensionOptionsService = createMockOptionService('extensionOptions')
-    mockMountConfigService = createMockOptionService('mountConfig')
-    mockProviderConfigService = createMockOptionService('providerConfig')
-    mockIntegrationPolicyService = createMockOptionService('integrationPolicy')
+    mockDanmakuOptionsService = createMockOptionService('danmakuOptions', 1)
+    mockExtensionOptionsService = createMockOptionService('extensionOptions', 2)
+    mockMountConfigService = createMockOptionService('mountConfig', 3)
+    mockProviderConfigService = createMockOptionService('providerConfig', 4)
+    mockIntegrationPolicyService = createMockOptionService(
+      'integrationPolicy',
+      5
+    )
 
     mockLogger = {
       sub: vi.fn().mockReturnThis(),
@@ -172,6 +177,146 @@ describe('ConfigStateService', () => {
       await expect(service.restoreState({ meta: {} } as any)).rejects.toThrow(
         'Invalid backup format'
       )
+    })
+
+    it.each([
+      [
+        'a non-object services map',
+        { meta: { version: 1, timestamp: 1 }, services: [] },
+      ],
+      [
+        'a store entry without a version',
+        {
+          meta: { version: 1, timestamp: 1 },
+          services: { danmakuOptions: { data: { opt: 'danmaku' } } },
+        },
+      ],
+      [
+        'a store entry with a non-numeric version',
+        {
+          meta: { version: 1, timestamp: 1 },
+          services: {
+            danmakuOptions: { data: { opt: 'danmaku' }, version: 'one' },
+          },
+        },
+      ],
+    ])('should reject %s without touching any store', async (_label, input) => {
+      await expect(service.restoreState(input)).rejects.toThrow(
+        'Invalid backup format'
+      )
+
+      expect(mockDanmakuOptionsService.options.set).not.toHaveBeenCalled()
+      expect(mockExtensionOptionsService.options.set).not.toHaveBeenCalled()
+    })
+
+    it.each([
+      0, 2, 99,
+    ])('should refuse envelope version %i without touching any store', async (version) => {
+      await expect(
+        service.restoreState({
+          meta: { version, timestamp: 12345 },
+          services: {
+            danmakuOptions: { data: { opt: 'danmaku' }, version: 1 },
+          },
+        })
+      ).rejects.toThrow(`Unsupported backup version ${version}`)
+
+      expect(mockDanmakuOptionsService.options.set).not.toHaveBeenCalled()
+      expect(mockDanmakuOptionsService.options.upgrade).not.toHaveBeenCalled()
+    })
+
+    it('should report a store whose payload fails its schema and still restore the rest', async () => {
+      mockDanmakuOptionsService.backupSchema = z.object({
+        opt: z.string(),
+      })
+
+      const result = await service.restoreState({
+        meta: { version: 1, timestamp: 12345 },
+        services: {
+          danmakuOptions: { data: { opt: 42 }, version: 1 },
+          extensionOptions: { data: { opt: 'ext' }, version: 2 },
+        },
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.details.danmakuOptions?.success).toBe(false)
+      expect(result.details.danmakuOptions?.error).toContain('opt')
+      expect(mockDanmakuOptionsService.options.set).not.toHaveBeenCalled()
+
+      expect(result.details.extensionOptions?.success).toBe(true)
+      expect(mockExtensionOptionsService.options.set).toHaveBeenCalledWith(
+        { opt: 'ext' },
+        2
+      )
+    })
+
+    it('should accept a payload that matches its schema', async () => {
+      mockDanmakuOptionsService.backupSchema = z.object({
+        opt: z.string(),
+      })
+
+      const result = await service.restoreState({
+        meta: { version: 1, timestamp: 12345 },
+        services: {
+          danmakuOptions: { data: { opt: 'danmaku' }, version: 1 },
+        },
+      })
+
+      expect(result.success).toBe(true)
+      expect(mockDanmakuOptionsService.options.set).toHaveBeenCalledWith(
+        { opt: 'danmaku' },
+        1
+      )
+    })
+
+    it('should refuse a store payload newer than the store schema it knows', async () => {
+      const result = await service.restoreState({
+        meta: { version: 1, timestamp: 12345 },
+        services: {
+          danmakuOptions: { data: { opt: 'danmaku' }, version: 99 },
+          extensionOptions: { data: { opt: 'ext' }, version: 2 },
+        },
+      })
+
+      expect(result.success).toBe(false)
+      expect(result.details.danmakuOptions?.error).toContain('newer')
+      expect(mockDanmakuOptionsService.options.set).not.toHaveBeenCalled()
+      expect(result.details.extensionOptions?.success).toBe(true)
+    })
+
+    it('should not schema-check payloads older than the store schema, leaving them to migrations', async () => {
+      mockDanmakuOptionsService.backupSchema = z.object({
+        renamedInLaterVersion: z.string(),
+      })
+      mockDanmakuOptionsService.options.latestVersion = 4
+
+      const result = await service.restoreState({
+        meta: { version: 1, timestamp: 12345 },
+        services: {
+          danmakuOptions: { data: { legacyField: 'old' }, version: 2 },
+        },
+      })
+
+      expect(result.success).toBe(true)
+      expect(mockDanmakuOptionsService.options.set).toHaveBeenCalledWith(
+        { legacyField: 'old' },
+        2
+      )
+      expect(mockDanmakuOptionsService.options.upgrade).toHaveBeenCalled()
+    })
+
+    it('should ignore backup entries that do not match a known store', async () => {
+      const result = await service.restoreState({
+        meta: { version: 1, timestamp: 12345 },
+        services: {
+          removedStore: { data: { anything: true }, version: 7 },
+          danmakuOptions: { data: { opt: 'danmaku' }, version: 1 },
+        },
+      })
+
+      expect(result.success).toBe(true)
+      expect(result.details.removedStore).toBeUndefined()
+      expect(result.details.danmakuOptions?.success).toBe(true)
     })
 
     it('should skip services with shouldBackup=false', async () => {

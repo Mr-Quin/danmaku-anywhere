@@ -40,6 +40,13 @@ export class OptionsService<T extends OptionsSchema> {
     this.setup()
   }
 
+  get latestVersion(): number {
+    if (this.versions.length === 0) {
+      return 0
+    }
+    return this.getLatestVersion().version
+  }
+
   version(version: number, versionConfig: VersionConfig) {
     if (version <= 0) {
       throw new Error('Version must be larger than 0')

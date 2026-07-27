@@ -1,14 +1,18 @@
 import { inject, injectable, multiInject } from 'inversify'
-import type {
-  BackupData,
-  BackupRestoreResult,
-  ServiceBackupData,
-} from '@/common/backup/dto'
+import { prettifyError } from 'zod'
+import type { BackupData, BackupRestoreResult } from '@/common/backup/dto'
+import {
+  BACKUP_FORMAT_VERSION,
+  backupDataSchema,
+  type ParsedBackupData,
+} from '@/common/backup/schema'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import {
   type IStoreService,
   StoreServiceSymbol,
 } from '@/common/options/IStoreService'
+
+type ServiceBackup = ParsedBackupData['services'][string]
 
 @injectable('Singleton')
 export class ConfigStateService {
@@ -43,7 +47,7 @@ export class ConfigStateService {
 
     return {
       meta: {
-        version: 1,
+        version: BACKUP_FORMAT_VERSION,
         timestamp: Date.now(),
         extensionVersion: chrome.runtime.getManifest().version,
       },
@@ -57,52 +61,89 @@ export class ConfigStateService {
     }
   }
 
-  async restoreState(backup: BackupData): Promise<BackupRestoreResult> {
-    if (
-      !backup ||
-      !backup.meta ||
-      typeof backup.meta.version !== 'number' ||
-      !backup.services
-    ) {
-      throw new Error('Invalid backup format')
+  async restoreState(backup: unknown): Promise<BackupRestoreResult> {
+    const parsed = backupDataSchema.safeParse(backup)
+
+    if (!parsed.success) {
+      throw new Error(`Invalid backup format: ${prettifyError(parsed.error)}`)
     }
 
-    const { services } = backup
+    const { meta, services } = parsed.data
+
+    if (meta.version !== BACKUP_FORMAT_VERSION) {
+      throw new Error(
+        `Unsupported backup version ${meta.version}, this extension can only restore version ${BACKUP_FORMAT_VERSION} backups`
+      )
+    }
+
     const result: BackupRestoreResult = {
       success: true,
       details: {},
     }
 
-    const restoreService = async (
-      name: string,
-      service: IStoreService,
-      backupData?: ServiceBackupData<unknown>
-    ) => {
-      if (!backupData) return
+    const candidates = this.services
+      .filter((service) => service.shouldBackup !== false)
+      .map((service) => {
+        return { service, backupData: services[service.name] }
+      })
+      .filter((candidate) => candidate.backupData !== undefined)
 
-      try {
-        this.logger.debug(`Restoring ${name}...`)
-        await service.options.set(backupData.data, backupData.version)
-        await service.options.upgrade()
-        result.details[name] = { success: true }
-      } catch (error) {
-        this.logger.error(`Failed to restore ${name}`, error)
-        result.success = false
-        result.details[name] = {
-          success: false,
-          error: error instanceof Error ? error.message : String(error),
+    const validated = await Promise.all(
+      candidates.map(async ({ service, backupData }) => {
+        const error = await this.validatePayload(service, backupData)
+        if (error) {
+          this.logger.error(`Rejected backup data for ${service.name}`, error)
+          result.success = false
+          result.details[service.name] = { success: false, error }
         }
-      }
-    }
+        return { service, backupData, valid: !error }
+      })
+    )
 
     await Promise.all(
-      this.services
-        .filter((service) => service.shouldBackup !== false)
-        .map((service) => {
-          return restoreService(service.name, service, services[service.name])
+      validated
+        .filter((candidate) => candidate.valid)
+        .map(async ({ service, backupData }) => {
+          const { name } = service
+          try {
+            this.logger.debug(`Restoring ${name}...`)
+            await service.options.set(backupData.data, backupData.version)
+            await service.options.upgrade()
+            result.details[name] = { success: true }
+          } catch (error) {
+            this.logger.error(`Failed to restore ${name}`, error)
+            result.success = false
+            result.details[name] = {
+              success: false,
+              error: error instanceof Error ? error.message : String(error),
+            }
+          }
         })
     )
 
     return result
+  }
+
+  private async validatePayload(
+    service: IStoreService,
+    backupData: ServiceBackup
+  ): Promise<string | undefined> {
+    const { latestVersion } = service.options
+
+    if (backupData.version > latestVersion) {
+      return `Backup holds version ${backupData.version} of this store, which is newer than the supported version ${latestVersion}`
+    }
+
+    // Older payloads predate the current schema and are brought up to date by
+    // the store's own migrations, so only the current shape can be checked here.
+    if (backupData.version < latestVersion || !service.backupSchema) {
+      return
+    }
+
+    const parsed = await service.backupSchema.safeParseAsync(backupData.data)
+
+    if (!parsed.success) {
+      return prettifyError(parsed.error)
+    }
   }
 }

@@ -1,6 +1,7 @@
 import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import { produce } from 'immer'
 import { inject, injectable } from 'inversify'
+import { z } from 'zod'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { IStoreService } from '@/common/options/IStoreService'
 import {
@@ -26,6 +27,7 @@ import { providerConfigSchema } from './schema'
 export class ProviderConfigService implements IStoreService {
   public readonly name = 'providerConfig'
   public readonly options: OptionsService<ProviderConfig[]>
+  public readonly backupSchema = z.array(providerConfigSchema)
 
   // Stored in sync alongside the configs so a second signed-in device reads the
   // same flag and does not re-seed the shared store.
