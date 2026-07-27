@@ -1,18 +1,35 @@
+import type { Page } from '@playwright/test'
 import { mockTencent } from '../../network/tencent'
+import type { DanmakuViewerPage } from '../../pom/DanmakuViewerPage'
 import { Popup } from '../../pom/Popup'
+import type { DaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import { loadJsonFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
 
 /**
  * Tencent segmented danmaku fetch (MbSearch → GetPageData → /barrage/base →
- * /barrage/segment/{name}). The happy path asserts the exact count both
- * segments add up to, then opens the danmaku viewer and asserts each
- * segment's comment text rendered. The partial-failure path 404s one of two
- * segments and asserts only the surviving segment's two comments render. The
- * malformed-comment path serves a comment with no text and asserts it is
- * dropped while the well-formed ones still land.
+ * /barrage/segment/{name}). Happy path asserts the exact count both segments
+ * total and that each one's text renders in the danmaku viewer. Partial
+ * failure 404s one of two segments and asserts only the survivor's comments
+ * land. Malformed path serves a comment with no text and asserts it is
+ * dropped while the well-formed ones persist.
  */
+
+async function openDanmakuViewer(
+  page: Page,
+  extensionId: string,
+  da: DaClient
+): Promise<DanmakuViewerPage> {
+  const [season] = await da.season.list()
+  const popup = await Popup.open(page, extensionId, '/mount')
+  await popup.mount.waitForSeason(season.id)
+  await popup.mount.expandSeason(season.id)
+  const episodeItem = popup.mount.episodeItems().first()
+  await expect(episodeItem).toBeVisible()
+  await popup.mount.openItemMenu(episodeItem, 'view')
+  return popup.danmakuViewer
+}
 
 test('tencent: search → season → episode → fetch danmaku', async ({
   context,
@@ -40,17 +57,11 @@ test('tencent: search → season → episode → fetch danmaku', async ({
     await popup.seasonDetails.fetchDanmakuForFirstEpisode('Tencent')
   await popup.seasonDetails.expectCommentCountToBe(episode, 3)
 
-  const [season] = await da.season.list()
-  const mountPopup = await Popup.open(page, extensionId, '/mount')
-  await mountPopup.mount.waitForSeason(season.id)
-  await mountPopup.mount.expandSeason(season.id)
-  const episodeItem = mountPopup.mount.episodeItems().first()
-  await expect(episodeItem).toBeVisible()
-  await mountPopup.mount.openItemMenu(episodeItem, 'view')
+  const viewer = await openDanmakuViewer(page, extensionId, da)
 
-  await expect(mountPopup.danmakuViewer.commentRow('hello')).toBeVisible()
-  await expect(mountPopup.danmakuViewer.commentRow('测试')).toBeVisible()
-  await expect(mountPopup.danmakuViewer.commentRow('world')).toBeVisible()
+  await expect(viewer.commentRow('hello')).toBeVisible()
+  await expect(viewer.commentRow('测试')).toBeVisible()
+  await expect(viewer.commentRow('world')).toBeVisible()
 })
 
 test('tencent: a failed danmaku segment does not drop the overlay', async ({
@@ -109,15 +120,9 @@ test('tencent: a malformed comment is dropped without losing the batch', async (
     await popup.seasonDetails.fetchDanmakuForFirstEpisode('Tencent')
   await popup.seasonDetails.expectCommentCountToBe(episode, 2)
 
-  const [season] = await da.season.list()
-  const mountPopup = await Popup.open(page, extensionId, '/mount')
-  await mountPopup.mount.waitForSeason(season.id)
-  await mountPopup.mount.expandSeason(season.id)
-  const episodeItem = mountPopup.mount.episodeItems().first()
-  await expect(episodeItem).toBeVisible()
-  await mountPopup.mount.openItemMenu(episodeItem, 'view')
+  const viewer = await openDanmakuViewer(page, extensionId, da)
 
-  await expect(mountPopup.danmakuViewer.commentRow('kept')).toBeVisible()
-  await expect(mountPopup.danmakuViewer.commentRow('world')).toBeVisible()
-  await expect(mountPopup.danmakuViewer.commentRows()).toHaveCount(2)
+  await expect(viewer.commentRow('kept')).toBeVisible()
+  await expect(viewer.commentRow('world')).toBeVisible()
+  await expect(viewer.commentRows()).toHaveCount(2)
 })

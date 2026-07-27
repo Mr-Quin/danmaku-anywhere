@@ -75,9 +75,6 @@ function describeType(value: unknown): string {
   return typeof value
 }
 
-// One malformed comment must not cost the user the rest of the episode, so
-// bad entries are dropped rather than rejecting the batch. Mirrors the
-// renderer, which drops comments it can't parse instead of throwing.
 function parseComments(rows: unknown[]): DanmakuParseResult {
   const comments: CommentEntity[] = []
   let dropped = 0

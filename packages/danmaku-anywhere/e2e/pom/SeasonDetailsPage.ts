@@ -29,9 +29,10 @@ export class SeasonDetailsPage {
     return ep
   }
 
-  // Target the caption element itself. Matching text anywhere in the row
-  // concatenates the episode number with the count, so an episode numbered 1
-  // showing "0条弹幕" reads as "10条弹幕" and satisfies a count assertion.
+  // Target the caption element, not the row: adjacent nodes concatenate, so
+  // an episode numbered 1 whose caption reads "0条弹幕" matches as "10条弹幕".
+  // EpisodeTreeItem reuses this testid for a bare number, so the label match
+  // below only holds for season-details rows.
   private countCaption(episode: Locator): Locator {
     return episode.getByTestId('comment-count')
   }
