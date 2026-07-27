@@ -17,8 +17,8 @@ import type { ManifestRegistry } from './ManifestRegistry'
 /**
  * Covers ManifestProviderService's host-side responsibilities: applying
  * `stripHtml` + canonical provider fields to search/episodes output and
- * forwarding danmaku pipeline output (already CommentEntity-shaped) to
- * the caller. Input precedence is exercised via the configValues path.
+ * validating danmaku pipeline output against the comment schema before it
+ * reaches the caller. Input precedence is exercised via the configValues path.
  */
 
 const RUN_OPTS = MANIFEST_RUN_OPTIONS
@@ -229,7 +229,18 @@ describe('ManifestProviderService.getDanmaku', () => {
     }
   }
 
-  it('forwards the danmaku pipeline output verbatim', async () => {
+  function makeDanmakuService(danmaku: unknown): ManifestProviderService {
+    return new ManifestProviderService(
+      {
+        manifestId: 'dandanplay',
+        providerConfigId: 'dandanplay',
+      },
+      makeRegistry(makeRunner({ danmaku })),
+      silentLogger
+    )
+  }
+
+  it('returns the danmaku pipeline output when it is comment-shaped', async () => {
     const raw: CommentEntity[] = [{ cid: 1, p: '1,1,16777215', m: 'hi' }]
     const runner = makeRunner({ danmaku: raw })
     const svc = new ManifestProviderService(
@@ -243,11 +254,38 @@ describe('ManifestProviderService.getDanmaku', () => {
 
     const result = await svc.getDanmaku(makeRequest({ episodeId: 42 }))
 
-    expect(result).toBe(raw)
+    expect(result).toEqual(raw)
     expect(runner.runDanmaku).toHaveBeenCalledWith(
       { episodeId: 42 },
       DANMAKU_RUN_OPTIONS
     )
+  })
+
+  it('throws when a comment is missing its text', async () => {
+    const svc = makeDanmakuService([
+      { p: '1,1,16777215', m: 'hi' },
+      { p: '2,1,16777215' },
+    ])
+
+    await expect(
+      svc.getDanmaku(makeRequest({ episodeId: 42 }))
+    ).rejects.toThrow(/Invalid danmaku output from manifest dandanplay.*1\.m/)
+  })
+
+  it('throws when the pipeline emits something that is not an array', async () => {
+    const svc = makeDanmakuService({ comments: [] })
+
+    await expect(
+      svc.getDanmaku(makeRequest({ episodeId: 42 }))
+    ).rejects.toThrow(/Invalid danmaku output from manifest dandanplay/)
+  })
+
+  it('reports at most three issues plus a remainder count', async () => {
+    const svc = makeDanmakuService([{}, {}, {}, {}, {}])
+
+    await expect(
+      svc.getDanmaku(makeRequest({ episodeId: 42 }))
+    ).rejects.toThrow(/\(\+7 more\)/)
   })
 
   it('only the danmaku run tolerates a failed segment', () => {

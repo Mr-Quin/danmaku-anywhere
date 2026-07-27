@@ -7,8 +7,10 @@ import {
   type SeasonInsert,
   stripHtml,
   type WithSeason,
+  zCommentEntity,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { ManifestRunner, RunOptions } from '@mr-quin/dango'
+import { z } from 'zod'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { ILogger } from '@/common/Logger'
 import { computeNamespaceKey } from '@/common/providers/namespaceKey'
@@ -53,6 +55,23 @@ interface ManifestParseUrlOutput {
   // response did not yield a matching episode. The host treats that as a
   // hard error (URL is on a recognized host, but we can't resolve it).
   episodeMeta?: ManifestEpisodeRow
+}
+
+const zDanmakuOutput = z.array(zCommentEntity)
+
+const MAX_REPORTED_ISSUES = 3
+
+// A malformed pipeline can produce an issue per comment, so report only the
+// first few instead of a message thousands of entries long.
+function formatIssues(error: z.ZodError): string {
+  const shown = error.issues.slice(0, MAX_REPORTED_ISSUES).map((issue) => {
+    return `${issue.path.join('.')}: ${issue.message}`
+  })
+  const hidden = error.issues.length - shown.length
+  if (hidden > 0) {
+    shown.push(`(+${hidden} more)`)
+  }
+  return shown.join('; ')
 }
 
 export interface ManifestProviderConfig {
@@ -186,7 +205,14 @@ export class ManifestProviderService implements IDanmakuProvider {
       ...meta.params,
       ...meta.providerIds,
     })
-    return runner.runDanmaku<CommentEntity[]>(inputs, DANMAKU_RUN_OPTIONS)
+    const output = await runner.runDanmaku<unknown>(inputs, DANMAKU_RUN_OPTIONS)
+    const parsed = zDanmakuOutput.safeParse(output)
+    if (!parsed.success) {
+      throw new Error(
+        `Invalid danmaku output from manifest ${this.config.manifestId}: ${formatIssues(parsed.error)}`
+      )
+    }
+    return parsed.data
   }
 
   async findEpisode(

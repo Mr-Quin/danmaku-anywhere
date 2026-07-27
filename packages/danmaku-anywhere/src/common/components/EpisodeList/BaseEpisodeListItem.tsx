@@ -185,6 +185,7 @@ export function BaseEpisodeListItem<
           {isLite && (
             <Typography
               variant="caption"
+              data-testid="comment-count"
               sx={{
                 color: 'text.secondary',
               }}
