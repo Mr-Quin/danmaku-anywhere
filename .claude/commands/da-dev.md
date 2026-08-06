@@ -130,7 +130,7 @@ The PR itself is the human gate — push and open it without waiting.
 
 ```bash
 git push -u origin DA-XXX_<hint>
-gh pr create --title "(type) description [DA-XXX]" --label "ai-rereview" --body "$(cat <<'EOF'
+gh pr create --title "(type) description [DA-XXX]" --body "$(cat <<'EOF'
 ## Summary
 - <one short bullet per major change; "what" + "why" if non-obvious>
 
@@ -150,7 +150,6 @@ EOF
 - **DA-XXX must match** the branch name
 - Do NOT include ClickUp links in the PR body — they are posted automatically
 - Do NOT mention other DA-XXX in the body / commits; ClickUp auto-link will silently reopen those tasks
-- The `ai-rereview` label is required: `.github/workflows/ai-rereview.yml` watches it and re-requests AI reviewers on every push
 - Drop sections that don't apply (e.g. no `Notes` if there's nothing real to say) rather than padding
 
 **Keep the PR body in sync as the branch evolves.** Use `gh pr edit <N> --body ...` (same HEREDOC pattern as creation) whenever new commits change scope, add/remove behavior, or invalidate a claim in the original body. Stale bodies mislead reviewers.
