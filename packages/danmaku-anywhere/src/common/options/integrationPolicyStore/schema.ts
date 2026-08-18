@@ -1,3 +1,7 @@
+import {
+  migrateV3ToV4,
+  zIntegrationV3,
+} from '@danmaku-anywhere/integration-policy'
 import { z } from 'zod'
 import { getRandomUUID } from '@/common/utils/utils'
 
@@ -68,3 +72,10 @@ export const zIntegration = z.object({
 export type IntegrationInput = z.input<typeof zIntegration>
 
 export type Integration = z.output<typeof zIntegration>
+
+export const zStoredIntegration = z.union([
+  zIntegration,
+  zIntegrationV3.transform((integration) => {
+    return migrateV3ToV4([integration])[0]
+  }),
+])
