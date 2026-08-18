@@ -1,7 +1,4 @@
-import {
-  type CustomEpisodeLite,
-  DanmakuSourceType,
-} from '@danmaku-anywhere/danmaku-converter'
+import type { CustomEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
 import type { MediaInfo } from '@danmaku-anywhere/web-scraper'
 import { FAKE_MEDIA_DATA_URI } from './fake-media-data'
 
@@ -75,7 +72,6 @@ function makeCustomEpisode(show: FakeShow, index: number): CustomEpisodeLite {
     id: index + 1,
     version: 1,
     timeUpdated: 0,
-    provider: DanmakuSourceType.MacCMS,
     title: show.title,
     commentCount: 100 + index,
     schemaVersion: 4,
