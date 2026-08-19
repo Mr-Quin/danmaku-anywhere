@@ -27,12 +27,19 @@ export function isVideoOriginClean(video: HTMLVideoElement): boolean {
 }
 
 const DRIFT_TOLERANCE_SECONDS = 0.2
-const CLONE_READY_TIMEOUT_MS = 8000
+// The clone has to fetch a remote file and seek it to the live playhead, which
+// takes far longer than a local load on a slow CDN. The capture loop keeps
+// running while this is pending, so a generous budget costs nothing.
+const CLONE_READY_TIMEOUT_MS = 30_000
+// A failed recovery is usually transient (a slow or rate-limited CDN), so back
+// off and try again before declaring the video unreadable. One entry per retry.
+const RECOVERY_RETRY_DELAYS_MS = [1_000, 3_000, 8_000]
 
 /**
  * Reads a tainted cross-origin video via a hidden crossorigin clone (a
- * background DNR rule supplies ACAO) instead of the live element, leaving
- * playback untouched. http(s) only: blob/MSE aren't tainted, DRM never readable.
+ * background DNR rule supplies ACAO and drops the Origin header) instead of the
+ * live element, leaving playback untouched. The caller only builds one for an
+ * http(s) source.
  */
 export class CrossOriginCapture {
   private clone: HTMLVideoElement | null = null
@@ -43,9 +50,6 @@ export class CrossOriginCapture {
 
   async setup(): Promise<HTMLVideoElement | null> {
     const src = this.original.currentSrc
-    if (!/^https?:/i.test(src)) {
-      return null
-    }
 
     try {
       this.ruleId = (
@@ -72,7 +76,9 @@ export class CrossOriginCapture {
         this.dispose()
         return null
       }
-      this.sync()
+      // Deliberately not synced here: seeking drops readyState below 2, and the
+      // caller has to probe a decoded frame to tell readable from tainted. The
+      // first read syncs instead.
       return clone
     } catch {
       // Any failure: give up cleanly so the caller falls back to the taint
@@ -183,90 +189,142 @@ export interface CloneCapture {
 export interface FrameSourceDeps {
   isOriginClean: (video: HTMLVideoElement) => boolean
   createCapture: (video: HTMLVideoElement) => CloneCapture
+  now: () => number
 }
 
 const defaultDeps: FrameSourceDeps = {
   isOriginClean: isVideoOriginClean,
   createCapture: (video) => new CrossOriginCapture(video),
+  now: () => performance.now(),
 }
 
-// 'taint' = the video is unreadable and recovery failed; the caller should
-// disable. null = nothing to capture yet (still resolving or the loop moved on).
-export type ReadResult = HTMLVideoElement | 'taint' | null
+// 'taint' = the video is protected and no clone can read it. 'unreadable' = the
+// clone kept failing, so recovery is given up on. Both tell the caller to
+// disable. null = nothing to capture yet (recovering, backing off, or the loop
+// moved on).
+export type ReadResult = HTMLVideoElement | 'taint' | 'unreadable' | null
 
 /**
  * Answers "what element do I read frames from, and is it readable?" for one
- * video. Probes the live element; on a cross-origin taint it falls back to a
- * CORS-bypassed clone. The result is cached until the video's src changes or the
- * source is reset. The probe and clone are injectable so the resolution logic is
- * testable without a DOM.
+ * video. Probes the live element; on a cross-origin taint it recovers through a
+ * CORS-bypassed clone, retrying with backoff because a first failure is usually
+ * the network rather than the video. Recovery runs in the background so the
+ * capture loop is never blocked waiting for it. The result is cached until the
+ * video's src changes or the source is reset. The probe, clone and clock are
+ * injectable so the resolution logic is testable without a DOM.
  */
 export class FrameSource {
   private capture: CloneCapture | null = null
   private captureEl: HTMLVideoElement | null = null
-  private resolved = false
   // src the capture was resolved against; a change forces a re-resolve.
   private resolvedSrc: string | null = null
+  private recovering = false
+  private attempts = 0
+  private nextAttemptAt = 0
+  private verdict: 'taint' | 'unreadable' | null = null
+  // Bumped on reset so a recovery that outlives it cannot install its clone.
+  private generation = 0
+  private readonly deps: FrameSourceDeps
 
   constructor(
     private readonly log: (message: string) => void,
-    private readonly deps: FrameSourceDeps = defaultDeps
-  ) {}
+    deps: Partial<FrameSourceDeps> = {}
+  ) {
+    this.deps = { ...defaultDeps, ...deps }
+  }
 
-  // isStale lets the caller abort a resolve whose async clone setup outlived the
-  // capture loop (stopped or switched video), so a late clone isn't leaked.
+  // isStale lets the caller abort a recovery whose async clone setup outlived
+  // the capture loop (stopped or switched video), so a late clone isn't leaked.
   async read(
     video: HTMLVideoElement,
     isStale: () => boolean
   ): Promise<ReadResult> {
-    if (this.resolved && this.resolvedSrc !== video.currentSrc) {
+    if (this.resolvedSrc !== null && this.resolvedSrc !== video.currentSrc) {
       this.reset()
     }
-    if (!this.resolved) {
-      const outcome = await this.resolve(video, isStale)
-      if (outcome !== 'ok') {
-        return outcome === 'taint' ? 'taint' : null
-      }
+    if (this.verdict) {
+      return this.verdict
     }
-    const source = this.captureEl
-    if (!source) {
+    if (this.captureEl) {
+      this.capture?.sync()
+      return this.captureEl
+    }
+    if (this.recovering) {
       return null
     }
-    this.capture?.sync()
-    return source
-  }
-
-  reset(): void {
-    this.capture?.dispose()
-    this.capture = null
-    this.captureEl = null
-    this.resolved = false
-    this.resolvedSrc = null
-  }
-
-  private async resolve(
-    video: HTMLVideoElement,
-    isStale: () => boolean
-  ): Promise<'ok' | 'taint' | 'aborted'> {
-    this.resolved = true
+    // Mid-swap the element has no src and no decoded frame yet. Probing then
+    // reads as unreadable and would classify a perfectly good video.
+    if (video.readyState < 2 || !video.currentSrc) {
+      return null
+    }
     this.resolvedSrc = video.currentSrc
     if (this.deps.isOriginClean(video)) {
       this.captureEl = video
-      return 'ok'
+      return video
     }
+    if (!/^https?:/i.test(video.currentSrc)) {
+      // blob/MSE sources are never tainted, so an unreadable one is protected
+      // (DRM) and no clone can recover it.
+      this.verdict = 'taint'
+      return 'taint'
+    }
+    if (this.deps.now() < this.nextAttemptAt) {
+      return null
+    }
+    this.startRecovery(video, isStale)
+    return null
+  }
+
+  reset(): void {
+    this.generation++
+    this.capture?.dispose()
+    this.capture = null
+    this.captureEl = null
+    this.resolvedSrc = null
+    this.recovering = false
+    this.attempts = 0
+    this.nextAttemptAt = 0
+    this.verdict = null
+  }
+
+  private startRecovery(video: HTMLVideoElement, isStale: () => boolean): void {
+    this.recovering = true
+    this.attempts++
+    const generation = this.generation
     const recovery = this.deps.createCapture(video)
-    const clone = await recovery.setup()
-    if (isStale()) {
+    void recovery.setup().then((clone) => {
+      if (generation !== this.generation) {
+        recovery.dispose()
+        return
+      }
+      this.recovering = false
+      if (isStale()) {
+        recovery.dispose()
+        return
+      }
+      if (clone && this.deps.isOriginClean(clone)) {
+        this.capture = recovery
+        this.captureEl = clone
+        this.log('cross-origin video recovered via CORS-bypassed clone')
+        return
+      }
       recovery.dispose()
-      return 'aborted'
-    }
-    if (clone && this.deps.isOriginClean(clone)) {
-      this.capture = recovery
-      this.captureEl = clone
-      this.log('cross-origin video recovered via CORS-bypassed clone')
-      return 'ok'
-    }
-    recovery.dispose()
-    return 'taint'
+      if (clone && clone.readyState >= 2) {
+        // The clone decoded a frame and still reads tainted: the video is
+        // protected. A clone without a frame proves nothing, so it retries.
+        this.verdict = 'taint'
+        return
+      }
+      const delay = RECOVERY_RETRY_DELAYS_MS[this.attempts - 1]
+      if (delay === undefined) {
+        this.verdict = 'unreadable'
+        this.log(
+          `cross-origin recovery failed ${this.attempts} times, giving up`
+        )
+        return
+      }
+      this.nextAttemptAt = this.deps.now() + delay
+      this.log(`cross-origin recovery failed, retrying in ${delay}ms`)
+    })
   }
 }

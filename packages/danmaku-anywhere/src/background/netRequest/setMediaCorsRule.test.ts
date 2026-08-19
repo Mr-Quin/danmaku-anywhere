@@ -4,9 +4,9 @@ import { setMediaCorsRule } from './setMediaCorsRule'
 
 /**
  * Covers the media CORS-bypass session rule: it injects `Access-Control-Allow-
- * Origin: *` as a response header on the `media` resource type with no initiator
- * restriction, removes cleanly, and draws ids from the same shared allocator so
- * concurrent rules never collide.
+ * Origin: *` as a response header and removes the request's `Origin` header on
+ * the `media` resource type with no initiator restriction, removes cleanly, and
+ * draws ids from the same shared allocator so concurrent rules never collide.
  */
 
 describe('setMediaCorsRule', () => {
@@ -47,6 +47,9 @@ describe('setMediaCorsRule', () => {
     expect(rule.action.type).toBe('modifyHeaders')
     expect(rule.action.responseHeaders).toEqual([
       { header: 'Access-Control-Allow-Origin', operation: 'set', value: '*' },
+    ])
+    expect(rule.action.requestHeaders).toEqual([
+      { header: 'Origin', operation: 'remove' },
     ])
     expect(rule.condition.resourceTypes).toEqual(['media'])
     expect(rule.condition.urlFilter).toBe('|https://cdn.example.com/video.mp4')

@@ -292,6 +292,10 @@ export class OcclusionService {
       this.disableForTaint()
       return
     }
+    if (source === 'unreadable') {
+      this.disableForUnreadable()
+      return
+    }
     if (!source || isStale()) {
       return
     }
@@ -394,6 +398,12 @@ export class OcclusionService {
       this.log(`capture failed: ${e instanceof Error ? e.message : e}`)
       return null
     }
+  }
+
+  private disableForUnreadable(): void {
+    this.debugView?.showDisabled('disabled (frames unreadable)')
+    this.stop()
+    this.status('unreadable', 'disabled: could not read frames from this video')
   }
 
   private disableForTaint(): void {

@@ -82,21 +82,69 @@ function sendRange(req, res, filePath, size, type) {
   createReadStream(filePath, { start, end }).pipe(res)
 }
 
-// Media served under this prefix rejects the crossorigin clone's CORS request
-// (it carries an Origin header) so the occlusion DNR ACAO rule can't rescue it,
-// while the plain <video> request (no Origin) still plays and taints.
+// The crossorigin clone is the only request in CORS mode; the plain <video>
+// request is `no-cors`. Each prefix rejects or delays that one request in a
+// different way so the occlusion recovery paths can be exercised end to end,
+// while the plain <video> still plays and taints.
+//
+// cors-fail:    rejected outright, nothing can rescue it.
+// origin-block: rejected only when it carries an Origin header, the way a
+//               hotlink-protected CDN does.
+// flaky-clone:  rejected once, then served, so a retry has something to find.
+// slow-clone:   served, but slowly enough to outlast a short readiness budget.
 const CORS_FAIL_PREFIX = '/cors-fail/'
+const ORIGIN_BLOCK_PREFIX = '/origin-block/'
+const FLAKY_CLONE_PREFIX = '/flaky-clone/'
+const SLOW_CLONE_PREFIX = '/slow-clone/'
+const SLOW_CLONE_DELAY_MS = 10_000
+
+const flakyRejected = new Set()
+
+function isCloneRequest(req) {
+  return req.headers['sec-fetch-mode'] === 'cors'
+}
+
+function reject(res, status) {
+  res.writeHead(status)
+  res.end('Rejected')
+}
 
 function handle(req, res) {
   let urlPath = req.url
   if (urlPath.startsWith(CORS_FAIL_PREFIX)) {
-    if (req.headers.origin) {
-      res.writeHead(403)
-      res.end('Forbidden')
+    if (isCloneRequest(req)) {
+      reject(res, 403)
       return
     }
     urlPath = `/${urlPath.slice(CORS_FAIL_PREFIX.length)}`
   }
+  if (urlPath.startsWith(ORIGIN_BLOCK_PREFIX)) {
+    if (req.headers.origin) {
+      reject(res, 403)
+      return
+    }
+    urlPath = `/${urlPath.slice(ORIGIN_BLOCK_PREFIX.length)}`
+  }
+  if (urlPath.startsWith(FLAKY_CLONE_PREFIX)) {
+    urlPath = `/${urlPath.slice(FLAKY_CLONE_PREFIX.length)}`
+    if (isCloneRequest(req) && !flakyRejected.has(urlPath)) {
+      flakyRejected.add(urlPath)
+      reject(res, 503)
+      return
+    }
+  }
+  if (urlPath.startsWith(SLOW_CLONE_PREFIX)) {
+    urlPath = `/${urlPath.slice(SLOW_CLONE_PREFIX.length)}`
+    if (isCloneRequest(req)) {
+      const path = urlPath
+      setTimeout(() => serveFile(req, res, path), SLOW_CLONE_DELAY_MS)
+      return
+    }
+  }
+  serveFile(req, res, urlPath)
+}
+
+function serveFile(req, res, urlPath) {
   const filePath = resolvePath(urlPath)
   if (!filePath) {
     res.writeHead(403)

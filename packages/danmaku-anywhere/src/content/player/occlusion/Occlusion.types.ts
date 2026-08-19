@@ -1,11 +1,12 @@
 import type { ModelEntry } from '@/common/models/schema'
 
-// Distinct reasons because the user-facing remedy differs (taint vs webgpu vs
-// init); the rest are surfaced the same way.
+// Distinct reasons because the user-facing remedy differs (taint vs unreadable
+// vs webgpu vs init); the rest are surfaced the same way.
 export type OcclusionStatusReason =
   | 'downloading'
   | 'init'
   | 'taint'
+  | 'unreadable'
   | 'webgpu'
   | 'segment'
   | 'unavailable'
