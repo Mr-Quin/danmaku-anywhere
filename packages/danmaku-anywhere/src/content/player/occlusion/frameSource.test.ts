@@ -441,6 +441,82 @@ describe('FrameSource', () => {
     expect(capture.dispose).toHaveBeenCalled()
   })
 
+  it('reports taint without a clone for encrypted media', async () => {
+    const video = asVideo(makeOriginal({ readyState: 2 }))
+    Object.assign(video, { mediaKeys: {} })
+    const createCapture = vi.fn()
+    const source = makeSource({ isOriginClean: () => false, createCapture })
+
+    expect(await source.read(video, notStale)).toBe('taint')
+    expect(createCapture).not.toHaveBeenCalled()
+  })
+
+  it('treats a rejected setup as a failed attempt instead of parking', async () => {
+    const video = asVideo(makeOriginal({ readyState: 2 }))
+    const cloneEl = asVideo(makeOriginal({ readyState: 2 }))
+    const rejecting: CloneCapture = {
+      setup: vi.fn().mockRejectedValue(new Error('rpc down')),
+      sync: vi.fn(),
+      dispose: vi.fn(),
+    }
+    const succeeding: CloneCapture = {
+      setup: vi.fn().mockResolvedValue(cloneEl),
+      sync: vi.fn(),
+      dispose: vi.fn(),
+    }
+    const captures = [rejecting, succeeding]
+    const source = makeSource({
+      isOriginClean: (v) => v === cloneEl,
+      createCapture: () => captures.shift() as CloneCapture,
+    })
+
+    expect(await readAfterRecovery(source, video)).toBeNull()
+    clock += 2_000
+    expect(await readAfterRecovery(source, video)).toBe(cloneEl)
+  })
+
+  it('disposes a recovery that is still in flight when reset', async () => {
+    const video = asVideo(makeOriginal({ readyState: 2 }))
+    const capture: CloneCapture = {
+      setup: vi.fn(() => new Promise<HTMLVideoElement>(() => undefined)),
+      sync: vi.fn(),
+      dispose: vi.fn(),
+    }
+    const source = makeSource({
+      isOriginClean: () => false,
+      createCapture: () => capture,
+    })
+
+    await source.read(video, notStale)
+    source.reset()
+
+    expect(capture.dispose).toHaveBeenCalled()
+  })
+
+  it('captures nothing while the installed clone is seeking', async () => {
+    const video = asVideo(makeOriginal({ readyState: 2 }))
+    const clone = makeOriginal({ readyState: 2 })
+    const cloneEl = asVideo(clone)
+    const capture: CloneCapture = {
+      setup: vi.fn().mockResolvedValue(cloneEl),
+      sync: vi.fn(() => {
+        clone.readyState = 1
+      }),
+      dispose: vi.fn(),
+    }
+    const source = makeSource({
+      isOriginClean: (v) => v === cloneEl,
+      createCapture: () => capture,
+    })
+
+    expect(await readAfterRecovery(source, video)).toBeNull()
+
+    capture.sync = vi.fn(() => {
+      clone.readyState = 2
+    })
+    expect(await source.read(video, notStale)).toBe(cloneEl)
+  })
+
   it('reports taint without a clone when the source cannot be cloned', async () => {
     const video = asVideo(
       makeOriginal({ currentSrc: 'blob:https://host/abc', readyState: 2 })
@@ -477,7 +553,7 @@ describe('FrameSource', () => {
     expect(await readAfterRecovery(source, video)).toBeNull()
     expect(await source.read(video, notStale)).toBeNull()
 
-    clock += 1_000
+    clock += 2_000
     expect(await readAfterRecovery(source, video)).toBe(cloneEl)
   })
 
@@ -493,7 +569,7 @@ describe('FrameSource', () => {
     })
 
     let result = await readAfterRecovery(source, video)
-    for (let attempt = 0; attempt < 3; attempt++) {
+    for (let attempt = 0; attempt < 2; attempt++) {
       expect(result).toBeNull()
       clock += 60_000
       result = await readAfterRecovery(source, video)

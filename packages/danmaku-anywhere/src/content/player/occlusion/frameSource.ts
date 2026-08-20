@@ -29,11 +29,14 @@ export function isVideoOriginClean(video: HTMLVideoElement): boolean {
 const DRIFT_TOLERANCE_SECONDS = 0.2
 // The clone has to fetch a remote file and seek it to the live playhead, which
 // takes far longer than a local load on a slow CDN. The capture loop keeps
-// running while this is pending, so a generous budget costs nothing.
-const CLONE_READY_TIMEOUT_MS = 30_000
+// running while this is pending, so a wait costs no responsiveness, but every
+// attempt loads the media again, so the budget stays bounded.
+const CLONE_READY_TIMEOUT_MS = 20_000
 // A failed recovery is usually transient (a slow or rate-limited CDN), so back
-// off and try again before declaring the video unreadable. One entry per retry.
-const RECOVERY_RETRY_DELAYS_MS = [1_000, 3_000, 8_000]
+// off and try again before declaring the video unreadable. One entry per retry;
+// with the readiness budget this caps a doomed source at roughly a minute and
+// three media loads.
+const RECOVERY_RETRY_DELAYS_MS = [2_000, 6_000]
 
 /**
  * Reads a tainted cross-origin video via a hidden crossorigin clone (a
@@ -219,6 +222,9 @@ export class FrameSource {
   // src the capture was resolved against; a change forces a re-resolve.
   private resolvedSrc: string | null = null
   private recovering = false
+  // Held so reset() can tear down a recovery that is still in flight instead of
+  // leaving its clone and DNR rule alive until setup finishes.
+  private pending: CloneCapture | null = null
   private attempts = 0
   private nextAttemptAt = 0
   private verdict: 'taint' | 'unreadable' | null = null
@@ -247,6 +253,11 @@ export class FrameSource {
     }
     if (this.captureEl) {
       this.capture?.sync()
+      // sync() may have started a seek, which drops the decoded frame. Reading
+      // now would composite a mask from the pre-seek picture.
+      if (this.captureEl.readyState < 2) {
+        return null
+      }
       return this.captureEl
     }
     if (this.recovering) {
@@ -262,9 +273,9 @@ export class FrameSource {
       this.captureEl = video
       return video
     }
-    if (!/^https?:/i.test(video.currentSrc)) {
-      // blob/MSE sources are never tainted, so an unreadable one is protected
-      // (DRM) and no clone can recover it.
+    if (!/^https?:/i.test(video.currentSrc) || video.mediaKeys) {
+      // A clone can only re-fetch an http(s) URL, and encrypted media stays
+      // unreadable however it is fetched. Neither is worth an attempt.
       this.verdict = 'taint'
       return 'taint'
     }
@@ -278,7 +289,9 @@ export class FrameSource {
   reset(): void {
     this.generation++
     this.capture?.dispose()
+    this.pending?.dispose()
     this.capture = null
+    this.pending = null
     this.captureEl = null
     this.resolvedSrc = null
     this.recovering = false
@@ -292,12 +305,14 @@ export class FrameSource {
     this.attempts++
     const generation = this.generation
     const recovery = this.deps.createCapture(video)
-    void recovery.setup().then((clone) => {
+    this.pending = recovery
+    const settle = (clone: HTMLVideoElement | null) => {
       if (generation !== this.generation) {
         recovery.dispose()
         return
       }
       this.recovering = false
+      this.pending = null
       if (isStale()) {
         recovery.dispose()
         return
@@ -325,6 +340,14 @@ export class FrameSource {
       }
       this.nextAttemptAt = this.deps.now() + delay
       this.log(`cross-origin recovery failed, retrying in ${delay}ms`)
+    }
+    // A rejected setup must settle like an empty one; leaving `recovering` set
+    // would park the source forever with no status for the user.
+    void recovery.setup().then(settle, (e) => {
+      this.log(
+        `cross-origin recovery threw: ${e instanceof Error ? e.message : e}`
+      )
+      settle(null)
     })
   }
 }
