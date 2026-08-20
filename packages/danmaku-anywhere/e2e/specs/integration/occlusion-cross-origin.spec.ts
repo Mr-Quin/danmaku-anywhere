@@ -12,11 +12,9 @@ import { applyProfile } from '../../setup/profile'
 /**
  * Occlusion cross-origin behavior over real network (route-fulfilled .invalid
  * origins can't exercise DNR). Page on localhost:8889, video on 127.0.0.1:8889,
- * so the canvas genuinely taints. Asserts the recovery path (tainted original +
- * DNR clone yields a mask), the src-swap re-recovery, recovery of sources whose
- * clone request is blocked by an Origin check, rejected once, or slow to
- * arrive, and the graceful-failure path (a clone nothing can rescue reports the
- * video unreadable, leaves playback intact, and applies no mask).
+ * so the canvas genuinely taints. Asserts recovery through the DNR clone for a
+ * plain, Origin-blocked, once-rejected, slow, and swapped source, and that a
+ * source nothing can rescue reports the video unreadable, playback intact.
  */
 
 const PAGE_ORIGIN = 'http://localhost:8889'
@@ -27,12 +25,9 @@ const VIDEO_2 = `${MEDIA_ORIGIN}/media/person-akiyo.webm`
 // Served so the crossorigin clone's CORS request is rejected (DNR can't rescue
 // it) while the plain <video> still plays and taints.
 const VIDEO_UNRECOVERABLE = `${MEDIA_ORIGIN}/cors-fail/media/sample-motion.webm`
-// Rejects only a clone request carrying an Origin header, the way a
-// hotlink-protected CDN does.
+// Rejects a clone request carrying an Origin header.
 const VIDEO_ORIGIN_BLOCKED = `${MEDIA_ORIGIN}/origin-block/media/sample-motion.webm`
-// Rejects the clone request once, then serves it.
 const VIDEO_FLAKY_CLONE = `${MEDIA_ORIGIN}/flaky-clone/media/sample-motion.webm`
-// Serves the clone request only after a long delay.
 const VIDEO_SLOW_CLONE = `${MEDIA_ORIGIN}/slow-clone/media/sample-motion.webm`
 const MOUNT_PATTERN = `${PAGE_ORIGIN}/*`
 

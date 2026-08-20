@@ -82,16 +82,8 @@ function sendRange(req, res, filePath, size, type) {
   createReadStream(filePath, { start, end }).pipe(res)
 }
 
-// The crossorigin clone is the only request in CORS mode; the plain <video>
-// request is `no-cors`. Each prefix rejects or delays that one request in a
-// different way so the occlusion recovery paths can be exercised end to end,
-// while the plain <video> still plays and taints.
-//
-// cors-fail:    rejected outright, nothing can rescue it.
-// origin-block: rejected only when it carries an Origin header, the way a
-//               hotlink-protected CDN does.
-// flaky-clone:  rejected once, then served, so a retry has something to find.
-// slow-clone:   served, but slowly enough to outlast a short readiness budget.
+// Each prefix rejects or delays only the clone's request, the sole one in CORS
+// mode, so the plain <video> still plays and taints.
 const CORS_FAIL_PREFIX = '/cors-fail/'
 const ORIGIN_BLOCK_PREFIX = '/origin-block/'
 const FLAKY_CLONE_PREFIX = '/flaky-clone/'

@@ -339,8 +339,7 @@ describe('FrameSource', () => {
     })
   }
 
-  // Recovery runs in the background, so a read only reports its outcome on a
-  // later call; this drains the pending setup and reads again.
+  // Recovery is asynchronous: a read reports its outcome only on a later call.
   async function readAfterRecovery(
     source: FrameSource,
     video: HTMLVideoElement,
