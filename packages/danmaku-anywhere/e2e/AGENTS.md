@@ -12,6 +12,46 @@ Three layers, in increasing cost and fragility:
 
 The deciding question for any spec: **if you removed every UI assertion, would the test still pass on data alone?** If yes, it isn't e2e — move it down a layer. State-only assertions wearing a Playwright costume cost ~100× a unit test and catch less.
 
+## Red before green
+
+A spec that has never failed has not been tested. Before a spec counts as verification, watch it
+fail against the build *without* the change and pass *with* it. A spec that passes both ways
+asserts something other than what changed.
+
+Write the spec first where you can; that makes the "without" build the current tree and costs
+nothing. When the change is already written, build the merge base into a throwaway worktree and
+run the spec against that (~35s of building, measured).
+
+Refactors are the exception: behavior deliberately did not change, so the spec goes green
+immediately. Do not weaken an assertion to manufacture a red.
+
+Scratch specs live in `e2e/specs/.scratch/`, which is gitignored and skipped by the spec lint.
+A scratch spec becomes real coverage by moving the file into `e2e/specs/<area>/`.
+
+## The spec lint
+
+`pnpm run lint:specs` (part of `pnpm lint`) fails any spec that asserts only on state with no
+user-visible signal. It hard-fails locally and only warns under `CI`, so it bites the loop that
+wrote the spec without gating an outside contributor's PR.
+
+Behavior with genuinely no UI surface opts out by naming the reason in a comment:
+
+```
+lint-specs-allow-state-only: OPFS scope has no DOM signal, so it asserts storage state.
+```
+
+Treat an opt-out the same as an `expectedConsoleErrors` entry: one line, and it has to say why.
+
+## Which tests to run
+
+The full suite is ~1.8 minutes (89 tests), measured. That is cheap enough that running everything
+before a push is the default.
+
+- `pnpm test:e2e:changed` — inner loop, specs you edited. Selects on changed *spec files*: a
+  content-script edit selects nothing, so this is never a safety net for a product change.
+- `pnpm test:e2e:smoke` — ~7s band tagged `@smoke`: install, mount, search.
+- `pnpm test:e2e` — before pushing.
+
 ## Every e2e spec asserts at least one user-visible signal
 
 User-visible means observable from the rendered DOM, a download, or a navigation. Concretely:

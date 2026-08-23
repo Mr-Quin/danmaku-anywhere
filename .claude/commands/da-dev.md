@@ -70,7 +70,7 @@ Make the changes. Apply these in order:
 | Packages      | `pnpm --filter <package> test`                     | N/A                                               |
 | Cross-cutting | `pnpm lint && pnpm --filter '...[origin/master]' test` | Depends on areas touched                          |
 
-Run e2e (`pnpm --filter @mr-quin/danmaku-anywhere test:e2e`) for any PR that adds or touches an e2e spec, or that changes content scripts, mount profiles, integration policies, dango manifests, or popup flows. The suite should be running before push.
+Run e2e (`pnpm --filter @mr-quin/danmaku-anywhere test:e2e`) before pushing any PR that adds or touches an e2e spec, or that changes content scripts, mount profiles, integration policies, dango manifests, or popup flows. The full suite is ~1.8 minutes, so there is no cheaper rule worth the risk of missing something. `test:e2e:changed` and `test:e2e:smoke` are for the inner loop, not for the final check.
 
 #### Record a verify summary
 
@@ -79,7 +79,7 @@ Verification you only narrate is unauditable: a reviewer can't tell whether the 
 - `lint` (tsc + biome): pass / fail
 - tests: the scope you ran (e.g. `pnpm --filter '...[origin/master]' test`) and the result (N passed)
 - e2e: which specs ran, or skipped + a one-line reason
-- browser-verify: what you observed, if you ran it
+- red before green: the spec you added, and that you saw it fail without the change (or why the change is a refactor with no natural red)
 
 This is a record of what you actually did, not a second gate: deciding *what* to run stays your judgment, the summary just makes that judgment reviewable. Writing it also surfaces a step you meant to run and didn't.
 
@@ -97,7 +97,9 @@ Skip for trivial changes (config-only, types, docs).
 
 #### Extension: agentic verification (for the agent)
 
-For any change with runtime behavior worth observing (not just visual changes), self-verify via the `browser-verify` skill. Use it to confirm wiring (commands fire, RPC propagates, storage writes invalidate) and to capture selectors and event sequencing for the e2e spec. To exercise an already-published preview build instead (reproducing against build N, bisecting nightlies), use `preview-build`.
+For any change with runtime behavior, the verification that counts is **a spec that went red before it went green** (see `e2e-spec`). Writing it is the verification; there is no separate "I looked at it in a browser" step to report.
+
+When you don't yet know what to assert, explore first with the `browser-verify` skill and lift selectors with `generate-locator` instead of retyping them. To exercise an already-published preview build (reproducing against build N, bisecting nightlies), use `preview-build`.
 
 #### Web app: Cloudflare preview
 
@@ -118,7 +120,7 @@ Before pushing, run reviews using **clean subagents** (no prior context). They h
 - Run `/security-review` when the change touches user input, auth, APIs, or data storage
 - When the change carries runtime behavior, data contracts, migrations, non-trivial logic, or new-or-changed tests, also do a manual pass on two axes the commands above don't cover (skip for config-only, docs-only, or types-only changes). Each axis must end in a named failure; "the structure looks fine" is not a finding.
   - **Architecture / pattern fit**: does the change sit at the right seam, consistent with how the codebase already solves this? Look for a new coupling that other code now silently depends on, an invariant the types don't enforce (so a future caller can break it unnoticed), or an abstraction that duplicates one already in the tree. Name the specific seam or invariant at risk.
-  - **Test gaps & theatre**: for each new or changed test, mentally invert its guard or mutate the value under assertion; if the test would still pass, it protects nothing. Then find the behavior this PR changed that no test would catch if it regressed. Name the test that would survive its own breakage, or the behavior left unasserted.
+  - **Test gaps & theatre**: red-before-green already proves each new spec fails without the change, so spend this pass on what it does not cover: find the behavior this PR changed that no test would catch if it regressed, and name it.
 
 Fix any issues found, then add a commit. Never include Co-Authored-By or AI attribution.
 
