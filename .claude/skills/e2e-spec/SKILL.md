@@ -42,26 +42,14 @@ Don't write a migration spec from this cheat sheet alone; read AGENTS.md's migra
 
 ## Red before green
 
-**A spec that has never failed has not been tested.** Before a spec counts as verification, you
-must have watched it fail without the change and pass with it. A spec that passes against the
-unmodified build asserts something other than what you fixed.
+**A spec that has never failed has not been tested.** Watch it fail against the build without your
+change before you trust it passing with the change. A spec that passes both ways asserts something
+other than what you fixed. Refactors are the exception: behavior deliberately did not change, so
+the spec goes green immediately, and weakening an assertion to manufacture a red is worse than no
+red at all.
 
-Default (cheapest): write the spec **before** the fix. The "without" build is just the current
-tree, so no extra build is needed.
-
-Fallback, when the fix is already written (the common real case): build the merge base and run the
-spec against it.
-
-```bash
-git worktree add ../da-base $(git merge-base HEAD origin/master)
-cd ../da-base && pnpm install --frozen-lockfile && pnpm build:packages
-cd packages/danmaku-anywhere && VITE_DA_ENV=e2e pnpm run build
-```
-
-Roughly 35s of building, measured. Copy the spec in, run it, watch it fail, throw the worktree away.
-
-**Refactors are the honest exception.** When behavior deliberately did not change, the spec goes
-green immediately and that is correct. Do not manufacture a red by weakening an assertion.
+`verifying-changes` owns the mechanics: how to get a build without your change, which tier to run
+afterwards, and what to record.
 
 ## Authoring loop
 
@@ -71,23 +59,7 @@ green immediately and that is correct. Do not manufacture a red by weakening an 
 4. Write it as a scratch spec under `e2e/specs/.scratch/` (gitignored, exempt from the spec lint).
 5. Watch it go **red** against the build without your change, then **green** with it.
 6. Graduate it: move the file into `e2e/specs/<area>/`. It is now real coverage.
-7. Run the tiers below.
-
-## Which tests to run
-
-Measured on this suite: the **full run is ~1.8 minutes** (89 tests). It is cheap enough that
-"run everything before pushing" is the honest default, and any rule more clever than that mostly
-buys a chance to miss something.
-
-```bash
-pnpm test:e2e:changed   # inner loop: specs you edited
-pnpm test:e2e:smoke     # ~7s sanity band: install, mount, search
-pnpm test:e2e           # before pushing: the whole suite, ~1.8 min
-```
-
-`--only-changed` selects on **changed spec files**. Specs load a built artifact rather than
-importing product source, so editing a content script selects nothing. Never treat tier 1 as a
-safety net for a product change.
+7. Run the tiers in `verifying-changes`.
 
 ## When the AGENTS.md doctrine and an AI reviewer disagree
 

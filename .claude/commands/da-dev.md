@@ -56,7 +56,7 @@ Make the changes. Apply these in order:
 - **YAGNI**: don't add a config knob, parameter, or branch unless *this* PR needs it. "In case someone later wants to…" is the smell. Future flexibility is cheaper to add when it's actually needed than to remove when it isn't.
 - **Library / framework idioms**: use each library's blessed patterns rather than inventing your own. Before writing a helper, check whether the framework already exposes the primitive (e.g. React hook, Hono middleware, Playwright fixture, octokit method, MUI component). For unfamiliar APIs or recent versions, fetch current docs via the `context7` MCP instead of trusting model memory. Match the project's existing usage of a library; if everywhere else uses pattern A and you're tempted to introduce pattern B, the burden of proof is on B.
 - **e2e coverage**: every feature/fix lands with e2e coverage under `packages/danmaku-anywhere/e2e/` unless coverage is genuinely infeasible. State *why* in the PR body when skipping. Use `browser-verify` while authoring the spec.
-- **Committed agent docs stay portable.** Files under `.claude/`, `CLAUDE.md`, `AGENTS.md` must not contain absolute paths into a developer's machine, OS-specific commands without an alternative, or project-specific magic values. Workspace-specific values (ClickUp IDs, browser executable paths, etc.) live in environment variables (e.g. `CLICKUP_DA_*`, `CHROME_DEVTOOLS_EXECUTABLE`) that the developer sets in their shell, not in committed files; env vars are inherited across worktrees, unlike per-project agent memory. If a workflow depends on an MCP or local tool that may not be present, declare the prerequisite so the agent can stop and tell the human on a miss.
+- **Committed agent docs stay portable.** Files under `.claude/`, `CLAUDE.md`, `AGENTS.md` must not contain absolute paths into a developer's machine, OS-specific commands without an alternative, or project-specific magic values. Workspace-specific values (ClickUp IDs, browser executable paths, etc.) live in environment variables (e.g. `CLICKUP_DA_*`) that the developer sets in their shell, not in committed files; env vars are inherited across worktrees, unlike per-project agent memory. If a workflow depends on an MCP or local tool that may not be present, declare the prerequisite so the agent can stop and tell the human on a miss.
 
 ### 4. Verify
 
@@ -70,7 +70,7 @@ Make the changes. Apply these in order:
 | Packages      | `pnpm --filter <package> test`                     | N/A                                               |
 | Cross-cutting | `pnpm lint && pnpm --filter '...[origin/master]' test` | Depends on areas touched                          |
 
-Run e2e (`pnpm --filter @mr-quin/danmaku-anywhere test:e2e`) before pushing any PR that adds or touches an e2e spec, or that changes content scripts, mount profiles, integration policies, dango manifests, or popup flows. The full suite is ~1.8 minutes, so there is no cheaper rule worth the risk of missing something. `test:e2e:changed` and `test:e2e:smoke` are for the inner loop, not for the final check.
+For extension changes, the `verifying-changes` skill owns which tier to run and the red-before-green rule. The short version: the full e2e suite is ~1.8 minutes, so run it before pushing anything that touches a spec, content scripts, mount profiles, integration policies, dango manifests, or popup flows.
 
 #### Record a verify summary
 
