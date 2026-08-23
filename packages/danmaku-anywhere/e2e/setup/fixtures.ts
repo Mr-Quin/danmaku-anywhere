@@ -1,4 +1,10 @@
-import { type BrowserContext, test as base, chromium } from '@playwright/test'
+import { readdir } from 'node:fs/promises'
+import {
+  type BrowserContext,
+  test as base,
+  chromium,
+  type TestInfo,
+} from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { mockCatalog } from '../network/catalog'
@@ -28,6 +34,25 @@ const watchersByContext = new WeakMap<BrowserContext, ContextWatchers>()
 export type ExpectedConsoleErrorPattern = string | RegExp
 export type { AllowedNetworkPattern } from './network-watcher'
 
+async function attachVideos(testInfo: TestInfo): Promise<void> {
+  if (!process.env.DA_VERIFY) {
+    return
+  }
+  const dir = testInfo.outputPath('video')
+  let files: string[]
+  try {
+    files = await readdir(dir)
+  } catch {
+    return
+  }
+  for (const file of files) {
+    await testInfo.attach(file, {
+      path: path.join(dir, file),
+      contentType: 'video/webm',
+    })
+  }
+}
+
 export const test = base.extend<{
   context: BrowserContext
   extensionId: string
@@ -49,14 +74,21 @@ export const test = base.extend<{
   // body — see e2e/specs/providers/offline-fallback.spec.ts).
   catalogMock: [mockCatalog(), { option: true }],
 
-  context: async ({ allowedNetworkOrigins, catalogMock }, use) => {
-    const context = await chromium.launchPersistentContext('', {
-      channel: 'chromium',
-      args: [
-        `--disable-extensions-except=${pathToExtension}`,
-        `--load-extension=${pathToExtension}`,
-      ],
-    })
+  context: async ({ allowedNetworkOrigins, catalogMock }, use, testInfo) => {
+    const launchArgs = [
+      `--disable-extensions-except=${pathToExtension}`,
+      `--load-extension=${pathToExtension}`,
+    ]
+    // use.video does not reach a context we launch ourselves, so a verify run
+    // has to ask for the recording at launch time.
+    const launchOptions = process.env.DA_VERIFY
+      ? {
+          channel: 'chromium' as const,
+          args: launchArgs,
+          recordVideo: { dir: testInfo.outputPath('video') },
+        }
+      : { channel: 'chromium' as const, args: launchArgs }
+    const context = await chromium.launchPersistentContext('', launchOptions)
     const consoleWatcher = attachConsoleWatcher(context)
     const networkWatcher = await attachNetworkWatcher(
       context,
@@ -71,6 +103,9 @@ export const test = base.extend<{
     })
     await use(context)
     await context.close()
+    // Videos are only finalized on close, and a context we launched ourselves
+    // is not attached to the report for us.
+    await attachVideos(testInfo)
   },
   extensionId: async ({ context }, use) => {
     let [serviceWorker] = context.serviceWorkers()

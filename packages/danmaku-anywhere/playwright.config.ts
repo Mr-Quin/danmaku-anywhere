@@ -32,9 +32,10 @@ export default defineConfig({
         ]
       : 'list',
   use: {
-    // Extensions require the full chromium channel and headed mode
+    // Extensions need the full chromium channel; the new headless mode loads
+    // them fine, so headless is the default and DA_HEADED forces a window.
     channel: 'chromium',
-    headless: false,
+    headless: !process.env.DA_HEADED,
     // Capture a full Playwright trace on failure so CI flakes don't
     // require re-running with extra instrumentation to diagnose.
     trace: isVerify ? 'on' : 'retain-on-failure',

@@ -51,6 +51,17 @@ before a push is the default.
   content-script edit selects nothing, so this is never a safety net for a product change.
 - `pnpm test:e2e:smoke` — ~7s band tagged `@smoke`: install, mount, search.
 - `pnpm test:e2e` — before pushing.
+- `pnpm test:e2e:ui` — Playwright UI mode, for a human: watch mode, per-step DOM time travel,
+  pick-locator, console and network panes. It opens a window, so it needs a display and is not
+  something an agent can drive.
+
+Specs run **headless** by default. Extensions load fine in Chromium's current headless mode, so
+the suite no longer needs a display. Set `DA_HEADED=1` to get a visible window back.
+
+Headless is not a stability fix. The `occlusion-cross-origin` specs are load-sensitive under
+parallel workers and flake locally in either mode; they pass run on their own and they pass in CI.
+Local wall-clock swings more with machine load than with headless versus headed, so do not read a
+speed difference into it.
 
 ## Every e2e spec asserts at least one user-visible signal
 

@@ -36,8 +36,11 @@ From `packages/danmaku-anywhere`:
 pnpm lint                # tsc + biome + the spec theatre lint
 pnpm test:e2e:changed    # inner loop: specs you edited
 pnpm test:e2e:smoke      # ~7s band: install, mount, search
-pnpm test:e2e            # before pushing: whole suite, ~1.8 min
+pnpm test:e2e            # before pushing: whole suite, ~3 min headless
+pnpm test:e2e:ui         # human only: Playwright UI mode, needs a display
 ```
+
+Specs run headless by default; `DA_HEADED=1` brings back a visible window.
 
 The full suite is ~1.8 minutes, so **run it before pushing**. Anything cleverer buys seconds and
 risks missing a regression.
