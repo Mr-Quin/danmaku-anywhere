@@ -40,14 +40,26 @@ If you're writing under `e2e/specs/migration/`, AGENTS.md has a dedicated sectio
 
 Don't write a migration spec from this cheat sheet alone; read AGENTS.md's migration section in full.
 
+## Red before green
+
+**A spec that has never failed has not been tested.** Watch it fail against the build without your
+change before you trust it passing with the change. A spec that passes both ways asserts something
+other than what you fixed. Refactors are the exception: behavior deliberately did not change, so
+the spec goes green immediately, and weakening an assertion to manufacture a red is worse than no
+red at all.
+
+`verifying-changes` owns the mechanics: how to get a build without your change, which tier to run
+afterwards, and what to record.
+
 ## Authoring loop
 
 1. Read `packages/danmaku-anywhere/e2e/AGENTS.md`.
 2. Find the closest existing spec under `e2e/specs/` and use it as a template. POM usage, seeding patterns, assertion shape.
-3. Use `browser-verify` while authoring to find selectors, confirm timing, and capture the event sequence. The dev API (`globalThis.__da.describe()`) lists what's available for seeding.
-4. Write the spec.
-5. Run it: `cd packages/danmaku-anywhere && pnpm test:e2e -- <spec>`. Iterate.
-6. Before pushing: full e2e run (`pnpm test:e2e`); the suite is the load-bearing verification per `da-dev` step 4.
+3. If you don't yet know what to assert, explore with `browser-verify` and lift selectors with `generate-locator` rather than retyping them.
+4. Write it as a scratch spec under `e2e/specs/.scratch/` (gitignored, exempt from the spec lint).
+5. Watch it go **red** against the build without your change, then **green** with it.
+6. Graduate it: move the file into `e2e/specs/<area>/`. It is now real coverage.
+7. Run the tiers in `verifying-changes`.
 
 ## When the AGENTS.md doctrine and an AI reviewer disagree
 
