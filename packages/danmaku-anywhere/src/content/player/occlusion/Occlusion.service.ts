@@ -287,21 +287,21 @@ export class OcclusionService {
     }
     const isStale = () => !this.running || this.video !== video
 
-    const source = await this.frameSource.read(video, isStale)
-    if (source === 'taint') {
-      this.disableForTaint()
+    const outcome = await this.frameSource.read(video, isStale)
+    if (outcome.status === 'disabled') {
+      if (outcome.failure.kind === 'protected') {
+        this.disableForTaint()
+      } else {
+        this.disableForUnreadable()
+      }
       return
     }
-    if (source === 'unreadable') {
-      this.disableForUnreadable()
-      return
-    }
-    if (!source || isStale()) {
+    if (outcome.status === 'pending' || isStale()) {
       return
     }
 
     const t0 = performance.now()
-    const frame = await this.captureFrame(source, video)
+    const frame = await this.captureFrame(outcome.frame.element, video)
     if (frame === 'taint') {
       this.disableForTaint()
       return
