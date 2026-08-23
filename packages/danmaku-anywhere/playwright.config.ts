@@ -1,6 +1,9 @@
 import { defineConfig } from '@playwright/test'
 
 const isCI = !!process.env.CI
+// A verification run is evidence a reviewer can watch, so it records the whole
+// run rather than only what survived a failure.
+const isVerify = !!process.env.DA_VERIFY
 
 export default defineConfig({
   testDir: './e2e',
@@ -16,22 +19,25 @@ export default defineConfig({
     stdout: 'ignore',
     stderr: 'pipe',
   },
-  reporter: isCI
-    ? [
-        ['list'],
-        // JSON lives outside playwright-report/ because the HTML reporter
-        // wipes its outputFolder before writing, which would clobber a
-        // sibling JSON file.
-        ['json', { outputFile: 'test-results/report.json' }],
-        ['html', { open: 'never' }],
-      ]
-    : 'list',
+  reporter: isVerify
+    ? [['list'], ['html', { open: 'never' }]]
+    : isCI
+      ? [
+          ['list'],
+          // JSON lives outside playwright-report/ because the HTML reporter
+          // wipes its outputFolder before writing, which would clobber a
+          // sibling JSON file.
+          ['json', { outputFile: 'test-results/report.json' }],
+          ['html', { open: 'never' }],
+        ]
+      : 'list',
   use: {
     // Extensions require the full chromium channel and headed mode
     channel: 'chromium',
     headless: false,
     // Capture a full Playwright trace on failure so CI flakes don't
     // require re-running with extra instrumentation to diagnose.
-    trace: 'retain-on-failure',
+    trace: isVerify ? 'on' : 'retain-on-failure',
+    video: isVerify ? 'on' : 'off',
   },
 })
