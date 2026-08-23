@@ -159,8 +159,7 @@ export interface CloneCapture {
 
 /**
  * Reads a tainted cross-origin video through a CORS-bypassed clone. Setup runs
- * in the background so the capture loop keeps ticking, which means the first
- * acquires report pending and the outcome lands on a later one.
+ * in the background, so early acquires report pending.
  */
 export class CloneFrameStrategy implements FrameStrategy {
   private capture: CloneCapture | null = null

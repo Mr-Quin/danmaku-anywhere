@@ -1,9 +1,6 @@
 import type { AcquireResult, FrameStrategy } from './frameStrategy'
 
-/**
- * Reads the live element. Does not re-probe, since classification already
- * established readability and a canvas read per frame would only cost time.
- */
+// Classification already established readability, so no per-frame re-probe.
 export class DirectFrameStrategy implements FrameStrategy {
   constructor(private readonly video: HTMLVideoElement) {}
 
