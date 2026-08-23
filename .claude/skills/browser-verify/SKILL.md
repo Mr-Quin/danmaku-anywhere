@@ -37,8 +37,21 @@ npx -y @playwright/cli@0.1.18 -s=<session> close
 `snapshot` returns the accessibility tree with a `ref` per element. Feed a ref to `click`,
 `fill`, `hover`, or `generate-locator`.
 
-The extension's own pages work like any other URL: `goto chrome-extension://<id>/pages/popup.html`.
-Get `<id>` from the service worker (below).
+The extension's own pages work like any other URL. Get `<id>` from the service worker (below),
+and note that the built paths are not the source paths:
+
+| Page | URL |
+|---|---|
+| Popup | `chrome-extension://<id>/pages/popup.html` |
+| Dashboard | `chrome-extension://<id>/pages/dashboard.html` |
+| Segmenter | `chrome-extension://<id>/pages/segmenter.html` |
+
+Guessing a path from the source layout gets you `net::ERR_FILE_NOT_FOUND`. When in doubt, read
+`build/manifest.json` (`action.default_popup`) rather than inferring.
+
+The popup renders in whatever locale the profile resolves to, which is `zh_CN` on a fresh profile.
+Accessible names come back translated, so a locator lifted here is locale-coupled unless the
+element has a `data-testid`.
 
 ## 2. Turn what you found into spec code
 
