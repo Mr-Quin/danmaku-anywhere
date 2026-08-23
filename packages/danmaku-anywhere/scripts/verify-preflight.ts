@@ -51,6 +51,10 @@ if (!existsSync(executablePath)) {
   )
 }
 
+// Chromium refuses to start as root without this, which is how the agent lane
+// runs in a container.
+const sandboxArgs = process.getuid?.() === 0 ? ['--no-sandbox'] : []
+
 mkdirSync(OUT_DIR, { recursive: true })
 writeFileSync(
   CONFIG_PATH,
@@ -62,6 +66,7 @@ writeFileSync(
           executablePath,
           headless: true,
           args: [
+            ...sandboxArgs,
             // Unlocks the CDP Extensions domain so the extension can be
             // reloaded in place after a rebuild.
             '--enable-unsafe-extension-debugging',

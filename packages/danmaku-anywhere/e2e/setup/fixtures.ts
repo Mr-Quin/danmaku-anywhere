@@ -21,6 +21,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // e2e/setup/fixtures.ts → ../../build
 const pathToExtension = path.join(__dirname, '..', '..', 'build')
 
+const isVerify = !!process.env.DA_VERIFY
+
 interface ContextWatchers {
   console: ConsoleWatcher
   network: NetworkWatcher
@@ -34,17 +36,11 @@ const watchersByContext = new WeakMap<BrowserContext, ContextWatchers>()
 export type ExpectedConsoleErrorPattern = string | RegExp
 export type { AllowedNetworkPattern } from './network-watcher'
 
+// Videos only finalize on close, and a context the fixture launches itself is
+// not attached to the report for us.
 async function attachVideos(testInfo: TestInfo): Promise<void> {
-  if (!process.env.DA_VERIFY) {
-    return
-  }
   const dir = testInfo.outputPath('video')
-  let files: string[]
-  try {
-    files = await readdir(dir)
-  } catch {
-    return
-  }
+  const files = await readdir(dir).catch(() => [])
   for (const file of files) {
     await testInfo.attach(file, {
       path: path.join(dir, file),
@@ -75,20 +71,15 @@ export const test = base.extend<{
   catalogMock: [mockCatalog(), { option: true }],
 
   context: async ({ allowedNetworkOrigins, catalogMock }, use, testInfo) => {
-    const launchArgs = [
-      `--disable-extensions-except=${pathToExtension}`,
-      `--load-extension=${pathToExtension}`,
-    ]
-    // use.video does not reach a context we launch ourselves, so a verify run
-    // has to ask for the recording at launch time.
-    const launchOptions = process.env.DA_VERIFY
-      ? {
-          channel: 'chromium' as const,
-          args: launchArgs,
-          recordVideo: { dir: testInfo.outputPath('video') },
-        }
-      : { channel: 'chromium' as const, args: launchArgs }
-    const context = await chromium.launchPersistentContext('', launchOptions)
+    const context = await chromium.launchPersistentContext('', {
+      channel: 'chromium',
+      args: [
+        `--disable-extensions-except=${pathToExtension}`,
+        `--load-extension=${pathToExtension}`,
+      ],
+      // use.video never reaches a context launched here, so ask at launch time.
+      recordVideo: isVerify ? { dir: testInfo.outputPath('video') } : undefined,
+    })
     const consoleWatcher = attachConsoleWatcher(context)
     const networkWatcher = await attachNetworkWatcher(
       context,
@@ -103,9 +94,9 @@ export const test = base.extend<{
     })
     await use(context)
     await context.close()
-    // Videos are only finalized on close, and a context we launched ourselves
-    // is not attached to the report for us.
-    await attachVideos(testInfo)
+    if (isVerify) {
+      await attachVideos(testInfo)
+    }
   },
   extensionId: async ({ context }, use) => {
     let [serviceWorker] = context.serviceWorkers()
