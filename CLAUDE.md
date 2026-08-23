@@ -116,23 +116,6 @@ Don't hardcode a model name as policy; the roster changes. Reason in tiers and p
 - Use TDD when refactoring — write tests first, start with reusable primitives
 - Step back and think holistically before refactoring — don't anchor to the current implementation
 
-## Skills
-
-Task-specific playbooks live in `.claude/skills/`. Reach for one when its trigger matches; each is
-short and points at the canonical docs rather than restating them.
-
-| Skill | Reach for it when |
-|---|---|
-| `verifying-changes` | You changed code and need to prove it works. Start here: which tier to run, red before green, what to record. |
-| `browser-verify` | You don't yet know what to assert. Explores the extension in headless Chromium via the Playwright CLI. |
-| `e2e-spec` | You are writing or modifying a spec under `packages/danmaku-anywhere/e2e/`. |
-| `i18n` | You are adding or changing user-facing strings. |
-| `reviewing-ai-feedback` | An AI reviewer left comments on a PR. |
-| `babysit-pr` | A PR is open and you want it watched to green. |
-| `preview-build` | You want to exercise an already-published preview or nightly build. |
-| `specs-in-clickup` | You are finishing a brainstorm, design spec, or implementation plan. |
-| `worktree-tab` | You need a fresh session in a new terminal tab for a worktree. |
-
 ## Per-package context
 
 Each package/app has its own `AGENTS.md` with package-specific conventions and gotchas. Read the relevant `AGENTS.md` when working on a specific package. See `package.json` in each package for available scripts and dependencies.
