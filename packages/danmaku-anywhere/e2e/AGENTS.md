@@ -44,19 +44,27 @@ Treat an opt-out the same as an `expectedConsoleErrors` entry: one line, and it 
 
 ## Which tests to run
 
-The full suite is ~1.8 minutes (89 tests), measured. That is cheap enough that running everything
-before a push is the default.
+**Never run the full suite locally. That is CI's job.** Run the affected specs, and at most the
+smoke band on top.
 
 - `pnpm test:e2e:changed` — inner loop, specs you edited. Selects on changed *spec files*: a
-  content-script edit selects nothing, so this is never a safety net for a product change.
-- `pnpm test:e2e:smoke` — ~7s band tagged `@smoke`: install, mount, search.
-- `pnpm test:e2e` — before pushing.
+  content-script edit selects nothing, so this is never a safety net for a product change. When it
+  selects nothing, run the specs covering what you touched by path.
+- `pnpm test:e2e:smoke` — ~7s band tagged `@smoke`: install, mount, search. The most you should run
+  before pushing.
+- `pnpm test:e2e` — the full sweep. **CI only.** It is slow, it contends for the machine, and the
+  occlusion specs flake under that load, so a local red here tells you little.
 - `pnpm test:e2e:ui` — Playwright UI mode, for a human: watch mode, per-step DOM time travel,
   pick-locator, console and network panes. It opens a window, so it needs a display and is not
   something an agent can drive.
 
-Specs run **headless** by default. Extensions load fine in Chromium's current headless mode, so
-the suite no longer needs a display. Set `DA_HEADED=1` to get a visible window back.
+**Specs run headless, always.** Extensions load fine in Chromium's current headless mode,
+including the CDP Extensions domain the migration swap depends on, so nothing in the suite needs a
+display and no spec should opt itself into a window.
+
+`DA_HEADED=1` exists only for a human who needs to watch a run with their own eyes. Do not set it
+in a spec, a script, or CI. If a spec ever genuinely cannot work headless, that is a finding worth
+writing down next to the spec, not a flag to sprinkle.
 
 Headless is not a stability fix. The `occlusion-cross-origin` specs are load-sensitive under
 parallel workers and flake locally in either mode; they pass run on their own and they pass in CI.

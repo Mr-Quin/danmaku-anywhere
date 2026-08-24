@@ -36,14 +36,15 @@ From `packages/danmaku-anywhere`:
 pnpm lint                # tsc + biome + the spec theatre lint
 pnpm test:e2e:changed    # inner loop: specs you edited
 pnpm test:e2e:smoke      # ~7s band: install, mount, search
-pnpm test:e2e            # before pushing: whole suite, ~3 min headless
 pnpm test:e2e:ui         # human only: Playwright UI mode, needs a display
 ```
 
-Specs run headless by default; `DA_HEADED=1` brings back a visible window.
+Specs run **headless, always**. `DA_HEADED=1` is for a human who needs to watch a run; never set
+it in a script or CI, and nothing in the suite currently requires it.
 
-The full suite is ~1.8 minutes, so **run it before pushing**. Anything cleverer buys seconds and
-risks missing a regression.
+**Never run the full suite locally.** `pnpm test:e2e` is CI's job. Run the affected specs, and at
+most the smoke band on top. A full local sweep is slow, contends for the machine, and flakes under
+that contention, so its red tells you little.
 
 `--only-changed` selects on changed *spec files*. Specs load a built artifact rather than
 importing product source, so editing a content script selects **nothing**. Never treat tier 1 as a

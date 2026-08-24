@@ -1,10 +1,4 @@
-import { readdir } from 'node:fs/promises'
-import {
-  type BrowserContext,
-  test as base,
-  chromium,
-  type TestInfo,
-} from '@playwright/test'
+import { type BrowserContext, test as base, chromium } from '@playwright/test'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { mockCatalog } from '../network/catalog'
@@ -21,8 +15,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // e2e/setup/fixtures.ts → ../../build
 const pathToExtension = path.join(__dirname, '..', '..', 'build')
 
-const isVerify = !!process.env.DA_VERIFY
-
 interface ContextWatchers {
   console: ConsoleWatcher
   network: NetworkWatcher
@@ -35,19 +27,6 @@ const watchersByContext = new WeakMap<BrowserContext, ContextWatchers>()
 
 export type ExpectedConsoleErrorPattern = string | RegExp
 export type { AllowedNetworkPattern } from './network-watcher'
-
-// Videos only finalize on close, and a context the fixture launches itself is
-// not attached to the report for us.
-async function attachVideos(testInfo: TestInfo): Promise<void> {
-  const dir = testInfo.outputPath('video')
-  const files = await readdir(dir).catch(() => [])
-  for (const file of files) {
-    await testInfo.attach(file, {
-      path: path.join(dir, file),
-      contentType: 'video/webm',
-    })
-  }
-}
 
 export const test = base.extend<{
   context: BrowserContext
@@ -70,15 +49,13 @@ export const test = base.extend<{
   // body — see e2e/specs/providers/offline-fallback.spec.ts).
   catalogMock: [mockCatalog(), { option: true }],
 
-  context: async ({ allowedNetworkOrigins, catalogMock }, use, testInfo) => {
+  context: async ({ allowedNetworkOrigins, catalogMock }, use) => {
     const context = await chromium.launchPersistentContext('', {
       channel: 'chromium',
       args: [
         `--disable-extensions-except=${pathToExtension}`,
         `--load-extension=${pathToExtension}`,
       ],
-      // use.video never reaches a context launched here, so ask at launch time.
-      recordVideo: isVerify ? { dir: testInfo.outputPath('video') } : undefined,
     })
     const consoleWatcher = attachConsoleWatcher(context)
     const networkWatcher = await attachNetworkWatcher(
@@ -94,9 +71,6 @@ export const test = base.extend<{
     })
     await use(context)
     await context.close()
-    if (isVerify) {
-      await attachVideos(testInfo)
-    }
   },
   extensionId: async ({ context }, use) => {
     let [serviceWorker] = context.serviceWorkers()

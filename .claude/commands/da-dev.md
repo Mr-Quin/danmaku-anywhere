@@ -70,7 +70,7 @@ Make the changes. Apply these in order:
 | Packages      | `pnpm --filter <package> test`                     | N/A                                               |
 | Cross-cutting | `pnpm lint && pnpm --filter '...[origin/master]' test` | Depends on areas touched                          |
 
-For extension changes, the `verifying-changes` skill owns which tier to run and the red-before-green rule. The short version: the full e2e suite is ~1.8 minutes, so run it before pushing anything that touches a spec, content scripts, mount profiles, integration policies, dango manifests, or popup flows.
+For extension changes, the `verifying-changes` skill owns which tier to run and the red-before-green rule. The short version: run the affected specs, and at most `pnpm test:e2e:smoke` on top. Never run the full suite locally, that is CI's job.
 
 #### Record a verify summary
 
