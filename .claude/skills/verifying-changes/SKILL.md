@@ -37,6 +37,14 @@ pnpm lint                # tsc + biome + the spec theatre lint
 pnpm test:e2e:changed    # inner loop: specs you edited
 pnpm test:e2e:smoke      # ~7s band: install, mount, search
 pnpm test:e2e:ui         # human only: Playwright UI mode, needs a display
+pnpm test:e2e:verify <spec>   # evidence run: full trace + HTML report
+```
+
+The suite loads `build/`, not your source. Playwright refuses to run against a stale build and
+prints the command, so if you changed product code, build first:
+
+```bash
+VITE_DA_ENV=e2e pnpm run build
 ```
 
 **Never run the full suite locally.** `pnpm test:e2e` is CI's job. Run the affected specs, and at

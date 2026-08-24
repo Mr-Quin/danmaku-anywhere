@@ -73,6 +73,9 @@ smoke band on top.
 - `pnpm test:e2e:ui` — Playwright UI mode, for a human: watch mode, per-step DOM time travel,
   pick-locator, console and network panes. It opens a window, so it needs a display and is not
   something an agent can drive.
+- `pnpm test:e2e:verify <spec>` — the evidence run. Forces a full trace and writes the HTML report,
+  so `pnpm exec playwright show-report` gives a reviewer the run step by step. Use it on the spec a
+  PR adds, not on the suite.
 
 **Specs run headless, always.** Extensions load fine in Chromium's current headless mode,
 including the CDP Extensions domain the migration swap depends on, so nothing in the suite needs a

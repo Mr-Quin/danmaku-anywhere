@@ -1,8 +1,8 @@
+import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { chromium } from '@playwright/test'
 import { BUILD_DIR, checkBuild, PKG_ROOT } from '../e2e/setup/buildFreshness.ts'
-import { ensureE2eBuild } from './ensureE2eBuild.ts'
 
 const CLI_VERSION = '@playwright/cli@0.1.18'
 const OUT_DIR = path.join(PKG_ROOT, '.playwright-cli')
@@ -15,10 +15,21 @@ function fail(message: string): never {
 
 // The agent lane must not explore a build that does not match the tree, so an
 // unambiguous problem is repaired and anything else stops the run.
-ensureE2eBuild()
-const check = checkBuild()
-if (!check.ok) {
-  fail(`build/ still unusable after a build: ${check.detail}`)
+// A full build is ~11s whatever changed, so only build when build/ has drifted
+// from the tree. Unlike a test run, this command's job is to get you set up, so
+// it repairs rather than refusing.
+const initial = checkBuild()
+if (!initial.ok) {
+  console.log(`[preflight] ${initial.detail} Building.`)
+  execFileSync('pnpm', ['run', 'build'], {
+    cwd: PKG_ROOT,
+    stdio: 'inherit',
+    env: { ...process.env, VITE_DA_ENV: 'e2e' },
+  })
+  const recheck = checkBuild()
+  if (!recheck.ok) {
+    fail(`build/ still unusable after a build: ${recheck.detail}`)
+  }
 }
 
 // A build directory outside this checkout means the caller is driving another
