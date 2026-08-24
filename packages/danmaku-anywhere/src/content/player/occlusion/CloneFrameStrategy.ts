@@ -8,16 +8,15 @@ import type {
 
 const DRIFT_TOLERANCE_SECONDS = 0.2
 const CLONE_READY_TIMEOUT_MS = 20_000
+const CLONE_STALL_TIMEOUT_MS = 5_000
 
-/**
- * Reads a tainted cross-origin video via a hidden crossorigin clone (a
- * background DNR rule supplies ACAO) instead of the live element, leaving
- * playback untouched. Built only for an http(s) source.
- */
+// Hidden crossorigin clone of an http(s) source; a background DNR rule supplies
+// the ACAO that makes it readable.
 export class CrossOriginCapture {
   private clone: HTMLVideoElement | null = null
   private ruleId: number | null = null
   private disposed = false
+  private readonly mirror = () => this.mirrorPlayback()
 
   constructor(private readonly original: HTMLVideoElement) {}
 
@@ -43,23 +42,21 @@ export class CrossOriginCapture {
       clone.src = src
       document.body.appendChild(clone)
       this.clone = clone
+      this.watchPlayback()
 
       const ready = await this.waitReady(clone)
       if (!ready || this.disposed) {
         this.dispose()
         return null
       }
-      // Not synced here: the caller has to probe a frame a seek would drop.
+      // Unsynced: the caller must probe a frame a seek would drop.
       return clone
     } catch {
-      // Any failure: give up cleanly so the caller falls back to the taint
-      // status rather than capturing the unrecovered original.
       this.dispose()
       return null
     }
   }
 
-  // Align the clone to the live element; called once per capture cycle.
   sync(): void {
     const clone = this.clone
     if (!clone) {
@@ -84,6 +81,7 @@ export class CrossOriginCapture {
 
   dispose(): void {
     this.disposed = true
+    this.unwatchPlayback()
     const clone = this.clone
     if (clone) {
       clone.pause()
@@ -93,6 +91,34 @@ export class CrossOriginCapture {
       this.clone = null
     }
     void this.removeRule()
+  }
+
+  // The loop stops ticking when the video pauses or the tab hides, so the clone
+  // cannot learn about it from the next sync.
+  private watchPlayback(): void {
+    this.original.addEventListener('pause', this.mirror)
+    this.original.addEventListener('play', this.mirror)
+    document.addEventListener('visibilitychange', this.mirror)
+  }
+
+  private unwatchPlayback(): void {
+    this.original.removeEventListener('pause', this.mirror)
+    this.original.removeEventListener('play', this.mirror)
+    document.removeEventListener('visibilitychange', this.mirror)
+  }
+
+  private mirrorPlayback(): void {
+    const clone = this.clone
+    if (!clone) {
+      return
+    }
+    const shouldPlay =
+      !this.original.paused && document.visibilityState !== 'hidden'
+    if (shouldPlay) {
+      void clone.play().catch(() => undefined)
+      return
+    }
+    clone.pause()
   }
 
   private waitReady(clone: HTMLVideoElement): Promise<boolean> {
@@ -117,7 +143,7 @@ export class CrossOriginCapture {
         void clone.play().catch(() => undefined)
       }
       const onMeta = () => seekToLive()
-      // readyState dips during a seek; gate on the decoded frame, not the event.
+      // readyState dips during a seek; gate on the frame, not the event.
       const onReady = () => {
         if (clone.readyState >= 2) {
           finish(true)
@@ -129,7 +155,7 @@ export class CrossOriginCapture {
       clone.addEventListener('loadeddata', onReady)
       clone.addEventListener('seeked', onReady)
       clone.addEventListener('error', onError)
-      // Already-loaded clone won't re-fire these events; kick it synchronously.
+      // An already-loaded clone won't re-fire these events.
       if (clone.readyState >= 1) {
         seekToLive()
         onReady()
@@ -146,7 +172,7 @@ export class CrossOriginCapture {
     try {
       await chromeRpcClient.occlusionRemoveCorsRule({ ruleId })
     } catch {
-      // Best-effort; a leaked rule only re-adds one ACAO header for the session.
+      // Best-effort: a leaked rule expires with the session.
     }
   }
 }
@@ -157,13 +183,11 @@ export interface CloneCapture {
   dispose(): void
 }
 
-/**
- * Reads a tainted cross-origin video through a CORS-bypassed clone. Setup runs
- * in the background, so early acquires report pending.
- */
+// Setup runs in the background, so early acquires report pending.
 export class CloneFrameStrategy implements FrameStrategy {
   private capture: CloneCapture | null = null
   private clone: HTMLVideoElement | null = null
+  private stalledSince: number | null = null
   private settingUp = false
   private failure: FrameFailure | null = null
   private disposed = false
@@ -172,7 +196,8 @@ export class CloneFrameStrategy implements FrameStrategy {
     private readonly video: HTMLVideoElement,
     private readonly createCapture: (
       video: HTMLVideoElement
-    ) => CloneCapture = (v) => new CrossOriginCapture(v)
+    ) => CloneCapture = (v) => new CrossOriginCapture(v),
+    private readonly now: () => number = () => performance.now()
   ) {}
 
   acquire(): Promise<AcquireResult> {
@@ -193,10 +218,10 @@ export class CloneFrameStrategy implements FrameStrategy {
     const clone = this.clone
     if (clone) {
       this.capture?.sync()
-      // A seek started by sync() leaves the pre-seek picture decoded.
       if (clone.readyState < 2) {
-        return { status: 'pending' }
+        return this.waitOrGiveUp()
       }
+      this.stalledSince = null
       return {
         status: 'frame',
         frame: { element: clone, mediaTime: clone.currentTime },
@@ -206,6 +231,20 @@ export class CloneFrameStrategy implements FrameStrategy {
       this.startSetup()
     }
     return { status: 'pending' }
+  }
+
+  // Not decoding while the original plays is stuck, not seeking.
+  private waitOrGiveUp(): AcquireResult {
+    if (this.video.paused) {
+      return { status: 'pending' }
+    }
+    const now = this.now()
+    this.stalledSince ??= now
+    if (now - this.stalledSince < CLONE_STALL_TIMEOUT_MS) {
+      return { status: 'pending' }
+    }
+    this.fail({ kind: 'unavailable', evidence: 'clone-stalled' })
+    return { status: 'failed', failure: this.failure as FrameFailure }
   }
 
   private startSetup(): void {
@@ -233,7 +272,7 @@ export class CloneFrameStrategy implements FrameStrategy {
       }
       this.fail({ kind: 'unavailable', evidence: 'clone-failed' })
     }
-    // A rejected setup must settle too, or the strategy parks in pending.
+    // A rejected setup must settle, or the strategy parks in pending.
     void capture.setup().then(settle, () => settle(null))
   }
 

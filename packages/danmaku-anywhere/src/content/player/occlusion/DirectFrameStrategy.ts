@@ -1,6 +1,5 @@
 import type { AcquireResult, FrameStrategy } from './frameStrategy'
 
-// Classification already established readability, so no per-frame re-probe.
 export class DirectFrameStrategy implements FrameStrategy {
   constructor(private readonly video: HTMLVideoElement) {}
 

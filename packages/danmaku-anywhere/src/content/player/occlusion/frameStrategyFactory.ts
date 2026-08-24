@@ -30,7 +30,7 @@ function classify(video: HTMLVideoElement): FramePlan {
       failure: { kind: 'protected', evidence: 'encrypted' },
     }
   }
-  // Same-origin media cannot taint, so a tainted one is protected content.
+  // Same-origin media cannot taint, so a tainted one is protected.
   if (isSameOrigin(video.currentSrc)) {
     return {
       kind: 'failed',

@@ -27,6 +27,14 @@ import {
 } from './CloneFrameStrategy'
 import { asVideo, FakeVideo, makeVideo } from './fakeVideo'
 
+function setVisibility(state: 'hidden' | 'visible'): void {
+  Object.defineProperty(document, 'visibilityState', {
+    value: state,
+    configurable: true,
+  })
+  document.dispatchEvent(new Event('visibilitychange'))
+}
+
 let createdVideos: FakeVideo[]
 let cloneInit: Partial<FakeVideo>
 let canvasMode: 'clean' | 'security'
@@ -210,6 +218,66 @@ describe('CrossOriginCapture.sync', () => {
   })
 })
 
+describe('CrossOriginCapture lifecycle mirroring', () => {
+  async function setupReady(
+    original: FakeVideo
+  ): Promise<{ capture: CrossOriginCapture; clone: FakeVideo }> {
+    cloneInit = { readyState: 2 }
+    const capture = new CrossOriginCapture(asVideo(original))
+    await capture.setup()
+    return { capture, clone: createdVideos[0] }
+  }
+
+  it('pauses the clone when the original pauses, without a sync', async () => {
+    const original = makeVideo({ readyState: 2, paused: false })
+    const { clone } = await setupReady(original)
+    clone.paused = false
+
+    original.paused = true
+    original.dispatch('pause')
+
+    expect(clone.pause).toHaveBeenCalled()
+  })
+
+  it('resumes the clone when the original plays again', async () => {
+    const original = makeVideo({ readyState: 2, paused: true })
+    const { clone } = await setupReady(original)
+    clone.paused = true
+    clone.play.mockClear()
+
+    original.paused = false
+    original.dispatch('play')
+
+    expect(clone.play).toHaveBeenCalled()
+  })
+
+  it('pauses the clone while the tab is hidden and resumes it after', async () => {
+    const original = makeVideo({ readyState: 2, paused: false })
+    const { clone } = await setupReady(original)
+    clone.paused = false
+
+    setVisibility('hidden')
+    expect(clone.pause).toHaveBeenCalled()
+
+    clone.paused = true
+    clone.play.mockClear()
+    setVisibility('visible')
+    expect(clone.play).toHaveBeenCalled()
+  })
+
+  it('stops mirroring once disposed', async () => {
+    const original = makeVideo({ readyState: 2, paused: false })
+    const { capture, clone } = await setupReady(original)
+
+    capture.dispose()
+    clone.pause.mockClear()
+    original.paused = true
+    original.dispatch('pause')
+
+    expect(clone.pause).not.toHaveBeenCalled()
+  })
+})
+
 describe('CrossOriginCapture.dispose', () => {
   it('tears the clone down once and is idempotent', async () => {
     const original = makeVideo({ readyState: 2 })
@@ -237,10 +305,22 @@ describe('CloneFrameStrategy', () => {
     return { capture: { setup, sync, dispose }, sync, dispose }
   }
 
-  function makeStrategy(capture: CloneCapture): CloneFrameStrategy {
-    return new CloneFrameStrategy(asVideo(makeVideo({ readyState: 2 })), () => {
-      return capture
-    })
+  let clock = 0
+
+  function makeStrategy(
+    capture: CloneCapture,
+    original: FakeVideo = makeVideo({ readyState: 2 })
+  ): CloneFrameStrategy {
+    clock = 0
+    return new CloneFrameStrategy(
+      asVideo(original),
+      () => {
+        return capture
+      },
+      () => {
+        return clock
+      }
+    )
   }
 
   it('reports pending while the clone is being set up, without setting up twice', async () => {
@@ -288,6 +368,90 @@ describe('CloneFrameStrategy', () => {
       clone.readyState = 2
     })
     expect(await strategy.acquire()).toMatchObject({ status: 'frame' })
+  })
+
+  it('gives up on a clone that stops decoding while the original plays', async () => {
+    const clone = makeVideo({ readyState: 2 })
+    const { capture, sync, dispose } = makeCapture(
+      vi.fn().mockResolvedValue(asVideo(clone))
+    )
+    const strategy = makeStrategy(
+      capture,
+      makeVideo({ readyState: 2, paused: false })
+    )
+
+    await strategy.acquire()
+    await flush()
+    expect(await strategy.acquire()).toMatchObject({ status: 'frame' })
+
+    sync.mockImplementation(() => {
+      clone.readyState = 1
+    })
+    expect(await strategy.acquire()).toEqual({ status: 'pending' })
+
+    clock += 4_000
+    expect(await strategy.acquire()).toEqual({ status: 'pending' })
+
+    clock += 2_000
+    expect(await strategy.acquire()).toEqual({
+      status: 'failed',
+      failure: { kind: 'unavailable', evidence: 'clone-stalled' },
+    })
+    expect(dispose).toHaveBeenCalled()
+  })
+
+  it('gives a clone that recovers from a stall the full window again', async () => {
+    const clone = makeVideo({ readyState: 2 })
+    const { capture, sync } = makeCapture(
+      vi.fn().mockResolvedValue(asVideo(clone))
+    )
+    const strategy = makeStrategy(
+      capture,
+      makeVideo({ readyState: 2, paused: false })
+    )
+
+    await strategy.acquire()
+    await flush()
+
+    sync.mockImplementation(() => {
+      clone.readyState = 1
+    })
+    await strategy.acquire()
+    clock += 4_000
+    await strategy.acquire()
+
+    sync.mockImplementation(() => {
+      clone.readyState = 2
+    })
+    expect(await strategy.acquire()).toMatchObject({ status: 'frame' })
+
+    sync.mockImplementation(() => {
+      clone.readyState = 1
+    })
+    await strategy.acquire()
+    clock += 4_000
+    expect(await strategy.acquire()).toEqual({ status: 'pending' })
+  })
+
+  it('does not count a stall against a clone whose original is paused', async () => {
+    const clone = makeVideo({ readyState: 2 })
+    const { capture, sync } = makeCapture(
+      vi.fn().mockResolvedValue(asVideo(clone))
+    )
+    const strategy = makeStrategy(
+      capture,
+      makeVideo({ readyState: 2, paused: true })
+    )
+
+    await strategy.acquire()
+    await flush()
+    sync.mockImplementation(() => {
+      clone.readyState = 1
+    })
+
+    await strategy.acquire()
+    clock += 60_000
+    expect(await strategy.acquire()).toEqual({ status: 'pending' })
   })
 
   it('reports the video protected when the clone is still tainted', async () => {

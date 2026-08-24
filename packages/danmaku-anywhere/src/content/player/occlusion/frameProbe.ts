@@ -1,8 +1,7 @@
 export type Readability = 'readable' | 'tainted' | 'undetermined'
 
-// A tainted video only surfaces its taint at the pixel read.
 export function probeReadability(video: HTMLVideoElement): Readability {
-  // No decoded frame: drawImage no-ops and getImageData would read clean.
+  // Without a decoded frame drawImage no-ops and the read looks clean.
   if (video.readyState < 2) {
     return 'undetermined'
   }

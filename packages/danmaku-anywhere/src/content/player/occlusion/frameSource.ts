@@ -22,20 +22,14 @@ const defaultDeps: FrameSourceDeps = {
   now: () => performance.now(),
 }
 
-/**
- * Answers "where does the next frame come from?" for one video. Classifies the
- * video once into a frame strategy and keeps it until the src changes or the
- * source is reset, retrying a recoverable failure with backoff and reporting a
- * terminal one as disabled.
- */
+// Owns the plan lifetime, the retry backoff and staleness. Nothing else.
 export class FrameSource {
   private strategy: FrameStrategy | null = null
-  // src the strategy was classified against; a change forces a re-classify.
   private resolvedSrc: string | null = null
   private failure: FrameFailure | null = null
   private attempts = 0
   private nextAttemptAt = 0
-  // Bumped on reset so a strategy that outlives it cannot install its result.
+  // Bumped on reset so a late strategy cannot install its result.
   private generation = 0
   private readonly deps: FrameSourceDeps
 
@@ -46,7 +40,6 @@ export class FrameSource {
     this.deps = { ...defaultDeps, ...deps }
   }
 
-  // isStale aborts a read whose async work outlived the capture loop.
   async read(
     video: HTMLVideoElement,
     isStale: () => boolean
