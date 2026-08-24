@@ -42,6 +42,13 @@ lint-specs-allow-state-only: OPFS scope has no DOM signal, so it asserts storage
 
 Treat an opt-out the same as an `expectedConsoleErrors` entry: one line, and it has to say why.
 
+## The build repairs itself
+
+Playwright's global setup rebuilds `build/` when it no longer matches the tree, so every entry
+point gets a correct artifact: the test scripts, a direct `playwright test <spec>`, and UI mode.
+A full build is ~11s regardless of what changed, so it only runs when something actually did.
+`DA_E2E_ALLOW_STALE_BUILD=1` skips the check.
+
 ## Which tests to run
 
 **Never run the full suite locally. That is CI's job.** Run the affected specs, and at most the

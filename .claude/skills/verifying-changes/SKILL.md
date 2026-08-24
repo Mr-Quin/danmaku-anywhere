@@ -39,9 +39,6 @@ pnpm test:e2e:smoke      # ~7s band: install, mount, search
 pnpm test:e2e:ui         # human only: Playwright UI mode, needs a display
 ```
 
-Specs run **headless, always**. `DA_HEADED=1` is for a human who needs to watch a run; never set
-it in a script or CI, and nothing in the suite currently requires it.
-
 **Never run the full suite locally.** `pnpm test:e2e` is CI's job. Run the affected specs, and at
 most the smoke band on top. A full local sweep is slow, contends for the machine, and flakes under
 that contention, so its red tells you little.

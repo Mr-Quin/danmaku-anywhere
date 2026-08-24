@@ -1,13 +1,8 @@
-import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { chromium } from '@playwright/test'
-import {
-  BUILD_DIR,
-  checkBuild,
-  PKG_ROOT,
-  REBUILD_COMMAND,
-} from '../e2e/setup/buildFreshness.ts'
+import { BUILD_DIR, checkBuild, PKG_ROOT } from '../e2e/setup/buildFreshness.ts'
+import { ensureE2eBuild } from './ensureE2eBuild.ts'
 
 const CLI_VERSION = '@playwright/cli@0.1.18'
 const OUT_DIR = path.join(PKG_ROOT, '.playwright-cli')
@@ -18,24 +13,12 @@ function fail(message: string): never {
   process.exit(1)
 }
 
-function rebuild(reason: string): void {
-  console.log(`[preflight] ${reason} Rebuilding: ${REBUILD_COMMAND}`)
-  execFileSync('pnpm', ['run', 'build'], {
-    cwd: PKG_ROOT,
-    stdio: 'inherit',
-    env: { ...process.env, VITE_DA_ENV: 'e2e' },
-  })
-}
-
 // The agent lane must not explore a build that does not match the tree, so an
 // unambiguous problem is repaired and anything else stops the run.
+ensureE2eBuild()
 const check = checkBuild()
 if (!check.ok) {
-  rebuild(check.detail ?? 'build/ is unusable.')
-  const recheck = checkBuild()
-  if (!recheck.ok) {
-    fail(`build/ still unusable after a rebuild: ${recheck.detail}`)
-  }
+  fail(`build/ still unusable after a build: ${check.detail}`)
 }
 
 // A build directory outside this checkout means the caller is driving another
