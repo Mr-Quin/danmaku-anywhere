@@ -42,15 +42,53 @@ lint-specs-allow-state-only: OPFS scope has no DOM signal, so it asserts storage
 
 Treat an opt-out the same as an `expectedConsoleErrors` entry: one line, and it has to say why.
 
+## Build before you run
+
+The suite loads `build/`, not your source. Playwright's global setup refuses to run against a
+stale or wrong-env build and prints the command, because otherwise a direct
+`playwright test <spec>` silently tests the previous build and reads as a real result.
+
+```bash
+VITE_DA_ENV=e2e pnpm run build   # ~11s, whatever changed
+```
+
+It does not build for you: CI has its own build step, and a build started from inside the runner
+would surface its failures as test startup noise. `DA_E2E_ALLOW_STALE_BUILD=1` skips the check.
+
 ## Which tests to run
 
-The full suite is ~1.8 minutes (89 tests), measured. That is cheap enough that running everything
-before a push is the default.
+**Never run the full suite locally. That is CI's job.** Run the affected specs, and at most the
+smoke band on top.
 
-- `pnpm test:e2e:changed` — inner loop, specs you edited. Selects on changed *spec files*: a
-  content-script edit selects nothing, so this is never a safety net for a product change.
-- `pnpm test:e2e:smoke` — ~7s band tagged `@smoke`: install, mount, search.
-- `pnpm test:e2e` — before pushing.
+- `pnpm test:e2e:changed` — inner loop. **It only follows direct imports.** Measured on this suite:
+  editing `setup/fixtures.ts` selects 50 files and `pom/Popup.ts` selects 40, but editing
+  `pom/SearchPage.ts` or `pom/MountPage.ts`, which specs reach through `Popup`, selects **1**. A
+  source file the specs never import, such as a content script, selects **0**. It under-selects
+  quietly, which reads exactly like passing. After touching a leaf POM or product code, name the
+  covering specs by path instead of trusting it.
+- `pnpm test:e2e:smoke` — ~7s band tagged `@smoke`: install, mount, search. The most you should run
+  before pushing.
+- `pnpm test:e2e` — the full sweep. **CI only.** It is slow, it contends for the machine, and the
+  occlusion specs flake under that load, so a local red here tells you little.
+- `pnpm test:e2e:ui` — Playwright UI mode, for a human: watch mode, per-step DOM time travel,
+  pick-locator, console and network panes. It opens a window, so it needs a display and is not
+  something an agent can drive.
+- `pnpm test:e2e:verify <spec>` — the evidence run. Forces a full trace and writes the HTML report,
+  so `pnpm exec playwright show-report` gives a reviewer the run step by step. Use it on the spec a
+  PR adds, not on the suite.
+
+**Specs run headless, always.** Extensions load fine in Chromium's current headless mode,
+including the CDP Extensions domain the migration swap depends on, so nothing in the suite needs a
+display and no spec should opt itself into a window.
+
+`DA_HEADED=1` exists only for a human who needs to watch a run with their own eyes. Do not set it
+in a spec, a script, or CI. If a spec ever genuinely cannot work headless, that is a finding worth
+writing down next to the spec, not a flag to sprinkle.
+
+Headless is not a stability fix. The `occlusion-cross-origin` specs are load-sensitive under
+parallel workers and flake locally in either mode; they pass run on their own and they pass in CI.
+Local wall-clock swings more with machine load than with headless versus headed, so do not read a
+speed difference into it.
 
 ## Every e2e spec asserts at least one user-visible signal
 

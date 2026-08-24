@@ -1,14 +1,14 @@
 import { checkBuild, REBUILD_HINT } from './buildFreshness.ts'
 
-// Refuses to run the suite against a stale or wrong-env build/. The pretest
-// hook only fires via `pnpm test:e2e`; a direct `playwright test <spec>`
-// silently loads whatever build/ holds, which looks like phantom test results.
-// The freshness rules live in buildFreshness so the agent's verify preflight
-// enforces exactly the same contract.
+// Refuses to run against a stale or wrong-env build/. Without this a direct
+// `playwright test <spec>` silently loads whatever build/ holds, which reads as
+// a real result. Building is left to the caller: CI has its own build step, and
+// a build started from inside the runner would surface its failures as test
+// startup noise.
 
 export default function globalSetup(): void {
   if (process.env.DA_E2E_ALLOW_STALE_BUILD) {
-    console.warn('[e2e] DA_E2E_ALLOW_STALE_BUILD set, skipping freshness check')
+    console.warn('[e2e] DA_E2E_ALLOW_STALE_BUILD set, skipping the build check')
     return
   }
 

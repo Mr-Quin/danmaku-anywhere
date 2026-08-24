@@ -36,15 +36,32 @@ From `packages/danmaku-anywhere`:
 pnpm lint                # tsc + biome + the spec theatre lint
 pnpm test:e2e:changed    # inner loop: specs you edited
 pnpm test:e2e:smoke      # ~7s band: install, mount, search
-pnpm test:e2e            # before pushing: whole suite, ~1.8 min
+pnpm test:e2e:ui         # human only: Playwright UI mode, needs a display
+pnpm test:e2e:verify <spec>   # evidence run: full trace + HTML report
 ```
 
-The full suite is ~1.8 minutes, so **run it before pushing**. Anything cleverer buys seconds and
-risks missing a regression.
+The suite loads `build/`, not your source. Playwright refuses to run against a stale build and
+prints the command, so if you changed product code, build first:
 
-`--only-changed` selects on changed *spec files*. Specs load a built artifact rather than
-importing product source, so editing a content script selects **nothing**. Never treat tier 1 as a
-safety net for a product change.
+```bash
+VITE_DA_ENV=e2e pnpm run build
+```
+
+**Never run the full suite locally.** `pnpm test:e2e` is CI's job. Run the affected specs, and at
+most the smoke band on top. A full local sweep is slow, contends for the machine, and flakes under
+that contention, so its red tells you little.
+
+**`--only-changed` only follows direct imports.** Measured here: `setup/fixtures.ts` selects 50
+files, `pom/Popup.ts` selects 40, but `pom/SearchPage.ts` reached through `Popup` selects 1, and a
+content script the specs never import selects 0. Specs that import product source directly do get
+picked up, but anything reaching a spec only through the built extension is invisible.
+
+It under-selects silently, and an empty selection looks identical to a clean one. After touching a
+leaf POM or product code, run the covering specs by path:
+
+```bash
+pnpm exec playwright test e2e/specs/<area>/<spec>.spec.ts
+```
 
 Unit and package tests: `pnpm --filter <package> test`, or
 `pnpm --filter '...[origin/master]' test` for a cross-cutting change.
