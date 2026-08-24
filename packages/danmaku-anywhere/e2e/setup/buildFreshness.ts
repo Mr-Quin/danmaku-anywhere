@@ -17,6 +17,12 @@ const WATCHED = [
   'scripts',
 ]
 
+export const REBUILD_COMMAND = 'VITE_DA_ENV=e2e pnpm run build'
+
+export const REBUILD_HINT =
+  `Rebuild with: ${REBUILD_COMMAND}. ` +
+  'Set DA_E2E_ALLOW_STALE_BUILD=1 to skip this check.'
+
 interface NewestFile {
   filePath: string
   mtimeMs: number

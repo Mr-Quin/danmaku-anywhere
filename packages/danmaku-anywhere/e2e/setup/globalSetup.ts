@@ -1,9 +1,10 @@
-import { ensureE2eBuild } from '../../scripts/ensureE2eBuild.ts'
+import { checkBuild, REBUILD_HINT } from './buildFreshness.ts'
 
-// Every Playwright entry point runs this, including a direct
-// `playwright test <spec>` and UI mode, so the build is repaired here rather
-// than in a pre-hook per test script. A full build is ~11s regardless of what
-// changed, so it only runs when build/ no longer matches the tree.
+// Refuses to run against a stale or wrong-env build/. Without this a direct
+// `playwright test <spec>` silently loads whatever build/ holds, which reads as
+// a real result. Building is left to the caller: CI has its own build step, and
+// a build started from inside the runner would surface its failures as test
+// startup noise.
 
 export default function globalSetup(): void {
   if (process.env.DA_E2E_ALLOW_STALE_BUILD) {
@@ -11,5 +12,8 @@ export default function globalSetup(): void {
     return
   }
 
-  ensureE2eBuild()
+  const result = checkBuild()
+  if (!result.ok) {
+    throw new Error(`[e2e] ${result.detail} ${REBUILD_HINT}`)
+  }
 }
