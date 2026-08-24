@@ -46,9 +46,17 @@ it in a script or CI, and nothing in the suite currently requires it.
 most the smoke band on top. A full local sweep is slow, contends for the machine, and flakes under
 that contention, so its red tells you little.
 
-`--only-changed` selects on changed *spec files*. Specs load a built artifact rather than
-importing product source, so editing a content script selects **nothing**. Never treat tier 1 as a
-safety net for a product change.
+**`--only-changed` only follows direct imports.** Measured here: `setup/fixtures.ts` selects 50
+files, `pom/Popup.ts` selects 40, but `pom/SearchPage.ts` reached through `Popup` selects 1, and a
+content script the specs never import selects 0. Specs that import product source directly do get
+picked up, but anything reaching a spec only through the built extension is invisible.
+
+It under-selects silently, and an empty selection looks identical to a clean one. After touching a
+leaf POM or product code, run the covering specs by path:
+
+```bash
+pnpm exec playwright test e2e/specs/<area>/<spec>.spec.ts
+```
 
 Unit and package tests: `pnpm --filter <package> test`, or
 `pnpm --filter '...[origin/master]' test` for a cross-cutting change.

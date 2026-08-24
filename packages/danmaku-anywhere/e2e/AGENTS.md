@@ -47,9 +47,12 @@ Treat an opt-out the same as an `expectedConsoleErrors` entry: one line, and it 
 **Never run the full suite locally. That is CI's job.** Run the affected specs, and at most the
 smoke band on top.
 
-- `pnpm test:e2e:changed` — inner loop, specs you edited. Selects on changed *spec files*: a
-  content-script edit selects nothing, so this is never a safety net for a product change. When it
-  selects nothing, run the specs covering what you touched by path.
+- `pnpm test:e2e:changed` — inner loop. **It only follows direct imports.** Measured on this suite:
+  editing `setup/fixtures.ts` selects 50 files and `pom/Popup.ts` selects 40, but editing
+  `pom/SearchPage.ts` or `pom/MountPage.ts`, which specs reach through `Popup`, selects **1**. A
+  source file the specs never import, such as a content script, selects **0**. It under-selects
+  quietly, which reads exactly like passing. After touching a leaf POM or product code, name the
+  covering specs by path instead of trusting it.
 - `pnpm test:e2e:smoke` — ~7s band tagged `@smoke`: install, mount, search. The most you should run
   before pushing.
 - `pnpm test:e2e` — the full sweep. **CI only.** It is slow, it contends for the machine, and the
