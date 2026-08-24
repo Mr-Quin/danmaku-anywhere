@@ -39,6 +39,11 @@ function occlusionStatusText(reason: OcclusionStatus['reason']): string {
         'stylePage.occlusionError.taint',
         'Occlusion turned off: this video is protected (cross-origin or DRM) and cannot be read.'
       )
+    case 'unreadable':
+      return i18n.t(
+        'stylePage.occlusionError.unreadable',
+        "Occlusion turned off: the extension could not read this video's frames. The site may be blocking the extra request."
+      )
     case 'webgpu':
       return i18n.t(
         'stylePage.occlusionError.webgpu',

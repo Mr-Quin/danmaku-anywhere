@@ -1,11 +1,11 @@
 import type { ModelEntry } from '@/common/models/schema'
 
-// Distinct reasons because the user-facing remedy differs (taint vs webgpu vs
-// init); the rest are surfaced the same way.
+// Separate reasons because the user-facing remedy differs.
 export type OcclusionStatusReason =
   | 'downloading'
   | 'init'
   | 'taint'
+  | 'unreadable'
   | 'webgpu'
   | 'segment'
   | 'unavailable'
@@ -25,9 +25,7 @@ export interface OcclusionStats {
 export interface OcclusionConfig {
   descriptor: ModelEntry
   captureSize: number
-  // Capture at the video's aspect ratio (long side = captureSize) instead of a
-  // square. The anime model is distortion-sensitive; the people segmenter is
-  // robust and uses the cheaper square capture.
+  // The anime model is distortion-sensitive; the people segmenter is not.
   capturePreserveAspect: boolean
   minIntervalMs: number
   outputMaxSide: number
@@ -35,13 +33,8 @@ export interface OcclusionConfig {
   edgeSoftness: number
   debug: boolean
   applyMask: (url?: string) => void
-  // Classified failure gates a higher layer (settings/toast) surfaces; also
-  // tracked as lastError in stats.
   onStatus?: (status: OcclusionStatus) => void
-  // Fires when the segmentation loop starts or stops running, so a status
-  // surface can show the steady on/off state, which has no status reason.
   onRunningChange?: (running: boolean) => void
-  // Fires once the first mask is applied, i.e. occlusion is actually producing
-  // output, so a status surface can distinguish "starting" from "on".
+  // Fires once the first mask is applied: "starting" versus "on".
   onActive?: () => void
 }

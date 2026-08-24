@@ -1,6 +1,19 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { ILogger } from '@/common/Logger'
 import { modelEntrySchema } from '@/common/models/schema'
+
+const { read, reset } = vi.hoisted(() => ({
+  read: vi.fn(),
+  reset: vi.fn(),
+}))
+
+vi.mock('./frameSource', () => ({
+  FrameSource: class {
+    read = read
+    reset = reset
+  },
+}))
+
 import { MockMaskProvider } from './MockMaskProvider'
 import type { IMaskProviderFactory } from './maskProviderFactory'
 import { OcclusionService } from './Occlusion.service'
@@ -28,9 +41,10 @@ const animeModel = modelEntrySchema.parse({
 /**
  * Unit tests for the observable status/stats surface of OcclusionService.
  * Exercises the idle stats defaults, the 'unavailable' gate when
- * requestVideoFrameCallback is missing (classified status + lastError), and that
- * the debug flag is reflected in stats and flipped via setDebug. The segment
- * loop itself is not driven here since jsdom lacks createImageBitmap.
+ * requestVideoFrameCallback is missing (classified status + lastError), that the
+ * debug flag is reflected in stats and flipped via setDebug, and how a frame
+ * read outcome is classified. A successful capture is not driven here since
+ * jsdom lacks createImageBitmap.
  */
 
 function makeLogger(debug = vi.fn()): ILogger {
@@ -124,5 +138,92 @@ describe('OcclusionService status classification', () => {
     expect(statuses[0].reason).toBe('unavailable')
     expect(service.getStats().running).toBe(false)
     expect(service.getStats().lastError).toBe(statuses[0].message)
+  })
+})
+
+class FakeFrameVideo {
+  paused = false
+  readyState = 2
+  private callback: (() => void) | null = null
+
+  requestVideoFrameCallback(fn: () => void): number {
+    this.callback = fn
+    return 1
+  }
+
+  cancelVideoFrameCallback(): void {
+    this.callback = null
+  }
+
+  fireFrame(): void {
+    const fn = this.callback
+    this.callback = null
+    fn?.()
+  }
+}
+
+const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0))
+
+async function runOneFrame(
+  service: OcclusionService,
+  video: FakeFrameVideo
+): Promise<void> {
+  service.start(video as unknown as HTMLVideoElement)
+  await flush()
+  video.fireFrame()
+  await flush()
+}
+
+describe('OcclusionService frame read outcomes', () => {
+  it('disables with a taint status when the video is protected', async () => {
+    read.mockResolvedValue({
+      status: 'disabled',
+      failure: { kind: 'protected', evidence: 'encrypted' },
+    })
+    const statuses: OcclusionStatus[] = []
+    const service = new OcclusionService(factory, makeLogger())
+    service.configure(makeConfig({ onStatus: (s) => statuses.push(s) }))
+
+    await runOneFrame(service, new FakeFrameVideo())
+
+    expect(statuses.map((s) => s.reason)).toEqual(['taint'])
+    expect(service.getStats().running).toBe(false)
+  })
+
+  it('disables with an unreadable status when frames cannot be recovered', async () => {
+    read.mockResolvedValue({
+      status: 'disabled',
+      failure: { kind: 'unavailable', evidence: 'clone-failed' },
+    })
+    const statuses: OcclusionStatus[] = []
+    const service = new OcclusionService(factory, makeLogger())
+    service.configure(makeConfig({ onStatus: (s) => statuses.push(s) }))
+
+    await runOneFrame(service, new FakeFrameVideo())
+
+    expect(statuses.map((s) => s.reason)).toEqual(['unreadable'])
+    expect(service.getStats().running).toBe(false)
+  })
+
+  it('keeps the applied mask and the loop alive while a frame is pending', async () => {
+    read.mockResolvedValue({ status: 'pending' })
+    const statuses: OcclusionStatus[] = []
+    const applyMask = vi.fn()
+    const service = new OcclusionService(factory, makeLogger())
+    service.configure(
+      makeConfig({ applyMask, onStatus: (s) => statuses.push(s) })
+    )
+
+    const video = new FakeFrameVideo()
+    service.start(video as unknown as HTMLVideoElement)
+    await flush()
+    applyMask.mockClear()
+
+    video.fireFrame()
+    await flush()
+
+    expect(statuses).toEqual([])
+    expect(applyMask).not.toHaveBeenCalled()
+    expect(service.getStats().running).toBe(true)
   })
 })
