@@ -74,19 +74,15 @@ test('unknown comment mode is dropped without breaking the batch', async ({
   expect(mirror.episodeIds).toEqual([episodeId])
 
   await integrationPage.playVideo()
+  await integrationPage.setVideoTime(SEEK_TIME_S)
 
-  // Rendered comments scroll off and despawn, so all three checks must happen
-  // within one seek attempt; a check outside the loop can miss the window.
-  await expect(async () => {
-    await integrationPage.setVideoTime(SEEK_TIME_S)
-    await expect(
-      integrationPage.commentElements().filter({ hasText: VALID_TEXT })
-    ).toBeVisible({ timeout: 1_000 })
-    await expect(
-      integrationPage.commentElements().filter({ hasText: MODE_2_TEXT })
-    ).toBeVisible({ timeout: 1_000 })
-    await expect(
-      integrationPage.commentElements().filter({ hasText: INVALID_TEXT })
-    ).toHaveCount(0)
-  }).toPass({ timeout: 15_000 })
+  // Rendered comments despawn as they scroll, so the DOM cannot say whether the
+  // malformed one was dropped or merely already gone. The render log can.
+  const rendered = await da.danmakuRender.waitForRendered(VALID_TEXT)
+  expect(rendered).toContain(MODE_2_TEXT)
+  expect(rendered).not.toContain(INVALID_TEXT)
+
+  // The overlay itself is the durable user-visible signal; an individual
+  // comment node is not, since it despawns as it scrolls.
+  await expect(integrationPage.danmuContainer()).toBeVisible()
 })
