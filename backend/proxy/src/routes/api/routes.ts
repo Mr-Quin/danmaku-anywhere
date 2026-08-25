@@ -1,4 +1,5 @@
 import { factory } from '@/factory'
+import { tagService } from '@/middleware/tagService'
 import { authRouter } from './auth/router'
 import { backupRouter } from './backup/router'
 import { bangumiRouter } from './bangumi/router'
@@ -11,6 +12,7 @@ import { manifestRouter } from './manifest/router'
 
 export const api = factory.createApp()
 
+api.use(tagService)
 api.route('/auth', authRouter)
 api.route('/backup', backupRouter)
 api.route('/ddp', ddpRouter)

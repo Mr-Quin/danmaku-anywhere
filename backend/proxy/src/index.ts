@@ -9,7 +9,7 @@ import { factory } from '@/factory'
 import { authContext } from '@/middleware/authContext'
 import { useCache } from '@/middleware/cache'
 import { requestLogger } from '@/middleware/requestLogger'
-import { applySentryContext, setContext } from '@/middleware/setContext'
+import { setContext } from '@/middleware/setContext'
 import { danDanPlay } from '@/routes/api/ddp/danDanPlay'
 import { llmLegacy } from '@/routes/api/llm/routes'
 import { getIsTestEnv } from '@/utils/getIsTestEnv'
@@ -86,7 +86,6 @@ app.onError((error, c) => {
 
   if (error instanceof HTTPException) {
     if (error.status >= 500) {
-      applySentryContext(c)
       Sentry.captureException(error)
     }
     return c.json(
@@ -100,7 +99,6 @@ app.onError((error, c) => {
     )
   }
 
-  applySentryContext(c)
   Sentry.captureException(error)
 
   const message =
