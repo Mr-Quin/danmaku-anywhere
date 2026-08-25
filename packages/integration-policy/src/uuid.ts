@@ -1,6 +1,6 @@
 export const getRandomUUID = () => {
   try {
-    return globalThis.crypto.randomUUID()
+    return crypto.randomUUID()
   } catch (e) {
     console.warn(
       'Failed to generate UUID using crypto.randomUUID, falling back to Math.random',
