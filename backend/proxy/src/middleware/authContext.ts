@@ -14,9 +14,18 @@ const resolveAuthSession = async (
   return { user: session.user, session: session.session }
 }
 
+// A session can only arrive in a cookie or an Authorization header.
+function hasAuthCredential(headers: Headers): boolean {
+  return headers.has('cookie') || headers.has('authorization')
+}
+
 export const authContext = () =>
   factory.createMiddleware(async (context, next) => {
-    if (getIsTestEnv() || !context.env.BETTER_AUTH_URL) {
+    if (
+      getIsTestEnv() ||
+      !context.env.BETTER_AUTH_URL ||
+      !hasAuthCredential(context.req.raw.headers)
+    ) {
       context.set('authUser', null)
       context.set('authSession', null)
       return next()
@@ -41,4 +50,4 @@ export const authContext = () =>
     }
   })
 
-export { resolveAuthSession }
+export { hasAuthCredential, resolveAuthSession }
