@@ -14,9 +14,7 @@ const resolveAuthSession = async (
   return { user: session.user, session: session.session }
 }
 
-// A session can only reach us in a cookie or an Authorization header, so a request
-// carrying neither has no session to find. Most proxy traffic is anonymous passthrough,
-// and resolving those through Better Auth costs CPU to arrive at null.
+// A session can only arrive in a cookie or an Authorization header.
 function hasAuthCredential(headers: Headers): boolean {
   return headers.has('cookie') || headers.has('authorization')
 }

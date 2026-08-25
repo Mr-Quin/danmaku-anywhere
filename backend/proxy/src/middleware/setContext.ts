@@ -33,16 +33,21 @@ export const setContext = () =>
     return next()
   })
 
-/**
- * Copy the request's identifying details onto the Sentry scope. Every tag is a write
- * that only pays off when an event is actually sent, so this runs from the error
- * handler rather than on every request.
- */
+// Called from the error handler so the tag writes only happen when an event is sent.
 export function applySentryContext(context: Context): void {
   const version = context.get('extensionVersion')
   const id = context.get('extensionId')
   const ip = context.get('ip')
   const cf = context.req.raw.cf
+
+  Sentry.setTag('service', context.req.path.split('/')[1])
+
+  if (context.req.path.startsWith('/proxy/api')) {
+    const ddpPath = context.req.query('path')
+    if (ddpPath) {
+      Sentry.setTag('ddp.endpoint', ddpPath.split('/')[2])
+    }
+  }
 
   if (version) {
     Sentry.setTag('extension.version', version)

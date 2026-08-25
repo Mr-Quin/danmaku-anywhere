@@ -83,10 +83,10 @@ app.notFound((c) => {
 
 app.onError((error, c) => {
   console.error('Error processing request:', serializeError(error))
-  applySentryContext(c)
 
   if (error instanceof HTTPException) {
     if (error.status >= 500) {
+      applySentryContext(c)
       Sentry.captureException(error)
     }
     return c.json(
@@ -100,6 +100,7 @@ app.onError((error, c) => {
     )
   }
 
+  applySentryContext(c)
   Sentry.captureException(error)
 
   const message =
@@ -115,7 +116,7 @@ export default Sentry.withSentry((env: Env) => {
     dsn: 'https://a57c6ba48bc0da21d4c6f7074e7a6f0e@o4509744978460672.ingest.us.sentry.io/4509744987308032',
     release: versionId,
     sendDefaultPii: false,
-    enableLogs: env.ENVIRONMENT !== 'production',
+    enableLogs: true,
     tracesSampleRate: env.ENVIRONMENT === 'production' ? 0.001 : 1.0,
     environment: env.ENVIRONMENT,
     enabled: !getIsTestEnv(),
