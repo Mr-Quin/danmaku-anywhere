@@ -2,14 +2,14 @@ import { Scalar } from '@scalar/hono-api-reference'
 import * as Sentry from '@sentry/cloudflare'
 import { cors } from 'hono/cors'
 import { HTTPException } from 'hono/http-exception'
-import { logger } from 'hono/logger'
 import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
 import { openAPIRouteHandler } from 'hono-openapi'
 import { factory } from '@/factory'
 import { authContext } from '@/middleware/authContext'
 import { useCache } from '@/middleware/cache'
-import { setContext } from '@/middleware/setContext'
+import { requestLogger } from '@/middleware/requestLogger'
+import { applySentryContext, setContext } from '@/middleware/setContext'
 import { danDanPlay } from '@/routes/api/ddp/danDanPlay'
 import { llmLegacy } from '@/routes/api/llm/routes'
 import { getIsTestEnv } from '@/utils/getIsTestEnv'
@@ -20,7 +20,7 @@ const app = factory.createApp()
 
 app.use(
   '*',
-  logger(),
+  requestLogger(),
   prettyJSON(),
   cors({
     origin: (origin, c) => {
@@ -83,6 +83,7 @@ app.notFound((c) => {
 
 app.onError((error, c) => {
   console.error('Error processing request:', serializeError(error))
+  applySentryContext(c)
 
   if (error instanceof HTTPException) {
     if (error.status >= 500) {
@@ -114,8 +115,8 @@ export default Sentry.withSentry((env: Env) => {
     dsn: 'https://a57c6ba48bc0da21d4c6f7074e7a6f0e@o4509744978460672.ingest.us.sentry.io/4509744987308032',
     release: versionId,
     sendDefaultPii: false,
-    enableLogs: true,
-    tracesSampleRate: 1.0,
+    enableLogs: env.ENVIRONMENT !== 'production',
+    tracesSampleRate: env.ENVIRONMENT === 'production' ? 0.001 : 1.0,
     environment: env.ENVIRONMENT,
     enabled: !getIsTestEnv(),
   }
