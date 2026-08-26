@@ -12,12 +12,9 @@ import { applyProfile } from '../../setup/profile'
  * danmaku-provider stack and surface a comment count in the UI.
  */
 
-test('dandanplay: search → season → episode → fetch danmaku', async ({
-  context,
-  page,
-  extensionId,
-  da,
-}) => {
+test('dandanplay: search → season → episode → fetch danmaku', {
+  tag: '@smoke',
+}, async ({ context, page, extensionId, da }) => {
   await applyProfile(context, da, {
     providers: { dandanplay: { enabled: true } },
     network: [

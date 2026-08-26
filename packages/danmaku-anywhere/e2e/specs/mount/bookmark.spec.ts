@@ -17,12 +17,9 @@ import { applyProfile } from '../../setup/profile'
  * persisted episode by indexedId.
  */
 
-test('mount tree: bookmark adds stubs, remove clears them', async ({
-  context,
-  page,
-  extensionId,
-  da,
-}) => {
+test('mount tree: bookmark adds stubs, remove clears them', {
+  tag: '@smoke',
+}, async ({ context, page, extensionId, da }) => {
   await applyProfile(context, da, {
     providers: { bilibili: { enabled: true } },
     network: mockBilibiliXml({

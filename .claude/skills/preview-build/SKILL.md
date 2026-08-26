@@ -1,16 +1,15 @@
 ---
 name: preview-build
-description: Use when you need to load a specific published preview/nightly extension build into the agent's MCP browser by run-number, branch name, or tag. Faster than rebuilding locally when you only want to exercise an existing artifact.
+description: Use when you need to load a specific published preview/nightly extension build into the agent's browser by run-number, branch name, or tag. Faster than rebuilding locally when you only want to exercise an existing artifact.
 ---
 
 # preview-build
 
-Resolve a GitHub release published by CI (nightly or branch-preview), download its Chrome zip, expand to `.tmp/`, and `install_extension` it via the `chrome-devtools-ext` MCP. For active HMR development use `browser-verify` instead.
+Resolve a GitHub release published by CI (nightly or branch-preview), download its Chrome zip, expand it to `.tmp/`, and load that directory instead of a local build. For exploring the build you just compiled, use `browser-verify` instead.
 
 ## Prerequisites
 
 - `gh` CLI authenticated against this repo
-- `chrome-devtools-ext` MCP (see `browser-verify` for install)
 - A shell with `unzip` (macOS/Linux/git-bash) or `Expand-Archive` (PowerShell)
 
 If any are missing, stop and tell the human.
@@ -60,23 +59,33 @@ gh release download $TAG --pattern $ASSET --dir $DEST
 Expand-Archive -Path "$DEST/$ASSET" -DestinationPath "$DEST/unpacked" -Force
 ```
 
-## 3. Load into the MCP browser
+## 3. Load into the browser
 
-```
-install_extension(<absolute path to the unpacked dir>)
+Point the Playwright CLI at the unpacked directory instead of `build/`. Copy the config
+`pnpm run verify:explore` writes, and swap the two extension paths for the absolute path to
+`unpacked/`:
+
+```json
+"args": [
+  "--enable-unsafe-extension-debugging",
+  "--disable-extensions-except=<abs>/.tmp/preview-<tag>/unpacked",
+  "--load-extension=<abs>/.tmp/preview-<tag>/unpacked"
+]
 ```
 
-Resolve the absolute path from the current working directory (`pwd` / `Get-Location`); don't embed a host-specific prefix.
+Then open a session as in `browser-verify`, using a fresh session name so the profile is
+disposable. Resolve the absolute path from the current working directory (`pwd` / `Get-Location`);
+don't embed a host-specific prefix.
 
 The dev API (`globalThis.__da`) is NOT present in these builds; nightly tags ship prod, and `attachDevApi` is gated by `!IS_DA_PROD`. Seed state via `chrome.storage.set` directly.
 
 ## 4. Tear down
 
-```
-uninstall_extension(<id from list_extensions>)
+```bash
+npx -y @playwright/cli@0.1.18 -s=<session> close
 ```
 
-Close lingering `chrome-extension://<id>/...` tabs first.
+A leftover session holds a browser process and its profile directory.
 
 ## Gotchas
 

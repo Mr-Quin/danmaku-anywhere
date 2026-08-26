@@ -1,129 +1,150 @@
 ---
 name: browser-verify
-description: Use when an extension change needs agentic verification in a real browser — content scripts, popup UI, network calls, fonts, console errors. Spawns the agent's own Chrome via the chrome-devtools-ext MCP. Complements (does not replace) human-eye verification via `pnpm dev:browser`.
+description: Use when an extension change needs exploration in a real browser — finding selectors, watching a flow, reading console or network. Drives the agent's own headless Chromium through the Playwright CLI. Exploration only; the verification that counts is a spec (see `e2e-spec`).
 ---
 
-# browser-verify — agentic browser verification
+# browser-verify — exploring the extension in a real browser
 
-The agent gets its **own** Chrome (spawned by the MCP, isolated profile) so it can navigate, inspect, screenshot, and reload without interfering with the human's `dev:browser` session. Both browsers load from the **same** `packages/danmaku-anywhere/dev/chrome/` build dir, so Vite's HMR feeds both at once.
+This skill is for the part of the loop where you **don't yet know what to assert**: finding a
+selector, watching what a flow actually does, reading a console error, checking a request.
 
-## 0. Setup check
+It is not the verification. Verification is a spec that went red before it went green, on the same
+harness CI runs. See `e2e-spec`. If you already know what you're checking, skip this skill and
+write the spec.
 
-The MCP is declared as a project server in `.mcp.json` at the repo root (name `chrome-devtools-ext`, args `--isolated --categoryExtensions=true`). Confirm tools `mcp__chrome-devtools-ext__*` are available in this session. If they are, go to step 1.
-
-If they are not available:
-
-1. Approve the project server if Claude prompts for it (servers from `.mcp.json` need a one-time approval; reset with `claude mcp reset-project-choices`).
-2. Give it a browser binary. The MCP is Puppeteer-based and launches Chrome directly over a pipe connection (required by `--categoryExtensions`; `--browserUrl` / `--wsEndpoint` do not work for the extension tools). `.mcp.json` passes `--executablePath=${CHROME_DEVTOOLS_EXECUTABLE:-}`: leave the var unset to use system Chrome (stable channel), or set `CHROME_DEVTOOLS_EXECUTABLE` to a Chrome/Chromium executable. Playwright's Chromium matches the e2e suite and works:
-
-   ```bash
-   pnpm exec playwright install chromium
-   # export CHROME_DEVTOOLS_EXECUTABLE=~/.cache/ms-playwright/chromium-<rev>/chrome-linux64/chrome
-   ```
-
-   Set the var in your shell env (e.g. `~/.zshenv`) so Claude inherits it, then do a full restart. A `/mcp` reload alone will not pick up a newly exported var. Wait for confirmation before continuing.
-
-## 1. Dev loop (default during implementation)
-
-Prereq: `pnpm dev:browser` is running. Vite is writing to `packages/danmaku-anywhere/dev/chrome/`.
-
-```
-install_extension(<absolute path to packages/danmaku-anywhere/dev/chrome>)
-navigate_page(<test URL>)
-```
-
-The agent's Chrome now runs the same source the human is looking at. When code changes, Vite rewrites the bundle and both browsers pick it up. If the SW gets stale (manifest change, major refactor, lost message channel) call `reload_extension(<id>)` to nudge it.
-
-If the state machine needs seeded data (providers toggled, mount profile, custom episodes), prefer the **dev API** over raw `chrome.storage` writes. `globalThis.__da` is attached for every non-prod env — `dev`, `preview`, and `e2e` (`background/index.ts` calls `attachDevApi` when `!IS_DA_PROD`). It exposes 8 namespaces — `providerConfig`, `storage`, `extensionOptions`, `runtime`, `season`, `episode`, `bookmark`, `mount` — each going through the same write + invalidation pipeline the production code uses, so subscribers (React Query, Zustand) re-render correctly. Run from the SW context via `evaluate_script({ serviceWorkerId })`:
-
-```js
-await __da.providerConfig.toggle('builtin:dandanplay', false)
-await __da.providerConfig.toggle('builtin:bilibili', false)
-const list = await __da.providerConfig.list()  // verify
-```
-
-Discover methods with `__da.describe()` (returns `[{ name, methods: [{ name, ... }] }]`). Raw `chrome.storage.set` is a fallback for keys not exposed through the API; it works but skips the in-memory invalidation, so the UI may not pick up the change without a reload.
-
-For mount-policy seeding specifically:
-
-```js
-await chrome.storage.local.set({
-  xpathPolicy: { data: [INTEGRATION], version: LATEST_INTEGRATION_POLICY_VERSION },
-})
-await chrome.storage.sync.set({
-  mountConfig: { data: [CONFIG], version: LATEST_MOUNT_CONFIG_VERSION },
-})
-```
-
-Poll `chrome.scripting.getRegisteredContentScripts` before navigating to confirm registration.
-
-## 2. Build verify (final pass before /review)
-
-For runtime behavior that depends on prod-mode behavior (minified bundle, prod-only paths, no HMR client):
+## 0. Preflight
 
 ```bash
-cd packages/danmaku-anywhere && pnpm build
+cd packages/danmaku-anywhere && pnpm run verify:explore
 ```
 
-Then:
+This rebuilds `build/` if it is stale, hard-fails if chromium is missing, writes a ready CLI
+config, and prints the exact commands with a fresh session name. Copy them from its output.
 
+The config points at the same chromium binary the e2e suite uses, so anything you observe here
+behaves the same way inside a spec.
+
+## 1. Drive it
+
+```bash
+npx -y @playwright/cli@0.1.18 -s=<session> open --persistent --config=<config> about:blank
+npx -y @playwright/cli@0.1.18 -s=<session> goto <url>
+npx -y @playwright/cli@0.1.18 -s=<session> snapshot
+npx -y @playwright/cli@0.1.18 -s=<session> click <ref>
+npx -y @playwright/cli@0.1.18 -s=<session> close
 ```
-uninstall_extension(<dev id>)
-install_extension(<absolute path to packages/danmaku-anywhere/build>)
-```
 
-Same MCP browser, fresh artifact. For shadow-root introspection use `VITE_DA_ENV=e2e pnpm build` — the controller's shadow root opens in e2e builds only.
+`snapshot` returns the accessibility tree with a `ref` per element. Feed a ref to `click`,
+`fill`, `hover`, or `generate-locator`.
 
-**Install the dir you actually just wrote.** `pnpm build` writes to `build/`, but a bare `vite build` writes to `dev/chrome` (the config default). If you build manually, install that dir, not whichever was sitting in `build/` from an earlier run: a stale `build/` silently runs old code and the build banner's `gitBranch` still reads correct, so a "broken" fix can really be a stale install. Confirm freshness (`ls -la <dir>/manifest.json`, or grep the compiled `<dir>/assets/*.js` for your change) before trusting a result.
+The extension's own pages work like any other URL. Get `<id>` from the service worker (below),
+and note that the built paths are not the source paths:
 
-## 3. Inspect
-
-| Need | Tool |
+| Page | URL |
 |---|---|
-| Visual confirm | `take_screenshot({ filePath })` |
-| DOM / a11y tree | `take_snapshot()` |
-| Run JS in page or SW | `evaluate_script({ ..., serviceWorkerId })` |
-| Console errors | `list_console_messages({ types: ['error', 'warn'] })` |
-| Network requests | `list_network_requests({ resourceTypes: [...] })` |
+| Popup | `chrome-extension://<id>/pages/popup.html` |
+| Dashboard | `chrome-extension://<id>/pages/dashboard.html` |
+| Segmenter | `chrome-extension://<id>/pages/segmenter.html` |
 
-Screenshots go to `.tmp/<topic>-<n>.png` (gitignored). Never commit them to the repo and never put them under `.claude-verify/`. There is no agentic path to attach them to PRs or ClickUp tasks; the file just stays in `.tmp/` for the human to view locally if needed.
+Guessing a path from the source layout gets you `net::ERR_FILE_NOT_FOUND`. When in doubt, read
+`build/manifest.json` (`action.default_popup`) rather than inferring.
 
-## 4. Tear down when done
+The popup renders in whatever locale the profile resolves to, which is `zh_CN` on a fresh profile.
+Accessible names come back translated, so a locator lifted here is locale-coupled unless the
+element has a `data-testid`.
 
-Always close the MCP browser at the end of a verification pass — otherwise a Chromium instance lingers, holding the Vite HMR socket and a `dev/chrome` filesystem lock until the Claude session exits.
+## 2. Turn what you found into spec code
 
+```bash
+npx -y @playwright/cli@0.1.18 -s=<session> generate-locator <ref>
+# -> getByRole('tab', { name: '搜索番剧' })
 ```
-uninstall_extension(<id>)
-list_pages()  // close any chrome-extension://<id>/... tabs left open
-close_page(...)  // for each non-blank page
+
+Paste that straight into the spec. Don't retype a selector from a screenshot; that is how a spec
+ends up asserting something adjacent to what you actually saw.
+
+## 3. Seed state through the dev API
+
+`globalThis.__da` is attached on the service worker for every non-prod env. Reach it the same way
+`e2e/setup/fixtures.ts` does:
+
+```bash
+npx -y @playwright/cli@0.1.18 -s=<session> run-code \
+  "async page => page.context().serviceWorkers()[0].evaluate(() => globalThis.__da.describe())"
 ```
 
-When switching dev → build verify, also close any open `chrome-extension://<dev id>/...` tabs *before* the uninstall — those navigations become dead URLs once the extension is gone.
+Namespaces: `providerConfig`, `storage`, `extensionOptions`, `runtime`, `season`, `episode`,
+`bookmark`, `mount`. Each goes through the same write and invalidation pipeline production uses,
+so subscribers re-render correctly. Raw `chrome.storage` writes skip that and the UI may not update.
+
+## 4. Inspect
+
+| Need | Command |
+|---|---|
+| Accessibility tree | `snapshot` |
+| Search the snapshot | `find <text>` |
+| Console | `console [min-level]` |
+| Network | `requests`, `request <n>`, `response-body <n>` |
+| Mock a request | `route <pattern>` |
+| Screenshot | `screenshot` |
+| Arbitrary Playwright | `run-code "async page => ..."` |
+
+`run-code` gives you the real `page`, so `page.context()` reaches the whole context: service
+workers, CDP sessions, other tabs.
+
+## 5. After a rebuild, reload in place
+
+```bash
+npx -y @playwright/cli@0.1.18 -s=<session> run-code \
+  "async page => { const cdp = await page.context().browser().newBrowserCDPSession(); return cdp.send('Extensions.loadUnpacked', { path: '<abs>/packages/danmaku-anywhere/build' }); }"
+```
+
+This is the same CDP call `e2e/setup/swapExtension.ts` uses, and the preflight config already
+passes `--enable-unsafe-extension-debugging` to unlock it. `chrome.runtime.reload()` is not a
+substitute: it kills the worker and it does not come back.
+
+## 6. Tear down
+
+```bash
+npx -y @playwright/cli@0.1.18 -s=<session> close
+npx -y @playwright/cli@0.1.18 close-all   # if sessions were left behind
+```
+
+A leftover session holds a browser process and a profile directory.
 
 ---
 
-## Notes (read when relevant)
+## Notes
 
-### Shadow DOM access on prod/dev builds
+### Profiles are disposable on purpose
 
-The controller's shadow root is `closed` outside `VITE_DA_ENV=e2e`. To inspect a closed shadow root, use `evaluate_script` — the page's V8 context can dereference the shadowRoot directly:
+Use the fresh session name the preflight prints, every run. Reusing one carries state between
+runs, and a wedged extension survives into the next session as a service worker that never
+appears. If you must reuse a session, `delete-data` clears its profile.
 
-```js
-document.getElementById('danmaku-anywhere-controller').shadowRoot.querySelector('...')
-```
+### Working directory
 
-### Ground-truth font verification
+The CLI writes `.playwright-cli/` (snapshots, console logs, screenshots, video, traces) into
+whatever directory you run it from. It is gitignored at the repo root and in the extension
+package.
 
-`document.fonts.load(...)` only proves the font reached the FontFaceSet, not that the browser actually painted with it. For what *rendered*, use CDP `CSS.getPlatformFontsForNode` (same source as DevTools' "Rendered Fonts" panel) via `evaluate_script`:
+### Rendered fonts
+
+`document.fonts.load(...)` only proves a font reached the FontFaceSet, not that it painted. For
+what actually rendered, go through CDP:
 
 ```js
 const cdp = await page.context().newCDPSession(page)
-await cdp.send('DOM.enable')
-await cdp.send('CSS.enable')
-const { result } = await cdp.send('Runtime.evaluate', { expression: '/* selector */' })
-const { nodeId } = await cdp.send('DOM.requestNode', { objectId: result.objectId })
+await cdp.send('DOM.enable'); await cdp.send('CSS.enable')
+const { root } = await cdp.send('DOM.getDocument', { depth: -1 })
+const { nodeId } = await cdp.send('DOM.querySelector', { nodeId: root.nodeId, selector: '#probe' })
 const { fonts } = await cdp.send('CSS.getPlatformFontsForNode', { nodeId })
-// fonts: Array<{ familyName, glyphCount, isCustomFont }>
 ```
 
-The target element needs a layout box — push off-screen with `position:fixed; top:-9999px;` rather than `visibility:hidden`.
+The target element needs a layout box: push it off-screen with `position:fixed; top:-9999px`
+rather than `visibility:hidden`.
+
+### The human's dev browser is separate
+
+`pnpm dev:browser` opens the human's Chrome against `dev/chrome` with HMR. That is a different
+lane and the agent does not touch it. Everything here runs off `build/`.
