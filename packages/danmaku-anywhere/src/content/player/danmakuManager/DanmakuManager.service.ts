@@ -14,6 +14,7 @@ import type {
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type { SegmentationStats } from '@/common/rpcClient/background/types'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { injectCss } from '@/content/common/injectCss'
 import { DanmakuComponent } from '@/content/player/components/DanmakuComponent'
 import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayout.service'
@@ -67,6 +68,9 @@ export class DanmakuManagerService {
   private occlusionActiveListener?: () => void
   private occlusionDisengagedListener?: () => void
   private occlusionEngaged = false
+  private occlusionRunning = false
+  private runningModel?: OcclusionModel
+  private runningQuality?: OcclusionQuality
   private debug = false
 
   constructor(
@@ -319,6 +323,7 @@ export class DanmakuManagerService {
         this.occlusionDisengagedListener?.()
       }
       this.occlusionService.reset()
+      this.occlusionRunning = false
       return
     }
     this.occlusionEngaged = true
@@ -337,6 +342,7 @@ export class DanmakuManagerService {
       // leave a stale model running while the UI shows a different one.
       this.logger.error(e)
       this.occlusionService.reset()
+      this.occlusionRunning = false
       return
     }
     // A newer update may have superseded this resolve while it was in flight
@@ -368,6 +374,23 @@ export class DanmakuManagerService {
       onActive: () => this.occlusionActiveListener?.(),
     })
     this.occlusionService.start(this.video)
+
+    // configureOcclusion re-runs on any style change (updateConfig). Emit only
+    // on a genuine off->on activation, or when the model/quality actually
+    // changed, not on every unrelated reconfigure.
+    if (
+      !this.occlusionRunning ||
+      this.runningModel !== this.occlusionModel ||
+      this.runningQuality !== this.occlusionQuality
+    ) {
+      this.occlusionRunning = true
+      this.runningModel = this.occlusionModel
+      this.runningQuality = this.occlusionQuality
+      getTrackingService().track('occlusionStart', {
+        model: this.occlusionModel,
+        quality: this.occlusionQuality,
+      })
+    }
   }
 
   resize() {

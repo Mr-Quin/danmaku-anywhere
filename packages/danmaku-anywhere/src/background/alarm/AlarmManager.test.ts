@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { ProviderService } from '@/background/services/providers/ProviderService'
+import type { TelemetryManager } from '@/background/telemetry/TelemetryManager'
 import type { ILogger } from '@/common/Logger'
 import type { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { mockChrome } from '@/tests/mockChromeApis'
@@ -42,10 +43,15 @@ describe('AlarmManager manifest refresh', () => {
     )
     mockChrome.alarms.get.mockResolvedValue(undefined)
 
+    const telemetryManager = {
+      track: vi.fn(),
+    } as unknown as TelemetryManager
+
     const manager = new AlarmManager(
       {} as unknown as DanmakuService,
       extensionOptionsService,
       providerService,
+      telemetryManager,
       silentLogger
     )
 
@@ -67,5 +73,58 @@ describe('AlarmManager manifest refresh', () => {
       await handle({ name: 'some-other-alarm' } as chrome.alarms.Alarm)
     }
     expect(syncCatalog).not.toHaveBeenCalled()
+  })
+})
+
+describe('AlarmManager heartbeat', () => {
+  it('creates the heartbeat alarm and emits a heartbeat event when it fires', async () => {
+    const extensionOptionsService = {
+      onChange: vi.fn(),
+      get: vi.fn(async () => ({
+        retentionPolicy: { enabled: false, deleteCommentsAfter: 0 },
+      })),
+    } as unknown as ExtensionOptionsService
+
+    const track = vi.fn()
+    const telemetryManager = { track } as unknown as TelemetryManager
+
+    const handlers: ((alarm: chrome.alarms.Alarm) => unknown)[] = []
+    mockChrome.alarms.onAlarm.addListener.mockImplementation((h) =>
+      handlers.push(h)
+    )
+    mockChrome.alarms.get.mockResolvedValue(undefined)
+
+    const manager = new AlarmManager(
+      {} as unknown as DanmakuService,
+      extensionOptionsService,
+      {} as unknown as ProviderService,
+      telemetryManager,
+      silentLogger
+    )
+
+    manager.setup()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(mockChrome.alarms.create).toHaveBeenCalledWith(
+      'heartbeat',
+      expect.objectContaining({ periodInMinutes: expect.any(Number) })
+    )
+
+    for (const handle of handlers) {
+      await handle({ name: 'heartbeat' } as chrome.alarms.Alarm)
+    }
+    expect(track).toHaveBeenCalledTimes(1)
+    expect(track).toHaveBeenCalledWith(
+      'heartbeat',
+      expect.objectContaining({ browser: expect.any(String) }),
+      'background',
+      expect.any(Number)
+    )
+
+    track.mockClear()
+    for (const handle of handlers) {
+      await handle({ name: 'some-other-alarm' } as chrome.alarms.Alarm)
+    }
+    expect(track).not.toHaveBeenCalled()
   })
 })

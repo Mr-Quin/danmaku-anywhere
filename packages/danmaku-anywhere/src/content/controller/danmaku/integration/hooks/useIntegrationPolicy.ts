@@ -103,7 +103,7 @@ export const useIntegrationPolicy = () => {
           )
         }
         if (useStore.getState().danmaku.isMounted) {
-          unmountDanmaku.mutate()
+          unmountDanmaku.mutate({ mode: 'auto' })
         }
 
         setMediaInfo(state)
@@ -135,7 +135,7 @@ export const useIntegrationPolicy = () => {
                   'Matched local danmaku'
                 )
               )
-              void mountDanmaku([matched])
+              void mountDanmaku([matched], 'auto')
             } else {
               loadMutation.mutate(
                 {
@@ -144,6 +144,7 @@ export const useIntegrationPolicy = () => {
                   options: {
                     forceUpdate: false,
                   },
+                  mode: 'auto',
                 },
                 {
                   onError: () => {

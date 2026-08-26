@@ -13,8 +13,15 @@ import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
 import { episodeToString, isSourceEpisode } from '@/common/danmaku/utils'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
+import type { DanmakuMountMode } from '@/common/telemetry/events'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { concatArr } from '@/common/utils/utils'
 import { useStore } from '@/content/controller/store/store'
+
+interface MountVariables {
+  episodes: GenericEpisode[]
+  mode: DanmakuMountMode
+}
 
 const useMountDanmaku = () => {
   const { toast } = useToast()
@@ -23,7 +30,7 @@ const useMountDanmaku = () => {
   const { mount } = useStore.use.danmaku()
 
   return useMutation({
-    mutationFn: async (episodes: GenericEpisode[]) => {
+    mutationFn: async ({ episodes }: MountVariables) => {
       const activeFrame = getActiveFrame()
       if (!activeFrame) {
         throw new Error('No active frame to mount danmaku')
@@ -46,9 +53,28 @@ const useMountDanmaku = () => {
 
       return activeFrame.frameId
     },
-    onSuccess: (mountedFrameId, danmaku) => {
-      mount(danmaku)
+    onSuccess: (mountedFrameId, { episodes, mode }) => {
+      mount(episodes)
       updateFrame(mountedFrameId, { mounted: true })
+
+      const firstEpisode = episodes[0]
+      if (!firstEpisode) {
+        return
+      }
+      const commentCount = episodes.reduce(
+        (sum, episode) => sum + episode.commentCount,
+        0
+      )
+      // Custom providers all share one source type, so the manifest is what
+      // distinguishes them. Local imports have no season, hence no manifest.
+      const manifestId = isSourceEpisode(firstEpisode)
+        ? (firstEpisode.season.manifestId ?? null)
+        : null
+      getTrackingService().track('danmakuMount', {
+        mode,
+        manifestId,
+        commentCount,
+      })
     },
     onError: (err) => {
       toast.error(err.message)
@@ -74,50 +100,58 @@ export const useLoadDanmaku = () => {
     isSourceEpisode(episodes[0]) &&
     episodes[0].season.manifestId === 'dandanplay'
 
-  const mountDanmaku = useEventCallback((episodes: GenericEpisode[]) => {
-    return mountMutation.mutateAsync(episodes, {
-      // This is called in addition to the onSuccess of mountMutation
-      onSuccess: () => {
-        if (episodes.length === 1) {
-          const episode = episodes[0]
-          toast.success(
-            t(
-              'danmaku.alert.mounted',
-              'Danmaku Mounted: {{name}} ({{count}})',
-              {
-                name: episodeToString(episode),
-                count: episode.commentCount,
-              }
-            ),
-            {
-              actionFn:
-                isSourceEpisode(episode) &&
-                episode.season.manifestId === 'dandanplay'
-                  ? refreshComments
-                  : undefined,
-              actionLabel: t('danmaku.refresh', 'Refresh Danmaku'),
+  const mountDanmaku = useEventCallback(
+    (episodes: GenericEpisode[], mode: DanmakuMountMode = 'manual') => {
+      return mountMutation.mutateAsync(
+        { episodes, mode },
+        {
+          // This is called in addition to the onSuccess of mountMutation
+          onSuccess: () => {
+            if (episodes.length === 1) {
+              const episode = episodes[0]
+              toast.success(
+                t(
+                  'danmaku.alert.mounted',
+                  'Danmaku Mounted: {{name}} ({{count}})',
+                  {
+                    name: episodeToString(episode),
+                    count: episode.commentCount,
+                  }
+                ),
+                {
+                  actionFn:
+                    isSourceEpisode(episode) &&
+                    episode.season.manifestId === 'dandanplay'
+                      ? refreshComments
+                      : undefined,
+                  actionLabel: t('danmaku.refresh', 'Refresh Danmaku'),
+                }
+              )
+            } else {
+              toast.success(
+                t(
+                  'danmaku.alert.mountedMultiple',
+                  'Mounted {{count}} selected danmaku',
+                  {
+                    count: episodes.length,
+                  }
+                )
+              )
             }
-          )
-        } else {
-          toast.success(
-            t(
-              'danmaku.alert.mountedMultiple',
-              'Mounted {{count}} selected danmaku',
-              {
-                count: episodes.length,
-              }
-            )
-          )
+          },
         }
-      },
-    })
-  })
+      )
+    }
+  )
 
   const loadMutation = useMutation({
-    mutationFn: async (data: DanmakuFetchDto) => {
-      return fetchMutation.mutateAsync(data, {
+    mutationFn: async ({
+      mode = 'manual',
+      ...data
+    }: DanmakuFetchDto & { mode?: DanmakuMountMode }) => {
+      return fetchMutation.mutateAsync(data as DanmakuFetchDto, {
         onSuccess: (cache) => {
-          mountDanmaku([cache])
+          mountDanmaku([cache], mode)
         },
         onError: (err) => {
           toast.error(err.message)
@@ -127,10 +161,13 @@ export const useLoadDanmaku = () => {
   })
 
   const loadGenericMutation = useMutation({
-    mutationFn: async (data: MacCMSFetchData) => {
-      return fetchGenericMutation.mutateAsync(data, {
+    mutationFn: async ({
+      mode = 'manual',
+      ...data
+    }: MacCMSFetchData & { mode?: DanmakuMountMode }) => {
+      return fetchGenericMutation.mutateAsync(data as MacCMSFetchData, {
         onSuccess: (cache) => {
-          mountDanmaku([cache])
+          mountDanmaku([cache], mode)
         },
         onError: (err) => {
           toast.error(err.message)

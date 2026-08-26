@@ -18,6 +18,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type { ManifestValidationIssue } from '@/common/rpcClient/background/types'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { tryCatchSync } from '@/common/utils/tryCatch'
 import { docsLink } from '@/common/utils/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
@@ -204,6 +205,9 @@ function ManifestEditor({
       {
         onError: (error) => toast.error(error.message),
         onSuccess: () => {
+          getTrackingService().track('manifestSave', {
+            mode: isNew ? 'create' : 'update',
+          })
           if (!isNew) {
             finish()
             return

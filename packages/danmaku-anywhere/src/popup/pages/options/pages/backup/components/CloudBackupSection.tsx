@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useAuthSession } from '@/common/hooks/user/useAuthSession'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import {
   SettingsGroup,
   SettingsGroupLabel,
@@ -50,6 +51,7 @@ export function CloudBackupSection({
       toast.success(
         t('optionsPage.backup.cloudCreateSuccess', 'Cloud backup created')
       )
+      getTrackingService().track('cloudBackupCreate', {})
       void refetch()
     },
     onError: (error) => {
@@ -69,6 +71,7 @@ export function CloudBackupSection({
       onRestoringChange?.(true)
     },
     onSuccess: ({ data }) => {
+      getTrackingService().track('cloudBackupRestore', {})
       importMutation.mutate(data)
     },
     onError: (error) => {

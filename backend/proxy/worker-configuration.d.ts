@@ -14,6 +14,9 @@ declare namespace Cloudflare {
 		BETTER_AUTH_SECRET: SecretsStoreSecret;
 		GOOGLE_CLIENT_SECRET: SecretsStoreSecret;
 		RESEND_API_KEY: SecretsStoreSecret;
+		AXIOM_TOKEN: SecretsStoreSecret;
+		INTAKE_RATE_LIMITER: RateLimit;
+		AXIOM_INTAKE_URL: "https://us-east-1.aws.edge.axiom.co/v1/ingest/da-events";
 		CF_VERSION_METADATA: WorkerVersionMetadata;
 		BETTER_AUTH_TRUSTED_ORIGINS: "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,https://api.danmaku-staging.weeblify.app";
 		EMAIL_FROM: "Danmaku Anywhere <hello@danmaku.weeblify.app>";
@@ -35,6 +38,9 @@ declare namespace Cloudflare {
 		BETTER_AUTH_SECRET: SecretsStoreSecret;
 		GOOGLE_CLIENT_SECRET: SecretsStoreSecret;
 		RESEND_API_KEY: SecretsStoreSecret;
+		AXIOM_TOKEN: SecretsStoreSecret;
+		INTAKE_RATE_LIMITER: RateLimit;
+		AXIOM_INTAKE_URL: "https://us-east-1.aws.edge.axiom.co/v1/ingest/da-events";
 		CF_VERSION_METADATA: WorkerVersionMetadata;
 		BETTER_AUTH_TRUSTED_ORIGINS: "https://danmaku.weeblify.app,https://api.danmaku.weeblify.app";
 		EMAIL_FROM: "Danmaku Anywhere <hello@danmaku.weeblify.app>";
@@ -56,6 +62,9 @@ declare namespace Cloudflare {
 		BETTER_AUTH_SECRET: SecretsStoreSecret;
 		GOOGLE_CLIENT_SECRET: SecretsStoreSecret;
 		RESEND_API_KEY: SecretsStoreSecret;
+		AXIOM_TOKEN: SecretsStoreSecret;
+		INTAKE_RATE_LIMITER: RateLimit;
+		AXIOM_INTAKE_URL: "https://us-east-1.aws.edge.axiom.co/v1/ingest/da-events";
 		CF_VERSION_METADATA: WorkerVersionMetadata;
 		BETTER_AUTH_TRUSTED_ORIGINS: "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,https://api.danmaku-staging.weeblify.app" | "https://danmaku.weeblify.app,https://api.danmaku.weeblify.app" | "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,https://api.danmaku-staging.weeblify.app,http://localhost:4200";
 		EMAIL_FROM: "Danmaku Anywhere <hello@danmaku.weeblify.app>";
@@ -74,7 +83,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "BETTER_AUTH_TRUSTED_ORIGINS" | "EMAIL_FROM" | "ENVIRONMENT" | "DANDANPLAY_API_HOST" | "DANDANPLAY_APP_ID" | "ALLOWED_ORIGIN" | "GEMINI_MODEL" | "BETTER_AUTH_URL" | "GOOGLE_CLIENT_ID">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "BETTER_AUTH_TRUSTED_ORIGINS" | "EMAIL_FROM" | "ENVIRONMENT" | "DANDANPLAY_API_HOST" | "DANDANPLAY_APP_ID" | "ALLOWED_ORIGIN" | "GEMINI_MODEL" | "BETTER_AUTH_URL" | "GOOGLE_CLIENT_ID" | "AXIOM_INTAKE_URL">> {}
 }
 
 // Begin runtime types
