@@ -14,6 +14,7 @@ import { portNames } from '@/common/ports/portNames'
 import type { RPCClientResponse } from '@/common/rpc/client'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { tryCatch } from '@/common/utils/tryCatch'
+import { isAllowedAppOrigin } from '@/content/app/appOrigin'
 import { isCustomDanmakuGetPayload } from '@/content/app/danmakuGetRouting'
 
 const extensionOptionsService = uiContainer.get(ExtensionOptionsService)
@@ -60,6 +61,14 @@ const createRpcWrapper =
 window.addEventListener(
   'message',
   async (event: MessageEvent<ExtMessage>): Promise<void> => {
+    // Only trust messages the app posted to its own window. Without this a
+    // third party holding a handle to an app window could drive the bridge.
+    if (event.source !== window) {
+      return
+    }
+    if (!isAllowedAppOrigin(event.origin)) {
+      return
+    }
     if (event.data?.source !== DA_EXT_SOURCE_APP) return
     if (event.data?.type === 'response') return
 
