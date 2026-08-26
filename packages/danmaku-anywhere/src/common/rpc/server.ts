@@ -17,7 +17,7 @@ export type RRPServerHandler<TDef extends AnyRPCDef> = (
   options?: RpcOptions
 ) => Promise<TDef['output']>
 
-type RPCServerHandlers<TRecords extends RPCRecord> = {
+export type RPCServerHandlers<TRecords extends RPCRecord> = {
   [TKey in keyof TRecords]: RRPServerHandler<TRecords[TKey]>
 }
 
