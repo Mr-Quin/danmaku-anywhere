@@ -3,7 +3,9 @@ import { expect, test } from '../../setup/fixtures'
 
 /**
  * Sanctioned browser-capability probe, exempt from the user-visible-signal rule
- * in e2e/AGENTS.md: OPFS scope has no DOM signal, so it asserts storage state.
+ * in e2e/AGENTS.md.
+ * lint-specs-allow-state-only: OPFS scope has no DOM signal, so it asserts
+ * storage state.
  *
  * Guards a load-bearing assumption of the occlusion model cache: OPFS inside the
  * extension-origin segmenter iframe must be shared across top-level sites, so a

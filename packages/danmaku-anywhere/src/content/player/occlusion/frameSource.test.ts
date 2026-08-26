@@ -1,454 +1,259 @@
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  type Mock,
-  vi,
-} from 'vitest'
+import { describe, expect, it, type Mock, vi } from 'vitest'
+import { asVideo, makeVideo } from './fakeVideo'
+import { FrameSource, RECOVERY_RETRY_DELAYS_MS } from './frameSource'
+import type { AcquireResult, Frame, FrameStrategy } from './frameStrategy'
+import type { FramePlan } from './frameStrategyFactory'
 
-const { addCorsRule, removeCorsRule } = vi.hoisted(() => ({
-  addCorsRule: vi.fn(),
-  removeCorsRule: vi.fn(),
-}))
+const notStale = () => false
 
-vi.mock('@/common/rpcClient/background/client', () => ({
-  chromeRpcClient: {
-    occlusionAddCorsRule: addCorsRule,
-    occlusionRemoveCorsRule: removeCorsRule,
-  },
-}))
+const unavailable = {
+  status: 'failed',
+  failure: { kind: 'unavailable', evidence: 'clone-failed' },
+} as const satisfies AcquireResult
 
-import {
-  type CloneCapture,
-  CrossOriginCapture,
-  FrameSource,
-  isVideoOriginClean,
-} from './frameSource'
+const protectedFailure = {
+  kind: 'failed',
+  failure: { kind: 'protected', evidence: 'encrypted' },
+} as const satisfies FramePlan
 
-type Listener = () => void
-
-class FakeVideo {
-  readyState = 0
-  currentTime = 0
-  currentSrc = ''
-  src = ''
-  playbackRate = 1
-  paused = true
-  crossOrigin: string | null = null
-  muted = false
-  playsInline = false
-  preload = ''
-  style: { cssText: string } = { cssText: '' }
-  play: Mock = vi.fn(() => {
-    this.paused = false
-    return Promise.resolve()
-  })
-  pause: Mock = vi.fn(() => {
-    this.paused = true
-  })
-  load = vi.fn()
-  remove = vi.fn()
-  removeAttribute = vi.fn()
-  private readonly listeners = new Map<string, Set<Listener>>()
-
-  addEventListener(type: string, fn: Listener): void {
-    const set = this.listeners.get(type) ?? new Set<Listener>()
-    set.add(fn)
-    this.listeners.set(type, set)
-  }
-
-  removeEventListener(type: string, fn: Listener): void {
-    this.listeners.get(type)?.delete(fn)
-  }
-
-  dispatch(type: string): void {
-    for (const fn of this.listeners.get(type) ?? []) {
-      fn()
-    }
-  }
+function frameOf(video: HTMLVideoElement): Frame {
+  return { element: video, mediaTime: 0 }
 }
 
-function asVideo(fake: FakeVideo): HTMLVideoElement {
-  return fake as unknown as HTMLVideoElement
+function stubStrategy(acquire: Mock): {
+  strategy: FrameStrategy
+  dispose: Mock
+} {
+  const dispose = vi.fn()
+  return { strategy: { acquire, dispose }, dispose }
 }
 
-let createdVideos: FakeVideo[]
-let cloneInit: Partial<FakeVideo>
-let canvasMode: 'clean' | 'security' | 'other'
-let canvasCount: number
-
-function makeFakeCanvas(): unknown {
-  return {
-    width: 0,
-    height: 0,
-    getContext: () => ({
-      drawImage: () => undefined,
-      getImageData: () => {
-        if (canvasMode === 'security') {
-          throw new DOMException('tainted', 'SecurityError')
-        }
-        if (canvasMode === 'other') {
-          throw new DOMException('boom', 'InvalidStateError')
-        }
-        return { data: new Uint8ClampedArray(4) }
-      },
-    }),
-  }
+function resolving(result: AcquireResult): Mock {
+  return vi.fn().mockResolvedValue(result)
 }
 
-beforeEach(() => {
-  createdVideos = []
-  cloneInit = {}
-  canvasMode = 'clean'
-  canvasCount = 0
-  addCorsRule.mockReset().mockResolvedValue({ data: 7 })
-  removeCorsRule.mockReset().mockResolvedValue(undefined)
-  vi.spyOn(document, 'createElement').mockImplementation(((tag: string) => {
-    if (tag === 'video') {
-      const video = Object.assign(new FakeVideo(), cloneInit)
-      createdVideos.push(video)
-      return asVideo(video)
-    }
-    if (tag === 'canvas') {
-      canvasCount++
-      return makeFakeCanvas()
-    }
-    throw new Error(`unexpected createElement(${tag})`)
-  }) as typeof document.createElement)
-  vi.spyOn(document.body, 'appendChild').mockImplementation((node) => node)
-})
-
-afterEach(() => {
-  vi.restoreAllMocks()
-  vi.useRealTimers()
-})
-
-const flush = () => new Promise<void>((resolve) => setTimeout(resolve, 0))
-
-function makeOriginal(overrides: Partial<FakeVideo> = {}): FakeVideo {
-  return Object.assign(new FakeVideo(), {
-    currentSrc: 'http://example.com/v.webm',
-    ...overrides,
+function makeSource(
+  createStrategy: (video: HTMLVideoElement) => FramePlan,
+  clock: { now: number }
+): FrameSource {
+  return new FrameSource(() => undefined, {
+    createStrategy,
+    now: () => clock.now,
   })
 }
-
-describe('isVideoOriginClean', () => {
-  it('returns false without probing a canvas when no frame is decoded', () => {
-    const result = isVideoOriginClean(asVideo(makeOriginal({ readyState: 1 })))
-    expect(result).toBe(false)
-    expect(canvasCount).toBe(0)
-  })
-
-  it('returns false when reading pixels throws SecurityError', () => {
-    canvasMode = 'security'
-    const result = isVideoOriginClean(asVideo(makeOriginal({ readyState: 2 })))
-    expect(result).toBe(false)
-  })
-
-  it('returns true when pixels read back clean', () => {
-    canvasMode = 'clean'
-    const result = isVideoOriginClean(asVideo(makeOriginal({ readyState: 2 })))
-    expect(result).toBe(true)
-  })
-
-  it('treats a non-SecurityError read failure as clean', () => {
-    canvasMode = 'other'
-    const result = isVideoOriginClean(asVideo(makeOriginal({ readyState: 2 })))
-    expect(result).toBe(true)
-  })
-})
-
-describe('CrossOriginCapture.setup', () => {
-  it('returns null for a non-http(s) source without touching DNR', async () => {
-    const original = makeOriginal({ currentSrc: 'blob:abc' })
-    const capture = new CrossOriginCapture(asVideo(original))
-
-    expect(await capture.setup()).toBeNull()
-    expect(addCorsRule).not.toHaveBeenCalled()
-    expect(createdVideos).toHaveLength(0)
-  })
-
-  it('returns null gracefully when the DNR rule RPC fails', async () => {
-    addCorsRule.mockRejectedValueOnce(new Error('rpc down'))
-    const capture = new CrossOriginCapture(asVideo(makeOriginal()))
-
-    expect(await capture.setup()).toBeNull()
-    expect(removeCorsRule).not.toHaveBeenCalled()
-  })
-
-  it('resolves the clone and aligns it to the live element once ready', async () => {
-    const original = makeOriginal({ currentTime: 12, readyState: 2 })
-    cloneInit = { readyState: 2 }
-    const capture = new CrossOriginCapture(asVideo(original))
-
-    const clone = await capture.setup()
-
-    expect(clone).toBe(asVideo(createdVideos[0]))
-    expect(addCorsRule).toHaveBeenCalledWith({ url: original.currentSrc })
-    expect(createdVideos[0].src).toBe(original.currentSrc)
-    expect(createdVideos[0].crossOrigin).toBe('anonymous')
-    expect(createdVideos[0].currentTime).toBe(12)
-    expect(createdVideos[0].play).toHaveBeenCalled()
-  })
-
-  it('resolves only after a decoded frame, not mid-seek', async () => {
-    cloneInit = { readyState: 0 }
-    const capture = new CrossOriginCapture(asVideo(makeOriginal()))
-
-    const setupPromise = capture.setup()
-    let settled = false
-    void setupPromise.then(() => {
-      settled = true
-    })
-    await flush()
-    const clone = createdVideos[0]
-
-    clone.readyState = 1
-    clone.dispatch('loadeddata')
-    await flush()
-    expect(settled).toBe(false)
-
-    clone.readyState = 2
-    clone.dispatch('seeked')
-    expect(await setupPromise).toBe(asVideo(clone))
-  })
-
-  it('returns null and removes the rule when the clone errors', async () => {
-    cloneInit = { readyState: 0 }
-    const capture = new CrossOriginCapture(asVideo(makeOriginal()))
-
-    const setupPromise = capture.setup()
-    await flush()
-    const clone = createdVideos[0]
-    clone.dispatch('error')
-
-    expect(await setupPromise).toBeNull()
-    expect(clone.remove).toHaveBeenCalled()
-    expect(removeCorsRule).toHaveBeenCalledWith({ ruleId: 7 })
-  })
-
-  it('returns null when the clone never becomes ready before the timeout', async () => {
-    vi.useFakeTimers()
-    cloneInit = { readyState: 0 }
-    const capture = new CrossOriginCapture(asVideo(makeOriginal()))
-
-    const setupPromise = capture.setup()
-    await vi.advanceTimersByTimeAsync(0)
-    await vi.advanceTimersByTimeAsync(8000)
-
-    expect(await setupPromise).toBeNull()
-    expect(removeCorsRule).toHaveBeenCalledWith({ ruleId: 7 })
-  })
-
-  it('aborts and removes the rule when disposed before the clone is created', async () => {
-    const capture = new CrossOriginCapture(asVideo(makeOriginal()))
-
-    const setupPromise = capture.setup()
-    capture.dispose()
-
-    expect(await setupPromise).toBeNull()
-    expect(createdVideos).toHaveLength(0)
-    expect(removeCorsRule).toHaveBeenCalledWith({ ruleId: 7 })
-  })
-})
-
-describe('CrossOriginCapture.sync', () => {
-  async function setupReady(
-    original: FakeVideo
-  ): Promise<{ capture: CrossOriginCapture; clone: FakeVideo }> {
-    cloneInit = { readyState: 2 }
-    const capture = new CrossOriginCapture(asVideo(original))
-    await capture.setup()
-    return { capture, clone: createdVideos[0] }
-  }
-
-  it('matches the clone playback rate to the original', async () => {
-    const original = makeOriginal({ readyState: 2, playbackRate: 2 })
-    const { capture, clone } = await setupReady(original)
-    clone.playbackRate = 1
-
-    capture.sync()
-
-    expect(clone.playbackRate).toBe(2)
-  })
-
-  it('seeks the clone only when drift exceeds tolerance', async () => {
-    const original = makeOriginal({ readyState: 2 })
-    const { capture, clone } = await setupReady(original)
-
-    original.currentTime = 10
-    clone.currentTime = 9.95
-    capture.sync()
-    expect(clone.currentTime).toBe(9.95)
-
-    clone.currentTime = 5
-    capture.sync()
-    expect(clone.currentTime).toBe(10)
-  })
-
-  it('mirrors pause and play state from the original', async () => {
-    const original = makeOriginal({ readyState: 2 })
-    const { capture, clone } = await setupReady(original)
-
-    original.paused = true
-    clone.paused = false
-    capture.sync()
-    expect(clone.pause).toHaveBeenCalled()
-
-    original.paused = false
-    clone.paused = true
-    clone.play.mockClear()
-    capture.sync()
-    expect(clone.play).toHaveBeenCalled()
-  })
-})
-
-describe('CrossOriginCapture.dispose', () => {
-  it('tears the clone down once and is idempotent', async () => {
-    const original = makeOriginal({ readyState: 2 })
-    cloneInit = { readyState: 2 }
-    const capture = new CrossOriginCapture(asVideo(original))
-    await capture.setup()
-    const clone = createdVideos[0]
-
-    capture.dispose()
-    capture.dispose()
-
-    expect(clone.remove).toHaveBeenCalledTimes(1)
-    expect(removeCorsRule).toHaveBeenCalledTimes(1)
-  })
-})
 
 describe('FrameSource', () => {
-  const notStale = () => false
+  it('reports pending and re-classifies while the video cannot be classified yet', async () => {
+    const video = asVideo(makeVideo())
+    const createStrategy = vi.fn(
+      (): FramePlan => ({
+        kind: 'pending',
+      })
+    )
+    const source = makeSource(createStrategy, { now: 0 })
 
-  function fakeClone(): { capture: CloneCapture; cloneEl: HTMLVideoElement } {
-    const cloneEl = asVideo(makeOriginal())
-    const capture: CloneCapture = {
-      setup: vi.fn().mockResolvedValue(cloneEl),
-      sync: vi.fn(),
-      dispose: vi.fn(),
-    }
-    return { capture, cloneEl }
-  }
-
-  function makeSource(deps: {
-    isOriginClean: (v: HTMLVideoElement) => boolean
-    createCapture: () => CloneCapture
-  }): FrameSource {
-    return new FrameSource(() => undefined, {
-      isOriginClean: deps.isOriginClean,
-      createCapture: deps.createCapture,
-    })
-  }
-
-  it('returns the live element when the origin is clean, without a clone', async () => {
-    const video = asVideo(makeOriginal())
-    const createCapture = vi.fn()
-    const source = makeSource({ isOriginClean: () => true, createCapture })
-
-    expect(await source.read(video, notStale)).toBe(video)
-    expect(createCapture).not.toHaveBeenCalled()
+    expect(await source.read(video, notStale)).toEqual({ status: 'pending' })
+    expect(await source.read(video, notStale)).toEqual({ status: 'pending' })
+    expect(createStrategy).toHaveBeenCalledTimes(2)
   })
 
-  it('recovers a tainted video via a clean clone', async () => {
-    const video = asVideo(makeOriginal())
-    const { capture, cloneEl } = fakeClone()
-    const source = makeSource({
-      isOriginClean: (v) => v === cloneEl,
-      createCapture: () => capture,
+  it('keeps the classified strategy across reads', async () => {
+    const video = asVideo(makeVideo())
+    const { strategy } = stubStrategy(
+      resolving({ status: 'frame', frame: frameOf(video) })
+    )
+    const createStrategy = vi.fn(
+      (): FramePlan => ({ kind: 'strategy', strategy })
+    )
+    const source = makeSource(createStrategy, { now: 0 })
+
+    expect(await source.read(video, notStale)).toEqual({
+      status: 'frame',
+      frame: frameOf(video),
     })
-
-    expect(await source.read(video, notStale)).toBe(cloneEl)
-    expect(capture.sync).toHaveBeenCalled()
-  })
-
-  it('reports taint and disposes the clone when recovery is not readable', async () => {
-    const video = asVideo(makeOriginal())
-    const { capture } = fakeClone()
-    const source = makeSource({
-      isOriginClean: () => false,
-      createCapture: () => capture,
-    })
-
-    expect(await source.read(video, notStale)).toBe('taint')
-    expect(capture.dispose).toHaveBeenCalled()
-  })
-
-  it('reports taint when clone setup yields nothing', async () => {
-    const video = asVideo(makeOriginal())
-    const capture: CloneCapture = {
-      setup: vi.fn().mockResolvedValue(null),
-      sync: vi.fn(),
-      dispose: vi.fn(),
-    }
-    const source = makeSource({
-      isOriginClean: () => false,
-      createCapture: () => capture,
-    })
-
-    expect(await source.read(video, notStale)).toBe('taint')
-  })
-
-  it('caches the resolved element and syncs the clone on each read', async () => {
-    const video = asVideo(makeOriginal())
-    const { capture, cloneEl } = fakeClone()
-    const createCapture = vi.fn(() => capture)
-    const source = makeSource({
-      isOriginClean: (v) => v === cloneEl,
-      createCapture,
-    })
-
     await source.read(video, notStale)
-    await source.read(video, notStale)
-
-    expect(createCapture).toHaveBeenCalledTimes(1)
-    expect(capture.sync).toHaveBeenCalledTimes(2)
+    expect(createStrategy).toHaveBeenCalledTimes(1)
   })
 
-  it('re-resolves and disposes the old clone when the src changes', async () => {
-    const original = makeOriginal({ currentSrc: 'http://a/v.webm' })
+  it('re-classifies and disposes the old strategy when the src changes', async () => {
+    const original = makeVideo({ currentSrc: 'http://a/v.webm' })
     const video = asVideo(original)
-    const first = fakeClone()
-    const second = fakeClone()
-    const captures = [first.capture, second.capture]
-    const clones = [first.cloneEl, second.cloneEl]
-    const source = makeSource({
-      isOriginClean: (v) => clones.includes(v),
-      createCapture: () => captures.shift() as CloneCapture,
-    })
+    const first = stubStrategy(
+      resolving({ status: 'frame', frame: frameOf(video) })
+    )
+    const second = stubStrategy(
+      resolving({ status: 'frame', frame: frameOf(video) })
+    )
+    const strategies = [first.strategy, second.strategy]
+    const createStrategy = vi.fn(
+      (): FramePlan => ({
+        kind: 'strategy',
+        strategy: strategies.shift() as FrameStrategy,
+      })
+    )
+    const source = makeSource(createStrategy, { now: 0 })
 
     await source.read(video, notStale)
     original.currentSrc = 'http://b/v.webm'
-    expect(await source.read(video, notStale)).toBe(second.cloneEl)
-    expect(first.capture.dispose).toHaveBeenCalled()
+    await source.read(video, notStale)
+
+    expect(createStrategy).toHaveBeenCalledTimes(2)
+    expect(first.dispose).toHaveBeenCalled()
   })
 
-  it('aborts and disposes the clone when the read goes stale mid-setup', async () => {
-    const video = asVideo(makeOriginal())
-    const { capture } = fakeClone()
-    const source = makeSource({
-      isOriginClean: () => false,
-      createCapture: () => capture,
-    })
+  it('disables a protected video without ever retrying', async () => {
+    const video = asVideo(makeVideo())
+    const createStrategy = vi.fn((): FramePlan => protectedFailure)
+    const clock = { now: 0 }
+    const source = makeSource(createStrategy, clock)
 
-    expect(await source.read(video, () => true)).toBeNull()
-    expect(capture.dispose).toHaveBeenCalled()
+    expect(await source.read(video, notStale)).toEqual({
+      status: 'disabled',
+      failure: protectedFailure.failure,
+    })
+    clock.now += 600_000
+    expect(await source.read(video, notStale)).toEqual({
+      status: 'disabled',
+      failure: protectedFailure.failure,
+    })
+    expect(createStrategy).toHaveBeenCalledTimes(1)
   })
 
-  it('disposes the live clone on reset', async () => {
-    const video = asVideo(makeOriginal())
-    const { capture, cloneEl } = fakeClone()
-    const source = makeSource({
-      isOriginClean: (v) => v === cloneEl,
-      createCapture: () => capture,
+  it('retries a recoverable failure only once each backoff has elapsed', async () => {
+    const video = asVideo(makeVideo())
+    const first = stubStrategy(resolving(unavailable))
+    const strategies = [
+      first.strategy,
+      stubStrategy(resolving(unavailable)).strategy,
+      stubStrategy(resolving(unavailable)).strategy,
+    ]
+    const createStrategy = vi.fn(
+      (): FramePlan => ({
+        kind: 'strategy',
+        strategy: strategies.shift() as FrameStrategy,
+      })
+    )
+    const clock = { now: 0 }
+    const source = makeSource(createStrategy, clock)
+
+    expect(await source.read(video, notStale)).toEqual({ status: 'pending' })
+    expect(first.dispose).toHaveBeenCalled()
+
+    clock.now = RECOVERY_RETRY_DELAYS_MS[0] - 1
+    await source.read(video, notStale)
+    expect(createStrategy).toHaveBeenCalledTimes(1)
+
+    clock.now = RECOVERY_RETRY_DELAYS_MS[0]
+    await source.read(video, notStale)
+    expect(createStrategy).toHaveBeenCalledTimes(2)
+
+    clock.now += RECOVERY_RETRY_DELAYS_MS[1] - 1
+    await source.read(video, notStale)
+    expect(createStrategy).toHaveBeenCalledTimes(2)
+
+    clock.now += 1
+    await source.read(video, notStale)
+    expect(createStrategy).toHaveBeenCalledTimes(3)
+  })
+
+  it('disables the video once the retries run out', async () => {
+    const video = asVideo(makeVideo())
+    const createStrategy = vi.fn(
+      (): FramePlan => ({
+        kind: 'strategy',
+        strategy: stubStrategy(resolving(unavailable)).strategy,
+      })
+    )
+    const clock = { now: 0 }
+    const source = makeSource(createStrategy, clock)
+
+    let outcome = await source.read(video, notStale)
+    for (const delay of RECOVERY_RETRY_DELAYS_MS) {
+      expect(outcome).toEqual({ status: 'pending' })
+      clock.now += delay
+      outcome = await source.read(video, notStale)
+    }
+    expect(outcome).toEqual({
+      status: 'disabled',
+      failure: unavailable.failure,
     })
+  })
+
+  it('recovers when a later attempt succeeds', async () => {
+    const video = asVideo(makeVideo())
+    const strategies = [
+      stubStrategy(resolving(unavailable)).strategy,
+      stubStrategy(resolving({ status: 'frame', frame: frameOf(video) }))
+        .strategy,
+    ]
+    const createStrategy = vi.fn(
+      (): FramePlan => ({
+        kind: 'strategy',
+        strategy: strategies.shift() as FrameStrategy,
+      })
+    )
+    const clock = { now: 0 }
+    const source = makeSource(createStrategy, clock)
+
+    expect(await source.read(video, notStale)).toEqual({ status: 'pending' })
+    clock.now += RECOVERY_RETRY_DELAYS_MS[0]
+
+    expect(await source.read(video, notStale)).toEqual({
+      status: 'frame',
+      frame: frameOf(video),
+    })
+  })
+
+  it('drops a frame that arrives after the read went stale', async () => {
+    const video = asVideo(makeVideo())
+    const { strategy, dispose } = stubStrategy(
+      resolving({ status: 'frame', frame: frameOf(video) })
+    )
+    const source = makeSource(() => ({ kind: 'strategy', strategy }), {
+      now: 0,
+    })
+
+    expect(await source.read(video, () => true)).toEqual({ status: 'pending' })
+    expect(dispose).toHaveBeenCalled()
+  })
+
+  it('re-classifies from scratch after a reset', async () => {
+    const video = asVideo(makeVideo())
+    const { strategy, dispose } = stubStrategy(
+      resolving({ status: 'frame', frame: frameOf(video) })
+    )
+    const createStrategy = vi.fn(
+      (): FramePlan => ({ kind: 'strategy', strategy })
+    )
+    const source = makeSource(createStrategy, { now: 0 })
 
     await source.read(video, notStale)
     source.reset()
+    await source.read(video, notStale)
 
-    expect(capture.dispose).toHaveBeenCalled()
+    expect(dispose).toHaveBeenCalled()
+    expect(createStrategy).toHaveBeenCalledTimes(2)
+  })
+
+  it('drops the result of a strategy that was reset mid-acquire', async () => {
+    const video = asVideo(makeVideo())
+    let finish: (result: AcquireResult) => void = () => undefined
+    const acquire = vi.fn(
+      () =>
+        new Promise<AcquireResult>((resolve) => {
+          finish = resolve
+        })
+    )
+    const { strategy, dispose } = stubStrategy(acquire)
+    const source = makeSource(() => ({ kind: 'strategy', strategy }), {
+      now: 0,
+    })
+
+    const reading = source.read(video, notStale)
+    source.reset()
+    finish({ status: 'frame', frame: frameOf(video) })
+
+    expect(await reading).toEqual({ status: 'pending' })
+    expect(dispose).toHaveBeenCalled()
   })
 })

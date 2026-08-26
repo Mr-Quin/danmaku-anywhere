@@ -22,17 +22,14 @@ const DEFAULT_MIN_INTERVAL_MS = 80
 const DEFAULT_OUTPUT_MAX_SIDE = 320
 
 function modelKey(descriptor: ModelEntry): string {
-  // Every load-bearing field (inputSize, preprocessing, capture, source) must
-  // rebuild the provider when it changes, so key on the whole descriptor.
+  // Any descriptor field changing must rebuild the provider.
   return JSON.stringify(descriptor)
 }
 
 /**
- * Drives a per-frame person-mask loop for one video and applies the resulting
- * alpha mask (as a data URL) to the danmaku overlay so comments render behind
- * people. A FrameSource resolves the readable element, a MaskProvider runs
- * inference, and a MaskCompositor turns the result into the applied mask; this
- * service is the lifecycle and per-frame coordinator.
+ * Drives the per-frame person-mask loop for one video and applies the mask to
+ * the danmaku overlay. Owns lifecycle and cadence; the frame, the inference and
+ * the compositing each belong to a collaborator.
  */
 @injectable('Singleton')
 export class OcclusionService {
@@ -44,10 +41,7 @@ export class OcclusionService {
   private readonly frameSource: FrameSource
   private readonly compositor: MaskCompositor
   private provider?: MaskProvider
-  // Identity of the model behind the live provider. Includes the download source
-  // so a manifest refresh that re-points the same id rebuilds the provider.
   private currentModelKey?: string
-  // Replaced by configure(); a no-op until then.
   private applyMask: (url?: string) => void = () => undefined
   private onStatus?: (status: OcclusionStatus) => void
   private onRunningChange?: (running: boolean) => void
@@ -116,9 +110,7 @@ export class OcclusionService {
   private status(reason: OcclusionStatusReason, message: string): void {
     this.lastError = message
     this.log(message)
-    // The capture loop can hit the same gate (e.g. 'segment') every frame; only
-    // surface a reason once until it changes or a frame succeeds, so a persistent
-    // failure does not spam the same toast.
+    // A per-frame failure must not spam the same toast every frame.
     if (reason !== this.lastStatusReason) {
       this.lastStatusReason = reason
       this.onStatus?.({ reason, message })
@@ -150,9 +142,7 @@ export class OcclusionService {
     if (!this.provider) {
       return
     }
-    // requestVideoFrameCallback drives the loop; the flag is synced storage and
-    // can reach a browser without it, so treat absence as "unavailable" rather
-    // than throwing during danmaku mount.
+    // The enable flag is synced storage, so it reaches browsers without rVFC.
     if (typeof video.requestVideoFrameCallback !== 'function') {
       this.status(
         'unavailable',
@@ -201,9 +191,7 @@ export class OcclusionService {
     if (!provider) {
       return
     }
-    // A hosted model (anime) downloads on first use; announce it once so a long
-    // first-run wait is not a silent hang. Informational, so it bypasses the
-    // lastError-setting status() path.
+    // Informational, so it bypasses the lastError-setting status() path.
     let announcedDownload = false
     provider.onDownloadProgress = (_loaded, total) => {
       if (announcedDownload) {
@@ -260,8 +248,7 @@ export class OcclusionService {
       document.visibilityState === 'visible'
 
     if (!ready) {
-      // Reset the fps seed so a pause/hidden gap is not counted as one huge
-      // frame interval when capture resumes.
+      // A pause or hidden gap is not one huge frame interval.
       this.lastAppliedTs = 0
     }
 
@@ -271,7 +258,6 @@ export class OcclusionService {
       try {
         await this.segmentAndApply(video)
       } catch (e) {
-        // Transient capture/segment failure: keep the last mask, keep looping.
         this.log(`frame failed: ${e instanceof Error ? e.message : e}`)
       } finally {
         this.busy = false
@@ -287,17 +273,21 @@ export class OcclusionService {
     }
     const isStale = () => !this.running || this.video !== video
 
-    const source = await this.frameSource.read(video, isStale)
-    if (source === 'taint') {
-      this.disableForTaint()
+    const outcome = await this.frameSource.read(video, isStale)
+    if (outcome.status === 'disabled') {
+      if (outcome.failure.kind === 'protected') {
+        this.disableForTaint()
+      } else {
+        this.disableForUnreadable()
+      }
       return
     }
-    if (!source || isStale()) {
+    if (outcome.status === 'pending' || isStale()) {
       return
     }
 
     const t0 = performance.now()
-    const frame = await this.captureFrame(source, video)
+    const frame = await this.captureFrame(outcome.frame.element, video)
     if (frame === 'taint') {
       this.disableForTaint()
       return
@@ -360,9 +350,7 @@ export class OcclusionService {
     }
   }
 
-  // createImageBitmap resizes on the GPU during decode, avoiding a main-thread
-  // canvas draw. Returns 'taint' when the source is unreadable (some engines
-  // throw here even though the upfront probe usually catches it first).
+  // Some engines throw here even when the upfront probe read clean.
   private async captureFrame(
     source: HTMLVideoElement,
     video: HTMLVideoElement
@@ -394,6 +382,12 @@ export class OcclusionService {
       this.log(`capture failed: ${e instanceof Error ? e.message : e}`)
       return null
     }
+  }
+
+  private disableForUnreadable(): void {
+    this.debugView?.showDisabled('disabled (frames unreadable)')
+    this.stop()
+    this.status('unreadable', 'disabled: could not read frames from this video')
   }
 
   private disableForTaint(): void {

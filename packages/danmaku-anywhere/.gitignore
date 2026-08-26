@@ -9,3 +9,5 @@ playwright-report
 blob-report
 .playwright-profile
 .e2e-cache
+.playwright-cli
+e2e/specs/.scratch
