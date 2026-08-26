@@ -5,10 +5,22 @@ import {
 } from '@/background/netRequest/cookieReplay'
 import { setSessionHeader } from '@/background/netRequest/setSessionHeader'
 
+// dango's FetchLike has no `cache`, but this wrapper hands its init straight to
+// fetch(), so callers in this host can ask for a browser-cache mode. Accepting a
+// superset keeps the value assignable wherever a FetchLike is expected.
+export type ExtensionFetchInit = NonNullable<Parameters<FetchLike>[1]> & {
+  cache?: RequestCache
+}
+
+type ExtensionFetchLike = (
+  input: Parameters<FetchLike>[0],
+  init?: ExtensionFetchInit
+) => ReturnType<FetchLike>
+
 // fetch() drops forbidden request headers, so rewriteHeaders steps use a
 // short-lived DNR session rule. Captured cookies are also injected since
 // Partitioned cookies are not auto-attached on service-worker fetch() calls.
-export const extensionFetchLike: FetchLike = async (input, init) => {
+export const extensionFetchLike: ExtensionFetchLike = async (input, init) => {
   const rewrite = init?.rewriteHeaders
   let effectiveRewrite = rewrite
 

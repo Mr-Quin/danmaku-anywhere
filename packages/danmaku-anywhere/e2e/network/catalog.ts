@@ -92,6 +92,35 @@ export function mockCatalog(
   }
 }
 
+export interface CatalogRequest {
+  isFile: boolean
+  cacheControl: string
+}
+
+// Wraps mockCatalog, recording each request's path kind and the Cache-Control
+// the backend would read. The fetch init's `cache` mode is not visible to route
+// interception, so only the header can be asserted from a spec.
+export function recordingCatalog(
+  ids: readonly string[],
+  versionOverrides: Record<string, string>,
+  sink: CatalogRequest[]
+): NetworkMock {
+  const base = mockCatalog(ids, versionOverrides)
+  return {
+    pattern: base.pattern,
+    respond: async (route: Route) => {
+      const headers = await route.request().allHeaders()
+      sink.push({
+        isFile: new URL(route.request().url()).pathname.endsWith(
+          '/manifest/file'
+        ),
+        cacheControl: headers['cache-control'] ?? '',
+      })
+      await base.respond(route)
+    },
+  }
+}
+
 // Simulates a fully unreachable proxy: both the index and file endpoints
 // fail. Used to exercise the offline bundled-catalog fallback in
 // ManifestRegistry, which only kicks in once the index request fails.
