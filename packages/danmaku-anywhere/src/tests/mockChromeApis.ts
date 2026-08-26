@@ -6,5 +6,6 @@ export const mockChrome = fakeChrome
 vi.stubGlobal('chrome', mockChrome)
 
 beforeEach(() => {
+  vi.stubGlobal('chrome', mockChrome)
   resetFakeChrome()
 })
