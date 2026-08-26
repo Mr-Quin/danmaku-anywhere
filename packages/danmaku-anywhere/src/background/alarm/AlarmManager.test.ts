@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { ProviderService } from '@/background/services/providers/ProviderService'
-import type { ILogger } from '@/common/Logger'
 import type { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { mockChrome } from '@/tests/mockChromeApis'
+import { silentLogger } from '@/tests/silentLogger'
 import { AlarmManager } from './AlarmManager'
 
 /**
@@ -12,14 +12,6 @@ import { AlarmManager } from './AlarmManager'
  * handler delegates to ProviderService.syncCatalog (and ignores other alarms),
  * so the catalog stays current on a schedule.
  */
-
-const silentLogger = {
-  debug: () => {},
-  info: () => {},
-  warn: () => {},
-  error: () => {},
-  sub: () => silentLogger,
-} as unknown as ILogger
 
 beforeEach(() => {
   vi.clearAllMocks()

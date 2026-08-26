@@ -9,10 +9,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { SeasonService } from '@/background/services/persistence/SeasonService'
-import type { ILogger } from '@/common/Logger'
 import type { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { silentLogger } from '@/tests/silentLogger'
 import type { IDanmakuProvider } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
 import type { ManifestRegistry } from './ManifestRegistry'
@@ -25,14 +25,6 @@ import { ProviderService } from './ProviderService'
  * episodes, and fetch danmaku without tripping the MacCMS-only guards, while
  * MacCMS keeps its bespoke restrictions.
  */
-
-const silentLogger = {
-  debug: () => {},
-  info: () => {},
-  warn: () => {},
-  error: () => {},
-  sub: () => silentLogger,
-} as unknown as ILogger
 
 const silentExtensionOptions = {
   get: async () => ({ lang: 'zh' }),
