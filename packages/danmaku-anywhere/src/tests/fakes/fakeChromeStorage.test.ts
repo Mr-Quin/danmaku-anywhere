@@ -4,7 +4,8 @@ import { createFakeChromeStorage } from './fakeChromeStorage'
 /**
  * Fake chrome.storage keeps each storage area isolated and mirrors Chrome's
  * promise and callback read APIs. It notifies listeners with exact old/new
- * values so storage-backed services can be exercised without mock behavior.
+ * values so storage-backed services can be exercised without mock behavior,
+ * and it serializes values the way the real API does.
  */
 
 describe('createFakeChromeStorage', () => {
@@ -76,5 +77,20 @@ describe('createFakeChromeStorage', () => {
 
     expect(listener).toHaveBeenCalledTimes(1)
     expect(await storage.local.get(null)).toEqual({ language: 'zh' })
+  })
+
+  test('does not share references with stored values', async () => {
+    const written = { retentionPolicy: { enabled: true } }
+    await storage.local.set({ options: written })
+
+    written.retentionPolicy.enabled = false
+    const firstRead = (await storage.local.get('options')) as {
+      options: { retentionPolicy: { enabled: boolean } }
+    }
+    firstRead.options.retentionPolicy.enabled = false
+
+    expect(await storage.local.get('options')).toEqual({
+      options: { retentionPolicy: { enabled: true } },
+    })
   })
 })

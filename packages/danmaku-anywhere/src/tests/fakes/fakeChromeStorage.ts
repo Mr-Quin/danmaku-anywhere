@@ -28,6 +28,12 @@ interface ResettableFakeStorageArea extends FakeStorageArea {
   reset(): void
 }
 
+// Real chrome.storage serializes values, so a caller can never observe or
+// mutate the object the extension stored. Cloning keeps aliasing bugs visible.
+function copy<T>(value: T): T {
+  return structuredClone(value)
+}
+
 function createFakeStorageArea(): ResettableFakeStorageArea {
   const values = new Map<string, unknown>()
   const listeners = new Set<StorageChangeListener>()
@@ -44,18 +50,18 @@ function createFakeStorageArea(): ResettableFakeStorageArea {
 
   function getValues(keys: StorageKeys): StorageItems {
     if (keys === null || keys === undefined) {
-      return Object.fromEntries(values)
+      return copy(Object.fromEntries(values))
     }
 
     if (typeof keys === 'string') {
-      return values.has(keys) ? { [keys]: values.get(keys) } : {}
+      return values.has(keys) ? { [keys]: copy(values.get(keys)) } : {}
     }
 
     if (Array.isArray(keys)) {
       const items: StorageItems = {}
       for (const key of keys) {
         if (values.has(key)) {
-          items[key] = values.get(key)
+          items[key] = copy(values.get(key))
         }
       }
       return items
@@ -63,7 +69,7 @@ function createFakeStorageArea(): ResettableFakeStorageArea {
 
     const items: StorageItems = {}
     for (const [key, defaultValue] of Object.entries(keys)) {
-      items[key] = values.has(key) ? values.get(key) : defaultValue
+      items[key] = values.has(key) ? copy(values.get(key)) : copy(defaultValue)
     }
     return items
   }
@@ -87,8 +93,8 @@ function createFakeStorageArea(): ResettableFakeStorageArea {
     const changes: Record<string, chrome.storage.StorageChange> = {}
     for (const [key, newValue] of Object.entries(items)) {
       const oldValue = values.get(key)
-      values.set(key, newValue)
-      changes[key] = { oldValue, newValue }
+      values.set(key, copy(newValue))
+      changes[key] = { oldValue: copy(oldValue), newValue: copy(newValue) }
     }
     emit(changes)
   }
@@ -101,7 +107,7 @@ function createFakeStorageArea(): ResettableFakeStorageArea {
         continue
       }
 
-      const oldValue = values.get(key)
+      const oldValue = copy(values.get(key))
       values.delete(key)
       changes[key] = { oldValue, newValue: undefined }
     }
@@ -111,7 +117,7 @@ function createFakeStorageArea(): ResettableFakeStorageArea {
   async function clear(): Promise<void> {
     const changes: Record<string, chrome.storage.StorageChange> = {}
     for (const [key, oldValue] of values) {
-      changes[key] = { oldValue, newValue: undefined }
+      changes[key] = { oldValue: copy(oldValue), newValue: undefined }
     }
     values.clear()
     emit(changes)

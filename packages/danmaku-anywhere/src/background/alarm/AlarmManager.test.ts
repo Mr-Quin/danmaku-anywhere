@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { ProviderService } from '@/background/services/providers/ProviderService'
 import type { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import { dispatchFakeAlarm } from '@/tests/fakes/fakeChrome'
 import { mockChrome } from '@/tests/mockChromeApis'
 import { silentLogger } from '@/tests/silentLogger'
 import { AlarmManager } from './AlarmManager'
@@ -13,10 +14,6 @@ import { AlarmManager } from './AlarmManager'
  * so the catalog stays current on a schedule.
  */
 
-beforeEach(() => {
-  vi.clearAllMocks()
-})
-
 describe('AlarmManager manifest refresh', () => {
   it('creates the refresh alarm and runs syncCatalog only when it fires', async () => {
     const syncCatalog = vi.fn(async () => {})
@@ -27,12 +24,6 @@ describe('AlarmManager manifest refresh', () => {
         retentionPolicy: { enabled: false, deleteCommentsAfter: 0 },
       })),
     } as unknown as ExtensionOptionsService
-
-    const handlers: ((alarm: chrome.alarms.Alarm) => unknown)[] = []
-    mockChrome.alarms.onAlarm.addListener.mockImplementation((h) =>
-      handlers.push(h)
-    )
-    mockChrome.alarms.get.mockResolvedValue(undefined)
 
     const manager = new AlarmManager(
       {} as unknown as DanmakuService,
@@ -49,15 +40,13 @@ describe('AlarmManager manifest refresh', () => {
       expect.objectContaining({ periodInMinutes: expect.any(Number) })
     )
 
-    for (const handle of handlers) {
-      await handle({ name: 'refresh-manifests' } as chrome.alarms.Alarm)
-    }
+    await dispatchFakeAlarm({
+      name: 'refresh-manifests',
+    } as chrome.alarms.Alarm)
     expect(syncCatalog).toHaveBeenCalledTimes(1)
 
     syncCatalog.mockClear()
-    for (const handle of handlers) {
-      await handle({ name: 'some-other-alarm' } as chrome.alarms.Alarm)
-    }
+    await dispatchFakeAlarm({ name: 'some-other-alarm' } as chrome.alarms.Alarm)
     expect(syncCatalog).not.toHaveBeenCalled()
   })
 })

@@ -1,5 +1,10 @@
 import { type Mock, vi } from 'vitest'
 import {
+  type AlarmListener,
+  createFakeChromeAlarms,
+  type FakeChromeAlarms,
+} from './fakeChromeAlarms'
+import {
   createFakeChromeStorage,
   type FakeChromeStorage,
   type StorageItems,
@@ -17,7 +22,6 @@ type StorageClear = () => Promise<void>
 type StorageChangeListener = (
   changes: Record<string, chrome.storage.StorageChange>
 ) => void
-type AlarmListener = (alarm: chrome.alarms.Alarm) => void | Promise<void>
 
 interface FakeStorageArea {
   get: Mock<StorageGet>
@@ -47,7 +51,7 @@ interface FakeAlarms {
   create: Mock<
     (name: string, alarmInfo?: chrome.alarms.AlarmCreateInfo) => Promise<void>
   >
-  clear: Mock<(name?: string) => Promise<void>>
+  clear: Mock<(name?: string) => Promise<boolean>>
   onAlarm: {
     addListener: Mock<(listener: AlarmListener) => void>
     removeListener: Mock<(listener: AlarmListener) => void>
@@ -106,15 +110,30 @@ function resetFakeChromeMocks(chrome: FakeChrome) {
   chrome.alarms.onAlarm.hasListener.mockReset()
 }
 
+function createFakeAlarms(alarms: FakeChromeAlarms): FakeAlarms {
+  return {
+    get: vi.fn(alarms.get),
+    create: vi.fn(alarms.create),
+    clear: vi.fn(alarms.clear),
+    onAlarm: {
+      addListener: vi.fn(alarms.onAlarm.addListener),
+      removeListener: vi.fn(alarms.onAlarm.removeListener),
+      hasListener: vi.fn(alarms.onAlarm.hasListener),
+    },
+  }
+}
+
 function createFakeChrome(): {
   chrome: FakeChrome
+  alarms: FakeChromeAlarms
+  storage: FakeChromeStorage
   reset: () => void
 } {
   const storage = createFakeChromeStorage()
+  const alarms = createFakeChromeAlarms()
   const installedListeners = new Set<
     (details: chrome.runtime.InstalledDetails) => void
   >()
-  const alarmListeners = new Set<AlarmListener>()
 
   const chrome: FakeChrome = {
     storage: {
@@ -136,31 +155,17 @@ function createFakeChrome(): {
         }),
       },
     },
-    alarms: {
-      get: vi.fn(async () => undefined),
-      create: vi.fn(async () => undefined),
-      clear: vi.fn(async () => undefined),
-      onAlarm: {
-        addListener: vi.fn((listener) => {
-          alarmListeners.add(listener)
-        }),
-        removeListener: vi.fn((listener) => {
-          alarmListeners.delete(listener)
-        }),
-        hasListener: vi.fn((listener) => alarmListeners.has(listener)),
-      },
-    },
+    alarms: createFakeAlarms(alarms),
   }
 
   function reset() {
     resetFakeChromeMocks(chrome)
     storage.reset()
+    alarms.reset()
     installedListeners.clear()
-    alarmListeners.clear()
-    vi.clearAllMocks()
   }
 
-  return { chrome, reset }
+  return { chrome, alarms, storage, reset }
 }
 
 const fakeChromeState = createFakeChrome()
@@ -169,4 +174,12 @@ export const fakeChrome = fakeChromeState.chrome
 
 export function resetFakeChrome() {
   fakeChromeState.reset()
+}
+
+export function clearFakeChromeStorage() {
+  fakeChromeState.storage.reset()
+}
+
+export function dispatchFakeAlarm(alarm: chrome.alarms.Alarm) {
+  return fakeChromeState.alarms.dispatch(alarm)
 }
