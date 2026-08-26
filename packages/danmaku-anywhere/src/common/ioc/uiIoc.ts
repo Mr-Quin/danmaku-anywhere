@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import { Container } from 'inversify'
+import { Container, ContainerModule } from 'inversify'
 import { IS_DA_E2E } from '@/common/constants'
 import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
 import {
@@ -24,46 +24,53 @@ import { NamingRuleService } from '../options/localMatchingRule/service'
 import { MountConfigService } from '../options/mountConfig/service'
 import { ProviderConfigService } from '../options/providerConfig/service'
 
-const uiContainer = new Container({ autobind: true, defaultScope: 'Singleton' })
+export const uiContainerModule = new ContainerModule(({ bind }) => {
+  bind<IOptionsServiceFactory>(OptionsServiceFactory).toFactory(
+    optionsServiceFactory
+  )
 
-uiContainer
-  .bind<IOptionsServiceFactory>(OptionsServiceFactory)
-  .toFactory(optionsServiceFactory)
+  bind<IMaskProviderFactory>(MaskProviderFactory).toFactory(
+    // e2e uses a deterministic mock mask so specs don't load the real ML segmenter.
+    IS_DA_E2E ? mockMaskProviderFactory : maskProviderFactory
+  )
 
-uiContainer
-  .bind<IMaskProviderFactory>(MaskProviderFactory)
-  // e2e uses a deterministic mock mask so specs don't load the real ML segmenter.
-  .toFactory(IS_DA_E2E ? mockMaskProviderFactory : maskProviderFactory)
+  bind<ILogger>(LoggerSymbol).toConstantValue(Logger)
+})
 
-uiContainer.bind<ILogger>(LoggerSymbol).toConstantValue(Logger)
-
-function initializeStandalone() {
+function initializeStandalone(container: Container) {
   if (!IS_STANDALONE_RUNTIME) {
     return
   }
 
   // these bindings are needed in standalone mode for standalone storage setup
-  uiContainer.bind(StoreServiceSymbol).toService(ExtensionOptionsService)
-  uiContainer.bind(StoreServiceSymbol).toService(DanmakuOptionsService)
-  uiContainer.bind(StoreServiceSymbol).toService(IntegrationPolicyService)
-  uiContainer.bind(StoreServiceSymbol).toService(MountConfigService)
-  uiContainer.bind(StoreServiceSymbol).toService(ProviderConfigService)
-  uiContainer.bind(StoreServiceSymbol).toService(AiProviderConfigService)
-  uiContainer.bind(StoreServiceSymbol).toService(NamingRuleService)
+  container.bind(StoreServiceSymbol).toService(ExtensionOptionsService)
+  container.bind(StoreServiceSymbol).toService(DanmakuOptionsService)
+  container.bind(StoreServiceSymbol).toService(IntegrationPolicyService)
+  container.bind(StoreServiceSymbol).toService(MountConfigService)
+  container.bind(StoreServiceSymbol).toService(ProviderConfigService)
+  container.bind(StoreServiceSymbol).toService(AiProviderConfigService)
+  container.bind(StoreServiceSymbol).toService(NamingRuleService)
 }
 
-initializeStandalone()
+export function createUiContainer(): Container {
+  const container = new Container({ autobind: true, defaultScope: 'Singleton' })
+  container.load(uiContainerModule)
+  initializeStandalone(container)
+  return container
+}
 
-uiContainer
-  .get(ExtensionOptionsService)
-  .get()
-  .then((options) => {
-    void i18n.changeLanguage(options.lang)
-  })
-  .catch(() => {
-    Logger.error(
-      'Failed to get language from extension options, fallback to default language'
-    )
-  })
+export function bootstrapUiLanguage(container: Container): void {
+  container
+    .get(ExtensionOptionsService)
+    .get()
+    .then((options) => {
+      void i18n.changeLanguage(options.lang)
+    })
+    .catch(() => {
+      Logger.error(
+        'Failed to get language from extension options, fallback to default language'
+      )
+    })
+}
 
-export { uiContainer }
+export const uiContainer = createUiContainer()
