@@ -1,6 +1,6 @@
-type StorageItems = Record<string, unknown>
-type StorageKeys = string | string[] | StorageItems | null | undefined
-type StorageChangeListener = (
+export type StorageItems = Record<string, unknown>
+export type StorageKeys = string | string[] | StorageItems | null | undefined
+export type StorageChangeListener = (
   changes: Record<string, chrome.storage.StorageChange>
 ) => void
 

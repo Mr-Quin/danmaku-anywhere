@@ -67,6 +67,8 @@ describe('ConfigStateService', () => {
     )
 
     mockChrome.runtime.getManifest.mockReturnValue({
+      manifest_version: 3,
+      name: 'Test extension',
       version: '1.0.0',
     })
   })

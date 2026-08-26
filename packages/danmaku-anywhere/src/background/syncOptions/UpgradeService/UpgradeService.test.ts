@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LoggerSymbol } from '@/common/Logger'
 import { StoreServiceSymbol } from '@/common/options/IStoreService'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
-import { mockChrome } from '@/tests/mockChromeApis'
 import { UpgradeService } from './UpgradeService'
 
 vi.mock('@/common/constants', () => {
@@ -20,8 +19,6 @@ describe('UpgradeService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-
-    mockChrome.storage.local.get.mockImplementation((key, cb) => cb({}))
 
     mockStoreService = {
       options: {

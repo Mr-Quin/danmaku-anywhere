@@ -1,78 +1,10 @@
-// @ts-nocheck
-import { type Mock, vi } from 'vitest'
+import { beforeEach, vi } from 'vitest'
+import { fakeChrome, resetFakeChrome } from './fakes/fakeChrome'
 
-interface MockStorage {
-  get: Mock
-  set: Mock
-  remove: Mock
-  clear: Mock
-  onChanged: {
-    addListener: Mock
-    removeListener: Mock
-  }
-}
+export const mockChrome = fakeChrome
 
-interface MockAlarms {
-  get: Mock
-  create: Mock
-  clear: Mock
-  onAlarm: {
-    addListener: Mock
-    removeListener: Mock
-    hasListener: Mock
-  }
-}
+vi.stubGlobal('chrome', mockChrome)
 
-interface MockChrome {
-  storage: {
-    local: MockStorage
-    sync: MockStorage
-    session: MockStorage
-  }
-  runtime: {
-    getManifest: Mock
-    onInstalled: {
-      addListener: Mock
-    }
-  }
-  alarms: MockAlarms
-}
-
-const createMockStorage = (): MockStorage => ({
-  get: vi.fn(),
-  set: vi.fn(),
-  remove: vi.fn(),
-  clear: vi.fn(),
-  onChanged: {
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-  },
+beforeEach(() => {
+  resetFakeChrome()
 })
-
-export const mockChrome: MockChrome = {
-  storage: {
-    local: createMockStorage(),
-    sync: createMockStorage(),
-    session: createMockStorage(),
-  },
-  runtime: {
-    getManifest: vi.fn(),
-    getURL: vi.fn(),
-    id: 'test',
-    onInstalled: {
-      addListener: vi.fn(),
-    },
-  },
-  alarms: {
-    get: vi.fn(async () => undefined),
-    create: vi.fn(async () => undefined),
-    clear: vi.fn(async () => undefined),
-    onAlarm: {
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      hasListener: vi.fn(() => false),
-    },
-  },
-} as const
-
-global.chrome = mockChrome

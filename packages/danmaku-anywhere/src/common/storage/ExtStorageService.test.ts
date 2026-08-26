@@ -11,7 +11,7 @@ describe('ExtStorageService', () => {
   })
 
   test('read method should get data from storage', async () => {
-    mockChrome.storage.local.get.mockResolvedValue({ testKey: 'testValue' })
+    await mockChrome.storage.local.set({ testKey: 'testValue' })
     const result = await service.read()
     expect(result).toBe('testValue')
   })
