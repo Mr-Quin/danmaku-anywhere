@@ -2,11 +2,15 @@ import { env } from 'cloudflare:test'
 import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { describe, expect, it } from 'vitest'
+import { z } from 'zod'
 import { parseTrustedOrigins } from '@/auth/trustedOrigins'
 import { getOrCreateDb } from '@/db'
 
 const BASE_URL = 'https://api.test.example'
 const RAW_TRUSTED_ORIGINS = 'https://a.example,https://b.example'
+
+const errorBodySchema = z.object({ message: z.string() })
+const signOutBodySchema = z.object({ success: z.boolean() })
 
 function createTestAuth(trustedOrigins: string[]) {
   return betterAuth({
@@ -36,7 +40,7 @@ describe('trustedOrigins wired into betterAuth', () => {
     const auth = createTestAuth([RAW_TRUSTED_ORIGINS])
 
     const response = await auth.handler(signOutRequest('https://b.example'))
-    const body = await response.json()
+    const body = errorBodySchema.parse(await response.json())
 
     expect(response.status).toBe(403)
     expect(body.message).toBe('Invalid origin')
@@ -46,7 +50,7 @@ describe('trustedOrigins wired into betterAuth', () => {
     const auth = createTestAuth(parseTrustedOrigins(RAW_TRUSTED_ORIGINS))
 
     const response = await auth.handler(signOutRequest('https://b.example'))
-    const body = await response.json()
+    const body = signOutBodySchema.parse(await response.json())
 
     expect(response.status).toBe(200)
     expect(body.success).toBe(true)
