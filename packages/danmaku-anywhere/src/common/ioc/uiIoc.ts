@@ -35,31 +35,37 @@ export const uiContainerModule = new ContainerModule(({ bind }) => {
   )
 
   bind<ILogger>(LoggerSymbol).toConstantValue(Logger)
-})
 
-function initializeStandalone(container: Container) {
   if (!IS_STANDALONE_RUNTIME) {
     return
   }
 
   // these bindings are needed in standalone mode for standalone storage setup
-  container.bind(StoreServiceSymbol).toService(ExtensionOptionsService)
-  container.bind(StoreServiceSymbol).toService(DanmakuOptionsService)
-  container.bind(StoreServiceSymbol).toService(IntegrationPolicyService)
-  container.bind(StoreServiceSymbol).toService(MountConfigService)
-  container.bind(StoreServiceSymbol).toService(ProviderConfigService)
-  container.bind(StoreServiceSymbol).toService(AiProviderConfigService)
-  container.bind(StoreServiceSymbol).toService(NamingRuleService)
-}
+  bind(StoreServiceSymbol).toService(ExtensionOptionsService)
+  bind(StoreServiceSymbol).toService(DanmakuOptionsService)
+  bind(StoreServiceSymbol).toService(IntegrationPolicyService)
+  bind(StoreServiceSymbol).toService(MountConfigService)
+  bind(StoreServiceSymbol).toService(ProviderConfigService)
+  bind(StoreServiceSymbol).toService(AiProviderConfigService)
+  bind(StoreServiceSymbol).toService(NamingRuleService)
+})
 
 export function createUiContainer(): Container {
   const container = new Container({ autobind: true, defaultScope: 'Singleton' })
   container.load(uiContainerModule)
-  initializeStandalone(container)
   return container
 }
 
+// The standalone build loads the popup and the content controller from one
+// module graph, so both entrypoints call this against the same container.
+const bootstrappedContainers = new WeakSet<Container>()
+
 export function bootstrapUiLanguage(container: Container): void {
+  if (bootstrappedContainers.has(container)) {
+    return
+  }
+  bootstrappedContainers.add(container)
+
   container
     .get(ExtensionOptionsService)
     .get()

@@ -1,5 +1,13 @@
-import type { Episode, Season } from '@danmaku-anywhere/danmaku-converter'
+import type {
+  Episode,
+  Season,
+  SeasonInsert,
+} from '@danmaku-anywhere/danmaku-converter'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+
+// What Dexie's season table accepts on insert: the canonical insert plus the
+// bookkeeping columns the db assigns an id for.
+type SeasonRow = Omit<Season, 'id'>
 
 export function makeProviderConfig(
   overrides: Partial<ProviderConfig> = {}
@@ -14,11 +22,10 @@ export function makeProviderConfig(
   }
 }
 
-export function makeSeason(overrides: Partial<Season> = {}): Season {
+export function makeSeasonInsert(
+  overrides: Partial<SeasonInsert> = {}
+): SeasonInsert {
   return {
-    id: 1,
-    version: 1,
-    timeUpdated: 0,
     title: 'Test season',
     type: 'anime',
     indexedId: 'season-1',
@@ -26,6 +33,16 @@ export function makeSeason(overrides: Partial<Season> = {}): Season {
     schemaVersion: 1,
     ...overrides,
   }
+}
+
+export function makeSeasonRow(overrides: Partial<SeasonRow> = {}): SeasonRow {
+  const { version = 1, timeUpdated = 0, ...insertOverrides } = overrides
+  return { ...makeSeasonInsert(insertOverrides), version, timeUpdated }
+}
+
+export function makeSeason(overrides: Partial<Season> = {}): Season {
+  const { id = 1, ...rowOverrides } = overrides
+  return { ...makeSeasonRow(rowOverrides), id }
 }
 
 export function makeEpisode(overrides: Partial<Episode> = {}): Episode {
