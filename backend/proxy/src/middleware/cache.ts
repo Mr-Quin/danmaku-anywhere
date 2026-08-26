@@ -81,6 +81,15 @@ function parseCacheControl(header?: string): RequestCacheControl {
   return directives
 }
 
+// Cloudflare caches a Worker's own outgoing fetch() subrequests, and that cache
+// is separate from caches.default: skipping the one below still leaves a route
+// free to serve bytes the origin's max-age is holding. Routes that proxy an
+// upstream use this to opt out of both for the same request.
+export function requestBypassesCache(req: HonoRequest): boolean {
+  const directives = parseCacheControl(req.header('Cache-Control'))
+  return Boolean(directives.noCache || directives.noStore)
+}
+
 export const useCache = (options: CacheOptions = {}) => {
   const { methods = ['GET'], maxAge, getCacheKey: customGetCacheKey } = options
 
