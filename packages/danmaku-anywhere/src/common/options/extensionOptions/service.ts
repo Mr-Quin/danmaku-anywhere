@@ -251,6 +251,10 @@ export class ExtensionOptionsService implements IStoreService {
       .version(23, {
         upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
+            if (!draft.playerOptions) {
+              draft.playerOptions = defaultExtensionOptions.playerOptions
+              return
+            }
             draft.playerOptions.enableFullscreenInteraction = true
           }),
       })
