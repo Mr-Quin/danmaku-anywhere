@@ -26,4 +26,26 @@ describe('fakeChrome', () => {
     expect(fakeChrome.runtime.onInstalled.addListener).not.toHaveBeenCalled()
     expect(fakeChrome.alarms.create).not.toHaveBeenCalled()
   })
+
+  test('allows a test to replace a Chrome API implementation', () => {
+    fakeChrome.storage.local.get.mockImplementation((_keys, callback) => {
+      callback({ language: 'overridden' })
+    })
+
+    const read = vi.fn()
+    fakeChrome.storage.local.get('language', read)
+
+    expect(read).toHaveBeenCalledWith({ language: 'overridden' })
+  })
+
+  test('restores Chrome API implementations before the next test', async () => {
+    await fakeChrome.storage.local.set({ language: 'en' })
+
+    const read = vi.fn()
+    fakeChrome.storage.local.get('language', read)
+
+    expect(read).toHaveBeenCalledWith({
+      language: 'en',
+    })
+  })
 })

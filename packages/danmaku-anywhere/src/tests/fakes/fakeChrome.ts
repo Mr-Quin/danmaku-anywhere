@@ -81,6 +81,31 @@ function createFakeStorageArea(
   }
 }
 
+function resetFakeStorageArea(storage: FakeStorageArea) {
+  storage.get.mockReset()
+  storage.set.mockReset()
+  storage.remove.mockReset()
+  storage.clear.mockReset()
+  storage.onChanged.addListener.mockReset()
+  storage.onChanged.removeListener.mockReset()
+  storage.onChanged.hasListener.mockReset()
+}
+
+function resetFakeChromeMocks(chrome: FakeChrome) {
+  resetFakeStorageArea(chrome.storage.local)
+  resetFakeStorageArea(chrome.storage.sync)
+  resetFakeStorageArea(chrome.storage.session)
+  chrome.runtime.getManifest.mockReset()
+  chrome.runtime.getURL.mockReset()
+  chrome.runtime.onInstalled.addListener.mockReset()
+  chrome.alarms.get.mockReset()
+  chrome.alarms.create.mockReset()
+  chrome.alarms.clear.mockReset()
+  chrome.alarms.onAlarm.addListener.mockReset()
+  chrome.alarms.onAlarm.removeListener.mockReset()
+  chrome.alarms.onAlarm.hasListener.mockReset()
+}
+
 function createFakeChrome(): {
   chrome: FakeChrome
   reset: () => void
@@ -128,6 +153,7 @@ function createFakeChrome(): {
   }
 
   function reset() {
+    resetFakeChromeMocks(chrome)
     storage.reset()
     installedListeners.clear()
     alarmListeners.clear()
