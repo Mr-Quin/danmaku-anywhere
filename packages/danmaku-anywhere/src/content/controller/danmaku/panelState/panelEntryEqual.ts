@@ -7,8 +7,12 @@ function panelMediaEqual(
   a: PanelMediaInfo | undefined,
   b: PanelMediaInfo | undefined
 ): boolean {
-  if (a === b) return true
-  if (!a || !b) return false
+  if (a === b) {
+    return true
+  }
+  if (!a || !b) {
+    return false
+  }
   return (
     a.title === b.title &&
     a.episode === b.episode &&

@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { PipelineEntry } from '@/common/rpcClient/background/types'
 import { panelEntriesEqual } from './panelEntryEqual'
 
@@ -66,8 +67,8 @@ describe('panelEntriesEqual', () => {
   it('returns false when provider differs', () => {
     expect(
       panelEntriesEqual(
-        makeEntry({ provider: 'bilibili' as PipelineEntry['provider'] }),
-        makeEntry({ provider: 'dandanplay' as PipelineEntry['provider'] })
+        makeEntry({ provider: DanmakuSourceType.Bilibili }),
+        makeEntry({ provider: DanmakuSourceType.DanDanPlay })
       )
     ).toBe(false)
   })
@@ -92,6 +93,15 @@ describe('panelEntriesEqual', () => {
       panelEntriesEqual(
         makeEntry({ media: { title: 'S', episode: 1 } }),
         makeEntry({ media: { title: 'S', episode: 2 } })
+      )
+    ).toBe(false)
+  })
+
+  it('returns false when media episodeTitle differs', () => {
+    expect(
+      panelEntriesEqual(
+        makeEntry({ media: { title: 'S', episodeTitle: 'A' } }),
+        makeEntry({ media: { title: 'S', episodeTitle: 'B' } })
       )
     ).toBe(false)
   })

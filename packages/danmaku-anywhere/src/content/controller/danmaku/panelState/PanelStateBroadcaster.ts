@@ -36,19 +36,19 @@ class PanelStateBroadcaster {
       },
     })
 
-    const startedFrameIds: number[] = []
-    for (const frame of state.frame.allFrames.values()) {
-      if (frame.started) {
-        startedFrameIds.push(frame.frameId)
-      }
-    }
-
     setLatestPipelineEntry(entry)
 
     if (this.#prevEntry !== null && panelEntriesEqual(this.#prevEntry, entry)) {
       return
     }
     this.#prevEntry = entry
+
+    const startedFrameIds: number[] = []
+    for (const frame of state.frame.allFrames.values()) {
+      if (frame.started) {
+        startedFrameIds.push(frame.frameId)
+      }
+    }
 
     for (const frameId of startedFrameIds) {
       void playerRpcClient.player['relay:command:syncPanelState'](
