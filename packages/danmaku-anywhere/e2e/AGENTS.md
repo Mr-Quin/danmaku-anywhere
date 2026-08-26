@@ -12,6 +12,84 @@ Three layers, in increasing cost and fragility:
 
 The deciding question for any spec: **if you removed every UI assertion, would the test still pass on data alone?** If yes, it isn't e2e — move it down a layer. State-only assertions wearing a Playwright costume cost ~100× a unit test and catch less.
 
+## Red before green
+
+A spec that has never failed has not been tested. Before a spec counts as verification, watch it
+fail against the build *without* the change and pass *with* it. A spec that passes both ways
+asserts something other than what changed.
+
+Write the spec first where you can; that makes the "without" build the current tree and costs
+nothing. When the change is already written, build the merge base into a throwaway worktree and
+run the spec against that (~35s of building, measured).
+
+Refactors are the exception: behavior deliberately did not change, so the spec goes green
+immediately. Do not weaken an assertion to manufacture a red.
+
+Scratch specs live in `e2e/specs/.scratch/`, which is gitignored and skipped by the spec lint.
+A scratch spec becomes real coverage by moving the file into `e2e/specs/<area>/`.
+
+## The spec lint
+
+`pnpm run lint:specs` (part of `pnpm lint`) fails any spec that asserts only on state with no
+user-visible signal. It hard-fails locally and only warns under `CI`, so it bites the loop that
+wrote the spec without gating an outside contributor's PR.
+
+Behavior with genuinely no UI surface opts out by naming the reason in a comment:
+
+```
+lint-specs-allow-state-only: OPFS scope has no DOM signal, so it asserts storage state.
+```
+
+Treat an opt-out the same as an `expectedConsoleErrors` entry: one line, and it has to say why.
+
+## Build before you run
+
+The suite loads `build/`, not your source. Playwright's global setup refuses to run against a
+stale or wrong-env build and prints the command, because otherwise a direct
+`playwright test <spec>` silently tests the previous build and reads as a real result.
+
+```bash
+VITE_DA_ENV=e2e pnpm run build   # ~11s, whatever changed
+```
+
+It does not build for you: CI has its own build step, and a build started from inside the runner
+would surface its failures as test startup noise. `DA_E2E_ALLOW_STALE_BUILD=1` skips the check.
+
+## Which tests to run
+
+**Never run the full suite locally. That is CI's job.** Run the affected specs, and at most the
+smoke band on top.
+
+- `pnpm test:e2e:changed` — inner loop. **It only follows direct imports.** Measured on this suite:
+  editing `setup/fixtures.ts` selects 50 files and `pom/Popup.ts` selects 40, but editing
+  `pom/SearchPage.ts` or `pom/MountPage.ts`, which specs reach through `Popup`, selects **1**. A
+  source file the specs never import, such as a content script, selects **0**. It under-selects
+  quietly, which reads exactly like passing. After touching a leaf POM or product code, name the
+  covering specs by path instead of trusting it.
+- `pnpm test:e2e:smoke` — ~7s band tagged `@smoke`: install, mount, search. The most you should run
+  before pushing.
+- `pnpm test:e2e` — the full sweep. **CI only.** It is slow, it contends for the machine, and the
+  occlusion specs flake under that load, so a local red here tells you little.
+- `pnpm test:e2e:ui` — Playwright UI mode, for a human: watch mode, per-step DOM time travel,
+  pick-locator, console and network panes. It opens a window, so it needs a display and is not
+  something an agent can drive.
+- `pnpm test:e2e:verify <spec>` — the evidence run. Forces a full trace and writes the HTML report,
+  so `pnpm exec playwright show-report` gives a reviewer the run step by step. Use it on the spec a
+  PR adds, not on the suite.
+
+**Specs run headless, always.** Extensions load fine in Chromium's current headless mode,
+including the CDP Extensions domain the migration swap depends on, so nothing in the suite needs a
+display and no spec should opt itself into a window.
+
+`DA_HEADED=1` exists only for a human who needs to watch a run with their own eyes. Do not set it
+in a spec, a script, or CI. If a spec ever genuinely cannot work headless, that is a finding worth
+writing down next to the spec, not a flag to sprinkle.
+
+Headless is not a stability fix. The `occlusion-cross-origin` specs are load-sensitive under
+parallel workers and flake locally in either mode; they pass run on their own and they pass in CI.
+Local wall-clock swings more with machine load than with headless versus headed, so do not read a
+speed difference into it.
+
 ## Every e2e spec asserts at least one user-visible signal
 
 User-visible means observable from the rendered DOM, a download, or a navigation. Concretely:

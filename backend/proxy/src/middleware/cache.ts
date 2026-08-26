@@ -25,10 +25,6 @@ export interface CacheOptions {
    * Custom cache key generator function. If not provided, uses default logic
    */
   getCacheKey?: (c: Context) => Promise<Request | null>
-  /**
-   * Custom log prefix for cache messages
-   */
-  logPrefix?: string
 }
 
 interface RequestCacheControl {
@@ -86,12 +82,7 @@ function parseCacheControl(header?: string): RequestCacheControl {
 }
 
 export const useCache = (options: CacheOptions = {}) => {
-  const {
-    methods = ['GET'],
-    maxAge,
-    getCacheKey: customGetCacheKey,
-    logPrefix = '',
-  } = options
+  const { methods = ['GET'], maxAge, getCacheKey: customGetCacheKey } = options
 
   return factory.createMiddleware(async (c: Context, next) => {
     // Check if method should be cached
@@ -102,10 +93,7 @@ export const useCache = (options: CacheOptions = {}) => {
     const cacheControlHeader = c.req.header('Cache-Control')
     const directives = parseCacheControl(cacheControlHeader)
 
-    console.log('Cache-Control:', cacheControlHeader)
-
     if (directives.noStore) {
-      console.log('no-store, skip cache')
       return await next()
     }
 
@@ -114,7 +102,6 @@ export const useCache = (options: CacheOptions = {}) => {
       : await defaultGetCacheKey(c, methods)
 
     if (!cacheKey) {
-      console.log('no cache key, skip cache')
       return await next()
     }
 
@@ -139,17 +126,12 @@ export const useCache = (options: CacheOptions = {}) => {
               .map((t) => t.trim())
               .includes(serverETag))
         ) {
-          console.log('Cache hit, 304')
           return new Response(null, {
             status: 304,
             headers: cachedResponse.headers,
           })
         }
 
-        const logMessage = logPrefix
-          ? `${logPrefix} Cache hit!`
-          : `${c.req.path} Cache hit!`
-        console.log(logMessage)
         return cachedResponse
       }
     }
@@ -175,12 +157,6 @@ export const useCache = (options: CacheOptions = {}) => {
       } catch (e) {
         console.error('Failed to compute ETag:', e)
       }
-
-      const logMessage = logPrefix
-        ? `${logPrefix} Cache set!`
-        : `${c.req.path} Cache set!`
-
-      console.log(logMessage)
 
       c.executionCtx.waitUntil(cache.put(cacheKey, response.clone()))
     }

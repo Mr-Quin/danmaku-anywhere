@@ -403,7 +403,7 @@ describe('ProviderService.refreshCatalog', () => {
     const getPendingUpdates = vi.fn(async () => opts.pending)
     const registry = {
       ready: Promise.resolve(true),
-      update: vi.fn(async () => true),
+      update: vi.fn(async () => 'synced'),
       getPendingUpdates,
       applyUpdates,
       recordChecked,
@@ -489,7 +489,7 @@ describe('ProviderService.refreshCatalog', () => {
     const getPendingUpdates = vi.fn(async () => [])
     const registry = {
       ready: Promise.resolve(true),
-      update: vi.fn(async () => false),
+      update: vi.fn(async () => 'unreachable'),
       getPendingUpdates,
       applyUpdates: vi.fn(async () => {}),
       recordChecked,
@@ -499,7 +499,9 @@ describe('ProviderService.refreshCatalog', () => {
     const service = new ProviderService(
       {} as unknown as DanmakuService,
       {} as unknown as SeasonService,
-      {} as unknown as ProviderConfigService,
+      {
+        hasSeeded: vi.fn(async () => true),
+      } as unknown as ProviderConfigService,
       vi.fn(),
       registry,
       {} as unknown as BookmarkService,
@@ -513,6 +515,34 @@ describe('ProviderService.refreshCatalog', () => {
 
     expect(getPendingUpdates).not.toHaveBeenCalled()
     expect(recordChecked).not.toHaveBeenCalled()
+  })
+
+  it('throws a fetch-free error when the catalog answers with nothing usable', async () => {
+    const registry = {
+      ready: Promise.resolve(true),
+      update: vi.fn(async () => 'empty'),
+      getPendingUpdates: vi.fn(async () => []),
+      applyUpdates: vi.fn(async () => {}),
+      recordChecked: vi.fn(async () => {}),
+      listManifests: vi.fn(() => []),
+      getLastCheckedAt: vi.fn(async () => 0),
+    } as unknown as ManifestRegistry
+    const service = new ProviderService(
+      {} as unknown as DanmakuService,
+      {} as unknown as SeasonService,
+      {
+        hasSeeded: vi.fn(async () => true),
+      } as unknown as ProviderConfigService,
+      vi.fn(),
+      registry,
+      {} as unknown as BookmarkService,
+      silentLogger,
+      silentExtensionOptions
+    )
+
+    await expect(service.refreshCatalog()).rejects.toThrow(
+      /no sources this version can use/
+    )
   })
 })
 
@@ -560,6 +590,8 @@ describe('ProviderService.seedDefaultProviders', () => {
     seeded?: boolean
     manifests?: { id: string; name: string }[]
     lang?: string
+    catalog?: 'synced' | 'unreachable' | 'empty'
+    existingConfigs?: ProviderConfig[]
   }) {
     let seeded = opts.seeded ?? false
     const set = vi.fn(async (_configs: ProviderConfig[]) => {})
@@ -571,15 +603,16 @@ describe('ProviderService.seedDefaultProviders', () => {
       options: { set, onChange: vi.fn() },
       markSeeded,
       hasSeeded,
-      getAll: vi.fn(async () => []),
+      getAll: vi.fn(async () => opts.existingConfigs ?? []),
     } as unknown as ProviderConfigService
 
     const listManifests = vi.fn(() => opts.manifests ?? DEFAULT_MANIFESTS)
+    const recordChecked = vi.fn(async () => {})
     const registry = {
       ready: Promise.resolve(true),
-      update: vi.fn(async () => true),
+      update: vi.fn(async () => opts.catalog ?? 'synced'),
       getPendingUpdates: vi.fn(async () => []),
-      recordChecked: vi.fn(async () => {}),
+      recordChecked,
       listManifests,
     } as unknown as ManifestRegistry
 
@@ -598,7 +631,7 @@ describe('ProviderService.seedDefaultProviders', () => {
       extensionOptions
     )
 
-    return { service, set, markSeeded, hasSeeded, listManifests }
+    return { service, set, markSeeded, hasSeeded, listManifests, recordChecked }
   }
 
   it('seeds the preloaded set with manifest-derived names on a fresh install', async () => {
@@ -682,7 +715,9 @@ describe('ProviderService.seedDefaultProviders', () => {
   })
 
   it('locks the flag without seeding when an existing install updates', async () => {
-    const { service, set, markSeeded, hasSeeded } = buildForSeed({})
+    const { service, set, markSeeded, hasSeeded } = buildForSeed({
+      existingConfigs: [makeConfig('mine')],
+    })
 
     service.setup()
     const calls = vi.mocked(chrome.runtime.onInstalled.addListener).mock.calls
@@ -708,6 +743,82 @@ describe('ProviderService.seedDefaultProviders', () => {
 
     expect(set).toHaveBeenCalledTimes(1)
     expect(markSeeded).toHaveBeenCalledTimes(1)
+  })
+
+  it('seeds from the bundled manifests when the catalog is unreachable', async () => {
+    const { service, set, markSeeded, recordChecked } = buildForSeed({
+      catalog: 'unreachable',
+    })
+
+    await expect(service.syncCatalog()).resolves.toBe('unreachable')
+
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(set.mock.calls[0][0].map((c) => c.manifestId)).toEqual([
+      'dandanplay',
+      'bilibili',
+      'tencent',
+    ])
+    expect(markSeeded).toHaveBeenCalledTimes(1)
+    expect(recordChecked).not.toHaveBeenCalled()
+  })
+
+  it('does not seed on an unreachable catalog once the flag is locked', async () => {
+    const { service, set, markSeeded } = buildForSeed({
+      seeded: true,
+      catalog: 'unreachable',
+    })
+
+    await service.syncCatalog()
+
+    expect(set).not.toHaveBeenCalled()
+    expect(markSeeded).not.toHaveBeenCalled()
+  })
+
+  it('seeds once when two syncs run at the same time', async () => {
+    const { service, set, markSeeded } = buildForSeed({})
+
+    await Promise.all([service.syncCatalog(), service.syncCatalog()])
+
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(markSeeded).toHaveBeenCalledTimes(1)
+  })
+
+  it('locks the flag instead of writing over configs that already exist', async () => {
+    const { service, set, markSeeded } = buildForSeed({
+      existingConfigs: [makeConfig('mine')],
+    })
+
+    await service.seedDefaultProviders()
+
+    expect(set).not.toHaveBeenCalled()
+    expect(markSeeded).toHaveBeenCalledTimes(1)
+  })
+
+  it('seeds an install whose first run never reached the seed when it updates', async () => {
+    const { service, set, markSeeded } = buildForSeed({})
+
+    service.setup()
+    const calls = vi.mocked(chrome.runtime.onInstalled.addListener).mock.calls
+    const listener = calls.at(-1)?.[0] as (details: {
+      reason: string
+    }) => Promise<void>
+    await listener({ reason: 'update' })
+
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(markSeeded).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not re-seed an update install whose configs the user deleted', async () => {
+    const { service, set } = buildForSeed({ seeded: true })
+
+    service.setup()
+    const calls = vi.mocked(chrome.runtime.onInstalled.addListener).mock.calls
+    const listener = calls.at(-1)?.[0] as (details: {
+      reason: string
+    }) => Promise<void>
+    await listener({ reason: 'update' })
+
+    expect(set).not.toHaveBeenCalled()
   })
 })
 
