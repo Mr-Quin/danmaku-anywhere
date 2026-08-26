@@ -381,7 +381,13 @@ export class ProviderService {
     const healed = await this.seasonService.reconcileIdentities(
       configs.map((config) => ({
         ...config,
-        identityFields: identityFields[config.manifestId] ?? [],
+        // Legacy MacCMS has no manifest, so it genuinely declares none. Any
+        // other unresolved id means the registry has not loaded it yet, and
+        // the reconciler must skip rather than stamp.
+        identityFields:
+          config.manifestId === LEGACY_MACCMS_ID
+            ? []
+            : identityFields[config.manifestId],
       }))
     )
     if (healed > 0) {

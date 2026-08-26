@@ -155,6 +155,36 @@ describe('reconcileSeasonIdentity', () => {
     expect(entry?.seasonIds.sort()).toEqual([5, 9])
   })
 
+  it('leaves the season orphaned when the config manifest declares nothing resolvable', async () => {
+    const db = await seedOrphanAndUpgrade()
+    const unresolved = { ...config, identityFields: undefined }
+    const healed = await reconcileSeasonIdentity(db, [unresolved])
+    const season = (await db.season.get(1)) as Record<string, unknown>
+    db.close()
+
+    expect(healed).toBe(0)
+    expect(season.namespaceKey).toBeUndefined()
+    expect(season.manifestId).toBeUndefined()
+    expect(season.providerConfigId).toBe(CUSTOM_DDP_ID)
+  })
+
+  it('keeps a seasonMap key under its config id when the manifest is unresolved', async () => {
+    const db = await seedOrphanAndUpgrade()
+    await db.seasonMap.add({
+      key: 'tt-1',
+      seasons: { [CUSTOM_DDP_ID]: 1 },
+      seasonIds: [1],
+    })
+
+    await reconcileSeasonIdentity(db, [
+      { ...config, identityFields: undefined },
+    ])
+    const entry = await db.seasonMap.get('tt-1')
+    db.close()
+
+    expect(entry?.seasons).toEqual({ [CUSTOM_DDP_ID]: 1 })
+  })
+
   it('does not touch a season that already has identity', async () => {
     const db = await seedOrphanAndUpgrade()
     await db.season.update(1, {
