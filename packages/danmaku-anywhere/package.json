@@ -63,7 +63,7 @@
     "@fontsource-variable/noto-sans-sc": "^5.2.10",
     "@fontsource-variable/noto-sans-tc": "^5.2.10",
     "@fontsource-variable/plus-jakarta-sans": "^5.2.8",
-    "@hookform/resolvers": "^5.2.2",
+    "@hookform/resolvers": "^5.4.3",
     "@mediapipe/tasks-vision": "0.10.18",
     "@mr-quin/dango": "^0.8.1",
     "@mr-quin/dango-manifests": "^0.8.1",
