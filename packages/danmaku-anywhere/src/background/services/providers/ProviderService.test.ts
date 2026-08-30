@@ -946,6 +946,35 @@ describe('ProviderService.setup reconcile', () => {
     return reconcileIdentities.mock.calls.at(0)?.[0] ?? []
   }
 
+  it('reconciles once per browser session', async () => {
+    const first = buildForReconcile({ dandanplay: ['baseUrl'] })
+    first.service.setup()
+    await vi.waitFor(() => expect(first.reconcileIdentities).toHaveBeenCalled())
+    await vi.waitFor(async () => {
+      expect(await chrome.storage.session.get(null)).not.toEqual({})
+    })
+
+    // A second service worker start within the same browser session must not
+    // reconcile again, which only holds if the guard key outlives the pass.
+    const second = buildForReconcile({ dandanplay: ['baseUrl'] })
+    second.service.setup()
+
+    // Waiting for an absence needs a real window: without the guard the second
+    // pass does reconcile, it just takes a few async turns to get there, so
+    // asserting immediately would pass for the wrong reason.
+    const reconciledAgain = await vi
+      .waitFor(
+        () => {
+          expect(second.reconcileIdentities).toHaveBeenCalled()
+          return true
+        },
+        { timeout: 2000 }
+      )
+      .catch(() => false)
+
+    expect(reconciledAgain).toBe(false)
+  })
+
   it('does not declare identity fields for a manifest the registry has not loaded', async () => {
     const configs = await reconciledConfigs({})
     const selfHosted = configs.find((c) => c.manifestId === 'dandanplay')
