@@ -20,6 +20,10 @@ import {
  * These tests drive the real window listener and assert it only acts on
  * messages this window posted to itself from an allowed app origin, with the
  * localhost origin trusted in dev builds only.
+ *
+ * lint-specs-allow-call-only: origin gating has no observable signal besides
+ * whether the request reached the RPC client, across many allowed/disallowed
+ * origins below.
  */
 
 const kazumiSearchContent = vi.fn(async () => ({ data: [] }))
@@ -33,7 +37,7 @@ vi.mock('@/common/rpcClient/background/client', () => {
   }
 })
 
-const policy = { name: 'test-policy' } as unknown as KazumiPolicy
+const policy = { name: 'test-policy' } as unknown as KazumiPolicy // lint-specs-allow-cast: partial fixture, not a collaborator
 
 function createRequest(): ExtRequest {
   return createExtRequest({

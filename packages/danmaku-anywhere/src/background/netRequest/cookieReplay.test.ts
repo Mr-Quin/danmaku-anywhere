@@ -40,7 +40,7 @@ describe('cookieReplay', () => {
       statusLine: 'HTTP/1.1 200 OK',
       responseHeaders: [],
       ...overrides,
-    } as unknown as chrome.webRequest.OnHeadersReceivedDetails
+    } as unknown as chrome.webRequest.OnHeadersReceivedDetails // lint-specs-allow-cast: partial fixture, not a collaborator
   }
 
   beforeEach(async () => {

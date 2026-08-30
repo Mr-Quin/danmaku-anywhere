@@ -4,23 +4,6 @@ import type { BackupData } from '@/common/backup/dto'
 import { silentLogger } from '@/tests/silentLogger'
 import { ConfigStateService } from './ConfigStateService'
 
-// Manual mocks without relying on IOC
-vi.mock('@/common/options/danmakuOptions/service', () => ({
-  DanmakuOptionsService: class {},
-}))
-vi.mock('@/common/options/extensionOptions/service', () => ({
-  ExtensionOptionsService: class {},
-}))
-vi.mock('@/common/options/mountConfig/service', () => ({
-  MountConfigService: class {},
-}))
-vi.mock('@/common/options/providerConfig/service', () => ({
-  ProviderConfigService: class {},
-}))
-vi.mock('@/common/options/integrationPolicyStore/service', () => ({
-  IntegrationPolicyService: class {},
-}))
-
 describe('ConfigStateService', () => {
   let service: ConfigStateService
   let mockDanmakuOptionsService: any

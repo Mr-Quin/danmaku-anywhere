@@ -2,21 +2,31 @@ import {
   DanmakuSourceType,
   type EpisodeMeta,
   LEGACY_MACCMS_ID,
-  providerTypeFromManifestId,
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
+import type { ManifestRunner } from '@mr-quin/dango'
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { BookmarkService } from '@/background/services/persistence/BookmarkService'
-import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
-import type { SeasonService } from '@/background/services/persistence/SeasonService'
-import type { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import { backgroundContainerModule } from '@/background/ioc'
+import { BookmarkService } from '@/background/services/persistence/BookmarkService'
+import { DanmakuService } from '@/background/services/persistence/DanmakuService'
+import { SeasonService } from '@/background/services/persistence/SeasonService'
+import { LoggerSymbol } from '@/common/Logger'
+import { Language } from '@/common/localization/language'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
-import type { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { computeNamespaceKey } from '@/common/providers/namespaceKey'
+import {
+  createTestContainer,
+  type TestContainerOverride,
+} from '@/tests/createTestContainer'
+import { makeSeason, makeSeasonInsert } from '@/tests/factories'
 import { silentLogger } from '@/tests/silentLogger'
 import type { IDanmakuProvider } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
-import type { ManifestRegistry } from './ManifestRegistry'
+import { ManifestRegistry } from './ManifestRegistry'
+import { DanmakuProviderFactory } from './ProviderFactory'
 import { ProviderService } from './ProviderService'
 
 /**
@@ -27,9 +37,15 @@ import { ProviderService } from './ProviderService'
  * MacCMS keeps its bespoke restrictions.
  */
 
-const silentExtensionOptions = {
-  get: async () => ({ lang: 'zh' }),
-} as unknown as ExtensionOptionsService
+type ExtensionOptions = Awaited<ReturnType<ExtensionOptionsService['get']>>
+
+function makeExtensionOptionsGet(lang: Language = Language.zh) {
+  return async function get(): Promise<Pick<ExtensionOptions, 'lang'>> {
+    return { lang }
+  }
+}
+
+const silentExtensionOptions = { get: makeExtensionOptionsGet() }
 
 function makeConfig(manifestId: string): ProviderConfig {
   return {
@@ -42,71 +58,108 @@ function makeConfig(manifestId: string): ProviderConfig {
 }
 
 function makeProvider(
-  overrides: Record<string, unknown> = {}
-): IDanmakuProvider {
+  overrides: Partial<
+    Pick<IDanmakuProvider, 'search' | 'getEpisodes' | 'getDanmaku'>
+  > = {}
+): Pick<IDanmakuProvider, 'search' | 'getEpisodes' | 'getDanmaku'> {
   return {
-    forProvider: DanmakuSourceType.DanDanPlay,
     search: vi.fn(async () => []),
     getEpisodes: vi.fn(async () => []),
     getDanmaku: vi.fn(async () => []),
     ...overrides,
-  } as unknown as IDanmakuProvider
+  }
 }
 
-import { computeNamespaceKey } from '@/common/providers/namespaceKey'
+interface ServiceDoubles {
+  danmakuService?: unknown
+  seasonService?: unknown
+  providerConfigService?: unknown
+  factory?: unknown
+  registry?: unknown
+  bookmarkService?: unknown
+  logger?: unknown
+  extensionOptions?: unknown
+}
+
+// Every ProviderService test builds the service through a real container so
+// each collaborator double is typed against the class it stands in for
+// instead of blanket-casting the whole constructor argument list. A test
+// only overrides the collaborators its scenario actually touches.
+function buildService(doubles: ServiceDoubles = {}) {
+  const overrides: TestContainerOverride<unknown>[] = [
+    { identifier: DanmakuService, value: doubles.danmakuService ?? {} },
+    { identifier: SeasonService, value: doubles.seasonService ?? {} },
+    {
+      identifier: ProviderConfigService,
+      value: doubles.providerConfigService ?? {},
+    },
+    { identifier: DanmakuProviderFactory, value: doubles.factory ?? vi.fn() },
+    {
+      identifier: ManifestRegistry,
+      value: doubles.registry ?? { ready: Promise.resolve() },
+    },
+    { identifier: BookmarkService, value: doubles.bookmarkService ?? {} },
+    { identifier: LoggerSymbol, value: doubles.logger ?? silentLogger },
+    {
+      identifier: ExtensionOptionsService,
+      value: doubles.extensionOptions ?? silentExtensionOptions,
+    },
+  ]
+  return createTestContainer([backgroundContainerModule], overrides).get(
+    ProviderService
+  )
+}
 
 function build(
   config: ProviderConfig,
-  provider: IDanmakuProvider,
+  provider: Pick<IDanmakuProvider, 'search' | 'getEpisodes' | 'getDanmaku'>,
   opts: {
     findExisting?: unknown
     existingDanmaku?: unknown[]
     configMissing?: boolean
   } = {}
 ) {
-  const danmakuService = {
-    filter: vi.fn(async () => opts.existingDanmaku ?? []),
-    upsert: vi.fn(async (e: unknown) => e),
-  } as unknown as DanmakuService
+  const filter = vi.fn(async () => opts.existingDanmaku ?? [])
+  // upsert<T extends EpisodeInsert> is generic; a double can't satisfy that
+  // signature without an unsafe cast, so it stays untyped here.
+  const upsert = vi.fn(async (e: unknown) => e)
+  const danmakuService = { filter, upsert }
 
-  const season = {
-    id: 1,
-    providerConfigId: config.id,
+  const season = makeSeason({
     manifestId: config.manifestId,
     namespaceKey: computeNamespaceKey(config, []),
     providerIds: { animeId: 42 },
-    provider: providerTypeFromManifestId(config.manifestId),
     title: 'Show',
-  }
+  })
 
-  const seasonService = {
-    mustGetById: vi.fn(async () => season),
-    findExisting: vi.fn(async () => opts.findExisting),
-  } as unknown as SeasonService
+  const mustGetById = vi.fn<SeasonService['mustGetById']>(async () => season)
+  // findExisting<T extends SeasonInsert> is generic; same as upsert above.
+  const findExisting = vi.fn(async () => opts.findExisting)
+  const seasonService = { mustGetById, findExisting }
 
-  const providerConfigService = {
-    mustGet: vi.fn(async () => config),
-    get: vi.fn(async () => (opts.configMissing ? undefined : config)),
-    getAll: vi.fn(async () => (opts.configMissing ? [] : [config])),
-  } as unknown as ProviderConfigService
+  const mustGet = vi.fn<ProviderConfigService['mustGet']>(async () => config)
+  const get = vi.fn<ProviderConfigService['get']>(async () =>
+    opts.configMissing ? undefined : config
+  )
+  const getAll = vi.fn<ProviderConfigService['getAll']>(async () =>
+    opts.configMissing ? [] : [config]
+  )
+  const providerConfigService = { mustGet, get, getAll }
 
   const factory = vi.fn(() => provider)
 
-  const registry = {
-    ready: Promise.resolve(true),
-    getIdentityFieldsMap: vi.fn(async () => ({})),
-  } as unknown as ManifestRegistry
+  const getIdentityFieldsMap = vi.fn<ManifestRegistry['getIdentityFieldsMap']>(
+    async () => ({})
+  )
+  const registry = { ready: Promise.resolve(), getIdentityFieldsMap }
 
-  const service = new ProviderService(
+  const service = buildService({
     danmakuService,
     seasonService,
     providerConfigService,
     factory,
     registry,
-    {} as unknown as BookmarkService,
-    silentLogger,
-    silentExtensionOptions
-  )
+  })
 
   return { service, provider, danmakuService, seasonService }
 }
@@ -114,20 +167,15 @@ function build(
 describe('ProviderService.probeLogin', () => {
   it('runs the login probe with the private-host opt-in', async () => {
     const runLoginProbe = vi.fn(async () => true)
-    const registry = {
-      ready: Promise.resolve(true),
-      getRunner: vi.fn(() => ({ runLoginProbe })),
-    } as unknown as ManifestRegistry
-    const service = new ProviderService(
-      {} as unknown as DanmakuService,
-      {} as unknown as SeasonService,
-      {} as unknown as ProviderConfigService,
-      vi.fn(() => makeProvider()),
-      registry,
-      {} as unknown as BookmarkService,
-      silentLogger,
-      silentExtensionOptions
+    // runLoginProbe<T = unknown> is generic, so a vi.fn double can't satisfy
+    // ManifestRunner's real signature without an unsafe cast.
+    const getRunner = vi.fn<ManifestRegistry['getRunner']>(
+      () => ({ runLoginProbe }) as unknown as ManifestRunner // lint-specs-allow-cast: generic method signature, see comment above
     )
+    const service = buildService({
+      factory: vi.fn(() => makeProvider()),
+      registry: { ready: Promise.resolve(), getRunner },
+    })
 
     await service.probeLogin('dandanplay')
 
@@ -137,20 +185,13 @@ describe('ProviderService.probeLogin', () => {
 
 describe('ProviderService.getManifestSpec', () => {
   function buildWithManifest(manifest: Record<string, unknown>) {
-    const registry = {
-      ready: Promise.resolve(true),
-      getRunner: vi.fn(() => ({ manifest })),
-    } as unknown as ManifestRegistry
-    return new ProviderService(
-      {} as unknown as DanmakuService,
-      {} as unknown as SeasonService,
-      {} as unknown as ProviderConfigService,
-      vi.fn(() => makeProvider()),
-      registry,
-      {} as unknown as BookmarkService,
-      silentLogger,
-      silentExtensionOptions
+    const getRunner = vi.fn<ManifestRegistry['getRunner']>(
+      () => ({ manifest }) as ManifestRunner
     )
+    return buildService({
+      factory: vi.fn(() => makeProvider()),
+      registry: { ready: Promise.resolve(), getRunner },
+    })
   }
 
   it('resolves name, configSchema, and cookieSet title into the locale', async () => {
@@ -194,22 +235,13 @@ describe('ProviderService.getManifestSpec', () => {
   })
 
   it('rejects when no manifest is registered for the id', async () => {
-    const registry = {
-      ready: Promise.resolve(true),
-      getRunner: vi.fn(() => {
-        throw new Error('no manifest registered with id: missing')
-      }),
-    } as unknown as ManifestRegistry
-    const service = new ProviderService(
-      {} as unknown as DanmakuService,
-      {} as unknown as SeasonService,
-      {} as unknown as ProviderConfigService,
-      vi.fn(() => makeProvider()),
-      registry,
-      {} as unknown as BookmarkService,
-      silentLogger,
-      silentExtensionOptions
-    )
+    const getRunner = vi.fn<ManifestRegistry['getRunner']>(() => {
+      throw new Error('no manifest registered with id: missing')
+    })
+    const service = buildService({
+      factory: vi.fn(() => makeProvider()),
+      registry: { ready: Promise.resolve(), getRunner },
+    })
 
     await expect(service.getManifestSpec('missing')).rejects.toThrow()
   })
@@ -257,12 +289,13 @@ describe('ProviderService legacy-maccms decoupling', () => {
   describe('searchSeason', () => {
     it('resolves a generic source result against existing seasons (not a custom-season cast)', async () => {
       const insert = {
+        ...makeSeasonInsert({ indexedId: 'x', title: 'A' }),
         provider: DanmakuSourceType.DanDanPlay,
-        indexedId: 'x',
-        title: 'A',
       }
       const existing = { ...insert, id: 99 }
-      const provider = makeProvider({ search: vi.fn(async () => [insert]) })
+      const provider = makeProvider({
+        search: vi.fn<IDanmakuProvider['search']>(async () => [insert]),
+      })
       const { service, seasonService } = build(makeConfig('iqiyi'), provider, {
         findExisting: existing,
       })
@@ -280,12 +313,11 @@ describe('ProviderService legacy-maccms decoupling', () => {
 
     it('returns MacCMS results verbatim as custom seasons without resolving existing', async () => {
       const customSeason = {
+        ...makeSeasonInsert({ indexedId: 'c', title: 'C' }),
         provider: DanmakuSourceType.MacCMS,
-        indexedId: 'c',
-        title: 'C',
       }
       const provider = makeProvider({
-        search: vi.fn(async () => [customSeason]),
+        search: vi.fn<IDanmakuProvider['search']>(async () => [customSeason]),
       })
       const { service, seasonService } = build(
         makeConfig(LEGACY_MACCMS_ID),
@@ -306,17 +338,15 @@ describe('ProviderService legacy-maccms decoupling', () => {
   describe('getDanmaku', () => {
     const iqiyiConfig = makeConfig('iqiyi')
     const meta = {
-      provider: DanmakuSourceType.DanDanPlay,
       indexedId: 'ep1',
       seasonId: 1,
       providerIds: {},
       season: {
         id: 1,
-        providerConfigId: 'iqiyi-1',
         manifestId: iqiyiConfig.manifestId,
         namespaceKey: computeNamespaceKey(iqiyiConfig, []),
       },
-    } as unknown as WithSeason<EpisodeMeta>
+    } as WithSeason<EpisodeMeta>
 
     it('fetches danmaku for a generic source', async () => {
       const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
@@ -351,11 +381,10 @@ describe('ProviderService legacy-maccms decoupling', () => {
         ...meta,
         season: {
           id: 1,
-          providerConfigId: `${LEGACY_MACCMS_ID}-1`,
           manifestId: maccmsConfig.manifestId,
           namespaceKey: computeNamespaceKey(maccmsConfig, []),
         },
-      } as unknown as WithSeason<EpisodeMeta>
+      } as WithSeason<EpisodeMeta>
       const { service } = build(maccmsConfig, provider)
 
       await expect(
@@ -391,36 +420,37 @@ describe('ProviderService.refreshCatalog', () => {
     pending: { manifestId: string; fromVersion: string; toVersion: string }[]
     installedManifestIds: string[]
   }) {
-    const applyUpdates = vi.fn(async () => {})
-    const recordChecked = vi.fn(async () => {})
-    const getPendingUpdates = vi.fn(async () => opts.pending)
+    const applyUpdates = vi.fn<ManifestRegistry['applyUpdates']>(async () => {})
+    const recordChecked = vi.fn<ManifestRegistry['recordChecked']>(
+      async () => {}
+    )
+    const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
+      async () => opts.pending
+    )
+    const update = vi.fn<ManifestRegistry['update']>(async () => 'synced')
+    const listManifests = vi.fn<ManifestRegistry['listManifests']>(() => [])
+    const getLastCheckedAt = vi.fn<ManifestRegistry['getLastCheckedAt']>(
+      async () => 0
+    )
     const registry = {
-      ready: Promise.resolve(true),
-      update: vi.fn(async () => 'synced'),
+      ready: Promise.resolve(),
+      update,
       getPendingUpdates,
       applyUpdates,
       recordChecked,
-      listManifests: vi.fn(() => []),
-      getLastCheckedAt: vi.fn(async () => 0),
-    } as unknown as ManifestRegistry
+      listManifests,
+      getLastCheckedAt,
+    }
 
-    const providerConfigService = {
-      getAll: vi.fn(async () =>
-        opts.installedManifestIds.map((manifestId) => makeConfig(manifestId))
-      ),
-      hasSeeded: vi.fn(async () => true),
-    } as unknown as ProviderConfigService
-
-    const service = new ProviderService(
-      {} as unknown as DanmakuService,
-      {} as unknown as SeasonService,
-      providerConfigService,
-      vi.fn(),
-      registry,
-      {} as unknown as BookmarkService,
-      silentLogger,
-      silentExtensionOptions
+    const getAll = vi.fn<ProviderConfigService['getAll']>(async () =>
+      opts.installedManifestIds.map((manifestId) => makeConfig(manifestId))
     )
+    const hasSeeded = vi.fn<ProviderConfigService['hasSeeded']>(
+      async () => true
+    )
+    const providerConfigService = { getAll, hasSeeded }
+
+    const service = buildService({ providerConfigService, registry })
 
     return { service, applyUpdates, recordChecked, getPendingUpdates }
   }
@@ -478,29 +508,33 @@ describe('ProviderService.refreshCatalog', () => {
   })
 
   it('throws and does not record a check when the catalog index fetch fails', async () => {
-    const recordChecked = vi.fn(async () => {})
-    const getPendingUpdates = vi.fn(async () => [])
+    const recordChecked = vi.fn<ManifestRegistry['recordChecked']>(
+      async () => {}
+    )
+    const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
+      async () => []
+    )
+    const update = vi.fn<ManifestRegistry['update']>(async () => 'unreachable')
+    const listManifests = vi.fn<ManifestRegistry['listManifests']>(() => [])
+    const getLastCheckedAt = vi.fn<ManifestRegistry['getLastCheckedAt']>(
+      async () => 0
+    )
     const registry = {
-      ready: Promise.resolve(true),
-      update: vi.fn(async () => 'unreachable'),
+      ready: Promise.resolve(),
+      update,
       getPendingUpdates,
       applyUpdates: vi.fn(async () => {}),
       recordChecked,
-      listManifests: vi.fn(() => []),
-      getLastCheckedAt: vi.fn(async () => 0),
-    } as unknown as ManifestRegistry
-    const service = new ProviderService(
-      {} as unknown as DanmakuService,
-      {} as unknown as SeasonService,
-      {
-        hasSeeded: vi.fn(async () => true),
-      } as unknown as ProviderConfigService,
-      vi.fn(),
-      registry,
-      {} as unknown as BookmarkService,
-      silentLogger,
-      silentExtensionOptions
+      listManifests,
+      getLastCheckedAt,
+    }
+    const hasSeeded = vi.fn<ProviderConfigService['hasSeeded']>(
+      async () => true
     )
+    const service = buildService({
+      providerConfigService: { hasSeeded },
+      registry,
+    })
 
     await expect(service.refreshCatalog()).rejects.toThrow(
       /Failed to fetch the manifest catalog/
@@ -511,27 +545,30 @@ describe('ProviderService.refreshCatalog', () => {
   })
 
   it('throws a fetch-free error when the catalog answers with nothing usable', async () => {
+    const update = vi.fn<ManifestRegistry['update']>(async () => 'empty')
+    const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
+      async () => []
+    )
+    const listManifests = vi.fn<ManifestRegistry['listManifests']>(() => [])
+    const getLastCheckedAt = vi.fn<ManifestRegistry['getLastCheckedAt']>(
+      async () => 0
+    )
     const registry = {
-      ready: Promise.resolve(true),
-      update: vi.fn(async () => 'empty'),
-      getPendingUpdates: vi.fn(async () => []),
+      ready: Promise.resolve(),
+      update,
+      getPendingUpdates,
       applyUpdates: vi.fn(async () => {}),
       recordChecked: vi.fn(async () => {}),
-      listManifests: vi.fn(() => []),
-      getLastCheckedAt: vi.fn(async () => 0),
-    } as unknown as ManifestRegistry
-    const service = new ProviderService(
-      {} as unknown as DanmakuService,
-      {} as unknown as SeasonService,
-      {
-        hasSeeded: vi.fn(async () => true),
-      } as unknown as ProviderConfigService,
-      vi.fn(),
-      registry,
-      {} as unknown as BookmarkService,
-      silentLogger,
-      silentExtensionOptions
+      listManifests,
+      getLastCheckedAt,
+    }
+    const hasSeeded = vi.fn<ProviderConfigService['hasSeeded']>(
+      async () => true
     )
+    const service = buildService({
+      providerConfigService: { hasSeeded },
+      registry,
+    })
 
     await expect(service.refreshCatalog()).rejects.toThrow(
       /no sources this version can use/
@@ -545,22 +582,11 @@ describe('ProviderService.setup', () => {
   })
 
   it('registers an onInstalled listener to seed the catalog', () => {
-    const registry = {
-      ready: Promise.resolve(true),
-    } as unknown as ManifestRegistry
-    const service = new ProviderService(
-      {} as unknown as DanmakuService,
-      {} as unknown as SeasonService,
-      {
-        options: { onChange: vi.fn() },
-        getAll: vi.fn(async () => []),
-      } as unknown as ProviderConfigService,
-      vi.fn(),
-      registry,
-      {} as unknown as BookmarkService,
-      silentLogger,
-      silentExtensionOptions
-    )
+    const onChange = vi.fn<ProviderConfigService['options']['onChange']>()
+    const getAll = vi.fn<ProviderConfigService['getAll']>(async () => [])
+    const service = buildService({
+      providerConfigService: { options: { onChange }, getAll },
+    })
 
     service.setup()
 
@@ -582,47 +608,54 @@ describe('ProviderService.seedDefaultProviders', () => {
   function buildForSeed(opts: {
     seeded?: boolean
     manifests?: { id: string; name: string }[]
-    lang?: string
+    lang?: Language
     catalog?: 'synced' | 'unreachable' | 'empty'
     existingConfigs?: ProviderConfig[]
   }) {
     let seeded = opts.seeded ?? false
-    const set = vi.fn(async (_configs: ProviderConfig[]) => {})
-    const markSeeded = vi.fn(async () => {
+    const set = vi.fn<ProviderConfigService['options']['set']>(
+      async (_configs) => {}
+    )
+    const onChange = vi.fn<ProviderConfigService['options']['onChange']>()
+    const markSeeded = vi.fn<ProviderConfigService['markSeeded']>(async () => {
       seeded = true
     })
-    const hasSeeded = vi.fn(async () => seeded)
+    const hasSeeded = vi.fn<ProviderConfigService['hasSeeded']>(
+      async () => seeded
+    )
+    const getAll = vi.fn<ProviderConfigService['getAll']>(
+      async () => opts.existingConfigs ?? []
+    )
     const providerConfigService = {
-      options: { set, onChange: vi.fn() },
+      options: { set, onChange },
       markSeeded,
       hasSeeded,
-      getAll: vi.fn(async () => opts.existingConfigs ?? []),
-    } as unknown as ProviderConfigService
+      getAll,
+    }
 
     const listManifests = vi.fn(() => opts.manifests ?? DEFAULT_MANIFESTS)
-    const recordChecked = vi.fn(async () => {})
+    const recordChecked = vi.fn<ManifestRegistry['recordChecked']>(
+      async () => {}
+    )
+    const update = vi.fn<ManifestRegistry['update']>(
+      async () => opts.catalog ?? 'synced'
+    )
+    const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
+      async () => []
+    )
     const registry = {
-      ready: Promise.resolve(true),
-      update: vi.fn(async () => opts.catalog ?? 'synced'),
-      getPendingUpdates: vi.fn(async () => []),
+      ready: Promise.resolve(),
+      update,
+      getPendingUpdates,
       recordChecked,
       listManifests,
-    } as unknown as ManifestRegistry
+    }
 
-    const extensionOptions = {
-      get: async () => ({ lang: opts.lang ?? 'zh' }),
-    } as unknown as ExtensionOptionsService
-
-    const service = new ProviderService(
-      {} as unknown as DanmakuService,
-      {} as unknown as SeasonService,
+    const service = buildService({
       providerConfigService,
-      vi.fn(),
       registry,
-      {} as unknown as BookmarkService,
-      silentLogger,
-      extensionOptions
-    )
+      extensionOptions: { get: makeExtensionOptionsGet(opts.lang) },
+    })
 
     return { service, set, markSeeded, hasSeeded, listManifests, recordChecked }
   }
@@ -650,7 +683,7 @@ describe('ProviderService.seedDefaultProviders', () => {
 
   it('resolves names in the active UI language', async () => {
     const { service, listManifests, set } = buildForSeed({
-      lang: 'en',
+      lang: Language.en,
       manifests: [
         { id: 'dandanplay', name: 'DanDanPlay' },
         { id: 'bilibili', name: 'Bilibili' },
@@ -668,7 +701,7 @@ describe('ProviderService.seedDefaultProviders', () => {
   })
 
   it('maps the bare zh language to its manifest locale tag', async () => {
-    const { service, listManifests } = buildForSeed({ lang: 'zh' })
+    const { service, listManifests } = buildForSeed({ lang: Language.zh })
 
     await service.seedDefaultProviders()
 
@@ -807,34 +840,39 @@ describe('ProviderService.deleteUserManifest', () => {
     kind?: 'preinstalled' | 'user'
     configs: { id: string; manifestId: string }[]
   }) {
-    const unregister = vi.fn(async () => {})
+    const unregister = vi.fn<ManifestRegistry['unregister']>(async () => {})
+    const getSource = vi.fn<ManifestRegistry['getSource']>(async () =>
+      opts.kind ? { manifest: {}, kind: opts.kind } : undefined
+    )
+    const getIdentityFields = vi.fn<ManifestRegistry['getIdentityFields']>(
+      async () => []
+    )
     const registry = {
-      ready: Promise.resolve(true),
-      getSource: vi.fn(async () =>
-        opts.kind ? { manifest: {}, kind: opts.kind } : undefined
-      ),
-      getIdentityFields: vi.fn(async () => []),
+      ready: Promise.resolve(),
+      getSource,
+      getIdentityFields,
       unregister,
-    } as unknown as ManifestRegistry
-    const deleteFromStorage = vi.fn(async () => {})
-    const providerConfigService = {
-      getAll: vi.fn(async () => opts.configs),
-      deleteFromStorage,
-    } as unknown as ProviderConfigService
-    const deleteBySeasonIdentity = vi.fn(async () => {})
-    const bookmarkService = {
-      deleteBySeasonIdentity,
-    } as unknown as BookmarkService
-    const service = new ProviderService(
-      {} as unknown as DanmakuService,
-      {} as unknown as SeasonService,
+    }
+
+    const deleteFromStorage = vi.fn<ProviderConfigService['deleteFromStorage']>(
+      async () => {}
+    )
+    const getAll = vi.fn<ProviderConfigService['getAll']>(
+      async () => opts.configs as ProviderConfig[]
+    )
+    const providerConfigService = { getAll, deleteFromStorage }
+
+    const deleteBySeasonIdentity = vi.fn<
+      BookmarkService['deleteBySeasonIdentity']
+    >(async () => {})
+    const bookmarkService = { deleteBySeasonIdentity }
+
+    const service = buildService({
       providerConfigService,
-      vi.fn(() => makeProvider()),
+      factory: vi.fn(() => makeProvider()),
       registry,
       bookmarkService,
-      silentLogger,
-      silentExtensionOptions
-    )
+    })
     return { service, unregister, deleteFromStorage, deleteBySeasonIdentity }
   }
 
