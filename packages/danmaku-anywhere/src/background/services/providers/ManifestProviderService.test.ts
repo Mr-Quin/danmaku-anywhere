@@ -6,6 +6,7 @@ import {
 import type { ManifestRunner } from '@mr-quin/dango'
 import { describe, expect, it, vi } from 'vitest'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
+import type { ILogger } from '@/common/Logger'
 import { silentLogger } from '@/tests/silentLogger'
 import {
   DANMAKU_RUN_OPTIONS,
