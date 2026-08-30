@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { mockChrome } from '@/tests/mockChromeApis'
+import { fakeBrowser } from '@webext-core/fake-browser'
+import { describe, expect, it, vi } from 'vitest'
 import type { ManifestRecord } from './ManifestStore'
 import { ManifestStore } from './ManifestStore'
 
@@ -12,25 +12,23 @@ import { ManifestStore } from './ManifestStore'
  * so no write is lost.
  */
 
-function backStorageWith(record: ManifestRecord | undefined) {
-  mockChrome.storage.local.get.mockImplementation(async () => {
-    return record === undefined ? {} : { manifests: record }
-  })
+async function backStorageWith(record: ManifestRecord) {
+  await fakeBrowser.storage.local.set({ manifests: record })
 }
 
-beforeEach(() => {
-  vi.clearAllMocks()
-})
+async function readStoredManifests(): Promise<ManifestRecord> {
+  const stored = await fakeBrowser.storage.local.get('manifests')
+  return stored.manifests as ManifestRecord
+}
 
 describe('ManifestStore', () => {
   it('getAll returns an empty record when nothing is stored', async () => {
-    backStorageWith(undefined)
     const store = new ManifestStore()
     expect(await store.getAll()).toEqual({})
   })
 
   it('get and has resolve against the stored record', async () => {
-    backStorageWith({ 'a:1': { manifest: { id: 'a:1' }, kind: 'user' } })
+    await backStorageWith({ 'a:1': { manifest: { id: 'a:1' }, kind: 'user' } })
     const store = new ManifestStore()
     expect(await store.has('a:1')).toBe(true)
     expect(await store.has('missing')).toBe(false)
@@ -42,21 +40,19 @@ describe('ManifestStore', () => {
   })
 
   it('set merges into the existing record', async () => {
-    backStorageWith({
+    await backStorageWith({
       'a:1': { manifest: { id: 'a:1' }, kind: 'preinstalled' },
     })
     const store = new ManifestStore()
     await store.set('b:2', { manifest: { id: 'b:2' }, kind: 'user' })
-    expect(mockChrome.storage.local.set).toHaveBeenCalledWith({
-      manifests: {
-        'a:1': { manifest: { id: 'a:1' }, kind: 'preinstalled' },
-        'b:2': { manifest: { id: 'b:2' }, kind: 'user' },
-      },
+    expect(await readStoredManifests()).toEqual({
+      'a:1': { manifest: { id: 'a:1' }, kind: 'preinstalled' },
+      'b:2': { manifest: { id: 'b:2' }, kind: 'user' },
     })
   })
 
   it('setMany merges entries and overwrites only colliding ids', async () => {
-    backStorageWith({
+    await backStorageWith({
       'a:1': { manifest: { id: 'a:1' }, kind: 'preinstalled' },
       'b:2': { manifest: { id: 'b:2' }, kind: 'user' },
     })
@@ -65,46 +61,43 @@ describe('ManifestStore', () => {
       'b:2': { manifest: { id: 'b:2', v: 2 }, kind: 'preinstalled' },
       'c:3': { manifest: { id: 'c:3' }, kind: 'user' },
     })
-    expect(mockChrome.storage.local.set).toHaveBeenCalledWith({
-      manifests: {
-        'a:1': { manifest: { id: 'a:1' }, kind: 'preinstalled' },
-        'b:2': { manifest: { id: 'b:2', v: 2 }, kind: 'preinstalled' },
-        'c:3': { manifest: { id: 'c:3' }, kind: 'user' },
-      },
+    expect(await readStoredManifests()).toEqual({
+      'a:1': { manifest: { id: 'a:1' }, kind: 'preinstalled' },
+      'b:2': { manifest: { id: 'b:2', v: 2 }, kind: 'preinstalled' },
+      'c:3': { manifest: { id: 'c:3' }, kind: 'user' },
     })
   })
 
   it('remove drops a single entry and is a no-op when absent', async () => {
-    backStorageWith({
+    await backStorageWith({
       'a:1': { manifest: { id: 'a:1' }, kind: 'preinstalled' },
       'b:2': { manifest: { id: 'b:2' }, kind: 'user' },
     })
     const store = new ManifestStore()
     await store.remove('b:2')
-    expect(mockChrome.storage.local.set).toHaveBeenCalledWith({
-      manifests: { 'a:1': { manifest: { id: 'a:1' }, kind: 'preinstalled' } },
+    expect(await readStoredManifests()).toEqual({
+      'a:1': { manifest: { id: 'a:1' }, kind: 'preinstalled' },
     })
 
-    mockChrome.storage.local.set.mockClear()
+    const set = vi.spyOn(fakeBrowser.storage.local, 'set')
     await store.remove('missing')
-    expect(mockChrome.storage.local.set).not.toHaveBeenCalled()
+    expect(set).not.toHaveBeenCalled()
   })
 
   it('lastCheckedAt defaults to null and round-trips through its own key', async () => {
-    mockChrome.storage.local.get.mockImplementation(async () => ({}))
     const store = new ManifestStore()
     expect(await store.getLastCheckedAt()).toBeNull()
 
     await store.setLastCheckedAt(1234)
-    expect(mockChrome.storage.local.set).toHaveBeenCalledWith({
-      manifestsLastChecked: 1234,
-    })
+    expect(await fakeBrowser.storage.local.get('manifestsLastChecked')).toEqual(
+      {
+        manifestsLastChecked: 1234,
+      }
+    )
   })
 
   it('lastCheckedAt reads back the stored timestamp', async () => {
-    mockChrome.storage.local.get.mockImplementation(async () => ({
-      manifestsLastChecked: 9999,
-    }))
+    await fakeBrowser.storage.local.set({ manifestsLastChecked: 9999 })
     const store = new ManifestStore()
     expect(await store.getLastCheckedAt()).toBe(9999)
   })
@@ -112,17 +105,7 @@ describe('ManifestStore', () => {
   it('serializes concurrent writes so none clobber each other', async () => {
     // Without serialization the two read-modify-writes both read the same base
     // and the later set drops the earlier add; the mutex must keep all three.
-    let backing: ManifestRecord = {
-      'c:3': { manifest: { id: 'c:3' }, kind: 'user' },
-    }
-    mockChrome.storage.local.get.mockImplementation(async () => {
-      await Promise.resolve()
-      return { manifests: { ...backing } }
-    })
-    mockChrome.storage.local.set.mockImplementation(async (items) => {
-      await Promise.resolve()
-      backing = (items as { manifests: ManifestRecord }).manifests
-    })
+    await backStorageWith({ 'c:3': { manifest: { id: 'c:3' }, kind: 'user' } })
     const store = new ManifestStore()
 
     await Promise.all([
@@ -130,6 +113,10 @@ describe('ManifestStore', () => {
       store.set('b:2', { manifest: { id: 'b:2' }, kind: 'user' }),
     ])
 
-    expect(Object.keys(backing).sort()).toEqual(['a:1', 'b:2', 'c:3'])
+    expect(Object.keys(await readStoredManifests()).sort()).toEqual([
+      'a:1',
+      'b:2',
+      'c:3',
+    ])
   })
 })

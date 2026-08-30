@@ -160,7 +160,11 @@ export default defineConfig({
     skipWebSocketTokenCheck: true,
   },
   test: {
+    clearMocks: true,
+    restoreMocks: true,
     setupFiles: ['src/tests/mockChromeApis.ts', 'src/tests/mockI18n.ts'],
+    unstubEnvs: true,
+    unstubGlobals: true,
     environment: 'jsdom',
     exclude: ['e2e/**', 'node_modules/**'],
   },

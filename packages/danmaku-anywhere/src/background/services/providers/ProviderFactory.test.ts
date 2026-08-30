@@ -4,9 +4,9 @@ import {
   PROVIDER_TO_BUILTIN_ID,
 } from '@danmaku-anywhere/danmaku-converter'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { ILogger } from '@/common/Logger'
 import { LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { silentLogger } from '@/tests/silentLogger'
 import {
   MANIFEST_RUN_OPTIONS,
   ManifestProviderService,
@@ -44,15 +44,7 @@ vi.mock('./MacCmsProviderService', () => ({
   },
 }))
 
-const silentLogger = {
-  debug: () => {},
-  info: () => {},
-  warn: () => {},
-  error: () => {},
-  sub: () => silentLogger,
-} as unknown as ILogger
-
-function fakeContext(logger: ILogger = silentLogger) {
+function fakeContext(logger = silentLogger) {
   return {
     get: (token: unknown) => (token === LoggerSymbol ? logger : fakeRegistry),
   } as unknown as Parameters<
