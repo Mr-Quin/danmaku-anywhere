@@ -85,7 +85,7 @@ const ALLOW_CALL_ONLY_DIRECTIVE = 'lint-specs-allow-call-only:'
 const ALLOW_UNUSED_MOCK_DIRECTIVE = 'lint-specs-allow-unused-mock:'
 
 const CALL_ONLY_MATCHER =
-  /^(not\.)?toHaveBeenCalled\w*$|^(not\.)?toHaveBeenLastCalledWith$|^(not\.)?toHaveBeenNthCalledWith$/
+  /^((?:rejects|resolves)\.)?(not\.)?toHaveBeenCalled\w*$|^((?:rejects|resolves)\.)?(not\.)?toHaveBeenLastCalledWith$|^((?:rejects|resolves)\.)?(not\.)?toHaveBeenNthCalledWith$/
 
 function unitTestFiles(): string[] {
   return filesUnder(SRC_DIR, (entry) => entry.endsWith('.test.ts'))
@@ -110,7 +110,9 @@ function checkCallOnlyAssertions(file: string, source: string): string | null {
     return null
   }
   const matcherNames = [
-    ...source.matchAll(/expect\([^;]*?\)\s*\.\s*((?:not\.)?\w+)\(/gs),
+    ...source.matchAll(
+      /expect\([^;]*?\)\s*\.\s*((?:(?:rejects|resolves)\.)?(?:not\.)?\w+)\(/gs
+    ),
   ].map((match) => match[1])
 
   if (matcherNames.length === 0) {

@@ -4,14 +4,20 @@ import {
   PROVIDER_TO_BUILTIN_ID,
 } from '@danmaku-anywhere/danmaku-converter'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { backgroundContainerModule } from '@/background/ioc'
 import { LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { createTestContainer } from '@/tests/createTestContainer'
 import { silentLogger } from '@/tests/silentLogger'
 import {
   MANIFEST_RUN_OPTIONS,
   ManifestProviderService,
 } from './ManifestProviderService'
-import type { ManifestRegistry } from './ManifestRegistry'
+import { ManifestRegistry } from './ManifestRegistry'
+import {
+  DanmakuProviderFactory,
+  type IDanmakuProviderFactory,
+} from './ProviderFactory'
 
 /**
  * ProviderFactory dispatches on `config.manifestId` and constructs either
@@ -32,9 +38,9 @@ const mockRunner = {
   configDefaults: vi.fn(() => ({})),
 }
 
-const fakeRegistry = {
-  getRunner: () => mockRunner,
-} as unknown as ManifestRegistry // lint-specs-allow-cast: ManifestRegistry has private fields; double only implements getRunner
+const getRunner = vi.fn<ManifestRegistry['getRunner']>(
+  () => mockRunner as unknown as ReturnType<ManifestRegistry['getRunner']> // lint-specs-allow-cast: ManifestRunner (from @mr-quin/dango) has private fields; double only implements the methods this suite exercises
+)
 
 vi.mock('./MacCmsProviderService', () => ({
   MacCmsProviderService: class FakeMacCmsProvider {
@@ -44,25 +50,20 @@ vi.mock('./MacCmsProviderService', () => ({
   },
 }))
 
-type FactoryContext = Parameters<
-  typeof import('./ProviderFactory').danmakuProviderFactory
->[0]
-
-function fakeContext(logger = silentLogger) {
-  return {
-    get: (token: unknown) => (token === LoggerSymbol ? logger : fakeRegistry),
-  } as unknown as FactoryContext // lint-specs-allow-cast: inversify's ResolutionContext is a large generic interface; double only implements get()
-}
-
 beforeEach(() => {
   mockRunner.runSearch.mockClear()
   mockRunner.runEpisodes.mockClear()
   mockRunner.runDanmaku.mockClear()
 })
 
-async function buildFactory() {
-  const { danmakuProviderFactory } = await import('./ProviderFactory')
-  return danmakuProviderFactory(fakeContext())
+function buildFactory(): IDanmakuProviderFactory {
+  return createTestContainer(
+    [backgroundContainerModule],
+    [
+      { identifier: ManifestRegistry, value: { getRunner } },
+      { identifier: LoggerSymbol, value: silentLogger },
+    ]
+  ).get(DanmakuProviderFactory)
 }
 
 function customDdp(opts: {
@@ -80,7 +81,7 @@ function customDdp(opts: {
 
 describe('ProviderFactory dispatch', () => {
   it('routes built-in DanDanPlay to the dandanplay manifest', async () => {
-    const factory = await buildFactory()
+    const factory = buildFactory()
     const service = factory({
       id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
       manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
@@ -94,7 +95,7 @@ describe('ProviderFactory dispatch', () => {
   })
 
   it('routes Bilibili and threads danmakuFormat from configValues', async () => {
-    const factory = await buildFactory()
+    const factory = buildFactory()
     const service = factory({
       id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
       manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
@@ -114,7 +115,7 @@ describe('ProviderFactory dispatch', () => {
   })
 
   it('routes Tencent without extraInputs', async () => {
-    const factory = await buildFactory()
+    const factory = buildFactory()
     const service = factory({
       id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
       manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
@@ -128,7 +129,7 @@ describe('ProviderFactory dispatch', () => {
   })
 
   it('routes a custom DanDanPlay server through the dandanplay manifest with configValues threaded through', async () => {
-    const factory = await buildFactory()
+    const factory = buildFactory()
     const service = factory(
       customDdp({
         baseUrl: 'https://my-ddp.example',
@@ -148,7 +149,7 @@ describe('ProviderFactory dispatch', () => {
   })
 
   it('routes legacy MacCMS to MacCmsProviderService (not ManifestProviderService)', async () => {
-    const factory = await buildFactory()
+    const factory = buildFactory()
     const service = factory({
       id: LEGACY_MACCMS_ID,
       manifestId: LEGACY_MACCMS_ID,
@@ -161,7 +162,7 @@ describe('ProviderFactory dispatch', () => {
   })
 
   it('resolves a non-built-in catalog manifestId to ManifestProviderService with the tag derived from the manifestId', async () => {
-    const factory = await buildFactory()
+    const factory = buildFactory()
     const service = factory({
       id: 'iqiyi-1',
       manifestId: 'iqiyi',

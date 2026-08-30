@@ -38,10 +38,14 @@ import { ProviderService } from './ProviderService'
  */
 
 type ExtensionOptions = Awaited<ReturnType<ExtensionOptionsService['get']>>
-const silentGet = async (): Promise<Pick<ExtensionOptions, 'lang'>> => ({
-  lang: Language.zh,
-})
-const silentExtensionOptions = { get: silentGet }
+
+function makeExtensionOptionsGet(lang: Language = Language.zh) {
+  return async function get(): Promise<Pick<ExtensionOptions, 'lang'>> {
+    return { lang }
+  }
+}
+
+const silentExtensionOptions = { get: makeExtensionOptionsGet() }
 
 function makeConfig(manifestId: string): ProviderConfig {
   return {
@@ -647,14 +651,10 @@ describe('ProviderService.seedDefaultProviders', () => {
       listManifests,
     }
 
-    const extensionGet = async (): Promise<Pick<ExtensionOptions, 'lang'>> => ({
-      lang: opts.lang ?? Language.zh,
-    })
-
     const service = buildService({
       providerConfigService,
       registry,
-      extensionOptions: { get: extensionGet },
+      extensionOptions: { get: makeExtensionOptionsGet(opts.lang) },
     })
 
     return { service, set, markSeeded, hasSeeded, listManifests, recordChecked }
