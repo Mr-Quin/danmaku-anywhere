@@ -10,6 +10,7 @@ import { Dexie } from 'dexie'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ProviderService } from '@/background/services/providers/ProviderService'
 import { DANMAKU_DB_NAME, DanmakuAnywhereDb } from '@/common/db/db'
+import { makeSeasonRow } from '@/tests/factories'
 import { BookmarkService } from './BookmarkService'
 
 const stub = (indexedId: string, episodeNumber?: number): EpisodeStub => ({
@@ -130,25 +131,10 @@ describe('BookmarkService.deleteBySeasonIdentity', () => {
   let db: DanmakuAnywhereDb
   let service: BookmarkService
 
-  function makeSeason(overrides: Partial<SeasonInsert>): SeasonInsert {
-    return {
-      title: 'Show',
-      type: '',
-      indexedId: 'idx-1',
-      providerIds: {},
-      version: 1,
-      timeUpdated: 0,
-      schemaVersion: 1,
-      ...overrides,
-    } as SeasonInsert
-  }
-
   async function addBookmarkedSeason(
     overrides: Partial<SeasonInsert>
   ): Promise<number> {
-    const seasonId = (await db.season.add(
-      makeSeason(overrides) as never
-    )) as number
+    const seasonId = await db.season.add(makeSeasonRow(overrides))
     await db.bookmark.add({
       seasonId,
       episodes: [],

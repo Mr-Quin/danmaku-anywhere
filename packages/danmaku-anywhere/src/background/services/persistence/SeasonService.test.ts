@@ -1,8 +1,8 @@
 import 'fake-indexeddb/auto'
-import type { SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
 import { Dexie } from 'dexie'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { DANMAKU_DB_NAME, DanmakuAnywhereDb } from '@/common/db/db'
+import { makeSeasonInsert } from '@/tests/factories'
 import { SeasonService } from './SeasonService'
 
 /**
@@ -12,19 +12,6 @@ import { SeasonService } from './SeasonService'
  * on indexedId + title against other orphans only (never onto an
  * identity-bearing row), so multi-episode backups import into one season.
  */
-
-function makeSeason(overrides: Partial<SeasonInsert>): SeasonInsert {
-  return {
-    title: 'Show',
-    type: '',
-    indexedId: 'idx-1',
-    providerIds: {},
-    version: 1,
-    timeUpdated: 0,
-    schemaVersion: 1,
-    ...overrides,
-  } as SeasonInsert
-}
 
 let db: DanmakuAnywhereDb
 let service: SeasonService
@@ -43,7 +30,7 @@ afterEach(async () => {
 
 describe('SeasonService identity', () => {
   it('dedups a season on its manifestId + namespaceKey + indexedId', async () => {
-    const season = makeSeason({
+    const season = makeSeasonInsert({
       manifestId: 'dandanplay',
       namespaceKey: 'dandanplay',
       indexedId: '17981',
@@ -56,7 +43,7 @@ describe('SeasonService identity', () => {
   })
 
   it('returns undefined from findExisting for an identity-less season instead of throwing', async () => {
-    const orphan = makeSeason({
+    const orphan = makeSeasonInsert({
       manifestId: undefined,
       namespaceKey: undefined,
     })
@@ -64,7 +51,7 @@ describe('SeasonService identity', () => {
   })
 
   it('inserts an identity-less season on upsert', async () => {
-    const orphan = makeSeason({
+    const orphan = makeSeasonInsert({
       manifestId: undefined,
       namespaceKey: undefined,
     })
@@ -75,25 +62,25 @@ describe('SeasonService identity', () => {
   })
 
   it('dedups identity-less seasons on indexedId + title across upserts', async () => {
-    const first = await service.upsert(makeSeason({}))
-    const second = await service.upsert(makeSeason({}))
+    const first = await service.upsert(makeSeasonInsert({}))
+    const second = await service.upsert(makeSeasonInsert({}))
 
     expect(second.id).toBe(first.id)
     expect(await db.season.count()).toBe(1)
   })
 
   it('keeps identity-less seasons with different titles separate', async () => {
-    await service.upsert(makeSeason({ title: 'Show A' }))
-    await service.upsert(makeSeason({ title: 'Show B' }))
+    await service.upsert(makeSeasonInsert({ title: 'Show A' }))
+    await service.upsert(makeSeasonInsert({ title: 'Show B' }))
 
     expect(await db.season.count()).toBe(2)
   })
 
   it('does not match an identity-less season onto an identity-bearing row', async () => {
     const live = await service.upsert(
-      makeSeason({ manifestId: 'bilibili', namespaceKey: 'bilibili' })
+      makeSeasonInsert({ manifestId: 'bilibili', namespaceKey: 'bilibili' })
     )
-    const orphan = await service.upsert(makeSeason({}))
+    const orphan = await service.upsert(makeSeasonInsert({}))
 
     expect(orphan.id).not.toBe(live.id)
     expect(await db.season.count()).toBe(2)

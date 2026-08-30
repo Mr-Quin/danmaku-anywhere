@@ -1,5 +1,5 @@
+import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
-import { mockChrome } from '@/tests/mockChromeApis'
 import { ExtStorageService } from './ExtStorageService'
 
 describe('ExtStorageService', () => {
@@ -7,30 +7,31 @@ describe('ExtStorageService', () => {
 
   beforeEach(() => {
     service = new ExtStorageService('testKey', { storageType: 'local' })
-    vi.clearAllMocks()
   })
 
   test('read method should get data from storage', async () => {
-    mockChrome.storage.local.get.mockResolvedValue({ testKey: 'testValue' })
+    await fakeBrowser.storage.local.set({ testKey: 'testValue' })
     const result = await service.read()
     expect(result).toBe('testValue')
   })
 
   test('set method should set data in storage', async () => {
     await service.set('testValue')
-    expect(mockChrome.storage.local.set).toHaveBeenCalledWith({
+    expect(await fakeBrowser.storage.local.get('testKey')).toEqual({
       testKey: 'testValue',
     })
   })
 
   test('delete method should remove data from storage', async () => {
+    await fakeBrowser.storage.local.set({ testKey: 'testValue', other: 'keep' })
     await service.delete()
-    expect(mockChrome.storage.local.remove).toHaveBeenCalledWith('testKey')
+    expect(await fakeBrowser.storage.local.get(null)).toEqual({ other: 'keep' })
   })
 
   test('clearStorage method should clear all data from storage', async () => {
+    await fakeBrowser.storage.local.set({ testKey: 'testValue', other: 'gone' })
     await service.clearStorage()
-    expect(mockChrome.storage.local.clear).toHaveBeenCalled()
+    expect(await fakeBrowser.storage.local.get(null)).toEqual({})
   })
 
   test('listeners should be added by subscribe and removed by unsubscribe', async () => {
