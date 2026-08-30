@@ -24,22 +24,13 @@ import {
 
 const kazumiSearchContent = vi.fn(async () => ({ data: [] }))
 
-vi.mock('@/common/ioc/uiIoc', () => {
+vi.mock('@/common/rpcClient/background/client', () => {
   return {
-    uiContainer: {
-      get: () => {
-        return { get: async () => ({ id: 'test-id' }) }
-      },
+    chromeRpcClient: {
+      kazumiSearchContent,
+      remoteLog: vi.fn(async () => undefined),
     },
   }
-})
-
-vi.mock('@/common/options/extensionOptions/service', () => {
-  return { ExtensionOptionsService: class {} }
-})
-
-vi.mock('@/common/rpcClient/background/client', () => {
-  return { chromeRpcClient: { kazumiSearchContent } }
 })
 
 const policy = { name: 'test-policy' } as unknown as KazumiPolicy

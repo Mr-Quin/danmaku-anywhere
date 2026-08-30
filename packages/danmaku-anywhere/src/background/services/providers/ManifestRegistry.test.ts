@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { ILogger } from '@/common/Logger'
 import { computeNamespaceKey } from '@/common/providers/namespaceKey'
+import { silentLogger } from '@/tests/silentLogger'
 import { bundledCatalogIndex } from './bundledCatalog'
 import { ManifestRegistry } from './ManifestRegistry'
 import type {
@@ -23,14 +23,6 @@ import type {
  * stamps lastCheckedAt (only recordChecked does), and
  * register / unregister / hydrate-skip-invalid.
  */
-
-const silentLogger = {
-  debug: () => {},
-  info: () => {},
-  warn: () => {},
-  error: () => {},
-  sub: () => silentLogger,
-} as unknown as ILogger
 
 function makeManifest(
   id: string,
