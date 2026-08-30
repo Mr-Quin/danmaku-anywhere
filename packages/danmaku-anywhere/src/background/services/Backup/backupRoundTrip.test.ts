@@ -7,6 +7,7 @@ import {
   migrateV1ToV2,
   migrateV2ToV3,
 } from '@danmaku-anywhere/integration-policy'
+import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ILogger } from '@/common/Logger'
 import { AiProviderConfigService } from '@/common/options/aiProviderConfig/service'
@@ -22,7 +23,7 @@ import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import type { OptionsSchema } from '@/common/options/OptionsService/types'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
-import { mockChrome } from '@/tests/mockChromeApis'
+import { silentLogger } from '@/tests/silentLogger'
 import { ConfigStateService } from './ConfigStateService'
 
 /**
@@ -31,50 +32,6 @@ import { ConfigStateService } from './ConfigStateService'
  * validation that is stricter than what the extension itself writes, which
  * would reject users' own backups.
  */
-
-function installInMemoryStorage() {
-  const areas = ['local', 'sync', 'session'] as const
-
-  areas.forEach((area) => {
-    const store = new Map<string, unknown>()
-    const mock = mockChrome.storage[area]
-
-    mock.get.mockImplementation(async (key: string | string[] | null) => {
-      if (key === null) {
-        return Object.fromEntries(store)
-      }
-      const keys = Array.isArray(key) ? key : [key]
-      const result: Record<string, unknown> = {}
-      keys.forEach((k) => {
-        if (store.has(k)) {
-          result[k] = store.get(k)
-        }
-      })
-      return result
-    })
-    mock.set.mockImplementation(async (items: Record<string, unknown>) => {
-      Object.entries(items).forEach(([k, v]) => store.set(k, v))
-    })
-    mock.remove.mockImplementation(async (key: string | string[]) => {
-      const keys = Array.isArray(key) ? key : [key]
-      keys.forEach((k) => store.delete(k))
-    })
-    mock.clear.mockImplementation(async () => {
-      store.clear()
-    })
-  })
-}
-
-function createSilentLogger(): ILogger {
-  const logger = {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    sub: vi.fn(() => logger),
-  }
-  return logger as unknown as ILogger
-}
 
 describe('backup round trip', () => {
   let configStateService: ConfigStateService
@@ -88,11 +45,13 @@ describe('backup round trip', () => {
   let danmakuOptionsService: DanmakuOptionsService
 
   beforeEach(async () => {
-    vi.clearAllMocks()
-    installInMemoryStorage()
-    mockChrome.runtime.getManifest.mockReturnValue({ version: '1.5.0' })
+    vi.spyOn(fakeBrowser.runtime, 'getManifest').mockReturnValue({
+      manifest_version: 3,
+      name: 'Test extension',
+      version: '1.5.0',
+    })
 
-    const logger = createSilentLogger()
+    const logger = silentLogger
     const readinessService = new ReadinessService(logger)
     readinessService.setReady()
 
