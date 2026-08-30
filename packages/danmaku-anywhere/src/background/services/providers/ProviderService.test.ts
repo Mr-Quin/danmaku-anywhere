@@ -5,14 +5,15 @@ import {
   providerTypeFromManifestId,
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
+import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import type { SeasonService } from '@/background/services/persistence/SeasonService'
-import type { ILogger } from '@/common/Logger'
 import type { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { silentLogger } from '@/tests/silentLogger'
 import type { IDanmakuProvider } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
 import type { ManifestRegistry } from './ManifestRegistry'
@@ -25,14 +26,6 @@ import { ProviderService } from './ProviderService'
  * episodes, and fetch danmaku without tripping the MacCMS-only guards, while
  * MacCMS keeps its bespoke restrictions.
  */
-
-const silentLogger = {
-  debug: () => {},
-  info: () => {},
-  warn: () => {},
-  error: () => {},
-  sub: () => silentLogger,
-} as unknown as ILogger
 
 const silentExtensionOptions = {
   get: async () => ({ lang: 'zh' }),
@@ -627,7 +620,7 @@ describe('ProviderService.setup', () => {
 
     service.setup()
 
-    expect(chrome.runtime.onInstalled.addListener).toHaveBeenCalled()
+    expect(fakeBrowser.runtime.onInstalled.hasListeners()).toBe(true)
   })
 })
 
@@ -792,11 +785,7 @@ describe('ProviderService.seedDefaultProviders', () => {
     })
 
     service.setup()
-    const calls = vi.mocked(chrome.runtime.onInstalled.addListener).mock.calls
-    const listener = calls.at(-1)?.[0] as (details: {
-      reason: string
-    }) => Promise<void>
-    await listener({ reason: 'update' })
+    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
 
     expect(markSeeded).toHaveBeenCalled()
     expect(set).not.toHaveBeenCalled()
@@ -807,11 +796,7 @@ describe('ProviderService.seedDefaultProviders', () => {
     const { service, set, markSeeded } = buildForSeed({})
 
     service.setup()
-    const calls = vi.mocked(chrome.runtime.onInstalled.addListener).mock.calls
-    const listener = calls.at(-1)?.[0] as (details: {
-      reason: string
-    }) => Promise<void>
-    await listener({ reason: 'install' })
+    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'install' })
 
     expect(set).toHaveBeenCalledTimes(1)
     expect(markSeeded).toHaveBeenCalledTimes(1)
@@ -907,26 +892,21 @@ describe('ProviderService.seedDefaultProviders', () => {
     const { service, set, markSeeded } = buildForSeed({})
 
     service.setup()
-    const calls = vi.mocked(chrome.runtime.onInstalled.addListener).mock.calls
-    const listener = calls.at(-1)?.[0] as (details: {
-      reason: string
-    }) => Promise<void>
-    await listener({ reason: 'update' })
+    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
 
     expect(set).toHaveBeenCalledTimes(1)
     expect(markSeeded).toHaveBeenCalledTimes(1)
   })
 
   it('does not re-seed an update install whose configs the user deleted', async () => {
-    const { service, set } = buildForSeed({ seeded: true })
+    const { service, set, hasSeeded } = buildForSeed({ seeded: true })
 
     service.setup()
-    const calls = vi.mocked(chrome.runtime.onInstalled.addListener).mock.calls
-    const listener = calls.at(-1)?.[0] as (details: {
-      reason: string
-    }) => Promise<void>
-    await listener({ reason: 'update' })
+    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
 
+    // hasSeeded proves the handler ran; without it the negative assertion below
+    // would also hold when no listener was registered at all.
+    expect(hasSeeded).toHaveBeenCalled()
     expect(set).not.toHaveBeenCalled()
   })
 })

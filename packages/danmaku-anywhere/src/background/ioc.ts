@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import { Container } from 'inversify'
+import { Container, ContainerModule } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { AiProviderConfigService } from '@/common/options/aiProviderConfig/service'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
@@ -23,28 +23,35 @@ import {
   type IDanmakuProviderFactory,
 } from './services/providers/ProviderFactory'
 
-const container = new Container({ autobind: true, defaultScope: 'Singleton' })
+export const backgroundContainerModule = new ContainerModule(({ bind }) => {
+  bind(StoreServiceSymbol).toService(ExtensionOptionsService)
+  bind(StoreServiceSymbol).toService(DanmakuOptionsService)
+  bind(StoreServiceSymbol).toService(IntegrationPolicyService)
+  bind(StoreServiceSymbol).toService(MountConfigService)
+  bind(StoreServiceSymbol).toService(ProviderConfigService)
+  bind(StoreServiceSymbol).toService(AiProviderConfigService)
+  bind(StoreServiceSymbol).toService(SearchHistoryService)
+  bind(StoreServiceSymbol).toService(NamingRuleService)
+  bind(StoreServiceSymbol).toService(UserAuthStore)
 
-// Bind all store services to StoreServiceSymbol
-container.bind(StoreServiceSymbol).toService(ExtensionOptionsService)
-container.bind(StoreServiceSymbol).toService(DanmakuOptionsService)
-container.bind(StoreServiceSymbol).toService(IntegrationPolicyService)
-container.bind(StoreServiceSymbol).toService(MountConfigService)
-container.bind(StoreServiceSymbol).toService(ProviderConfigService)
-container.bind(StoreServiceSymbol).toService(AiProviderConfigService)
-container.bind(StoreServiceSymbol).toService(SearchHistoryService)
-container.bind(StoreServiceSymbol).toService(NamingRuleService)
-container.bind(StoreServiceSymbol).toService(UserAuthStore)
+  bind<IDanmakuProviderFactory>(DanmakuProviderFactory).toFactory(
+    danmakuProviderFactory
+  )
 
-// factory
-container
-  .bind<IDanmakuProviderFactory>(DanmakuProviderFactory)
-  .toFactory(danmakuProviderFactory)
+  bind<IOptionsServiceFactory>(OptionsServiceFactory).toFactory(
+    optionsServiceFactory
+  )
 
-container
-  .bind<IOptionsServiceFactory>(OptionsServiceFactory)
-  .toFactory(optionsServiceFactory)
+  bind<ILogger>(LoggerSymbol).toConstantValue(Logger)
+})
 
-container.bind<ILogger>(LoggerSymbol).toConstantValue(Logger)
+export function createBackgroundContainer(): Container {
+  const backgroundContainer = new Container({
+    autobind: true,
+    defaultScope: 'Singleton',
+  })
+  backgroundContainer.load(backgroundContainerModule)
+  return backgroundContainer
+}
 
-export { container }
+export const container = createBackgroundContainer()
