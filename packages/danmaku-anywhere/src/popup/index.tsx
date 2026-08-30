@@ -11,8 +11,10 @@ import { Theme } from '@/common/theme/Theme'
 import { App } from './App'
 import '@/common/localization/i18n'
 import { EnvironmentContext } from '@/common/environment/context'
+import { bootstrapUiLanguage, uiContainer } from '@/common/ioc/uiIoc'
 
 const bootstrap = async () => {
+  bootstrapUiLanguage(uiContainer)
   await ensureStandaloneReady()
 
   injectFonts(document.head)
