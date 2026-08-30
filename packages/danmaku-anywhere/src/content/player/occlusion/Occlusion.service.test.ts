@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { ILogger } from '@/common/Logger'
 import { modelEntrySchema } from '@/common/models/schema'
+import { silentLogger } from '@/tests/silentLogger'
 
 const { read, reset } = vi.hoisted(() => ({
   read: vi.fn(),
@@ -47,17 +47,6 @@ const animeModel = modelEntrySchema.parse({
  * jsdom lacks createImageBitmap.
  */
 
-function makeLogger(debug = vi.fn()): ILogger {
-  const logger = {
-    debug,
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    sub: () => logger,
-  } as unknown as ILogger
-  return logger
-}
-
 const factory: IMaskProviderFactory = (descriptor) =>
   new MockMaskProvider(descriptor)
 
@@ -84,7 +73,7 @@ function makeVideoWithoutRvfc(): HTMLVideoElement {
 
 describe('OcclusionService stats', () => {
   it('reports idle defaults before configure/start', () => {
-    const service = new OcclusionService(factory, makeLogger())
+    const service = new OcclusionService(factory, silentLogger)
     expect(service.getStats()).toEqual({
       running: false,
       fps: null,
@@ -94,7 +83,7 @@ describe('OcclusionService stats', () => {
   })
 
   it('reflects the debug flag as debugOverlay and flips it via setDebug', () => {
-    const service = new OcclusionService(factory, makeLogger())
+    const service = new OcclusionService(factory, silentLogger)
     service.configure(makeConfig({ debug: true }))
     expect(service.getStats().debugOverlay).toBe(true)
     service.setDebug(false)
@@ -114,7 +103,7 @@ describe('OcclusionService provider lifecycle', () => {
         dispose,
       } as unknown as MaskProvider
     }
-    const service = new OcclusionService(spyFactory, makeLogger())
+    const service = new OcclusionService(spyFactory, silentLogger)
 
     service.configure(makeConfig({ descriptor: peopleModel }))
     service.configure(makeConfig({ descriptor: peopleModel }))
@@ -129,7 +118,7 @@ describe('OcclusionService provider lifecycle', () => {
 describe('OcclusionService status classification', () => {
   it('emits an unavailable status when requestVideoFrameCallback is missing', () => {
     const statuses: OcclusionStatus[] = []
-    const service = new OcclusionService(factory, makeLogger())
+    const service = new OcclusionService(factory, silentLogger)
     service.configure(makeConfig({ onStatus: (s) => statuses.push(s) }))
 
     service.start(makeVideoWithoutRvfc())
@@ -181,7 +170,7 @@ describe('OcclusionService frame read outcomes', () => {
       failure: { kind: 'protected', evidence: 'encrypted' },
     })
     const statuses: OcclusionStatus[] = []
-    const service = new OcclusionService(factory, makeLogger())
+    const service = new OcclusionService(factory, silentLogger)
     service.configure(makeConfig({ onStatus: (s) => statuses.push(s) }))
 
     await runOneFrame(service, new FakeFrameVideo())
@@ -196,7 +185,7 @@ describe('OcclusionService frame read outcomes', () => {
       failure: { kind: 'unavailable', evidence: 'clone-failed' },
     })
     const statuses: OcclusionStatus[] = []
-    const service = new OcclusionService(factory, makeLogger())
+    const service = new OcclusionService(factory, silentLogger)
     service.configure(makeConfig({ onStatus: (s) => statuses.push(s) }))
 
     await runOneFrame(service, new FakeFrameVideo())
@@ -209,7 +198,7 @@ describe('OcclusionService frame read outcomes', () => {
     read.mockResolvedValue({ status: 'pending' })
     const statuses: OcclusionStatus[] = []
     const applyMask = vi.fn()
-    const service = new OcclusionService(factory, makeLogger())
+    const service = new OcclusionService(factory, silentLogger)
     service.configure(
       makeConfig({ applyMask, onStatus: (s) => statuses.push(s) })
     )

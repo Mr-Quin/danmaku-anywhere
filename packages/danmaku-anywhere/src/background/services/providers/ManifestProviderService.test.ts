@@ -6,7 +6,7 @@ import {
 import type { ManifestRunner } from '@mr-quin/dango'
 import { describe, expect, it, vi } from 'vitest'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
-import type { ILogger } from '@/common/Logger'
+import { silentLogger } from '@/tests/silentLogger'
 import {
   DANMAKU_RUN_OPTIONS,
   MANIFEST_RUN_OPTIONS,
@@ -46,14 +46,6 @@ function makeRegistry(runner: ManifestRunner): ManifestRegistry {
     getRunner: vi.fn(() => runner),
   } as unknown as ManifestRegistry
 }
-
-const silentLogger = {
-  debug: () => {},
-  info: () => {},
-  warn: () => {},
-  error: () => {},
-  sub: () => silentLogger,
-} as unknown as ILogger
 
 describe('ManifestProviderService.search', () => {
   it('adds provider / providerConfigId / schemaVersion and strips html on titles', async () => {
