@@ -1,6 +1,7 @@
 import { Container } from 'inversify'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LoggerSymbol } from '@/common/Logger'
+import { silentLogger } from '@/tests/silentLogger'
 import { ReadinessService } from './ReadinessService'
 
 const mockStorageInstance = {
@@ -35,18 +36,7 @@ describe('ReadinessService', () => {
 
     container = new Container()
     container.bind(ReadinessService).toSelf()
-    container.bind(LoggerSymbol).toConstantValue({
-      sub: () => ({
-        debug: vi.fn(),
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-      }),
-      debug: vi.fn(),
-      info: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
-    })
+    container.bind(LoggerSymbol).toConstantValue(silentLogger)
   })
 
   it('should be ready immediately if version matches', async () => {
