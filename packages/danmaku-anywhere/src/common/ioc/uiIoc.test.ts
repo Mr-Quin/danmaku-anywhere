@@ -1,3 +1,4 @@
+import { fakeBrowser } from '@webext-core/fake-browser'
 import { Container } from 'inversify'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { LoggerSymbol } from '@/common/Logger'
@@ -27,7 +28,7 @@ describe('createUiContainer', () => {
   })
 
   it('does not access storage when the module is imported', async () => {
-    const get = vi.mocked(chrome.storage.local.get)
+    const get = vi.spyOn(fakeBrowser.storage.local, 'get')
 
     await import('./uiIoc')
 

@@ -1,6 +1,6 @@
+import { fakeBrowser } from '@webext-core/fake-browser'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { BackupData } from '@/common/backup/dto'
-import { mockChrome } from '@/tests/mockChromeApis'
 import { silentLogger } from '@/tests/silentLogger'
 import { ConfigStateService } from './ConfigStateService'
 
@@ -64,7 +64,7 @@ describe('ConfigStateService', () => {
       mockLogger
     )
 
-    mockChrome.runtime.getManifest.mockReturnValue({
+    vi.spyOn(fakeBrowser.runtime, 'getManifest').mockReturnValue({
       manifest_version: 3,
       name: 'Test extension',
       version: '1.0.0',
