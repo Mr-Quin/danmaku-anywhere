@@ -68,7 +68,7 @@ function makeConfig(overrides: Partial<OcclusionConfig> = {}): OcclusionConfig {
 function makeVideoWithoutRvfc(): HTMLVideoElement {
   return {
     requestVideoFrameCallback: undefined,
-  } as unknown as HTMLVideoElement
+  } as unknown as HTMLVideoElement // lint-specs-allow-cast: partial fake of a stable external DOM interface
 }
 
 describe('OcclusionService stats', () => {
@@ -101,7 +101,7 @@ describe('OcclusionService provider lifecycle', () => {
         init: vi.fn().mockResolvedValue(undefined),
         segment: vi.fn().mockResolvedValue(null),
         dispose,
-      } as unknown as MaskProvider
+      } satisfies MaskProvider
     }
     const service = new OcclusionService(spyFactory, silentLogger)
 
@@ -157,7 +157,7 @@ async function runOneFrame(
   service: OcclusionService,
   video: FakeFrameVideo
 ): Promise<void> {
-  service.start(video as unknown as HTMLVideoElement)
+  service.start(video as unknown as HTMLVideoElement) // lint-specs-allow-cast: partial fake of a stable external DOM interface
   await flush()
   video.fireFrame()
   await flush()
@@ -204,7 +204,7 @@ describe('OcclusionService frame read outcomes', () => {
     )
 
     const video = new FakeFrameVideo()
-    service.start(video as unknown as HTMLVideoElement)
+    service.start(video as unknown as HTMLVideoElement) // lint-specs-allow-cast: partial fake of a stable external DOM interface
     await flush()
     applyMask.mockClear()
 

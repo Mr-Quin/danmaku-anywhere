@@ -38,13 +38,16 @@ const bookmark = (episodes: EpisodeStub[]): Bookmark => ({
 describe('BookmarkService.preloadNextEpisode', () => {
   let service: BookmarkService
   let provider: {
-    getDanmaku: ReturnType<typeof vi.fn>
-    fetchEpisodesBySeason: ReturnType<typeof vi.fn>
+    getDanmaku: ProviderService['getDanmaku']
+    fetchEpisodesBySeason: ProviderService['fetchEpisodesBySeason']
   }
 
   beforeEach(() => {
     service = new BookmarkService({} as DanmakuAnywhereDb)
-    provider = { getDanmaku: vi.fn(), fetchEpisodesBySeason: vi.fn() }
+    provider = {
+      getDanmaku: vi.fn<ProviderService['getDanmaku']>(),
+      fetchEpisodesBySeason: vi.fn<ProviderService['fetchEpisodesBySeason']>(),
+    }
   })
 
   afterEach(() => {
@@ -54,7 +57,7 @@ describe('BookmarkService.preloadNextEpisode', () => {
   const run = (autoBookmark: boolean) =>
     service.preloadNextEpisode(
       current,
-      provider as unknown as ProviderService,
+      provider as unknown as ProviderService, // lint-specs-allow-cast: ProviderService has private fields; double only implements the 2 methods this test calls
       autoBookmark
     )
 

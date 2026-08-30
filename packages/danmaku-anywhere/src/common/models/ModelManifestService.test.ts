@@ -41,7 +41,7 @@ function jsonResponse(body: unknown): Response {
     ok: true,
     status: 200,
     json: () => Promise.resolve(body),
-  } as unknown as Response
+  } as unknown as Response // lint-specs-allow-cast: partial fetch Response fixture, not a collaborator
 }
 
 function make(fetchFn: typeof fetch) {

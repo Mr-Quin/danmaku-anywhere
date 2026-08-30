@@ -34,7 +34,7 @@ const mockRunner = {
 
 const fakeRegistry = {
   getRunner: () => mockRunner,
-} as unknown as ManifestRegistry
+} as unknown as ManifestRegistry // lint-specs-allow-cast: ManifestRegistry has private fields; double only implements getRunner
 
 vi.mock('./MacCmsProviderService', () => ({
   MacCmsProviderService: class FakeMacCmsProvider {
@@ -44,12 +44,14 @@ vi.mock('./MacCmsProviderService', () => ({
   },
 }))
 
+type FactoryContext = Parameters<
+  typeof import('./ProviderFactory').danmakuProviderFactory
+>[0]
+
 function fakeContext(logger = silentLogger) {
   return {
     get: (token: unknown) => (token === LoggerSymbol ? logger : fakeRegistry),
-  } as unknown as Parameters<
-    typeof import('./ProviderFactory').danmakuProviderFactory
-  >[0]
+  } as unknown as FactoryContext // lint-specs-allow-cast: inversify's ResolutionContext is a large generic interface; double only implements get()
 }
 
 beforeEach(() => {
@@ -155,7 +157,7 @@ describe('ProviderFactory dispatch', () => {
       configValues: {},
     })
 
-    expect((service as unknown as { tag?: string }).tag).toBe('maccms-legacy')
+    expect((service as { tag?: string }).tag).toBe('maccms-legacy')
   })
 
   it('resolves a non-built-in catalog manifestId to ManifestProviderService with the tag derived from the manifestId', async () => {

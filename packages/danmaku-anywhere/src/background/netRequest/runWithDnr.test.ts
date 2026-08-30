@@ -1,21 +1,28 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { runWithDnr } from './runWithDnr'
+import type { SessionRuleHandle } from './sessionRules'
 import { setSessionHeader } from './setSessionHeader'
 
 vi.mock('./setSessionHeader', () => ({
   setSessionHeader: vi.fn(),
 }))
 
+function makeHandle(
+  dispose: () => Promise<void> = async () => {}
+): SessionRuleHandle {
+  return {
+    ruleId: 1,
+    removeRule: vi.fn(),
+    [Symbol.asyncDispose]: dispose,
+  }
+}
+
 describe('runWithDnr', () => {
-  const mockSetSessionHeader = setSessionHeader as unknown as ReturnType<
-    typeof vi.fn
-  >
+  const mockSetSessionHeader = vi.mocked(setSessionHeader)
 
   beforeEach(() => {
     vi.clearAllMocks()
-    mockSetSessionHeader.mockResolvedValue({
-      async [Symbol.asyncDispose]() {},
-    })
+    mockSetSessionHeader.mockResolvedValue(makeHandle())
   })
 
   it('should call setSessionHeader with resolved headers and execute action', async () => {
@@ -40,9 +47,7 @@ describe('runWithDnr', () => {
 
   it('should dispose session header after action', async () => {
     const disposeMock = vi.fn()
-    mockSetSessionHeader.mockResolvedValue({
-      [Symbol.asyncDispose]: disposeMock,
-    })
+    mockSetSessionHeader.mockResolvedValue(makeHandle(disposeMock))
 
     const spec = {
       matchUrl: 'url',
@@ -60,9 +65,7 @@ describe('runWithDnr', () => {
 
   it('should handle action errors and still dispose', async () => {
     const disposeMock = vi.fn()
-    mockSetSessionHeader.mockResolvedValue({
-      [Symbol.asyncDispose]: disposeMock,
-    })
+    mockSetSessionHeader.mockResolvedValue(makeHandle(disposeMock))
 
     const spec = {
       matchUrl: 'url',

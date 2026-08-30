@@ -17,7 +17,7 @@ const customLite = {
   schemaVersion: 4,
   version: 1,
   timeUpdated: 0,
-} as unknown as GenericEpisodeLite
+} as unknown as GenericEpisodeLite // lint-specs-allow-cast: partial fixture, not a collaborator
 
 const sourceLite = {
   id: 3,
@@ -30,7 +30,7 @@ const sourceLite = {
   version: 1,
   timeUpdated: 0,
   season: { title: 'Show' },
-} as unknown as GenericEpisodeLite
+} as unknown as GenericEpisodeLite // lint-specs-allow-cast: partial fixture, not a collaborator
 
 describe('isCustomDanmakuGetPayload', () => {
   it('routes a provider-less custom episode payload to custom', () => {
@@ -45,7 +45,7 @@ describe('isCustomDanmakuGetPayload', () => {
     const legacy = {
       ...customLite,
       provider: 'Custom',
-    } as unknown as GenericEpisodeLite
+    } as unknown as GenericEpisodeLite // lint-specs-allow-cast: partial fixture, not a collaborator
     expect(isCustomDanmakuGetPayload(legacy)).toBe(true)
   })
 })
