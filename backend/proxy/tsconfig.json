@@ -2,16 +2,12 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "outDir": "./dist/",
-    "baseUrl": ".",
+    "moduleResolution": "bundler",
     "lib": ["ESNext"],
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     },
-    "types": [
-      "node",
-      "./worker-configuration.d.ts",
-      "@cloudflare/vitest-pool-workers"
-    ]
+    "types": ["node", "@cloudflare/vitest-pool-workers/types"]
   },
   "include": ["./src", "./worker-configuration.d.ts"]
 }

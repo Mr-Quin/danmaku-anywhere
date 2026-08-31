@@ -15,7 +15,7 @@
     "test": "vitest run",
     "lint": "biome check --fix",
     "lint:ci": "biome ci",
-    "type-check:local": "tsgo --noEmit",
+    "type-check": "tsgo --noEmit",
     "cf-typegen": "wrangler types",
     "wrangler": "wrangler",
     "deploy:staging": "wrangler deploy --env staging",
