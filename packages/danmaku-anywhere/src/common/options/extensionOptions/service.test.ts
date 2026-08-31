@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { UpgradeService } from '@/background/syncOptions/UpgradeService/UpgradeService'
 import { Language } from '@/common/localization/language'
 import { defaultExtensionOptions } from '@/common/options/extensionOptions/constant'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
@@ -120,5 +121,32 @@ describe('ExtensionOptionsService migrations', () => {
     const { data, version } = await readStored()
     expect(data).toEqual(defaultExtensionOptions)
     expect(version).toBe(27)
+  })
+})
+
+describe('ExtensionOptionsService provider handoff under UpgradeService', () => {
+  it('leaves the migrated provider configs in place after the provider store upgrades', async () => {
+    const container = createOptionsContainer()
+    await seed(
+      {
+        enabled: true,
+        danmakuSources: {
+          dandanplay: { enabled: true, chConvert: 0 },
+          bilibili: { enabled: true, danmakuTypePreference: 'xml' },
+        },
+      },
+      20
+    )
+
+    await container.get(UpgradeService).upgrade()
+
+    const providers = await container
+      .get(ProviderConfigService)
+      .options.readUnblocked()
+    expect(providers.map((config) => config.manifestId)).toContain('dandanplay')
+    const bilibili = providers.find(
+      (config) => config.manifestId === 'bilibili'
+    )
+    expect(bilibili?.enabled).toBe(true)
   })
 })
