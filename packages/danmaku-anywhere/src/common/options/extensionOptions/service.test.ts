@@ -118,10 +118,15 @@ describe('ExtensionOptionsService migrations', () => {
     expect(data.infoPanel).toEqual({ enabled: true })
   })
 
-  it('keeps a user hotkey that version 25 merges over the defaults', async () => {
+  it('adds openSearchPanel at version 25 without disturbing a user hotkey', async () => {
     const userHotkey = { key: 'ctrl+shift+x', enabled: true }
+    const { openSearchPanel: _openSearchPanel, ...preV25Hotkeys } =
+      defaultExtensionOptions.hotkeys
     await seed(
-      { ...defaultExtensionOptions, hotkeys: { toggleDanmaku: userHotkey } },
+      {
+        ...defaultExtensionOptions,
+        hotkeys: { ...preV25Hotkeys, toggleDanmaku: userHotkey },
+      },
       24
     )
 
@@ -147,14 +152,36 @@ describe('ExtensionOptionsService migrations', () => {
 })
 
 describe('ExtensionOptionsService provider handoff under UpgradeService', () => {
-  it('carries every migrated config through the provider store own migration chain', async () => {
-    const container = createOptionsContainer()
+  // Readiness stays closed until the run ends, so the write issued from inside
+  // the version 21 step lands after the provider store has already upgraded
+  // and reset itself to defaults. It has to win that race, and the version it
+  // names is the one the store is left on.
+  it('lands the migrated configs after the provider store resets itself', async () => {
+    const container = createOptionsContainer({ ready: false })
     await seed({ enabled: true, danmakuSources: legacyDanmakuSources }, 20)
 
     await container.get(UpgradeService).upgrade()
 
     const providerStore = await providerStorage.read()
     expect(providerStore.version).toBe(5)
+    expect(
+      providerStore.data.map((config) => [config.manifestId, config.enabled])
+    ).toEqual([
+      ['dandanplay', true],
+      ['bilibili', true],
+      ['tencent', false],
+      [LEGACY_MACCMS_ID, true],
+    ])
+  })
+
+  it('leaves the migrated configs intact through a second upgrade run', async () => {
+    const container = createOptionsContainer({ ready: false })
+    await seed({ enabled: true, danmakuSources: legacyDanmakuSources }, 20)
+    await container.get(UpgradeService).upgrade()
+
+    await createOptionsContainer({ ready: false }).get(UpgradeService).upgrade()
+
+    const providerStore = await providerStorage.read()
     expect(enabledByManifest(providerStore.data)).toEqual({
       dandanplay: true,
       bilibili: true,

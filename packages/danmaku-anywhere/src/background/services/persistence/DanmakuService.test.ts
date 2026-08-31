@@ -150,12 +150,14 @@ describe('DanmakuService.add', () => {
 
 describe('DanmakuService.matchLocalByTitle', () => {
   it('matches a custom episode by the last path segment', async () => {
-    await service.addCustom({
-      title: '/Show/S01/E01.mkv',
-      comments: [],
-      commentCount: 0,
-      schemaVersion: 4,
-    })
+    for (const title of ['/Other/S01/E09.mkv', '/Show/S01/E01.mkv']) {
+      await service.addCustom({
+        title,
+        comments: [],
+        commentCount: 0,
+        schemaVersion: 4,
+      })
+    }
 
     const match = await service.matchLocalByTitle('E01.mkv')
 

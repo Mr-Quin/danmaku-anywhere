@@ -227,10 +227,11 @@ export class ExtensionOptionsService implements IStoreService {
 
             // The provider store does not exist yet at this point in the
             // upgrade, so a plain set() reads it for a version, rejects, and
-            // loses every migrated config. Naming version 1 leaves the provider
-            // store's own migration chain to carry this data forward.
+            // loses every migrated config. The version is a literal rather than
+            // a "latest" constant: it names the provider shape this bridge
+            // emits today, so a later provider migration still picks it up.
             void this.providerConfigService.options
-              .set(providers, 1)
+              .set(providers, 5)
               .catch((error) => {
                 Logger.error(
                   'Failed to migrate provider configs from extension service to provider service',

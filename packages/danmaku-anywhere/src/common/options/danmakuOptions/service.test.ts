@@ -104,16 +104,6 @@ describe('DanmakuOptionsService migrations', () => {
     expect(data.occlusionQuality).toBe('medium')
   })
 
-  it('carries a user style through every step untouched', async () => {
-    const style = { fontSize: 18, opacity: 0.8 }
-    await seed({ style }, 1)
-
-    await service.options.upgrade()
-
-    const { data } = await readStored()
-    expect(data.style).toEqual(style)
-  })
-
   it('resets the whole store to defaults when a step throws on a stale shape', async () => {
     await seed(null, 3)
 

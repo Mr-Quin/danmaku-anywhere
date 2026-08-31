@@ -8,14 +8,19 @@ import { createTestContainer } from '@/tests/createTestContainer'
 import { silentLogger } from '@/tests/silentLogger'
 
 // Options stores block every read on readiness, which production only reaches
-// once the upgrade run completes. Tests drive upgrades directly, so the
-// container hands back a store that is already ready.
-export function createOptionsContainer(): Container {
+// once the whole upgrade run completes. A test driving one store's upgrade
+// directly has to start ready or its reads never resolve. A test driving
+// UpgradeService wants the opposite: readiness has to stay closed until the run
+// ends, because that is what decides whether a write issued from inside a
+// migration lands before or after the other stores upgrade.
+export function createOptionsContainer({ ready = true } = {}): Container {
   const container = createTestContainer(
     [backgroundContainerModule],
     [{ identifier: LoggerSymbol, value: silentLogger }]
   )
-  container.get(ReadinessService).setReady()
+  if (ready) {
+    container.get(ReadinessService).setReady()
+  }
   return container
 }
 
