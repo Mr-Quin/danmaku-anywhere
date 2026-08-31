@@ -1,6 +1,9 @@
 import { defineManifest } from '@crxjs/vite-plugin'
 import { getBuildContext } from './scripts/getBuildContext'
-import { getAppUrls } from './src/common/appUrls'
+import {
+  getAppUrls,
+  getExternallyConnectablePatterns,
+} from './src/common/appUrls'
 
 const { isDev, browser, appVersion } = getBuildContext()
 
@@ -62,10 +65,7 @@ export const manifest = defineManifest({
     isFirefox
       ? undefined
       : {
-          matches: [
-            '*://danmaku.weeblify.app/*',
-            ...(isDev ? ['http://localhost:4321/*'] : []),
-          ],
+          matches: getExternallyConnectablePatterns(isDev),
         },
   icons: {
     16: 'normal_16.png',

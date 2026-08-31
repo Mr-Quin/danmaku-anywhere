@@ -7,6 +7,10 @@ import { inject, injectable } from 'inversify'
 import { match } from 'ts-pattern'
 import { removeSessionRule } from '@/background/netRequest/sessionRules'
 import { setMediaCorsRule } from '@/background/netRequest/setMediaCorsRule'
+import {
+  EXTERNAL_RPC_ALLOWLIST,
+  gateExternalHandlers,
+} from '@/background/rpc/externalRpc'
 import { BackupService } from '@/background/services/Backup/BackupService.service'
 import { DataManagementService } from '@/background/services/DataManagementService'
 import { GenAIService } from '@/background/services/GenAIService'
@@ -30,7 +34,7 @@ import { ExtensionOptionsService } from '@/common/options/extensionOptions/servi
 import { MountConfigService } from '@/common/options/mountConfig/service'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
-import type { RRPServerHandler } from '@/common/rpc/server'
+import type { RPCServerHandlers, RRPServerHandler } from '@/common/rpc/server'
 import { createRpcServer } from '@/common/rpc/server'
 import type { AnyRPCDef } from '@/common/rpc/types'
 import { RpcException } from '@/common/rpc/types'
@@ -90,382 +94,385 @@ export class RpcManager {
   }
 
   setup() {
-    const rpcServer = createRpcServer<BackgroundMethods>(
-      {
-        authGetSession: async () => {
-          return this.authClientService.getSessionState()
-        },
-        authSignUp: async (input) => {
-          return this.authClientService.signUp(input)
-        },
-        authSignIn: async (input) => {
-          return this.authClientService.signIn(input)
-        },
-        authSignOut: async () => {
-          return this.authClientService.signOut()
-        },
-        authDeleteAccount: async () => {
-          return this.authClientService.deleteAccount()
-        },
-        seasonSearch: async (input) => {
-          return this.providerService.searchSeason(input)
-        },
-        seasonUpsert: async (input) => {
-          return this.providerService.upsertSeason(input)
-        },
-        mediaParseUrl: async (input) => {
-          return this.providerService.parseUrl(input.url)
-        },
-        episodeFetchBySeason: async (input: EpisodeFetchBySeasonParams) => {
-          return this.providerService.fetchEpisodesBySeason(input.seasonId)
-        },
-        episodeMatch: async (data) => {
-          return this.episodeMatchingService.findMatchingEpisodes(data)
-        },
-        providerProbeLogin: async ({ manifestId }) => {
-          return this.providerService.getLoginStatus(manifestId)
-        },
-        providerGetManifestSpec: async ({ manifestId, locale }) => {
-          return this.providerService.getManifestSpec(manifestId, locale)
-        },
-        providerListManifests: async ({ locale } = {}) => {
-          return this.providerService.listManifests(locale)
-        },
-        providerRefreshCatalog: async ({ locale } = {}) => {
-          return this.providerService.refreshCatalog(locale)
-        },
-        providerGetPendingUpdates: async () => {
-          return this.manifestRegistry.getPendingUpdates()
-        },
-        providerApplyUpdates: async ({ manifestIds }) => {
-          await this.manifestRegistry.applyUpdates(manifestIds)
-        },
-        providerValidateManifest: async ({ manifest }) => {
-          return this.manifestSandbox.validate(manifest)
-        },
-        providerTestRunSearch: async (input) => {
-          return this.manifestSandbox.search(input)
-        },
-        providerTestRunEpisodes: async (input) => {
-          return this.manifestSandbox.episodes(input)
-        },
-        providerTestRunDanmaku: async (input) => {
-          return this.manifestSandbox.danmaku(input)
-        },
-        providerSaveUserManifest: async ({ manifest, mode, expectedId }) => {
-          await this.manifestRegistry.saveUserManifest(
-            manifest,
-            mode,
-            expectedId
-          )
-        },
-        providerGetManifestSource: async ({ manifestId }) => {
-          return (await this.manifestRegistry.getSource(manifestId)) ?? null
-        },
-        bilibiliSetCookies: async () => {
-          // Credentialed homepage GET lets bilibili's Set-Cookie response
-          // seed the anti-bot cookies the API host needs.
-          await fetch('https://www.bilibili.com', { credentials: 'include' })
-        },
-        iconSet: async (data, sender) => {
-          if (sender.tab?.id === undefined) {
-            throw new RpcException('No tab id found')
-          }
-
-          const tabId = sender.tab.id
-
-          match(data)
-            .with({ state: 'active' }, (data) => {
-              void this.iconService.setActive(tabId, data.count)
-            })
-            .with({ state: 'inactive' }, () => {
-              void this.iconService.setNormal(tabId)
-            })
-            .with({ state: 'available' }, () => {
-              void this.iconService.setNormal(tabId)
-            })
-            .with({ state: 'unavailable' }, () => {
-              void this.iconService.setUnavailable(tabId)
-            })
-            .exhaustive()
-
-          this.logger.debug('Icon state set to:', data.state)
-        },
-        episodeFilter: async (filter) => {
-          const result = await this.danmakuService.filter(filter)
-          return result
-        },
-        episodeFilterLite: async (filter) => {
-          const result = await this.danmakuService.filterLite(filter)
-          return result || null
-        },
-        seasonGetAll: async (data) => {
-          const result = await this.seasonService.getAll(data)
-          return result
-        },
-        seasonFilter: async (data) => {
-          return this.seasonService.filter(data)
-        },
-        seasonDelete: async (data) => {
-          return this.seasonService.delete(data)
-        },
-        seasonRefresh: async (data) => {
-          return this.providerService.refreshSeason(data)
-        },
-        seasonMapAdd: async (data) => {
-          return this.titleMappingService.add(SeasonMap.from(data))
-        },
-        seasonMapPut: async (data) => {
-          return this.titleMappingService.put(SeasonMap.from(data))
-        },
-        seasonMapDelete: async (data) => {
-          return this.titleMappingService.remove(data.key)
-        },
-        seasonMapDeleteMany: async (data) => {
-          return this.titleMappingService.removeMany(data.keys)
-        },
-
-        seasonMapGetAll: async () => {
-          const seasonMaps = await this.titleMappingService.getAll()
-          return seasonMaps.map((map) => map.toSnapshot())
-        },
-        episodeFetch: async (data, sender) => {
-          const result = await this.providerService.getDanmaku(data)
-          void invalidateContentScriptData(sender.tab?.id)
-          return result
-        },
-        episodePreloadNext: async (data) => {
-          // Best-effort background optimization: swallow failures so a network
-          // or DB error does not bubble up as an unhandled RPC error.
-          try {
-            const { autoBookmark } = await this.extensionOptionsService.get()
-            const bookmarked = await this.bookmarkService.preloadNextEpisode(
-              data,
-              this.providerService,
-              autoBookmark
-            )
-            // Auto-bookmark happens in the background, so refresh content
-            // scripts (incl. the playing tab) to update bookmark UI.
-            if (bookmarked) {
-              void invalidateContentScriptData()
-            }
-          } catch (e) {
-            this.logger.warn('Failed to preload next episode:', e)
-          }
-        },
-        episodeImport: async (data, sender) => {
-          const result = await this.danmakuService.import(data)
-          void invalidateContentScriptData(sender.tab?.id)
-          return result
-        },
-        episodeDelete: async (filter, sender) => {
-          const result = await this.danmakuService.delete(filter)
-          void invalidateContentScriptData(sender.tab?.id)
-          return result
-        },
-        episodeFilterCustom: async (filter) => {
-          return this.danmakuService.filterCustom(filter)
-        },
-        episodeFilterCustomLite: async (filter) => {
-          return this.danmakuService.filterCustomLite(filter)
-        },
-        episodeDeleteCustom: async (filter, sender) => {
-          const result = await this.danmakuService.deleteCustom(filter)
-          void invalidateContentScriptData(sender.tab?.id)
-          return result
-        },
-        danmakuPurgeCache: async (days, sender) => {
-          const result = await this.danmakuService.purgeOlderThan(days)
-          void invalidateContentScriptData(sender.tab?.id)
-          return result
-        },
-        getExtensionManifest: async () => {
-          return chrome.runtime.getManifest() as chrome.runtime.ManifestV3
-        },
-        getAlarm: async (name) => {
-          if (!chrome.alarms) {
-            return null
-          }
-
-          return chrome.alarms.get(name)
-        },
-        getFrameId: async (_, sender) => {
-          if (sender.frameId === undefined) {
-            throw new RpcException('Sender does not have frame id')
-          }
-
-          return sender.frameId
-        },
-        remoteLog: async (data) => {
-          void this.logService.log(data)
-        },
-        exportDebugData: async () => {
-          return this.debugFileService.upload()
-        },
-        getActiveTabUrl: async () => {
-          const tabs = await chrome.tabs.query({
-            active: true,
-            currentWindow: true,
-          })
-
-          const activeTab = tabs[0]
-
-          return activeTab?.url ?? null
-        },
-        mountConfigGetAll: async () => {
-          return this.mountConfigService.getAll()
-        },
-        mountConfigCreate: async (data) => {
-          return this.mountConfigService.create(data)
-        },
-        extractTitle: async ({ text, options }) => {
-          return this.aiService.extractTitle(text, options)
-        },
-        testAiProvider: async (config) => {
-          return this.aiService.testConnection(config)
-        },
-        getFontList: async () => {
-          return chrome.fontSettings.getFontList()
-        },
-        getPlatformInfo: async () => {
-          return chrome.runtime.getPlatformInfo()
-        },
-        fetchImage: async ({ src }) => {
-          return this.imageCacheService.get(src)
-        },
-        kazumiSearchContent: async ({ keyword, policy }) => {
-          return this.kazumiService.searchContent(keyword, policy)
-        },
-        kazumiGetChapters: async ({ url, policy }) => {
-          return this.kazumiService.getChapters(url, policy)
-        },
-        genericVodSearch: async ({ baseUrl, keyword }) => {
-          return MacCmsProviderService.search(baseUrl, keyword, this.logger)
-        },
-        genericFetchDanmakuForUrl: async ({ title, url, providerConfigId }) => {
-          return MacCmsProviderService.fetchDanmakuForUrl(
-            title,
-            url,
-            providerConfigId,
-            this.danmakuService,
-            this.providerConfigService
-          )
-        },
-        setHeaders: async (rule) => {
-          await setRequestHeaderRule(rule)
-        },
-        openPopupInNewWindow: async ({ path, width, height }) => {
-          void chrome.windows.create({
-            url: chrome.runtime.getURL(`pages/popup.html?detached=1#/${path}`),
-            type: 'popup',
-            width: width ?? 550,
-            height: height ?? 650,
-          })
-        },
-        openPopupInNewTab: async ({ path }) => {
-          void chrome.tabs.create({
-            url: chrome.runtime.getURL(`pages/popup.html?detached=1#/${path}`),
-          })
-        },
-        getConfigMacCms: async (input) => {
-          const res = await getMaccmsConfig(input?.force)
-          if (!res.success) {
-            throw res.error
-          }
-          return res.data
-        },
-        getConfigDanmuIcu: async (input) => {
-          const res = await getDanmuicuConfig(input?.force)
-          if (!res.success) {
-            throw res.error
-          }
-          return res.data
-        },
-        providerConfigDelete: async (id, sender) => {
-          // Seasons and episodes are kept (orphaned: no live config matches their
-          // namespace) so downloaded danmaku stays viewable. Bookmarks are
-          // removed: they only exist to fetch new episodes, which an orphaned
-          // season can no longer do.
-          // Resolve the config's identity before deleting it; the read has no
-          // side effects, and deleteFromStorage (which throws if the config does
-          // not exist) still runs before any mutation.
-          const config = await this.providerConfigService.get(id)
-          await this.providerConfigService.deleteFromStorage(id)
-          if (config) {
-            await this.bookmarkService.deleteBySeasonIdentity(
-              config.manifestId,
-              await this.providerService.computeConfigNamespaceKey(config)
-            )
-          }
-
-          void invalidateContentScriptData(sender.tab?.id)
-        },
-        providerDeleteUserManifest: async ({ manifestId }, sender) => {
-          await this.providerService.deleteUserManifest(manifestId)
-          void invalidateContentScriptData(sender.tab?.id)
-        },
-        backupExport: async () => {
-          return this.backupService.getBackupData()
-        },
-        backupImport: async (data, sender) => {
-          const result = await this.backupService.importAll(data)
-          void invalidateContentScriptData(sender.tab?.id)
-          return result
-        },
-        cloudBackupList: async () => {
-          return this.backupService.getCloudBackups()
-        },
-        cloudBackupCreate: async () => {
-          return this.backupService.createCloudBackup()
-        },
-        cloudBackupDownload: async (id) => {
-          return this.backupService.downloadCloudBackup(id)
-        },
-        dataWipeDanmaku: async (data, sender) => {
-          await this.dataManagementService.wipeAllData(data)
-          void invalidateContentScriptData(sender.tab?.id)
-        },
-        bookmarkGetAll: async () => {
-          return this.bookmarkService.getAll()
-        },
-        bookmarkAdd: async (data) => {
-          return this.bookmarkService.add(data.seasonId, this.providerService)
-        },
-        bookmarkDelete: async (data) => {
-          return this.bookmarkService.delete(data.id)
-        },
-        bookmarkDeleteBySeason: async (data) => {
-          return this.bookmarkService.deleteBySeason(data.seasonId)
-        },
-        bookmarkRefresh: async (data) => {
-          return this.bookmarkService.refresh(data.id, this.providerService)
-        },
-        occlusionGetModels: async () => {
-          return this.occlusionModelService.getState()
-        },
-        occlusionRefreshModels: async () => {
-          return this.occlusionModelService.refresh()
-        },
-        occlusionResolveModel: async (data) => {
-          return this.occlusionModelService.resolveModel(data.id)
-        },
-        occlusionDownloadModel: async (data) => {
-          return this.occlusionModelService.download(data.id)
-        },
-        occlusionDeleteModel: async (data) => {
-          return this.occlusionModelService.delete(data.id)
-        },
-        occlusionAddCorsRule: async (data, sender) => {
-          const { ruleId } = await setMediaCorsRule(data.url, sender.tab?.id)
-          return ruleId
-        },
-        occlusionRemoveCorsRule: async (data) => {
-          await removeSessionRule(data.ruleId)
-        },
+    const handlers: RPCServerHandlers<BackgroundMethods> = {
+      authGetSession: async () => {
+        return this.authClientService.getSessionState()
       },
-      {
-        logger: this.logger,
-      }
+      authSignUp: async (input) => {
+        return this.authClientService.signUp(input)
+      },
+      authSignIn: async (input) => {
+        return this.authClientService.signIn(input)
+      },
+      authSignOut: async () => {
+        return this.authClientService.signOut()
+      },
+      authDeleteAccount: async () => {
+        return this.authClientService.deleteAccount()
+      },
+      seasonSearch: async (input) => {
+        return this.providerService.searchSeason(input)
+      },
+      seasonUpsert: async (input) => {
+        return this.providerService.upsertSeason(input)
+      },
+      mediaParseUrl: async (input) => {
+        return this.providerService.parseUrl(input.url)
+      },
+      episodeFetchBySeason: async (input: EpisodeFetchBySeasonParams) => {
+        return this.providerService.fetchEpisodesBySeason(input.seasonId)
+      },
+      episodeMatch: async (data) => {
+        return this.episodeMatchingService.findMatchingEpisodes(data)
+      },
+      providerProbeLogin: async ({ manifestId }) => {
+        return this.providerService.getLoginStatus(manifestId)
+      },
+      providerGetManifestSpec: async ({ manifestId, locale }) => {
+        return this.providerService.getManifestSpec(manifestId, locale)
+      },
+      providerListManifests: async ({ locale } = {}) => {
+        return this.providerService.listManifests(locale)
+      },
+      providerRefreshCatalog: async ({ locale } = {}) => {
+        return this.providerService.refreshCatalog(locale)
+      },
+      providerGetPendingUpdates: async () => {
+        return this.manifestRegistry.getPendingUpdates()
+      },
+      providerApplyUpdates: async ({ manifestIds }) => {
+        await this.manifestRegistry.applyUpdates(manifestIds)
+      },
+      providerValidateManifest: async ({ manifest }) => {
+        return this.manifestSandbox.validate(manifest)
+      },
+      providerTestRunSearch: async (input) => {
+        return this.manifestSandbox.search(input)
+      },
+      providerTestRunEpisodes: async (input) => {
+        return this.manifestSandbox.episodes(input)
+      },
+      providerTestRunDanmaku: async (input) => {
+        return this.manifestSandbox.danmaku(input)
+      },
+      providerSaveUserManifest: async ({ manifest, mode, expectedId }) => {
+        await this.manifestRegistry.saveUserManifest(manifest, mode, expectedId)
+      },
+      providerGetManifestSource: async ({ manifestId }) => {
+        return (await this.manifestRegistry.getSource(manifestId)) ?? null
+      },
+      bilibiliSetCookies: async () => {
+        // Credentialed homepage GET lets bilibili's Set-Cookie response
+        // seed the anti-bot cookies the API host needs.
+        await fetch('https://www.bilibili.com', { credentials: 'include' })
+      },
+      iconSet: async (data, sender) => {
+        if (sender.tab?.id === undefined) {
+          throw new RpcException('No tab id found')
+        }
+
+        const tabId = sender.tab.id
+
+        match(data)
+          .with({ state: 'active' }, (data) => {
+            void this.iconService.setActive(tabId, data.count)
+          })
+          .with({ state: 'inactive' }, () => {
+            void this.iconService.setNormal(tabId)
+          })
+          .with({ state: 'available' }, () => {
+            void this.iconService.setNormal(tabId)
+          })
+          .with({ state: 'unavailable' }, () => {
+            void this.iconService.setUnavailable(tabId)
+          })
+          .exhaustive()
+
+        this.logger.debug('Icon state set to:', data.state)
+      },
+      episodeFilter: async (filter) => {
+        const result = await this.danmakuService.filter(filter)
+        return result
+      },
+      episodeFilterLite: async (filter) => {
+        const result = await this.danmakuService.filterLite(filter)
+        return result || null
+      },
+      seasonGetAll: async (data) => {
+        const result = await this.seasonService.getAll(data)
+        return result
+      },
+      seasonFilter: async (data) => {
+        return this.seasonService.filter(data)
+      },
+      seasonDelete: async (data) => {
+        return this.seasonService.delete(data)
+      },
+      seasonRefresh: async (data) => {
+        return this.providerService.refreshSeason(data)
+      },
+      seasonMapAdd: async (data) => {
+        return this.titleMappingService.add(SeasonMap.from(data))
+      },
+      seasonMapPut: async (data) => {
+        return this.titleMappingService.put(SeasonMap.from(data))
+      },
+      seasonMapDelete: async (data) => {
+        return this.titleMappingService.remove(data.key)
+      },
+      seasonMapDeleteMany: async (data) => {
+        return this.titleMappingService.removeMany(data.keys)
+      },
+
+      seasonMapGetAll: async () => {
+        const seasonMaps = await this.titleMappingService.getAll()
+        return seasonMaps.map((map) => map.toSnapshot())
+      },
+      episodeFetch: async (data, sender) => {
+        const result = await this.providerService.getDanmaku(data)
+        void invalidateContentScriptData(sender.tab?.id)
+        return result
+      },
+      episodePreloadNext: async (data) => {
+        // Best-effort background optimization: swallow failures so a network
+        // or DB error does not bubble up as an unhandled RPC error.
+        try {
+          const { autoBookmark } = await this.extensionOptionsService.get()
+          const bookmarked = await this.bookmarkService.preloadNextEpisode(
+            data,
+            this.providerService,
+            autoBookmark
+          )
+          // Auto-bookmark happens in the background, so refresh content
+          // scripts (incl. the playing tab) to update bookmark UI.
+          if (bookmarked) {
+            void invalidateContentScriptData()
+          }
+        } catch (e) {
+          this.logger.warn('Failed to preload next episode:', e)
+        }
+      },
+      episodeImport: async (data, sender) => {
+        const result = await this.danmakuService.import(data)
+        void invalidateContentScriptData(sender.tab?.id)
+        return result
+      },
+      episodeDelete: async (filter, sender) => {
+        const result = await this.danmakuService.delete(filter)
+        void invalidateContentScriptData(sender.tab?.id)
+        return result
+      },
+      episodeFilterCustom: async (filter) => {
+        return this.danmakuService.filterCustom(filter)
+      },
+      episodeFilterCustomLite: async (filter) => {
+        return this.danmakuService.filterCustomLite(filter)
+      },
+      episodeDeleteCustom: async (filter, sender) => {
+        const result = await this.danmakuService.deleteCustom(filter)
+        void invalidateContentScriptData(sender.tab?.id)
+        return result
+      },
+      danmakuPurgeCache: async (days, sender) => {
+        const result = await this.danmakuService.purgeOlderThan(days)
+        void invalidateContentScriptData(sender.tab?.id)
+        return result
+      },
+      getExtensionManifest: async () => {
+        return chrome.runtime.getManifest() as chrome.runtime.ManifestV3
+      },
+      getAlarm: async (name) => {
+        if (!chrome.alarms) {
+          return null
+        }
+
+        return chrome.alarms.get(name)
+      },
+      getFrameId: async (_, sender) => {
+        if (sender.frameId === undefined) {
+          throw new RpcException('Sender does not have frame id')
+        }
+
+        return sender.frameId
+      },
+      remoteLog: async (data) => {
+        void this.logService.log(data)
+      },
+      exportDebugData: async () => {
+        return this.debugFileService.upload()
+      },
+      getActiveTabUrl: async () => {
+        const tabs = await chrome.tabs.query({
+          active: true,
+          currentWindow: true,
+        })
+
+        const activeTab = tabs[0]
+
+        return activeTab?.url ?? null
+      },
+      mountConfigGetAll: async () => {
+        return this.mountConfigService.getAll()
+      },
+      mountConfigCreate: async (data) => {
+        return this.mountConfigService.create(data)
+      },
+      extractTitle: async ({ text, options }) => {
+        return this.aiService.extractTitle(text, options)
+      },
+      testAiProvider: async (config) => {
+        return this.aiService.testConnection(config)
+      },
+      getFontList: async () => {
+        return chrome.fontSettings.getFontList()
+      },
+      getPlatformInfo: async () => {
+        return chrome.runtime.getPlatformInfo()
+      },
+      fetchImage: async ({ src }) => {
+        return this.imageCacheService.get(src)
+      },
+      kazumiSearchContent: async ({ keyword, policy }) => {
+        return this.kazumiService.searchContent(keyword, policy)
+      },
+      kazumiGetChapters: async ({ url, policy }) => {
+        return this.kazumiService.getChapters(url, policy)
+      },
+      genericVodSearch: async ({ baseUrl, keyword }) => {
+        return MacCmsProviderService.search(baseUrl, keyword, this.logger)
+      },
+      genericFetchDanmakuForUrl: async ({ title, url, providerConfigId }) => {
+        return MacCmsProviderService.fetchDanmakuForUrl(
+          title,
+          url,
+          providerConfigId,
+          this.danmakuService,
+          this.providerConfigService
+        )
+      },
+      setHeaders: async (rule, sender) => {
+        if (sender.tab?.id === undefined) {
+          throw new RpcException('No tab id found')
+        }
+        await setRequestHeaderRule(rule, sender.tab.id)
+      },
+      openPopupInNewWindow: async ({ path, width, height }) => {
+        void chrome.windows.create({
+          url: chrome.runtime.getURL(`pages/popup.html?detached=1#/${path}`),
+          type: 'popup',
+          width: width ?? 550,
+          height: height ?? 650,
+        })
+      },
+      openPopupInNewTab: async ({ path }) => {
+        void chrome.tabs.create({
+          url: chrome.runtime.getURL(`pages/popup.html?detached=1#/${path}`),
+        })
+      },
+      getConfigMacCms: async (input) => {
+        const res = await getMaccmsConfig(input?.force)
+        if (!res.success) {
+          throw res.error
+        }
+        return res.data
+      },
+      getConfigDanmuIcu: async (input) => {
+        const res = await getDanmuicuConfig(input?.force)
+        if (!res.success) {
+          throw res.error
+        }
+        return res.data
+      },
+      providerConfigDelete: async (id, sender) => {
+        // Seasons and episodes are kept (orphaned: no live config matches their
+        // namespace) so downloaded danmaku stays viewable. Bookmarks are
+        // removed: they only exist to fetch new episodes, which an orphaned
+        // season can no longer do.
+        // Resolve the config's identity before deleting it; the read has no
+        // side effects, and deleteFromStorage (which throws if the config does
+        // not exist) still runs before any mutation.
+        const config = await this.providerConfigService.get(id)
+        await this.providerConfigService.deleteFromStorage(id)
+        if (config) {
+          await this.bookmarkService.deleteBySeasonIdentity(
+            config.manifestId,
+            await this.providerService.computeConfigNamespaceKey(config)
+          )
+        }
+
+        void invalidateContentScriptData(sender.tab?.id)
+      },
+      providerDeleteUserManifest: async ({ manifestId }, sender) => {
+        await this.providerService.deleteUserManifest(manifestId)
+        void invalidateContentScriptData(sender.tab?.id)
+      },
+      backupExport: async () => {
+        return this.backupService.getBackupData()
+      },
+      backupImport: async (data, sender) => {
+        const result = await this.backupService.importAll(data)
+        void invalidateContentScriptData(sender.tab?.id)
+        return result
+      },
+      cloudBackupList: async () => {
+        return this.backupService.getCloudBackups()
+      },
+      cloudBackupCreate: async () => {
+        return this.backupService.createCloudBackup()
+      },
+      cloudBackupDownload: async (id) => {
+        return this.backupService.downloadCloudBackup(id)
+      },
+      dataWipeDanmaku: async (data, sender) => {
+        await this.dataManagementService.wipeAllData(data)
+        void invalidateContentScriptData(sender.tab?.id)
+      },
+      bookmarkGetAll: async () => {
+        return this.bookmarkService.getAll()
+      },
+      bookmarkAdd: async (data) => {
+        return this.bookmarkService.add(data.seasonId, this.providerService)
+      },
+      bookmarkDelete: async (data) => {
+        return this.bookmarkService.delete(data.id)
+      },
+      bookmarkDeleteBySeason: async (data) => {
+        return this.bookmarkService.deleteBySeason(data.seasonId)
+      },
+      bookmarkRefresh: async (data) => {
+        return this.bookmarkService.refresh(data.id, this.providerService)
+      },
+      occlusionGetModels: async () => {
+        return this.occlusionModelService.getState()
+      },
+      occlusionRefreshModels: async () => {
+        return this.occlusionModelService.refresh()
+      },
+      occlusionResolveModel: async (data) => {
+        return this.occlusionModelService.resolveModel(data.id)
+      },
+      occlusionDownloadModel: async (data) => {
+        return this.occlusionModelService.download(data.id)
+      },
+      occlusionDeleteModel: async (data) => {
+        return this.occlusionModelService.delete(data.id)
+      },
+      occlusionAddCorsRule: async (data, sender) => {
+        const { ruleId } = await setMediaCorsRule(data.url, sender.tab?.id)
+        return ruleId
+      },
+      occlusionRemoveCorsRule: async (data) => {
+        await removeSessionRule(data.ruleId)
+      },
+    }
+
+    const rpcServer = createRpcServer<BackgroundMethods>(handlers, {
+      logger: this.logger,
+    })
+
+    const externalRpcServer = createRpcServer<BackgroundMethods>(
+      gateExternalHandlers(handlers, EXTERNAL_RPC_ALLOWLIST),
+      { logger: this.logger }
     )
 
     const passThrough = <TRPCDef extends AnyRPCDef>(
@@ -565,7 +572,6 @@ export class RpcManager {
     rpcServer.listen(chrome.runtime.onMessage)
     rpcRelay.listen(chrome.runtime.onMessage)
 
-    // also listen to external messages
-    rpcServer.listen(chrome.runtime.onMessageExternal)
+    externalRpcServer.listen(chrome.runtime.onMessageExternal)
   }
 }

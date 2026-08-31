@@ -60,4 +60,17 @@ describe('setRequestHeaderRule', () => {
       findHeader(action.responseHeaders, 'Access-Control-Allow-Origin')?.value
     ).toBe('*')
   })
+
+  it('scopes the rule to the requesting tab', async () => {
+    await setRequestHeaderRule(
+      {
+        url: 'https://cdn.example.com',
+        referer: 'https://source.example.com',
+        origin: 'https://source.example.com',
+      },
+      42
+    )
+
+    expect(getAddedRule().condition.tabIds).toEqual([42])
+  })
 })

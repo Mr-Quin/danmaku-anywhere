@@ -147,7 +147,13 @@ export type SetHeaderRule = {
   origin?: string
 }
 
-export const setRequestHeaderRule = async (headerRule: SetHeaderRule) => {
+// tabId scopes the rule to the tab that asked for it. The rule forces
+// Access-Control-Allow-Origin: *, so leaving it unscoped would hand every tab
+// in the browser a CORS bypass for the matched url.
+export const setRequestHeaderRule = async (
+  headerRule: SetHeaderRule,
+  tabId?: number
+) => {
   const existingRules = await chrome.declarativeNetRequest.getSessionRules()
 
   // check if url exists, if it does, remove the rule
@@ -249,6 +255,7 @@ export const setRequestHeaderRule = async (headerRule: SetHeaderRule) => {
         condition: {
           urlFilter: `|${headerRule.url}`,
           resourceTypes: resourceTypes,
+          tabIds: tabId === undefined ? undefined : [tabId],
         },
       },
     ],
