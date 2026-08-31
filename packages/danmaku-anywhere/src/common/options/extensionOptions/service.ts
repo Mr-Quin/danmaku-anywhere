@@ -12,6 +12,7 @@ import {
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { LATEST_PROVIDER_CONFIG_VERSION } from '@/common/options/providerConfig/constant'
 import { migrateDanmakuSourcesToProviders } from '@/common/options/providerConfig/migration'
 import { ColorMode } from '@/common/theme/enums'
 import { ProviderConfigService } from '../providerConfig/service'
@@ -225,15 +226,17 @@ export class ExtensionOptionsService implements IStoreService {
               data.danmakuSources
             )
 
-            // set data in separate storage
-            try {
-              void this.providerConfigService.options.set(providers)
-            } catch (error) {
-              Logger.error(
-                'Failed to migrate provider configs from extension service to provider service'
-              )
-              Logger.error(error)
-            }
+            // The provider store has not been written yet at this point in the
+            // upgrade, so the version has to be named explicitly: a plain set()
+            // reads the missing store and rejects, losing every migrated config.
+            void this.providerConfigService.options
+              .set(providers, LATEST_PROVIDER_CONFIG_VERSION)
+              .catch((error) => {
+                Logger.error(
+                  'Failed to migrate provider configs from extension service to provider service',
+                  error
+                )
+              })
 
             const { danmakuSources, ...rest } = data
             return rest

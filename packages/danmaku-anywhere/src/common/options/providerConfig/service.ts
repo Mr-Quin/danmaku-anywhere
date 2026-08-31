@@ -11,6 +11,7 @@ import type { OptionsService } from '@/common/options/OptionsService/OptionsServ
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { isServiceWorker } from '@/common/utils/utils'
+import { LATEST_PROVIDER_CONFIG_VERSION } from './constant'
 import {
   defaultProviderConfigs,
   ensureBuiltinProviders,
@@ -87,7 +88,7 @@ export class ProviderConfigService implements IStoreService {
           }
         },
       })
-      .version(5, {
+      .version(LATEST_PROVIDER_CONFIG_VERSION, {
         upgrade: (data) => {
           try {
             return migrateDropDeadProviderFields(data)

@@ -9,6 +9,11 @@ import type { ProviderConfig } from './schema'
 
 export const PROXY_DDP_BASE_URL = `${import.meta.env.VITE_PROXY_URL}/ddp`
 
+// Bump this when adding a new `.version(N, …)` to ProviderConfigService. The
+// extension-options migration that seeds this store writes before the store
+// exists, so it has to name the version it is writing at.
+export const LATEST_PROVIDER_CONFIG_VERSION = 5
+
 export interface AutoImportProvider {
   manifestId: string
   configValues: Record<string, unknown>

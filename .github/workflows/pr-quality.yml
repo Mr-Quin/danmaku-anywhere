@@ -59,5 +59,11 @@ jobs:
         with:
           commit_message: "(chore) apply lint autofix"
 
+      - name: Check every workspace package defines a test script
+        run: pnpm check:test-scripts
+
       - name: Test (changed packages only)
         run: pnpm --filter '...[${{ github.event.pull_request.base.sha }}]' test
+
+      - name: Extension coverage report
+        run: pnpm --filter @mr-quin/danmaku-anywhere test:coverage

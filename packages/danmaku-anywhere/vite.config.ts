@@ -167,5 +167,11 @@ export default defineConfig({
     unstubGlobals: true,
     environment: 'jsdom',
     exclude: ['e2e/**', 'node_modules/**'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text-summary'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/**/*.test.{ts,tsx}', 'src/tests/**'],
+    },
   },
 })
