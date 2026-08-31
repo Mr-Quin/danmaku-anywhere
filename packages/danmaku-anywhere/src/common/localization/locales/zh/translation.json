@@ -549,8 +549,10 @@
       "enterKey": "输入快捷键",
       "openSearchPanel": "打开搜索面板",
       "refreshComments": "刷新弹幕",
+      "toggleDanmakuTimeline": "显示/隐藏弹幕密度",
       "toggleEnableDanmaku": "显示/隐藏弹幕",
       "togglePip": "画中画（实验）",
+      "toggleSkipButton": "显示/隐藏跳过按钮",
       "unmountComments": "卸载弹幕"
     },
     "infoPanel": {
@@ -583,6 +585,8 @@
       "player": "播放设置"
     },
     "player": {
+      "hideDanmakuTimeline": "隐藏弹幕密度",
+      "hideSkipButton": "隐藏跳过按钮（OP/ED）",
       "inPlayerControls": "播放器内控制",
       "showDanmakuTimeline": "显示弹幕密度",
       "showDanmakuTimelineDesc": "在进度条上方叠加弹幕密度时间轴。",
