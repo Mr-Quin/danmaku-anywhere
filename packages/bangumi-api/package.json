@@ -20,7 +20,6 @@
     "copy:schemas": "node scripts/copy-schemas.js",
     "lint": "biome check --fix",
     "lint:ci": "biome ci",
-    "test": "vitest run --passWithNoTests",
     "type-check": "tsgo --noEmit",
     "generate:schemas": "pnpx openapi-typescript https://next.bgm.tv/p1/openapi.yaml -o ./src/schema-next.d.ts && pnpx openapi-typescript https://bangumi.github.io/api/dist.json -o ./src/schema.d.ts"
   },
@@ -28,7 +27,6 @@
     "openapi-fetch": "^0.14.0"
   },
   "devDependencies": {
-    "openapi-typescript": "^7.10.1",
-    "vitest": "^4.0.13"
+    "openapi-typescript": "^7.10.1"
   }
 }

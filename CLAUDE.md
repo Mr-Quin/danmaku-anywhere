@@ -55,7 +55,7 @@ Always prefer scripts defined in `package.json` over ad-hoc commands. Run `pnpm 
 - **All tests**: `pnpm test` at root
 - Packages and backend use Vitest. The web app also uses Vitest, via the `@angular/build:unit-test` builder (`pnpm test` in `app/web/`).
 - **Coverage**: `pnpm --filter @mr-quin/danmaku-anywhere test:coverage` prints a summary. CI prints it on every PR. There is no threshold gate yet.
-- Every workspace package must define a `test` script, since `pnpm -r test` skips one that does not without saying so. `pnpm check:test-scripts` enforces it and runs in CI.
+- A package that contains test files must define a `test` script, since `pnpm -r test` skips one that does not without saying so. `pnpm check:test-scripts` enforces it and runs in CI. A package with no tests needs no script.
 - Always run `pnpm type-check` and `pnpm lint` — these are fast and catch most issues.
 - **Never run the extension's full e2e suite locally.** `pnpm test:e2e` is CI's job. Locally run the
   affected spec(s), and at most `pnpm test:e2e:smoke`. `pnpm test:e2e:changed` follows direct

@@ -1,12 +1,32 @@
 #!/usr/bin/env node
 
 import { execFileSync } from 'node:child_process'
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync, statSync } from 'node:fs'
 import path from 'node:path'
 
 interface WorkspacePackage {
   name: string
   path: string
+}
+
+const TEST_FILE = /\.(test|spec)\.[cm]?[jt]sx?$/
+const SKIP_DIRS = new Set(['node_modules', 'dist', 'build', '.git', 'coverage'])
+
+function hasTestFile(dir: string): boolean {
+  for (const entry of readdirSync(dir)) {
+    if (SKIP_DIRS.has(entry)) {
+      continue
+    }
+    const full = path.join(dir, entry)
+    if (statSync(full).isDirectory()) {
+      if (hasTestFile(full)) {
+        return true
+      }
+    } else if (TEST_FILE.test(entry)) {
+      return true
+    }
+  }
+  return false
 }
 
 // `pnpm -r test` skips a package with no `test` script without saying so.
@@ -28,7 +48,12 @@ const workspaceRoot = listedPackages.reduce((shortest, pkg) => {
 
 const packages = listedPackages.filter((pkg) => pkg.path !== workspaceRoot.path)
 
-const offenders = packages.filter((pkg) => {
+// A package with no test files needs no script. The failure worth catching is
+// the opposite one: tests that exist and never run, which is how an entire
+// app's suite sat dormant in CI.
+const withTests = packages.filter((pkg) => hasTestFile(pkg.path))
+
+const offenders = withTests.filter((pkg) => {
   const manifest = JSON.parse(
     readFileSync(path.join(pkg.path, 'package.json'), 'utf8')
   ) as { scripts?: Record<string, string> }
@@ -37,13 +62,13 @@ const offenders = packages.filter((pkg) => {
 
 if (offenders.length === 0) {
   console.log(
-    `[check-test-scripts] ok: all ${packages.length} workspace packages define a test script.`
+    `[check-test-scripts] ok: all ${withTests.length} workspace packages that contain tests define a test script.`
   )
   process.exit(0)
 }
 
 const report = offenders.map((pkg) => `  - ${pkg.name}`).join('\n')
 console.error(
-  `[check-test-scripts] These workspace packages define no "test" script, so \`pnpm -r test\` skips them silently:\n${report}\n\nAdd one. A package with nothing to test yet can use "vitest run --passWithNoTests".`
+  `[check-test-scripts] These workspace packages contain test files but define no "test" script, so \`pnpm -r test\` skips them silently:\n${report}`
 )
 process.exit(1)
