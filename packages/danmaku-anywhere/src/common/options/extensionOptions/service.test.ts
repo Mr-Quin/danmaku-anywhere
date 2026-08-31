@@ -4,6 +4,7 @@ import { UpgradeService } from '@/background/syncOptions/UpgradeService/UpgradeS
 import { Language } from '@/common/localization/language'
 import { defaultExtensionOptions } from '@/common/options/extensionOptions/constant'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { createOptionsContainer, optionsStorage } from '@/tests/optionsStore'
 
@@ -18,6 +19,25 @@ const LATEST_VERSION = 27
 
 const { seed, read: readStored } =
   optionsStorage<Record<string, unknown>>('extensionOptions')
+const providerStorage = optionsStorage<ProviderConfig[]>('providerConfig')
+
+const legacyDanmakuSources = {
+  dandanplay: { enabled: true, baseUrl: '', useCustomRoot: false },
+  bilibili: { enabled: true, danmakuTypePreference: 'xml' },
+  tencent: { enabled: false, limitPerMin: 200 },
+  iqiyi: { enabled: false, limitPerMin: 200 },
+  custom: {
+    enabled: true,
+    baseUrl: 'https://zy.xmm.hk',
+    danmuicuBaseUrl: 'https://api.danmu.icu',
+  },
+}
+
+function enabledByManifest(configs: ProviderConfig[]) {
+  return Object.fromEntries(
+    configs.map((config) => [config.manifestId, config.enabled])
+  )
+}
 
 let service: ExtensionOptionsService
 let providerConfigService: ProviderConfigService
@@ -50,23 +70,7 @@ describe('ExtensionOptionsService migrations', () => {
   })
 
   it('carries each source enabled flag into provider config storage at version 21', async () => {
-    await seed(
-      {
-        enabled: true,
-        danmakuSources: {
-          dandanplay: { enabled: true, baseUrl: '', useCustomRoot: false },
-          bilibili: { enabled: true, danmakuTypePreference: 'xml' },
-          tencent: { enabled: false, limitPerMin: 200 },
-          iqiyi: { enabled: false, limitPerMin: 200 },
-          custom: {
-            enabled: true,
-            baseUrl: 'https://zy.xmm.hk',
-            danmuicuBaseUrl: 'https://api.danmu.icu',
-          },
-        },
-      },
-      20
-    )
+    await seed({ enabled: true, danmakuSources: legacyDanmakuSources }, 20)
 
     await service.options.upgrade()
 
@@ -74,10 +78,7 @@ describe('ExtensionOptionsService migrations', () => {
     expect(data.danmakuSources).toBeUndefined()
 
     const providers = await providerConfigService.options.readUnblocked()
-    const enabledByManifest = Object.fromEntries(
-      providers.map((config) => [config.manifestId, config.enabled])
-    )
-    expect(enabledByManifest).toEqual({
+    expect(enabledByManifest(providers)).toEqual({
       dandanplay: true,
       bilibili: true,
       tencent: false,
@@ -146,28 +147,19 @@ describe('ExtensionOptionsService migrations', () => {
 })
 
 describe('ExtensionOptionsService provider handoff under UpgradeService', () => {
-  it('leaves the migrated provider configs in place after the provider store upgrades', async () => {
+  it('carries every migrated config through the provider store own migration chain', async () => {
     const container = createOptionsContainer()
-    await seed(
-      {
-        enabled: true,
-        danmakuSources: {
-          dandanplay: { enabled: true, chConvert: 0 },
-          bilibili: { enabled: true, danmakuTypePreference: 'xml' },
-        },
-      },
-      20
-    )
+    await seed({ enabled: true, danmakuSources: legacyDanmakuSources }, 20)
 
     await container.get(UpgradeService).upgrade()
 
-    const providers = await container
-      .get(ProviderConfigService)
-      .options.readUnblocked()
-    expect(providers.map((config) => config.manifestId)).toContain('dandanplay')
-    const bilibili = providers.find(
-      (config) => config.manifestId === 'bilibili'
-    )
-    expect(bilibili?.enabled).toBe(true)
+    const providerStore = await providerStorage.read()
+    expect(providerStore.version).toBe(5)
+    expect(enabledByManifest(providerStore.data)).toEqual({
+      dandanplay: true,
+      bilibili: true,
+      tencent: false,
+      [LEGACY_MACCMS_ID]: true,
+    })
   })
 })
