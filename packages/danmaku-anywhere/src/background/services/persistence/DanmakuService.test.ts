@@ -8,12 +8,9 @@ import { DanmakuService } from './DanmakuService'
 import { SeasonService } from './SeasonService'
 
 /**
- * Exercises DanmakuService.import against a real Dexie: a raw comment array
- * lands as Custom before the backup parser ever runs, a multi-episode backup
- * of one season shares a single season row via SeasonService's orphan dedup,
- * a throwing item is counted as skipped without aborting the batch, and
- * unparseable input reports an error keyed by its title. Also covers
- * purgeOlderThan's day threshold and matchLocalByTitle's path matching.
+ * Exercises DanmakuService against a real Dexie over fake-indexeddb rather than
+ * a stubbed persistence layer, so import() is measured against the same
+ * transactions and the same SeasonService orphan dedup that production uses.
  */
 
 function makeRegularBackupItem(overrides: {
@@ -54,13 +51,15 @@ function makeEpisodeInsert(overrides: Parameters<typeof makeEpisode>[0]) {
 }
 
 let db: DanmakuAnywhereDb
+let seasonService: SeasonService
 let service: DanmakuService
 
 beforeEach(async () => {
   await Dexie.delete(DANMAKU_DB_NAME)
   db = new DanmakuAnywhereDb()
   await db.open()
-  service = new DanmakuService(new SeasonService(db), db, silentLogger)
+  seasonService = new SeasonService(db)
+  service = new DanmakuService(seasonService, db, silentLogger)
 })
 
 afterEach(async () => {
@@ -181,7 +180,7 @@ describe('DanmakuService.purgeOlderThan', () => {
   }
 
   it('does nothing and returns 0 for a non-positive day count', async () => {
-    const season = await new SeasonService(db).upsert(makeSeasonInsert())
+    const season = await seasonService.upsert(makeSeasonInsert())
     await seedEpisode(season.id, 'ep-1', Date.now())
 
     const deleted = await service.purgeOlderThan(0)
@@ -191,7 +190,7 @@ describe('DanmakuService.purgeOlderThan', () => {
   })
 
   it('deletes only episodes older than the threshold', async () => {
-    const season = await new SeasonService(db).upsert(makeSeasonInsert())
+    const season = await seasonService.upsert(makeSeasonInsert())
     const dayMs = 24 * 60 * 60 * 1000
     await seedEpisode(season.id, 'ep-old', Date.now() - 2 * dayMs)
     await seedEpisode(season.id, 'ep-new', Date.now())

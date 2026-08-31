@@ -9,19 +9,24 @@ interface WorkspacePackage {
   path: string
 }
 
-// `pnpm -r test` skips a package with no `test` script without saying so, which
-// is how a whole app's suite went years without running. Every workspace
-// package has to declare one, even if it only passes with no tests yet.
+// `pnpm -r test` skips a package with no `test` script without saying so.
 const listed = execFileSync(
   'pnpm',
   ['list', '--recursive', '--depth', '-1', '--json'],
   { encoding: 'utf8' }
 )
 
-const workspaceRoot = process.cwd()
-const packages = (JSON.parse(listed) as WorkspacePackage[]).filter(
-  (pkg) => path.resolve(pkg.path) !== workspaceRoot
-)
+const listedPackages = (JSON.parse(listed) as WorkspacePackage[]).map((pkg) => {
+  return { ...pkg, path: path.resolve(pkg.path) }
+})
+
+// The listing always includes the workspace root itself, which owns no tests.
+// It is the entry every other entry lives under, not wherever this was run from.
+const workspaceRoot = listedPackages.reduce((shortest, pkg) => {
+  return pkg.path.length < shortest.path.length ? pkg : shortest
+}, listedPackages[0])
+
+const packages = listedPackages.filter((pkg) => pkg.path !== workspaceRoot.path)
 
 const offenders = packages.filter((pkg) => {
   const manifest = JSON.parse(

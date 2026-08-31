@@ -63,7 +63,7 @@ jobs:
         run: pnpm check:test-scripts
 
       - name: Test (changed packages only)
-        run: pnpm --filter '...[${{ github.event.pull_request.base.sha }}]' test
+        run: pnpm --filter '...[${{ github.event.pull_request.base.sha }}]' --filter '!@mr-quin/danmaku-anywhere' test
 
-      - name: Extension coverage report
+      - name: Test extension with coverage
         run: pnpm --filter @mr-quin/danmaku-anywhere test:coverage

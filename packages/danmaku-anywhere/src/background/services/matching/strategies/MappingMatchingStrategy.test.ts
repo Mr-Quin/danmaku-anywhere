@@ -2,7 +2,7 @@ import type {
   EpisodeMeta,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { backgroundContainerModule } from '@/background/ioc'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
@@ -115,15 +115,9 @@ function buildStrategy(doubles: {
   )
 }
 
-let strategy: MappingMatchingStrategy
-
 describe('MappingMatchingStrategy', () => {
-  beforeEach(() => {
-    strategy = buildStrategy({})
-  })
-
   it('resolves an episode from an explicit season id', async () => {
-    strategy = buildStrategy({ getById: vi.fn(async () => season) })
+    const strategy = buildStrategy({ getById: vi.fn(async () => season) })
 
     const result = await strategy.match(makeInput({ seasonId: season.id }))
 
@@ -136,7 +130,7 @@ describe('MappingMatchingStrategy', () => {
 
   it('writes the mapping back after resolving by season id', async () => {
     const add = vi.fn<TitleMappingService['add']>(async () => undefined)
-    strategy = buildStrategy({ getById: vi.fn(async () => season), add })
+    const strategy = buildStrategy({ getById: vi.fn(async () => season), add })
 
     await strategy.match(makeInput({ seasonId: season.id }))
 
@@ -146,7 +140,7 @@ describe('MappingMatchingStrategy', () => {
   })
 
   it('passes to the next strategy when the explicit season id is unknown', async () => {
-    strategy = buildStrategy({ getById: vi.fn(async () => undefined) })
+    const strategy = buildStrategy({ getById: vi.fn(async () => undefined) })
 
     await expect(
       strategy.match(makeInput({ seasonId: 999 }))
@@ -154,7 +148,7 @@ describe('MappingMatchingStrategy', () => {
   })
 
   it('resolves through the stored mapping for an automatic provider', async () => {
-    strategy = buildStrategy({
+    const strategy = buildStrategy({
       mapping: SeasonMap.fromSnapshot({
         key: 'Show',
         seasons: { dandanplay: season.id },
@@ -174,7 +168,7 @@ describe('MappingMatchingStrategy', () => {
   })
 
   it('passes to the next strategy when the mapping names no known provider', async () => {
-    strategy = buildStrategy({
+    const strategy = buildStrategy({
       mapping: SeasonMap.fromSnapshot({
         key: 'Show',
         seasons: { bilibili: 7 },
@@ -187,6 +181,8 @@ describe('MappingMatchingStrategy', () => {
   })
 
   it('passes to the next strategy when nothing is mapped', async () => {
+    const strategy = buildStrategy({})
+
     await expect(strategy.match(makeInput())).resolves.toBeNull()
   })
 
@@ -194,7 +190,7 @@ describe('MappingMatchingStrategy', () => {
     const resolveEpisode = vi.fn<EpisodeResolutionService['resolveEpisode']>(
       async () => episode
     )
-    strategy = buildStrategy({
+    const strategy = buildStrategy({
       getById: vi.fn(async () => season),
       resolveEpisode,
     })
@@ -212,7 +208,7 @@ describe('MappingMatchingStrategy', () => {
   })
 
   it('turns a resolver failure into notFound carrying the cause', async () => {
-    strategy = buildStrategy({
+    const strategy = buildStrategy({
       getById: vi.fn(async () => season),
       resolveEpisode: vi.fn(async () => {
         throw new Error('Episode 1 not found in season')

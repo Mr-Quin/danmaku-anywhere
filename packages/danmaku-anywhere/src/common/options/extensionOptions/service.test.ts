@@ -1,14 +1,11 @@
+import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { UpgradeService } from '@/background/syncOptions/UpgradeService/UpgradeService'
 import { Language } from '@/common/localization/language'
 import { defaultExtensionOptions } from '@/common/options/extensionOptions/constant'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import {
-  createOptionsContainer,
-  readOptions,
-  seedOptions,
-} from '@/tests/optionsStore'
+import { createOptionsContainer, optionsStorage } from '@/tests/optionsStore'
 
 /**
  * Extension options migrate through every registered version step in order, so
@@ -17,15 +14,10 @@ import {
  * defaults at the latest version rather than half-migrated.
  */
 
-const STORAGE_KEY = 'extensionOptions'
+const LATEST_VERSION = 27
 
-async function seed(data: unknown, version: number) {
-  await seedOptions(STORAGE_KEY, data, version)
-}
-
-async function readStored() {
-  return readOptions<Record<string, unknown>>(STORAGE_KEY)
-}
+const { seed, read: readStored } =
+  optionsStorage<Record<string, unknown>>('extensionOptions')
 
 let service: ExtensionOptionsService
 let providerConfigService: ProviderConfigService
@@ -42,7 +34,7 @@ describe('ExtensionOptionsService migrations', () => {
 
     const stored = await readStored()
     expect(stored.data).toEqual(defaultExtensionOptions)
-    expect(stored.version).toBe(27)
+    expect(stored.version).toBe(LATEST_VERSION)
   })
 
   it('adds lang, theme and hotkeys on the way from version 1', async () => {
@@ -51,13 +43,13 @@ describe('ExtensionOptionsService migrations', () => {
     await service.options.upgrade()
 
     const { data, version } = await readStored()
-    expect(version).toBe(27)
+    expect(version).toBe(LATEST_VERSION)
     expect(data.lang).toBe(Language.zh)
     expect(data.theme).toEqual({ colorMode: 'system' })
     expect(data.hotkeys).toEqual(defaultExtensionOptions.hotkeys)
   })
 
-  it('moves danmakuSources into provider config storage at version 21', async () => {
+  it('carries each source enabled flag into provider config storage at version 21', async () => {
     await seed(
       {
         enabled: true,
@@ -66,7 +58,11 @@ describe('ExtensionOptionsService migrations', () => {
           bilibili: { enabled: true, danmakuTypePreference: 'xml' },
           tencent: { enabled: false, limitPerMin: 200 },
           iqiyi: { enabled: false, limitPerMin: 200 },
-          custom: { enabled: true, baseUrl: 'https://zy.xmm.hk' },
+          custom: {
+            enabled: true,
+            baseUrl: 'https://zy.xmm.hk',
+            danmuicuBaseUrl: 'https://api.danmu.icu',
+          },
         },
       },
       20
@@ -76,17 +72,42 @@ describe('ExtensionOptionsService migrations', () => {
 
     const { data } = await readStored()
     expect(data.danmakuSources).toBeUndefined()
+
     const providers = await providerConfigService.options.readUnblocked()
-    expect(providers.map((config) => config.manifestId)).toContain('dandanplay')
+    const enabledByManifest = Object.fromEntries(
+      providers.map((config) => [config.manifestId, config.enabled])
+    )
+    expect(enabledByManifest).toEqual({
+      dandanplay: true,
+      bilibili: true,
+      tencent: false,
+      [LEGACY_MACCMS_ID]: true,
+    })
   })
 
   it('fills the fields added by versions 22 through 27', async () => {
-    await seed({ ...defaultExtensionOptions }, 21)
+    const {
+      restrictInitiatorDomain: _restrict,
+      showFloatingButton: _floating,
+      autoBookmark: _bookmark,
+      infoPanel: _infoPanel,
+      ...preV22
+    } = defaultExtensionOptions
+    await seed(
+      {
+        ...preV22,
+        playerOptions: {
+          ...preV22.playerOptions,
+          enableFullscreenInteraction: false,
+        },
+      },
+      21
+    )
 
     await service.options.upgrade()
 
     const { data, version } = await readStored()
-    expect(version).toBe(27)
+    expect(version).toBe(LATEST_VERSION)
     expect(data.restrictInitiatorDomain).toBe(true)
     expect(data.playerOptions).toMatchObject({
       enableFullscreenInteraction: true,
@@ -120,7 +141,7 @@ describe('ExtensionOptionsService migrations', () => {
 
     const { data, version } = await readStored()
     expect(data).toEqual(defaultExtensionOptions)
-    expect(version).toBe(27)
+    expect(version).toBe(LATEST_VERSION)
   })
 })
 

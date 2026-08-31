@@ -3,7 +3,7 @@ import type {
   Season,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { backgroundContainerModule } from '@/background/ioc'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
@@ -22,9 +22,8 @@ import { SearchMatchingStrategy } from './SearchMatchingStrategy'
 
 /**
  * Search is the last resort: it queries the first automatic provider and
- * branches on how many seasons come back. One season auto-maps and resolves,
- * several hand the caller a disambiguation list, and none is a terminal
- * notFound rather than a pass to the next strategy.
+ * branches on how many seasons come back. Unlike the strategies before it,
+ * an empty result is terminal rather than a pass to the next strategy.
  */
 
 const autoProvider = makeProviderConfig({
@@ -48,15 +47,13 @@ function makeInput(overrides: Partial<MatchEpisodeInput> = {}) {
 
 function buildStrategy(doubles: {
   autoProvider?: ReturnType<typeof makeProviderConfig>
-  searchResults?: Season[]
-  upsertResults?: Season[]
+  seasons?: Season[]
   add?: TitleMappingService['add']
   resolveEpisode?: EpisodeResolutionService['resolveEpisode']
 }) {
   const {
     autoProvider: provider,
-    searchResults = [],
-    upsertResults = [],
+    seasons = [],
     add = vi.fn<TitleMappingService['add']>(async () => undefined),
     resolveEpisode = vi.fn<EpisodeResolutionService['resolveEpisode']>(
       async () => episode
@@ -74,15 +71,13 @@ function buildStrategy(doubles: {
     {
       identifier: DanmakuProviderFactory,
       value: () => {
-        return { search: async () => searchResults }
+        return { search: async () => seasons }
       },
     },
     {
       identifier: SeasonService,
       value: {
-        // bulkUpsert is generic over the insert type, so a fixed list of seasons
-        // cannot satisfy it structurally.
-        bulkUpsert: (async () => upsertResults) as SeasonService['bulkUpsert'],
+        bulkUpsert: (async () => seasons) as SeasonService['bulkUpsert'],
       } satisfies Pick<SeasonService, 'bulkUpsert'>,
     },
     {
@@ -103,20 +98,16 @@ function buildStrategy(doubles: {
   )
 }
 
-let strategy: SearchMatchingStrategy
-
 describe('SearchMatchingStrategy', () => {
-  beforeEach(() => {
-    strategy = buildStrategy({ autoProvider })
-  })
-
   it('passes to the next strategy when no automatic provider is enabled', async () => {
-    strategy = buildStrategy({ autoProvider: undefined })
+    const strategy = buildStrategy({ autoProvider: undefined })
 
     await expect(strategy.match(makeInput())).resolves.toBeNull()
   })
 
   it('reports notFound when the search returns nothing', async () => {
+    const strategy = buildStrategy({ autoProvider })
+
     const result = await strategy.match(makeInput())
 
     expect(result).toEqual({
@@ -129,10 +120,9 @@ describe('SearchMatchingStrategy', () => {
   it('auto-maps and resolves when the search returns exactly one season', async () => {
     const found = makeSeason({ id: 42, namespaceKey: 'dandanplay' })
     const add = vi.fn<TitleMappingService['add']>(async () => undefined)
-    strategy = buildStrategy({
+    const strategy = buildStrategy({
       autoProvider,
-      searchResults: [found],
-      upsertResults: [found],
+      seasons: [found],
       add,
     })
 
@@ -152,10 +142,9 @@ describe('SearchMatchingStrategy', () => {
     const resolveEpisode = vi.fn<EpisodeResolutionService['resolveEpisode']>(
       async () => episode
     )
-    strategy = buildStrategy({
+    const strategy = buildStrategy({
       autoProvider,
-      searchResults: [found],
-      upsertResults: [found],
+      seasons: [found],
       resolveEpisode,
     })
 
@@ -171,10 +160,9 @@ describe('SearchMatchingStrategy', () => {
 
   it('turns a resolver failure into notFound carrying the cause', async () => {
     const found = makeSeason({ id: 42, namespaceKey: 'dandanplay' })
-    strategy = buildStrategy({
+    const strategy = buildStrategy({
       autoProvider,
-      searchResults: [found],
-      upsertResults: [found],
+      seasons: [found],
       resolveEpisode: vi.fn(async () => {
         throw new Error('Episode 1 not found in season')
       }),
@@ -194,10 +182,9 @@ describe('SearchMatchingStrategy', () => {
       makeSeason({ id: 1, title: 'Show season 1' }),
       makeSeason({ id: 2, title: 'Show season 2' }),
     ]
-    strategy = buildStrategy({
+    const strategy = buildStrategy({
       autoProvider,
-      searchResults: found,
-      upsertResults: found,
+      seasons: found,
     })
 
     const result = await strategy.match(makeInput())

@@ -4,11 +4,7 @@ import { createMountConfig } from '@/common/options/mountConfig/constant'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 import { LATEST_MOUNT_CONFIG_VERSION } from '@/common/options/mountConfig/version'
-import {
-  createOptionsContainer,
-  readOptions,
-  seedOptions,
-} from '@/tests/optionsStore'
+import { createOptionsContainer, optionsStorage } from '@/tests/optionsStore'
 
 /**
  * Mount configs migrate per entry, so each version step is asserted against a
@@ -17,15 +13,8 @@ import {
  * migrate. The CRUD surface is asserted against what lands in storage.
  */
 
-const STORAGE_KEY = 'mountConfig'
-
-async function seed(data: unknown, version: number) {
-  await seedOptions(STORAGE_KEY, data, version)
-}
-
-async function readStored() {
-  return readOptions<Record<string, unknown>[]>(STORAGE_KEY)
-}
+const { seed, read: readStored } =
+  optionsStorage<Record<string, unknown>[]>('mountConfig')
 
 function makeLegacyConfig(overrides: Record<string, unknown> = {}) {
   return {
@@ -40,7 +29,7 @@ function makeLegacyConfig(overrides: Record<string, unknown> = {}) {
 
 let service: MountConfigService
 
-beforeEach(async () => {
+beforeEach(() => {
   service = createOptionsContainer().get(MountConfigService)
 })
 

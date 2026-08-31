@@ -4,30 +4,19 @@ import {
   defaultDanmakuOptions,
 } from '@/common/options/danmakuOptions/constant'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
-import {
-  createOptionsContainer,
-  readOptions,
-  seedOptions,
-} from '@/tests/optionsStore'
+import { createOptionsContainer, optionsStorage } from '@/tests/optionsStore'
 
 /**
  * Danmaku options migrate in place through ten version steps, several of which
  * delete fields as well as add them. Each step is asserted on the fields it
- * owns, including the version 9 step that discards the abandoned dedup field in
- * favor of collapse. A step that throws on a stale shape has to land the store
- * on defaults rather than a half-migrated mix of old and new fields.
+ * owns. A step that throws on a stale shape has to land the store on defaults
+ * rather than a half-migrated mix of old and new fields.
  */
 
-const STORAGE_KEY = 'danmakuOptions'
 const LATEST_VERSION = 10
 
-async function seed(data: unknown, version: number) {
-  await seedOptions(STORAGE_KEY, data, version)
-}
-
-async function readStored() {
-  return readOptions<Record<string, unknown>>(STORAGE_KEY)
-}
+const { seed, read: readStored } =
+  optionsStorage<Record<string, unknown>>('danmakuOptions')
 
 let service: DanmakuOptionsService
 

@@ -19,15 +19,14 @@ export function createOptionsContainer(): Container {
   return container
 }
 
-export async function seedOptions(
-  key: string,
-  data: unknown,
-  version: number
-): Promise<void> {
-  await fakeBrowser.storage.sync.set({ [key]: { data, version } })
-}
-
-export async function readOptions<T>(key: string): Promise<Options<T>> {
-  const stored = await fakeBrowser.storage.sync.get(key)
-  return stored[key] as Options<T>
+export function optionsStorage<T>(key: string) {
+  return {
+    seed: async (data: unknown, version: number): Promise<void> => {
+      await fakeBrowser.storage.sync.set({ [key]: { data, version } })
+    },
+    read: async (): Promise<Options<T>> => {
+      const stored = await fakeBrowser.storage.sync.get(key)
+      return stored[key] as Options<T>
+    },
+  }
 }

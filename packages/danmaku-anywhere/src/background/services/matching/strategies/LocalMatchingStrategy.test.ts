@@ -1,5 +1,5 @@
 import type { CustomEpisode } from '@danmaku-anywhere/danmaku-converter'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { backgroundContainerModule } from '@/background/ioc'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
@@ -105,15 +105,9 @@ function buildStrategy(doubles: {
   )
 }
 
-let strategy: LocalMatchingStrategy
-
 describe('LocalMatchingStrategy', () => {
-  beforeEach(() => {
-    strategy = buildStrategy({})
-  })
-
   it('passes to the next strategy when local matching is disabled', async () => {
-    strategy = buildStrategy({
+    const strategy = buildStrategy({
       matchLocalDanmaku: false,
       matchLocalByTitle: vi.fn(async () => customEpisode),
     })
@@ -125,7 +119,7 @@ describe('LocalMatchingStrategy', () => {
     const getCustomByTitle = vi.fn<DanmakuService['getCustomByTitle']>(
       async () => customEpisode
     )
-    strategy = buildStrategy({ rules: [makeRule()], getCustomByTitle })
+    const strategy = buildStrategy({ rules: [makeRule()], getCustomByTitle })
 
     const result = await strategy.match(makeInput({ episodeNumber: 3 }))
 
@@ -141,7 +135,7 @@ describe('LocalMatchingStrategy', () => {
     const getCustomByTitle = vi.fn<DanmakuService['getCustomByTitle']>(
       async () => customEpisode
     )
-    strategy = buildStrategy({
+    const strategy = buildStrategy({
       rules: [makeRule({ title: 'Original Show' })],
       getCustomByTitle,
     })
@@ -157,7 +151,7 @@ describe('LocalMatchingStrategy', () => {
     const getCustomByTitle = vi.fn<DanmakuService['getCustomByTitle']>(
       async () => customEpisode
     )
-    strategy = buildStrategy({
+    const strategy = buildStrategy({
       rules: [
         makeRule({ folderPath: '/ByTitle' }),
         makeRule({ title: 'unused', folderPath: '/ByMapping' }),
@@ -182,7 +176,7 @@ describe('LocalMatchingStrategy', () => {
     const getCustomByTitle = vi.fn<DanmakuService['getCustomByTitle']>(
       async () => customEpisode
     )
-    strategy = buildStrategy({
+    const strategy = buildStrategy({
       rules: [makeRule({ title: 'Some other show' })],
       getCustomByTitle,
       mapping: SeasonMap.fromSnapshot({
@@ -203,7 +197,7 @@ describe('LocalMatchingStrategy', () => {
     const matchLocalByTitle = vi.fn<DanmakuService['matchLocalByTitle']>(
       async () => customEpisode
     )
-    strategy = buildStrategy({ matchLocalByTitle })
+    const strategy = buildStrategy({ matchLocalByTitle })
 
     const result = await strategy.match(
       makeInput({ originalTitle: 'S01E01.mkv' })
@@ -218,7 +212,7 @@ describe('LocalMatchingStrategy', () => {
   })
 
   it('passes to the next strategy when no rule and no filename matches', async () => {
-    strategy = buildStrategy({ rules: [makeRule()] })
+    const strategy = buildStrategy({ rules: [makeRule()] })
 
     await expect(strategy.match(makeInput())).resolves.toBeNull()
   })
@@ -227,7 +221,7 @@ describe('LocalMatchingStrategy', () => {
     const getCustomByTitle = vi.fn<DanmakuService['getCustomByTitle']>(
       async () => customEpisode
     )
-    strategy = buildStrategy({ rules: [makeRule()], getCustomByTitle })
+    const strategy = buildStrategy({ rules: [makeRule()], getCustomByTitle })
 
     const result = await strategy.match(makeInput({ episodeNumber: undefined }))
 
