@@ -13,7 +13,11 @@ import type {
   ProviderManifestInfo,
 } from '@/common/rpcClient/background/types'
 import { invariant, sleep } from '@/common/utils/utils'
-import { bundledCatalogIndex, bundledManifestRaw } from './bundledCatalog'
+import {
+  bundledCatalogIndex,
+  bundledIdentityFieldsMap,
+  bundledManifestRaw,
+} from './bundledCatalog'
 import { extensionFetchLike } from './extensionFetchLike'
 import {
   type IManifestStore,
@@ -111,17 +115,22 @@ export class ManifestRegistry {
     })
   }
 
-  // The manifest's identityFields declaration, for namespace derivation. An
-  // unregistered manifest (e.g. legacy:maccms, or one deleted since the config
-  // was created) resolves as declaring none.
+  // The manifest's identityFields declaration, for namespace derivation. The
+  // store is empty until the first catalog sync, so an unloaded manifest falls
+  // back to the bundle: a namespace derived from a missing declaration
+  // collapses a self-hosted instance onto the shared one.
   async getIdentityFields(manifestId: string): Promise<readonly string[]> {
     await this.ready
-    return this.runners.get(manifestId)?.runner.manifest.identityFields ?? []
+    const registered = this.runners.get(manifestId)
+    if (registered) {
+      return registered.runner.manifest.identityFields
+    }
+    return bundledIdentityFieldsMap()[manifestId] ?? []
   }
 
   async getIdentityFieldsMap(): Promise<Record<string, readonly string[]>> {
     await this.ready
-    const map: Record<string, readonly string[]> = {}
+    const map: Record<string, readonly string[]> = bundledIdentityFieldsMap()
     for (const [id, { runner }] of this.runners) {
       map[id] = runner.manifest.identityFields
     }

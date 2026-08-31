@@ -16,7 +16,7 @@ export class SeasonService {
       id: string
       manifestId: string
       configValues?: Record<string, unknown>
-      identityFields: readonly string[]
+      identityFields?: readonly string[]
     }[]
   ): Promise<number> {
     return reconcileSeasonIdentity(this.db, configs)

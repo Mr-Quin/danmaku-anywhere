@@ -25,6 +25,29 @@ import { BUILT_IN_AI_PROVIDER_ID } from '../aiProviderConfig/constant'
 import { migrateMountConfigV4V5 } from './migrations/migrateMountConfigV4V5'
 import { LATEST_MOUNT_CONFIG_VERSION } from './version'
 
+// A stale or corrupted stored value should degrade to dropping the bad
+// record, not crash the whole upgrade step and reset every mount config.
+function upgradeConfigs(
+  data: PrevOptions,
+  transform: (config: PrevOptions) => PrevOptions
+): PrevOptions[] {
+  if (!Array.isArray(data)) {
+    return []
+  }
+  return data
+    .filter(
+      (config: PrevOptions) => typeof config === 'object' && config !== null
+    )
+    .map((config: PrevOptions) => {
+      try {
+        return transform(config)
+      } catch {
+        return null
+      }
+    })
+    .filter((config: PrevOptions) => config !== null)
+}
+
 @injectable('Singleton')
 export class MountConfigService implements IStoreService {
   public readonly name = 'mountConfig'
@@ -46,14 +69,14 @@ export class MountConfigService implements IStoreService {
       })
       .version(2, {
         upgrade: (data) =>
-          data.map((config: PrevOptions) => ({
+          upgradeConfigs(data, (config) => ({
             ...config,
             enabled: false, // switching to new permission model. disable all configs by default, permission will be asked when enabled
           })),
       })
       .version(3, {
         upgrade: (data) =>
-          data.map((config: PrevOptions) =>
+          upgradeConfigs(data, (config) =>
             produce<PrevOptions>(config, (draft) => {
               // add id field
               draft.id = getRandomUUID()
@@ -68,7 +91,7 @@ export class MountConfigService implements IStoreService {
       })
       .version(4, {
         upgrade: (data) =>
-          data.map((config: PrevOptions) =>
+          upgradeConfigs(data, (config) =>
             produce<PrevOptions>(config, (draft) => {
               // Remove existing integration to migrate to new policy based integration
               // User has to manually select the integration policy
@@ -83,7 +106,7 @@ export class MountConfigService implements IStoreService {
       .version(LATEST_MOUNT_CONFIG_VERSION, {
         // add ai config
         upgrade: (data) => {
-          return data.map((config: PrevOptions) => ({
+          return upgradeConfigs(data, (config) => ({
             ...config,
             ai: {
               providerId: BUILT_IN_AI_PROVIDER_ID,

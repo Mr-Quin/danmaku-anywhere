@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { computeNamespaceKey } from '@/common/providers/namespaceKey'
 import { silentLogger } from '@/tests/silentLogger'
 import { bundledCatalogIndex } from './bundledCatalog'
 import { ManifestRegistry } from './ManifestRegistry'
@@ -944,5 +945,72 @@ describe('ManifestRegistry', () => {
       kind: 'user',
     })
     expect(await registry.getSource('missing')).toBeUndefined()
+  })
+})
+
+describe('ManifestRegistry identity fields', () => {
+  it('resolves a bundled manifest declaration before the catalog has ever synced', async () => {
+    const fetchMock = stubCatalogFetch([], {})
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(registry.list()).toEqual([])
+    expect(await registry.getIdentityFields('dandanplay')).toEqual(['baseUrl'])
+    expect((await registry.getIdentityFieldsMap())['dandanplay']).toEqual([
+      'baseUrl',
+    ])
+  })
+
+  it('keys a self-hosted config to its own namespace with an empty store', async () => {
+    stubCatalogFetch([], {})
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    const identityFields = await registry.getIdentityFieldsMap()
+
+    const selfHosted = {
+      id: 'd9d068cc-d7a5-4277-990b-73b28f7637f8',
+      manifestId: 'dandanplay',
+      configValues: { baseUrl: 'https://ddp.selfhosted.example' },
+    }
+    expect(
+      computeNamespaceKey(
+        selfHosted,
+        identityFields[selfHosted.manifestId] ?? []
+      )
+    ).toMatch(/^ns:/)
+  })
+
+  it('prefers the registered declaration over the bundled one', async () => {
+    stubCatalogFetch([], {})
+    const store = new InMemoryStore({
+      dandanplay: {
+        manifest: {
+          ...makeManifest('dandanplay'),
+          configSchema: {
+            type: 'object',
+            properties: { token: { type: 'string' } },
+          },
+          identityFields: ['token'],
+        },
+        kind: 'preinstalled',
+      },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(await registry.getIdentityFields('dandanplay')).toEqual(['token'])
+  })
+
+  it('resolves an unknown manifest as declaring no identity fields', async () => {
+    stubCatalogFetch([], {})
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+
+    expect(await registry.getIdentityFields('legacy:maccms')).toEqual([])
+    expect(
+      (await registry.getIdentityFieldsMap())['legacy:maccms']
+    ).toBeUndefined()
   })
 })

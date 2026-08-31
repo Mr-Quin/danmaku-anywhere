@@ -158,7 +158,12 @@ export async function ensureCurrentBuildForMigration(): Promise<string> {
     )
   }
 
-  const workerSlot = process.env.PLAYWRIGHT_WORKER_INDEX ?? '0'
+  // TEST_PARALLEL_INDEX is bounded by the worker count and is reused when a
+  // worker restarts, so it maps to a stable cache slot. Playwright does not
+  // set PLAYWRIGHT_WORKER_INDEX, so reading that gave every worker slot 0 and
+  // raced them on the same directory.
+  const workerSlot =
+    process.env.TEST_PARALLEL_INDEX ?? process.env.TEST_WORKER_INDEX ?? '0'
   const destRoot = path.join(CACHE_ROOT, `current-${workerSlot}`)
   const destExt = path.join(destRoot, 'extension')
   const stampPath = path.join(destRoot, '.src-mtime')

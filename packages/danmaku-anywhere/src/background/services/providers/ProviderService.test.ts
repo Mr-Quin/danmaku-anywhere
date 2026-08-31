@@ -917,3 +917,120 @@ describe('ProviderService.deleteUserManifest', () => {
     expect(unregister).not.toHaveBeenCalled()
   })
 })
+
+/**
+ * setup() kicks off the once-per-session season identity reconcile. The
+ * namespace it stamps is derived from the manifest's identityFields
+ * declaration, so a registry that has not loaded the manifest yet must not
+ * hand the reconciler an empty declaration: that collapses a self-hosted
+ * config onto the manifest's shared namespace and drops the providerConfigId
+ * that could correct it later.
+ */
+interface ReconciledConfig {
+  id: string
+  manifestId: string
+  configValues?: Record<string, unknown>
+  identityFields?: readonly string[]
+}
+
+describe('ProviderService.setup reconcile', () => {
+  const SELF_HOSTED_DDP: ProviderConfig = {
+    id: 'd9d068cc-d7a5-4277-990b-73b28f7637f8',
+    manifestId: 'dandanplay',
+    name: 'Self hosted',
+    enabled: true,
+    configValues: { baseUrl: 'https://ddp.selfhosted.example' },
+  }
+
+  function buildForReconcile(identityFields: Record<string, string[]>) {
+    const reconcileIdentities = vi.fn(async (_configs: ReconciledConfig[]) => 0)
+    const seasonService = { reconcileIdentities } as unknown as SeasonService
+
+    const providerConfigService = {
+      getAll: vi.fn(async () => [
+        SELF_HOSTED_DDP,
+        makeConfig(LEGACY_MACCMS_ID),
+      ]),
+      options: { onChange: vi.fn() },
+    } as unknown as ProviderConfigService
+
+    const registry = {
+      ready: Promise.resolve(true),
+      getIdentityFieldsMap: vi.fn(async () => identityFields),
+    } as unknown as ManifestRegistry
+
+    const service = new ProviderService(
+      {} as unknown as DanmakuService,
+      seasonService,
+      providerConfigService,
+      vi.fn(),
+      registry,
+      {} as unknown as BookmarkService,
+      silentLogger,
+      silentExtensionOptions
+    )
+
+    return { service, reconcileIdentities }
+  }
+
+  async function reconciledConfigs(
+    identityFields: Record<string, string[]>
+  ): Promise<ReconciledConfig[]> {
+    const { service, reconcileIdentities } = buildForReconcile(identityFields)
+
+    service.setup()
+    await vi.waitFor(() => expect(reconcileIdentities).toHaveBeenCalled())
+
+    return reconcileIdentities.mock.calls.at(0)?.[0] ?? []
+  }
+
+  it('reconciles once per browser session', async () => {
+    const first = buildForReconcile({ dandanplay: ['baseUrl'] })
+    first.service.setup()
+    await vi.waitFor(() => expect(first.reconcileIdentities).toHaveBeenCalled())
+    await vi.waitFor(async () => {
+      expect(await chrome.storage.session.get(null)).not.toEqual({})
+    })
+
+    // A second service worker start within the same browser session must not
+    // reconcile again, which only holds if the guard key outlives the pass.
+    const second = buildForReconcile({ dandanplay: ['baseUrl'] })
+    second.service.setup()
+
+    // Waiting for an absence needs a real window: without the guard the second
+    // pass does reconcile, it just takes a few async turns to get there, so
+    // asserting immediately would pass for the wrong reason.
+    const reconciledAgain = await vi
+      .waitFor(
+        () => {
+          expect(second.reconcileIdentities).toHaveBeenCalled()
+          return true
+        },
+        { timeout: 2000 }
+      )
+      .catch(() => false)
+
+    expect(reconciledAgain).toBe(false)
+  })
+
+  it('does not declare identity fields for a manifest the registry has not loaded', async () => {
+    const configs = await reconciledConfigs({})
+    const selfHosted = configs.find((c) => c.manifestId === 'dandanplay')
+
+    expect(selfHosted?.identityFields).toBeUndefined()
+  })
+
+  it('declares the manifest identity fields once the registry has loaded it', async () => {
+    const configs = await reconciledConfigs({ dandanplay: ['baseUrl'] })
+    const selfHosted = configs.find((c) => c.manifestId === 'dandanplay')
+
+    expect(selfHosted?.identityFields).toEqual(['baseUrl'])
+  })
+
+  it('declares no identity fields for legacy MacCMS, which has no manifest', async () => {
+    const configs = await reconciledConfigs({ dandanplay: ['baseUrl'] })
+    const maccms = configs.find((c) => c.manifestId === LEGACY_MACCMS_ID)
+
+    expect(maccms?.identityFields).toEqual([])
+  })
+})
