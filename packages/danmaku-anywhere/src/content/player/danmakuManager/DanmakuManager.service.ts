@@ -22,6 +22,7 @@ import { DanmakuDebugOverlayService } from '@/content/player/debugOverlay/Danmak
 import { OcclusionService } from '@/content/player/occlusion/Occlusion.service'
 import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.types'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
+import { recordRenderedComment } from './devRenderLog'
 
 const OCCLUSION_QUALITY_PRESETS: Record<
   OcclusionQuality,
@@ -37,6 +38,7 @@ export class DanmakuManagerService {
   private logger: ILogger
 
   private readonly renderer = new DanmakuRenderer((node, props) => {
+    recordRenderedComment(props.text)
     ReactDOM.createRoot(node).render(createElement(DanmakuComponent, props))
   })
   private readonly nodes: {
