@@ -1,6 +1,12 @@
 import { CommonModule } from '@angular/common'
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  output,
+} from '@angular/core'
 import { injectQuery } from '@tanstack/angular-query-experimental'
+import type { ShowCardData } from '../../components/show-card'
 import { BangumiService } from '../../services/bangumi.service'
 import type { BgmCalendar } from '../../types/bangumi.types'
 import { transformToShowCardData } from '../../utils/transform-to-show-card-data'
@@ -14,14 +20,16 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ShowCalendarGrid],
   template: `
-    <div class="container mx-auto p-4">
-      <div class="mb-6">
-        <h1 class="text-3xl font-bold mb-2">放送日历</h1>
+    <div class="w-full p-3">
+      <div class="mb-4">
+        <h1 class="text-2xl font-bold">放送日历</h1>
       </div>
 
       @if (calendarQuery.isPending()) {
         <da-show-calendar-grid
           [weekdays]="skeletonWeekdays()"
+          (openDetails)="openDetails.emit($event)"
+          (openWatch)="openWatch.emit($event)"
         />
       } @else if (calendarQuery.isError()) {
         <div class="text-center py-12">
@@ -33,6 +41,8 @@ import {
         @if (weeks) {
           <da-show-calendar-grid
             [weekdays]="transformToWeekdays(weeks)"
+            (openDetails)="openDetails.emit($event)"
+            (openWatch)="openWatch.emit($event)"
           />
         } @else {
           <div class="text-center py-12">
@@ -44,6 +54,9 @@ import {
   `,
 })
 export class CalendarPage {
+  readonly openDetails = output<ShowCardData>()
+  readonly openWatch = output<ShowCardData>()
+
   protected bangumiService = inject(BangumiService)
   protected calendarQuery = injectQuery(() => {
     return this.bangumiService.getCalendarQueryOptions()

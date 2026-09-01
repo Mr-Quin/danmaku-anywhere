@@ -1,12 +1,39 @@
-@layer base, utility, material-symbols;
+@layer base, utility;
 
 @import "primeicons/primeicons.css";
 @import "tailwindcss";
-@import "material-symbols" layer(material-symbols);
+@import "./styles/tokens.css";
 @plugin "tailwindcss-primeui";
 
 @custom-variant dark (&:where(.da-dark, .da-dark *));
 
 :root {
   interpolate-size: allow-keywords;
+}
+
+/* Themed thin scrollbar for the lane and column scrollers. */
+.kz-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--p-divider) transparent;
+}
+
+.kz-scroll::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+.kz-scroll::-webkit-scrollbar-thumb {
+  background: var(--p-divider);
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.kz-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--p-text-muted);
+  background-clip: padding-box;
+}
+
+.kz-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }

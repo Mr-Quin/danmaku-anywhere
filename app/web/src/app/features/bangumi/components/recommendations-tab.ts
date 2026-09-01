@@ -4,8 +4,8 @@ import {
   Component,
   inject,
   input,
+  output,
 } from '@angular/core'
-import { RouterLink } from '@angular/router'
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { Card } from 'primeng/card'
 import { BangumiService } from '../services/bangumi.service'
@@ -14,7 +14,7 @@ import { HorizontalCardSkeletonGrid } from './horizontal-card-skeleton-grid'
 @Component({
   selector: 'da-recommendations-tab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterLink, Card, HorizontalCardSkeletonGrid],
+  imports: [CommonModule, Card, HorizontalCardSkeletonGrid],
   template: `
     @if (recommendationsQuery.isPending()) {
       <da-horizontal-card-skeleton-grid [count]="5" />
@@ -39,9 +39,13 @@ import { HorizontalCardSkeletonGrid } from './horizontal-card-skeleton-grid'
                     </span>
                 </div>
                 <h4 class="font-semibold">
-                  <a [routerLink]="['/bangumi', recommendation.subject.id]" class="hover:text-blue-600">
+                  <button
+                    type="button"
+                    class="hover:text-blue-600 cursor-pointer text-left"
+                    (click)="openDetails.emit(recommendation.subject.id)"
+                  >
                     {{ recommendation.subject.nameCN || recommendation.subject.name }}
-                  </a>
+                  </button>
                 </h4>
                 @if (recommendation.subject.nameCN && recommendation.subject.name !== recommendation.subject.nameCN) {
                   <p class="text-sm text-gray-600">{{ recommendation.subject.name }}</p>
@@ -70,6 +74,8 @@ import { HorizontalCardSkeletonGrid } from './horizontal-card-skeleton-grid'
 export class RecommendationsTab {
   subjectId = input.required<number>()
   visited = input<boolean>(false)
+
+  readonly openDetails = output<number>()
 
   private bangumiService = inject(BangumiService)
 

@@ -11,7 +11,6 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
 import { Button } from 'primeng/button'
 import { Tag } from 'primeng/tag'
-import { MaterialIcon } from '../../../shared/components/material-icon'
 import { KazumiService } from '../services/kazumi.service'
 
 @Component({
@@ -23,7 +22,6 @@ import { KazumiService } from '../services/kazumi.service'
     Tag,
     CdkDropList,
     CdkDrag,
-    MaterialIcon,
     CdkDragHandle,
     CdkDragPlaceholder,
   ],
@@ -71,7 +69,7 @@ import { KazumiService } from '../services/kazumi.service'
               <li class="p-4 border border-surface-200 dark:border-surface-700 rounded-lg flex gap-3" cdkDrag
                   [cdkDragDisabled]="$count === 1">
                 @if ($count > 1) {
-                  <da-mat-icon icon="reorder" class="cursor-pointer self-center" cdkDragHandle size="2xl" />
+                  <i class="pi pi-bars cursor-pointer self-center text-2xl" cdkDragHandle></i>
                 }
                 <div class="h-[78px]" *cdkDragPlaceholder></div>
                 <div class="flex justify-between items-center grow-1">

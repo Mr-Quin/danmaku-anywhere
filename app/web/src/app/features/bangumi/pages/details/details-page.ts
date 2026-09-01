@@ -5,9 +5,9 @@ import {
   effect,
   inject,
   input,
+  output,
   signal,
 } from '@angular/core'
-import { ActivatedRoute, Router } from '@angular/router'
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs'
@@ -20,8 +20,11 @@ import { ReviewsTab } from '../../components/reviews-tab'
 import { StaffTab } from '../../components/staff-tab'
 import { TopicsTab } from '../../components/topics-tab'
 import { BangumiService } from '../../services/bangumi.service'
+import type { BgmSubject } from '../../types/bangumi.types'
 import { SubjectHeader } from './components/subject-header'
 import { SummaryCard } from './components/summary-card'
+import type { DetailsTab } from './details-tab'
+import { isDetailsTab } from './details-tab'
 
 @Component({
   selector: 'da-details-page',
@@ -46,7 +49,7 @@ import { SummaryCard } from './components/summary-card'
     CommentsTab,
   ],
   template: `
-    <div class="max-w-7xl mx-auto p-4">
+    <div class="w-full p-3">
       @if (subjectDetailsQuery.isPending()) {
         <div class="flex justify-center items-center py-12">
           <p-progress-spinner />
@@ -56,37 +59,40 @@ import { SummaryCard } from './components/summary-card'
           <p class="text-red-500">加载失败，请稍后重试</p>
         </div>
       } @else if (subjectDetailsQuery.isSuccess()) {
-        @let response = subjectDetailsQuery.data();
-        @let subject = response;
+        @let subject = subjectDetailsQuery.data();
 
-        <da-subject-header [subject]="subject" />
+        <da-subject-header
+          [subject]="subject"
+          (startSearch)="startSearch.emit($event)"
+          (goBack)="goBack.emit()"
+        />
 
         <da-summary-card [summary]="subject.summary" />
 
         <p-tabs lazy [(value)]="activeTab" (valueChange)="onTabChange($event)" scrollable>
           <p-tablist>
-            <p-tab value="comments">
+            <p-tab value="comments" data-testid="details-tab-comments">
               吐槽
             </p-tab>
-            <p-tab value="episodes">
+            <p-tab value="episodes" data-testid="details-tab-episodes">
               剧集
             </p-tab>
-            <p-tab value="characters">
+            <p-tab value="characters" data-testid="details-tab-characters">
               角色
             </p-tab>
-            <p-tab value="staff">
+            <p-tab value="staff" data-testid="details-tab-staff">
               制作人员
             </p-tab>
-            <p-tab value="relations">
+            <p-tab value="relations" data-testid="details-tab-relations">
               相关作品
             </p-tab>
-            <p-tab value="recommendations">
+            <p-tab value="recommendations" data-testid="details-tab-recommendations">
               推荐
             </p-tab>
-            <p-tab value="reviews">
+            <p-tab value="reviews" data-testid="details-tab-reviews">
               评论
             </p-tab>
-            <p-tab value="topics">
+            <p-tab value="topics" data-testid="details-tab-topics">
               讨论
             </p-tab>
           </p-tablist>
@@ -125,6 +131,7 @@ import { SummaryCard } from './components/summary-card'
               <da-relations-tab
                 [subjectId]="subjectId"
                 [visited]="visitedTabs().has('relations')"
+                (openDetails)="openDetails.emit($event)"
               />
             </p-tabpanel>
 
@@ -132,6 +139,7 @@ import { SummaryCard } from './components/summary-card'
               <da-recommendations-tab
                 [subjectId]="subjectId"
                 [visited]="visitedTabs().has('recommendations')"
+                (openDetails)="openDetails.emit($event)"
               />
             </p-tabpanel>
 
@@ -156,57 +164,37 @@ import { SummaryCard } from './components/summary-card'
   `,
 })
 export class DetailsPage {
-  // query param
-  t = input<string>('comments')
-  // path param
-  id = input.required<number>()
+  readonly id = input.required<number>()
+  readonly tab = input<DetailsTab>('comments')
 
-  private route = inject(ActivatedRoute)
-  private router = inject(Router)
+  readonly tabChange = output<DetailsTab>()
+  readonly startSearch = output<BgmSubject>()
+  readonly goBack = output<void>()
+  readonly openDetails = output<number>()
+
   protected bangumiService = inject(BangumiService)
 
-  protected visitedTabs = signal<Set<unknown>>(new Set())
-  protected activeTab = signal<string>('comments')
+  protected visitedTabs = signal<Set<DetailsTab>>(new Set())
+  protected activeTab = signal<DetailsTab>('comments')
 
   constructor() {
     effect(() => {
-      const tab = this.t()
-      if (this.isValidTab(tab)) {
-        this.visitTab(this.t())
-        this.activeTab.set(this.t())
-      } else {
-        this.visitTab('comments')
-      }
+      const tab = this.tab()
+      this.visitTab(tab)
+      this.activeTab.set(tab)
     })
   }
 
-  private visitTab(tab: string) {
+  private visitTab(tab: DetailsTab) {
     this.visitedTabs.update((tabs) => new Set([...tabs, tab]))
   }
 
   protected onTabChange(value: unknown) {
-    this.visitTab(value as string)
-
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { t: value },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
-    })
-  }
-
-  private isValidTab(tab: string): tab is string {
-    const validTabs = [
-      'comments',
-      'episodes',
-      'characters',
-      'staff',
-      'relations',
-      'recommendations',
-      'reviews',
-      'topics',
-    ]
-    return validTabs.includes(tab)
+    if (!isDetailsTab(value)) {
+      return
+    }
+    this.visitTab(value)
+    this.tabChange.emit(value)
   }
 
   protected subjectDetailsQuery = injectQuery(() => {

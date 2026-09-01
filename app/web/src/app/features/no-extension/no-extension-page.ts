@@ -4,7 +4,7 @@ import { faChrome, faFirefoxBrowser } from '@fortawesome/free-brands-svg-icons'
 import { Button, ButtonDirective } from 'primeng/button'
 import { UAParser } from 'ua-parser-js'
 import { isChromeFamily } from 'ua-parser-js/helpers'
-import { ExtensionService } from '../../core/extension/extension.service'
+import { ExtensionDetector } from '../../core/backend/extension-detector'
 import { TrackingService } from '../../core/tracking.service'
 import {
   CHROME_STORE_URL,
@@ -48,7 +48,7 @@ export class NoExtensionPage {
   private trackingService = inject(TrackingService)
   private ua = UAParser(navigator.userAgent)
 
-  protected extensionService = inject(ExtensionService)
+  protected extensionService = inject(ExtensionDetector)
 
   protected chrome = faChrome
   protected firefox = faFirefoxBrowser
