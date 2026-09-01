@@ -1,4 +1,10 @@
-import { Movie, Settings, SmartToy, Title } from '@mui/icons-material'
+import {
+  Movie,
+  Settings,
+  SmartToy,
+  Title,
+  Visibility,
+} from '@mui/icons-material'
 import {
   Box,
   Button,
@@ -44,6 +50,7 @@ export const MatchingSteps = () => {
   const activeConfig = useActiveConfig()
   const hasVideo = useStore((s) => s.frame.activeFrame?.hasVideo ?? false)
   const { toggleEditor, toggleAiEditor } = useStore.use.integrationForm()
+  const editMode = useStore.use.editMode()
   const { mediaInfo, foundElements, errorMessage, active } =
     useStore.use.integration()
   const activeIntegration = useActiveIntegration()
@@ -84,36 +91,54 @@ export const MatchingSteps = () => {
         }
         return (
           <Stack
-            direction="row"
             spacing={1}
             sx={{
-              alignItems: 'center',
               mt: 1,
             }}
           >
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => toggleEditor(true)}
-            >
-              {t('integration.createConfig', 'Create Integration')}
-            </Button>
-            <Typography
-              variant="body2"
-              color="textSecondary"
+            {activeConfig.mode === 'xpath' && (
+              <Button
+                variant="contained"
+                size="small"
+                color="primary"
+                startIcon={<Visibility />}
+                onClick={() => editMode.setActive(true)}
+                fullWidth
+              >
+                {t('editMode.entry.editMode', 'Edit Mode')}
+              </Button>
+            )}
+            <Stack
+              direction="row"
+              spacing={1}
               sx={{
-                fontSize: 'small',
+                alignItems: 'center',
               }}
             >
-              {t('mountPage.or', 'or')}
-            </Typography>
-            <Button
-              variant="contained"
-              size="small"
-              onClick={() => openImportDialog()}
-            >
-              {t('configPage.importShareCode', 'Import Share Code')}
-            </Button>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => toggleEditor(true)}
+              >
+                {t('integration.createConfig', 'Create Integration')}
+              </Button>
+              <Typography
+                variant="body2"
+                color="textSecondary"
+                sx={{
+                  fontSize: 'small',
+                }}
+              >
+                {t('mountPage.or', 'or')}
+              </Typography>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={() => openImportDialog()}
+              >
+                {t('configPage.importShareCode', 'Import Share Code')}
+              </Button>
+            </Stack>
           </Stack>
         )
       },
