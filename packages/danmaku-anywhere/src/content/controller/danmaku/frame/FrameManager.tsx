@@ -20,6 +20,7 @@ import { FrameRegistry } from '@/content/controller/danmaku/frame/FrameRegistry.
 import { selectBestFrame } from '@/content/controller/danmaku/frame/selectBestFrame'
 import { useMigrateDanmaku } from '@/content/controller/danmaku/frame/useMigrateDanmaku'
 import { usePreloadNextEpisode } from '@/content/controller/danmaku/frame/usePreloadNextEpisode'
+import { useEpisodeNavigation } from '@/content/controller/danmaku/integration/hooks/useEpisodeNavigation'
 import { getLatestPipelineEntry } from '@/content/controller/danmaku/panelState/latestPipelineEntry'
 import { useStore } from '@/content/controller/store/store'
 import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.types'
@@ -80,6 +81,7 @@ export const FrameManager = () => {
 
   const unmountDanmaku = useUnmountDanmaku()
   const { preloadNext, canLoadNext } = usePreloadNextEpisode()
+  const { tryAutoAdvance } = useEpisodeNavigation()
 
   useMigrateDanmaku()
 
@@ -148,6 +150,16 @@ export const FrameManager = () => {
     }
   })
 
+  const handleVideoEnded = useEventCallback(
+    (frameId: number, data: { duration: number }) => {
+      const activeFrame = useStore.getState().frame.activeFrame
+      if (frameId !== activeFrame?.frameId) {
+        return
+      }
+      tryAutoAdvance(data.duration)
+    }
+  )
+
   const handlePreloadNext = useEventCallback(async (frameId: number) => {
     const activeFrame = useStore.getState().frame.activeFrame
     if (frameId !== activeFrame?.frameId || !canLoadNext()) {
@@ -204,6 +216,9 @@ export const FrameManager = () => {
         },
         'relay:event:preloadNextEpisode': async ({ frameId }) => {
           handlePreloadNext(frameId)
+        },
+        'relay:event:videoEnded': async ({ frameId, data }) => {
+          handleVideoEnded(frameId, data)
         },
         'relay:event:showPopover': async () => handleShowPopover(),
         'relay:event:userInteraction': async () => {

@@ -2,7 +2,10 @@ import { Alert, Stack, Typography } from '@mui/material'
 import { useMemo } from 'react'
 import { type Control, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import type { IntegrationInput } from '@/common/options/integrationPolicyStore/schema'
+import {
+  type IntegrationInput,
+  zIntegrationPolicy,
+} from '@/common/options/integrationPolicyStore/schema'
 import { extractMediaInfo } from '@/content/controller/danmaku/integration/xPathPolicyOps/extractMediaInfo'
 import { matchNodesByXPathPolicy } from '@/content/controller/danmaku/integration/xPathPolicyOps/matchNodesByXPathPolicy'
 
@@ -16,11 +19,17 @@ export const IntegrationPreview = ({ control }: IntegrationPreviewProps) => {
   const policy = useWatch({ control, name: 'policy' })
 
   const extractionResult = useMemo(() => {
-    const nodes = matchNodesByXPathPolicy(policy)
+    // Form state is input-typed; parse to apply schema defaults before
+    // handing it to consumers that expect the canonical output shape.
+    const parsed = zIntegrationPolicy.safeParse(policy)
+    if (!parsed.success) {
+      return null
+    }
+    const nodes = matchNodesByXPathPolicy(parsed.data)
     if (!nodes) {
       return null
     }
-    return extractMediaInfo(nodes, policy)
+    return extractMediaInfo(nodes, parsed.data)
   }, [policy])
 
   if (!extractionResult) {

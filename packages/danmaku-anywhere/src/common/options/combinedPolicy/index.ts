@@ -9,6 +9,7 @@ import {
 import {
   zIntegration,
   zIntegrationPolicy,
+  zStoredIntegration,
 } from '@/common/options/integrationPolicyStore/schema'
 import { IntegrationPolicyService } from '@/common/options/integrationPolicyStore/service'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
@@ -16,7 +17,7 @@ import { mountConfigInputSchema } from '@/common/options/mountConfig/schema'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 
 export const zCombinedPolicy = mountConfigInputSchema.extend({
-  integration: zIntegration.optional(),
+  integration: zStoredIntegration.optional(),
 })
 
 export type CombinedPolicy = z.output<typeof zCombinedPolicy>
