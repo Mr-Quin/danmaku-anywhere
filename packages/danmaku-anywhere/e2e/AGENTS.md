@@ -178,7 +178,9 @@ POMs live under `e2e/pom/`. The composed root is `Popup` (`e2e/pom/Popup.ts`); p
 Add methods to a POM rather than reaching into selectors from a spec. If a spec needs a one-off selector that isn't worth a POM method, add a one-line comment explaining why a method wasn't added.
 
 ### Locale-stable matchers
-Toast text and dialog title/body are i18n-translated. Prefer `popup.toast.expectSuccess` / `expectError` (which scope by `data-severity`) over raw text matching. When asserting message text, use a regex that matches both locales — see `SeasonDetailsPage.expectCommentCount` (matches `条弹幕` and `comments`).
+Toast text and dialog title/body are i18n-translated. Prefer `popup.toast.expectSuccess` / `expectError` (which scope by `data-severity`) over raw text matching. When asserting message text, use a regex that matches both locales: see `SeasonDetailsPage.expectCommentCountToBe` (matches `条弹幕` and `comments`).
+
+Anchor such a regex and point it at the element that holds the text, not at an ancestor. Playwright matches a regex against an element's whole text content, and adjacent nodes concatenate with no separator: an episode row numbered 1 whose caption reads `0条弹幕` matches as `10条弹幕`, so a count assertion on the row passes on zero comments. That is why the count caption carries its own `comment-count` testid.
 
 ## Migration specs
 

@@ -31,5 +31,5 @@ test('dandanplay: search → season → episode → fetch danmaku', {
   await popup.search.openFirstResult('DanDanPlay')
   const episode =
     await popup.seasonDetails.fetchDanmakuForFirstEpisode('DanDanPlay')
-  await popup.seasonDetails.expectCommentCount(episode)
+  await popup.seasonDetails.expectCommentCountToBe(episode, 4)
 })

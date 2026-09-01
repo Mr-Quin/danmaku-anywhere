@@ -6,7 +6,10 @@ const COMMENT_LABEL = '条弹幕|comments?'
 const SELECTORS = {
   episodeForProvider: (provider: string) =>
     `[data-testid^="episode-list-item-${provider}-"]`,
-  COMMENT_COUNT_RE: new RegExp(`\\d+\\s*(${COMMENT_LABEL})`, 'i'),
+}
+
+function exactCountRe(count: number): RegExp {
+  return new RegExp(`^${count}\\s*(${COMMENT_LABEL})$`, 'i')
 }
 
 export class SeasonDetailsPage {
@@ -26,8 +29,12 @@ export class SeasonDetailsPage {
     return ep
   }
 
-  async expectCommentCount(episode: Locator, timeout = 15_000): Promise<void> {
-    await expect(episode).toContainText(SELECTORS.COMMENT_COUNT_RE, { timeout })
+  // Target the caption element, not the row: adjacent nodes concatenate, so
+  // an episode numbered 1 whose caption reads "0条弹幕" matches as "10条弹幕".
+  // EpisodeTreeItem reuses this testid for a bare number, so the label match
+  // below only holds for season-details rows.
+  private countCaption(episode: Locator): Locator {
+    return episode.getByTestId('comment-count')
   }
 
   async expectCommentCountToBe(
@@ -35,11 +42,8 @@ export class SeasonDetailsPage {
     count: number,
     timeout = 15_000
   ): Promise<void> {
-    // Scope to the count caption: the flattened button text merges the
-    // episode number with the count (e.g. "第1集" + "1" + "2条弹幕").
-    const countNode = episode.getByText(
-      new RegExp(`^${count}\\s*(${COMMENT_LABEL})$`, 'i')
-    )
-    await expect(countNode).toBeVisible({ timeout })
+    await expect(this.countCaption(episode)).toHaveText(exactCountRe(count), {
+      timeout,
+    })
   }
 }

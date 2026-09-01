@@ -6,6 +6,7 @@ import {
 import type { ManifestRunner } from '@mr-quin/dango'
 import { describe, expect, it, vi } from 'vitest'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
+import type { ILogger } from '@/common/Logger'
 import { silentLogger } from '@/tests/silentLogger'
 import {
   DANMAKU_RUN_OPTIONS,
@@ -17,8 +18,8 @@ import type { ManifestRegistry } from './ManifestRegistry'
 /**
  * Covers ManifestProviderService's host-side responsibilities: applying
  * `stripHtml` + canonical provider fields to search/episodes output and
- * forwarding danmaku pipeline output (already CommentEntity-shaped) to
- * the caller. Input precedence is exercised via the configValues path.
+ * validating danmaku pipeline output against the comment schema before it
+ * reaches the caller. Input precedence is exercised via the configValues path.
  */
 
 const RUN_OPTS = MANIFEST_RUN_OPTIONS
@@ -221,7 +222,24 @@ describe('ManifestProviderService.getDanmaku', () => {
     }
   }
 
-  it('forwards the danmaku pipeline output verbatim', async () => {
+  function makeDanmakuService(danmaku: unknown): {
+    svc: ManifestProviderService
+    warn: ReturnType<typeof vi.fn>
+  } {
+    const warn = vi.fn()
+    const logger = { ...silentLogger, warn } as unknown as ILogger
+    const svc = new ManifestProviderService(
+      {
+        manifestId: 'dandanplay',
+        providerConfigId: 'dandanplay',
+      },
+      makeRegistry(makeRunner({ danmaku })),
+      logger
+    )
+    return { svc, warn }
+  }
+
+  it('returns the danmaku pipeline output when it is comment-shaped', async () => {
     const raw: CommentEntity[] = [{ cid: 1, p: '1,1,16777215', m: 'hi' }]
     const runner = makeRunner({ danmaku: raw })
     const svc = new ManifestProviderService(
@@ -235,11 +253,54 @@ describe('ManifestProviderService.getDanmaku', () => {
 
     const result = await svc.getDanmaku(makeRequest({ episodeId: 42 }))
 
-    expect(result).toBe(raw)
+    expect(result).toEqual(raw)
     expect(runner.runDanmaku).toHaveBeenCalledWith(
       { episodeId: 42 },
       DANMAKU_RUN_OPTIONS
     )
+  })
+
+  it('drops a comment missing its text and keeps the rest', async () => {
+    const { svc, warn } = makeDanmakuService([
+      { p: '1,1,16777215', m: 'hi' },
+      { p: '2,1,16777215' },
+      { p: '3,1,16777215', m: 'bye' },
+    ])
+
+    const result = await svc.getDanmaku(makeRequest({ episodeId: 42 }))
+
+    expect(result).toEqual([
+      { p: '1,1,16777215', m: 'hi' },
+      { p: '3,1,16777215', m: 'bye' },
+    ])
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringMatching(/Dropped 1 malformed comment\(s\).*m: /)
+    )
+  })
+
+  it('keeps an empty result empty instead of failing', async () => {
+    const { svc, warn } = makeDanmakuService([])
+
+    expect(await svc.getDanmaku(makeRequest({ episodeId: 42 }))).toEqual([])
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('throws when the pipeline emits something that is not an array', async () => {
+    const { svc } = makeDanmakuService({ comments: [] })
+
+    await expect(
+      svc.getDanmaku(makeRequest({ episodeId: 42 }))
+    ).rejects.toThrow(
+      'Danmaku output from manifest dandanplay is not an array, got object'
+    )
+  })
+
+  it('throws when every comment in a non-empty batch is malformed', async () => {
+    const { svc } = makeDanmakuService([{}, { p: 1 }])
+
+    await expect(
+      svc.getDanmaku(makeRequest({ episodeId: 42 }))
+    ).rejects.toThrow(/Every comment from manifest dandanplay was malformed/)
   })
 
   it('only the danmaku run tolerates a failed segment', () => {

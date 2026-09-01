@@ -2,6 +2,7 @@ import type { Page } from '@playwright/test'
 import { AppBarPage } from './AppBarPage'
 import { BackupPage } from './BackupPage'
 import { ConfirmDialog } from './ConfirmDialog'
+import { DanmakuViewerPage } from './DanmakuViewerPage'
 import { ImportResultDialog } from './ImportResultDialog'
 import { MountConfigPage } from './MountConfigPage'
 import { MountPage } from './MountPage'
@@ -15,6 +16,7 @@ import { UrlImportDialog } from './UrlImportDialog'
 export class Popup {
   readonly appBar: AppBarPage
   readonly mount: MountPage
+  readonly danmakuViewer: DanmakuViewerPage
   readonly config: MountConfigPage
   readonly search: SearchPage
   readonly seasonDetails: SeasonDetailsPage
@@ -29,6 +31,7 @@ export class Popup {
   private constructor(page: Page) {
     this.appBar = new AppBarPage(page)
     this.mount = new MountPage(page)
+    this.danmakuViewer = new DanmakuViewerPage(page)
     this.config = new MountConfigPage(page)
     this.search = new SearchPage(page)
     this.seasonDetails = new SeasonDetailsPage(page)
