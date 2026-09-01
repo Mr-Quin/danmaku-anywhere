@@ -29,6 +29,7 @@ import { LATEST_MOUNT_CONFIG_VERSION } from './version'
 export class MountConfigService implements IStoreService {
   public readonly name = 'mountConfig'
   public readonly options: OptionsService<MountConfig[]>
+  public readonly backupItemSchema = mountConfigInputSchema
 
   constructor(
     @inject(LoggerSymbol)

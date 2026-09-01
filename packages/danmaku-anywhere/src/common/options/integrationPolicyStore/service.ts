@@ -5,6 +5,7 @@ import {
   type IntegrationV3,
   migrateV1ToV2,
   migrateV2ToV3,
+  zIntegration,
 } from '@danmaku-anywhere/integration-policy'
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
@@ -20,6 +21,7 @@ import { LATEST_INTEGRATION_POLICY_VERSION } from './version'
 export class IntegrationPolicyService implements IStoreService {
   public readonly name = 'integrationPolicy'
   public readonly options: OptionsService<Integration[]>
+  public readonly backupItemSchema = zIntegration
 
   constructor(
     @inject(LoggerSymbol)

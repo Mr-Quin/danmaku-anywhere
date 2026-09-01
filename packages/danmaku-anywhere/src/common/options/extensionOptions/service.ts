@@ -5,7 +5,10 @@ import { type ILogger, Logger, LoggerSymbol } from '@/common/Logger'
 import { Language } from '@/common/localization/language'
 import { defaultExtensionOptions } from '@/common/options/extensionOptions/constant'
 import { defaultKeymap } from '@/common/options/extensionOptions/hotkeys'
-import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
+import {
+  type ExtensionOptions,
+  extensionOptionsSchema,
+} from '@/common/options/extensionOptions/schema'
 import type { IStoreService } from '@/common/options/IStoreService'
 import {
   type IOptionsServiceFactory,
@@ -20,6 +23,7 @@ import { ProviderConfigService } from '../providerConfig/service'
 export class ExtensionOptionsService implements IStoreService {
   public readonly name = 'extensionOptions'
   public readonly options: OptionsService<ExtensionOptions>
+  public readonly backupSchema = extensionOptionsSchema
 
   constructor(
     @inject(LoggerSymbol)

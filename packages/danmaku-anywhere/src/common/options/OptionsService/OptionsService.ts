@@ -7,6 +7,7 @@ import type {
   Options,
   OptionsSchema,
   UpgradeContext,
+  UpgradeOutcome,
   Version,
   VersionConfig,
 } from './types'
@@ -40,6 +41,13 @@ export class OptionsService<T extends OptionsSchema> {
     this.setup()
   }
 
+  get latestVersion(): number {
+    if (this.versions.length === 0) {
+      return 0
+    }
+    return this.getLatestVersion().version
+  }
+
   version(version: number, versionConfig: VersionConfig) {
     if (version <= 0) {
       throw new Error('Version must be larger than 0')
@@ -54,7 +62,7 @@ export class OptionsService<T extends OptionsSchema> {
   }
 
   // upgrade options to latest version
-  async upgrade(context: UpgradeContext = {}): Promise<void> {
+  async upgrade(context: UpgradeContext = {}): Promise<UpgradeOutcome> {
     if (this.versions.length === 0) {
       throw new Error('Cannot upgrade without any versions')
     }
@@ -67,7 +75,8 @@ export class OptionsService<T extends OptionsSchema> {
       // if no options, set default options as the latest version
       this.logger.debug('No existing options found, using default options')
 
-      return await this.reset()
+      await this.reset()
+      return 'initialized'
     }
 
     this.logger.debug(`Found options with version '${options.version}'`)
@@ -81,9 +90,11 @@ export class OptionsService<T extends OptionsSchema> {
         context
       )
       await this.storageService.set(upgradedOptions)
+      return 'upgraded'
     } catch (error) {
       this.logger.error('Failed to upgrade options, reset to default', error)
       await this.reset()
+      return 'reset'
     }
   }
 
@@ -105,7 +116,7 @@ export class OptionsService<T extends OptionsSchema> {
 
     return this.queueOperation(async () => {
       let currentVersion = version
-      if (!currentVersion) {
+      if (currentVersion === undefined) {
         const options = await this.storageService.read()
         if (!options) {
           throw new Error('Cannot set options without existing options')
@@ -172,7 +183,7 @@ export class OptionsService<T extends OptionsSchema> {
   // Internal set method that doesn't queue (used within queued operations)
   private async setInternal(data: T, version?: number) {
     let currentVersion = version
-    if (!currentVersion) {
+    if (currentVersion === undefined) {
       const options = await this.storageService.read()
       if (!options) {
         throw new Error('Cannot set options without existing options')
