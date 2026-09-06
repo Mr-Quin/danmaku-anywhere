@@ -10,6 +10,9 @@
   "observability": {
     "enabled": true
   },
+  "cache": {
+    "enabled": true
+  },
   "vars": {
     "ENVIRONMENT": "dev",
     "ALLOWED_ORIGIN": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,http://localhost:4200",
@@ -83,6 +86,9 @@
   ],
   "env": {
     "staging": {
+      "cache": {
+        "enabled": true
+      },
       "vars": {
         "ENVIRONMENT": "staging",
         "ALLOWED_ORIGIN": "https://danmaku.weeblify.app,https://danmaku-staging.weeblify.app,http://localhost:4200",
@@ -160,6 +166,9 @@
       "observability": {
         "enabled": true,
         "head_sampling_rate": 0.005
+      },
+      "cache": {
+        "enabled": false
       },
       "vars": {
         "ENVIRONMENT": "production",

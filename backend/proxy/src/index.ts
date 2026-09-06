@@ -8,6 +8,7 @@ import { openAPIRouteHandler } from 'hono-openapi'
 import { factory } from '@/factory'
 import { authContext } from '@/middleware/authContext'
 import { useCache } from '@/middleware/cache'
+import { noStoreDefault } from '@/middleware/noStoreDefault'
 import { requestLogger } from '@/middleware/requestLogger'
 import { setContext } from '@/middleware/setContext'
 import { danDanPlay } from '@/routes/api/ddp/danDanPlay'
@@ -20,6 +21,7 @@ const app = factory.createApp()
 
 app.use(
   '*',
+  noStoreDefault(),
   requestLogger(),
   prettyJSON(),
   cors({
