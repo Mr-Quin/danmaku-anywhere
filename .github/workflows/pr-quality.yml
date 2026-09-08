@@ -59,5 +59,19 @@ jobs:
         with:
           commit_message: "(chore) apply lint autofix"
 
+      - name: Check packages with tests define a test script
+        run: pnpm check:test-scripts
+
       - name: Test (changed packages only)
-        run: pnpm --filter '...[${{ github.event.pull_request.base.sha }}]' test
+        run: pnpm --filter '...[${{ github.event.pull_request.base.sha }}]' --filter '!@mr-quin/danmaku-anywhere' test
+
+      # Split out so the extension reports coverage, but only when this PR
+      # actually touches it. pnpm has no filter intersection, hence the guard.
+      - name: Test extension with coverage
+        run: |
+          changed=$(pnpm --filter '...[${{ github.event.pull_request.base.sha }}]' list --depth -1 --json)
+          if echo "$changed" | grep -q '"@mr-quin/danmaku-anywhere"'; then
+            pnpm --filter @mr-quin/danmaku-anywhere test:coverage
+          else
+            echo "extension not in the changed set, skipping"
+          fi

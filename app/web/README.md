@@ -17,7 +17,7 @@ Angular web application for Danmaku Anywhere. Provides a Kazumi-style video aggr
 | ----------- | ------------------------ |
 | `pnpm start` | Dev server with HMR      |
 | `pnpm build` | Production build         |
-| `pnpm test:ng` | Run unit tests (Karma)  |
+| `pnpm test` | Run unit tests (Vitest)  |
 | `pnpm lint` | Biome check and fix      |
 
 ## Workspace Dependencies
