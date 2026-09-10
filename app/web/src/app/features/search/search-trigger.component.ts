@@ -1,12 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { ButtonDirective } from 'primeng/button'
-import { MaterialIcon } from '../../shared/components/material-icon'
 import { SearchService } from './search.service'
 
 @Component({
   selector: 'da-search-trigger',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonDirective, MaterialIcon],
+  imports: [ButtonDirective],
   template: `
     <div class="flex justify-center px-8">
       <button
@@ -17,7 +16,7 @@ import { SearchService } from './search.service'
         (click)="open()"
         class="group inline-flex justify-start gap-2 w-full max-w-[280px] h-8 bg-surface-800 hover:bg-surface-700"
       >
-        <da-mat-icon icon="search" size="lg" class="opacity-60 transition-opacity group-hover:opacity-100" />
+        <i class="pi pi-search text-lg opacity-60 transition-opacity group-hover:opacity-100"></i>
         <span class="text-sm opacity-60 whitespace-nowrap">Ctrl + K</span>
       </button>
     </div>

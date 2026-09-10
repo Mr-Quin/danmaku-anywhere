@@ -7,10 +7,10 @@ import {
   inject,
   input,
   linkedSignal,
+  output,
   signal,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { ActivatedRoute, Router } from '@angular/router'
 import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
 import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
 import { AutoCompleteModule } from 'primeng/autocomplete'
@@ -21,7 +21,6 @@ import { InputTextModule } from 'primeng/inputtext'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from 'primeng/tabs'
 import { TrackingService } from '../../../core/tracking.service'
-import { MaterialIcon } from '../../../shared/components/material-icon'
 import { randomFrom } from '../../../shared/utils/utils'
 import { BangumiService } from '../../bangumi/services/bangumi.service'
 import { SettingsService } from '../../settings/settings.service'
@@ -46,7 +45,6 @@ import { KazumiService } from '../services/kazumi.service'
     Tab,
     TabPanels,
     TabPanel,
-    MaterialIcon,
     KazumiPolicyTab,
     SearchResultsComponent,
     AutoFocus,
@@ -65,17 +63,18 @@ import { KazumiService } from '../services/kazumi.service'
   `,
   template: `
     <div
-      class="max-w-6xl mx-auto mt-16 p-2 flex flex-col gap-4 items-center pt-[10vh] md:pt-[20vh] h-full transition-[padding] delay-150 duration-500"
+      class="w-full p-3 flex flex-col gap-4 items-center pt-[8vh] h-full transition-[padding] delay-150 duration-500"
       [class.!pt-0]="$hasQuery()"
     >
       @if (kazumiService.localPoliciesQuery.isPending()) {
         <p-progress-spinner />
       } @else if (kazumiService.$hasPolicies()) {
-        <p-card>
+        <p-card styleClass="w-full max-w-xl">
           <form (submit)="$event.preventDefault();triggerSearch()">
-            <div class="md:w-xl flex gap-4 p-2 items-center">
+            <div class="w-full flex gap-4 p-2 items-center">
               <div class="flex-1">
                 <input
+                  data-testid="kazumi-search-input"
                   [pAutoFocus]="true"
                   type="text"
                   class="w-full"
@@ -86,11 +85,12 @@ import { KazumiService } from '../services/kazumi.service'
                 />
               </div>
               <p-button
+                data-testid="kazumi-search-submit"
                 type="submit"
                 [severity]="!$canSearch() ? 'secondary' : 'primary'"
                 [disabled]="!$canSearch()"
               >
-                <da-mat-icon icon="send" size="lg" />
+                <i class="pi pi-send text-lg"></i>
               </p-button>
             </div>
           </form>
@@ -171,12 +171,16 @@ import { KazumiService } from '../services/kazumi.service'
   `,
 })
 export class KazumiSearchPage {
-  // query param
-  q = input<string>()
+  readonly query = input<string>()
+  readonly queryChange = output<string>()
+  readonly openResult = output<{
+    query?: string
+    url: string
+    policyName: string
+    title?: string
+  }>()
 
   protected kazumiService = inject(KazumiService)
-  protected router = inject(Router)
-  protected route = inject(ActivatedRoute)
   private settingsService = inject(SettingsService)
   protected bangumiService = inject(BangumiService)
   private readonly trackingService = inject(TrackingService)
@@ -228,12 +232,7 @@ export class KazumiSearchPage {
         searchTerm,
       })
       this.kazumiService.updateQuery(searchTerm)
-      void this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: { q: searchTerm },
-        queryParamsHandling: 'replace',
-        replaceUrl: true,
-      })
+      this.queryChange.emit(searchTerm)
       return
     }
   }
@@ -251,19 +250,23 @@ export class KazumiSearchPage {
       item,
       policy,
     })
-    void this.router.navigate(['/kazumi/detail'], {
-      queryParams: {
-        q: item.name,
-        url: item.url,
-        policyName: policy.name,
-      },
-      queryParamsHandling: 'merge',
+    this.openResult.emit({
+      query: item.name,
+      title: item.name,
+      url: item.url,
+      policyName: policy.name,
     })
   }
 
   constructor() {
+    // Re-read the installed policies when the search opens. Onboarding seeds
+    // them into IndexedDB, but the cached query can still read empty in the
+    // same session; refetching here ensures the search reflects what was
+    // installed without needing a manual reload.
+    this.kazumiService.localPoliciesQuery.refetch()
+
     effect(() => {
-      const query = this.q()
+      const query = this.query()
       if (query) {
         this.kazumiService.updateQuery(query)
       }

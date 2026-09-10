@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
-import { ExtensionService } from '../../core/extension/extension.service'
+import { ExtensionDetector } from '../../core/backend/extension-detector'
 import { Banner, type BannerConfig } from './banner.component'
 
 @Component({
@@ -16,7 +16,7 @@ import { Banner, type BannerConfig } from './banner.component'
   `,
 })
 export class ExtensionUpdateBanner {
-  protected extensionService = inject(ExtensionService)
+  protected extensionService = inject(ExtensionDetector)
 
   protected bannerConfig: BannerConfig = {
     type: 'warning',

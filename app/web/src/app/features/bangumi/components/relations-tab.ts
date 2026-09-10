@@ -4,8 +4,8 @@ import {
   Component,
   inject,
   input,
+  output,
 } from '@angular/core'
-import { RouterLink } from '@angular/router'
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { Card } from 'primeng/card'
 import { Tag } from 'primeng/tag'
@@ -15,7 +15,7 @@ import { HorizontalCardSkeletonGrid } from './horizontal-card-skeleton-grid'
 @Component({
   selector: 'da-relations-tab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterLink, Card, HorizontalCardSkeletonGrid, Tag],
+  imports: [CommonModule, Card, HorizontalCardSkeletonGrid, Tag],
   template: `
     @if (relationsQuery.isPending()) {
       <da-horizontal-card-skeleton-grid [count]="5" />
@@ -40,9 +40,13 @@ import { HorizontalCardSkeletonGrid } from './horizontal-card-skeleton-grid'
                   />
                 </div>
                 <h4 class="font-semibold">
-                  <a [routerLink]="['/bangumi', relation.subject.id]" class="hover:underline">
+                  <button
+                    type="button"
+                    class="hover:underline cursor-pointer text-left"
+                    (click)="openDetails.emit(relation.subject.id)"
+                  >
                     {{ relation.subject.nameCN || relation.subject.name }}
-                  </a>
+                  </button>
                 </h4>
                 @if (relation.subject.nameCN && relation.subject.name !== relation.subject.nameCN) {
                   <p class="text-sm text-gray-600">{{ relation.subject.name }}</p>
@@ -71,6 +75,8 @@ import { HorizontalCardSkeletonGrid } from './horizontal-card-skeleton-grid'
 export class RelationsTab {
   subjectId = input.required<number>()
   visited = input<boolean>(false)
+
+  readonly openDetails = output<number>()
 
   private bangumiService = inject(BangumiService)
 

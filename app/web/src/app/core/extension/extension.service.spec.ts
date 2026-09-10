@@ -14,6 +14,11 @@ vi.mock('@danmaku-anywhere/web-scraper', async (importOriginal) => {
 
 const getExtensionAttrMock = vi.mocked(getExtensionAttr)
 
+/**
+ * ExtensionService is bound as the concrete ExtensionDetector rather than
+ * providedIn root, so it has to be provided explicitly here the same way the
+ * backend seam binds it in the app.
+ */
 describe('ExtensionService', () => {
   let service: ExtensionService
 
@@ -21,7 +26,9 @@ describe('ExtensionService', () => {
     vi.useFakeTimers()
     getExtensionAttrMock.mockReset()
     getExtensionAttrMock.mockReturnValue({})
-    TestBed.configureTestingModule({})
+    TestBed.configureTestingModule({
+      providers: [ExtensionService],
+    })
     service = TestBed.inject(ExtensionService)
   })
 

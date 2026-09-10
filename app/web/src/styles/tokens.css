@@ -1,0 +1,113 @@
+/*
+ * Sakura design tokens for the web app. Values mirror the extension's
+ * MUI theme (packages/danmaku-anywhere/src/common/theme/sakura.ts); the two
+ * palettes are siblings, not derived. Light lives on :root, dark on .da-dark
+ * (the PrimeNG darkModeSelector). No prefers-color-scheme fallback: the theme
+ * class is applied before hydration from persisted choice, and a media-query
+ * fallback would cause a hydration class mismatch.
+ */
+
+:root {
+  --p-bg: #fff8f5;
+  --p-paper: #ffffff;
+  --p-paper-alt: #fbefea;
+
+  --p-primary: #e86a8e;
+  --p-primary-hover: #d9567c;
+  --p-primary-soft: #fce5ec;
+  --p-primary-ink: #b14267;
+  --p-on-primary: #ffffff;
+
+  --p-secondary: #7a6ce0;
+  --p-secondary-hover: #6957d3;
+  --p-secondary-soft: #e7e3fc;
+  --p-secondary-ink: #4a3cb8;
+  --p-on-secondary: #ffffff;
+
+  --p-success: #2fae78;
+  --p-success-soft: #d6f0e4;
+  --p-success-ink: #1e7e58;
+
+  --p-warning: #e9a23b;
+  --p-warning-soft: #fbe9cc;
+  --p-warning-ink: #9a6a1e;
+
+  --p-info: #5aa7e8;
+  --p-info-soft: #e0eef9;
+  --p-info-ink: #2f6faf;
+
+  --p-danger: #dc2626;
+  --p-danger-soft: #fee2e2;
+  --p-danger-ink: #991b1b;
+
+  --p-text: #2a1b24;
+  --p-text-muted: #7a6a74;
+  --p-text-disabled: rgba(42, 27, 36, 0.4);
+
+  --p-divider: rgba(42, 27, 36, 0.09);
+
+  --p-action-hover: rgba(42, 27, 36, 0.04);
+  --p-action-selected: #fce5ec;
+  --p-action-active: rgba(232, 106, 142, 0.08);
+  --p-action-focus: rgba(232, 106, 142, 0.2);
+
+  --p-tooltip-bg: #2a1b24;
+  --p-tooltip-fg: #ffffff;
+
+  --p-font:
+    "Plus Jakarta Sans Variable", "Plus Jakarta Sans", "Noto Sans SC Variable",
+    "Noto Sans SC", system-ui, sans-serif;
+  --p-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --p-radius: 12px;
+  --p-radius-sm: 8px;
+  --p-radius-lg: 18px;
+}
+
+.da-dark {
+  --p-bg: #15101a;
+  --p-paper: #1d1623;
+  --p-paper-alt: #241c2c;
+
+  --p-primary: #f48fb1;
+  --p-primary-hover: #f06292;
+  --p-primary-soft: rgba(244, 143, 177, 0.18);
+  --p-primary-ink: #f8bbd0;
+  --p-on-primary: #2a0f1a;
+
+  --p-secondary: #b39cf5;
+  --p-secondary-hover: #9f86f0;
+  --p-secondary-soft: rgba(179, 156, 245, 0.18);
+  --p-secondary-ink: #c8b6f7;
+  --p-on-secondary: #1a1330;
+
+  --p-success: #6dd7a6;
+  --p-success-soft: rgba(109, 215, 166, 0.16);
+  --p-success-ink: #9ceac4;
+
+  --p-warning: #f5c26b;
+  --p-warning-soft: rgba(245, 194, 107, 0.16);
+  --p-warning-ink: #f5d699;
+
+  --p-info: #7fc0f0;
+  --p-info-soft: rgba(127, 192, 240, 0.16);
+  --p-info-ink: #a8d4f5;
+
+  --p-danger: #f87171;
+  --p-danger-soft: rgba(248, 113, 113, 0.18);
+  --p-danger-ink: #fca5a5;
+
+  --p-text: #f6e8ee;
+  --p-text-muted: #a89aa6;
+  --p-text-disabled: rgba(246, 232, 238, 0.4);
+
+  --p-divider: rgba(246, 232, 238, 0.09);
+
+  --p-action-hover: rgba(246, 232, 238, 0.05);
+  --p-action-selected: rgba(244, 143, 177, 0.18);
+  --p-action-active: rgba(244, 143, 177, 0.1);
+  --p-action-focus: rgba(244, 143, 177, 0.28);
+
+  --p-tooltip-bg: #3a2e3a;
+  --p-tooltip-fg: #f6e8ee;
+}
