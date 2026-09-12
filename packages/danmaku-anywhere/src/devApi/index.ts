@@ -4,6 +4,10 @@ import {
   BookmarkNamespace,
 } from './namespaces/BookmarkNamespace'
 import {
+  type DanmakuRenderApi,
+  DanmakuRenderNamespace,
+} from './namespaces/DanmakuRenderNamespace'
+import {
   type EpisodeApi,
   EpisodeNamespace,
 } from './namespaces/EpisodeNamespace'
@@ -41,6 +45,7 @@ const NAMESPACE_TOKENS = [
   EpisodeNamespace,
   BookmarkNamespace,
   MountNamespace,
+  DanmakuRenderNamespace,
 ] as const
 
 export interface DaApi {
@@ -54,6 +59,7 @@ export interface DaApi {
   episode: EpisodeApi
   bookmark: BookmarkApi
   mount: MountApi
+  danmakuRender: DanmakuRenderApi
 }
 
 declare global {

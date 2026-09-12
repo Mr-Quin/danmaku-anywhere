@@ -21,8 +21,10 @@ const MOUNT_PATTERN = `${ORIGIN}/*`
 
 const EPISODE_TITLE = 'DA Integration Test'
 // Seeking past SEEK_TIME_S lands the cursor on at least one comment.
+// The comment due by SEEK_TIME_S; the render log is asserted against it.
+const FIRST_TEXT = 'first'
 const COMMENTS = [
-  { p: '12,1,16777215,e2e-1', m: 'first' },
+  { p: '12,1,16777215,e2e-1', m: FIRST_TEXT },
   { p: '24,1,16777215,e2e-2', m: 'second' },
   { p: '36,1,16777215,e2e-3', m: 'third' },
 ]
@@ -75,12 +77,13 @@ test('integration auto-mount: native <video> happy path', async ({
 
   await integrationPage.playVideo()
 
-  await expect(async () => {
-    await integrationPage.setVideoTime(SEEK_TIME_S)
-    await expect(integrationPage.commentElements().first()).toBeVisible({
-      timeout: 1_000,
-    })
-  }).toPass({ timeout: 15_000 })
+  await integrationPage.setVideoTime(SEEK_TIME_S)
+
+  // Assert on what the renderer rendered rather than racing a node that
+  // despawns as it scrolls.
+  await da.danmakuRender.waitForRendered(FIRST_TEXT)
+  // The overlay is the durable user-visible signal; a comment node despawns.
+  await expect(integrationPage.danmuContainer()).toBeVisible()
 })
 
 test('integration auto-mount: same-origin iframe <video> happy path', async ({
@@ -106,10 +109,11 @@ test('integration auto-mount: same-origin iframe <video> happy path', async ({
 
   await integrationPage.playVideo()
 
-  await expect(async () => {
-    await integrationPage.setVideoTime(SEEK_TIME_S)
-    await expect(integrationPage.commentElements().first()).toBeVisible({
-      timeout: 1_000,
-    })
-  }).toPass({ timeout: 15_000 })
+  await integrationPage.setVideoTime(SEEK_TIME_S)
+
+  // Assert on what the renderer rendered rather than racing a node that
+  // despawns as it scrolls.
+  await da.danmakuRender.waitForRendered(FIRST_TEXT)
+  // The overlay is the durable user-visible signal; a comment node despawns.
+  await expect(integrationPage.danmuContainer()).toBeVisible()
 })
