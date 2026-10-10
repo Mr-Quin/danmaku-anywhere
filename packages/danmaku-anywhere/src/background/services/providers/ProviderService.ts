@@ -1,12 +1,15 @@
 import type {
+  CommentEntity,
   CustomSeason,
-  Episode,
   EpisodeMeta,
   Season,
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
+import {
+  LEGACY_MACCMS_ID,
+  parseCommentEntityP,
+} from '@danmaku-anywhere/danmaku-converter'
 import { getDisplayStrings } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
@@ -16,6 +19,7 @@ import type { SeasonQueryFilter, SeasonSearchRequest } from '@/common/anime/dto'
 import type {
   DanmakuFetchByMeta,
   DanmakuFetchRequest,
+  DanmakuFetchResult,
 } from '@/common/danmaku/dto'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { toManifestLocale } from '@/common/localization/language'
@@ -48,6 +52,11 @@ import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from './ProviderFactory'
+
+function countRenderable(comments: CommentEntity[]): number {
+  return comments.filter((comment) => parseCommentEntityP(comment.p) !== null)
+    .length
+}
 
 function enrichEpisode(
   episode: OmitSeasonId<EpisodeMeta>,
@@ -196,7 +205,7 @@ export class ProviderService {
     return { type: 'by-meta', meta, options: request.options }
   }
 
-  async getDanmaku(request: DanmakuFetchRequest): Promise<WithSeason<Episode>> {
+  async getDanmaku(request: DanmakuFetchRequest): Promise<DanmakuFetchResult> {
     await this.manifestRegistry.ready
     const resolved = await this.resolveMeta(request)
     const { options = {}, meta } = resolved
@@ -208,7 +217,7 @@ export class ProviderService {
 
     if (existingDanmaku && !options.forceUpdate) {
       this.logger.debug('Danmaku found in db', existingDanmaku)
-      return existingDanmaku
+      return { episode: existingDanmaku }
     }
 
     if (options.forceUpdate) {
@@ -227,6 +236,26 @@ export class ProviderService {
 
     const comments = await service.getDanmaku(resolved)
 
+    if (options.automatic && comments.length === 0) {
+      throw new Error(`No danmaku found for ${meta.title}`)
+    }
+
+    // Fetched comments are already filtered to renderable ones. Counting the
+    // stored side the same way keeps an episode saved with unrenderable
+    // comments refreshable.
+    if (existingDanmaku) {
+      const storedCount = countRenderable(existingDanmaku.comments)
+      if (comments.length < storedCount) {
+        this.logger.warn(
+          `Refetch returned ${comments.length} comments, fewer than the ${storedCount} stored; keeping the stored episode`
+        )
+        return {
+          episode: existingDanmaku,
+          keptStored: { fetchedCount: comments.length, storedCount },
+        }
+      }
+    }
+
     const { season, ...rest } = meta
 
     const saved = await this.danmakuService.upsert({
@@ -237,8 +266,10 @@ export class ProviderService {
     })
 
     return {
-      ...saved,
-      season,
+      episode: {
+        ...saved,
+        season,
+      },
     }
   }
 

@@ -116,8 +116,8 @@ export const useLoadDanmaku = () => {
   const loadMutation = useMutation({
     mutationFn: async (data: DanmakuFetchDto) => {
       return fetchMutation.mutateAsync(data, {
-        onSuccess: (cache) => {
-          mountDanmaku([cache])
+        onSuccess: ({ episode }) => {
+          mountDanmaku([episode])
         },
         onError: (err) => {
           toast.error(err.message)
@@ -157,14 +157,17 @@ export const useLoadDanmaku = () => {
         options: { forceUpdate: true },
       },
       {
-        onSuccess: (result) => {
+        onSuccess: ({ episode: refreshed, keptStored }) => {
+          if (keptStored) {
+            return
+          }
           toast.success(
             t(
               'danmaku.alert.refreshed',
               'Danmaku Refreshed: {{name}} ({{count}})',
               {
-                name: episodeToString(result),
-                count: result.commentCount,
+                name: episodeToString(refreshed),
+                count: refreshed.commentCount,
               }
             )
           )

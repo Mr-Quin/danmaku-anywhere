@@ -1,4 +1,5 @@
 import { useMutation } from '@tanstack/react-query'
+import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import {
@@ -19,6 +20,7 @@ import { getTrackingService } from '@/common/telemetry/getTrackingService'
  * This is a mutation because it updates the cache
  */
 export const useFetchDanmaku = () => {
+  const { t } = useTranslation()
   const toast = useToast.use.toast()
 
   const mutation = useMutation({
@@ -33,6 +35,21 @@ export const useFetchDanmaku = () => {
         seasonQueryKeys.all(),
         bookmarkQueryKeys.all(),
       ],
+    },
+    onSuccess: ({ keptStored }) => {
+      if (!keptStored) {
+        return
+      }
+      toast.warn(
+        t(
+          'danmaku.alert.refetchKeptStored',
+          'Fetched {{fetched}} comments, fewer than the {{stored}} already saved. Kept the saved danmaku.',
+          {
+            fetched: keptStored.fetchedCount,
+            stored: keptStored.storedCount,
+          }
+        )
+      )
     },
     onError: async (error) => {
       toast.error(error.message)

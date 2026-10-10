@@ -143,6 +143,7 @@ export const useIntegrationPolicy = () => {
                   meta: matched,
                   options: {
                     forceUpdate: false,
+                    automatic: true,
                   },
                 },
                 {

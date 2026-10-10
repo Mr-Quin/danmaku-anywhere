@@ -1,4 +1,5 @@
 import {
+  type CommentEntity,
   DanmakuSourceType,
   type EpisodeMeta,
   LEGACY_MACCMS_ID,
@@ -54,6 +55,13 @@ function makeProvider(
 }
 
 import { computeNamespaceKey } from '@/common/providers/namespaceKey'
+
+function comments(count: number): CommentEntity[] {
+  return Array.from({ length: count }, (_, i) => ({
+    p: `${i},1,16777215`,
+    m: `comment ${i}`,
+  }))
+}
 
 function build(
   config: ProviderConfig,
@@ -340,8 +348,55 @@ describe('ProviderService legacy-maccms decoupling', () => {
         options: {},
       })
 
-      expect(result).toEqual(cached)
+      expect(result).toEqual({ episode: cached })
       expect(provider.getDanmaku).not.toHaveBeenCalled()
+    })
+
+    it('saves an empty result on a first manual fetch', async () => {
+      const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
+      const { service, danmakuService } = build(iqiyiConfig, provider)
+
+      const result = await service.getDanmaku({
+        type: 'by-meta',
+        meta,
+        options: {},
+      })
+
+      expect(danmakuService.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({ comments: [], commentCount: 0 })
+      )
+      expect(result.keptStored).toBeUndefined()
+    })
+
+    it('never saves an empty result from an automatic fetch', async () => {
+      const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
+      const { service, danmakuService } = build(iqiyiConfig, provider)
+
+      await expect(
+        service.getDanmaku({
+          type: 'by-meta',
+          meta,
+          options: { automatic: true },
+        })
+      ).rejects.toThrow('No danmaku found')
+      expect(danmakuService.upsert).not.toHaveBeenCalled()
+    })
+
+    it('saves a non-empty result from an automatic fetch', async () => {
+      const provider = makeProvider({
+        getDanmaku: vi.fn(async () => comments(2)),
+      })
+      const { service, danmakuService } = build(iqiyiConfig, provider)
+
+      await service.getDanmaku({
+        type: 'by-meta',
+        meta,
+        options: { automatic: true },
+      })
+
+      expect(danmakuService.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({ commentCount: 2 })
+      )
     })
 
     it('throws for a legacy MacCMS config', async () => {
@@ -378,6 +433,81 @@ describe('ProviderService legacy-maccms decoupling', () => {
         })
       ).rejects.toThrow('This source has been removed')
       expect(provider.getDanmaku).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('getDanmaku refetch over a stored episode', () => {
+    const iqiyiConfig = makeConfig('iqiyi')
+    const meta = {
+      provider: DanmakuSourceType.DanDanPlay,
+      indexedId: 'ep1',
+      seasonId: 1,
+      providerIds: {},
+      season: {
+        id: 1,
+        providerConfigId: 'iqiyi-1',
+        manifestId: iqiyiConfig.manifestId,
+        namespaceKey: computeNamespaceKey(iqiyiConfig, []),
+      },
+    } as unknown as WithSeason<EpisodeMeta>
+
+    function refetch(stored: CommentEntity[], fetched: CommentEntity[]) {
+      const storedEpisode = {
+        id: 5,
+        comments: stored,
+        commentCount: stored.length,
+      }
+      const provider = makeProvider({ getDanmaku: vi.fn(async () => fetched) })
+      const { service, danmakuService } = build(iqiyiConfig, provider, {
+        existingDanmaku: [storedEpisode],
+      })
+      const result = service.getDanmaku({
+        type: 'by-meta',
+        meta,
+        options: { forceUpdate: true },
+      })
+      return { result, danmakuService, storedEpisode }
+    }
+
+    it('keeps the stored episode when the refetch returns fewer comments', async () => {
+      const { result, danmakuService, storedEpisode } = refetch(
+        comments(5),
+        comments(3)
+      )
+
+      await expect(result).resolves.toEqual({
+        episode: storedEpisode,
+        keptStored: { fetchedCount: 3, storedCount: 5 },
+      })
+      expect(danmakuService.upsert).not.toHaveBeenCalled()
+    })
+
+    it('keeps the stored episode when the refetch returns nothing', async () => {
+      const { result, danmakuService } = refetch(comments(5), [])
+
+      await expect(result).resolves.toMatchObject({
+        keptStored: { fetchedCount: 0, storedCount: 5 },
+      })
+      expect(danmakuService.upsert).not.toHaveBeenCalled()
+    })
+
+    it('replaces the stored episode when the refetch returns as many comments', async () => {
+      const { result, danmakuService } = refetch(comments(3), comments(3))
+
+      await expect(result).resolves.not.toHaveProperty('keptStored')
+      expect(danmakuService.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({ commentCount: 3 })
+      )
+    })
+
+    it('does not count stored comments the renderer cannot parse', async () => {
+      const { result, danmakuService } = refetch(
+        [...comments(2), { p: '10,7,16777215', m: 'positioned' }],
+        comments(2)
+      )
+
+      await expect(result).resolves.not.toHaveProperty('keptStored')
+      expect(danmakuService.upsert).toHaveBeenCalled()
     })
   })
 })
