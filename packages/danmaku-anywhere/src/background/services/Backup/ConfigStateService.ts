@@ -187,12 +187,7 @@ export class ConfigStateService {
     }
 
     if (backupItemSchema) {
-      return this.checkEntries(
-        service,
-        backupItemSchema,
-        backupData.data,
-        migrated
-      )
+      return this.checkEntries(backupItemSchema, backupData.data, migrated)
     }
 
     if (!backupSchema) {
@@ -209,7 +204,6 @@ export class ConfigStateService {
   }
 
   private async checkEntries(
-    service: IStoreService,
     itemSchema: ZodType,
     original: unknown,
     migrated: unknown
@@ -224,12 +218,11 @@ export class ConfigStateService {
       })
     )
     const kept = migrated.filter((_, index) => checked[index].success)
-    const survivors = this.countSurvivors(service, original, kept)
 
-    // Writing a list where none of the saved entries made it would replace
-    // the store with nothing, or with whatever defaults migration appended,
-    // so it is a failure rather than an empty restore.
-    if (original.length > 0 && survivors === 0) {
+    // Writing an empty list would wipe the store, so a payload where nothing
+    // survives migration and validation is a failure rather than an empty
+    // restore.
+    if (original.length > 0 && kept.length === 0) {
       return {
         ok: false,
         error: `All ${original.length} entries failed validation`,
@@ -239,27 +232,7 @@ export class ConfigStateService {
     return {
       ok: true,
       data: kept,
-      droppedEntries: original.length - survivors,
+      droppedEntries: Math.max(0, original.length - kept.length),
     }
-  }
-
-  private countSurvivors(
-    service: IStoreService,
-    original: unknown[],
-    kept: unknown[]
-  ): number {
-    const backupEntryId = service.backupEntryId?.bind(service)
-    if (!backupEntryId) {
-      return Math.min(original.length, kept.length)
-    }
-    const keptIds = new Set(
-      kept.map((entry) => {
-        return backupEntryId(entry)
-      })
-    )
-    return original.filter((entry) => {
-      const id = backupEntryId(entry)
-      return id !== undefined && keptIds.has(id)
-    }).length
   }
 }

@@ -1,7 +1,4 @@
-import {
-  LEGACY_MACCMS_ID,
-  stripBuiltinPrefix,
-} from '@danmaku-anywhere/danmaku-converter'
+import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import { produce } from 'immer'
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
@@ -106,18 +103,6 @@ export class ProviderConfigService implements IStoreService {
           }
         },
       })
-  }
-
-  backupEntryId(entry: unknown): string | undefined {
-    if (
-      typeof entry !== 'object' ||
-      entry === null ||
-      !('id' in entry) ||
-      typeof entry.id !== 'string'
-    ) {
-      return undefined
-    }
-    return stripBuiltinPrefix(entry.id)
   }
 
   async hasSeeded(): Promise<boolean> {
