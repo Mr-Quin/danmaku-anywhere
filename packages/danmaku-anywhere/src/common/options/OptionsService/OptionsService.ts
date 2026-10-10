@@ -75,7 +75,8 @@ export class OptionsService<T extends OptionsSchema> {
       // if no options, set default options as the latest version
       this.logger.debug('No existing options found, using default options')
 
-      return await this.reset()
+      await this.reset()
+      return
     }
 
     this.logger.debug(`Found options with version '${options.version}'`)
@@ -95,8 +96,8 @@ export class OptionsService<T extends OptionsSchema> {
     }
   }
 
-  // Unlike upgrade(), the result is returned rather than stored, and a failing
-  // step throws instead of resetting the store to defaults.
+  // Unlike upgrade(), a failing step throws instead of resetting the store to
+  // defaults.
   migrate(data: PrevOptions, version: number, context: UpgradeContext): T {
     return migrateOptions<T>(
       { data, version },

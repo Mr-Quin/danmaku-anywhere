@@ -19,10 +19,6 @@ type PayloadCheck =
   | { ok: true; data: unknown; droppedEntries: number }
   | { ok: false; error: string }
 
-type MigrationResult =
-  | { ok: true; data: unknown }
-  | { ok: false; error: string }
-
 @injectable('Singleton')
 export class ConfigStateService {
   private logger: ILogger
@@ -98,9 +94,15 @@ export class ConfigStateService {
       .filter((candidate) => candidate.backupData !== undefined)
 
     const context: UpgradeContext = Object.fromEntries(
-      candidates.map(({ service, backupData }) => {
-        return [service.options.key, backupData.data]
-      })
+      await Promise.all(
+        this.services.map(async (service) => {
+          const restored = services[service.name]
+          if (restored && service.shouldBackup !== false) {
+            return [service.options.key, restored.data]
+          }
+          return [service.options.key, await service.options.readUnblocked()]
+        })
+      )
     )
 
     const validated = await Promise.all(
@@ -163,55 +165,19 @@ export class ConfigStateService {
       }
     }
 
-    if (backupItemSchema) {
-      // Some list migrations turn a non-list into an empty list, which would
-      // quietly wipe the store, so the shape is checked before migrating.
-      if (!Array.isArray(backupData.data)) {
-        return { ok: false, error: 'Expected a list of entries' }
-      }
-      const migrated = this.migrate(service, backupData, context)
-      if (!migrated.ok) {
-        return migrated
-      }
-      return this.checkEntries(
-        backupItemSchema,
-        backupData.data.length,
-        migrated.data
-      )
+    // Some list migrations turn a non-list into an empty list, which would
+    // quietly wipe the store, so the shape is checked before migrating.
+    if (backupItemSchema && !Array.isArray(backupData.data)) {
+      return { ok: false, error: 'Expected a list of entries' }
     }
 
-    const migrated = this.migrate(service, backupData, context)
-    if (!migrated.ok) {
-      return migrated
-    }
-
-    if (!backupSchema) {
-      return { ok: true, data: migrated.data, droppedEntries: 0 }
-    }
-
-    const parsed = await backupSchema.safeParseAsync(migrated.data)
-
-    if (!parsed.success) {
-      return { ok: false, error: prettifyError(parsed.error) }
-    }
-
-    return { ok: true, data: migrated.data, droppedEntries: 0 }
-  }
-
-  private migrate(
-    service: IStoreService,
-    backupData: ServiceBackup,
-    context: UpgradeContext
-  ): MigrationResult {
+    let migrated: unknown
     try {
-      return {
-        ok: true,
-        data: service.options.migrate(
-          backupData.data,
-          backupData.version,
-          context
-        ),
-      }
+      migrated = service.options.migrate(
+        backupData.data,
+        backupData.version,
+        context
+      )
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error)
       return {
@@ -219,14 +185,30 @@ export class ConfigStateService {
         error: `Could not migrate the restored data: ${message}`,
       }
     }
+
+    if (backupItemSchema) {
+      return this.checkEntries(backupItemSchema, backupData.data, migrated)
+    }
+
+    if (!backupSchema) {
+      return { ok: true, data: migrated, droppedEntries: 0 }
+    }
+
+    const parsed = await backupSchema.safeParseAsync(migrated)
+
+    if (!parsed.success) {
+      return { ok: false, error: prettifyError(parsed.error) }
+    }
+
+    return { ok: true, data: migrated, droppedEntries: 0 }
   }
 
   private async checkEntries(
     itemSchema: ZodType,
-    entryCount: number,
+    original: unknown,
     migrated: unknown
   ): Promise<PayloadCheck> {
-    if (!Array.isArray(migrated)) {
+    if (!Array.isArray(original) || !Array.isArray(migrated)) {
       return { ok: false, error: 'Expected a list of entries' }
     }
 
@@ -240,17 +222,17 @@ export class ConfigStateService {
     // Writing an empty list would wipe the store, so a payload where nothing
     // survives migration and validation is a failure rather than an empty
     // restore.
-    if (entryCount > 0 && kept.length === 0) {
+    if (original.length > 0 && kept.length === 0) {
       return {
         ok: false,
-        error: `All ${entryCount} entries failed validation`,
+        error: `All ${original.length} entries failed validation`,
       }
     }
 
     return {
       ok: true,
       data: kept,
-      droppedEntries: migrated.length - kept.length,
+      droppedEntries: Math.max(0, original.length - kept.length),
     }
   }
 }

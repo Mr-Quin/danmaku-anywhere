@@ -7,12 +7,9 @@ import { Popup } from '../../pom/Popup'
 import { expect, test } from '../../setup/fixtures'
 
 /**
- * Re-export round trip: restore the v1.5.0 backup, export it from the current
- * build, and restore that export. The v1.5.0 payloads are all older than the
- * current store versions, while the export is at the current versions, so the
- * second restore validates migrated data against the current schemas. Asserts
- * the success toast on both restores and that exporting again yields the same
- * services.
+ * Restores the v1.5.0 backup, exports it, and restores the export, which holds
+ * the migrated data at the current store versions. Asserts the success toast
+ * on both restores and that a second export yields the same services.
  */
 
 const BACKUP_GZ = path.join(

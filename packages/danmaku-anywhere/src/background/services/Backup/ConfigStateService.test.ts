@@ -40,6 +40,7 @@ describe('ConfigStateService', () => {
       set: vi.fn(),
       upgrade: vi.fn(),
       migrate: vi.fn((data: unknown) => data),
+      readUnblocked: vi.fn(),
       latestVersion,
     },
   })
@@ -369,17 +370,45 @@ describe('ConfigStateService', () => {
       )
     })
 
-    it('should pass every restored payload to migrations as context, keyed by storage key', async () => {
+    it('should give migrations the restored payloads as context, and stored data for stores not in the backup', async () => {
+      mockMountConfigService.options.readUnblocked = vi
+        .fn()
+        .mockResolvedValue([{ stored: true }])
+
       await service.restoreState(validBackup)
 
       expect(mockExtensionOptionsService.options.migrate).toHaveBeenCalledWith(
         { opt: 'ext' },
         2,
-        {
+        expect.objectContaining({
           danmakuOptions: { opt: 'danmaku' },
           extensionOptions: { opt: 'ext' },
-        }
+          mountConfig: [{ stored: true }],
+        })
       )
+    })
+
+    it('should count entries lost in migration as dropped', async () => {
+      mockMountConfigService.backupItemSchema = z.object({
+        name: z.string(),
+      })
+      mockMountConfigService.options.migrate.mockReturnValue([{ name: 'a' }])
+
+      const result = await service.restoreState({
+        meta: { version: 1, timestamp: 12345 },
+        services: {
+          mountConfig: {
+            data: [{ name: 'a' }, { name: 'b' }],
+            version: 1,
+          },
+        },
+      })
+
+      expect(result.details.mountConfig).toEqual({
+        success: true,
+        droppedEntries: 1,
+      })
+      expect(result.success).toBe(false)
     })
 
     it('should accept a payload that matches its schema', async () => {

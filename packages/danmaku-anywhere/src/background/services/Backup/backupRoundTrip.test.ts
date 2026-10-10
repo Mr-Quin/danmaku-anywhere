@@ -28,9 +28,9 @@ import { ConfigStateService } from './ConfigStateService'
 
 /**
  * Restores real backups through the real option stores: one this build just
- * exported, and the v1.5.0 backup file the migration e2e ships. Guards against
- * validation that is stricter than what the extension itself writes, which
- * would reject users' own backups.
+ * exported, the v1.5.0 backup file the migration e2e ships, and old payloads
+ * that fail to migrate. Guards against validation stricter than what the
+ * extension writes, and checks a failed store keeps its pre-restore data.
  */
 
 describe('backup round trip', () => {
@@ -357,6 +357,7 @@ describe('backup round trip', () => {
     })
     expect(result.success).toBe(true)
   })
+
   it('restores a re-export of the migrated v1.5.0 backup without losing data', async () => {
     await configStateService.restoreState(readLegacyBackup())
     const migrated = await configStateService.getState()
