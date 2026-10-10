@@ -833,6 +833,71 @@ describe('ProviderService.seedDefaultProviders', () => {
     expect(hasSeeded).toHaveBeenCalled()
     expect(set).not.toHaveBeenCalled()
   })
+
+  const LEGACY_BUILTINS: ProviderConfig[] = [
+    {
+      id: 'dandanplay',
+      manifestId: 'dandanplay',
+      name: 'DanDanPlay',
+      enabled: true,
+      configValues: {},
+    },
+    {
+      id: 'bilibili',
+      manifestId: 'bilibili',
+      name: 'Bilibili',
+      enabled: true,
+      configValues: {},
+    },
+    {
+      id: 'tencent',
+      manifestId: 'tencent',
+      name: 'Tencent',
+      enabled: true,
+      configValues: {},
+    },
+  ]
+
+  it('gives migrated built-ins their localized names on the update that locks the seed', async () => {
+    const { service, set } = buildForSeed({
+      lang: Language.zh,
+      existingConfigs: LEGACY_BUILTINS,
+    })
+
+    service.setup()
+    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
+
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(set.mock.calls[0][0].map((c) => c.name)).toEqual([
+      '弹弹play',
+      'B站',
+      '腾讯视频',
+    ])
+  })
+
+  it('leaves built-in names alone on a later update', async () => {
+    const { service, set, hasSeeded } = buildForSeed({
+      seeded: true,
+      existingConfigs: LEGACY_BUILTINS,
+    })
+
+    service.setup()
+    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
+
+    expect(hasSeeded).toHaveBeenCalled()
+    expect(set).not.toHaveBeenCalled()
+  })
+
+  it('leaves built-in names alone on a catalog sync', async () => {
+    const { service, set } = buildForSeed({
+      seeded: true,
+      existingConfigs: LEGACY_BUILTINS,
+    })
+
+    await service.syncCatalog()
+
+    expect(set).not.toHaveBeenCalled()
+  })
 })
 
 describe('ProviderService.deleteUserManifest', () => {

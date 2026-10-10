@@ -14,6 +14,7 @@ import { computeNamespaceKey } from '../../../src/common/providers/namespaceKey'
 import migrationConfig from '../../migration.config.json' with { type: 'json' }
 import { mockCatalog } from '../../network/catalog'
 import { ImportPage } from '../../pom/ImportPage'
+import { Popup } from '../../pom/Popup'
 import { MigrationLegacyPopup } from '../../poms/legacy/v1.5.0/MigrationLegacyPopup'
 import { attachConsoleWatcher } from '../../setup/console-watcher'
 import { MIGRATION_EXTENSION_ID } from '../../setup/extensionKey'
@@ -217,6 +218,7 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   ).toMatch(/^ns:/)
 
   await assertPostMigrationReimport(context)
+  await assertBuiltinNamesLocalized(context)
 
   return context
 }
@@ -246,6 +248,27 @@ async function assertPostMigrationReimport(
     after.seasons,
     'built-in seasons dedup; only the orphan is added'
   ).toBe(before.seasons + 1)
+}
+
+// The fixture profile runs in zh, and v1.5.0 stored the built-in names as
+// English literals. The upgrade must show the names a fresh zh install seeds.
+async function assertBuiltinNamesLocalized(
+  context: BrowserContext
+): Promise<void> {
+  const page = await context.newPage()
+  const popup = await Popup.open(page, MIGRATION_EXTENSION_ID, '/providers')
+  for (const name of [/^弹弹play/, /^B站$/, /^腾讯视频$/]) {
+    await expect(popup.providers.row(name).first()).toBeVisible()
+  }
+  await expect(popup.providers.row(/^DanDanPlay \(/)).toHaveCount(0)
+  await expect(popup.providers.row(/^Bilibili$/)).toHaveCount(0)
+  await expect(popup.providers.row(/^Tencent$/)).toHaveCount(0)
+
+  await Popup.open(page, MIGRATION_EXTENSION_ID, '/mount')
+  await expect(
+    popup.mount.seasonItems().getByText('弹弹play', { exact: true }).first()
+  ).toBeVisible()
+  await page.close()
 }
 
 async function openProbePage(context: BrowserContext): Promise<Page> {
