@@ -9,7 +9,6 @@ export async function launchExtension(
 ): Promise<BrowserContext> {
   return chromium.launchPersistentContext(userDataDir, {
     channel: 'chromium',
-    headless: false,
     args: [
       '--enable-unsafe-extension-debugging',
       `--disable-extensions-except=${extensionPath}`,

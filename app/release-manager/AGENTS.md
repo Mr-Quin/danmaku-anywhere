@@ -5,7 +5,11 @@
 A standalone, self-updating desktop app (Tauri 2) that downloads extension
 release/preview builds from the `Mr-Quin/danmaku-anywhere` GitHub releases and
 manages which cached build is the "active" unpacked folder loaded into
-`chrome://extensions`. Linux only for v1, shipped as a self-contained AppImage.
+`chrome://extensions`. Primary target is Linux, shipped as a self-updating
+AppImage. Windows also ships as an NSIS installer (installer only: no in-app
+self-update, so its build produces no updater artifacts and needs no signing
+key). The core is cross-platform; the unix-only bits (config file mode, the
+libwayland trampoline) are `cfg`-gated.
 
 It is versioned and released independently of the extension, with its own
 self-update lifecycle. It consumes the extension's `v*`/`preview-*`/`nightly-*`

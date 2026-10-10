@@ -1,8 +1,9 @@
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { AppBarPage } from './AppBarPage'
 import { BackupPage } from './BackupPage'
 import { ConfirmDialog } from './ConfirmDialog'
 import { ImportResultDialog } from './ImportResultDialog'
+import { MountConfigPage } from './MountConfigPage'
 import { MountPage } from './MountPage'
 import { OptionsPage } from './OptionsPage'
 import { ProvidersPage } from './ProvidersPage'
@@ -14,6 +15,7 @@ import { UrlImportDialog } from './UrlImportDialog'
 export class Popup {
   readonly appBar: AppBarPage
   readonly mount: MountPage
+  readonly config: MountConfigPage
   readonly search: SearchPage
   readonly seasonDetails: SeasonDetailsPage
   readonly providers: ProvidersPage
@@ -24,9 +26,10 @@ export class Popup {
   readonly urlImport: UrlImportDialog
   readonly importResult: ImportResultDialog
 
-  private constructor(page: Page) {
+  private constructor(private readonly page: Page) {
     this.appBar = new AppBarPage(page)
     this.mount = new MountPage(page)
+    this.config = new MountConfigPage(page)
     this.search = new SearchPage(page)
     this.seasonDetails = new SeasonDetailsPage(page)
     this.providers = new ProvidersPage(page)
@@ -36,6 +39,10 @@ export class Popup {
     this.dialog = new ConfirmDialog(page)
     this.urlImport = new UrlImportDialog(page)
     this.importResult = new ImportResultDialog(page)
+  }
+
+  layoutBox(): Locator {
+    return this.page.getByTestId('popup-layout')
   }
 
   static async open(

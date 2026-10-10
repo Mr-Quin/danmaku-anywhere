@@ -99,10 +99,7 @@ jobs:
       - name: Run E2E tests
         id: e2e
         working-directory: packages/danmaku-anywhere
-        # MV3 extensions need headed Chromium; xvfb provides a display.
-        run: xvfb-run --auto-servernum pnpm test:e2e
-        env:
-          PLAYWRIGHT_HEADED: '1'
+        run: pnpm test:e2e
 
       - name: Upload Playwright report on failure
         id: upload-report

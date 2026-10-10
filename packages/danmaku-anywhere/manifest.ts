@@ -1,5 +1,6 @@
 import { defineManifest } from '@crxjs/vite-plugin'
 import { getBuildContext } from './scripts/getBuildContext'
+import { getAppUrls } from './src/common/appUrls'
 
 const { isDev, browser, appVersion } = getBuildContext()
 
@@ -25,12 +26,6 @@ if (isDev) {
   permissions.push('declarativeNetRequestFeedback')
 }
 
-const APP_URLS = [
-  'https://danmaku.weeblify.app/*', // prod
-  'https://*.quinfish.workers.dev/*', // staging
-  'http://localhost:4200/*', // local dev
-]
-
 export const manifest = defineManifest({
   manifest_version: 3,
   name: '__MSG_extName__',
@@ -48,7 +43,7 @@ export const manifest = defineManifest({
   },
   content_scripts: [
     {
-      matches: APP_URLS,
+      matches: getAppUrls(isDev),
       js: ['src/content/app/index.ts'],
       run_at: 'document_start',
     },

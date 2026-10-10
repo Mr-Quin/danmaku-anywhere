@@ -8,11 +8,14 @@ name: Release Manager App
 # Flow:
 #   1. Push a release-manager-v<version> tag (or run manually) -> the build job compiles,
 #      signs, and creates a DRAFT GitHub release with the AppImage, its signature, and a
-#      latest.json updater manifest. Nothing is published automatically.
+#      latest.json updater manifest. A second job adds a Windows NSIS installer to the
+#      same draft (installer only, no self-update, so no updater artifacts or signing).
+#      Nothing is published automatically.
 #   2. A human reviews and PUBLISHES that draft release.
 #   3. Publishing fires the promote job, which copies latest.json onto the floating
 #      release-manager-latest release. That is the stable URL the in-app updater polls,
-#      so updates only go live after the versioned AppImage is public.
+#      so updates only go live after the versioned AppImage is public. The Windows
+#      installer has no self-update; Windows users re-download to update.
 
 on:
   push:
@@ -76,6 +79,47 @@ jobs:
           generateReleaseNotes: true
           uploadUpdaterJson: true
           args: '--bundles appimage'
+
+  build-windows:
+    if: github.event_name != 'release'
+    # Runs after the Linux job so the draft release already exists and this job
+    # only uploads its installer to it, avoiding a concurrent create-release race.
+    needs: build
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/release-manager/src-tauri -> target
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build and draft Windows installer
+        uses: tauri-apps/tauri-action@v0.6.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: app/release-manager
+          tagName: ${{ github.event_name == 'push' && 'release-manager-v__VERSION__' || '' }}
+          releaseName: ${{ github.event_name == 'push' && 'Release Manager v__VERSION__' || '' }}
+          releaseDraft: true
+          prerelease: false
+          # Installer only: no updater artifacts (disabled via the config override),
+          # so this job needs no signing key. Windows has no in-app self-update.
+          args: '--bundles nsis --config src-tauri/tauri.windows.conf.json'
 
   promote-latest:
     # When a human publishes a release-manager-v* draft, copy its updater manifest onto

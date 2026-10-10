@@ -10,7 +10,7 @@ const dangoBaseUrl =
 
 const filePattern = /^src\/manifests\/[\w.-]+\.json$/
 
-const oneHour = 60 * 60
+const cacheMaxAge = 15 * 60
 
 manifestRouter.get(
   '/',
@@ -41,7 +41,7 @@ manifestRouter.get(
     },
   }),
   useCache({
-    maxAge: oneHour,
+    maxAge: cacheMaxAge,
   }),
   async (c) => {
     return await fetch(`${dangoBaseUrl}/catalog.json`)
@@ -70,7 +70,7 @@ manifestRouter.get(
     },
   }),
   useCache({
-    maxAge: oneHour,
+    maxAge: cacheMaxAge,
   }),
   async (c) => {
     const { file } = c.req.valid('query')

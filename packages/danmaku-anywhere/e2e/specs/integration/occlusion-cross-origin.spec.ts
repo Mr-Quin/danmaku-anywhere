@@ -12,10 +12,9 @@ import { applyProfile } from '../../setup/profile'
 /**
  * Occlusion cross-origin behavior over real network (route-fulfilled .invalid
  * origins can't exercise DNR). Page on localhost:8889, video on 127.0.0.1:8889,
- * so the canvas genuinely taints. Asserts the recovery path (tainted original +
- * DNR clone yields a mask), the src-swap re-recovery, and the graceful-failure
- * path (a clone the DNR rule cannot rescue surfaces the taint status, leaves
- * playback intact, and applies no mask).
+ * so the canvas genuinely taints. Asserts recovery through the DNR clone for a
+ * plain, Origin-blocked, once-rejected, slow, and swapped source, and that a
+ * source nothing can rescue reports the video unreadable, playback intact.
  */
 
 const PAGE_ORIGIN = 'http://localhost:8889'
@@ -26,6 +25,10 @@ const VIDEO_2 = `${MEDIA_ORIGIN}/media/person-akiyo.webm`
 // Served so the crossorigin clone's CORS request is rejected (DNR can't rescue
 // it) while the plain <video> still plays and taints.
 const VIDEO_UNRECOVERABLE = `${MEDIA_ORIGIN}/cors-fail/media/sample-motion.webm`
+// Rejects a clone request carrying an Origin header.
+const VIDEO_ORIGIN_BLOCKED = `${MEDIA_ORIGIN}/origin-block/media/sample-motion.webm`
+const VIDEO_FLAKY_CLONE = `${MEDIA_ORIGIN}/flaky-clone/media/sample-motion.webm`
+const VIDEO_SLOW_CLONE = `${MEDIA_ORIGIN}/slow-clone/media/sample-motion.webm`
 const MOUNT_PATTERN = `${PAGE_ORIGIN}/*`
 
 const EPISODE_TITLE = 'DA Harness Native Video'
@@ -151,6 +154,72 @@ test('occlusion recovers a cross-origin tainted video via the DNR clone', async 
     .toMatch(/^url\(/)
 })
 
+test('occlusion recovers when the source rejects a clone request carrying Origin', async ({
+  context,
+  page,
+}) => {
+  const da = await seedOcclusionMount(context)
+  const integrationPage = new IntegrationPage(page)
+
+  await page.bringToFront()
+  await page.goto(PAGE_URL)
+  await setVideoSrc(page, VIDEO_ORIGIN_BLOCKED)
+
+  await expect.poll(() => videoTaintState(page)).toBe('SecurityError')
+  await da.mount.waitForMount(undefined, 15_000)
+
+  await expect
+    .poll(() => maskImageOf(integrationPage.danmuContainer()))
+    .toMatch(/^url\(/)
+})
+
+test.describe('clone request rejected once', () => {
+  test.use({ expectedConsoleErrors: [/flaky-clone\/media/] })
+
+  test('occlusion retries the recovery and comes back', async ({
+    context,
+    page,
+  }) => {
+    const da = await seedOcclusionMount(context)
+    const integrationPage = new IntegrationPage(page)
+
+    await page.bringToFront()
+    await page.goto(PAGE_URL)
+    await setVideoSrc(page, VIDEO_FLAKY_CLONE)
+
+    await expect.poll(() => videoTaintState(page)).toBe('SecurityError')
+    await da.mount.waitForMount(undefined, 15_000)
+
+    await expect
+      .poll(() => maskImageOf(integrationPage.danmuContainer()), {
+        timeout: 20_000,
+      })
+      .toMatch(/^url\(/)
+  })
+})
+
+test('occlusion waits out a clone that is slow to become readable', async ({
+  context,
+  page,
+}) => {
+  test.setTimeout(60_000)
+  const da = await seedOcclusionMount(context)
+  const integrationPage = new IntegrationPage(page)
+
+  await page.bringToFront()
+  await page.goto(PAGE_URL)
+  await setVideoSrc(page, VIDEO_SLOW_CLONE)
+
+  await expect.poll(() => videoTaintState(page)).toBe('SecurityError')
+  await da.mount.waitForMount(undefined, 15_000)
+
+  await expect
+    .poll(() => maskImageOf(integrationPage.danmuContainer()), {
+      timeout: 40_000,
+    })
+    .toMatch(/^url\(/)
+})
+
 test('occlusion re-recovers when the player swaps to another cross-origin src', async ({
   context,
   page,
@@ -174,13 +243,14 @@ test('occlusion re-recovers when the player swaps to another cross-origin src', 
 })
 
 test.describe('unrecoverable cross-origin source', () => {
-  // The clone's CORS fetch to this source is rejected by design.
+  // The clone's CORS fetch to this source is rejected by design, on every retry.
   test.use({ expectedConsoleErrors: [/cors-fail\/media/] })
 
   test('occlusion degrades safely when the tainted source cannot be recovered', async ({
     context,
     page,
   }) => {
+    test.setTimeout(60_000)
     const da = await seedOcclusionMount(context)
     const integrationPage = new IntegrationPage(page)
     const toast = new Toast(page)
@@ -197,8 +267,8 @@ test.describe('unrecoverable cross-origin source', () => {
       timeout: 15_000,
     })
 
-    await toast.expectError(/cross-origin or DRM|跨域或 DRM/, {
-      timeout: 15_000,
+    await toast.expectError(/could not read this video|无法读取该视频/, {
+      timeout: 40_000,
     })
     const playheadBefore = await videoCurrentTime(page)
     await expect

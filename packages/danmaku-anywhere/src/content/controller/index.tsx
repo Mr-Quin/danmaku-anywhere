@@ -16,6 +16,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { createPortal } from 'react-dom'
 import { IS_DA_PROD } from '@/common/constants'
 import { EnvironmentContext } from '@/common/environment/context'
+import { bootstrapUiLanguage, uiContainer } from '@/common/ioc/uiIoc'
 import { tryCatchSync } from '@/common/utils/tryCatch'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
@@ -23,6 +24,7 @@ import { attachMountMirror } from '@/content/controller/common/devMountMirror'
 import { startPanelStateBroadcaster } from '@/content/controller/danmaku/panelState/PanelStateBroadcaster'
 import { useStore } from '@/content/controller/store/store'
 
+bootstrapUiLanguage(uiContainer)
 await ensureStandaloneReady()
 startPanelStateBroadcaster()
 

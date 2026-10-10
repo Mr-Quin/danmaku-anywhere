@@ -55,4 +55,26 @@ describe('Kazumi Rules API', () => {
     const content: any = await response.json()
     expect(content.success).toBe(false)
   })
+
+  it.each([
+    '../../../etc/passwd',
+    '..%2f..%2f..%2fetc%2fpasswd',
+    '..%252f..%252fetc%252fpasswd',
+    'a.json%00../../etc/passwd',
+    '..%5c..%5cx.json',
+    '/etc/passwd',
+    'https://evil.com/malicious.json',
+  ])('rejects %s as the file parameter (GET /file)', async (file) => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockRejectedValue(new Error('fetch should not be called'))
+
+    const request = new Request(
+      createTestUrl(`/kazumi/rules/file?file=${file}`)
+    )
+    const response = await makeUnitTestRequest(request)
+
+    expect(response.status).toBe(400)
+    expect(fetchSpy).not.toHaveBeenCalled()
+  })
 })

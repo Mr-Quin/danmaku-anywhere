@@ -455,8 +455,8 @@ export class RpcManager {
         occlusionDeleteModel: async (data) => {
           return this.occlusionModelService.delete(data.id)
         },
-        occlusionAddCorsRule: async (data) => {
-          const { ruleId } = await setMediaCorsRule(data.url)
+        occlusionAddCorsRule: async (data, sender) => {
+          const { ruleId } = await setMediaCorsRule(data.url, sender.tab?.id)
           return ruleId
         },
         occlusionRemoveCorsRule: async (data) => {

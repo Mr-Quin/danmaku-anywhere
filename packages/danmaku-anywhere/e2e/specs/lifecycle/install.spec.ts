@@ -31,12 +31,9 @@ const LOCALIZED_NAMES_BY_ID: Record<string, string> = {
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]]: '腾讯视频',
 }
 
-test('fresh install: default options seeded, no console errors', async ({
-  context,
-  page,
-  extensionId,
-  da,
-}) => {
+test('fresh install: default options seeded, no console errors', {
+  tag: '@smoke',
+}, async ({ context, page, extensionId, da }) => {
   // Chrome extension IDs are a 32-char base-16 alphabet of a-p.
   expect(extensionId).toMatch(/^[a-p]{32}$/)
 
