@@ -1,65 +1,38 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import type { BackupData } from '@/common/backup/dto'
+import { describe, expect, it, vi } from 'vitest'
+import { backgroundContainerModule } from '@/background/ioc'
+import { createTestContainer } from '@/tests/createTestContainer'
 import { BackupService } from './BackupService.service'
-import type { ConfigStateService } from './ConfigStateService'
-import type { IBackupSink } from './sinks/BackupSink.interface'
+import { ConfigStateService } from './ConfigStateService'
 
-vi.mock('./ConfigStateService', () => ({
-  ConfigStateService: class {},
-}))
+function buildService(
+  restoreState = vi.fn<ConfigStateService['restoreState']>()
+) {
+  return createTestContainer(
+    [backgroundContainerModule],
+    [{ identifier: ConfigStateService, value: { restoreState } }]
+  ).get(BackupService)
+}
 
-describe('BackupService', () => {
-  let service: BackupService
-  let mockConfigStateService: any
+describe('BackupService.importAll', () => {
+  it('parses a JSON string backup and restores it', async () => {
+    const restoreState = vi.fn<ConfigStateService['restoreState']>(
+      async () => ({ success: true, details: {} })
+    )
+    const service = buildService(restoreState)
 
-  beforeEach(() => {
-    mockConfigStateService = {
-      getState: vi.fn(),
-      restoreState: vi.fn(),
-    } as unknown as ConfigStateService
+    await service.importAll('{"meta":{"version":1},"services":{}}')
 
-    service = new BackupService(mockConfigStateService, {
-      getTokenSync: vi.fn(),
-    } as any)
+    expect(restoreState).toHaveBeenCalledWith({
+      meta: { version: 1 },
+      services: {},
+    })
   })
 
-  afterEach(() => {
-    vi.clearAllMocks()
-  })
+  it('throws when the backup string is not valid JSON', async () => {
+    const service = buildService()
 
-  it('should delegate getBackupData to ConfigStateService', async () => {
-    const mockData = { meta: { version: 1 } } as any
-    mockConfigStateService.getState.mockResolvedValue(mockData)
-
-    const result = await service.getBackupData()
-
-    expect(result).toBe(mockData)
-    expect(mockConfigStateService.getState).toHaveBeenCalled()
-  })
-
-  it('should delegate importAll to ConfigStateService', async () => {
-    const mockData = { meta: { version: 1 } } as any
-    const mockResult = { success: true, details: {} }
-    mockConfigStateService.restoreState.mockResolvedValue(mockResult)
-
-    const result = await service.importAll(mockData)
-
-    expect(result).toBe(mockResult)
-    expect(mockConfigStateService.restoreState).toHaveBeenCalledWith(mockData)
-  })
-
-  it('should save to sink', async () => {
-    const mockData = { meta: { version: 1 } } as unknown as BackupData
-    mockConfigStateService.getState.mockResolvedValue(mockData)
-
-    const mockSink: IBackupSink = {
-      name: 'test-sink',
-      save: vi.fn().mockResolvedValue(undefined),
-    }
-
-    await service.backupTo(mockSink)
-
-    expect(mockConfigStateService.getState).toHaveBeenCalled()
-    expect(mockSink.save).toHaveBeenCalledWith(mockData)
+    await expect(service.importAll('not json')).rejects.toThrow(
+      'Failed to parse backup data as JSON'
+    )
   })
 })

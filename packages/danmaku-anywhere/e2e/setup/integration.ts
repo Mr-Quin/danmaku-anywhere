@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import type { Integration } from '@danmaku-anywhere/integration-policy'
+import type { BrowserContext } from '@playwright/test'
 import { BUILT_IN_AI_PROVIDER_ID } from '../../src/common/options/aiProviderConfig/constant'
 import {
   zIntegration,
@@ -8,6 +9,7 @@ import {
 import { LATEST_INTEGRATION_POLICY_VERSION } from '../../src/common/options/integrationPolicyStore/version'
 import { LATEST_MOUNT_CONFIG_VERSION } from '../../src/common/options/mountConfig/version'
 import type { DaClient } from './da-client'
+import { applyProfile } from './profile'
 
 export interface IntegrationSeedInput {
   // Chrome match-pattern syntax (e.g. https://www.example.com/play/*).
@@ -78,4 +80,45 @@ export function buildFixtureIntegrationPolicy(): Integration['policy'] {
     episodeTitle: { selector: [], regex: [] },
     options: {},
   }
+}
+
+export const FIXTURE_EPISODE_TITLE = 'DA Integration Test'
+// Seeking past FIXTURE_SEEK_TIME_S lands the cursor on at least one comment.
+export const FIXTURE_SEEK_TIME_S = 15
+const FIXTURE_COMMENTS = [
+  { p: '12,1,16777215,e2e-1', m: 'first' },
+  { p: '24,1,16777215,e2e-2', m: 'second' },
+  { p: '36,1,16777215,e2e-3', m: 'third' },
+]
+
+// Seeds a custom episode the fixture policy resolves by title (via
+// LocalMatchingStrategy's fuzzy fallback) and an XPath integration for
+// `patterns`, then waits out content-script registration.
+export async function seedFixtureIntegration(
+  context: BrowserContext,
+  da: DaClient,
+  patterns: string[]
+): Promise<{ episodeId: number }> {
+  await applyProfile(context, da, {
+    extensionOptions: { matchLocalDanmaku: true },
+  })
+
+  const customEpisode = await da.episode.addCustom({
+    title: FIXTURE_EPISODE_TITLE,
+    comments: FIXTURE_COMMENTS,
+    commentCount: FIXTURE_COMMENTS.length,
+    schemaVersion: 4,
+  })
+
+  await seedXPathIntegration(da, {
+    patterns,
+    name: 'da-e2e',
+    policy: buildFixtureIntegrationPolicy(),
+  })
+
+  for (const pattern of patterns) {
+    await da.mount.waitForRegistration(pattern, 5_000)
+  }
+
+  return { episodeId: customEpisode.id }
 }

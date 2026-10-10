@@ -64,6 +64,19 @@ export class IntegrationPage {
     this.iframeSelector = iframeSelector
   }
 
+  // Fixture pages that model an SPA expose window.switchView().
+  async switchView(): Promise<void> {
+    await this.page.evaluate(() => {
+      const spa = window as unknown as { switchView?: () => void }
+      if (!spa.switchView) {
+        throw new Error(
+          'IntegrationPage.switchView: fixture has no switchView()'
+        )
+      }
+      spa.switchView()
+    })
+  }
+
   private get target(): Page | Frame {
     return this.videoFrame ?? this.page
   }
