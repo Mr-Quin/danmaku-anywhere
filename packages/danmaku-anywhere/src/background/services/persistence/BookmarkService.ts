@@ -170,6 +170,7 @@ export class BookmarkService {
         type: 'by-stub',
         stub: next,
         seasonId,
+        options: { automatic: true },
       })
     }
 

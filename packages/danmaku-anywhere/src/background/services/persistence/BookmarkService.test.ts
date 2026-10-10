@@ -81,6 +81,7 @@ describe('BookmarkService.preloadNextEpisode', () => {
       type: 'by-stub',
       stub: stub('b', 2),
       seasonId: 7,
+      options: { automatic: true },
     })
   })
 
@@ -94,6 +95,7 @@ describe('BookmarkService.preloadNextEpisode', () => {
       type: 'by-stub',
       stub: stub('b', 2),
       seasonId: 7,
+      options: { automatic: true },
     })
   })
 
@@ -118,6 +120,7 @@ describe('BookmarkService.preloadNextEpisode', () => {
       type: 'by-stub',
       stub: stub('b', 2),
       seasonId: 7,
+      options: { automatic: true },
     })
   })
 

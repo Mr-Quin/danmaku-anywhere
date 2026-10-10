@@ -51,6 +51,7 @@ import type { BaseUrlConfig } from '@/common/configs/types'
 import type {
   CustomEpisodeQueryFilter,
   DanmakuFetchDto,
+  DanmakuFetchResult,
   DanmakuImportData,
   DanmakuImportResult,
   EpisodeFetchBySeasonParams,
@@ -212,7 +213,7 @@ export type BackgroundMethods = {
   episodeMatch: RPCDef<MatchEpisodeInput, MatchEpisodeResult>
   episodeFilterLite: RPCDef<EpisodeQueryFilter, WithSeason<EpisodeLite>[]>
   episodeFilter: RPCDef<EpisodeQueryFilter, WithSeason<Episode>[]>
-  episodeFetch: RPCDef<DanmakuFetchDto, WithSeason<Episode>>
+  episodeFetch: RPCDef<DanmakuFetchDto, DanmakuFetchResult>
   episodePreloadNext: RPCDef<WithSeason<EpisodeMeta>, void>
   episodeDelete: RPCDef<EpisodeQueryFilter, void>
   episodeFilterCustom: RPCDef<CustomEpisodeQueryFilter, CustomEpisode[]>

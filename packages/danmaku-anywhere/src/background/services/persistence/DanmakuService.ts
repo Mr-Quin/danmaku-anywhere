@@ -9,6 +9,7 @@ import {
   type EpisodeInsert,
   type EpisodeLite,
   parseBackupMany,
+  parseCommentEntityP,
   type Season,
   type WithSeason,
   zCombinedDanmaku,
@@ -20,6 +21,7 @@ import type {
   DanmakuImportData,
   DanmakuImportResult,
   EpisodeQueryFilter,
+  KeptStored,
 } from '@/common/danmaku/dto'
 import { DanmakuAnywhereDb } from '@/common/db/db'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
@@ -27,6 +29,11 @@ import type { DbEntity } from '@/common/types/dbEntity'
 import { tryCatch } from '@/common/utils/tryCatch'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import { matchPathByName } from './utils/matchPathByName'
+
+function countRenderable(comments: CommentEntity[]): number {
+  return comments.filter((comment) => parseCommentEntityP(comment.p) !== null)
+    .length
+}
 
 @injectable('Singleton')
 export class DanmakuService {
@@ -146,13 +153,51 @@ export class DanmakuService {
           indexedId: data.indexedId,
         })
 
-        if (existing) {
-          return (await this.update({ ...existing, ...data })) as DbEntity<T>
-        }
-
-        return this.add(data)
+        return this.replaceOrAdd(data, existing)
       }
     )
+  }
+
+  // The stored count is read inside the write transaction, so two fetches of
+  // one episode racing each other cannot shrink it through a stale read.
+  async upsertUnlessFewer(
+    data: EpisodeInsert
+  ): Promise<{ episode: Episode; keptStored?: KeptStored }> {
+    return this.db.transaction(
+      'rw',
+      this.db.episode,
+      this.db.season,
+      async () => {
+        const existing = await this.db.episode.get({
+          seasonId: data.seasonId,
+          indexedId: data.indexedId,
+        })
+
+        if (existing) {
+          const fetchedCount = countRenderable(data.comments)
+          const storedCount = countRenderable(existing.comments)
+          if (fetchedCount < storedCount) {
+            return {
+              episode: existing,
+              keptStored: { fetchedCount, storedCount },
+            }
+          }
+        }
+
+        return { episode: await this.replaceOrAdd(data, existing) }
+      }
+    )
+  }
+
+  private async replaceOrAdd<T extends EpisodeInsert>(
+    data: T,
+    existing: Episode | undefined
+  ): Promise<DbEntity<T>> {
+    if (existing) {
+      return (await this.update({ ...existing, ...data })) as DbEntity<T>
+    }
+
+    return this.add(data)
   }
 
   async add<T extends EpisodeInsert>(data: T): Promise<DbEntity<T>> {

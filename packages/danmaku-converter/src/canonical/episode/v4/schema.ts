@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { stripHtml } from '../../../utils/index.js'
-import { zCommentEntity } from '../../comment/index.js'
+import { zStoredCommentEntity } from '../../comment/index.js'
 import type { DbEntity } from '../../provider/provider.js'
 import { type SeasonV1, zSeasonInsertV1 } from '../../season/index.js'
 
@@ -9,7 +9,7 @@ import { type SeasonV1, zSeasonInsertV1 } from '../../season/index.js'
  */
 export const zCustomEpisodeInsertV4 = z.object({
   title: z.string().refine(stripHtml),
-  comments: z.array(zCommentEntity),
+  comments: z.array(zStoredCommentEntity),
   commentCount: z.number(),
   schemaVersion: z.literal(4),
 })
@@ -43,7 +43,7 @@ export const zEpisodeInsertV4 = z.object({
   indexedId: z.string(),
   // foreign key in the season table
   seasonId: z.number(),
-  comments: z.array(zCommentEntity),
+  comments: z.array(zStoredCommentEntity),
   commentCount: z.number(),
   schemaVersion: z.literal(4),
   // The last time we checked for updates

@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import type { CommentEntity, CommentMode } from './types.js'
-import { commentOptionsToString, parseCommentEntityP } from './utils.js'
+import {
+  type CommentEntity,
+  type CommentMode,
+  parseCommentEntityP,
+  zCommentEntity,
+  zStoredCommentEntity,
+} from './types.js'
+import { commentOptionsToString } from './utils.js'
 
 const commentEntity: CommentEntity = {
   cid: 1737712333,
@@ -31,6 +37,10 @@ describe('comment entity conversion', () => {
     expect(parseCommentEntityP('658.73,99,16777215,0')).toBeNull()
   })
 
+  it('should return null for a time that is not a number', () => {
+    expect(parseCommentEntityP('abc,1,16777215')).toBeNull()
+  })
+
   it('should normalize mode 2 to rtl', () => {
     expect(parseCommentEntityP('12,2,16777215,uid')).toEqual({
       time: 12,
@@ -47,5 +57,25 @@ describe('comment entity conversion', () => {
       color: '#ffffff',
       uid: 'uid',
     })
+  })
+})
+
+describe('zCommentEntity', () => {
+  it('accepts a comment the renderer can parse', () => {
+    expect(zCommentEntity.safeParse(commentEntity).success).toBe(true)
+  })
+
+  it.each([
+    ['garbage'],
+    ['12,99,16777215'],
+    ['abc,1,16777215'],
+  ])('rejects an unparseable p %s', (p) => {
+    expect(zCommentEntity.safeParse({ p, m: 'text' }).success).toBe(false)
+  })
+
+  it('leaves the stored shape lenient about p', () => {
+    expect(
+      zStoredCommentEntity.safeParse({ p: 'garbage', m: 'x' }).success
+    ).toBe(true)
   })
 })

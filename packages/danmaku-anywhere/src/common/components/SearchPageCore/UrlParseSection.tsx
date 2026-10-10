@@ -102,11 +102,13 @@ export function UrlParseSection({
         options: { forceUpdate: true },
       },
       {
-        onSuccess: (data) => {
-          toast.success(
-            t('searchPage.parse.alert.importSuccess', 'Import successful')
-          )
-          onImportSuccess?.(data)
+        onSuccess: ({ episode, keptStored }) => {
+          if (!keptStored) {
+            toast.success(
+              t('searchPage.parse.alert.importSuccess', 'Import successful')
+            )
+          }
+          onImportSuccess?.(episode)
         },
         onError: () => {
           toast.error(
