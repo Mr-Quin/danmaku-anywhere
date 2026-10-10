@@ -23,11 +23,11 @@ const sourceEpisode = {
   seasonId: 7,
   title: 'ep',
   season: { manifestId: 'dandanplay' },
-} as unknown as GenericEpisode
+} as unknown as GenericEpisode // lint-specs-allow-cast: partial fixture, not a collaborator
 
 const customEpisode = {
   title: 'local.mp4',
-} as unknown as GenericEpisode
+} as unknown as GenericEpisode // lint-specs-allow-cast: partial fixture, not a collaborator
 
 describe('episode discriminants', () => {
   it('treats an episode with a seasonId as a source episode', () => {
@@ -43,15 +43,17 @@ describe('episode discriminants', () => {
 
 describe('isCustomSeason', () => {
   it('is true only when isCustom is exactly true', () => {
-    expect(isCustomSeason({ isCustom: true } as unknown as CustomSeason)).toBe(
-      true
-    )
+    const customSeason = {
+      isCustom: true,
+    } as unknown as CustomSeason // lint-specs-allow-cast: partial fixture, not a collaborator
+
+    expect(isCustomSeason(customSeason)).toBe(true)
   })
 
   it('is false when isCustom is false or absent', () => {
-    expect(isCustomSeason({ isCustom: false } as unknown as Season)).toBe(false)
+    expect(isCustomSeason({ isCustom: false } as unknown as Season)).toBe(false) // lint-specs-allow-cast: partial fixture, not a collaborator
     expect(
-      isCustomSeason({ manifestId: 'dandanplay' } as unknown as Season)
+      isCustomSeason({ manifestId: 'dandanplay' } as unknown as Season) // lint-specs-allow-cast: partial fixture, not a collaborator
     ).toBe(false)
   })
 })
@@ -72,7 +74,7 @@ describe('episodeProviderType', () => {
       seasonId: 7,
       title: 'ep',
       season: {},
-    } as unknown as GenericEpisode
+    } as unknown as GenericEpisode // lint-specs-allow-cast: partial fixture, not a collaborator
     expect(episodeProviderType(orphan)).toBeUndefined()
   })
 })
@@ -80,17 +82,17 @@ describe('episodeProviderType', () => {
 describe('seasonProviderType', () => {
   it('maps a custom season to the MacCMS type', () => {
     expect(
-      seasonProviderType({ isCustom: true } as unknown as CustomSeason)
+      seasonProviderType({ isCustom: true } as unknown as CustomSeason) // lint-specs-allow-cast: partial fixture, not a collaborator
     ).toBe(DanmakuSourceType.MacCMS)
   })
 
   it('derives a source season type from its manifestId', () => {
     expect(
-      seasonProviderType({ manifestId: 'bilibili' } as unknown as Season)
+      seasonProviderType({ manifestId: 'bilibili' } as unknown as Season) // lint-specs-allow-cast: partial fixture, not a collaborator
     ).toBe(DanmakuSourceType.Bilibili)
   })
 
   it('returns undefined for an orphaned source season with no manifestId', () => {
-    expect(seasonProviderType({} as unknown as Season)).toBeUndefined()
+    expect(seasonProviderType({} as unknown as Season)).toBeUndefined() // lint-specs-allow-cast: partial fixture, not a collaborator
   })
 })
