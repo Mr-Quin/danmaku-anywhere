@@ -30,7 +30,7 @@ function remoteEpisode(over: Partial<GenericEpisode> = {}): GenericEpisode {
       id: 1,
     },
     ...over,
-  } as unknown as GenericEpisode
+  } as unknown as GenericEpisode // lint-specs-allow-cast: partial fixture, not a collaborator
 }
 
 function customEpisode(): CustomEpisode {
@@ -41,7 +41,7 @@ function customEpisode(): CustomEpisode {
     commentCount: 0,
     schemaVersion: 4,
     id: 2,
-  } as unknown as CustomEpisode
+  } as unknown as CustomEpisode // lint-specs-allow-cast: partial fixture, not a collaborator
 }
 
 describe('episodeToPanelMedia', () => {
