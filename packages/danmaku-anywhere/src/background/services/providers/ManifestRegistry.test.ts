@@ -422,7 +422,7 @@ describe('ManifestRegistry', () => {
     expect(warn.mock.calls[0]).toContain(999)
   })
 
-  it('update retries once, then reports the index unreachable', async () => {
+  it('update retries once, then falls back to the bundle when the index fetch keeps failing', async () => {
     const fetchMock = stubFetch(() => ({ status: 503, body: 'unavailable' }))
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
@@ -431,6 +431,11 @@ describe('ManifestRegistry', () => {
     )
 
     expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(Object.keys(await store.getAll()).sort()).toEqual(
+      bundledCatalogIndex()
+        .map((entry) => entry.id)
+        .sort()
+    )
   })
 
   it('update succeeds when the index fetch recovers on the retry', async () => {
