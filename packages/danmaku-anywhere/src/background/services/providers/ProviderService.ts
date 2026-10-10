@@ -8,7 +8,6 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import { getDisplayStrings } from '@mr-quin/dango'
-import { Mutex } from 'async-mutex'
 import { inject, injectable } from 'inversify'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
@@ -51,21 +50,6 @@ import {
   type IDanmakuProviderFactory,
 } from './ProviderFactory'
 
-// Local, not sync: only the device that held the pre-manifest configs owes the
-// rename, and the renamed configs reach other devices through sync. Raw
-// chrome.storage because ExtStorageService swallows write errors, and a lost
-// flag write here silently drops the rename.
-const LEGACY_NAMES_PENDING_KEY = 'providerConfigLegacyNamesPending'
-
-async function setLegacyNamesPending(): Promise<void> {
-  await chrome.storage.local.set({ [LEGACY_NAMES_PENDING_KEY]: true })
-}
-
-async function isLegacyNamesPending(): Promise<boolean> {
-  const stored = await chrome.storage.local.get(LEGACY_NAMES_PENDING_KEY)
-  return stored[LEGACY_NAMES_PENDING_KEY] === true
-}
-
 function enrichEpisode(
   episode: OmitSeasonId<EpisodeMeta>,
   season: Season
@@ -81,7 +65,6 @@ function enrichEpisode(
 export class ProviderService {
   private readonly logger: ILogger
   private seeding: Promise<void> | null = null
-  private readonly legacyNamesLock = new Mutex()
 
   constructor(
     @inject(DanmakuService)
@@ -363,9 +346,6 @@ export class ProviderService {
     void this.reconcileSeasonIdentitiesOnce().catch((e) => {
       this.logger.error('Season identity reconciliation failed:', e)
     })
-    void this.runPendingLegacyRename().catch((e) => {
-      this.logger.error('Built-in name localization failed:', e)
-    })
     // Configs can also appear mid-session (another device syncing in, a
     // re-added config); heal orphans right away rather than waiting for the
     // next browser session.
@@ -418,64 +398,51 @@ export class ProviderService {
   }
 
   private async onInstalled(reason: string): Promise<void> {
-    if (reason === 'update') {
-      await this.lockSeedForExistingInstall()
-    }
+    const lockedExistingInstall =
+      reason === 'update' && (await this.lockSeedForExistingInstall())
+    // The seed flag is already locked, so a sync failure here must not skip
+    // the one chance to rename.
     try {
       await this.syncCatalog()
     } finally {
-      await this.runPendingLegacyRename()
+      if (lockedExistingInstall) {
+        await this.localizeLegacyBuiltinNames()
+      }
     }
   }
 
-  // Lock the seed flag for an existing install so its configs are never
-  // re-seeded, even if the user has deleted them all. An unset flag with no configs is a
+  // Lock the flag for an existing install so its configs are never re-seeded,
+  // even if the user has deleted them all. An unset flag with no configs is a
   // different user: their first-run seed never happened, so leave them
-  // unlocked for the sync that follows to heal.
-  private async lockSeedForExistingInstall(): Promise<void> {
+  // unlocked for the sync that follows to heal. Returns whether it locked.
+  private async lockSeedForExistingInstall(): Promise<boolean> {
     if (await this.providerConfigService.hasSeeded()) {
-      return
+      return false
     }
     const configs = await this.providerConfigService.getAll()
     if (configs.length === 0) {
-      return
+      return false
     }
-    // Before the seed flag: once it is set, nothing else marks these configs
-    // as pre-manifest, so a worker killed in between must still owe the rename.
-    await setLegacyNamesPending()
     await this.providerConfigService.markSeeded()
+    return true
   }
 
-  // For configs just restored from a pre-manifest backup.
+  // Only for configs that came from pre-manifest storage (the update that
+  // locked the seed flag, or a restored pre-manifest backup), so a name the
+  // user sets later is never touched.
   async localizeLegacyBuiltinNames(): Promise<void> {
-    await this.legacyNamesLock.runExclusive(async () => {
-      await setLegacyNamesPending()
-      await this.renameLegacyBuiltins()
-    })
-  }
-
-  // Cleared only after the renamed configs are written, so an interrupted
-  // rename is retried on the next worker start.
-  private async runPendingLegacyRename(): Promise<void> {
-    await this.legacyNamesLock.runExclusive(async () => {
-      if (!(await isLegacyNamesPending())) {
-        return
-      }
-      await this.renameLegacyBuiltins()
-    })
-  }
-
-  private async renameLegacyBuiltins(): Promise<void> {
+    await this.manifestRegistry.ready
     const { lang } = await this.extensionOptions.get()
-    const names = await this.manifestRegistry.getDisplayNames(
-      toManifestLocale(lang)
+    const names = new Map(
+      this.manifestRegistry
+        .listManifests(toManifestLocale(lang))
+        .map((m) => [m.id, m.name])
     )
     const configs = await this.providerConfigService.getAll()
     const localized = localizeLegacyBuiltinNames(configs, names)
     if (localized !== configs) {
       await this.providerConfigService.options.set(localized)
     }
-    await chrome.storage.local.remove(LEGACY_NAMES_PENDING_KEY)
   }
 
   // Throws on a catalog that produced no usable list so a user-driven refresh

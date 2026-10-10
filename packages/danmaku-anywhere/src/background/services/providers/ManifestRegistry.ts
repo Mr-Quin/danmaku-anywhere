@@ -13,11 +13,7 @@ import type {
   ProviderManifestInfo,
 } from '@/common/rpcClient/background/types'
 import { invariant, sleep } from '@/common/utils/utils'
-import {
-  bundledCatalogIndex,
-  bundledDisplayNames,
-  bundledManifestRaw,
-} from './bundledCatalog'
+import { bundledCatalogIndex, bundledManifestRaw } from './bundledCatalog'
 import { extensionFetchLike } from './extensionFetchLike'
 import {
   type IManifestStore,
@@ -130,18 +126,6 @@ export class ManifestRegistry {
       map[id] = runner.manifest.identityFields
     }
     return map
-  }
-
-  // A manifest whose catalog download failed is not registered, so its bundled
-  // copy supplies the name until a later sync loads it.
-  async getDisplayNames(locale?: string): Promise<Map<string, string>> {
-    await this.ready
-    const names = bundledDisplayNames(locale)
-    for (const { runner } of this.runners.values()) {
-      const { manifest } = runner
-      names.set(manifest.id, getDisplayStrings(manifest, locale).name)
-    }
-    return names
   }
 
   getLastCheckedAt(): Promise<number | null> {

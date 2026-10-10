@@ -1,9 +1,4 @@
-import {
-  getDisplayStrings,
-  type Manifest,
-  SUPPORTED_API_VERSIONS,
-  zManifest,
-} from '@mr-quin/dango'
+import { SUPPORTED_API_VERSIONS, zManifest } from '@mr-quin/dango'
 
 export interface BundledCatalogEntry {
   id: string
@@ -14,7 +9,6 @@ export interface BundledCatalogEntry {
 
 interface BundledEntry extends BundledCatalogEntry {
   raw: unknown
-  manifest: Manifest
 }
 
 // Vite eager glob: the manifest JSON files are inlined at build time, so the
@@ -47,22 +41,11 @@ for (const raw of Object.values(rawModules)) {
     version: manifest.version,
     file: manifestFile(manifest.id),
     raw,
-    manifest,
   })
 }
 
 export function bundledCatalogIndex(): BundledCatalogEntry[] {
-  return [...bundledById.values()].map(
-    ({ raw: _raw, manifest: _manifest, ...entry }) => entry
-  )
-}
-
-export function bundledDisplayNames(locale?: string): Map<string, string> {
-  const names = new Map<string, string>()
-  for (const [id, { manifest }] of bundledById) {
-    names.set(id, getDisplayStrings(manifest, locale).name)
-  }
-  return names
+  return [...bundledById.values()].map(({ raw: _raw, ...entry }) => entry)
 }
 
 export function bundledManifestRaw(id: string): unknown {
