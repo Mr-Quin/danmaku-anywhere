@@ -40,7 +40,7 @@ export function supportsInstances(manifestId: string): boolean {
 export function isHostedDanDanPlay(config: ProviderConfig): boolean {
   return (
     config.manifestId === DDP_MANIFEST_ID &&
-    config.configValues.baseUrl === PROXY_DDP_BASE_URL
+    config.configValues?.baseUrl === PROXY_DDP_BASE_URL
   )
 }
 

@@ -50,10 +50,35 @@ function isPublicUrl(url) {
   }
 }
 
+// Distinct hosts must stay distinct after redaction. The migration spec pins
+// specific self-hosted hosts to tell configs apart, and collapsing them all to
+// one placeholder would make those assertions pass vacuously. Regenerating the
+// fixture renames them, so the spec's host constants need updating with it.
+const redactedHostByOriginal = new Map()
+
+function redactedHostFor(hostname) {
+  if (!redactedHostByOriginal.has(hostname)) {
+    redactedHostByOriginal.set(
+      hostname,
+      `https://redacted-${redactedHostByOriginal.size + 1}.example`
+    )
+  }
+  return redactedHostByOriginal.get(hostname)
+}
+
 function redactUrl(url) {
   if (typeof url !== 'string') return url
   if (!/^https?:\/\//i.test(url)) return url
-  return isPublicUrl(url) ? url : REDACTED_URL
+  if (isPublicUrl(url)) {
+    return url
+  }
+  try {
+    const parsed = new URL(url)
+    const host = redactedHostFor(parsed.hostname)
+    return parsed.pathname === '/' ? host : `${host}${parsed.pathname}`
+  } catch {
+    return REDACTED_URL
+  }
 }
 
 function redactPattern(pattern) {

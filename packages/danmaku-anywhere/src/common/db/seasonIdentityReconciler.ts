@@ -6,7 +6,8 @@ type ReconcilableConfig = {
   manifestId: string
   configValues?: Record<string, unknown>
   // The manifest's identityFields declaration, resolved by the caller.
-  identityFields: readonly string[]
+  // Undefined when the caller could not resolve the manifest at all.
+  identityFields?: readonly string[]
 }
 
 /**
@@ -17,8 +18,10 @@ type ReconcilableConfig = {
  * dropping providerConfigId, and rekey seasonMap entries the same way.
  *
  * Idempotent: a healed row has no providerConfigId; an unmatched row keeps it
- * for the next run (the caller schedules one per browser session). Returns the
- * number of season rows healed.
+ * for the next run (the caller schedules one per browser session), as does one
+ * whose manifest the caller could not resolve: healing drops providerConfigId,
+ * so a namespace stamped from a declaration we do not have is unrecoverable.
+ * Returns the number of season rows healed.
  */
 export async function reconcileSeasonIdentity(
   db: DanmakuAnywhereDb,
@@ -51,7 +54,7 @@ export async function reconcileSeasonIdentity(
         continue
       }
       const config = configById.get(row.providerConfigId)
-      if (!config) {
+      if (!config || !config.identityFields) {
         continue
       }
       const namespaceKey = computeNamespaceKey(config, config.identityFields)
@@ -78,7 +81,7 @@ export async function reconcileSeasonIdentity(
       let changed = false
       for (const [key, seasonId] of Object.entries(entry.seasons)) {
         const config = configById.get(key)
-        if (!config) {
+        if (!config || !config.identityFields) {
           continue
         }
         const namespaceKey = computeNamespaceKey(config, config.identityFields)
