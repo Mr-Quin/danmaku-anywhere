@@ -135,9 +135,11 @@ describe('backup round trip', () => {
         baseUrl: 'https://api.example.com/v1',
         apiKey: 'sk-test',
         model: 'test-model',
-        // Stored as parsed JSON while the schema expects the raw string, which
-        // is why this store cannot reuse its own schema to validate a restore.
-        providerOptions: { reasoning: '{"effort":"low"}' },
+        providerOptions: {
+          reasoning: '{"effort":"low"}',
+          budget: '5',
+          tag: 'null',
+        },
       },
     })
     const integrationInput = createIntegrationInput('test integration')
@@ -413,6 +415,121 @@ describe('backup round trip', () => {
       )
     )
     expect(result.success).toBe(true)
+  })
+
+  it('refuses a current danmakuOptions payload with the wrong types and keeps the existing options', async () => {
+    await danmakuOptionsService.update({ speed: 2 })
+
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        danmakuOptions: {
+          data: { speed: 'not-a-number', style: 42 },
+          version: danmakuOptionsService.options.latestVersion,
+        },
+      },
+    })
+
+    expect(result.details.danmakuOptions?.success).toBe(false)
+    expect((await danmakuOptionsService.get()).speed).toBe(2)
+  })
+
+  it('restores danmakuOptions saved before overlap existed, migrated from version 1', async () => {
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        danmakuOptions: {
+          data: {
+            show: true,
+            filterLevel: 0,
+            filters: [{ type: 'text', value: 'spoiler', enabled: true }],
+            speed: 1.5,
+            style: { opacity: 0.8, fontSize: 24, fontFamily: 'sans-serif' },
+          },
+          version: 1,
+        },
+      },
+    })
+
+    expect(result.details.danmakuOptions).toEqual({
+      success: true,
+      droppedEntries: 0,
+    })
+    expect((await danmakuOptionsService.get()).speed).toBe(1.5)
+  })
+
+  it('keeps danmakuOptions keys from older versions that the schema does not declare', async () => {
+    const current = await danmakuOptionsService.get()
+
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        danmakuOptions: {
+          data: {
+            ...current,
+            smartMask: true,
+            style: { ...current.style, customCss: '' },
+          },
+          version: danmakuOptionsService.options.latestVersion,
+        },
+      },
+    })
+
+    expect(result.details.danmakuOptions).toEqual({
+      success: true,
+      droppedEntries: 0,
+    })
+    expect(await danmakuOptionsService.get()).toMatchObject({
+      smartMask: true,
+      style: { customCss: '' },
+    })
+  })
+
+  it('refuses an aiProviderConfig payload that is not a list and keeps the existing providers', async () => {
+    await seedStores()
+    const before = await aiProviderConfigService.getAll()
+
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        aiProviderConfig: { data: 'totally-not-an-array', version: 1 },
+      },
+    })
+
+    expect(result.details.aiProviderConfig?.success).toBe(false)
+    expect(await aiProviderConfigService.getAll()).toEqual(before)
+    expect(await aiProviderConfigService.get('ai-1')).toBeDefined()
+  })
+
+  it('drops a restored AI provider without an id, which could never be found again', async () => {
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        aiProviderConfig: {
+          data: [
+            {
+              id: 'built-in',
+              isBuiltIn: true,
+              name: 'Danmaku Anywhere AI',
+              enabled: true,
+              provider: 'built-in',
+            },
+            {
+              isBuiltIn: false,
+              name: 'no id',
+              enabled: true,
+              provider: 'built-in',
+            },
+          ],
+          version: 1,
+        },
+      },
+    })
+
+    expect(result.details.aiProviderConfig).toEqual({
+      success: true,
+      droppedEntries: 1,
+    })
   })
 
   it('restores a re-export of the migrated v1.5.0 backup without losing data', async () => {

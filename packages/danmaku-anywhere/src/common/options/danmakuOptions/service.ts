@@ -12,11 +12,13 @@ import {
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import type { PrevOptions } from '../OptionsService/types'
+import { danmakuOptionsSchema } from './schema'
 
 @injectable('Singleton')
 export class DanmakuOptionsService implements IStoreService {
   public readonly name = 'danmakuOptions'
   public readonly options: OptionsService<DanmakuOptions>
+  public readonly backupSchema = danmakuOptionsSchema
 
   constructor(
     @inject(LoggerSymbol)

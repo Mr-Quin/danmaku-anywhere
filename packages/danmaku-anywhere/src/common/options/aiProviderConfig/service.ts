@@ -9,12 +9,17 @@ import {
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { invariant } from '@/common/utils/utils'
 import { BUILT_IN_AI_PROVIDER, BUILT_IN_AI_PROVIDER_ID } from './constant'
-import { type AiProviderConfig, zAiProviderConfig } from './schema'
+import {
+  type AiProviderConfig,
+  zAiProviderConfig,
+  zStoredAiProviderConfig,
+} from './schema'
 
 @injectable('Singleton')
 export class AiProviderConfigService implements IStoreService {
   public readonly name = 'aiProviderConfig'
   public readonly options: OptionsService<AiProviderConfig[]>
+  public readonly backupItemSchema = zStoredAiProviderConfig
 
   constructor(
     @inject(LoggerSymbol)
