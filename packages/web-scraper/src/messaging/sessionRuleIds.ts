@@ -4,9 +4,9 @@ const mutex = new Mutex()
 
 let lastRuleId: number | undefined
 
-// Every session DNR rule in the extension must take its id from here. Session
-// rules outlive a service worker restart, so the counter starts above whatever
-// ids are already installed.
+// Every session DNR rule must take its id from here. Session rules outlive a
+// service worker restart, so the counter starts above whatever ids are already
+// installed.
 export async function nextSessionRuleId(): Promise<number> {
   return mutex.runExclusive(async () => {
     if (lastRuleId === undefined) {

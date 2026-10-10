@@ -71,4 +71,17 @@ describe('session rule ids', () => {
 
     expect(new Set(rules.map((r) => r.id)).size).toBe(3)
   })
+
+  it('replaces the previous header rule for the same url', async () => {
+    const rule = {
+      url: 'https://same.example.com',
+      referer: 'https://source.example.com',
+    }
+    await setRequestHeaderRule(rule)
+    const firstId = rules[0].id
+    await setRequestHeaderRule(rule)
+
+    expect(rules).toHaveLength(1)
+    expect(rules[0].id).toBeGreaterThan(firstId)
+  })
 })
