@@ -5,9 +5,9 @@ import { useCache } from '@/middleware/cache'
 
 export const manifestRouter = factory.createApp()
 
-// Every shipped extension reads the catalog through here, so new manifest
-// content reaches users only when this tag is bumped and the worker deployed.
-export const dangoRef = 'v0.8.3'
+// New dango manifests reach users only after this tag is bumped and the worker
+// is redeployed.
+const dangoRef = 'v0.8.3'
 
 const dangoBaseUrl = `https://raw.githubusercontent.com/Mr-Quin/dango/${dangoRef}/packages/dango-manifests`
 
