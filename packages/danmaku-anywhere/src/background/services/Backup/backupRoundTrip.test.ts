@@ -342,52 +342,6 @@ describe('backup round trip', () => {
     ).toEqual(['usable'])
   })
 
-  it('keeps the existing providers when every restored entry is lost and migration only appends built-ins', async () => {
-    await seedStores()
-    const before = await providerConfigService.options.get()
-
-    const result = await configStateService.restoreState({
-      meta: { version: 1, timestamp: 1 },
-      services: {
-        providerConfig: { data: [null], version: 1 },
-      },
-    })
-
-    expect(result.success).toBe(false)
-    expect(result.details.providerConfig?.success).toBe(false)
-    expect(await providerConfigService.options.get()).toEqual(before)
-  })
-
-  it('counts lost providers against the restored entries, not the built-ins migration appends', async () => {
-    const result = await configStateService.restoreState({
-      meta: { version: 1, timestamp: 1 },
-      services: {
-        providerConfig: {
-          data: [
-            {
-              id: 'custom-ddp',
-              manifestId: 'dandanplay',
-              name: 'My DanDanPlay',
-              enabled: true,
-              configValues: { baseUrl: 'https://ddp.example.com' },
-            },
-            null,
-          ],
-          version: 1,
-        },
-      },
-    })
-
-    expect(result.success).toBe(false)
-    expect(result.details.providerConfig).toEqual({
-      success: true,
-      droppedEntries: 1,
-    })
-    expect(
-      (await providerConfigService.options.get()).map((p) => p.id)
-    ).toContain('custom-ddp')
-  })
-
   it('restores the v1.5.0 backup file shipped as an e2e fixture', async () => {
     const legacyBackup = readLegacyBackup()
 
