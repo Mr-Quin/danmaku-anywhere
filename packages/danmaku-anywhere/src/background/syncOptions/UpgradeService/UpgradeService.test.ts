@@ -12,6 +12,8 @@ vi.mock('@/common/constants', () => {
   }
 })
 
+// lint-specs-allow-call-only: upgrade() returns void; the collaborator calls it makes, and with what merged context, are the only observable behavior
+
 describe('UpgradeService', () => {
   let container: Container
   let service: UpgradeService
