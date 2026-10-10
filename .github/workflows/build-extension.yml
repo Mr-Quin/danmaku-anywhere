@@ -42,6 +42,13 @@ jobs:
         uses: pnpm/action-setup@v4
         # uses version from package.json > packageManager
 
+      - name: Require the proxy URL for release builds
+        run: |
+          if [ -z "$VITE_PROXY_URL" ] || [ -z "$VITE_PROXY_ORIGIN" ]; then
+            echo "::error::VITE_PROXY_URL and VITE_PROXY_ORIGIN must be set, otherwise the build ships 'undefined' backend URLs"
+            exit 1
+          fi
+
       - name: Install and build dependencies
         run: |
           pnpm install
