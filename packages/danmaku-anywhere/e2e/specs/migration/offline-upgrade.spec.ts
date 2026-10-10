@@ -27,7 +27,7 @@ import {
  * A user upgrading while the manifest catalog proxy is unreachable (a
  * blocked network, a downed backend) must still land on a working install.
  * Swaps a real v1.5.0 profile to HEAD with the catalog dead throughout:
- * asserts the bundled fallback registers all 13 manifests, a built-in
+ * asserts all 13 bundled manifests are registered before any sync, a built-in
  * source can still fetch fresh danmaku through the mocked provider API, the
  * self-hosted DanDanPlay season keeps its own namespace instead of
  * collapsing onto the shared built-in one, and a later reachable sync
@@ -114,20 +114,10 @@ async function run({
   await page.locator('#root').waitFor({ state: 'visible' })
   await dismissReleaseNotes(page)
 
-  // The bundle seed lands after the offline index's retry-then-sleep, well
-  // after the popup would otherwise mount and query an empty registry once
-  // with no later refetch (see offline-fallback.spec.ts). Wait for the store
-  // directly before opening the Providers page.
-  await expect
-    .poll(async () => Object.keys(await readManifestKinds(page)).length, {
-      timeout: 15_000,
-    })
-    .toBeGreaterThanOrEqual(BUNDLED_MANIFEST_COUNT)
-
-  // Built-in sources present, enabled, and resolved from the bundled
-  // fallback: the catalog never answered, so nothing beyond the 13
-  // build-time manifests could have registered iQIYI (never a config the
-  // user owned) alongside the already-installed sources.
+  // Opened right away, while the offline sync is still retrying. The page
+  // queries the registry once on mount with no refetch, so iQIYI (never a
+  // config the user owned) shows only if the bundle registered before the
+  // registry first answered.
   let popup = await Popup.open(page, MIGRATION_EXTENSION_ID, '/providers')
   await expect(popup.providers.checkedNeverLabel()).toBeVisible()
   await expect(popup.providers.importButton(/iQIYI|爱奇艺/)).toBeVisible()
@@ -172,8 +162,7 @@ async function run({
   ).toBe(BUILTIN_DDP_IMPORTED_COMMENT_COUNT)
 
   // Self-hosted keeps its own namespace: the highest-value assertion here,
-  // since offline is the deterministic case for a namespace derived from a
-  // bundled declaration instead of the dead catalog.
+  // since offline the only declaration available is the bundled one.
   const providerConfigs = await readProviderConfigs(page)
   const selfHostedConfig = providerConfigs.find(
     (c) => c.id === SELF_HOSTED_DDP_CONFIG_ID
@@ -181,21 +170,24 @@ async function run({
   if (!selfHostedConfig) {
     throw new Error('the fixture must carry the self-hosted DanDanPlay config')
   }
-  const selfHostedSeason = seasons.find(
-    (s) => s.indexedId === SELF_HOSTED_SEASON_INDEXED_ID
-  )
-  if (!selfHostedSeason) {
-    throw new Error('the fixture must carry the seeded self-hosted season')
-  }
   const selfHostedNamespace = computeNamespaceKey(selfHostedConfig, ['baseUrl'])
   expect(
     selfHostedNamespace,
     'a self-hosted config hashes to a ns: namespace, distinct from a builtin'
   ).toMatch(/^ns:/)
-  expect(
-    selfHostedSeason.namespaceKey,
-    'the self-hosted season keeps its own namespace instead of the shared dandanplay one'
-  ).toBe(selfHostedNamespace)
+  await expect
+    .poll(
+      async () => {
+        const rows = await readSeasons(page)
+        return rows.find((s) => s.indexedId === SELF_HOSTED_SEASON_INDEXED_ID)
+          ?.namespaceKey
+      },
+      {
+        message:
+          'the self-hosted season keeps its own namespace instead of the shared dandanplay one',
+      }
+    )
+    .toBe(selfHostedNamespace)
 
   // Danmaku still fetches for a built-in source: force-refresh the imported
   // episode, which bypasses the cache and re-hits the (mocked) provider API
@@ -267,7 +259,7 @@ async function run({
   expect(
     selfHostedAfterSync?.namespaceKey,
     'the self-hosted namespace stays stable across a later reachable sync'
-  ).toBe(selfHostedSeason.namespaceKey)
+  ).toBe(selfHostedNamespace)
 
   await Popup.open(page, MIGRATION_EXTENSION_ID, '/mount')
   const treeItemCountAfterSync = await page.locator('[role="treeitem"]').count()

@@ -56,10 +56,9 @@ test('built-in sources are installed from the bundled catalog when the proxy is 
 }) => {
   await routeLoginProbes(context)
 
-  // The offline index retries once with a 1s delay before falling back to the
-  // bundle, so the seed lands well after the popup would otherwise mount and
-  // query an empty list once with no later refetch. Wait for the configs (the
-  // seed's ground truth) before opening the popup.
+  // Default configs are seeded only after the boot sync gives up on the
+  // offline index (one retry after 1s), well after the popup would mount and
+  // query once with no refetch. Wait for the configs before opening it.
   await expect
     .poll(
       async () => {
@@ -95,18 +94,22 @@ test('a bundle-seeded source auto-upgrades to the catalog copy on the next reach
   const iqiyiName = /iQIYI|爱奇艺/
   const bundledVersion = manifestVersion('iqiyi')
 
+  // The bundled manifests are stored at startup, but the default configs only
+  // after the offline sync gives up, and the Installed list does not refetch.
   await expect
     .poll(
       async () => {
-        const stored = (await da.storage.get('local', 'manifests')) as Record<
-          string,
-          { kind: string }
-        >
-        return stored?.iqiyi?.kind
+        const configs = await da.providerConfig.list()
+        return configs.length
       },
       { timeout: 10_000 }
     )
-    .toBe('bundled')
+    .toBe(3)
+  const seeded = (await da.storage.get('local', 'manifests')) as Record<
+    string,
+    { kind: string }
+  >
+  expect(seeded.iqiyi.kind).toBe('bundled')
 
   const popup = await Popup.open(page, extensionId, '/providers')
   await expect(popup.providers.catalogRow(iqiyiName)).toContainText(
