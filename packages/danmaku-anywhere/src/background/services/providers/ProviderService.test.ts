@@ -1,3 +1,4 @@
+import 'fake-indexeddb/auto'
 import {
   type CommentEntity,
   DanmakuSourceType,
@@ -7,11 +8,13 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { ManifestRunner } from '@mr-quin/dango'
 import { fakeBrowser } from '@webext-core/fake-browser'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { Dexie } from 'dexie'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { backgroundContainerModule } from '@/background/ioc'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
+import { DANMAKU_DB_NAME, DanmakuAnywhereDb } from '@/common/db/db'
 import { LoggerSymbol } from '@/common/Logger'
 import { Language } from '@/common/localization/language'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
@@ -547,6 +550,123 @@ describe('ProviderService legacy-maccms decoupling', () => {
       await expect(result).resolves.not.toHaveProperty('keptStored')
       expect(danmakuService.upsert).toHaveBeenCalled()
     })
+  })
+})
+
+describe('getDanmaku fetches racing on one episode', () => {
+  const config = makeConfig('iqiyi')
+  let db: DanmakuAnywhereDb
+  let danmakuService: DanmakuService
+
+  beforeEach(async () => {
+    await Dexie.delete(DANMAKU_DB_NAME)
+    db = new DanmakuAnywhereDb()
+    await db.open()
+    danmakuService = new DanmakuService(new SeasonService(db), db, silentLogger)
+  })
+
+  afterEach(async () => {
+    db.close()
+    await Dexie.delete(DANMAKU_DB_NAME)
+  })
+
+  async function setup(storedCount?: number) {
+    const season = await new SeasonService(db).upsert(
+      makeSeasonInsert({
+        manifestId: config.manifestId,
+        namespaceKey: computeNamespaceKey(config, []),
+      })
+    )
+    const meta: WithSeason<EpisodeMeta> = {
+      title: 'Episode 1',
+      indexedId: 'ep1',
+      seasonId: season.id,
+      providerIds: {},
+      schemaVersion: 4,
+      lastChecked: 0,
+      season,
+    }
+    if (storedCount !== undefined) {
+      const { season: _, ...insert } = meta
+      await danmakuService.upsert({
+        ...insert,
+        comments: comments(storedCount),
+        commentCount: storedCount,
+      })
+    }
+
+    const first = Promise.withResolvers<CommentEntity[]>()
+    const second = Promise.withResolvers<CommentEntity[]>()
+    const getDanmaku = vi
+      .fn<IDanmakuProvider['getDanmaku']>()
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise)
+    const getIdentityFieldsMap = vi.fn<
+      ManifestRegistry['getIdentityFieldsMap']
+    >(async () => ({}))
+    const getAll = vi.fn<ProviderConfigService['getAll']>(async () => [config])
+    const service = buildService({
+      danmakuService,
+      providerConfigService: { getAll },
+      factory: vi.fn(() => makeProvider({ getDanmaku })),
+      registry: { ready: Promise.resolve(), getIdentityFieldsMap },
+    })
+
+    function fetch() {
+      return service.getDanmaku({
+        type: 'by-meta',
+        meta,
+        options: { forceUpdate: true },
+      })
+    }
+
+    async function stored() {
+      const [episode] = await danmakuService.filter({
+        indexedId: meta.indexedId,
+        seasonId: season.id,
+      })
+      return episode
+    }
+
+    return { first, second, getDanmaku, fetch, stored }
+  }
+
+  it('keeps the larger refetch when a smaller one resolves after it', async () => {
+    const { first, second, getDanmaku, fetch, stored } = await setup(3)
+
+    const refreshA = fetch()
+    const refreshB = fetch()
+    await vi.waitFor(() => expect(getDanmaku).toHaveBeenCalledTimes(2))
+
+    first.resolve(comments(6))
+    await expect(refreshA).resolves.not.toHaveProperty('keptStored')
+    second.resolve(comments(4))
+    await expect(refreshB).resolves.toMatchObject({
+      keptStored: { fetchedCount: 4, storedCount: 6 },
+    })
+
+    const episode = await stored()
+    expect(episode.comments).toHaveLength(6)
+    expect(episode.commentCount).toBe(6)
+  })
+
+  it('keeps the larger first fetch when a smaller one resolves after it', async () => {
+    const { first, second, getDanmaku, fetch, stored } = await setup()
+
+    const fetchA = fetch()
+    const fetchB = fetch()
+    await vi.waitFor(() => expect(getDanmaku).toHaveBeenCalledTimes(2))
+
+    first.resolve(comments(6))
+    await expect(fetchA).resolves.not.toHaveProperty('keptStored')
+    second.resolve(comments(4))
+    await expect(fetchB).resolves.toMatchObject({
+      keptStored: { fetchedCount: 4, storedCount: 6 },
+    })
+
+    const episode = await stored()
+    expect(episode.comments).toHaveLength(6)
+    expect(episode.commentCount).toBe(6)
   })
 })
 
