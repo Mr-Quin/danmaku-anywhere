@@ -73,6 +73,22 @@ export class ProvidersPage {
     )
   }
 
+  // Installed rows are cards with no list semantics, so a row is the innermost
+  // element holding both its name and a switch.
+  enabledSwitch(name: string | RegExp): Locator {
+    const toggle = this.page.getByRole('switch')
+    return this.page
+      .locator('*', { has: this.page.getByText(name, { exact: true }) })
+      .filter({ has: toggle })
+      .last()
+      .getByRole('switch')
+  }
+
+  // Scoped to rows because the app bar carries its own switch.
+  switches(options: { checked?: boolean } = {}): Locator {
+    return this.page.getByRole('listitem').getByRole('switch', options)
+  }
+
   checkedNeverLabel(): Locator {
     return this.page.getByText(/not checked yet|尚未检查/)
   }
