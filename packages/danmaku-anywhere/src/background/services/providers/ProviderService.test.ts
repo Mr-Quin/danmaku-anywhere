@@ -468,17 +468,15 @@ describe('ProviderService legacy-maccms decoupling', () => {
   describe('getDanmaku refetch over a stored episode', () => {
     const iqiyiConfig = makeConfig('iqiyi')
     const meta = {
-      provider: DanmakuSourceType.DanDanPlay,
       indexedId: 'ep1',
       seasonId: 1,
       providerIds: {},
       season: {
         id: 1,
-        providerConfigId: 'iqiyi-1',
         manifestId: iqiyiConfig.manifestId,
         namespaceKey: computeNamespaceKey(iqiyiConfig, []),
       },
-    } as unknown as WithSeason<EpisodeMeta>
+    } as WithSeason<EpisodeMeta>
 
     function refetch(stored: CommentEntity[], fetched: CommentEntity[]) {
       const storedEpisode = {
