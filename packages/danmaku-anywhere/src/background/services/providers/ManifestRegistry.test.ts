@@ -454,6 +454,20 @@ describe('ManifestRegistry', () => {
     )
   })
 
+  it('update warns about each catalog entry dropped for an unsupported apiVersion', async () => {
+    stubCatalogFetch(
+      [catalogEntry('good'), catalogEntry('future', '1.0.0', 999)],
+      { [manifestPath('good')]: makeManifest('good') }
+    )
+    const warn = vi.spyOn(silentLogger, 'warn')
+    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+    await registry.update()
+
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]).toContain('future')
+    expect(warn.mock.calls[0]).toContain(999)
+  })
+
   it('update retries once, then falls back to the bundle when the index fetch keeps failing', async () => {
     const fetchMock = stubFetch(() => ({ status: 503, body: 'unavailable' }))
     const store = new InMemoryStore()
