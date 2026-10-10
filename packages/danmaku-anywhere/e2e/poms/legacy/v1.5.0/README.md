@@ -5,5 +5,6 @@ only by migration specs to seed real user state from outside the SW.
 
 Do not refactor when current UI changes; this is a snapshot.
 
-Current contents: `MigrationLegacyPopup` with `restoreBackup()` and
-`importDanmaku()` — the two file-upload flows the smoke needs.
+Current contents: `MigrationLegacyPopup` with `restoreBackup()`,
+`importDanmaku()`, `addTitleMapping()`, `exportBackup()` and
+`toggleProvider()`.
