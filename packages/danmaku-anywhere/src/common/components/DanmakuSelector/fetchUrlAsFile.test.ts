@@ -206,7 +206,7 @@ describe('fetchUrlAsFile', () => {
       ok: true,
       status: 200,
       body,
-    } as unknown as Response
+    } as unknown as Response // lint-specs-allow-cast: partial fetch Response fixture, not a collaborator
     vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(response))
 
     const err = await fetchUrlAsFile('https://example.com/a.bin', {
