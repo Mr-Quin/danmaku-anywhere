@@ -16,6 +16,7 @@ import { mockCatalog } from '../../network/catalog'
 import { ImportPage } from '../../pom/ImportPage'
 import { Popup } from '../../pom/Popup'
 import { MigrationLegacyPopup } from '../../poms/legacy/v1.5.0/MigrationLegacyPopup'
+import { expectBuiltinNamesLocalized } from '../../setup/builtinNames'
 import { attachConsoleWatcher } from '../../setup/console-watcher'
 import { MIGRATION_EXTENSION_ID } from '../../setup/extensionKey'
 import {
@@ -250,23 +251,24 @@ async function assertPostMigrationReimport(
   ).toBe(before.seasons + 1)
 }
 
-// The fixture profile runs in zh, and v1.5.0 stored the built-in names as
-// English literals. The upgrade must show the names a fresh zh install seeds.
+// v1.5.0 stored the built-in names as English literals. The upgrade must show
+// the names a fresh install seeds in the profile's language.
 async function assertBuiltinNamesLocalized(
   context: BrowserContext
 ): Promise<void> {
   const page = await context.newPage()
   const popup = await Popup.open(page, MIGRATION_EXTENSION_ID, '/providers')
-  for (const name of [/^弹弹play/, /^B站$/, /^腾讯视频$/]) {
+  const names = await expectBuiltinNamesLocalized(page)
+  for (const name of Object.values(names)) {
     await expect(popup.providers.row(name).first()).toBeVisible()
   }
-  await expect(popup.providers.row(/^DanDanPlay \(/)).toHaveCount(0)
-  await expect(popup.providers.row(/^Bilibili$/)).toHaveCount(0)
-  await expect(popup.providers.row(/^Tencent$/)).toHaveCount(0)
 
   await Popup.open(page, MIGRATION_EXTENSION_ID, '/mount')
   await expect(
-    popup.mount.seasonItems().getByText('弹弹play', { exact: true }).first()
+    popup.mount
+      .seasonItems()
+      .getByText(names.dandanplay, { exact: true })
+      .first()
   ).toBeVisible()
   await page.close()
 }

@@ -5,6 +5,7 @@ import { gunzipSync } from 'node:zlib'
 import { mockLoginProbes } from '../../network/loginProbes'
 import { ImportPage } from '../../pom/ImportPage'
 import { Popup } from '../../pom/Popup'
+import { expectBuiltinNamesLocalized } from '../../setup/builtinNames'
 import { expect, test } from '../../setup/fixtures'
 
 /**
@@ -61,9 +62,10 @@ test('current build migrates an imported v1.5.0 backup and danmaku export', asyn
   await popup.toast.expectSuccess(/^(Import success|成功导入备份)$/)
 
   await Popup.open(page, extensionId, '/providers')
-  await expect(popup.providers.row(/^B站$/).first()).toBeVisible()
-  await expect(popup.providers.row(/^腾讯视频$/).first()).toBeVisible()
-  await expect(popup.providers.row(/^Bilibili$/)).toHaveCount(0)
+  const names = await expectBuiltinNamesLocalized(page)
+  for (const name of Object.values(names)) {
+    await expect(popup.providers.row(name).first()).toBeVisible()
+  }
 
   const importPage = await ImportPage.open(page, extensionId)
   await importPage.selectFiles(DANMAKU_ZIP)
