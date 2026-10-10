@@ -13,16 +13,13 @@ import type {
   ProviderManifestInfo,
 } from '@/common/rpcClient/background/types'
 import { invariant, sleep } from '@/common/utils/utils'
-import {
-  bundledCatalogIndex,
-  bundledIdentityFieldsMap,
-  bundledManifestRaw,
-} from './bundledCatalog'
+import { bundledCatalogIndex, bundledManifestRaw } from './bundledCatalog'
 import { extensionFetchLike } from './extensionFetchLike'
 import {
   type IManifestStore,
   type ManifestEntry,
   type ManifestKind,
+  type ManifestRecord,
   ManifestStore,
 } from './ManifestStore'
 
@@ -115,22 +112,18 @@ export class ManifestRegistry {
     })
   }
 
-  // The manifest's identityFields declaration, for namespace derivation. The
-  // store is empty until the first catalog sync, so an unloaded manifest falls
-  // back to the bundle: a namespace derived from a missing declaration
-  // collapses a self-hosted instance onto the shared one.
   async getIdentityFields(manifestId: string): Promise<readonly string[]> {
     await this.ready
     const registered = this.runners.get(manifestId)
     if (registered) {
       return registered.runner.manifest.identityFields
     }
-    return bundledIdentityFieldsMap()[manifestId] ?? []
+    return []
   }
 
   async getIdentityFieldsMap(): Promise<Record<string, readonly string[]>> {
     await this.ready
-    const map: Record<string, readonly string[]> = bundledIdentityFieldsMap()
+    const map: Record<string, readonly string[]> = {}
     for (const [id, { runner }] of this.runners) {
       map[id] = runner.manifest.identityFields
     }
@@ -179,25 +172,16 @@ export class ManifestRegistry {
   // Add-only for everything except a bundle-seeded entry: a changed
   // preinstalled manifest surfaces via getPendingUpdates instead of being
   // replaced here, but a 'bundled' entry auto-upgrades to the catalog copy
-  // the moment the index is reachable again, with no manual apply.
-  //
-  // Remote is primary because it's fresh; the bundled catalog is a same-shape
-  // fallback used only when remote is unusable, so providers still exist
-  // offline. The bundle can be stale, so the first successful sync replaces
-  // any still-listed bundled entry outright rather than waiting for a manual
-  // update, since the user never chose to install the bundled version.
+  // the moment the index is reachable, with no manual apply, since the user
+  // never chose to install the bundled version. A bundled entry whose file
+  // fails to download stays bundled and is retried on the next sync.
   async update(): Promise<CatalogSyncResult> {
     await this.ready
     const entries = await this.loadIndex()
     if (!entries) {
-      await this.seedFromBundle()
       return 'unreachable'
     }
-    // An index that parses but lists nothing usable (empty, or every entry
-    // dropped by the api-version filter) leaves the user with no sources just
-    // as an unreachable one does, so it falls back to the bundle too.
     if (entries.length === 0) {
-      await this.seedFromBundle()
       return 'empty'
     }
     const stored = await this.store.getAll()
@@ -321,11 +305,14 @@ export class ManifestRegistry {
     return this.store.get(manifestId)
   }
 
+  // The bundle fills in whatever the store lacks before ready resolves, so the
+  // built-in sources and their identityFields exist before any catalog sync.
   private async init(): Promise<void> {
     const record = await this.store.getAll()
     for (const [id, entry] of Object.entries(record)) {
       this.loadEntry(id, entry)
     }
+    await this.seedFromBundle(record)
     this.initialized = true
   }
 
@@ -354,14 +341,12 @@ export class ManifestRegistry {
     return fetched.map(({ parsed }) => parsed.id)
   }
 
-  // Add-only, same contract as fetchAndStore: only ids absent from the store
-  // are seeded. Each bundled manifest is re-validated with zManifest so a
-  // corrupt bundle entry is skipped rather than crashing startup. Tagged
-  // 'bundled' rather than 'preinstalled' so update() knows to replace it
-  // outright on the next reachable sync instead of treating it as a normal
-  // installed source pinned until a manual apply.
-  private async seedFromBundle(): Promise<void> {
-    const stored = await this.store.getAll()
+  // Only ids absent from the store are seeded. Each bundled manifest is
+  // re-validated with zManifest so a corrupt bundle entry is skipped rather
+  // than crashing startup. Tagged 'bundled' rather than 'preinstalled' so
+  // update() replaces it outright on the next reachable sync instead of
+  // treating it as an installed source pinned until a manual apply.
+  private async seedFromBundle(stored: ManifestRecord): Promise<void> {
     const missing = bundledCatalogIndex().filter((entry) => !stored[entry.id])
     if (missing.length === 0) {
       return
@@ -427,7 +412,7 @@ export class ManifestRegistry {
   }
 
   // Skip (null) on any per-manifest failure so one bad file doesn't block the
-  // rest; the next reconcile retries whatever is still missing.
+  // rest; the next sync retries whatever is still missing or bundled.
   private async fetchManifest(
     file: string,
     id: string
