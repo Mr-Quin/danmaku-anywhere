@@ -23,9 +23,11 @@ import {
 } from '@/tests/createTestContainer'
 import { makeSeason, makeSeasonInsert } from '@/tests/factories'
 import { silentLogger } from '@/tests/silentLogger'
+import { bundledManifestRaw } from './bundledCatalog'
 import type { IDanmakuProvider } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
 import { ManifestRegistry } from './ManifestRegistry'
+import { ManifestStore } from './ManifestStore'
 import { DanmakuProviderFactory } from './ProviderFactory'
 import { ProviderService } from './ProviderService'
 
@@ -643,12 +645,18 @@ describe('ProviderService.seedDefaultProviders', () => {
     const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
       async () => []
     )
+    const getDisplayNames = vi.fn<ManifestRegistry['getDisplayNames']>(
+      async () => {
+        return new Map(listManifests().map((m) => [m.id, m.name]))
+      }
+    )
     const registry = {
       ready: Promise.resolve(),
       update,
       getPendingUpdates,
       recordChecked,
       listManifests,
+      getDisplayNames,
     }
 
     const service = buildService({
@@ -926,6 +934,183 @@ describe('ProviderService.seedDefaultProviders', () => {
     await service.syncCatalog()
 
     expect(set).not.toHaveBeenCalled()
+  })
+
+  // Stands in for storage that outlives a service worker.
+  function makeSharedConfigStorage(configs: ProviderConfig[]) {
+    const state = { configs, seeded: false }
+    const set = vi.fn<ProviderConfigService['options']['set']>(async (next) => {
+      state.configs = next
+    })
+    const providerConfigService = {
+      options: {
+        set,
+        onChange: vi.fn<ProviderConfigService['options']['onChange']>(),
+      },
+      markSeeded: vi.fn<ProviderConfigService['markSeeded']>(async () => {
+        state.seeded = true
+      }),
+      hasSeeded: vi.fn<ProviderConfigService['hasSeeded']>(
+        async () => state.seeded
+      ),
+      getAll: vi.fn<ProviderConfigService['getAll']>(async () => state.configs),
+    }
+    return { state, set, providerConfigService }
+  }
+
+  function makeRegistryDouble(update: ManifestRegistry['update']) {
+    return {
+      ready: Promise.resolve(),
+      update: vi.fn(update),
+      getPendingUpdates: vi.fn<ManifestRegistry['getPendingUpdates']>(
+        async () => []
+      ),
+      recordChecked: vi.fn<ManifestRegistry['recordChecked']>(async () => {}),
+      listManifests: vi.fn(() => DEFAULT_MANIFESTS),
+      getDisplayNames: vi.fn<ManifestRegistry['getDisplayNames']>(async () => {
+        return new Map(DEFAULT_MANIFESTS.map((m) => [m.id, m.name]))
+      }),
+    }
+  }
+
+  function namesOf(configs: ProviderConfig[]): string[] {
+    return configs.map((c) => c.name)
+  }
+
+  it('finishes the rename on the next worker start when the worker died before writing it', async () => {
+    const storage = makeSharedConfigStorage(LEGACY_BUILTINS)
+    const zh = { get: makeExtensionOptionsGet(Language.zh) }
+
+    const dying = buildService({
+      providerConfigService: storage.providerConfigService,
+      registry: makeRegistryDouble(() => new Promise(() => {})),
+      extensionOptions: zh,
+    })
+    dying.setup()
+    void fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
+    await vi.waitFor(() => {
+      expect(storage.state.seeded).toBe(true)
+    })
+    expect(namesOf(storage.state.configs)).toEqual([
+      'DanDanPlay',
+      'Bilibili',
+      'Tencent',
+    ])
+    fakeBrowser.runtime.onInstalled.removeAllListeners()
+
+    const restarted = buildService({
+      providerConfigService: storage.providerConfigService,
+      registry: makeRegistryDouble(async () => 'synced'),
+      extensionOptions: zh,
+    })
+    restarted.setup()
+    await vi.waitFor(() => {
+      expect(namesOf(storage.state.configs)).toEqual([
+        '弹弹play',
+        'B站',
+        '腾讯视频',
+      ])
+    })
+    fakeBrowser.runtime.onInstalled.removeAllListeners()
+
+    storage.state.configs = storage.state.configs.map((c) => {
+      return c.id === 'bilibili' ? { ...c, name: 'Bilibili' } : c
+    })
+    storage.set.mockClear()
+
+    const later = buildService({
+      providerConfigService: storage.providerConfigService,
+      registry: makeRegistryDouble(async () => 'synced'),
+      extensionOptions: zh,
+    })
+    later.setup()
+    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
+
+    expect(storage.set).not.toHaveBeenCalled()
+    expect(namesOf(storage.state.configs)).toEqual([
+      '弹弹play',
+      'Bilibili',
+      '腾讯视频',
+    ])
+  })
+
+  it('retries the rename on the next worker start when writing the renamed configs failed', async () => {
+    const storage = makeSharedConfigStorage(LEGACY_BUILTINS)
+    const zh = { get: makeExtensionOptionsGet(Language.zh) }
+    storage.set.mockRejectedValueOnce(new Error('quota'))
+
+    const failing = buildService({
+      providerConfigService: storage.providerConfigService,
+      registry: makeRegistryDouble(async () => 'synced'),
+      extensionOptions: zh,
+    })
+    failing.setup()
+    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
+    expect(storage.set).toHaveBeenCalledTimes(1)
+    expect(namesOf(storage.state.configs)).toEqual([
+      'DanDanPlay',
+      'Bilibili',
+      'Tencent',
+    ])
+    fakeBrowser.runtime.onInstalled.removeAllListeners()
+
+    const restarted = buildService({
+      providerConfigService: storage.providerConfigService,
+      registry: makeRegistryDouble(async () => 'synced'),
+      extensionOptions: zh,
+    })
+    restarted.setup()
+    await vi.waitFor(() => {
+      expect(namesOf(storage.state.configs)).toEqual([
+        '弹弹play',
+        'B站',
+        '腾讯视频',
+      ])
+    })
+  })
+
+  it('uses the bundled name for a built-in whose catalog download failed', async () => {
+    const ids = ['dandanplay', 'bilibili', 'tencent']
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: unknown) => {
+        const url = new URL(String(input), 'http://x')
+        const file = url.searchParams.get('file')
+        if (file === null) {
+          const manifests = ids.map((id) => ({
+            id,
+            apiVersion: 1,
+            version: '9.9.9',
+            file: `src/manifests/${id}.json`,
+          }))
+          return new Response(
+            JSON.stringify({ packageVersion: '0.0.0', manifests })
+          )
+        }
+        if (file === 'src/manifests/tencent.json') {
+          return new Response('', { status: 500 })
+        }
+        const id = file.replace('src/manifests/', '').replace('.json', '')
+        return new Response(JSON.stringify(bundledManifestRaw(id)))
+      })
+    )
+    const storage = makeSharedConfigStorage(LEGACY_BUILTINS)
+    const registry = new ManifestRegistry(silentLogger, new ManifestStore())
+    const service = buildService({
+      providerConfigService: storage.providerConfigService,
+      registry,
+      extensionOptions: { get: makeExtensionOptionsGet(Language.zh) },
+    })
+
+    service.setup()
+    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
+
+    expect(registry.list()).not.toContain('tencent')
+    expect(namesOf(storage.state.configs)).toEqual([
+      '弹弹play',
+      'B站',
+      '腾讯视频',
+    ])
   })
 })
 
