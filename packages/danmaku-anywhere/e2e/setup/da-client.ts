@@ -137,6 +137,20 @@ export class DaClient {
         timeoutMs,
       ] as const),
   }
+
+  danmakuRender = {
+    rendered: (tabId?: number): Promise<string[]> =>
+      this.sw.evaluate((id) => self.__da.danmakuRender.rendered(id), tabId),
+    waitForRendered: (
+      text: string,
+      tabId?: number,
+      timeoutMs?: number
+    ): Promise<string[]> =>
+      this.sw.evaluate(
+        ([x, id, t]) => self.__da.danmakuRender.waitForRendered(x, id, t),
+        [text, tabId, timeoutMs] as const
+      ),
+  }
 }
 
 const DEV_API_ATTACH_TIMEOUT_MS = 20_000
