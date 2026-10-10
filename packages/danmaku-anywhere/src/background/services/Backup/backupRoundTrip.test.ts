@@ -270,17 +270,18 @@ describe('backup round trip', () => {
       ).toString('utf-8')
     )
 
+    const storeNames = Object.keys(legacyBackup.services)
+    expect(storeNames).toContain('extensionOptions')
+
     const result = await configStateService.restoreState(legacyBackup)
 
-    expect(result.details).toEqual({
-      extensionOptions: { success: true, droppedEntries: 0 },
-      danmakuOptions: { success: true, droppedEntries: 0 },
-      mountConfig: { success: true, droppedEntries: 0 },
-      providerConfig: { success: true, droppedEntries: 0 },
-      aiProviderConfig: { success: true, droppedEntries: 0 },
-      integrationPolicy: { success: true, droppedEntries: 0 },
-      localMatchingRule: { success: true, droppedEntries: 0 },
-    })
+    expect(result.details).toEqual(
+      Object.fromEntries(
+        storeNames.map((name) => {
+          return [name, { success: true, droppedEntries: 0 }]
+        })
+      )
+    )
     expect(result.success).toBe(true)
   })
 })
