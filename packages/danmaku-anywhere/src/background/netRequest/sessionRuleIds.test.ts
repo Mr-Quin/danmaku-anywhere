@@ -40,15 +40,21 @@ describe('session rule ids', () => {
 
   it('never hands the same id to header rules and media CORS rules added concurrently', async () => {
     await Promise.all([
-      setRequestHeaderRule({
-        url: 'https://a.example.com',
-        referer: 'https://source.example.com',
-      }),
+      setRequestHeaderRule(
+        {
+          url: 'https://a.example.com',
+          referer: 'https://source.example.com',
+        },
+        1
+      ),
       setMediaCorsRule('https://cdn.example.com/1.mp4'),
-      setRequestHeaderRule({
-        url: 'https://b.example.com',
-        referer: 'https://source.example.com',
-      }),
+      setRequestHeaderRule(
+        {
+          url: 'https://b.example.com',
+          referer: 'https://source.example.com',
+        },
+        1
+      ),
       setMediaCorsRule('https://cdn.example.com/2.mp4'),
     ])
 
@@ -63,10 +69,13 @@ describe('session rule ids', () => {
       action: { type: 'modifyHeaders', requestHeaders: [] },
       condition: { urlFilter: '|https://one.example.com' },
     }))
-    await setRequestHeaderRule({
-      url: 'https://two.example.com',
-      referer: 'https://source.example.com',
-    })
+    await setRequestHeaderRule(
+      {
+        url: 'https://two.example.com',
+        referer: 'https://source.example.com',
+      },
+      1
+    )
     await setMediaCorsRule('https://cdn.example.com/3.mp4')
 
     expect(new Set(rules.map((r) => r.id)).size).toBe(3)
@@ -77,9 +86,9 @@ describe('session rule ids', () => {
       url: 'https://same.example.com',
       referer: 'https://source.example.com',
     }
-    await setRequestHeaderRule(rule)
+    await setRequestHeaderRule(rule, 1)
     const firstId = rules[0].id
-    await setRequestHeaderRule(rule)
+    await setRequestHeaderRule(rule, 1)
 
     expect(rules).toHaveLength(1)
     expect(rules[0].id).toBeGreaterThan(firstId)
@@ -95,14 +104,20 @@ describe('session rule ids', () => {
         resourceTypes: ['xmlhttprequest'],
       },
     }))
-    await setRequestHeaderRule({
-      url: 'https://cdn.example.com',
-      referer: 'https://source.example.com',
-    })
-    await setRequestHeaderRule({
-      url: 'https://cdn.example.com',
-      referer: 'https://other.example.com',
-    })
+    await setRequestHeaderRule(
+      {
+        url: 'https://cdn.example.com',
+        referer: 'https://source.example.com',
+      },
+      1
+    )
+    await setRequestHeaderRule(
+      {
+        url: 'https://cdn.example.com',
+        referer: 'https://other.example.com',
+      },
+      1
+    )
 
     expect(rules).toHaveLength(3)
     expect(rules.map((r) => r.condition.resourceTypes)).toContainEqual([
@@ -115,14 +130,20 @@ describe('session rule ids', () => {
 
   it('installs one header rule when two calls for the same url race', async () => {
     await Promise.all([
-      setRequestHeaderRule({
-        url: 'https://same.example.com',
-        referer: 'https://a.example.com',
-      }),
-      setRequestHeaderRule({
-        url: 'https://same.example.com',
-        referer: 'https://b.example.com',
-      }),
+      setRequestHeaderRule(
+        {
+          url: 'https://same.example.com',
+          referer: 'https://a.example.com',
+        },
+        1
+      ),
+      setRequestHeaderRule(
+        {
+          url: 'https://same.example.com',
+          referer: 'https://b.example.com',
+        },
+        1
+      ),
     ])
 
     expect(rules).toHaveLength(1)

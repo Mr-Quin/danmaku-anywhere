@@ -12,11 +12,6 @@ const DA_EXT_ATTR = 'da-ext-version'
 
 const headerRuleMutex = new Mutex()
 
-async function lockHeaderRules(): Promise<Disposable> {
-  const release = await headerRuleMutex.acquire()
-  return { [Symbol.dispose]: release }
-}
-
 // Other session rules (setSessionHeader, the media CORS bypass) can share the
 // exact urlFilter, but only header rules cover main_frame.
 function isHeaderRuleFor(
@@ -168,12 +163,37 @@ export type SetHeaderRule = {
   origin?: string
 }
 
-export const setRequestHeaderRule = async (headerRule: SetHeaderRule) => {
-  using _lock = await lockHeaderRules()
+function targetsSameTab(
+  rule: chrome.declarativeNetRequest.Rule,
+  tabId: number | undefined
+): boolean {
+  const tabIds = rule.condition.tabIds
+  if (tabId === undefined) {
+    return tabIds === undefined
+  }
+  return tabIds?.length === 1 && tabIds[0] === tabId
+}
+
+// tabId scopes the rule to the tab that asked for it. The rule forces
+// Access-Control-Allow-Origin: *, so leaving it unscoped would hand every tab
+// in the browser a CORS bypass for the matched url.
+export const setRequestHeaderRule = async (
+  headerRule: SetHeaderRule,
+  tabId?: number
+) => {
+  return headerRuleMutex.runExclusive(() => {
+    return installHeaderRule(headerRule, tabId)
+  })
+}
+
+async function installHeaderRule(
+  headerRule: SetHeaderRule,
+  tabId: number | undefined
+): Promise<void> {
   const existingRules = await chrome.declarativeNetRequest.getSessionRules()
 
   const prevRule = existingRules.find((rule) => {
-    return isHeaderRuleFor(rule, headerRule.url)
+    return isHeaderRuleFor(rule, headerRule.url) && targetsSameTab(rule, tabId)
   })
 
   const ruleId = await nextSessionRuleId()
@@ -268,6 +288,7 @@ export const setRequestHeaderRule = async (headerRule: SetHeaderRule) => {
         condition: {
           urlFilter: `|${headerRule.url}`,
           resourceTypes: resourceTypes,
+          tabIds: tabId === undefined ? undefined : [tabId],
         },
       },
     ],
