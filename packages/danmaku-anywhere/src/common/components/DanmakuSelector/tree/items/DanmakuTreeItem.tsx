@@ -109,7 +109,7 @@ export const DanmakuTreeItem = forwardRef(function CustomTreeItem(
       return (
         <SeasonTreeItem
           season={item.data}
-          provider={item.provider}
+          providerName={item.providerName}
           orphaned={item.orphaned}
           fetchedCount={fetchedCount}
           stubCount={stubCount}

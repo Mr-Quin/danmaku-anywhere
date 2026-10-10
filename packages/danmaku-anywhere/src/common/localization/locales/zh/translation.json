@@ -717,6 +717,9 @@
       "reorderDone": "完成",
       "title": "已安装"
     },
+    "instance": {
+      "defaultName": "自建弹弹play"
+    },
     "name": "弹幕源",
     "updates": {
       "failed": "更新失败",
