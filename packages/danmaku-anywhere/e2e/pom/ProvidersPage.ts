@@ -84,6 +84,11 @@ export class ProvidersPage {
       .getByRole('switch')
   }
 
+  // Scoped to rows because the app bar carries its own switch.
+  switches(options: { checked?: boolean } = {}): Locator {
+    return this.page.getByRole('listitem').getByRole('switch', options)
+  }
+
   checkedNeverLabel(): Locator {
     return this.page.getByText(/not checked yet|尚未检查/)
   }
