@@ -25,7 +25,7 @@ describe('setRequestHeaderRule', () => {
 
   afterEach(() => {
     vi.unstubAllGlobals()
-    vi.clearAllMocks()
+    vi.resetAllMocks()
   })
 
   it('sets Referer without an Origin override when origin is omitted', async () => {
@@ -72,5 +72,31 @@ describe('setRequestHeaderRule', () => {
     )
 
     expect(getAddedRule().condition.tabIds).toEqual([42])
+  })
+
+  it('keeps the rule of another tab that requested the same url', async () => {
+    let rules: chrome.declarativeNetRequest.Rule[] = []
+    getSessionRules.mockImplementation(async () => {
+      return [...rules]
+    })
+    updateSessionRules.mockImplementation(
+      async (options: chrome.declarativeNetRequest.UpdateRuleOptions) => {
+        const removed = options.removeRuleIds ?? []
+        rules = [
+          ...rules.filter((r) => !removed.includes(r.id)),
+          ...(options.addRules ?? []),
+        ]
+      }
+    )
+    const rule = {
+      url: 'https://cdn.example.com',
+      referer: 'https://source.example.com',
+    }
+
+    await setRequestHeaderRule(rule, 1)
+    await setRequestHeaderRule(rule, 2)
+    await setRequestHeaderRule(rule, 1)
+
+    expect(rules.map((r) => r.condition.tabIds)).toEqual([[2], [1]])
   })
 })
