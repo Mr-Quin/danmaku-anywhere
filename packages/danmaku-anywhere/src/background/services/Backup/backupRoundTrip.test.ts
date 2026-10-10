@@ -9,6 +9,7 @@ import {
 } from '@danmaku-anywhere/integration-policy'
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { backupDataSchema } from '@/common/backup/schema'
 import type { ILogger } from '@/common/Logger'
 import { AiProviderConfigService } from '@/common/options/aiProviderConfig/service'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
@@ -346,7 +347,9 @@ describe('backup round trip', () => {
   it('restores the v1.5.0 backup file shipped as an e2e fixture', async () => {
     const legacyBackup = readLegacyBackup()
 
-    const storeNames = Object.keys(legacyBackup.services)
+    const storeNames = Object.keys(
+      backupDataSchema.parse(legacyBackup).services
+    )
     expect(storeNames).toContain('extensionOptions')
 
     const result = await configStateService.restoreState(legacyBackup)
