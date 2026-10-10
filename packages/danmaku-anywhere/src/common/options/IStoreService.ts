@@ -7,9 +7,8 @@ export interface IStoreService {
   name: string
   shouldBackup?: boolean
   /**
-   * Validates a restored payload that is already at the store's latest version.
-   * Older payloads are migrated before they reach this shape, so they are not
-   * checked against it.
+   * Validates a restored payload once it has been migrated to the store's
+   * latest version. A payload that fails is not written.
    */
   backupSchema?: ZodType
   /**
