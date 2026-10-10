@@ -139,12 +139,14 @@ export class DaClient {
   }
 }
 
+const DEV_API_ATTACH_TIMEOUT_MS = 20_000
+
 export async function getDaClient(context: BrowserContext): Promise<DaClient> {
   const [sw] = context.serviceWorkers()
   const worker = sw ?? (await context.waitForEvent('serviceworker'))
   // The serviceworker event fires before the SW module graph has evaluated,
   // so __da may not be attached yet.
-  const deadline = Date.now() + 20_000
+  const deadline = Date.now() + DEV_API_ATTACH_TIMEOUT_MS
   while (Date.now() < deadline) {
     const attached = await worker.evaluate(() => typeof self.__da === 'object')
     if (attached) {
@@ -152,5 +154,7 @@ export async function getDaClient(context: BrowserContext): Promise<DaClient> {
     }
     await new Promise((resolve) => setTimeout(resolve, 50))
   }
-  throw new Error('getDaClient: dev API did not attach within 20s')
+  throw new Error(
+    `getDaClient: dev API did not attach within ${DEV_API_ATTACH_TIMEOUT_MS}ms`
+  )
 }
