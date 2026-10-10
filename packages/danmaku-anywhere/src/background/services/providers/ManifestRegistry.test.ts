@@ -19,7 +19,9 @@ import type {
  * fallback seeding built-ins whenever the index yields no usable manifests
  * (unreachable, empty, or all entries dropped by the apiVersion filter) and
  * never when it yields some, that neither update() nor getPendingUpdates
- * stamps lastCheckedAt (only recordChecked does), and
+ * stamps lastCheckedAt (only recordChecked does), sending the browser and
+ * backend cache bypasses only on a forced refresh, reusing a caller-supplied
+ * index (including the failed and empty ones) instead of refetching, and
  * register / unregister / hydrate-skip-invalid.
  */
 
@@ -68,12 +70,30 @@ function makeResponse(status: number, body: unknown) {
 function stubFetch(
   respond: (url: string) => { status: number; body: unknown }
 ) {
-  const fetchMock = vi.fn(async (input: unknown) => {
+  const fetchMock = vi.fn(async (input: unknown, _init?: unknown) => {
     const { status, body } = respond(String(input))
     return makeResponse(status, body)
   })
   vi.stubGlobal('fetch', fetchMock)
   return fetchMock
+}
+
+interface FetchInit {
+  cache?: string
+  headers?: Record<string, string>
+}
+
+// What the two caches in front of the catalog each key off: the request header
+// is what the backend reads, the cache mode is what the browser reads.
+function bypassOf(init: unknown): {
+  cacheMode: string | undefined
+  header: string | undefined
+} {
+  const typed = init as FetchInit | undefined
+  return {
+    cacheMode: typed?.cache,
+    header: typed?.headers?.['Cache-Control'],
+  }
 }
 
 function fileParam(url: string): string {
@@ -84,6 +104,14 @@ function fileFetches(fetchMock: ReturnType<typeof stubFetch>): string[] {
   return fetchMock.mock.calls
     .map(([url]) => String(url))
     .filter((url) => url.includes('/manifest/file'))
+}
+
+function indexFetches(fetchMock: ReturnType<typeof stubFetch>): string[] {
+  return fetchMock.mock.calls
+    .map(([url]) => String(url))
+    .filter(
+      (url) => url.includes('/manifest') && !url.includes('/manifest/file')
+    )
 }
 
 function stubCatalogFetch(
@@ -822,6 +850,132 @@ describe('ManifestRegistry', () => {
 
     expect(await store.has('test:one')).toBe(false)
     expect(() => registry.getRunner('test:one')).toThrow()
+  })
+
+  // Paired: the forced half fails if force stops reaching the fetches, the
+  // default half fails if the bypass is sent unconditionally. Either break
+  // turns this red, which a one-sided assertion would not.
+  it('sends the cache bypass on the index and file fetches only when forced', async () => {
+    const forcedFetch = stubCatalogFetch([catalogEntry('one')], {
+      [manifestPath('one')]: makeManifest('one'),
+    })
+    await new ManifestRegistry(silentLogger, new InMemoryStore()).update(
+      undefined,
+      true
+    )
+
+    expect(indexFetches(forcedFetch)).toHaveLength(1)
+    expect(fileFetches(forcedFetch)).toHaveLength(1)
+    for (const [, init] of forcedFetch.mock.calls) {
+      expect(bypassOf(init)).toEqual({
+        cacheMode: 'reload',
+        header: 'no-cache',
+      })
+    }
+
+    vi.unstubAllGlobals()
+
+    const defaultFetch = stubCatalogFetch([catalogEntry('one')], {
+      [manifestPath('one')]: makeManifest('one'),
+    })
+    await new ManifestRegistry(silentLogger, new InMemoryStore()).update()
+
+    expect(indexFetches(defaultFetch)).toHaveLength(1)
+    expect(fileFetches(defaultFetch)).toHaveLength(1)
+    for (const [, init] of defaultFetch.mock.calls) {
+      expect(bypassOf(init)).toEqual({
+        cacheMode: undefined,
+        header: undefined,
+      })
+    }
+  })
+
+  it('update reuses a passed-in index instead of fetching it', async () => {
+    const fetchMock = stubCatalogFetch([catalogEntry('one')], {
+      [manifestPath('one')]: makeManifest('one'),
+    })
+    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+
+    await registry.update([catalogEntry('one')], true)
+
+    expect(indexFetches(fetchMock)).toEqual([])
+    expect(fileFetches(fetchMock)).toHaveLength(1)
+    expect(bypassOf(fetchMock.mock.calls[0][1]).header).toBe('no-cache')
+  })
+
+  it('getPendingUpdates reuses a passed-in index without any fetch', async () => {
+    const fetchMock = stubCatalogFetch([catalogEntry('one', '2.0.0')], {})
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    const pending = await registry.getPendingUpdates([
+      catalogEntry('one', '2.0.0'),
+    ])
+
+    expect(pending).toEqual([
+      { manifestId: 'one', fromVersion: '1.0.0', toVersion: '2.0.0' },
+    ])
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('applyUpdates reuses a passed-in index and forces the file fetch', async () => {
+    const fetchMock = stubCatalogFetch([catalogEntry('one', '2.0.0')], {
+      [manifestPath('one')]: makeManifest('one', 1, '2.0.0'),
+    })
+    const store = new InMemoryStore({
+      one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.applyUpdates(['one'], [catalogEntry('one', '2.0.0')], true)
+
+    expect(indexFetches(fetchMock)).toEqual([])
+    expect(fileFetches(fetchMock)).toHaveLength(1)
+    expect(bypassOf(fetchMock.mock.calls[0][1])).toEqual({
+      cacheMode: 'reload',
+      header: 'no-cache',
+    })
+    expect((await store.get('one'))?.manifest).toMatchObject({
+      version: '2.0.0',
+    })
+  })
+
+  // null is the shared-fetch-already-failed signal, and it must not be retried
+  // into a second failed round trip on top of the one that already happened.
+  it('update seeds the bundle without refetching when the shared index failed', async () => {
+    const fetchMock = stubCatalogFetch([catalogEntry('one')], {})
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+
+    await expect(registry.update(null, true)).resolves.toBe('unreachable')
+
+    expect(fetchMock).not.toHaveBeenCalled()
+    const seeded = await store.getAll()
+    expect(Object.keys(seeded).sort()).toEqual(
+      bundledCatalogIndex()
+        .map((entry) => entry.id)
+        .sort()
+    )
+  })
+
+  it('update seeds the bundle when the shared index came back empty', async () => {
+    const fetchMock = stubCatalogFetch([], {})
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+
+    await expect(registry.update([], true)).resolves.toBe('empty')
+
+    expect(fetchMock).not.toHaveBeenCalled()
+    const seeded = await store.getAll()
+    expect(Object.keys(seeded).sort()).toEqual(
+      bundledCatalogIndex()
+        .map((entry) => entry.id)
+        .sort()
+    )
   })
 
   it('skips a manifest that fails safeParse without taking the registry down', async () => {

@@ -68,6 +68,49 @@ describe('Manifest API', () => {
     expect(content.id).toBe('builtin:bilibili')
   })
 
+  // The default-path assertions above pin a plain string URL, which is what
+  // keeps these two honest: an unconditional bypass would fail those.
+  it('bypasses the subrequest cache on a forced catalog fetch (GET /)', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ packageVersion: '1', manifests: [] }), {
+        status: 200,
+      })
+    )
+
+    const request = new Request(createTestUrl('/manifest'), {
+      headers: { 'Cache-Control': 'no-cache' },
+    })
+    await makeUnitTestRequest(request)
+
+    const upstream = fetchSpy.mock.calls[0][0] as Request
+    expect(upstream).toBeInstanceOf(Request)
+    expect(upstream.url).toBe(`${dangoBaseUrl}/catalog.json`)
+    expect(upstream.cache).toBe('no-store')
+  })
+
+  it('bypasses the subrequest cache on a forced file fetch (GET /file)', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValueOnce(
+      new Response(JSON.stringify({ id: 'builtin:bilibili' }), {
+        status: 200,
+      })
+    )
+
+    const request = new Request(
+      createTestUrl('/manifest/file', {
+        query: { file: 'src/manifests/builtin-bilibili.json' },
+      }),
+      { headers: { 'Cache-Control': 'no-cache' } }
+    )
+    await makeUnitTestRequest(request)
+
+    const upstream = fetchSpy.mock.calls[0][0] as Request
+    expect(upstream).toBeInstanceOf(Request)
+    expect(upstream.url).toBe(
+      `${dangoBaseUrl}/src/manifests/builtin-bilibili.json`
+    )
+    expect(upstream.cache).toBe('no-store')
+  })
+
   it('returns 400 when file parameter is missing (GET /file)', async () => {
     const request = new Request(createTestUrl('/manifest/file'))
     const response = await makeUnitTestRequest(request)

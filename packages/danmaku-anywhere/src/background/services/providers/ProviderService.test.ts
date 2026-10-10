@@ -416,6 +416,10 @@ describe('ProviderService.refreshCatalog', () => {
     vi.clearAllMocks()
   })
 
+  const catalogEntries = [
+    { id: 'one', apiVersion: 1, version: '1.0.0', file: 'one.json' },
+  ]
+
   function buildForRefresh(opts: {
     pending: { manifestId: string; fromVersion: string; toVersion: string }[]
     installedManifestIds: string[]
@@ -427,6 +431,9 @@ describe('ProviderService.refreshCatalog', () => {
     const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
       async () => opts.pending
     )
+    const loadCatalog = vi.fn<ManifestRegistry['loadCatalog']>(
+      async () => catalogEntries
+    )
     const update = vi.fn<ManifestRegistry['update']>(async () => 'synced')
     const listManifests = vi.fn<ManifestRegistry['listManifests']>(() => [])
     const getLastCheckedAt = vi.fn<ManifestRegistry['getLastCheckedAt']>(
@@ -434,6 +441,7 @@ describe('ProviderService.refreshCatalog', () => {
     )
     const registry = {
       ready: Promise.resolve(),
+      loadCatalog,
       update,
       getPendingUpdates,
       applyUpdates,
@@ -452,7 +460,14 @@ describe('ProviderService.refreshCatalog', () => {
 
     const service = buildService({ providerConfigService, registry })
 
-    return { service, applyUpdates, recordChecked, getPendingUpdates }
+    return {
+      service,
+      loadCatalog,
+      update,
+      applyUpdates,
+      recordChecked,
+      getPendingUpdates,
+    }
   }
 
   it('auto-applies updates for uninstalled manifests only', async () => {
@@ -466,7 +481,43 @@ describe('ProviderService.refreshCatalog', () => {
 
     await service.refreshCatalog()
 
-    expect(applyUpdates).toHaveBeenCalledWith(['iqiyi'])
+    expect(applyUpdates).toHaveBeenCalledWith(['iqiyi'], catalogEntries, true)
+  })
+
+  it('fetches the index once and forces it on a user refresh', async () => {
+    const { service, loadCatalog, update, getPendingUpdates, applyUpdates } =
+      buildForRefresh({
+        pending: [
+          { manifestId: 'iqiyi', fromVersion: '1.0.0', toVersion: '2.0.0' },
+        ],
+        installedManifestIds: [],
+      })
+
+    await service.refreshCatalog()
+
+    expect(loadCatalog).toHaveBeenCalledTimes(1)
+    expect(loadCatalog).toHaveBeenCalledWith(true)
+    expect(update).toHaveBeenCalledWith(catalogEntries, true)
+    expect(getPendingUpdates).toHaveBeenCalledWith(catalogEntries)
+    expect(applyUpdates).toHaveBeenCalledWith(['iqiyi'], catalogEntries, true)
+  })
+
+  it('fetches the index once and stays cached on a background sync', async () => {
+    const { service, loadCatalog, update, getPendingUpdates, applyUpdates } =
+      buildForRefresh({
+        pending: [
+          { manifestId: 'iqiyi', fromVersion: '1.0.0', toVersion: '2.0.0' },
+        ],
+        installedManifestIds: [],
+      })
+
+    await service.syncCatalog()
+
+    expect(loadCatalog).toHaveBeenCalledTimes(1)
+    expect(loadCatalog).toHaveBeenCalledWith(false)
+    expect(update).toHaveBeenCalledWith(catalogEntries, false)
+    expect(getPendingUpdates).toHaveBeenCalledWith(catalogEntries)
+    expect(applyUpdates).toHaveBeenCalledWith(['iqiyi'], catalogEntries, false)
   })
 
   it('does not apply anything when every pending update is installed', async () => {
@@ -514,6 +565,7 @@ describe('ProviderService.refreshCatalog', () => {
     const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
       async () => []
     )
+    const loadCatalog = vi.fn<ManifestRegistry['loadCatalog']>(async () => null)
     const update = vi.fn<ManifestRegistry['update']>(async () => 'unreachable')
     const listManifests = vi.fn<ManifestRegistry['listManifests']>(() => [])
     const getLastCheckedAt = vi.fn<ManifestRegistry['getLastCheckedAt']>(
@@ -521,6 +573,7 @@ describe('ProviderService.refreshCatalog', () => {
     )
     const registry = {
       ready: Promise.resolve(),
+      loadCatalog,
       update,
       getPendingUpdates,
       applyUpdates: vi.fn(async () => {}),
@@ -540,6 +593,9 @@ describe('ProviderService.refreshCatalog', () => {
       /Failed to fetch the manifest catalog/
     )
 
+    // The failed index is handed on as null rather than short-circuiting, so
+    // update() still runs and the offline bundle fallback still seeds.
+    expect(update).toHaveBeenCalledWith(null, true)
     expect(getPendingUpdates).not.toHaveBeenCalled()
     expect(recordChecked).not.toHaveBeenCalled()
   })
@@ -555,6 +611,7 @@ describe('ProviderService.refreshCatalog', () => {
     )
     const registry = {
       ready: Promise.resolve(),
+      loadCatalog: vi.fn<ManifestRegistry['loadCatalog']>(async () => []),
       update,
       getPendingUpdates,
       applyUpdates: vi.fn(async () => {}),
@@ -637,14 +694,20 @@ describe('ProviderService.seedDefaultProviders', () => {
     const recordChecked = vi.fn<ManifestRegistry['recordChecked']>(
       async () => {}
     )
-    const update = vi.fn<ManifestRegistry['update']>(
-      async () => opts.catalog ?? 'synced'
+    const catalog = opts.catalog ?? 'synced'
+    // loadCatalog mirrors what update() will report, so the shared-index path
+    // under test is the one a real sync would take.
+    const sharedIndex = catalog === 'unreachable' ? null : []
+    const loadCatalog = vi.fn<ManifestRegistry['loadCatalog']>(
+      async () => sharedIndex
     )
+    const update = vi.fn<ManifestRegistry['update']>(async () => catalog)
     const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
       async () => []
     )
     const registry = {
       ready: Promise.resolve(),
+      loadCatalog,
       update,
       getPendingUpdates,
       recordChecked,
@@ -657,7 +720,16 @@ describe('ProviderService.seedDefaultProviders', () => {
       extensionOptions: { get: makeExtensionOptionsGet(opts.lang) },
     })
 
-    return { service, set, markSeeded, hasSeeded, listManifests, recordChecked }
+    return {
+      service,
+      set,
+      markSeeded,
+      hasSeeded,
+      listManifests,
+      recordChecked,
+      loadCatalog,
+      update,
+    }
   }
 
   it('seeds the preloaded set with manifest-derived names on a fresh install', async () => {
@@ -778,6 +850,43 @@ describe('ProviderService.seedDefaultProviders', () => {
     ])
     expect(markSeeded).toHaveBeenCalledTimes(1)
     expect(recordChecked).not.toHaveBeenCalled()
+  })
+
+  // The coalesced index makes 'unreachable' arrive as a null shared index and
+  // 'empty' as an empty one. Both still have to reach seedDefaultProviders:
+  // that call sits outside the 'synced' branch, and moving it back inside is
+  // what would leave an offline first-run user with no provider configs.
+  it('still seeds default configs when the shared index came back empty', async () => {
+    const { service, set, markSeeded, recordChecked, update } = buildForSeed({
+      catalog: 'empty',
+    })
+
+    await expect(service.syncCatalog()).resolves.toBe('empty')
+
+    expect(update).toHaveBeenCalledWith([], false)
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(set.mock.calls[0][0].map((c) => c.manifestId)).toEqual([
+      'dandanplay',
+      'bilibili',
+      'tencent',
+    ])
+    expect(markSeeded).toHaveBeenCalledTimes(1)
+    expect(recordChecked).not.toHaveBeenCalled()
+  })
+
+  it('still seeds default configs when a forced refresh cannot reach the catalog', async () => {
+    const { service, set, markSeeded, loadCatalog, update } = buildForSeed({
+      catalog: 'unreachable',
+    })
+
+    await expect(service.refreshCatalog()).rejects.toThrow(
+      /Failed to fetch the manifest catalog/
+    )
+
+    expect(loadCatalog).toHaveBeenCalledWith(true)
+    expect(update).toHaveBeenCalledWith(null, true)
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(markSeeded).toHaveBeenCalledTimes(1)
   })
 
   it('does not seed on an unreachable catalog once the flag is locked', async () => {

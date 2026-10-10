@@ -1,7 +1,8 @@
+import type { HonoRequest } from 'hono'
 import { describeRoute, resolver, validator } from 'hono-openapi'
 import { z } from 'zod'
 import { factory } from '@/factory'
-import { useCache } from '@/middleware/cache'
+import { requestBypassesCache, useCache } from '@/middleware/cache'
 
 export const manifestRouter = factory.createApp()
 
@@ -11,6 +12,17 @@ const dangoBaseUrl =
 const filePattern = /^src\/manifests\/[\w.-]+\.json$/
 
 const cacheMaxAge = 15 * 60
+
+// The upstream sends max-age=300, which Cloudflare honors on the Worker's own
+// subrequest, so a forced refresh that got past useCache could still be handed
+// bytes up to five minutes old. 'no-store' is the documented way to make the
+// runtime neither read nor write that cache for one subrequest.
+function fetchUpstream(req: HonoRequest, url: string): Promise<Response> {
+  if (!requestBypassesCache(req)) {
+    return fetch(url)
+  }
+  return fetch(new Request(url, { cache: 'no-store' }))
+}
 
 manifestRouter.get(
   '/',
@@ -44,7 +56,7 @@ manifestRouter.get(
     maxAge: cacheMaxAge,
   }),
   async (c) => {
-    return await fetch(`${dangoBaseUrl}/catalog.json`)
+    return await fetchUpstream(c.req, `${dangoBaseUrl}/catalog.json`)
   }
 )
 
@@ -74,6 +86,6 @@ manifestRouter.get(
   }),
   async (c) => {
     const { file } = c.req.valid('query')
-    return await fetch(`${dangoBaseUrl}/${file}`)
+    return await fetchUpstream(c.req, `${dangoBaseUrl}/${file}`)
   }
 )
