@@ -12,11 +12,8 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { isServiceWorker } from '@/common/utils/utils'
 import {
-  defaultProviderConfigs,
-  ensureBuiltinProviders,
   migrateBuiltinPrefixedProviderIds,
   migrateDanDanPlayApiBaseUrl,
-  migrateDropDeadProviderFields,
   migrateProviderConfigsToFlat,
 } from './migration'
 import type { ProviderConfig } from './schema'
@@ -47,60 +44,17 @@ export class ProviderConfigService implements IStoreService {
       this.logger
     )
       .version(2, {
-        upgrade: (data) => {
-          try {
-            return ensureBuiltinProviders(migrateProviderConfigsToFlat(data))
-          } catch (error) {
-            console.error(
-              '[providerConfig] migration failed, falling back to defaults:',
-              error
-            )
-            return [...defaultProviderConfigs]
-          }
-        },
+        upgrade: (data) => migrateProviderConfigsToFlat(data),
       })
       .version(3, {
-        upgrade: (data) => {
-          try {
-            return migrateBuiltinPrefixedProviderIds(data)
-          } catch (error) {
-            console.error(
-              '[providerConfig] builtin-prefix migration failed, falling back to defaults:',
-              error
-            )
-            return [...defaultProviderConfigs]
-          }
-        },
+        upgrade: (data) => migrateBuiltinPrefixedProviderIds(data),
       })
       .version(4, {
-        upgrade: (data) => {
-          try {
-            return migrateDanDanPlayApiBaseUrl(data)
-          } catch (error) {
-            // A baseUrl tweak should never cost the user their configs, so
-            // leave the data untouched rather than reset to defaults.
-            console.error(
-              '[providerConfig] DanDanPlay baseUrl migration failed, leaving configs unchanged:',
-              error
-            )
-            return data
-          }
-        },
+        upgrade: (data) => migrateDanDanPlayApiBaseUrl(data),
       })
+      // Kept as a no-op: nightly stores are already at v5, so a new step must be v6.
       .version(5, {
-        upgrade: (data) => {
-          try {
-            return migrateDropDeadProviderFields(data)
-          } catch (error) {
-            // Dropping dead fields is cosmetic; never cost the user their
-            // configs over it.
-            console.error(
-              '[providerConfig] dead-field migration failed, leaving configs unchanged:',
-              error
-            )
-            return data
-          }
-        },
+        upgrade: (data) => data,
       })
   }
 

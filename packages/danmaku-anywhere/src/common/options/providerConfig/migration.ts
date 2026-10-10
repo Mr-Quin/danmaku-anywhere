@@ -172,185 +172,113 @@ export function migrateDanmakuSourcesToProviders(
   }
 }
 
-// Convert OLD discriminated-union providerConfig records to the flat shape.
-// Records get to this point if the user ran extensionOptions v21 before the
-// flat-shape refactor — they have configs stored under `options.X` with a
-// `type` discriminator.
+// v1.5.0 stored a union keyed by `type` with per-type `options`. Each record is
+// translated on its own and dropped if the result does not parse, so one bad
+// entry costs only itself.
 export function migrateProviderConfigsToFlat(
-  // biome-ignore lint/suspicious/noExplicitAny: legacy input shape
-  data: any[]
+  data: unknown[]
 ): ProviderConfig[] {
-  if (!Array.isArray(data)) {
-    console.error(
-      'migrateProviderConfigsToFlat: input is not an array, returning empty:',
-      data
-    )
-    return []
-  }
   const out: ProviderConfig[] = []
-  for (const old of data) {
-    if (old === null || old === undefined || typeof old !== 'object') {
-      console.warn('Skipping non-object provider record during migration:', old)
-      continue
-    }
-    // Idempotent path for already-flat records; safeParse rejects partial corruption.
-    if (
-      typeof old.manifestId === 'string' &&
-      typeof old.configValues === 'object' &&
-      old.configValues !== null
-    ) {
-      const parsed = providerConfigSchema.safeParse(old)
-      if (parsed.success) {
-        out.push(parsed.data)
-        continue
-      }
+  for (const record of data) {
+    const parsed = providerConfigSchema.safeParse(toFlatProviderConfig(record))
+    if (parsed.success) {
+      out.push(parsed.data)
+    } else {
       console.warn(
-        'Dropping partially-flat provider record that fails schema:',
-        old,
+        'Dropping provider config record that does not migrate:',
+        record,
         parsed.error.issues
       )
-      continue
-    }
-    const base = {
-      id: old.id as string,
-      name: old.name as string,
-      // Default to visible when the field is missing.
-      enabled: old.enabled ?? true,
-    }
-    const options = old.options ?? {}
-    const inferredType =
-      old.type ?? inferTypeFromImpl(old.impl as DanmakuSourceType | undefined)
-    switch (inferredType) {
-      case 'DanDanPlay':
-        out.push({
-          ...base,
-          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-          configValues: pruneUndefined({
-            baseUrl: PROXY_DDP_BASE_URL,
-            chConvert: options.chConvert,
-          }),
-        })
-        break
-      case 'Bilibili':
-        out.push({
-          ...base,
-          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
-          configValues: pruneUndefined({
-            danmakuFormat: options.danmakuTypePreference,
-          }),
-        })
-        break
-      case 'Tencent':
-        out.push({
-          ...base,
-          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
-          configValues: {},
-        })
-        break
-      case 'DanDanPlayCompatible':
-        // A custom DDP server folds onto the unified DanDanPlay manifest; its
-        // options already carry the custom baseUrl/auth.
-        out.push({
-          ...base,
-          manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-          configValues: pruneUndefined(options),
-        })
-        break
-      case 'MacCMS':
-        out.push({
-          ...base,
-          manifestId: LEGACY_MACCMS_ID,
-          configValues: pruneUndefined(options),
-        })
-        break
-      default:
-        console.warn(
-          'Dropping corrupted provider config record during v1→v2 migration (unrecognized type):',
-          old
-        )
     }
   }
   return out
 }
 
-function inferTypeFromImpl(
-  impl: DanmakuSourceType | undefined
-): string | undefined {
-  if (impl === undefined) {
-    return undefined
+// biome-ignore lint/suspicious/noExplicitAny: legacy input shape
+function toFlatProviderConfig(old: any): unknown {
+  if (old === null || typeof old !== 'object') {
+    return old
   }
-  switch (impl) {
-    case DanmakuSourceType.DanDanPlay:
-      return 'DanDanPlay'
-    case DanmakuSourceType.Bilibili:
-      return 'Bilibili'
-    case DanmakuSourceType.Tencent:
-      return 'Tencent'
-    case DanmakuSourceType.MacCMS:
-      return 'MacCMS'
+  if (typeof old.manifestId === 'string') {
+    return old
+  }
+  const base = {
+    id: old.id,
+    name: old.name,
+    enabled: old.enabled ?? true,
+  }
+  const options = old.options ?? {}
+  switch (old.type) {
+    case 'DanDanPlay':
+      return {
+        ...base,
+        manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
+        configValues: pruneUndefined({
+          baseUrl: PROXY_DDP_BASE_URL,
+          chConvert: options.chConvert,
+        }),
+      }
+    case 'Bilibili':
+      return {
+        ...base,
+        manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
+        configValues: pruneUndefined({
+          danmakuFormat: options.danmakuTypePreference,
+        }),
+      }
+    case 'Tencent':
+      return {
+        ...base,
+        manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
+        configValues: {},
+      }
+    case 'DanDanPlayCompatible':
+      // A custom DDP server folds onto the unified DanDanPlay manifest; its
+      // options already carry the custom baseUrl/auth.
+      return {
+        ...base,
+        manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
+        configValues: pruneUndefined(options),
+      }
+    case 'MacCMS':
+      return {
+        ...base,
+        manifestId: LEGACY_MACCMS_ID,
+        configValues: pruneUndefined(options),
+      }
     default:
       return undefined
   }
 }
 
-// Strip the `builtin:` prefix from stored `id`/`manifestId`. Stripping `id`
-// can collide a user's own built-in record with a default that an earlier
-// migration appended; de-dupe by id keeping the user's record but merging in
-// any configValues keys it lacks (e.g. a pinned default format). Corrupt
-// records are skipped so one bad entry can't abort the whole migration.
 export function migrateBuiltinPrefixedProviderIds(
   data: ProviderConfig[]
 ): ProviderConfig[] {
-  const byId = new Map<string, ProviderConfig>()
-  const order: string[] = []
-  for (const config of data) {
-    if (
-      config === null ||
-      typeof config !== 'object' ||
-      typeof config.id !== 'string'
-    ) {
-      console.warn('Skipping invalid provider record during migration:', config)
-      continue
+  return data.map((config) => {
+    return {
+      ...config,
+      id: stripBuiltinPrefix(config.id),
+      manifestId: stripBuiltinPrefix(config.manifestId),
     }
-    const id = stripBuiltinPrefix(config.id)
-    const manifestId =
-      typeof config.manifestId === 'string'
-        ? stripBuiltinPrefix(config.manifestId)
-        : config.manifestId
-    const existing = byId.get(id)
-    if (existing) {
-      existing.configValues = {
-        ...config.configValues,
-        ...existing.configValues,
-      }
-      continue
-    }
-    byId.set(id, { ...config, id, manifestId })
-    order.push(id)
-  }
-  // biome-ignore lint/style/noNonNullAssertion: ids in `order` were just set
-  return order.map((id) => byId.get(id)!)
+  })
 }
 
 const DDP_API_SUFFIX = /\/api\/?$/
 
 // Custom DanDanPlay servers used to require the `/api` path in baseUrl; the
 // manifest now appends `/api/v2/...` itself, so a stored `/api` suffix doubles
-// the path. Strip a trailing `/api` from custom DanDanPlay configs.
+// the path.
 export function migrateDanDanPlayApiBaseUrl(
   data: ProviderConfig[]
 ): ProviderConfig[] {
   const ddpManifestId = PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]
   return data.map((config) => {
+    const baseUrl = config.configValues.baseUrl
     if (
-      config === null ||
-      typeof config !== 'object' ||
-      config.manifestId !== ddpManifestId
+      config.manifestId !== ddpManifestId ||
+      typeof baseUrl !== 'string' ||
+      !DDP_API_SUFFIX.test(baseUrl)
     ) {
-      return config
-    }
-    const baseUrl = (config.configValues as { baseUrl?: unknown })?.baseUrl
-    if (typeof baseUrl !== 'string' || !DDP_API_SUFFIX.test(baseUrl)) {
       return config
     }
     return {
@@ -360,42 +288,5 @@ export function migrateDanDanPlayApiBaseUrl(
         baseUrl: baseUrl.replace(DDP_API_SUFFIX, ''),
       },
     }
-  })
-}
-
-// Append any builtin whose id isn't already in the user's stored list.
-// Idempotent: stored configs (with user choices like `enabled`,
-// `configValues`) are preserved; only missing builtins get appended.
-export function ensureBuiltinProviders(
-  data: ProviderConfig[]
-): ProviderConfig[] {
-  const have = new Set(data.map((c) => c.id))
-  const additions: ProviderConfig[] = []
-  for (const builtin of defaultProviderConfigs) {
-    if (!have.has(builtin.id)) {
-      additions.push(builtin)
-    }
-  }
-  return additions.length > 0 ? [...data, ...additions] : data
-}
-
-// The provider tag comes from manifestId, so `impl` and `isBuiltIn` are no
-// longer read. Drop just those two keys rather than re-parsing through the
-// schema, which keeps this migration independent of later schema changes.
-export function migrateDropDeadProviderFields(
-  data: ProviderConfig[]
-): ProviderConfig[] {
-  if (!Array.isArray(data)) {
-    return data
-  }
-  return data.map((config) => {
-    if (config === null || typeof config !== 'object') {
-      return config
-    }
-    const { impl, isBuiltIn, ...rest } = config as ProviderConfig & {
-      impl?: unknown
-      isBuiltIn?: unknown
-    }
-    return rest
   })
 }

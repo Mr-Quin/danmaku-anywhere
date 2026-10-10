@@ -2,28 +2,20 @@ import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { describe, expect, it } from 'vitest'
 import type { DanmakuSources } from '@/common/options/extensionOptions/schema'
+import { migrateOptions } from '@/common/options/OptionsService/migrationOptions'
+import type {
+  Version,
+  VersionConfig,
+} from '@/common/options/OptionsService/types'
 import { PROXY_DDP_BASE_URL } from './constant'
 import {
   migrateBuiltinPrefixedProviderIds,
   migrateDanDanPlayApiBaseUrl,
   migrateDanmakuSourcesToProviders,
-  migrateDropDeadProviderFields,
   migrateProviderConfigsToFlat,
 } from './migration'
-
-/**
- * Exercises the provider-config migrations from the shipped releases:
- * - `migrateDanmakuSourcesToProviders`: pre-v21 `danmakuSources` blob →
- *   flat ProviderConfig[] with bare built-in ids.
- * - `migrateProviderConfigsToFlat`: v1.4/v1.5 discriminated-union
- *   ProviderConfig records → flat shape (idempotent on already-flat input,
- *   drops corrupted records). The stored `id` is preserved verbatim; the
- *   freshly-derived `manifestId` uses bare built-in ids.
- * - `migrateBuiltinPrefixedProviderIds`: strips the legacy `builtin:` prefix
- *   from stored `id`/`manifestId` and de-duplicates the resulting list.
- * - `migrateDropDeadProviderFields`: drops the retired `impl`/`isBuiltIn`
- *   fields, leaving corrupt records untouched.
- */
+import type { ProviderConfig } from './schema'
+import { ProviderConfigService } from './service'
 
 describe('migrateDanmakuSourcesToProviders', () => {
   describe('basic migration', () => {
@@ -382,395 +374,261 @@ describe('migrateDanmakuSourcesToProviders', () => {
   })
 })
 
+// The providerConfig store of a real v1.5.0 install, with secrets and hosts
+// redacted.
+const v150ProviderConfigs = [
+  {
+    enabled: true,
+    id: 'd9d068cc-d7a5-4277-990b-73b28f7637f8',
+    impl: 'DanDanPlay',
+    isBuiltIn: false,
+    name: 'DanDanPlay',
+    options: {
+      auth: {
+        enabled: true,
+        headers: [
+          { key: 'X-AppId', value: 'REDACTED_SECRET' },
+          { key: 'X-AppSecret', value: 'REDACTED_SECRET' },
+        ],
+      },
+      baseUrl: 'https://ddp.selfhosted.example/api',
+    },
+    type: 'DanDanPlayCompatible',
+  },
+  {
+    enabled: true,
+    id: 'builtin:bilibili',
+    impl: 'Bilibili',
+    isBuiltIn: true,
+    name: 'Bilibili',
+    options: { danmakuTypePreference: 'xml' },
+    type: 'Bilibili',
+  },
+  {
+    enabled: true,
+    id: 'builtin:dandanplay',
+    impl: 'DanDanPlay',
+    isBuiltIn: true,
+    name: 'DanDanPlay',
+    options: { chConvert: 0 },
+    type: 'DanDanPlay',
+  },
+  {
+    enabled: true,
+    id: '21999133-1b22-4e15-a48b-a8c6677cd902',
+    impl: 'Custom',
+    isBuiltIn: false,
+    name: 'VOD',
+    options: {
+      danmakuBaseUrl: 'https://vod.selfhosted.example/danmaku',
+      danmuicuBaseUrl: 'https://vod.selfhosted.example/danmuicu',
+      stripColor: false,
+    },
+    type: 'MacCMS',
+  },
+  {
+    enabled: false,
+    id: 'builtin:tencent',
+    impl: 'Tencent',
+    isBuiltIn: true,
+    name: 'Tencent',
+    options: {},
+    type: 'Tencent',
+  },
+  {
+    enabled: true,
+    id: 'e15d5979-e823-4ce8-a2ab-513dc358dae1',
+    impl: 'DanDanPlay',
+    isBuiltIn: false,
+    name: 'Danmu API',
+    options: {
+      auth: { enabled: false, headers: [] },
+      baseUrl: 'https://danmu.selfhosted.example',
+    },
+    type: 'DanDanPlayCompatible',
+  },
+]
+
+const upgradedV150ProviderConfigs: ProviderConfig[] = [
+  {
+    id: 'd9d068cc-d7a5-4277-990b-73b28f7637f8',
+    manifestId: 'dandanplay',
+    name: 'DanDanPlay',
+    enabled: true,
+    configValues: {
+      auth: {
+        enabled: true,
+        headers: [
+          { key: 'X-AppId', value: 'REDACTED_SECRET' },
+          { key: 'X-AppSecret', value: 'REDACTED_SECRET' },
+        ],
+      },
+      baseUrl: 'https://ddp.selfhosted.example',
+    },
+  },
+  {
+    id: 'bilibili',
+    manifestId: 'bilibili',
+    name: 'Bilibili',
+    enabled: true,
+    configValues: { danmakuFormat: 'xml' },
+  },
+  {
+    id: 'dandanplay',
+    manifestId: 'dandanplay',
+    name: 'DanDanPlay',
+    enabled: true,
+    configValues: { baseUrl: PROXY_DDP_BASE_URL, chConvert: 0 },
+  },
+  {
+    id: '21999133-1b22-4e15-a48b-a8c6677cd902',
+    manifestId: 'legacy:maccms',
+    name: 'VOD',
+    enabled: true,
+    configValues: {
+      danmakuBaseUrl: 'https://vod.selfhosted.example/danmaku',
+      danmuicuBaseUrl: 'https://vod.selfhosted.example/danmuicu',
+      stripColor: false,
+    },
+  },
+  {
+    id: 'tencent',
+    manifestId: 'tencent',
+    name: 'Tencent',
+    enabled: false,
+    configValues: {},
+  },
+  {
+    id: 'e15d5979-e823-4ce8-a2ab-513dc358dae1',
+    manifestId: 'dandanplay',
+    name: 'Danmu API',
+    enabled: true,
+    configValues: {
+      auth: { enabled: false, headers: [] },
+      baseUrl: 'https://danmu.selfhosted.example',
+    },
+  },
+]
+
+function upgradeFromV150(data: unknown): ProviderConfig[] {
+  const versions: Version[] = []
+  const options = {
+    version: (version: number, config: VersionConfig) => {
+      versions.push({ ...config, version })
+      return options
+    },
+  }
+  const logger = { sub: () => logger, debug: () => {} } as never
+  new ProviderConfigService(logger, (() => options) as never)
+  return migrateOptions<ProviderConfig[]>(
+    { data: data as ProviderConfig[], version: 1 },
+    versions,
+    logger,
+    {}
+  ).data
+}
+
+describe('providerConfig upgrade chain', () => {
+  it('translates a real v1.5.0 store to the current shape', () => {
+    expect(upgradeFromV150(v150ProviderConfigs)).toEqual(
+      upgradedV150ProviderConfigs
+    )
+  })
+
+  it('drops a bad entry and keeps the rest without adding defaults', () => {
+    const [ddp, bilibili, builtinDdp, maccms, , danmuApi] = v150ProviderConfigs
+    const corruptTencent = { id: 'builtin:tencent', name: 'Tencent' }
+
+    const upgraded = upgradeFromV150([
+      ddp,
+      bilibili,
+      builtinDdp,
+      maccms,
+      corruptTencent,
+      danmuApi,
+    ])
+
+    expect(upgraded).toEqual(
+      upgradedV150ProviderConfigs.filter((config) => config.id !== 'tencent')
+    )
+  })
+
+  it('throws on a store that is not a list', () => {
+    expect(() => upgradeFromV150({ not: 'a list' })).toThrow()
+  })
+})
+
 describe('migrateProviderConfigsToFlat', () => {
-  it('converts all five legacy variants to the flat shape', () => {
-    const legacy = [
-      {
-        id: 'builtin:dandanplay',
-        type: 'DanDanPlay',
-        name: 'DanDanPlay',
-        impl: DanmakuSourceType.DanDanPlay,
-        enabled: true,
-        isBuiltIn: true,
-        options: { chConvert: DanDanChConvert.Simplified },
-      },
-      {
-        id: 'builtin:bilibili',
-        type: 'Bilibili',
-        name: 'Bilibili',
-        impl: DanmakuSourceType.Bilibili,
-        enabled: true,
-        isBuiltIn: true,
-        options: { danmakuTypePreference: 'protobuf' },
-      },
-      {
-        id: 'builtin:tencent',
-        type: 'Tencent',
-        name: 'Tencent',
-        impl: DanmakuSourceType.Tencent,
-        enabled: false,
-        isBuiltIn: true,
-        options: {},
-      },
-      {
-        id: 'compat-1',
-        type: 'DanDanPlayCompatible',
-        name: 'CompatTest',
-        impl: DanmakuSourceType.DanDanPlay,
-        enabled: true,
-        isBuiltIn: false,
-        options: {
-          baseUrl: 'https://compat.example',
-          auth: { enabled: false, headers: [] },
-        },
-      },
-      {
-        id: 'legacy:maccms',
-        type: 'MacCMS',
-        name: 'MacCMS',
-        impl: DanmakuSourceType.MacCMS,
-        enabled: true,
-        isBuiltIn: false,
-        options: {
-          danmakuBaseUrl: 'https://m.example',
-          danmuicuBaseUrl: 'https://d.example',
-          stripColor: true,
-        },
-      },
-    ]
+  it('keeps the stored id and drops impl and isBuiltIn', () => {
+    const [flat] = migrateProviderConfigsToFlat([v150ProviderConfigs[2]])
 
-    const flat = migrateProviderConfigsToFlat(legacy)
-
-    expect(flat).toHaveLength(5)
-
-    // The stored `id` is preserved; the derived `manifestId` is the bare id.
-    expect(flat[0].manifestId).toBe('dandanplay')
-    expect(flat[0].configValues.baseUrl).toBe(PROXY_DDP_BASE_URL)
-    expect(flat[0].configValues.chConvert).toBe(DanDanChConvert.Simplified)
-
-    expect(flat[1].manifestId).toBe('bilibili')
-    // Field renamed: danmakuTypePreference → danmakuFormat
-    expect(flat[1].configValues.danmakuFormat).toBe('protobuf')
-
-    expect(flat[2].manifestId).toBe('tencent')
-    expect(flat[2].configValues).toEqual({})
-
-    // A custom DDP server (DanDanPlayCompatible) folds directly onto the
-    // unified DanDanPlay manifest, keeping its custom baseUrl.
-    expect(flat[3].manifestId).toBe('dandanplay')
-    expect(flat[3].configValues.baseUrl).toBe('https://compat.example')
-
-    expect(flat[4].manifestId).toBe('legacy:maccms')
-    expect(flat[4].configValues.danmakuBaseUrl).toBe('https://m.example')
-    expect(flat[4].configValues.stripColor).toBe(true)
+    expect(flat).toEqual({
+      id: 'builtin:dandanplay',
+      manifestId: 'dandanplay',
+      name: 'DanDanPlay',
+      enabled: true,
+      configValues: { baseUrl: PROXY_DDP_BASE_URL, chConvert: 0 },
+    })
   })
 
-  it('preserves a record that is already flat (idempotent)', () => {
-    const alreadyFlat = [
-      {
-        id: 'dandanplay',
-        manifestId: 'dandanplay',
-        name: 'DanDanPlay',
-        enabled: true,
-        configValues: { chConvert: DanDanChConvert.None },
-      },
-    ]
+  it('passes an already-flat record through', () => {
+    const alreadyFlat = {
+      id: 'dandanplay',
+      manifestId: 'dandanplay',
+      name: 'DanDanPlay',
+      enabled: true,
+      configValues: { chConvert: DanDanChConvert.None },
+    }
 
-    const out = migrateProviderConfigsToFlat(alreadyFlat)
-
-    expect(out).toEqual(alreadyFlat)
+    expect(migrateProviderConfigsToFlat([alreadyFlat])).toEqual([alreadyFlat])
   })
 
-  it('handles missing options field on legacy records', () => {
-    const legacy = [
-      {
-        id: 'builtin:bilibili',
-        type: 'Bilibili',
-        name: 'Bilibili',
-        impl: DanmakuSourceType.Bilibili,
-        enabled: true,
-        isBuiltIn: true,
-        // options field missing entirely
-      },
-    ]
+  it.each([
+    ['an unknown type', { ...v150ProviderConfigs[1], type: 'Youku' }],
+    ['no type', { ...v150ProviderConfigs[1], type: undefined }],
+    ['no id', { ...v150ProviderConfigs[1], id: undefined }],
+    ['an empty name', { ...v150ProviderConfigs[1], name: '' }],
+    ['a flat record that fails the schema', { manifestId: 'dandanplay' }],
+    ['a non-object', 'builtin:bilibili'],
+    ['null', null],
+  ])('drops a record with %s', (_, record) => {
+    const out = migrateProviderConfigsToFlat([record, v150ProviderConfigs[4]])
 
-    const flat = migrateProviderConfigsToFlat(legacy)
-
-    expect(flat).toHaveLength(1)
-    expect(flat[0].manifestId).toBe('bilibili')
-    expect(flat[0].configValues).toEqual({})
-  })
-
-  it('defaults enabled to true when missing on legacy records', () => {
-    const legacy = [
-      {
-        id: 'builtin:dandanplay',
-        type: 'DanDanPlay',
-        name: 'DanDanPlay',
-        impl: DanmakuSourceType.DanDanPlay,
-        // enabled missing
-        isBuiltIn: true,
-        options: { chConvert: DanDanChConvert.None },
-      },
-    ]
-
-    const flat = migrateProviderConfigsToFlat(legacy)
-
-    expect(flat[0].enabled).toBe(true)
-  })
-
-  it('recovers records with missing type by inferring from impl', () => {
-    const legacy = [
-      {
-        id: 'builtin:bilibili',
-        // type omitted entirely
-        name: 'Bilibili',
-        impl: DanmakuSourceType.Bilibili,
-        enabled: true,
-        isBuiltIn: true,
-        options: { danmakuTypePreference: 'protobuf' },
-      },
-    ]
-    const flat = migrateProviderConfigsToFlat(legacy)
-    expect(flat).toHaveLength(1)
-    expect(flat[0].manifestId).toBe('bilibili')
-    expect(flat[0].configValues).toEqual({ danmakuFormat: 'protobuf' })
-  })
-
-  it('skips non-object entries without crashing', () => {
-    const legacy = [
-      null,
-      undefined,
-      'a string somehow',
-      42,
-      {
-        id: 'builtin:dandanplay',
-        type: 'DanDanPlay',
-        name: 'DanDanPlay',
-        impl: DanmakuSourceType.DanDanPlay,
-        enabled: true,
-        isBuiltIn: true,
-        options: {},
-      },
-    ]
-    const flat = migrateProviderConfigsToFlat(legacy as unknown[] as never)
-    expect(flat).toHaveLength(1)
-    expect(flat[0].id).toBe('builtin:dandanplay')
-  })
-
-  it('recovers a partially-flat record with null configValues via the legacy path', () => {
-    const legacy = [
-      {
-        id: 'builtin:tencent',
-        manifestId: 'builtin:tencent',
-        impl: DanmakuSourceType.Tencent,
-        name: 'Tencent',
-        enabled: true,
-        isBuiltIn: true,
-        configValues: null,
-      },
-    ]
-    const flat = migrateProviderConfigsToFlat(legacy)
-    expect(flat).toHaveLength(1)
-    expect(flat[0].manifestId).toBe('tencent')
-    expect(flat[0].configValues).toEqual({})
-  })
-
-  it('returns empty array if data is not an array', () => {
-    expect(
-      migrateProviderConfigsToFlat(
-        null as unknown as never[] // lint-specs-allow-cast: deliberately invalid input to exercise the catch/fallback path
-      )
-    ).toEqual([])
-    expect(
-      migrateProviderConfigsToFlat(
-        { foo: 'bar' } as unknown as never[] // lint-specs-allow-cast: deliberately invalid input to exercise the catch/fallback path
-      )
-    ).toEqual([])
-  })
-
-  it('drops corrupted records with unknown type', () => {
-    const legacy = [
-      {
-        id: 'builtin:dandanplay',
-        type: 'DanDanPlay',
-        name: 'DanDanPlay',
-        impl: DanmakuSourceType.DanDanPlay,
-        enabled: true,
-        isBuiltIn: true,
-        options: { chConvert: DanDanChConvert.None },
-      },
-      // corrupted record with no manifestId and unknown type
-      {
-        id: 'garbage',
-        type: 'SomethingUnknown',
-        name: 'Garbage',
-        enabled: true,
-      },
-    ]
-
-    const flat = migrateProviderConfigsToFlat(legacy)
-
-    // Corrupted record dropped, valid record preserved
-    expect(flat).toHaveLength(1)
-    expect(flat[0].id).toBe('builtin:dandanplay')
+    expect(out.map((config) => config.id)).toEqual(['builtin:tencent'])
   })
 })
 
 describe('migrateBuiltinPrefixedProviderIds', () => {
-  const builtin = (slug: string) => ({
-    id: `builtin:${slug}`,
-    manifestId: `builtin:${slug}`,
-    name: slug,
-    impl: DanmakuSourceType.Bilibili,
-    enabled: true,
-    isBuiltIn: true,
-    configValues: {},
-  })
-
-  it('strips the builtin: prefix from id and manifestId', () => {
+  it('strips the builtin: prefix and leaves other ids alone', () => {
     const out = migrateBuiltinPrefixedProviderIds([
-      builtin('dandanplay'),
-      builtin('bilibili'),
-      builtin('tencent'),
-    ])
-
-    expect(out.map((c) => c.id)).toEqual(['dandanplay', 'bilibili', 'tencent'])
-    expect(out.map((c) => c.manifestId)).toEqual([
-      'dandanplay',
-      'bilibili',
-      'tencent',
-    ])
-  })
-
-  it('leaves legacy:maccms untouched', () => {
-    const maccms = {
-      id: 'legacy:maccms',
-      manifestId: 'legacy:maccms',
-      name: 'MacCMS',
-      impl: DanmakuSourceType.MacCMS,
-      enabled: true,
-      isBuiltIn: false,
-      configValues: {},
-    }
-
-    const out = migrateBuiltinPrefixedProviderIds([maccms])
-
-    expect(out).toEqual([maccms])
-  })
-
-  it('strips manifestId but keeps a custom uuid id for a custom DDP server', () => {
-    const custom = {
-      id: '7f3a-uuid',
-      manifestId: 'builtin:dandanplay',
-      name: 'My DDP',
-      impl: DanmakuSourceType.DanDanPlay,
-      enabled: true,
-      isBuiltIn: false,
-      configValues: { baseUrl: 'https://my.ddp' },
-    }
-
-    const out = migrateBuiltinPrefixedProviderIds([custom])
-
-    expect(out[0].id).toBe('7f3a-uuid')
-    expect(out[0].manifestId).toBe('dandanplay')
-    expect(out[0].configValues.baseUrl).toBe('https://my.ddp')
-  })
-
-  it('is idempotent on already-bare ids', () => {
-    const bare = [
       {
-        id: 'bilibili',
-        manifestId: 'bilibili',
+        id: 'builtin:bilibili',
+        manifestId: 'builtin:bilibili',
         name: 'Bilibili',
-        impl: DanmakuSourceType.Bilibili,
-        enabled: false,
-        isBuiltIn: true,
-        configValues: { danmakuFormat: 'xml' },
+        enabled: true,
+        configValues: {},
       },
-    ]
-
-    expect(migrateBuiltinPrefixedProviderIds(bare)).toEqual(bare)
-  })
-
-  it('de-duplicates by id keeping the first occurrence', () => {
-    const userBuiltin = {
-      ...builtin('bilibili'),
-      enabled: false,
-      configValues: { danmakuFormat: 'protobuf' },
-    }
-    const appendedDefault = {
-      id: 'bilibili',
-      manifestId: 'bilibili',
-      name: 'Bilibili',
-      impl: DanmakuSourceType.Bilibili,
-      enabled: true,
-      isBuiltIn: true,
-      configValues: { danmakuFormat: 'xml' },
-    }
-
-    const out = migrateBuiltinPrefixedProviderIds([
-      userBuiltin,
-      appendedDefault,
+      {
+        id: 'e15d5979-e823-4ce8-a2ab-513dc358dae1',
+        manifestId: 'builtin:dandanplay',
+        name: 'Danmu API',
+        enabled: true,
+        configValues: {},
+      },
+      {
+        id: '21999133-1b22-4e15-a48b-a8c6677cd902',
+        manifestId: 'legacy:maccms',
+        name: 'VOD',
+        enabled: true,
+        configValues: {},
+      },
     ])
 
-    expect(out).toHaveLength(1)
-    // User's own record (with their settings) wins over the appended default.
-    expect(out[0].enabled).toBe(false)
-    expect(out[0].configValues.danmakuFormat).toBe('protobuf')
-  })
-
-  it('preserves order and unrelated fields', () => {
-    const out = migrateBuiltinPrefixedProviderIds([
-      builtin('tencent'),
-      { ...builtin('dandanplay'), enabled: false },
+    expect(out.map(({ id, manifestId }) => [id, manifestId])).toEqual([
+      ['bilibili', 'bilibili'],
+      ['e15d5979-e823-4ce8-a2ab-513dc358dae1', 'dandanplay'],
+      ['21999133-1b22-4e15-a48b-a8c6677cd902', 'legacy:maccms'],
     ])
-
-    expect(out.map((c) => c.id)).toEqual(['tencent', 'dandanplay'])
-    expect(out[1].enabled).toBe(false)
-  })
-
-  it('merges configValues keys the kept record lacks from the dropped duplicate', () => {
-    const userBuiltin = {
-      ...builtin('bilibili'),
-      enabled: false,
-      configValues: {},
-    }
-    const appendedDefault = {
-      ...builtin('bilibili'),
-      configValues: { danmakuFormat: 'xml' },
-    }
-
-    const out = migrateBuiltinPrefixedProviderIds([
-      userBuiltin,
-      appendedDefault,
-    ])
-
-    expect(out).toHaveLength(1)
-    expect(out[0].enabled).toBe(false)
-    // The pinned default format is preserved rather than silently dropped.
-    expect(out[0].configValues.danmakuFormat).toBe('xml')
-  })
-
-  it('skips corrupt records without aborting the whole migration', () => {
-    const out = migrateBuiltinPrefixedProviderIds([
-      null as never,
-      { manifestId: 'builtin:bilibili' } as never, // missing id
-      'a string' as never,
-      builtin('tencent'),
-    ])
-
-    expect(out).toHaveLength(1)
-    expect(out[0].id).toBe('tencent')
-  })
-
-  it('leaves a non-string manifestId intact instead of throwing', () => {
-    const out = migrateBuiltinPrefixedProviderIds([
-      { ...builtin('tencent'), manifestId: undefined as never },
-    ])
-
-    expect(out[0].id).toBe('tencent')
-    expect(out[0].manifestId).toBeUndefined()
   })
 })
 
@@ -852,72 +710,5 @@ describe('migrateDanDanPlayApiBaseUrl', () => {
       },
     ])
     expect(out[0].configValues.baseUrl).toBeUndefined()
-  })
-})
-
-describe('migrateDropDeadProviderFields', () => {
-  it('drops impl and isBuiltIn while keeping the rest of the record', () => {
-    const stored = [
-      {
-        id: 'dandanplay',
-        manifestId: 'dandanplay',
-        name: 'DanDanPlay',
-        impl: DanmakuSourceType.DanDanPlay,
-        enabled: true,
-        isBuiltIn: true,
-        configValues: { chConvert: DanDanChConvert.None },
-      },
-    ]
-
-    const out = migrateDropDeadProviderFields(stored)
-
-    expect(out[0]).toEqual({
-      id: 'dandanplay',
-      manifestId: 'dandanplay',
-      name: 'DanDanPlay',
-      enabled: true,
-      configValues: { chConvert: DanDanChConvert.None },
-    })
-  })
-
-  it('is idempotent on a record that already lacks the dead fields', () => {
-    const clean = [
-      {
-        id: 'bilibili',
-        manifestId: 'bilibili',
-        name: 'Bilibili',
-        enabled: false,
-        configValues: { danmakuFormat: 'xml' },
-      },
-    ]
-
-    expect(migrateDropDeadProviderFields(clean)).toEqual(clean)
-  })
-
-  it('passes non-object entries through untouched while cleaning valid ones', () => {
-    const stored = [
-      {
-        id: 'tencent',
-        manifestId: 'tencent',
-        name: 'Tencent',
-        impl: DanmakuSourceType.Tencent,
-        enabled: true,
-        isBuiltIn: true,
-        configValues: {},
-      },
-      null as never,
-    ]
-
-    const out = migrateDropDeadProviderFields(stored)
-
-    expect(out).toHaveLength(2)
-    expect(out[0]).not.toHaveProperty('impl')
-    expect(out[0]).not.toHaveProperty('isBuiltIn')
-    expect(out[1]).toBeNull()
-  })
-
-  it('passes a non-array store through without throwing', () => {
-    const corrupt = null as never
-    expect(migrateDropDeadProviderFields(corrupt)).toBe(corrupt)
   })
 })
