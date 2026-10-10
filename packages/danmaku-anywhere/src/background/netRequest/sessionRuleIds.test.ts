@@ -84,4 +84,47 @@ describe('session rule ids', () => {
     expect(rules).toHaveLength(1)
     expect(rules[0].id).toBeGreaterThan(firstId)
   })
+
+  it('leaves rules it did not create in place when replacing a header rule', async () => {
+    await setMediaCorsRule('https://cdn.example.com/video.mp4')
+    await addSessionRule((id) => ({
+      id,
+      action: { type: 'modifyHeaders', requestHeaders: [] },
+      condition: {
+        urlFilter: '|https://cdn.example.com',
+        resourceTypes: ['xmlhttprequest'],
+      },
+    }))
+    await setRequestHeaderRule({
+      url: 'https://cdn.example.com',
+      referer: 'https://source.example.com',
+    })
+    await setRequestHeaderRule({
+      url: 'https://cdn.example.com',
+      referer: 'https://other.example.com',
+    })
+
+    expect(rules).toHaveLength(3)
+    expect(rules.map((r) => r.condition.resourceTypes)).toContainEqual([
+      'media',
+    ])
+    expect(rules.map((r) => r.condition.resourceTypes)).toContainEqual([
+      'xmlhttprequest',
+    ])
+  })
+
+  it('installs one header rule when two calls for the same url race', async () => {
+    await Promise.all([
+      setRequestHeaderRule({
+        url: 'https://same.example.com',
+        referer: 'https://a.example.com',
+      }),
+      setRequestHeaderRule({
+        url: 'https://same.example.com',
+        referer: 'https://b.example.com',
+      }),
+    ])
+
+    expect(rules).toHaveLength(1)
+  })
 })

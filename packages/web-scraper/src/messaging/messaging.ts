@@ -3,11 +3,31 @@ import type {
   GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
+import { Mutex } from 'async-mutex'
 import type { MediaInfo } from '../extractMedia.js'
 import type { HTTPHeader } from '../types.js'
 import { nextSessionRuleId } from './sessionRuleIds.js'
 
 const DA_EXT_ATTR = 'da-ext-version'
+
+const headerRuleMutex = new Mutex()
+
+async function lockHeaderRules(): Promise<Disposable> {
+  const release = await headerRuleMutex.acquire()
+  return { [Symbol.dispose]: release }
+}
+
+// Other session rules (setSessionHeader, the media CORS bypass) can share the
+// exact urlFilter, but only header rules cover main_frame.
+function isHeaderRuleFor(
+  rule: chrome.declarativeNetRequest.Rule,
+  url: string
+): boolean {
+  return (
+    rule.condition.urlFilter === `|${url}` &&
+    rule.condition.resourceTypes?.includes('main_frame') === true
+  )
+}
 
 export interface ExtensionInfo {
   version: string
@@ -149,11 +169,11 @@ export type SetHeaderRule = {
 }
 
 export const setRequestHeaderRule = async (headerRule: SetHeaderRule) => {
+  using _lock = await lockHeaderRules()
   const existingRules = await chrome.declarativeNetRequest.getSessionRules()
 
-  // check if url exists, if it does, remove the rule
   const prevRule = existingRules.find((rule) => {
-    return rule.condition.urlFilter?.includes(headerRule.url)
+    return isHeaderRuleFor(rule, headerRule.url)
   })
 
   const ruleId = await nextSessionRuleId()
