@@ -11,6 +11,7 @@ const isVerify = !!process.env.DA_VERIFY
 
 export default defineConfig({
   testDir: './e2e',
+  tsconfig: './e2e/tsconfig.json',
   globalSetup: './e2e/setup/globalSetup.ts',
   timeout: 30_000,
   retries: 0,

@@ -14,9 +14,17 @@ import { computeNamespaceKey } from '../../../src/common/providers/namespaceKey'
 import migrationConfig from '../../migration.config.json' with { type: 'json' }
 import { mockCatalog } from '../../network/catalog'
 import { ImportPage } from '../../pom/ImportPage'
+import { Popup } from '../../pom/Popup'
 import { MigrationLegacyPopup } from '../../poms/legacy/v1.5.0/MigrationLegacyPopup'
 import { attachConsoleWatcher } from '../../setup/console-watcher'
 import { MIGRATION_EXTENSION_ID } from '../../setup/extensionKey'
+import {
+  dismissReleaseNotes,
+  type OptionsSnapshot,
+  readIdbRows,
+  readOptionsSnapshot,
+  schemaViolations,
+} from '../../setup/migrationState'
 import {
   ensureCurrentBuildForMigration,
   ensurePriorRelease,
@@ -24,9 +32,11 @@ import {
 import { launchExtension, swapExtension } from '../../setup/swapExtension'
 
 /**
- * Seeds real user state through v1.5.0's own popup (backup restore writes
- * chrome.storage, danmaku import writes IDB), swaps to the current build,
- * and asserts the upgrade chain ran without errors and preserved data.
+ * Seeds real user state through v1.5.0's own popup (backup restore, danmaku
+ * import, title mappings), swaps to the current build, and asserts the upgrade
+ * ran without errors and kept the data: every options store parses against its
+ * current schema and keeps the user's values, sources keep their order and
+ * enabled flags, and title mappings follow the season rekey.
  *
  * Two non-obvious mechanics, both documented in e2e/AGENTS.md:
  *   - userDataDir lives under os.tmpdir() to dodge Windows MAX_PATH.
@@ -50,6 +60,13 @@ const SELF_HOSTED_DDP_BASE_URL = 'https://ddp.selfhosted.example'
 const SELF_HOSTED_DDP_CONFIG_ID = 'd9d068cc-d7a5-4277-990b-73b28f7637f8'
 const SELF_HOSTED_SEASON_INDEXED_ID = '90001'
 const PUBLIC_COMPAT_DDP_BASE_URL = 'https://danmu.selfhosted.example'
+const MACCMS_CONFIG_ID = '21999133-1b22-4e15-a48b-a8c6677cd902'
+const PUBLIC_COMPAT_DDP_CONFIG_ID = 'e15d5979-e823-4ce8-a2ab-513dc358dae1'
+const OPENAI_PROVIDER_ID = '644241b5-68bb-43b4-8f63-4ecc860373a5'
+const OLLAMA_PROVIDER_ID = '7092c0a2-1651-4766-adef-a667f5d51710'
+const INTEGRATION_ID = '67d4ae50-a697-41b0-925c-40937a2fa19a'
+const BUILTIN_TITLE_MAPPING = 'Mapped Builtin Show'
+const SELF_HOSTED_TITLE_MAPPING = 'Mapped Self Hosted Show'
 
 // LogService IDB-quirk noise, unrelated to migration.
 const IGNORED_ERROR_PATTERNS = [/Failed to save log/]
@@ -108,7 +125,9 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   const seededSync = await readSyncSnapshot(seededProbe)
   const seededIdb = await readIdbCounts(seededProbe)
   const seededSeasonConfigIds = await readSeasonConfigIds(seededProbe)
+  const mappedSeasons = await findMappedSeasons(seededProbe)
   await seededProbe.close()
+  await seedTitleMappings(context, mappedSeasons)
   expect(
     seededIdb.episodes + seededIdb.customEpisodes,
     'fixture should import at least one episode'
@@ -133,6 +152,8 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   const postSeasonIdentity = await readSeasonNamespaceKeys(probe)
   const postCustomDdpConfigs = await readCustomDdpConfigs(probe)
   const postMacCmsConfig = await readMacCmsConfig(probe)
+  const postOptions = await readOptionsSnapshot(probe)
+  const postSchemaViolations = await schemaViolations(probe, postOptions)
   const postManifest = await probe.evaluate(
     () => chrome.runtime.getManifest().version
   )
@@ -240,6 +261,17 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
     ).toBe(row.manifestId)
   }
 
+  expect
+    .soft(
+      postSchemaViolations,
+      'every options store parses against its current schema'
+    )
+    .toEqual({})
+  assertUserOptions(postOptions)
+  assertProviderOrder(postOptions)
+  await assertTitleMappings(context, mappedSeasons, selfHostedNamespace)
+  await assertUpgradedUi(context)
+
   await assertPostMigrationReimport(context)
 
   return context
@@ -270,6 +302,307 @@ async function assertPostMigrationReimport(
     after.seasons,
     'built-in seasons dedup; only the orphan is added'
   ).toBe(before.seasons + 1)
+}
+
+// Values the fixture generator set through v1.5.0, so they differ from every
+// default and a migration that resets a store shows up here.
+function assertUserOptions(snapshot: OptionsSnapshot): void {
+  expect
+    .soft(
+      snapshot.extensionOptions?.data,
+      'extensionOptions kept what the user set in v1.5.0'
+    )
+    .toMatchObject({
+      id: '00000000-0000-0000-0000-000000000001',
+      lang: 'en',
+      searchUsingSimplified: true,
+      theme: { colorMode: 'dark' },
+      retentionPolicy: { enabled: true, deleteCommentsAfter: 14 },
+      playerOptions: {
+        showSkipButton: false,
+        showDanmakuTimeline: true,
+        enableFullscreenInteraction: true,
+      },
+      hotkeys: {
+        refreshComments: { key: 'alt+r', enabled: true },
+        togglePip: { key: 'shift+p', enabled: false },
+        toggleEnableDanmaku: { key: 'shift+b', enabled: true },
+        unmountComments: { key: 'shift+u', enabled: true },
+        openSearchPanel: expect.objectContaining({ enabled: true }),
+      },
+      showFloatingButton: true,
+      autoBookmark: false,
+      infoPanel: { enabled: true },
+    })
+
+  expect
+    .soft(
+      snapshot.danmakuOptions?.data,
+      'danmakuOptions kept what the user set in v1.5.0'
+    )
+    .toMatchObject({
+      speed: 1.5,
+      useCustomCss: true,
+      customCss: '.da-danmaku {\n  font-weight: 800;\n}',
+      filters: [
+        { type: 'text', value: '剧透', enabled: true },
+        { type: 'regex', value: '^前方高能', enabled: false },
+      ],
+      area: { xStart: 10, xEnd: 90, yStart: 5, yEnd: 60 },
+      style: { fontSize: 30 },
+      collapse: expect.objectContaining({ dedupe: expect.anything() }),
+      occlusion: false,
+    })
+  expect
+    .soft(
+      snapshot.danmakuOptions?.data,
+      'the dedup field step 8 adds is dropped again by step 9'
+    )
+    .not.toHaveProperty('dedup')
+
+  expect
+    .soft(snapshot.mountConfig?.data, 'both mount configs kept their fields')
+    .toEqual([
+      expect.objectContaining({
+        id: '081cea50-9433-4e51-b219-9e0a1fcad3b2',
+        name: 'Danmaku Somewhere',
+        enabled: true,
+        patterns: ['https://danmaku.weeblify.app/*'],
+        mediaQuery: 'video',
+        mode: 'xpath',
+        integration: INTEGRATION_ID,
+        ai: { providerId: 'built-in' },
+      }),
+      expect.objectContaining({
+        id: '89eb0cef-b290-450e-833c-ecf86734467d',
+        name: 'Jellyfin',
+        enabled: false,
+        patterns: ['https://jellyfin.selfhosted.example/*'],
+        mediaQuery: 'video',
+        mode: 'ai',
+        ai: { providerId: OPENAI_PROVIDER_ID },
+      }),
+    ])
+
+  expect
+    .soft(
+      snapshot.integrationPolicy?.data,
+      'the integration policy kept its selectors'
+    )
+    .toEqual([
+      expect.objectContaining({
+        id: INTEGRATION_ID,
+        name: 'danmaku-somewhere',
+        policy: expect.objectContaining({
+          title: {
+            selector: [{ value: '//*[@id="media-title"]', quick: false }],
+            regex: [],
+          },
+          episode: {
+            selector: [{ value: '//*[@id="episode"]', quick: false }],
+            regex: [{ value: '第(\\d+)集', quick: false }],
+          },
+        }),
+      }),
+    ])
+
+  expect
+    .soft(
+      snapshot.aiProviderConfig?.data,
+      'AI providers kept their endpoint and model'
+    )
+    .toEqual([
+      expect.objectContaining({ id: 'built-in', enabled: true }),
+      expect.objectContaining({
+        id: OPENAI_PROVIDER_ID,
+        name: 'openai',
+        enabled: true,
+        settings: expect.objectContaining({
+          baseUrl: 'https://api.openai.com/v1',
+          model: 'gpt-5-nano',
+          apiKey: 'REDACTED_API_KEY',
+        }),
+      }),
+      expect.objectContaining({
+        id: OLLAMA_PROVIDER_ID,
+        name: 'ollama',
+        enabled: false,
+        settings: expect.objectContaining({
+          baseUrl: 'http://localhost:11434/v1',
+          model: 'deepseek-r1:7b',
+        }),
+      }),
+    ])
+}
+
+// The fixture moves the built-ins out of their seeded order and disables
+// Tencent through v1.5.0's providers page. v1.5.0 could not rename a built-in
+// (its schema pins the name), so only the custom names are user-chosen.
+function assertProviderOrder(snapshot: OptionsSnapshot): void {
+  const configs = (snapshot.providerConfig?.data ?? []) as Array<{
+    id: string
+    name: string
+    enabled: boolean
+  }>
+  expect
+    .soft(
+      configs.map((config) => [config.id, config.enabled]),
+      'sources keep the order and enabled flags the user left in v1.5.0'
+    )
+    .toEqual([
+      [SELF_HOSTED_DDP_CONFIG_ID, true],
+      ['bilibili', true],
+      ['dandanplay', true],
+      [MACCMS_CONFIG_ID, true],
+      ['tencent', false],
+      [PUBLIC_COMPAT_DDP_CONFIG_ID, true],
+    ])
+  const customNames = configs
+    .filter((config) => {
+      return !['bilibili', 'dandanplay', 'tencent'].includes(config.id)
+    })
+    .map((config) => config.name)
+  expect
+    .soft(customNames, 'custom sources keep their names')
+    .toEqual(['DanDanPlay', 'VOD', 'Danmu API'])
+}
+
+interface MappedSeasons {
+  dandanplay: number
+  bilibili: number
+  selfHosted: number
+}
+
+async function findMappedSeasons(page: Page): Promise<MappedSeasons> {
+  const rows = await readIdbRows<{
+    id: number
+    indexedId: string
+    providerConfigId?: string
+  }>(page, 'season')
+  const dandanplay = rows.find((row) => {
+    return row.providerConfigId === 'builtin:dandanplay'
+  })
+  const bilibili = rows.find((row) => {
+    return row.providerConfigId === 'builtin:bilibili'
+  })
+  const selfHosted = rows.find((row) => {
+    return row.indexedId === SELF_HOSTED_SEASON_INDEXED_ID
+  })
+  if (!dandanplay || !bilibili || !selfHosted) {
+    throw new Error(
+      'the fixture must carry DanDanPlay, Bilibili and self-hosted seasons'
+    )
+  }
+  return {
+    dandanplay: dandanplay.id,
+    bilibili: bilibili.id,
+    selfHosted: selfHosted.id,
+  }
+}
+
+// v1.5.0 keys a title mapping by provider config id: `builtin:*` for the
+// built-ins, the config's own id for a custom server.
+async function seedTitleMappings(
+  context: BrowserContext,
+  seasons: MappedSeasons
+): Promise<void> {
+  const legacy = await MigrationLegacyPopup.open(
+    context,
+    MIGRATION_EXTENSION_ID
+  )
+  await legacy.addTitleMapping({
+    key: BUILTIN_TITLE_MAPPING,
+    seasons: {
+      'builtin:dandanplay': seasons.dandanplay,
+      'builtin:bilibili': seasons.bilibili,
+    },
+    seasonIds: [seasons.dandanplay, seasons.bilibili],
+  })
+  await legacy.addTitleMapping({
+    key: SELF_HOSTED_TITLE_MAPPING,
+    seasons: { [SELF_HOSTED_DDP_CONFIG_ID]: seasons.selfHosted },
+    seasonIds: [seasons.selfHosted],
+  })
+  await legacy.close()
+}
+
+interface SeasonMapRow {
+  key: string
+  seasons: Record<string, number>
+  seasonIds: number[]
+}
+
+// v14 strips the builtin prefix and v15 rekeys built-ins by namespace; the
+// custom key is left for the runtime reconciler, which runs after boot.
+async function assertTitleMappings(
+  context: BrowserContext,
+  seasons: MappedSeasons,
+  selfHostedNamespace: string
+): Promise<void> {
+  const page = await context.newPage()
+  await Popup.open(page, MIGRATION_EXTENSION_ID, '/title-mapping')
+  await expect(
+    page.getByText(BUILTIN_TITLE_MAPPING, { exact: true })
+  ).toBeVisible()
+  await expect(
+    page.getByText(SELF_HOSTED_TITLE_MAPPING, { exact: true })
+  ).toBeVisible()
+
+  await expect
+    .poll(
+      async () => {
+        const rows = await readIdbRows<SeasonMapRow>(page, 'seasonMap')
+        return rows
+          .map((row) => ({
+            key: row.key,
+            seasons: row.seasons,
+            seasonIds: [...row.seasonIds].sort((a, b) => a - b),
+          }))
+          .sort((a, b) => a.key.localeCompare(b.key))
+      },
+      {
+        message: 'title mappings follow the season rekey',
+        timeout: 15_000,
+      }
+    )
+    .toEqual([
+      {
+        key: BUILTIN_TITLE_MAPPING,
+        seasons: {
+          dandanplay: seasons.dandanplay,
+          bilibili: seasons.bilibili,
+        },
+        seasonIds: [seasons.dandanplay, seasons.bilibili].sort((a, b) => {
+          return a - b
+        }),
+      },
+      {
+        key: SELF_HOSTED_TITLE_MAPPING,
+        seasons: { [selfHostedNamespace]: seasons.selfHosted },
+        seasonIds: [seasons.selfHosted],
+      },
+    ])
+  await page.close()
+}
+
+async function assertUpgradedUi(context: BrowserContext): Promise<void> {
+  const page = await context.newPage()
+  let popup = await Popup.open(page, MIGRATION_EXTENSION_ID, '/providers')
+  await dismissReleaseNotes(page)
+  // The user picked English in v1.5.0, so this heading is not locale-agnostic
+  // on purpose. The three DanDanPlay servers render as one group.
+  await expect(page.getByText('Installed (4)', { exact: true })).toBeVisible()
+  await expect(popup.providers.enabledSwitch(/Tencent|腾讯/)).not.toBeChecked()
+  await expect(popup.providers.enabledSwitch('VOD')).toBeChecked()
+
+  popup = await Popup.open(page, MIGRATION_EXTENSION_ID, '/config')
+  await popup.config.expectRow('Danmaku Somewhere')
+  await popup.config.expectRow('Jellyfin')
+
+  await Popup.open(page, MIGRATION_EXTENSION_ID, '/ai-providers')
+  await expect(page.getByText('openai', { exact: true })).toBeVisible()
+  await expect(page.getByText('ollama', { exact: true })).toBeVisible()
+  await page.close()
 }
 
 async function openProbePage(context: BrowserContext): Promise<Page> {

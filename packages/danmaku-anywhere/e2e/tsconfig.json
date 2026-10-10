@@ -1,0 +1,17 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["../src/*"],
+      "@danmaku-anywhere/danmaku-engine": ["../../danmaku-engine/src"],
+      "@danmaku-anywhere/danmaku-provider": ["../../danmaku-provider/src"],
+      "@danmaku-anywhere/danmaku-provider/ddp": [
+        "../../danmaku-provider/src/providers/ddp"
+      ],
+      "@danmaku-anywhere/danmaku-converter": ["../../danmaku-converter/src"],
+      "@danmaku-anywhere/result": ["../../result/src"],
+      "@danmaku-anywhere/web-scraper": ["../../web-scraper/src"]
+    }
+  },
+  "include": ["."]
+}
