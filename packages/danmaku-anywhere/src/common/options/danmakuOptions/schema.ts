@@ -8,8 +8,10 @@ const zFilter = z.object({
 
 const zFixedCommentMode = z.enum(['normal', 'hidden', 'scroll'])
 
-export const danmakuOptionsSchema = z.object({
-  style: z.object({
+// Loose because a restore writes the parse output, and options upgraded from
+// older versions still carry keys such as smartMask that a normal upgrade keeps.
+export const danmakuOptionsSchema = z.looseObject({
+  style: z.looseObject({
     opacity: z.number(),
     fontSize: z.number(),
     fontFamily: z.string(),

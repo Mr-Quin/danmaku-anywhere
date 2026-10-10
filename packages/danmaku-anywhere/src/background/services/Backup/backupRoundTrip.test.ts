@@ -458,6 +458,33 @@ describe('backup round trip', () => {
     expect((await danmakuOptionsService.get()).speed).toBe(1.5)
   })
 
+  it('keeps danmakuOptions keys from older versions that the schema does not declare', async () => {
+    const current = await danmakuOptionsService.get()
+
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        danmakuOptions: {
+          data: {
+            ...current,
+            smartMask: true,
+            style: { ...current.style, customCss: '' },
+          },
+          version: danmakuOptionsService.options.latestVersion,
+        },
+      },
+    })
+
+    expect(result.details.danmakuOptions).toEqual({
+      success: true,
+      droppedEntries: 0,
+    })
+    expect(await danmakuOptionsService.get()).toMatchObject({
+      smartMask: true,
+      style: { customCss: '' },
+    })
+  })
+
   it('refuses an aiProviderConfig payload that is not a list and keeps the existing providers', async () => {
     await seedStores()
     const before = await aiProviderConfigService.getAll()
