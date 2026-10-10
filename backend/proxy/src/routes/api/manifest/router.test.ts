@@ -1,13 +1,17 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createTestUrl } from '@/test-utils/createTestUrl'
 import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
+import { dangoRef } from './router'
 
-const dangoBaseUrl =
-  'https://raw.githubusercontent.com/Mr-Quin/dango/main/packages/dango-manifests'
+const dangoBaseUrl = `https://raw.githubusercontent.com/Mr-Quin/dango/${dangoRef}/packages/dango-manifests`
 
 describe('Manifest API', () => {
   afterEach(() => {
     vi.restoreAllMocks()
+  })
+
+  it('pins the upstream to a release tag rather than a branch', () => {
+    expect(dangoRef).toMatch(/^v\d+\.\d+\.\d+$/)
   })
 
   it('proxies the catalog from the dango repo (GET /)', async () => {

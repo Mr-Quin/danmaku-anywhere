@@ -404,9 +404,17 @@ export class ManifestRegistry {
     const index = zCatalogIndex.parse(
       await this.fetchJson(`${this.baseUrl}/manifest`)
     )
-    return index.manifests.filter((entry) =>
-      SUPPORTED_API_VERSIONS.has(entry.apiVersion)
-    )
+    return index.manifests.filter((entry) => {
+      if (SUPPORTED_API_VERSIONS.has(entry.apiVersion)) {
+        return true
+      }
+      this.log.warn(
+        'Dropping catalog manifest with unsupported apiVersion:',
+        entry.id,
+        entry.apiVersion
+      )
+      return false
+    })
   }
 
   // Skip (null) on any per-manifest failure so one bad file doesn't block the
