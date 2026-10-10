@@ -14,9 +14,8 @@ import { computeNamespaceKey } from '../../../src/common/providers/namespaceKey'
 import migrationConfig from '../../migration.config.json' with { type: 'json' }
 import { mockCatalog } from '../../network/catalog'
 import { ImportPage } from '../../pom/ImportPage'
-import { Popup } from '../../pom/Popup'
 import { MigrationLegacyPopup } from '../../poms/legacy/v1.5.0/MigrationLegacyPopup'
-import { expectBuiltinNamesLocalized } from '../../setup/builtinNames'
+import { assertBuiltinNamesLocalized } from '../../setup/builtinNames'
 import { attachConsoleWatcher } from '../../setup/console-watcher'
 import { MIGRATION_EXTENSION_ID } from '../../setup/extensionKey'
 import {
@@ -219,7 +218,9 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   ).toMatch(/^ns:/)
 
   await assertPostMigrationReimport(context)
-  await assertBuiltinNamesLocalized(context)
+  await assertBuiltinNamesLocalized(context, MIGRATION_EXTENSION_ID, {
+    seasonChips: true,
+  })
 
   return context
 }
@@ -249,28 +250,6 @@ async function assertPostMigrationReimport(
     after.seasons,
     'built-in seasons dedup; only the orphan is added'
   ).toBe(before.seasons + 1)
-}
-
-// v1.5.0 stored the built-in names as English literals. The upgrade must show
-// the names a fresh install seeds in the profile's language.
-async function assertBuiltinNamesLocalized(
-  context: BrowserContext
-): Promise<void> {
-  const page = await context.newPage()
-  const popup = await Popup.open(page, MIGRATION_EXTENSION_ID, '/providers')
-  const names = await expectBuiltinNamesLocalized(page)
-  for (const name of Object.values(names)) {
-    await expect(popup.providers.row(name).first()).toBeVisible()
-  }
-
-  await Popup.open(page, MIGRATION_EXTENSION_ID, '/mount')
-  await expect(
-    popup.mount
-      .seasonItems()
-      .getByText(names.dandanplay, { exact: true })
-      .first()
-  ).toBeVisible()
-  await page.close()
 }
 
 async function openProbePage(context: BrowserContext): Promise<Page> {

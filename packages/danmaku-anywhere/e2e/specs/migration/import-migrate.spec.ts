@@ -5,7 +5,7 @@ import { gunzipSync } from 'node:zlib'
 import { mockLoginProbes } from '../../network/loginProbes'
 import { ImportPage } from '../../pom/ImportPage'
 import { Popup } from '../../pom/Popup'
-import { expectBuiltinNamesLocalized } from '../../setup/builtinNames'
+import { assertBuiltinNamesLocalized } from '../../setup/builtinNames'
 import { expect, test } from '../../setup/fixtures'
 
 /**
@@ -61,11 +61,10 @@ test('current build migrates an imported v1.5.0 backup and danmaku export', asyn
   })
   await popup.toast.expectSuccess(/^(Import success|成功导入备份)$/)
 
-  await Popup.open(page, extensionId, '/providers')
-  const names = await expectBuiltinNamesLocalized(page)
-  for (const name of Object.values(names)) {
-    await expect(popup.providers.row(name).first()).toBeVisible()
-  }
+  // The library would load poster images this spec has no mocks for.
+  await assertBuiltinNamesLocalized(context, extensionId, {
+    seasonChips: false,
+  })
 
   const importPage = await ImportPage.open(page, extensionId)
   await importPage.selectFiles(DANMAKU_ZIP)
