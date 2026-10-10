@@ -227,7 +227,7 @@ describe('ManifestProviderService.getDanmaku', () => {
     warn: ReturnType<typeof vi.fn>
   } {
     const warn = vi.fn()
-    const logger = { ...silentLogger, warn } as unknown as ILogger
+    const logger = { ...silentLogger, warn } satisfies ILogger
     const svc = new ManifestProviderService(
       {
         manifestId: 'dandanplay',
