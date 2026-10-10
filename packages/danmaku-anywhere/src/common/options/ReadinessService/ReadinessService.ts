@@ -35,8 +35,14 @@ export class ReadinessService {
   setReady() {
     if (!this.isReady) {
       this.isReady = true
+      this.storage.destroy()
       this.resolveReady()
     }
+  }
+
+  async isCurrentVersion() {
+    const result = await this.storage.read()
+    return result?.lastVersion === EXTENSION_VERSION
   }
 
   setVersion(version: string) {
@@ -44,7 +50,18 @@ export class ReadinessService {
   }
 
   private async init() {
-    // wait until version is set to the updated version
+    const currentVersion = EXTENSION_VERSION
+
+    // Subscribe before reading, or a version write landing between the two is
+    // never seen.
+    this.storage.subscribe((version) => {
+      if (version?.lastVersion === currentVersion) {
+        this.logger.debug('Version updated, ready now')
+        this.setReady()
+      }
+    })
+    this.storage.setup()
+
     const [result, err] = await tryCatch(() => this.storage.read())
 
     if (err) {
@@ -53,7 +70,6 @@ export class ReadinessService {
     }
 
     const lastVersion = result?.lastVersion
-    const currentVersion = EXTENSION_VERSION
 
     if (lastVersion === currentVersion) {
       this.logger.debug('Version match, ready immediately')
@@ -64,18 +80,5 @@ export class ReadinessService {
     this.logger.debug(
       `Version mismatch (last: ${lastVersion}, current: ${currentVersion}), waiting for upgrade`
     )
-
-    const listener = (version: LastVersion | undefined) => {
-      if (!version) {
-        return
-      }
-      if (version.lastVersion === currentVersion) {
-        this.logger.debug('Version updated, ready now')
-        this.setReady()
-        this.storage.unsubscribe(listener)
-      }
-    }
-
-    this.storage.subscribe(listener)
   }
 }

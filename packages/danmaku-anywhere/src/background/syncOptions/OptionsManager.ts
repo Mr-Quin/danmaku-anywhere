@@ -2,12 +2,14 @@ import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
 import { tryCatch } from '@/common/utils/tryCatch'
 import { UpgradeService } from './UpgradeService/UpgradeService'
 
 @injectable()
 export class OptionsManager {
   private logger: ILogger
+  private upgrading?: Promise<void>
 
   constructor(
     @inject(ExtensionOptionsService)
@@ -16,6 +18,8 @@ export class OptionsManager {
     private danmakuOptionsService: DanmakuOptionsService,
     @inject(UpgradeService)
     private upgradeService: UpgradeService,
+    @inject(ReadinessService)
+    private readinessService: ReadinessService,
     @inject(LoggerSymbol)
     logger: ILogger
   ) {
@@ -24,7 +28,7 @@ export class OptionsManager {
 
   setup() {
     chrome.runtime.onInstalled.addListener(async (details) => {
-      this.tryUpgradeOptions()
+      void this.upgradeOnce()
 
       if (details.reason === 'update') {
         if (!import.meta.env.DEV) {
@@ -54,18 +58,26 @@ export class OptionsManager {
       }
     })
 
-    // configure dandanplay api on init and when options change
-    chrome.runtime.onStartup.addListener(async () => {
-      // Try to upgrade options on startup in case the onInstalled one failed
-      await this.tryUpgradeOptions()
+    chrome.runtime.onStartup.addListener(() => {
+      void this.upgradeOnce()
     })
+
+    // The worker can be killed mid-upgrade, and the next wake may be a popup or
+    // a message rather than an install or startup event.
+    void this.upgradeIfVersionChanged()
   }
 
-  private async tryUpgradeOptions() {
-    try {
-      await this.upgradeService.upgrade()
-    } catch (err) {
-      this.logger.error(err)
+  private async upgradeIfVersionChanged() {
+    if (await this.readinessService.isCurrentVersion()) {
+      return
     }
+    await this.upgradeOnce()
+  }
+
+  private upgradeOnce() {
+    this.upgrading ??= this.upgradeService.upgrade().catch((err) => {
+      this.logger.error(err)
+    })
+    return this.upgrading
   }
 }
