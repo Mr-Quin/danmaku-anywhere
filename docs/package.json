@@ -30,5 +30,6 @@
     "tailwindcss": "^4.1.7",
     "typescript": "^5.6.3",
     "daisyui": "^5.5.8"
-  }
+  },
+  "packageManager": "pnpm@10.11.0"
 }
