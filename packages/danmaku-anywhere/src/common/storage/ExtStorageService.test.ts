@@ -3,44 +3,126 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { ExtStorageService } from './ExtStorageService'
 
 describe('ExtStorageService', () => {
-  let service: ExtStorageService<any>
+  let service: ExtStorageService<string>
 
   beforeEach(() => {
     service = new ExtStorageService('testKey', { storageType: 'local' })
   })
 
-  test('read method should get data from storage', async () => {
-    await fakeBrowser.storage.local.set({ testKey: 'testValue' })
-    const result = await service.read()
-    expect(result).toBe('testValue')
-  })
+  describe('read', () => {
+    test('returns the stored value for an existing key', async () => {
+      await fakeBrowser.storage.local.set({ testKey: 'testValue' })
 
-  test('set method should set data in storage', async () => {
-    await service.set('testValue')
-    expect(await fakeBrowser.storage.local.get('testKey')).toEqual({
-      testKey: 'testValue',
+      await expect(service.read()).resolves.toBe('testValue')
+    })
+
+    test('returns undefined for a missing key', async () => {
+      await expect(service.read()).resolves.toBeUndefined()
     })
   })
 
-  test('delete method should remove data from storage', async () => {
-    await fakeBrowser.storage.local.set({ testKey: 'testValue', other: 'keep' })
-    await service.delete()
-    expect(await fakeBrowser.storage.local.get(null)).toEqual({ other: 'keep' })
+  describe('set', () => {
+    test('persists the value and notifies subscribers', async () => {
+      const listener = vi.fn()
+      service.subscribe(listener)
+
+      await service.set('testValue')
+
+      expect(await fakeBrowser.storage.local.get('testKey')).toEqual({
+        testKey: 'testValue',
+      })
+      expect(listener).toHaveBeenCalledWith('testValue')
+    })
   })
 
-  test('clearStorage method should clear all data from storage', async () => {
-    await fakeBrowser.storage.local.set({ testKey: 'testValue', other: 'gone' })
-    await service.clearStorage()
-    expect(await fakeBrowser.storage.local.get(null)).toEqual({})
+  describe('delete', () => {
+    test('removes the key and notifies subscribers', async () => {
+      await fakeBrowser.storage.local.set({
+        testKey: 'testValue',
+        other: 'keep',
+      })
+      const listener = vi.fn()
+      service.subscribe(listener)
+
+      await service.delete()
+
+      expect(await fakeBrowser.storage.local.get(null)).toEqual({
+        other: 'keep',
+      })
+      expect(listener).toHaveBeenCalledWith(undefined)
+    })
   })
 
-  test('listeners should be added by subscribe and removed by unsubscribe', async () => {
-    const listener = vi.fn()
-    service.subscribe(listener)
-    await service.set('testValue')
-    expect(listener).toHaveBeenCalledWith('testValue')
-    service.unsubscribe(listener)
-    await service.set('testValue2')
-    expect(listener).not.toHaveBeenCalledWith('testValue2')
+  describe('clearStorage', () => {
+    test('clears all storage and notifies subscribers', async () => {
+      await fakeBrowser.storage.local.set({
+        testKey: 'testValue',
+        other: 'gone',
+      })
+      const listener = vi.fn()
+      service.subscribe(listener)
+
+      await service.clearStorage()
+
+      expect(await fakeBrowser.storage.local.get(null)).toEqual({})
+      expect(listener).toHaveBeenCalledWith(undefined)
+    })
+  })
+
+  describe('unsubscribe', () => {
+    test('stops notifying a removed listener', async () => {
+      const listener = vi.fn()
+      service.subscribe(listener)
+      service.unsubscribe(listener)
+
+      await service.set('testValue')
+
+      expect(listener).not.toHaveBeenCalled()
+    })
+  })
+
+  // The extension's cross-context sync path: a write from another tab or the
+  // background page lands in storage directly, not through this instance.
+  describe('cross-context sync', () => {
+    test('setup() notifies subscribers of a change made elsewhere', async () => {
+      service.setup()
+      const listener = vi.fn()
+      service.subscribe(listener)
+
+      await fakeBrowser.storage.local.set({ testKey: 'fromElsewhere' })
+
+      expect(listener).toHaveBeenCalledWith('fromElsewhere')
+    })
+
+    test('ignores a change to an unrelated key', async () => {
+      service.setup()
+      const listener = vi.fn()
+      service.subscribe(listener)
+
+      await fakeBrowser.storage.local.set({ other: 'value' })
+
+      expect(listener).not.toHaveBeenCalled()
+    })
+
+    test('destroy() stops reacting to changes made elsewhere', async () => {
+      service.setup()
+      const listener = vi.fn()
+      service.subscribe(listener)
+      service.destroy()
+
+      await fakeBrowser.storage.local.set({ testKey: 'afterDestroy' })
+
+      expect(listener).not.toHaveBeenCalled()
+    })
+
+    test('destroy() also drops local subscribers', async () => {
+      const listener = vi.fn()
+      service.subscribe(listener)
+      service.destroy()
+
+      await service.set('testValue')
+
+      expect(listener).not.toHaveBeenCalled()
+    })
   })
 })
