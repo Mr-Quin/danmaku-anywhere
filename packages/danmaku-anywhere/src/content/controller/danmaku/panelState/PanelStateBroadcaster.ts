@@ -43,18 +43,13 @@ class PanelStateBroadcaster {
     }
     this.#prevEntry = entry
 
-    const startedFrameIds: number[] = []
     for (const frame of state.frame.allFrames.values()) {
       if (frame.started) {
-        startedFrameIds.push(frame.frameId)
+        void playerRpcClient.player['relay:command:syncPanelState'](
+          { frameId: frame.frameId, data: entry },
+          { optional: true, silent: true }
+        )
       }
-    }
-
-    for (const frameId of startedFrameIds) {
-      void playerRpcClient.player['relay:command:syncPanelState'](
-        { frameId, data: entry },
-        { optional: true, silent: true }
-      )
     }
   }
 }
