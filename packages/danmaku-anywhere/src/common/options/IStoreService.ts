@@ -8,7 +8,9 @@ export interface IStoreService {
   shouldBackup?: boolean
   /**
    * Validates a restored payload once it has been migrated to the store's
-   * latest version. A payload that fails is not written.
+   * latest version. A payload that fails is not written. What gets written is
+   * the parse output, so defaults and coercions apply and any key the schema
+   * does not declare is dropped unless the schema is loose.
    */
   backupSchema?: ZodType
   /**
