@@ -38,6 +38,7 @@ async function readDownload(download: Download): Promise<Buffer> {
 }
 
 test('a backup exported after restoring the v1.5.0 backup restores cleanly', async ({
+  context,
   page,
   extensionId,
 }) => {
@@ -51,7 +52,12 @@ test('a backup exported after restoring the v1.5.0 backup restores cleanly', asy
 
   const migrated = await readDownload(await popup.backup.exportToFile())
 
-  const reopened = await Popup.open(page, extensionId, '/options/backup')
+  // A fresh page, so the first restore's toast cannot satisfy the second check.
+  const reopened = await Popup.open(
+    await context.newPage(),
+    extensionId,
+    '/options/backup'
+  )
   await reopened.backup.restoreFromFile({
     name: 'reexport.json',
     mimeType: 'application/json',
