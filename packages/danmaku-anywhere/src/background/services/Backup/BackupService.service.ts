@@ -6,6 +6,7 @@ import {
 import { inject, injectable } from 'inversify'
 import { ConfigStateService } from '@/background/services/Backup/ConfigStateService'
 import type { IBackupSink } from '@/background/services/Backup/sinks/BackupSink.interface'
+import { ProviderService } from '@/background/services/providers/ProviderService'
 import type {
   BackupData,
   BackupRestoreResult,
@@ -19,7 +20,9 @@ export class BackupService {
     @inject(ConfigStateService)
     private configStateService: ConfigStateService,
     @inject(UserAuthStore)
-    private userAuthStore: UserAuthStore
+    private userAuthStore: UserAuthStore,
+    @inject(ProviderService)
+    private providerService: ProviderService
   ) {}
 
   async getBackupData(): Promise<BackupData> {
@@ -36,7 +39,14 @@ export class BackupService {
       }
     }
     // TODO: validate backup data
-    return this.configStateService.restoreState(backupData as BackupData)
+    const data = backupData as BackupData
+    const result = await this.configStateService.restoreState(data)
+    // providerConfig version 1 is the pre-manifest shape, whose built-in names
+    // were fixed English literals.
+    if (data.services.providerConfig?.version === 1) {
+      await this.providerService.localizeLegacyBuiltinNames()
+    }
+    return result
   }
 
   async backupTo(sink: IBackupSink): Promise<void> {

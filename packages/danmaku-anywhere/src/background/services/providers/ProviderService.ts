@@ -400,17 +400,21 @@ export class ProviderService {
   private async onInstalled(reason: string): Promise<void> {
     const lockedExistingInstall =
       reason === 'update' && (await this.lockSeedForExistingInstall())
-    await this.syncCatalog()
-    if (lockedExistingInstall) {
-      await this.localizeLegacyBuiltinNames()
+    // The seed flag is already locked, so a sync failure here must not skip
+    // the one chance to rename.
+    try {
+      await this.syncCatalog()
+    } finally {
+      if (lockedExistingInstall) {
+        await this.localizeLegacyBuiltinNames()
+      }
     }
   }
 
   // Lock the flag for an existing install so its configs are never re-seeded,
   // even if the user has deleted them all. An unset flag with no configs is a
   // different user: their first-run seed never happened, so leave them
-  // unlocked for the sync that follows to heal. Returns whether it locked,
-  // which only happens on the first update from a release that never seeded.
+  // unlocked for the sync that follows to heal. Returns whether it locked.
   private async lockSeedForExistingInstall(): Promise<boolean> {
     if (await this.providerConfigService.hasSeeded()) {
       return false
@@ -423,10 +427,11 @@ export class ProviderService {
     return true
   }
 
-  // Needs the registry populated, so it runs after syncCatalog. It only runs on
-  // the update that locked the seed flag, so a name the user sets later is
-  // never touched.
-  private async localizeLegacyBuiltinNames(): Promise<void> {
+  // Only for configs that came from pre-manifest storage (the update that
+  // locked the seed flag, or a restored pre-manifest backup), so a name the
+  // user sets later is never touched.
+  async localizeLegacyBuiltinNames(): Promise<void> {
+    await this.manifestRegistry.ready
     const { lang } = await this.extensionOptions.get()
     const names = new Map(
       this.manifestRegistry

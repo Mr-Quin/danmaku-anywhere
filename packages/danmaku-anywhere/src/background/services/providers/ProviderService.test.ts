@@ -875,6 +875,35 @@ describe('ProviderService.seedDefaultProviders', () => {
     ])
   })
 
+  it('still renames when the catalog sync fails on the locking update', async () => {
+    const { service, set } = buildForSeed({
+      lang: Language.zh,
+      existingConfigs: LEGACY_BUILTINS,
+    })
+    vi.spyOn(service, 'syncCatalog').mockRejectedValue(new Error('boom'))
+
+    service.setup()
+    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
+
+    expect(set).toHaveBeenCalledTimes(1)
+    expect(set.mock.calls[0][0].map((c) => c.name)).toEqual([
+      '弹弹play',
+      'B站',
+      '腾讯视频',
+    ])
+  })
+
+  it('leaves built-in names alone on a fresh install', async () => {
+    const { service, set } = buildForSeed({
+      existingConfigs: LEGACY_BUILTINS,
+    })
+
+    service.setup()
+    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'install' })
+
+    expect(set).not.toHaveBeenCalled()
+  })
+
   it('leaves built-in names alone on a later update', async () => {
     const { service, set, hasSeeded } = buildForSeed({
       seeded: true,

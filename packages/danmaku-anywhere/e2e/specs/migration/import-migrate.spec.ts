@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gunzipSync } from 'node:zlib'
+import { mockLoginProbes } from '../../network/loginProbes'
 import { ImportPage } from '../../pom/ImportPage'
 import { Popup } from '../../pom/Popup'
 import { expect, test } from '../../setup/fixtures'
@@ -11,9 +12,10 @@ import { expect, test } from '../../setup/fixtures'
  * export and migrates them on the way in (restoreState -> options.upgrade,
  * parseBackupMany -> episode v1->v4). Complements migration-smoke, which only
  * exercises startup migration of already-stored data. Asserts the restore
- * success toast and the danmaku import-result success, then that the imported
- * config and danmaku land in the current schema (bare provider ids, stripped
- * custom DanDanPlay baseUrl, resolvable season provider ids).
+ * success toast and the danmaku import-result success, that the restored
+ * built-ins show their localized names, then that the imported config and
+ * danmaku land in the current schema (bare provider ids, stripped custom
+ * DanDanPlay baseUrl, resolvable season provider ids).
  */
 
 const FIXTURES_DIR = path.join(
@@ -37,6 +39,9 @@ test.beforeEach(async ({ context }) => {
       body: 'null',
     })
   )
+  for (const probe of mockLoginProbes()) {
+    await context.route(probe.pattern, probe.respond)
+  }
 })
 
 test('current build migrates an imported v1.5.0 backup and danmaku export', async ({
@@ -54,6 +59,11 @@ test('current build migrates an imported v1.5.0 backup and danmaku export', asyn
     buffer: backup,
   })
   await popup.toast.expectSuccess(/^(Import success|成功导入备份)$/)
+
+  await Popup.open(page, extensionId, '/providers')
+  await expect(popup.providers.row(/^B站$/).first()).toBeVisible()
+  await expect(popup.providers.row(/^腾讯视频$/).first()).toBeVisible()
+  await expect(popup.providers.row(/^Bilibili$/)).toHaveCount(0)
 
   const importPage = await ImportPage.open(page, extensionId)
   await importPage.selectFiles(DANMAKU_ZIP)
