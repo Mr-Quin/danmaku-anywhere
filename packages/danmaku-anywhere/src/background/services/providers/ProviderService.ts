@@ -240,18 +240,16 @@ export class ProviderService {
       throw new Error(`No danmaku found for ${meta.title}`)
     }
 
-    // Fetched comments are already filtered to renderable ones. Counting the
-    // stored side the same way keeps an episode saved with unrenderable
-    // comments refreshable.
     if (existingDanmaku) {
+      const fetchedCount = countRenderable(comments)
       const storedCount = countRenderable(existingDanmaku.comments)
-      if (comments.length < storedCount) {
+      if (fetchedCount < storedCount) {
         this.logger.warn(
-          `Refetch returned ${comments.length} comments, fewer than the ${storedCount} stored; keeping the stored episode`
+          `Refetch returned ${fetchedCount} comments, fewer than the ${storedCount} stored; keeping the stored episode`
         )
         return {
           episode: existingDanmaku,
-          keptStored: { fetchedCount: comments.length, storedCount },
+          keptStored: { fetchedCount, storedCount },
         }
       }
     }
@@ -263,6 +261,7 @@ export class ProviderService {
       seasonId: season.id,
       comments,
       commentCount: comments.length,
+      lastChecked: Date.now(),
     })
 
     return {

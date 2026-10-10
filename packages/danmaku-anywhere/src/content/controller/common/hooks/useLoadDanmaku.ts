@@ -56,6 +56,15 @@ const useMountDanmaku = () => {
   })
 }
 
+function isOnlyMounted(episode: Episode): boolean {
+  const { isMounted, episodes } = useStore.getState().danmaku
+  if (!isMounted || episodes?.length !== 1) {
+    return false
+  }
+  const [mounted] = episodes
+  return isSourceEpisode(mounted) && mounted.id === episode.id
+}
+
 // Wrapper around useFetchDanmaku and useMountDanmaku
 export const useLoadDanmaku = () => {
   const { t } = useTranslation()
@@ -116,7 +125,10 @@ export const useLoadDanmaku = () => {
   const loadMutation = useMutation({
     mutationFn: async (data: DanmakuFetchDto) => {
       return fetchMutation.mutateAsync(data, {
-        onSuccess: ({ episode }) => {
+        onSuccess: ({ episode, keptStored }) => {
+          if (keptStored && isOnlyMounted(episode)) {
+            return
+          }
           mountDanmaku([episode])
         },
         onError: (err) => {

@@ -500,6 +500,17 @@ describe('ProviderService legacy-maccms decoupling', () => {
       )
     })
 
+    it('records when the replacing refetch checked the source', async () => {
+      vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
+      const { result, danmakuService } = refetch(comments(3), comments(4))
+
+      await result
+      expect(danmakuService.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({ lastChecked: 1_700_000_000_000 })
+      )
+      vi.restoreAllMocks()
+    })
+
     it('does not count stored comments the renderer cannot parse', async () => {
       const { result, danmakuService } = refetch(
         [...comments(2), { p: '10,7,16777215', m: 'positioned' }],
