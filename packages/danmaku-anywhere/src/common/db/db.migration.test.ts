@@ -1,3 +1,4 @@
+import { fakeBrowser } from '@webext-core/fake-browser'
 import 'fake-indexeddb/auto'
 import { Dexie } from 'dexie'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -63,7 +64,8 @@ afterEach(async () => {
 
 describe('season identity migration (v15)', () => {
   it('orphans a custom self-hosted season even when its config exists in storage', async () => {
-    vi.mocked(chrome.storage.sync.get).mockResolvedValue({
+    const syncGet = vi.spyOn(fakeBrowser.storage.sync, 'get')
+    await fakeBrowser.storage.sync.set({
       providerConfig: {
         data: [
           {
@@ -73,7 +75,7 @@ describe('season identity migration (v15)', () => {
           },
         ],
       },
-    } as never)
+    })
     await seedV14({
       seasons: [
         {
@@ -97,7 +99,7 @@ describe('season identity migration (v15)', () => {
     expect(season.providerConfigId).toBe(CUSTOM_DDP_ID)
     // The upgrade must recover identity from the row alone; reading provider
     // config storage here would race the options migration.
-    expect(chrome.storage.sync.get).not.toHaveBeenCalled()
+    expect(syncGet).not.toHaveBeenCalled()
   })
 
   it('heals built-in seasons to their structural identity', async () => {

@@ -4,6 +4,8 @@ import { factory } from '@/factory'
 
 export const rulesRouter = factory.createApp()
 
+const filePattern = /^[\w.-]+\.json$/
+
 rulesRouter.get(
   '/',
   describeRoute({
@@ -41,7 +43,7 @@ rulesRouter.get(
   validator(
     'query',
     z.object({
-      file: z.string().min(1),
+      file: z.string().regex(filePattern),
     })
   ),
   describeRoute({
