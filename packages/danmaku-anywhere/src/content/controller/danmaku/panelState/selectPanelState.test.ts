@@ -220,7 +220,7 @@ describe('selectPanelState — payload shape', () => {
             id: 1,
           },
         },
-      ] as unknown as PanelStateInputs['mountedEpisodes'],
+      ] as unknown as PanelStateInputs['mountedEpisodes'], // lint-specs-allow-cast: partial fixture, not a collaborator
     })
     expect(entry.media).toMatchObject({
       title: 'Manual Show',
@@ -236,7 +236,7 @@ describe('selectPanelState — payload shape', () => {
       isMounted: true,
       mountedEpisodes: [
         { provider: DanmakuSourceType.MacCMS, title: 'should be ignored' },
-      ] as unknown as PanelStateInputs['mountedEpisodes'],
+      ] as unknown as PanelStateInputs['mountedEpisodes'], // lint-specs-allow-cast: partial fixture, not a collaborator
       integration: {
         active: true,
         mediaInfo: new MediaInfo({ title: 'Integration Match', episode: 1 }),

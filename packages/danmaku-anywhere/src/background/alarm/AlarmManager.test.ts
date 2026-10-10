@@ -1,8 +1,11 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { describe, expect, it, vi } from 'vitest'
-import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
-import type { ProviderService } from '@/background/services/providers/ProviderService'
-import type { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import { backgroundContainerModule } from '@/background/ioc'
+import { DanmakuService } from '@/background/services/persistence/DanmakuService'
+import { ProviderService } from '@/background/services/providers/ProviderService'
+import { LoggerSymbol } from '@/common/Logger'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import { createTestContainer } from '@/tests/createTestContainer'
 import { silentLogger } from '@/tests/silentLogger'
 import { AlarmManager } from './AlarmManager'
 
@@ -20,20 +23,20 @@ function firedAlarm(name: string) {
 describe('AlarmManager manifest refresh', () => {
   it('creates the refresh alarm and runs syncCatalog only when it fires', async () => {
     const syncCatalog = vi.fn(async () => {})
-    const providerService = { syncCatalog } as unknown as ProviderService
-    const extensionOptionsService = {
-      onChange: vi.fn(),
-      get: vi.fn(async () => ({
-        retentionPolicy: { enabled: false, deleteCommentsAfter: 0 },
-      })),
-    } as unknown as ExtensionOptionsService
+    const onChange = vi.fn<ExtensionOptionsService['onChange']>()
+    const get = vi.fn(async () => ({
+      retentionPolicy: { enabled: false, deleteCommentsAfter: 0 },
+    }))
 
-    const manager = new AlarmManager(
-      {} as unknown as DanmakuService,
-      extensionOptionsService,
-      providerService,
-      silentLogger
-    )
+    const manager = createTestContainer(
+      [backgroundContainerModule],
+      [
+        { identifier: DanmakuService, value: {} },
+        { identifier: ExtensionOptionsService, value: { onChange, get } },
+        { identifier: ProviderService, value: { syncCatalog } },
+        { identifier: LoggerSymbol, value: silentLogger },
+      ]
+    ).get(AlarmManager)
 
     manager.setup()
     await new Promise((resolve) => setTimeout(resolve, 0))
