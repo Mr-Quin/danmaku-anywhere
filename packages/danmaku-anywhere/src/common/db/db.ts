@@ -444,9 +444,9 @@ export class DanmakuAnywhereDb extends Dexie {
      * keeps its providerConfigId so the runtime reconciler can heal it later
      * from live config storage, where there is no migration race.
      *
-     * The compound index is non-unique, and a row missing a component is left
-     * out of it. Identity is enforced by SeasonService.upsert and by the
-     * reconciler, which never stamps an identity another row already holds.
+     * The compound index is non-unique. Identity is enforced by
+     * SeasonService.upsert and by the reconciler, which never stamps an
+     * identity another row already holds.
      */
     this.version(15)
       .stores({

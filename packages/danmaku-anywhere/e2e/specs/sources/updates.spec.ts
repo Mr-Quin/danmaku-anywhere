@@ -55,7 +55,7 @@ test('updates: an uninstalled catalog source updates in place on refresh, not as
   // iqiyi is not a built-in, so it never gets a config: a catalog-only source.
   const ids = ['dandanplay', 'bilibili', 'tencent', 'iqiyi']
 
-  // Built-ins disabled so no login probe fires; iqiyi stays the only catalog row.
+  // Built-ins disabled so no login probe fires.
   await applyProfile(context, da, {
     providers: {},
     rawStorage: [
@@ -69,9 +69,9 @@ test('updates: an uninstalled catalog source updates in place on refresh, not as
   // The catalog name localizes with the UI language (iQIYI -> 爱奇艺).
   const iqiyiName = /iQIYI|爱奇艺/
 
-  // Seeded stale with no runner yet, so it only surfaces once the refresh
-  // applies its update in place.
-  await expect(popup.providers.importButton(iqiyiName)).toBeHidden()
+  await expect(popup.providers.catalogRow(iqiyiName)).toContainText(
+    `v${manifestVersion('iqiyi')}`
+  )
   await expect(page.getByText(/Updates available|有可用更新/)).toBeHidden()
 
   await popup.providers.refreshCatalog()

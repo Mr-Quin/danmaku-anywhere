@@ -56,10 +56,9 @@ test('built-in sources are installed from the bundled catalog when the proxy is 
 }) => {
   await routeLoginProbes(context)
 
-  // The offline index retries once with a 1s delay before falling back to the
-  // bundle, so the seed lands well after the popup would otherwise mount and
-  // query an empty list once with no later refetch. Wait for the configs (the
-  // seed's ground truth) before opening the popup.
+  // Default configs are seeded only after the boot sync gives up on the
+  // offline index (one retry after 1s), well after the popup would mount and
+  // query once with no refetch. Wait for the configs before opening it.
   await expect
     .poll(
       async () => {

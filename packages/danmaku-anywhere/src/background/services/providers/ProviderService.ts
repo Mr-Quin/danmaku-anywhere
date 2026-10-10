@@ -347,11 +347,11 @@ export class ProviderService {
     void this.seasonsReady()
   }
 
-  // One reconcile per service worker start, awaited by every season read or
-  // write. The reconciler never stamps an identity another row already holds,
-  // so a season upserted ahead of it would strand the migrated row for good.
-  // A failed pass is logged and not retried until the next start.
-  private async seasonsReady(): Promise<void> {
+  // One reconcile per service worker start. Season writes must wait for it:
+  // the reconciler never stamps an identity another row already holds, so a
+  // row upserted first strands the orphan it would have healed. A failed pass
+  // waits for the next service worker start.
+  async seasonsReady(): Promise<void> {
     await this.manifestRegistry.ready
     this.identitiesReconciled ??= this.reconcileSeasonIdentities().catch(
       (e) => {
@@ -375,8 +375,7 @@ export class ProviderService {
   private async reconcileSeasonIdentities(): Promise<void> {
     const configs = await this.providerConfigService.getAll()
     const identityFields = await this.manifestRegistry.getIdentityFieldsMap()
-    // A manifest the registry cannot resolve leaves identityFields undefined,
-    // and the reconciler skips that config rather than stamp a guess.
+    // Undefined for an unresolved manifest, and the reconciler skips it.
     const healed = await this.seasonService.reconcileIdentities(
       configs.map((config) => ({
         ...config,

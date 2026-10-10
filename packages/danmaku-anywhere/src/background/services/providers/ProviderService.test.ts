@@ -942,14 +942,13 @@ describe('ProviderService.setup reconcile', () => {
     const getAll = vi.fn<ProviderConfigService['getAll']>(async () => [
       SELF_HOSTED_DDP,
     ])
-    const onChange = vi.fn<ProviderConfigService['options']['onChange']>()
     const getIdentityFieldsMap = vi.fn<
       ManifestRegistry['getIdentityFieldsMap']
     >(async () => identityFields)
 
     const service = buildService({
       seasonService: { reconcileIdentities },
-      providerConfigService: { getAll, options: { onChange } },
+      providerConfigService: { getAll },
       registry: { ready: Promise.resolve(), getIdentityFieldsMap },
     })
 
@@ -1014,7 +1013,6 @@ describe('ProviderService season writes after startup', () => {
       seasonService: new SeasonService(db),
       providerConfigService: {
         getAll: async () => [SELF_HOSTED_DDP],
-        options: { onChange: vi.fn() },
       },
       registry: {
         ready: Promise.resolve(),
