@@ -59,11 +59,17 @@ export const zAiProviderConfig = z.discriminatedUnion('provider', [
   zAiProviderOpenaiCompatible,
 ])
 
-// The input schema parses providerOptions from JSON strings, so what is stored
-// is the parsed values and cannot be fed back through it.
+const zStoredIdentity = {
+  id: z.string(),
+  isBuiltIn: z.boolean(),
+}
+
+// Stored providerOptions are already parsed, so they cannot go back through
+// the input schema.
 export const zStoredAiProviderConfig = z.discriminatedUnion('provider', [
-  zAiProviderBuiltIn,
+  zAiProviderBuiltIn.extend(zStoredIdentity),
   zAiProviderOpenaiCompatible.extend({
+    ...zStoredIdentity,
     settings: zOpenaiCompatibleSettings.extend({
       providerOptions: z.record(z.string(), z.json()).optional(),
     }),

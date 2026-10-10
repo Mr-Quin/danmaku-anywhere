@@ -134,9 +134,11 @@ describe('backup round trip', () => {
         baseUrl: 'https://api.example.com/v1',
         apiKey: 'sk-test',
         model: 'test-model',
-        // Stored as parsed JSON, so a restore that re-parsed it with the input
-        // schema would reject it.
-        providerOptions: { reasoning: '{"effort":"low"}' },
+        providerOptions: {
+          reasoning: '{"effort":"low"}',
+          budget: '5',
+          tag: 'null',
+        },
       },
     })
     const integrationInput = createIntegrationInput('test integration')
@@ -413,6 +415,37 @@ describe('backup round trip', () => {
     expect(result.details.aiProviderConfig?.success).toBe(false)
     expect(await aiProviderConfigService.getAll()).toEqual(before)
     expect(await aiProviderConfigService.get('ai-1')).toBeDefined()
+  })
+
+  it('drops a restored AI provider without an id, which could never be found again', async () => {
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        aiProviderConfig: {
+          data: [
+            {
+              id: 'built-in',
+              isBuiltIn: true,
+              name: 'Danmaku Anywhere AI',
+              enabled: true,
+              provider: 'built-in',
+            },
+            {
+              isBuiltIn: false,
+              name: 'no id',
+              enabled: true,
+              provider: 'built-in',
+            },
+          ],
+          version: 1,
+        },
+      },
+    })
+
+    expect(result.details.aiProviderConfig).toEqual({
+      success: true,
+      droppedEntries: 1,
+    })
   })
 
   it('restores a re-export of the migrated v1.5.0 backup without losing data', async () => {

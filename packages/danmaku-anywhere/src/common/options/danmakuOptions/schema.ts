@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-const zFilter = z.looseObject({
+const zFilter = z.object({
   type: z.enum(['text', 'regex']),
   value: z.string(),
   enabled: z.boolean(),
@@ -8,25 +8,22 @@ const zFilter = z.looseObject({
 
 const zFixedCommentMode = z.enum(['normal', 'hidden', 'scroll'])
 
-// Objects are loose because stored options carry fields that were dropped from
-// the type without a migration removing them, and those are harmless.
-export const danmakuOptionsSchema = z.looseObject({
-  style: z.looseObject({
+export const danmakuOptionsSchema = z.object({
+  style: z.object({
     opacity: z.number(),
     fontSize: z.number(),
     fontFamily: z.string(),
   }),
   trackHeight: z.number(),
   allowOverlap: z.boolean(),
-  // Added to the defaults without a migration, so options saved before then
-  // do not have it.
+  // No migration adds overlap, so options saved before it existed lack it.
   overlap: z.number().optional(),
   filters: z.array(zFilter),
   distribution: z.enum(['random', 'order']),
   maxOnScreen: z.number(),
   interval: z.number(),
   speed: z.number(),
-  area: z.looseObject({
+  area: z.object({
     yStart: z.number(),
     yEnd: z.number(),
     xStart: z.number(),
@@ -34,13 +31,13 @@ export const danmakuOptionsSchema = z.looseObject({
   }),
   trackLimit: z.number(),
   offset: z.number(),
-  collapse: z.looseObject({
-    dedupe: z.looseObject({
+  collapse: z.object({
+    dedupe: z.object({
       enabled: z.boolean(),
       windowMs: z.number(),
       maxDedupe: z.number(),
     }),
-    pattern: z.looseObject({
+    pattern: z.object({
       enabled: z.boolean(),
       autoCollapse: z.boolean(),
       minCount: z.number(),
@@ -50,7 +47,7 @@ export const danmakuOptionsSchema = z.looseObject({
     }),
     whiteList: z.array(zFilter),
   }),
-  specialComments: z.looseObject({
+  specialComments: z.object({
     top: zFixedCommentMode,
     bottom: zFixedCommentMode,
   }),
