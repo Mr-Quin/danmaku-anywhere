@@ -200,7 +200,7 @@ export class ConfigStateService {
       return { ok: false, error: prettifyError(parsed.error) }
     }
 
-    return { ok: true, data: migrated, droppedEntries: 0 }
+    return { ok: true, data: parsed.data, droppedEntries: 0 }
   }
 
   private async checkEntries(
@@ -217,7 +217,9 @@ export class ConfigStateService {
         return itemSchema.safeParseAsync(entry)
       })
     )
-    const kept = migrated.filter((_, index) => checked[index].success)
+    const kept = checked.flatMap((entry) => {
+      return entry.success ? [entry.data] : []
+    })
 
     // Writing an empty list would wipe the store, so a payload where nothing
     // survives migration and validation is a failure rather than an empty

@@ -294,6 +294,59 @@ describe('backup round trip', () => {
     ])
   })
 
+  it('stores the schema default mode for an old mount config whose integration is not in the backup', async () => {
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        mountConfig: {
+          data: [
+            {
+              id: '3f2504e0-4f89-41d3-9a0c-0305e82c3303',
+              name: 'old config',
+              patterns: ['https://example.com/*'],
+              mediaQuery: 'video',
+              enabled: true,
+              integration: 'missing-integration',
+            },
+          ],
+          version: 4,
+        },
+      },
+    })
+
+    expect(result.details.mountConfig).toEqual({
+      success: true,
+      droppedEntries: 0,
+    })
+    const [restored] = await mountConfigService.getAll()
+    expect(restored.mode).toBe('manual')
+  })
+
+  it('stores the coerced value of a restored option the schema coerces', async () => {
+    const current = await extensionOptionsService.get()
+
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        extensionOptions: {
+          data: {
+            ...current,
+            retentionPolicy: { enabled: true, deleteCommentsAfter: '30' },
+          },
+          version: extensionOptionsService.options.latestVersion,
+        },
+      },
+    })
+
+    expect(result.details.extensionOptions).toEqual({
+      success: true,
+      droppedEntries: 0,
+    })
+    expect(
+      (await extensionOptionsService.get()).retentionPolicy.deleteCommentsAfter
+    ).toBe(30)
+  })
+
   it('drops a v1 era integration the current schema rejects without losing the rest', async () => {
     const legacy = migrateV2ToV3(
       migrateV1ToV2([
