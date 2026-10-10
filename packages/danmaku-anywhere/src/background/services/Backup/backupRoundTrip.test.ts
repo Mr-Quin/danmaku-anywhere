@@ -97,6 +97,19 @@ describe('backup round trip', () => {
     configStateService = new ConfigStateService(stores, logger)
   })
 
+  function readLegacyBackup(): unknown {
+    return JSON.parse(
+      gunzipSync(
+        readFileSync(
+          resolve(
+            __dirname,
+            '../../../../e2e/fixtures/migration/backup.json.gz'
+          )
+        )
+      ).toString('utf-8')
+    )
+  }
+
   async function seedStores() {
     await mountConfigService.create({
       name: 'test config',
@@ -179,35 +192,105 @@ describe('backup round trip', () => {
   })
 
   it('runs migrations on a version 0 payload instead of stamping it current', async () => {
-    await extensionOptionsService.update({ enabled: false })
-
-    await configStateService.restoreState({
+    const result = await configStateService.restoreState({
       meta: { version: 1, timestamp: 1 },
       services: {
-        extensionOptions: { data: { legacyUnversioned: true }, version: 0 },
+        extensionOptions: { data: { enabled: false }, version: 0 },
       },
     })
 
     const restored = await extensionOptionsService.get()
 
-    expect(restored).toHaveProperty('legacyUnversioned', true)
+    expect(result.details.extensionOptions).toEqual({
+      success: true,
+      droppedEntries: 0,
+    })
+    expect(restored.enabled).toBe(false)
     expect(restored.hotkeys).toBeDefined()
     expect(restored.theme).toBeDefined()
   })
 
-  it('reports a store whose migration failed rather than silently resetting it', async () => {
+  it('keeps the existing data of a store whose old payload fails to migrate', async () => {
     await extensionOptionsService.update({ enabled: false })
+    await danmakuOptionsService.update({ speed: 2 })
 
     const result = await configStateService.restoreState({
       meta: { version: 1, timestamp: 1 },
       services: {
         extensionOptions: { data: null, version: 20 },
+        danmakuOptions: { data: null, version: 3 },
       },
     })
 
     expect(result.success).toBe(false)
     expect(result.details.extensionOptions?.success).toBe(false)
-    expect(result.details.extensionOptions?.error).toContain('reset')
+    expect(result.details.danmakuOptions?.success).toBe(false)
+    expect((await extensionOptionsService.get()).enabled).toBe(false)
+    expect((await danmakuOptionsService.get()).speed).toBe(2)
+  })
+
+  it('keeps the existing mount configs when an old payload is not a list', async () => {
+    await seedStores()
+    const before = await mountConfigService.getAll()
+
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        mountConfig: { data: 'i-am-a-string', version: 1 },
+      },
+    })
+
+    expect(result.details.mountConfig?.success).toBe(false)
+    expect(await mountConfigService.getAll()).toEqual(before)
+  })
+
+  it('validates an old payload against the current schema once it is migrated', async () => {
+    await seedStores()
+    const before = await mountConfigService.getAll()
+
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        mountConfig: { data: [null], version: 1 },
+      },
+    })
+
+    expect(result.details.mountConfig?.success).toBe(false)
+    expect(await mountConfigService.getAll()).toEqual(before)
+  })
+
+  it('migrates old mount configs against the integrations in the same backup', async () => {
+    const integrationInput = createIntegrationInput('restored integration')
+    integrationInput.policy.title.selector = [{ value: '//h1', quick: false }]
+    const integration = zIntegration.parse(integrationInput)
+
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        integrationPolicy: {
+          data: [integration],
+          version: integrationPolicyService.options.latestVersion,
+        },
+        mountConfig: {
+          data: [
+            {
+              id: '3f2504e0-4f89-41d3-9a0c-0305e82c3303',
+              name: 'old config',
+              patterns: ['https://example.com/*'],
+              mediaQuery: 'video',
+              enabled: true,
+              integration: integration.id,
+            },
+          ],
+          version: 4,
+        },
+      },
+    })
+
+    expect(result.success).toBe(true)
+    expect(await mountConfigService.getAll()).toMatchObject([
+      { name: 'old config', mode: 'xpath', integration: integration.id },
+    ])
   })
 
   it('drops a v1 era integration the current schema rejects without losing the rest', async () => {
@@ -259,16 +342,7 @@ describe('backup round trip', () => {
   })
 
   it('restores the v1.5.0 backup file shipped as an e2e fixture', async () => {
-    const legacyBackup = JSON.parse(
-      gunzipSync(
-        readFileSync(
-          resolve(
-            __dirname,
-            '../../../../e2e/fixtures/migration/backup.json.gz'
-          )
-        )
-      ).toString('utf-8')
-    )
+    const legacyBackup = readLegacyBackup()
 
     const result = await configStateService.restoreState(legacyBackup)
 
@@ -282,5 +356,23 @@ describe('backup round trip', () => {
       localMatchingRule: { success: true, droppedEntries: 0 },
     })
     expect(result.success).toBe(true)
+  })
+  it('restores a re-export of the migrated v1.5.0 backup without losing data', async () => {
+    await configStateService.restoreState(readLegacyBackup())
+    const migrated = await configStateService.getState()
+
+    const result = await configStateService.restoreState(
+      JSON.parse(JSON.stringify(migrated))
+    )
+    const restored = await configStateService.getState()
+
+    stores.forEach((store) => {
+      expect(result.details[store.name]).toEqual({
+        success: true,
+        droppedEntries: 0,
+      })
+    })
+    expect(result.success).toBe(true)
+    expect(restored.services).toEqual(migrated.services)
   })
 })

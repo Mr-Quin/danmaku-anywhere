@@ -6,8 +6,8 @@ import { migrateOptions } from './migrationOptions'
 import type {
   Options,
   OptionsSchema,
+  PrevOptions,
   UpgradeContext,
-  UpgradeOutcome,
   Version,
   VersionConfig,
 } from './types'
@@ -62,7 +62,7 @@ export class OptionsService<T extends OptionsSchema> {
   }
 
   // upgrade options to latest version
-  async upgrade(context: UpgradeContext = {}): Promise<UpgradeOutcome> {
+  async upgrade(context: UpgradeContext = {}): Promise<void> {
     if (this.versions.length === 0) {
       throw new Error('Cannot upgrade without any versions')
     }
@@ -75,8 +75,7 @@ export class OptionsService<T extends OptionsSchema> {
       // if no options, set default options as the latest version
       this.logger.debug('No existing options found, using default options')
 
-      await this.reset()
-      return 'initialized'
+      return await this.reset()
     }
 
     this.logger.debug(`Found options with version '${options.version}'`)
@@ -90,12 +89,21 @@ export class OptionsService<T extends OptionsSchema> {
         context
       )
       await this.storageService.set(upgradedOptions)
-      return 'upgraded'
     } catch (error) {
       this.logger.error('Failed to upgrade options, reset to default', error)
       await this.reset()
-      return 'reset'
     }
+  }
+
+  // Unlike upgrade(), the result is returned rather than stored, and a failing
+  // step throws instead of resetting the store to defaults.
+  migrate(data: PrevOptions, version: number, context: UpgradeContext): T {
+    return migrateOptions<T>(
+      { data, version },
+      this.versions,
+      this.logger,
+      context
+    ).data
   }
 
   async get(): Promise<T> {

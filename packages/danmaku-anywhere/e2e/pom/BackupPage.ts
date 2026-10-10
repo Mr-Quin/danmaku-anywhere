@@ -1,7 +1,8 @@
-import type { Page } from '@playwright/test'
+import type { Download, Page } from '@playwright/test'
 
 const SELECTORS = {
   restoreInput: '[data-testid="backup-restore-input"]',
+  exportButton: '[data-testid="backup-export-button"]',
 }
 
 interface FilePayload {
@@ -17,5 +18,11 @@ export class BackupPage {
 
   async restoreFromFile(file: FilePayload): Promise<void> {
     await this.page.locator(SELECTORS.restoreInput).setInputFiles(file)
+  }
+
+  async exportToFile(): Promise<Download> {
+    const download = this.page.waitForEvent('download')
+    await this.page.locator(SELECTORS.exportButton).click()
+    return download
   }
 }

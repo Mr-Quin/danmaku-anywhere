@@ -11,11 +11,16 @@ import {
   type IStoreService,
   StoreServiceSymbol,
 } from '@/common/options/IStoreService'
+import type { UpgradeContext } from '@/common/options/OptionsService/types'
 
 type ServiceBackup = ParsedBackupData['services'][string]
 
 type PayloadCheck =
   | { ok: true; data: unknown; droppedEntries: number }
+  | { ok: false; error: string }
+
+type MigrationResult =
+  | { ok: true; data: unknown }
   | { ok: false; error: string }
 
 @injectable('Singleton')
@@ -92,9 +97,15 @@ export class ConfigStateService {
       })
       .filter((candidate) => candidate.backupData !== undefined)
 
+    const context: UpgradeContext = Object.fromEntries(
+      candidates.map(({ service, backupData }) => {
+        return [service.options.key, backupData.data]
+      })
+    )
+
     const validated = await Promise.all(
       candidates.map(async ({ service, backupData }) => {
-        const check = await this.checkPayload(service, backupData)
+        const check = await this.checkPayload(service, backupData, context)
         if (!check.ok) {
           this.logger.error(
             `Rejected backup data for ${service.name}`,
@@ -103,45 +114,35 @@ export class ConfigStateService {
           result.success = false
           result.details[service.name] = { success: false, error: check.error }
         }
-        return { service, backupData, check }
+        return { service, check }
       })
     )
 
     await Promise.all(
-      validated
-        .filter((candidate) => candidate.check.ok)
-        .map(async ({ service, backupData, check }) => {
-          const { name } = service
-          const droppedEntries = check.ok ? check.droppedEntries : 0
-          const data = check.ok ? check.data : backupData.data
-          try {
-            this.logger.debug(`Restoring ${name}...`)
-            await service.options.set(data, backupData.version)
-            const outcome = await service.options.upgrade()
-
-            if (outcome === 'reset') {
-              result.success = false
-              result.details[name] = {
-                success: false,
-                error:
-                  'Could not migrate the restored data, this store was reset to its defaults',
-              }
-              return
-            }
-
-            result.details[name] = { success: true, droppedEntries }
-            if (droppedEntries > 0) {
-              result.success = false
-            }
-          } catch (error) {
-            this.logger.error(`Failed to restore ${name}`, error)
-            result.success = false
-            result.details[name] = {
-              success: false,
-              error: error instanceof Error ? error.message : String(error),
-            }
+      validated.map(async ({ service, check }) => {
+        if (!check.ok) {
+          return
+        }
+        const { name } = service
+        try {
+          this.logger.debug(`Restoring ${name}...`)
+          await service.options.set(check.data, service.options.latestVersion)
+          result.details[name] = {
+            success: true,
+            droppedEntries: check.droppedEntries,
           }
-        })
+          if (check.droppedEntries > 0) {
+            result.success = false
+          }
+        } catch (error) {
+          this.logger.error(`Failed to restore ${name}`, error)
+          result.success = false
+          result.details[name] = {
+            success: false,
+            error: error instanceof Error ? error.message : String(error),
+          }
+        }
+      })
     )
 
     return result
@@ -149,9 +150,11 @@ export class ConfigStateService {
 
   private async checkPayload(
     service: IStoreService,
-    backupData: ServiceBackup
+    backupData: ServiceBackup,
+    context: UpgradeContext
   ): Promise<PayloadCheck> {
     const { latestVersion } = service.options
+    const { backupItemSchema, backupSchema } = service
 
     if (backupData.version > latestVersion) {
       return {
@@ -160,54 +163,94 @@ export class ConfigStateService {
       }
     }
 
-    // Older payloads predate the current schema and are brought up to date by
-    // the store's own migrations, so only the current shape can be checked here.
-    if (backupData.version < latestVersion) {
-      return { ok: true, data: backupData.data, droppedEntries: 0 }
+    if (backupItemSchema) {
+      // Some list migrations turn a non-list into an empty list, which would
+      // quietly wipe the store, so the shape is checked before migrating.
+      if (!Array.isArray(backupData.data)) {
+        return { ok: false, error: 'Expected a list of entries' }
+      }
+      const migrated = this.migrate(service, backupData, context)
+      if (!migrated.ok) {
+        return migrated
+      }
+      return this.checkEntries(
+        backupItemSchema,
+        backupData.data.length,
+        migrated.data
+      )
     }
 
-    if (service.backupItemSchema) {
-      return this.checkEntries(service.backupItemSchema, backupData.data)
+    const migrated = this.migrate(service, backupData, context)
+    if (!migrated.ok) {
+      return migrated
     }
 
-    if (!service.backupSchema) {
-      return { ok: true, data: backupData.data, droppedEntries: 0 }
+    if (!backupSchema) {
+      return { ok: true, data: migrated.data, droppedEntries: 0 }
     }
 
-    const parsed = await service.backupSchema.safeParseAsync(backupData.data)
+    const parsed = await backupSchema.safeParseAsync(migrated.data)
 
     if (!parsed.success) {
       return { ok: false, error: prettifyError(parsed.error) }
     }
 
-    return { ok: true, data: backupData.data, droppedEntries: 0 }
+    return { ok: true, data: migrated.data, droppedEntries: 0 }
+  }
+
+  private migrate(
+    service: IStoreService,
+    backupData: ServiceBackup,
+    context: UpgradeContext
+  ): MigrationResult {
+    try {
+      return {
+        ok: true,
+        data: service.options.migrate(
+          backupData.data,
+          backupData.version,
+          context
+        ),
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      return {
+        ok: false,
+        error: `Could not migrate the restored data: ${message}`,
+      }
+    }
   }
 
   private async checkEntries(
     itemSchema: ZodType,
-    data: unknown
+    entryCount: number,
+    migrated: unknown
   ): Promise<PayloadCheck> {
-    if (!Array.isArray(data)) {
+    if (!Array.isArray(migrated)) {
       return { ok: false, error: 'Expected a list of entries' }
     }
 
     const checked = await Promise.all(
-      data.map((entry) => {
+      migrated.map((entry) => {
         return itemSchema.safeParseAsync(entry)
       })
     )
-    const kept = data.filter((_, index) => checked[index].success)
-    const droppedEntries = data.length - kept.length
+    const kept = migrated.filter((_, index) => checked[index].success)
 
     // Writing an empty list would wipe the store, so a payload where nothing
-    // survives is treated as a failure rather than an empty restore.
-    if (droppedEntries > 0 && kept.length === 0) {
+    // survives migration and validation is a failure rather than an empty
+    // restore.
+    if (entryCount > 0 && kept.length === 0) {
       return {
         ok: false,
-        error: `All ${droppedEntries} entries failed validation`,
+        error: `All ${entryCount} entries failed validation`,
       }
     }
 
-    return { ok: true, data: kept, droppedEntries }
+    return {
+      ok: true,
+      data: kept,
+      droppedEntries: migrated.length - kept.length,
+    }
   }
 }
