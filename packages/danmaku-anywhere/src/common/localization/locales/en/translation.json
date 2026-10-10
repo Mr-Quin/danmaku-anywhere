@@ -501,6 +501,7 @@
     "backup": {
       "alert": {
         "exportSuccess": "Export success",
+        "importPartial": "Some settings could not be restored: {{stores}}",
         "importSuccess": "Import success"
       },
       "cloudBackup": "Cloud Backup",

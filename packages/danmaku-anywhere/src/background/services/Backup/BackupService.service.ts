@@ -35,8 +35,7 @@ export class BackupService {
         throw new Error('Failed to parse backup data as JSON')
       }
     }
-    // TODO: validate backup data
-    return this.configStateService.restoreState(backupData as BackupData)
+    return this.configStateService.restoreState(backupData)
   }
 
   async backupTo(sink: IBackupSink): Promise<void> {
@@ -69,11 +68,11 @@ export class BackupService {
     return result.data
   }
 
-  async downloadCloudBackup(id: string): Promise<BackupData> {
+  async downloadCloudBackup(id: string): Promise<unknown> {
     const result = await downloadCloudBackupApi(id, this.getAuth())
     if (!result.success) {
       throw result.error
     }
-    return result.data as BackupData
+    return result.data
   }
 }

@@ -26,6 +26,7 @@ import { providerConfigSchema } from './schema'
 export class ProviderConfigService implements IStoreService {
   public readonly name = 'providerConfig'
   public readonly options: OptionsService<ProviderConfig[]>
+  public readonly backupItemSchema = providerConfigSchema
 
   // Stored in sync alongside the configs so a second signed-in device reads the
   // same flag and does not re-seed the shared store.

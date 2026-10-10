@@ -7,12 +7,17 @@ import {
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { defaultNamingRuleOptions } from './constant'
-import type { NamingRule, NamingRuleOptions } from './schema'
+import {
+  type NamingRule,
+  type NamingRuleOptions,
+  namingRuleOptionsSchema,
+} from './schema'
 
 @injectable('Singleton')
 export class NamingRuleService implements IStoreService {
   public readonly name = 'localMatchingRule'
   public readonly options: OptionsService<NamingRuleOptions>
+  public readonly backupSchema = namingRuleOptionsSchema
 
   constructor(
     @inject(LoggerSymbol)
