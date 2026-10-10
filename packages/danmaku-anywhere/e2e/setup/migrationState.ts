@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import { expect, type Page } from '@playwright/test'
 import { z } from 'zod'
 import { DANMAKU_DB_NAME } from '../../src/common/db/db'
 import { zAiProviderConfig } from '../../src/common/options/aiProviderConfig/schema'
@@ -98,16 +98,33 @@ async function collectViolations(
   return violations
 }
 
-// The current popup opens a What's New dialog on its first open after a
-// version bump, and it covers the page until dismissed.
+// The background turns showReleaseNotes on after an update, and the popup then
+// shows a What's New dialog over every route until it is dismissed. The flag
+// can land well after the popup has mounted, so wait for it rather than for
+// the dialog.
 export async function dismissReleaseNotes(page: Page): Promise<void> {
-  const okButton = page.getByRole('button', { name: /^(Ok|知道了)$/ })
-  try {
-    await okButton.waitFor({ state: 'visible', timeout: 3_000 })
-    await okButton.click()
-  } catch {
-    // Nothing to dismiss.
-  }
+  await expect
+    .poll(() => readShowReleaseNotes(page), {
+      message: 'the update turned the release notes on',
+      timeout: 15_000,
+    })
+    .toBe(true)
+  await page.getByRole('button', { name: /^(Ok|知道了)$/ }).click()
+  await expect
+    .poll(() => readShowReleaseNotes(page), {
+      message: 'dismissing the release notes turned them off',
+    })
+    .toBe(false)
+}
+
+async function readShowReleaseNotes(page: Page): Promise<boolean | undefined> {
+  return page.evaluate(async () => {
+    const stored = await chrome.storage.sync.get('extensionOptions')
+    const options = stored.extensionOptions as
+      | { data?: { showReleaseNotes?: boolean } }
+      | undefined
+    return options?.data?.showReleaseNotes
+  })
 }
 
 export async function readIdbRows<T>(page: Page, table: string): Promise<T[]> {

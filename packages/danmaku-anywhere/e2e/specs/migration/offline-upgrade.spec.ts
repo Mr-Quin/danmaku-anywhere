@@ -1,6 +1,4 @@
 import { createReadStream, createWriteStream } from 'node:fs'
-import fs from 'node:fs/promises'
-import os from 'node:os'
 import path from 'node:path'
 import { pipeline } from 'node:stream/promises'
 import { fileURLToPath } from 'node:url'
@@ -9,20 +7,21 @@ import type { BrowserContext, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { DANMAKU_DB_NAME } from '../../../src/common/db/db'
 import { computeNamespaceKey } from '../../../src/common/providers/namespaceKey'
-import migrationConfig from '../../migration.config.json' with { type: 'json' }
 import { mockCatalog, offlineCatalog } from '../../network/catalog'
 import { mockDandanplay } from '../../network/dandanplay'
 import { mockLoginProbes } from '../../network/loginProbes'
 import { Popup } from '../../pom/Popup'
 import { MigrationLegacyPopup } from '../../poms/legacy/v1.5.0/MigrationLegacyPopup'
-import { attachConsoleWatcher } from '../../setup/console-watcher'
+import type { ConsoleWatcher } from '../../setup/console-watcher'
 import { MIGRATION_EXTENSION_ID } from '../../setup/extensionKey'
 import { loadJsonFixture } from '../../setup/fixtures-loader'
+import { dismissReleaseNotes } from '../../setup/migrationState'
 import {
-  ensureCurrentBuildForMigration,
-  ensurePriorRelease,
-} from '../../setup/priorRelease'
-import { launchExtension, swapExtension } from '../../setup/swapExtension'
+  migrationErrors,
+  type PriorInstall,
+  upgradeToCurrentBuild,
+  withPriorInstall,
+} from '../../setup/priorInstall'
 
 /**
  * A user upgrading while the manifest catalog proxy is unreachable (a
@@ -56,7 +55,6 @@ const BUILTIN_DDP_IMPORTED_COMMENT_COUNT = 1
 const REFRESHED_COMMENT_COUNT = 4 // ddp-comments.json's comment count.
 const BUNDLED_MANIFEST_COUNT = 13
 
-const IGNORED_ERROR_PATTERNS = [/Failed to save log/]
 // An unreachable catalog is the point of the offline swap, not a
 // regression: boot's syncCatalog() and the Providers page's pending-updates
 // query each hit the dead index and log their own failure. Same pair
@@ -70,39 +68,21 @@ test.setTimeout(120_000)
 
 test('prior install, swap with an unreachable catalog, built-in danmaku still fetches, self-hosted keeps its namespace, later sync reconciles cleanly', async (// biome-ignore lint/correctness/noEmptyPattern: Playwright fixtures arg
 {}, testInfo) => {
-  const tmpRoot = path.join(
-    os.tmpdir(),
-    `da-mig-offline-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
-  )
-  testInfo.annotations.push({ type: 'tmpRoot', description: tmpRoot })
-  await fs.mkdir(tmpRoot, { recursive: true })
-
-  let context: BrowserContext | undefined
-  try {
-    context = await run(tmpRoot)
-  } finally {
-    await context?.close().catch(() => undefined)
-    // Cleanup after context.close() so Windows file handles are released.
-    await fs
-      .rm(tmpRoot, { recursive: true, force: true })
-      .catch(() => undefined)
-  }
+  await withPriorInstall(testInfo, run)
 })
 
-async function run(tmpRoot: string): Promise<BrowserContext> {
-  const userDataDir = path.join(tmpRoot, 'profile')
-  await fs.mkdir(userDataDir, { recursive: true })
+async function run({
+  context,
+  consoleWatcher,
+  currentExt,
+  tmpRoot,
+}: PriorInstall): Promise<void> {
+  const backupPath = await gunzipTo(
+    BACKUP_GZ,
+    path.join(tmpRoot, 'backup.json')
+  )
 
-  const [priorExt, currentExt, backupPath] = await Promise.all([
-    ensurePriorRelease(migrationConfig.baselinePriorTag),
-    ensureCurrentBuildForMigration(),
-    gunzipTo(BACKUP_GZ, path.join(tmpRoot, 'backup.json')),
-  ])
-
-  const context = await launchExtension(userDataDir, priorExt)
-  const consoleWatcher = attachConsoleWatcher(context)
-  await stubReleaseNotes(context)
-
+  // Routed after withPriorInstall's reachable catalog, so it answers first.
   const offline = offlineCatalog()
   await context.route(offline.pattern, offline.respond)
   const ddp = mockDandanplay({
@@ -124,7 +104,7 @@ async function run(tmpRoot: string): Promise<BrowserContext> {
   await legacyPopup.close()
   await seedSelfHostedSeason(context)
 
-  await swapExtension(context, currentExt)
+  await upgradeToCurrentBuild(context, currentExt)
 
   const page = await context.newPage()
   await page.goto(
@@ -246,14 +226,7 @@ async function run(tmpRoot: string): Promise<BrowserContext> {
   const idbCountsBeforeSync = await readIdbCounts(page)
   const configIdsBeforeSync = providerConfigs.map((c) => c.id).sort()
 
-  const errorsBeforeSync = consoleWatcher
-    .getErrors()
-    .filter(
-      (e) =>
-        ![...IGNORED_ERROR_PATTERNS, ...OFFLINE_ERROR_PATTERNS].some((p) =>
-          p.test(e)
-        )
-    )
+  const errorsBeforeSync = offlineSwapErrors(consoleWatcher)
   expect(errorsBeforeSync, 'console errors during the offline swap').toEqual([])
 
   // A later reachable sync reconciles cleanly on top of the offline-upgraded
@@ -303,57 +276,22 @@ async function run(tmpRoot: string): Promise<BrowserContext> {
     'no duplicate tree rows appear after a reachable sync'
   ).toBe(treeItemCountBeforeSync)
 
-  const errors = consoleWatcher
-    .getErrors()
-    .filter(
-      (e) =>
-        ![...IGNORED_ERROR_PATTERNS, ...OFFLINE_ERROR_PATTERNS].some((p) =>
-          p.test(e)
-        )
-    )
+  const errors = offlineSwapErrors(consoleWatcher)
   expect(
     errors,
     'console errors during the offline swap and later sync'
   ).toEqual([])
+}
 
-  return context
+function offlineSwapErrors(watcher: ConsoleWatcher): string[] {
+  return migrationErrors(watcher).filter((e) => {
+    return !OFFLINE_ERROR_PATTERNS.some((p) => p.test(e))
+  })
 }
 
 async function gunzipTo(src: string, dest: string): Promise<string> {
   await pipeline(createReadStream(src), createGunzip(), createWriteStream(dest))
   return dest
-}
-
-// Both popups fetch the GitHub releases API on open via useLatestReleaseNotes;
-// on CI that unauthenticated call hits a rate limit (403) that trips the
-// console watcher. Stub just that one route.
-async function stubReleaseNotes(context: BrowserContext): Promise<void> {
-  await context.route(
-    /api\.github\.com\/repos\/[^/]+\/[^/]+\/releases\//,
-    async (route) => {
-      await route.fulfill({
-        json: {
-          name: '',
-          body: '',
-          html_url: 'https://release.invalid',
-          published_at: '2020-01-01T00:00:00Z',
-        },
-      })
-    }
-  )
-}
-
-// The current build's popup shows a What's New dialog on its first open
-// after a version bump, gated on the same stubbed GitHub release fetch as
-// the legacy popup. It stays dismissed for the rest of the profile's life.
-async function dismissReleaseNotes(page: Page): Promise<void> {
-  const okButton = page.getByRole('button', { name: /^(Ok|知道了)$/ })
-  try {
-    await okButton.waitFor({ state: 'visible', timeout: 3_000 })
-    await okButton.click()
-  } catch {
-    // Nothing to dismiss.
-  }
 }
 
 // v1.5.0's danmaku import rewrites every imported season's providerConfigId
