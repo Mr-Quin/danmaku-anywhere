@@ -169,12 +169,10 @@ export class ManifestRegistry {
     }
   }
 
-  // Add-only for everything except a bundle-seeded entry: a changed
-  // preinstalled manifest surfaces via getPendingUpdates instead of being
-  // replaced here, but a 'bundled' entry auto-upgrades to the catalog copy
-  // the moment the index is reachable, with no manual apply, since the user
-  // never chose to install the bundled version. A bundled entry whose file
-  // fails to download stays bundled and is retried on the next sync.
+  // Add-only except for 'bundled' entries, which the catalog copy replaces
+  // with no manual apply. A changed preinstalled manifest surfaces via
+  // getPendingUpdates instead. A bundled entry whose file fails to download
+  // stays bundled until the next sync.
   async update(): Promise<CatalogSyncResult> {
     await this.ready
     const entries = await this.loadIndex()
@@ -305,8 +303,8 @@ export class ManifestRegistry {
     return this.store.get(manifestId)
   }
 
-  // The bundle fills in whatever the store lacks before ready resolves, so the
-  // built-in sources and their identityFields exist before any catalog sync.
+  // The bundle fills in whatever the store lacks, so the built-in sources and
+  // their identityFields exist before any catalog sync.
   private async init(): Promise<void> {
     const record = await this.store.getAll()
     for (const [id, entry] of Object.entries(record)) {
@@ -341,9 +339,8 @@ export class ManifestRegistry {
     return fetched.map(({ parsed }) => parsed.id)
   }
 
-  // Only ids absent from the store are seeded. Each bundled manifest is
-  // re-validated with zManifest so a corrupt bundle entry is skipped rather
-  // than crashing startup. Tagged 'bundled' rather than 'preinstalled' so
+  // Each bundled manifest is re-validated with zManifest so a corrupt bundle
+  // entry is skipped rather than crashing startup. Tagged 'bundled' rather than 'preinstalled' so
   // update() replaces it outright on the next reachable sync instead of
   // treating it as an installed source pinned until a manual apply.
   private async seedFromBundle(stored: ManifestRecord): Promise<void> {

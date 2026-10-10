@@ -1,6 +1,7 @@
 import { inject, injectable } from 'inversify'
 import type { MatchEpisodeInput, MatchEpisodeResult } from '@/common/anime/dto'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import { ProviderService } from '../providers/ProviderService'
 import type { IMatchingStrategy } from './strategies/IMatchingStrategy'
 import { LocalMatchingStrategy } from './strategies/LocalMatchingStrategy'
 import { MappingMatchingStrategy } from './strategies/MappingMatchingStrategy'
@@ -15,6 +16,7 @@ export class EpisodeMatchingService {
     @inject(LocalMatchingStrategy) localStrategy: LocalMatchingStrategy,
     @inject(MappingMatchingStrategy) mappingStrategy: MappingMatchingStrategy,
     @inject(SearchMatchingStrategy) searchStrategy: SearchMatchingStrategy,
+    @inject(ProviderService) private providerService: ProviderService,
     @inject(LoggerSymbol) logger: ILogger
   ) {
     this.strategies = [localStrategy, mappingStrategy, searchStrategy]
@@ -24,6 +26,7 @@ export class EpisodeMatchingService {
   async findMatchingEpisodes(
     input: MatchEpisodeInput
   ): Promise<MatchEpisodeResult> {
+    await this.providerService.seasonsReady()
     for (const strategy of this.strategies) {
       this.logger.debug(`Matching using strategy ${strategy.name}`, input)
       const result = await strategy.match(input)
