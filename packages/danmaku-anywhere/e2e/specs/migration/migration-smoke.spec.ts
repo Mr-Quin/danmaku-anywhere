@@ -25,11 +25,12 @@ import {
   readOptionsSnapshot,
   schemaViolations,
 } from '../../setup/migrationState'
+import { upgradeToCurrentBuild } from '../../setup/priorInstall'
 import {
   ensureCurrentBuildForMigration,
   ensurePriorRelease,
 } from '../../setup/priorRelease'
-import { launchExtension, swapExtension } from '../../setup/swapExtension'
+import { launchExtension } from '../../setup/swapExtension'
 
 /**
  * Seeds real user state through v1.5.0's own popup (backup restore, danmaku
@@ -143,7 +144,7 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
     'seeded seasons should carry builtin: provider ids'
   ).toBe(true)
 
-  await swapExtension(context, currentExt)
+  await upgradeToCurrentBuild(context, currentExt)
 
   const probe = await openProbePage(context)
   const postSync = await readSyncSnapshot(probe)
@@ -592,7 +593,7 @@ async function assertUpgradedUi(context: BrowserContext): Promise<void> {
   // The user picked English in v1.5.0, so this heading is not locale-agnostic
   // on purpose. The three DanDanPlay servers render as one group.
   await expect(page.getByText('Installed (4)', { exact: true })).toBeVisible()
-  await expect(popup.providers.enabledSwitch(/Tencent|腾讯/)).not.toBeChecked()
+  await expect(popup.providers.switches({ checked: false })).toHaveCount(1)
   await expect(popup.providers.enabledSwitch('VOD')).toBeChecked()
 
   popup = await Popup.open(page, MIGRATION_EXTENSION_ID, '/config')

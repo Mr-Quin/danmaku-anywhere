@@ -12,8 +12,11 @@ import {
   readOptionsSnapshot,
   schemaViolations,
 } from '../../setup/migrationState'
-import { migrationErrors, withPriorInstall } from '../../setup/priorInstall'
-import { swapExtension } from '../../setup/swapExtension'
+import {
+  migrationErrors,
+  upgradeToCurrentBuild,
+  withPriorInstall,
+} from '../../setup/priorInstall'
 
 /**
  * A user who upgrades and then restores the backup they exported from v1.5.0.
@@ -53,7 +56,7 @@ test('restoring the v1.5.0 backup on an upgraded install leaves it consistent', 
       await legacy.importDanmaku(DANMAKU_ZIP)
       await legacy.close()
 
-      await swapExtension(context, currentExt)
+      await upgradeToCurrentBuild(context, currentExt)
 
       const page = await context.newPage()
       let popup = await Popup.open(page, MIGRATION_EXTENSION_ID, '/providers')
@@ -72,15 +75,23 @@ test('restoring the v1.5.0 backup on an upgraded install leaves it consistent', 
 
       popup = await Popup.open(page, MIGRATION_EXTENSION_ID, '/providers')
       await expect(popup.providers.installedHeading(4)).toBeVisible()
-      await expect(
-        popup.providers.enabledSwitch(/Tencent|腾讯/)
-      ).not.toBeChecked()
+      await expect(popup.providers.switches({ checked: false })).toHaveCount(1)
 
       const restored = await readOptionsSnapshot(page)
       expect(
         await schemaViolations(page, restored),
         'every options store parses against its current schema'
       ).toEqual({})
+      const providers = restored.providerConfig?.data as Array<{
+        id: string
+        enabled: boolean
+      }>
+      expect(
+        providers
+          .filter((config) => !config.enabled)
+          .map((config) => config.id),
+        'the source the user disabled in v1.5.0 stays off'
+      ).toEqual(['tencent'])
       expect(
         restored,
         'restoring the backup the install came from changes no store'

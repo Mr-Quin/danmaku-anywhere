@@ -7,8 +7,11 @@ import {
   readOptionsSnapshot,
   schemaViolations,
 } from '../../setup/migrationState'
-import { migrationErrors, withPriorInstall } from '../../setup/priorInstall'
-import { swapExtension } from '../../setup/swapExtension'
+import {
+  migrationErrors,
+  upgradeToCurrentBuild,
+  withPriorInstall,
+} from '../../setup/priorInstall'
 
 /**
  * The most common store user: v1.5.0 installed and never configured, so the
@@ -47,15 +50,14 @@ test('a v1.5.0 install left on its defaults upgrades cleanly', async (// biome-i
         lang: string
       }
 
-      await swapExtension(context, currentExt)
+      await upgradeToCurrentBuild(context, currentExt)
 
       const page = await context.newPage()
       const popup = await Popup.open(page, MIGRATION_EXTENSION_ID, '/providers')
       await dismissReleaseNotes(page)
       await expect(popup.providers.installedHeading(3)).toBeVisible()
-      for (const name of [/^DanDanPlay/, 'Bilibili', /Tencent|腾讯/]) {
-        await expect(popup.providers.enabledSwitch(name)).toBeChecked()
-      }
+      await expect(popup.providers.switches()).toHaveCount(3)
+      await expect(popup.providers.switches({ checked: true })).toHaveCount(3)
 
       const snapshot = await readOptionsSnapshot(page)
       expect(
