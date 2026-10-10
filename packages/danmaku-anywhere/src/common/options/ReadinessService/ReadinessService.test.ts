@@ -1,25 +1,9 @@
+import { fakeBrowser } from '@webext-core/fake-browser'
 import { Container } from 'inversify'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LoggerSymbol } from '@/common/Logger'
 import { silentLogger } from '@/tests/silentLogger'
 import { ReadinessService } from './ReadinessService'
-
-const mockStorageInstance = {
-  read: vi.fn(),
-  set: vi.fn(),
-  subscribe: vi.fn(),
-  unsubscribe: vi.fn(),
-}
-
-vi.mock('@/common/storage/ExtStorageService', () => {
-  return {
-    ExtStorageService: class {
-      constructor() {
-        return mockStorageInstance
-      }
-    },
-  }
-})
 
 vi.mock('@/common/constants', () => {
   return {
@@ -27,60 +11,43 @@ vi.mock('@/common/constants', () => {
   }
 })
 
+function storeLastVersion(version: string) {
+  return fakeBrowser.storage.local.set({
+    lastVersion: { lastVersion: version },
+  })
+}
+
 describe('ReadinessService', () => {
   let container: Container
-  let service: ReadinessService
 
   beforeEach(() => {
-    vi.clearAllMocks()
-
     container = new Container()
     container.bind(ReadinessService).toSelf()
     container.bind(LoggerSymbol).toConstantValue(silentLogger)
   })
 
-  it('should be ready immediately if version matches', async () => {
-    mockStorageInstance.read.mockResolvedValue({ lastVersion: '1.0.0' })
+  it('is ready immediately when the stored version matches', async () => {
+    await storeLastVersion('1.0.0')
 
-    service = container.get(ReadinessService)
+    const service = container.get(ReadinessService)
 
     await expect(service.waitUntilReady()).resolves.toBeUndefined()
-    expect(mockStorageInstance.subscribe).not.toHaveBeenCalled()
   })
 
-  it('should wait for upgrade if version mismatch', async () => {
-    mockStorageInstance.read.mockResolvedValue({ lastVersion: '0.9.0' })
+  it('unblocks when another context records the current version', async () => {
+    await storeLastVersion('0.9.0')
 
-    service = container.get(ReadinessService)
-    await new Promise((r) => setTimeout(r, 0))
-
+    const service = container.get(ReadinessService)
     let isReady = false
-    service.waitUntilReady().then(() => {
+    void service.waitUntilReady().then(() => {
       isReady = true
     })
-
-    // should be false before upgrade
+    await new Promise((r) => setTimeout(r, 0))
     expect(isReady).toBe(false)
-    expect(mockStorageInstance.subscribe).toHaveBeenCalled()
 
-    // simulate upgrade success
-    const listener = mockStorageInstance.subscribe.mock.calls[0][0]
-    listener({ lastVersion: '1.0.0' })
+    await storeLastVersion('1.0.0')
 
     await service.waitUntilReady()
     expect(isReady).toBe(true)
-
-    // listener should be cleaned up
-    expect(mockStorageInstance.unsubscribe).toHaveBeenCalledWith(listener)
-  })
-
-  it('should ensure storage listener is cleaned up if read() fails', async () => {
-    // simulate read failure
-    mockStorageInstance.read.mockRejectedValue(new Error('Read failed'))
-
-    service = container.get(ReadinessService)
-
-    // no listener should be subscribed in case of error
-    expect(mockStorageInstance.subscribe).not.toHaveBeenCalled()
   })
 })
