@@ -1,15 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { ILogger } from '@/common/Logger'
+import { backgroundContainerModule } from '@/background/ioc'
 import { Language } from '@/common/localization/language'
 import { migrateOptions } from '@/common/options/OptionsService/migrationOptions'
-import type { IOptionsServiceFactory } from '@/common/options/OptionsService/OptionServiceFactory'
+import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import type {
   PrevOptions,
   Version,
-  VersionConfig,
 } from '@/common/options/OptionsService/types'
-import type { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { ColorMode } from '@/common/theme/enums'
+import { createTestContainer } from '@/tests/createTestContainer'
+import { silentLogger } from '@/tests/silentLogger'
 import { defaultKeymap } from './hotkeys'
 import { ExtensionOptionsService } from './service'
 
@@ -20,33 +20,18 @@ import { ExtensionOptionsService } from './service'
  * defensive guards added for stale/partial stored shapes.
  */
 
-function createLogger(): ILogger {
-  const logger = {
-    sub: () => logger,
-    debug: vi.fn(),
-    error: vi.fn(),
-  }
-  return logger as unknown as ILogger
-}
-
-// Constructing ExtensionOptionsService registers its real .version(n, ...)
-// upgrade steps against this recorder instead of a live OptionsService, so
-// the chain can be replayed directly through migrateOptions.
+// Resolving the real ExtensionOptionsService registers its .version(n, ...) upgrade
+// steps on a real OptionsService. Recording those calls lets the chain be
+// replayed directly through migrateOptions.
 function captureVersions(): Version[] {
-  const versions: Version[] = []
-  const chainable = {
-    version(version: number, config: VersionConfig) {
-      versions.push({ version, ...config })
-      return chainable
-    },
-  }
-  const factory = (() => chainable) as unknown as IOptionsServiceFactory
-  const providerConfigService = {
-    options: { set: vi.fn() },
-  } as unknown as ProviderConfigService
-
-  new ExtensionOptionsService(createLogger(), providerConfigService, factory)
-
+  const register = vi.spyOn(OptionsService.prototype, 'version')
+  const service = createTestContainer([backgroundContainerModule]).get(
+    ExtensionOptionsService
+  )
+  const versions = register.mock.calls
+    .filter((_, i) => register.mock.contexts[i] === service.options)
+    .map(([version, config]) => ({ version, ...config }))
+  register.mockRestore()
   return versions
 }
 
@@ -54,7 +39,7 @@ function upgrade(data: PrevOptions, fromVersion: number) {
   return migrateOptions(
     { data, version: fromVersion },
     captureVersions(),
-    createLogger(),
+    silentLogger,
     {}
   )
 }

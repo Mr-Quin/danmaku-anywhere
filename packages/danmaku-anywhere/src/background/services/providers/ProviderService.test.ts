@@ -944,31 +944,20 @@ describe('ProviderService.setup reconcile', () => {
 
   function buildForReconcile(identityFields: Record<string, string[]>) {
     const reconcileIdentities = vi.fn(async (_configs: ReconciledConfig[]) => 0)
-    const seasonService = { reconcileIdentities } as unknown as SeasonService
+    const getAll = vi.fn<ProviderConfigService['getAll']>(async () => [
+      SELF_HOSTED_DDP,
+      makeConfig(LEGACY_MACCMS_ID),
+    ])
+    const onChange = vi.fn<ProviderConfigService['options']['onChange']>()
+    const getIdentityFieldsMap = vi.fn<
+      ManifestRegistry['getIdentityFieldsMap']
+    >(async () => identityFields)
 
-    const providerConfigService = {
-      getAll: vi.fn(async () => [
-        SELF_HOSTED_DDP,
-        makeConfig(LEGACY_MACCMS_ID),
-      ]),
-      options: { onChange: vi.fn() },
-    } as unknown as ProviderConfigService
-
-    const registry = {
-      ready: Promise.resolve(true),
-      getIdentityFieldsMap: vi.fn(async () => identityFields),
-    } as unknown as ManifestRegistry
-
-    const service = new ProviderService(
-      {} as unknown as DanmakuService,
-      seasonService,
-      providerConfigService,
-      vi.fn(),
-      registry,
-      {} as unknown as BookmarkService,
-      silentLogger,
-      silentExtensionOptions
-    )
+    const service = buildService({
+      seasonService: { reconcileIdentities },
+      providerConfigService: { getAll, options: { onChange } },
+      registry: { ready: Promise.resolve(), getIdentityFieldsMap },
+    })
 
     return { service, reconcileIdentities }
   }
