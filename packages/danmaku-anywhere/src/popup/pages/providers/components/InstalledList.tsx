@@ -16,10 +16,11 @@ import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { isBuiltinConfig } from '@/common/options/providerConfig/displayName'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
-import { groupInstalled, isHostedDanDanPlay } from '../catalog'
+import { groupInstalled, supportsInstances } from '../catalog'
 import { ManifestKindChip } from './ManifestKindChip'
 import { ProviderRow, sourceCardSx } from './ProviderRow'
 
@@ -65,7 +66,7 @@ export const InstalledList = ({
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
 
   const displayName = (config: ProviderConfig) =>
-    isHostedDanDanPlay(config)
+    supportsInstances(config.manifestId) && isBuiltinConfig(config)
       ? `${config.name} (${t('providers.installed.builtIn', 'Built-in')})`
       : config.name
 
@@ -223,7 +224,7 @@ export const InstalledList = ({
             icon: <Code />,
           })
         }
-        if (!unit.configs.some(isHostedDanDanPlay)) {
+        if (!unit.configs.some(isBuiltinConfig)) {
           menuItems.push({
             id: 'add-default',
             label: t(

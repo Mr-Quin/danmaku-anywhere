@@ -96,15 +96,6 @@ export const ProvidersPage = (): ReactElement => {
     setMode('add')
   }
 
-  const handleAddInstance = () => {
-    setEditingProvider(
-      createCustomDanDanPlayProvider({
-        name: t('providers.instance.defaultName', 'Self-hosted DanDanPlay'),
-      })
-    )
-    setMode('add')
-  }
-
   const handleCloseEditor = () => {
     setEditingProvider(null)
     setMode(null)
@@ -228,7 +219,7 @@ export const ProvidersPage = (): ReactElement => {
               filterActive={false}
               onEdit={handleEdit}
               onDelete={handleDelete}
-              onAddInstance={handleAddInstance}
+              onAddInstance={handleAddDanDanPlayProvider}
               onAddDefaultInstance={handleAddDefaultInstance}
               onViewSource={handleViewSource}
               onDeleteManifest={handleDeleteManifest}
@@ -288,7 +279,7 @@ export const ProvidersPage = (): ReactElement => {
                 filterActive={filterActive}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
-                onAddInstance={handleAddInstance}
+                onAddInstance={handleAddDanDanPlayProvider}
                 onAddDefaultInstance={handleAddDefaultInstance}
                 onViewSource={handleViewSource}
                 onDeleteManifest={handleDeleteManifest}

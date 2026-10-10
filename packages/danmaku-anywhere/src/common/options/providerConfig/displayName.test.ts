@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { providerDisplayNames } from './displayName'
+import { isBuiltinConfig, providerDisplayNames } from './displayName'
 import type { ProviderConfig } from './schema'
 
 /**
@@ -35,7 +35,7 @@ describe('providerDisplayNames', () => {
     ])
 
     expect(names.get('dandanplay')).toBe('DanDanPlay')
-    expect(names.get('home')).toBe('DanDanPlay (nas.example:8443)')
+    expect(names.get('home')).toBe('DanDanPlay (nas.example:8443/api)')
   })
 
   it('adds the host to every self-hosted instance in a shared name', () => {
@@ -48,6 +48,16 @@ describe('providerDisplayNames', () => {
     expect(names.get('b')).toBe('DanDanPlay (b.example)')
   })
 
+  it('tells apart two instances on one host by their path', () => {
+    const names = providerDisplayNames([
+      config('a', 'DanDanPlay', 'https://nas.example/one/'),
+      config('b', 'DanDanPlay', 'https://nas.example/two'),
+    ])
+
+    expect(names.get('a')).toBe('DanDanPlay (nas.example/one)')
+    expect(names.get('b')).toBe('DanDanPlay (nas.example/two)')
+  })
+
   it('keeps the bare name when the base URL cannot be parsed', () => {
     const names = providerDisplayNames([
       config('dandanplay', 'DanDanPlay'),
@@ -55,5 +65,16 @@ describe('providerDisplayNames', () => {
     ])
 
     expect(names.get('home')).toBe('DanDanPlay')
+  })
+})
+
+describe('isBuiltinConfig', () => {
+  it('is true only for the config whose id is its manifest id', () => {
+    expect(isBuiltinConfig(config('dandanplay', 'DanDanPlay'))).toBe(true)
+    expect(
+      isBuiltinConfig(
+        config('mirror', 'My DDP Mirror', 'https://api.danmaku.test/ddp')
+      )
+    ).toBe(false)
   })
 })
