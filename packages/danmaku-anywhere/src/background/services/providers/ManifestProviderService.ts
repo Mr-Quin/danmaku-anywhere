@@ -7,8 +7,10 @@ import {
   type SeasonInsert,
   stripHtml,
   type WithSeason,
+  zCommentEntity,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { ManifestRunner, RunOptions } from '@mr-quin/dango'
+import type { z } from 'zod'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { ILogger } from '@/common/Logger'
 import { computeNamespaceKey } from '@/common/providers/namespaceKey'
@@ -53,6 +55,42 @@ interface ManifestParseUrlOutput {
   // response did not yield a matching episode. The host treats that as a
   // hard error (URL is on a recognized host, but we can't resolve it).
   episodeMeta?: ManifestEpisodeRow
+}
+
+interface DanmakuParseResult {
+  comments: CommentEntity[]
+  dropped: number
+  firstIssue: string | undefined
+}
+
+function formatFirstIssue(error: z.ZodError): string {
+  const [issue] = error.issues
+  return `${issue.path.join('.')}: ${issue.message}`
+}
+
+function describeType(value: unknown): string {
+  if (value === null) {
+    return 'null'
+  }
+  return typeof value
+}
+
+function parseComments(rows: unknown[]): DanmakuParseResult {
+  const comments: CommentEntity[] = []
+  let dropped = 0
+  let firstIssue: string | undefined
+  for (const row of rows) {
+    const parsed = zCommentEntity.safeParse(row)
+    if (parsed.success) {
+      comments.push(parsed.data)
+      continue
+    }
+    dropped += 1
+    if (firstIssue === undefined) {
+      firstIssue = formatFirstIssue(parsed.error)
+    }
+  }
+  return { comments, dropped, firstIssue }
 }
 
 export interface ManifestProviderConfig {
@@ -186,7 +224,26 @@ export class ManifestProviderService implements IDanmakuProvider {
       ...meta.params,
       ...meta.providerIds,
     })
-    return runner.runDanmaku<CommentEntity[]>(inputs, DANMAKU_RUN_OPTIONS)
+    const output = await runner.runDanmaku<unknown>(inputs, DANMAKU_RUN_OPTIONS)
+    if (!Array.isArray(output)) {
+      throw new Error(
+        `Danmaku output from manifest ${this.config.manifestId} is not an array, got ${describeType(output)}`
+      )
+    }
+    const { comments, dropped, firstIssue } = parseComments(output)
+    if (dropped > 0) {
+      this.logger.warn(
+        `Dropped ${dropped} malformed comment(s) from manifest ${this.config.manifestId}, first: ${firstIssue}`
+      )
+    }
+    // Rows in but nothing usable out means the pipeline itself is wrong, not
+    // an episode that happens to have no danmaku.
+    if (comments.length === 0 && output.length > 0) {
+      throw new Error(
+        `Every comment from manifest ${this.config.manifestId} was malformed, first: ${firstIssue}`
+      )
+    }
+    return comments
   }
 
   async findEpisode(
