@@ -310,7 +310,7 @@ describe('backup round trip', () => {
             dandanplay: { useMatchApi: false },
           },
         },
-      ] as unknown as IntegrationV1[])
+      ] as unknown as IntegrationV1[]) // lint-specs-allow-cast: v1 stored shape carries fields the V1 type omits
     )
     const usable = {
       ...legacy[0],
@@ -346,17 +346,18 @@ describe('backup round trip', () => {
   it('restores the v1.5.0 backup file shipped as an e2e fixture', async () => {
     const legacyBackup = readLegacyBackup()
 
+    const storeNames = Object.keys(legacyBackup.services)
+    expect(storeNames).toContain('extensionOptions')
+
     const result = await configStateService.restoreState(legacyBackup)
 
-    expect(result.details).toEqual({
-      extensionOptions: { success: true, droppedEntries: 0 },
-      danmakuOptions: { success: true, droppedEntries: 0 },
-      mountConfig: { success: true, droppedEntries: 0 },
-      providerConfig: { success: true, droppedEntries: 0 },
-      aiProviderConfig: { success: true, droppedEntries: 0 },
-      integrationPolicy: { success: true, droppedEntries: 0 },
-      localMatchingRule: { success: true, droppedEntries: 0 },
-    })
+    expect(result.details).toEqual(
+      Object.fromEntries(
+        storeNames.map((name) => {
+          return [name, { success: true, droppedEntries: 0 }]
+        })
+      )
+    )
     expect(result.success).toBe(true)
   })
 

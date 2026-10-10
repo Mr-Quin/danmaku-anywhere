@@ -31,7 +31,7 @@ beforeEach(() => {
     if (tag === 'canvas') {
       const canvas = new FakeCanvas()
       canvases.push(canvas)
-      return canvas as unknown as HTMLCanvasElement
+      return canvas as unknown as HTMLCanvasElement // lint-specs-allow-cast: partial fake of a stable external DOM interface
     }
     throw new Error(`unexpected createElement(${tag})`)
   }) as typeof document.createElement)
