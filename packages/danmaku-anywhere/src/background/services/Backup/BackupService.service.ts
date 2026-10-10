@@ -43,7 +43,10 @@ export class BackupService {
     const result = await this.configStateService.restoreState(data)
     // providerConfig version 1 is the pre-manifest shape, whose built-in names
     // were fixed English literals.
-    if (data.services.providerConfig?.version === 1) {
+    if (
+      data.services.providerConfig?.version === 1 &&
+      result.details.providerConfig?.success
+    ) {
       await this.providerService.localizeLegacyBuiltinNames()
     }
     return result

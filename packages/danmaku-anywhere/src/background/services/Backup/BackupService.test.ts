@@ -37,7 +37,53 @@ describe('BackupService.importAll', () => {
 
   it('localizes built-in names after restoring a pre-manifest provider backup', async () => {
     const restoreState = vi.fn<ConfigStateService['restoreState']>(
-      async () => ({ success: true, details: {} })
+      async () => ({
+        success: true,
+        details: { providerConfig: { success: true } },
+      })
+    )
+    const localize = vi.fn<ProviderService['localizeLegacyBuiltinNames']>(
+      async () => {}
+    )
+    const service = buildService(restoreState, localize)
+
+    await service.importAll({
+      meta: { version: 1 },
+      services: { providerConfig: { version: 1, data: [] } },
+    })
+
+    expect(localize).toHaveBeenCalledTimes(1)
+  })
+
+  it('leaves built-in names alone when the pre-manifest provider restore failed', async () => {
+    const restoreState = vi.fn<ConfigStateService['restoreState']>(
+      async () => ({
+        success: false,
+        details: { providerConfig: { success: false, error: 'invalid' } },
+      })
+    )
+    const localize = vi.fn<ProviderService['localizeLegacyBuiltinNames']>(
+      async () => {}
+    )
+    const service = buildService(restoreState, localize)
+
+    await service.importAll({
+      meta: { version: 1 },
+      services: { providerConfig: { version: 1, data: [] } },
+    })
+
+    expect(localize).not.toHaveBeenCalled()
+  })
+
+  it('localizes built-in names when only another service failed to restore', async () => {
+    const restoreState = vi.fn<ConfigStateService['restoreState']>(
+      async () => ({
+        success: false,
+        details: {
+          providerConfig: { success: true },
+          danmakuOptions: { success: false, error: 'invalid' },
+        },
+      })
     )
     const localize = vi.fn<ProviderService['localizeLegacyBuiltinNames']>(
       async () => {}
