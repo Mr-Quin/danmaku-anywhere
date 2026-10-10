@@ -30,5 +30,5 @@ Angular SPA for video discovery and playback using Kazumi rules. Requires the Da
 ## Gotchas
 
 - Requires the browser extension to be installed for scraping features
-- Uses Vitest + jsdom via the `@angular/build:unit-test` builder (`pnpm test:ng`). Specs import from `vitest`, not Jasmine
+- Uses Vitest + jsdom via the `@angular/build:unit-test` builder (`pnpm test`). Specs import from `vitest`, not Jasmine
 - See `package.json` for available scripts and dependencies
