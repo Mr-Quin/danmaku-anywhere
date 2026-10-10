@@ -334,7 +334,7 @@ describe('migrateDanmakuSourcesToProviders', () => {
     it('should fall back to defaults when migration fails completely', () => {
       // Pass invalid data to trigger catch block
       const providers = migrateDanmakuSourcesToProviders(
-        null as unknown as DanmakuSources
+        null as unknown as DanmakuSources // lint-specs-allow-cast: deliberately invalid input to exercise the catch/fallback path
       )
 
       expect(providers).toHaveLength(3)
@@ -577,9 +577,15 @@ describe('migrateProviderConfigsToFlat', () => {
   })
 
   it('returns empty array if data is not an array', () => {
-    expect(migrateProviderConfigsToFlat(null as unknown as never[])).toEqual([])
     expect(
-      migrateProviderConfigsToFlat({ foo: 'bar' } as unknown as never[])
+      migrateProviderConfigsToFlat(
+        null as unknown as never[] // lint-specs-allow-cast: deliberately invalid input to exercise the catch/fallback path
+      )
+    ).toEqual([])
+    expect(
+      migrateProviderConfigsToFlat(
+        { foo: 'bar' } as unknown as never[] // lint-specs-allow-cast: deliberately invalid input to exercise the catch/fallback path
+      )
     ).toEqual([])
   })
 

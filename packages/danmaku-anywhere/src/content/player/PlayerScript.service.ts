@@ -107,6 +107,11 @@ export class PlayerScript {
       if (event.persisted) {
         return
       }
+      // SPA routers (Jellyfin's view manager) dispatch their own bubbling
+      // "pagehide" on view changes. Only the browser's event means an unload.
+      if (!event.isTrusted) {
+        return
+      }
 
       void playerRpcClient.controller['relay:event:playerUnload'](
         { frameId: this.frameId },

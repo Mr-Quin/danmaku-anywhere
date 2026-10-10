@@ -167,13 +167,15 @@ describe('fetchAndCacheFile', () => {
     const opfs = createFakeOpfs()
     const controller = new AbortController()
     controller.abort()
-    const fetchSpy = vi.fn(async (_url: string, init?: RequestInit) => {
-      if (init?.signal?.aborted) {
-        throw new DOMException('Aborted', 'AbortError')
+    const fetchSpy = vi.fn(
+      async (_input: RequestInfo | URL, init?: RequestInit) => {
+        if (init?.signal?.aborted) {
+          throw new DOMException('Aborted', 'AbortError')
+        }
+        return streamResponse(bytesFrom('x'))
       }
-      return streamResponse(bytesFrom('x'))
-    })
-    const deps = makeDeps({ opfs, fetch: fetchSpy as unknown as typeof fetch })
+    )
+    const deps = makeDeps({ opfs, fetch: fetchSpy })
 
     await expect(
       fetchAndCacheFile({ id: ID, url: URL, signal: controller.signal }, deps)

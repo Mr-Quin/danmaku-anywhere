@@ -40,7 +40,7 @@ describe('createTestContainer', () => {
   test('overrides an autobound class token from the real background module', () => {
     const fakeOptionsService = {
       get: () => Promise.resolve({}),
-    } as unknown as ExtensionOptionsService
+    } as unknown as ExtensionOptionsService // lint-specs-allow-cast: stand-in only needs identity, never real option data
 
     const container = createTestContainer(
       [backgroundContainerModule],

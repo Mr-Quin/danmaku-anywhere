@@ -1,12 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { ILogger } from '@/common/Logger'
+import { backgroundContainerModule } from '@/background/ioc'
 import { migrateOptions } from '@/common/options/OptionsService/migrationOptions'
-import type { IOptionsServiceFactory } from '@/common/options/OptionsService/OptionServiceFactory'
+import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import type {
   PrevOptions,
   Version,
-  VersionConfig,
 } from '@/common/options/OptionsService/types'
+import { createTestContainer } from '@/tests/createTestContainer'
+import { silentLogger } from '@/tests/silentLogger'
 import { defaultCollapseConfig } from './constant'
 import { DanmakuOptionsService } from './service'
 
@@ -16,30 +17,18 @@ import { DanmakuOptionsService } from './service'
  * versions 7 to 10, and asserts the resulting fields.
  */
 
-function createLogger(): ILogger {
-  const logger = {
-    sub: () => logger,
-    debug: vi.fn(),
-    error: vi.fn(),
-  }
-  return logger as unknown as ILogger
-}
-
-// Constructing DanmakuOptionsService registers its real .version(n, ...)
-// upgrade steps against this recorder instead of a live OptionsService, so
-// the chain can be replayed directly through migrateOptions.
+// Resolving the real DanmakuOptionsService registers its .version(n, ...) upgrade
+// steps on a real OptionsService. Recording those calls lets the chain be
+// replayed directly through migrateOptions.
 function captureVersions(): Version[] {
-  const versions: Version[] = []
-  const chainable = {
-    version(version: number, config: VersionConfig) {
-      versions.push({ version, ...config })
-      return chainable
-    },
-  }
-  const factory = (() => chainable) as unknown as IOptionsServiceFactory
-
-  new DanmakuOptionsService(createLogger(), factory)
-
+  const register = vi.spyOn(OptionsService.prototype, 'version')
+  const service = createTestContainer([backgroundContainerModule]).get(
+    DanmakuOptionsService
+  )
+  const versions = register.mock.calls
+    .filter((_, i) => register.mock.contexts[i] === service.options)
+    .map(([version, config]) => ({ version, ...config }))
+  register.mockRestore()
   return versions
 }
 
@@ -47,7 +36,7 @@ function upgrade(data: PrevOptions, fromVersion: number) {
   return migrateOptions(
     { data, version: fromVersion },
     captureVersions(),
-    createLogger(),
+    silentLogger,
     {}
   )
 }

@@ -48,7 +48,7 @@ function createFakePort(name: string, tabId: number): FakePort {
         disconnectListeners.push(cb)
       ),
     },
-  } as unknown as chrome.runtime.Port
+  } as unknown as chrome.runtime.Port // lint-specs-allow-cast: partial fake of a stable external browser API type
 
   return {
     port,

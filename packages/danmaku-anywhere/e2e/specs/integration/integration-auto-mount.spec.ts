@@ -1,11 +1,9 @@
 import { IntegrationPage } from '../../pom/IntegrationPage'
-import type { DaClient } from '../../setup/da-client'
 import { expect, test } from '../../setup/fixtures'
 import {
-  buildFixtureIntegrationPolicy,
-  seedXPathIntegration,
+  FIXTURE_SEEK_TIME_S,
+  seedFixtureIntegration,
 } from '../../setup/integration'
-import { applyProfile } from '../../setup/profile'
 
 /**
  * Auto-mount happy path: URL match → XPath policy → media-info → mount →
@@ -19,50 +17,14 @@ const NATIVE_URL = `${ORIGIN}/native/`
 const IFRAME_URL = `${ORIGIN}/iframe/`
 const MOUNT_PATTERN = `${ORIGIN}/*`
 
-const EPISODE_TITLE = 'DA Integration Test'
-// Seeking past SEEK_TIME_S lands the cursor on at least one comment.
-const COMMENTS = [
-  { p: '12,1,16777215,e2e-1', m: 'first' },
-  { p: '24,1,16777215,e2e-2', m: 'second' },
-  { p: '36,1,16777215,e2e-3', m: 'third' },
-]
-const SEEK_TIME_S = 15
-
-async function seedFixtureProfile(
-  context: import('@playwright/test').BrowserContext,
-  da: DaClient
-): Promise<{ episodeId: number }> {
-  await applyProfile(context, da, {
-    extensionOptions: { matchLocalDanmaku: true },
-  })
-
-  // Title matches what the policy extracts from the fixture; LocalMatching
-  // resolves it via fuzzy title fallback (no naming rules needed).
-  const customEpisode = await da.episode.addCustom({
-    title: EPISODE_TITLE,
-    comments: COMMENTS,
-    commentCount: COMMENTS.length,
-    schemaVersion: 4,
-  })
-
-  await seedXPathIntegration(da, {
-    patterns: [MOUNT_PATTERN],
-    name: 'da-e2e',
-    policy: buildFixtureIntegrationPolicy(),
-  })
-
-  // Content-script registration is async; wait or the controller never loads.
-  await da.mount.waitForRegistration(MOUNT_PATTERN, 5_000)
-
-  return { episodeId: customEpisode.id }
-}
-
 test('integration auto-mount: native <video> happy path', async ({
   context,
   page,
   da,
 }) => {
-  const { episodeId } = await seedFixtureProfile(context, da)
+  const { episodeId } = await seedFixtureIntegration(context, da, [
+    MOUNT_PATTERN,
+  ])
 
   const integrationPage = new IntegrationPage(page)
   await page.bringToFront()
@@ -76,7 +38,7 @@ test('integration auto-mount: native <video> happy path', async ({
   await integrationPage.playVideo()
 
   await expect(async () => {
-    await integrationPage.setVideoTime(SEEK_TIME_S)
+    await integrationPage.setVideoTime(FIXTURE_SEEK_TIME_S)
     await expect(integrationPage.commentElements().first()).toBeVisible({
       timeout: 1_000,
     })
@@ -88,7 +50,9 @@ test('integration auto-mount: same-origin iframe <video> happy path', async ({
   page,
   da,
 }) => {
-  const { episodeId } = await seedFixtureProfile(context, da)
+  const { episodeId } = await seedFixtureIntegration(context, da, [
+    MOUNT_PATTERN,
+  ])
 
   const integrationPage = new IntegrationPage(page)
   await page.bringToFront()
@@ -107,7 +71,7 @@ test('integration auto-mount: same-origin iframe <video> happy path', async ({
   await integrationPage.playVideo()
 
   await expect(async () => {
-    await integrationPage.setVideoTime(SEEK_TIME_S)
+    await integrationPage.setVideoTime(FIXTURE_SEEK_TIME_S)
     await expect(integrationPage.commentElements().first()).toBeVisible({
       timeout: 1_000,
     })
