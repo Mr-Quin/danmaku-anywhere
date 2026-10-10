@@ -3,10 +3,26 @@ import type {
   GenericEpisodeLite,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
+import { Mutex } from 'async-mutex'
 import type { MediaInfo } from '../extractMedia.js'
 import type { HTTPHeader } from '../types.js'
+import { nextSessionRuleId } from './sessionRuleIds.js'
 
 const DA_EXT_ATTR = 'da-ext-version'
+
+const headerRuleMutex = new Mutex()
+
+// Other session rules (setSessionHeader, the media CORS bypass) can share the
+// exact urlFilter, but only header rules cover main_frame.
+function isHeaderRuleFor(
+  rule: chrome.declarativeNetRequest.Rule,
+  url: string
+): boolean {
+  return (
+    rule.condition.urlFilter === `|${url}` &&
+    rule.condition.resourceTypes?.includes('main_frame') === true
+  )
+}
 
 export interface ExtensionInfo {
   version: string
@@ -165,18 +181,22 @@ export const setRequestHeaderRule = async (
   headerRule: SetHeaderRule,
   tabId?: number
 ) => {
+  return headerRuleMutex.runExclusive(() => {
+    return installHeaderRule(headerRule, tabId)
+  })
+}
+
+async function installHeaderRule(
+  headerRule: SetHeaderRule,
+  tabId: number | undefined
+): Promise<void> {
   const existingRules = await chrome.declarativeNetRequest.getSessionRules()
 
   const prevRule = existingRules.find((rule) => {
-    return (
-      rule.condition.urlFilter?.includes(headerRule.url) &&
-      targetsSameTab(rule, tabId)
-    )
+    return isHeaderRuleFor(rule, headerRule.url) && targetsSameTab(rule, tabId)
   })
 
-  const lastRule = existingRules.sort((a, b) => a.id - b.id).at(-1)
-
-  const lastId = lastRule?.id ?? 1
+  const ruleId = await nextSessionRuleId()
 
   // @ts-expect-error
   // biome-ignore lint/correctness/noUndeclaredVariables: browser is defined in firefox
@@ -263,7 +283,7 @@ export const setRequestHeaderRule = async (
   await chrome.declarativeNetRequest.updateSessionRules({
     addRules: [
       {
-        id: lastId + 1,
+        id: ruleId,
         action,
         condition: {
           urlFilter: `|${headerRule.url}`,

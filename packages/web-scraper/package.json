@@ -18,6 +18,7 @@
   "dependencies": {
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "@danmaku-anywhere/danmaku-provider": "workspace:*",
+    "async-mutex": "^0.5.0",
     "zod": "^4.3.5"
   },
   "devDependencies": {
