@@ -225,7 +225,7 @@ describe('backup round trip', () => {
             dandanplay: { useMatchApi: false },
           },
         },
-      ] as unknown as IntegrationV1[])
+      ] as unknown as IntegrationV1[]) // lint-specs-allow-cast: v1 stored shape carries fields the V1 type omits
     )
     const usable = {
       ...legacy[0],
