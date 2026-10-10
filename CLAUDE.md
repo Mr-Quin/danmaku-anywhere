@@ -55,6 +55,11 @@ Always prefer scripts defined in `package.json` over ad-hoc commands. Run `pnpm 
 - **All tests**: `pnpm test` at root
 - Packages and backend use Vitest. The web app uses Jasmine+Karma (`pnpm test:ng` in `app/web/`).
 - Always run `pnpm type-check` and `pnpm lint` — these are fast and catch most issues.
+- **Never run the extension's full e2e suite locally.** `pnpm test:e2e` is CI's job. Locally run the
+  affected spec(s), and at most `pnpm test:e2e:smoke`. `pnpm test:e2e:changed` follows direct
+  imports only, so it under-selects silently: after touching a leaf POM or product code, name the
+  covering specs by path. Specs run headless; `DA_HEADED=1` is for a human watching a run, never
+  for a script or CI. Details in `packages/danmaku-anywhere/e2e/AGENTS.md`.
 
 ## Code style
 

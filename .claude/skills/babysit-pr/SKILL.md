@@ -9,7 +9,7 @@ Watch a PR for new review activity, evaluate each comment via the `reviewing-ai-
 
 ## 0. Decide the duration
 
-Default budget: **30 minutes / 6 iterations at 5-minute cadence.** That covers one or two full AI-reviewer cycles after the initial push and the post-fix re-review. Beyond that, returns are sharply diminishing.
+Default budget: **30 minutes / 6 iterations at 5-minute cadence.** That covers the AI review landing after the initial push, CI finishing, and a round of fixes on top. Beyond that, returns are sharply diminishing.
 
 Extend (up to 60 min / 12 iterations) only if:
 - A reviewer is still mid-review (eyes reaction without a posted review) at the budget boundary
@@ -42,9 +42,7 @@ One GraphQL call returns: reviews, pending reviewers, open threads, reactions, c
 
 ### 2b. Classify each new comment
 
-**Screen for settled re-flags first.** On a multi-push PR the AI reviewer re-reads the whole diff on every push and will re-raise suggestions you already declined and resolved (the `ai-rereview` label re-triggers it each push, and the reviewer doesn't learn from a decline). So before evaluating, fetch resolved threads too and check each new open thread against them: if it re-raises a suggestion already declined + resolved on this PR (same file/region, same gist), skip the evaluation and resolve it with a one-line back-reference to the prior thread (per `reviewing-ai-feedback`). Reserve the full accept/decline pass for genuinely new threads. Once a PR has a few pushes this is the common case, and not screening for it is most of the loop's wasted cost.
-
-Evaluate the rest via the `reviewing-ai-feedback` skill. It defines the accept/decline rules, false-positive patterns, accept-signals, reply style, and the in-chat reporting format. Default stance is "verify against the code; the reviewer is probably right." Decline only with a named rule. Resolve every thread you handle (accepted or declined).
+Evaluate each new thread via the `reviewing-ai-feedback` skill. It defines the accept/decline rules, false-positive patterns, accept-signals, reply style, and the in-chat reporting format. Default stance is "verify against the code; the reviewer is probably right." Decline only with a named rule. Resolve every thread you handle (accepted or declined).
 
 ### 2c. Resolve mechanics
 
@@ -55,7 +53,7 @@ gh api graphql -f query='mutation { resolveReviewThread(input: {threadId: "THREA
 
 ### 2d. If you pushed fixes
 
-After `git push`, the AI reviewers (gated by the `ai-rereview` label) re-run automatically. Wait one full iteration before re-evaluating — they need 2–4 min to land.
+A push does not trigger a new AI review. The reviewers read the diff once, when the PR opens, so after pushing there is nothing to wait for on that front: the loop is watching CI and any human threads only.
 
 ## 3. Stop conditions
 

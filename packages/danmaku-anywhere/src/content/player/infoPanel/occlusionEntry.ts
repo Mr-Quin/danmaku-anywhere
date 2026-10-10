@@ -4,8 +4,8 @@ import type {
 } from '@/content/player/occlusion/Occlusion.types'
 import type { OcclusionEntry } from './panelEntry'
 
-// `downloading` is the only progress reason; init/webgpu/taint/unavailable/
-// segment are all failures the service emits via status().
+// `downloading` is the only progress reason; init/webgpu/taint/unreadable/
+// unavailable/segment are all failures the service emits via status().
 const LOADING_REASONS: ReadonlySet<OcclusionStatusReason> = new Set([
   'downloading',
 ])

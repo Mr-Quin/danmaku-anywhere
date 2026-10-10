@@ -55,9 +55,9 @@ export class MountPage {
   }
 
   // Right-click opens the DrilldownContextMenu (Popper, no Modal/Backdrop).
-  // The IconButton path uses a Modal whose Backdrop intercepts pointer
-  // events during its close transition — flaky under xvfb. Same DAMenuItem
-  // entries either way, so right-click is the stable path.
+  // The IconButton path uses a Modal whose Backdrop intercepts pointer events
+  // during its close transition. Same DAMenuItem entries either way, so
+  // right-click is the stable path.
   async openItemMenu(item: Locator, actionId: string): Promise<void> {
     await item.click({ button: 'right' })
     const menuItem = this.page.locator(SELECTORS.menuItem(actionId))

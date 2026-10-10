@@ -2,13 +2,14 @@ import { Scalar } from '@scalar/hono-api-reference'
 import * as Sentry from '@sentry/cloudflare'
 import { cors } from 'hono/cors'
 import { HTTPException } from 'hono/http-exception'
-import { logger } from 'hono/logger'
 import { poweredBy } from 'hono/powered-by'
 import { prettyJSON } from 'hono/pretty-json'
 import { openAPIRouteHandler } from 'hono-openapi'
 import { factory } from '@/factory'
 import { authContext } from '@/middleware/authContext'
 import { useCache } from '@/middleware/cache'
+import { noStoreDefault } from '@/middleware/noStoreDefault'
+import { requestLogger } from '@/middleware/requestLogger'
 import { setContext } from '@/middleware/setContext'
 import { danDanPlay } from '@/routes/api/ddp/danDanPlay'
 import { llmLegacy } from '@/routes/api/llm/routes'
@@ -20,7 +21,8 @@ const app = factory.createApp()
 
 app.use(
   '*',
-  logger(),
+  noStoreDefault(),
+  requestLogger(),
   prettyJSON(),
   cors({
     origin: (origin, c) => {
@@ -115,7 +117,7 @@ export default Sentry.withSentry((env: Env) => {
     release: versionId,
     sendDefaultPii: false,
     enableLogs: true,
-    tracesSampleRate: 1.0,
+    tracesSampleRate: env.ENVIRONMENT === 'production' ? 0.001 : 1.0,
     environment: env.ENVIRONMENT,
     enabled: !getIsTestEnv(),
   }

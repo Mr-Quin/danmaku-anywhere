@@ -1,78 +1,21 @@
-// @ts-nocheck
-import { type Mock, vi } from 'vitest'
+import { fakeBrowser } from '@webext-core/fake-browser'
+import { beforeEach, vi } from 'vitest'
 
-interface MockStorage {
-  get: Mock
-  set: Mock
-  remove: Mock
-  clear: Mock
-  onChanged: {
-    addListener: Mock
-    removeListener: Mock
-  }
-}
+// fake-browser materializes every unimplemented API as a throwing stub, but an
+// MV3 service worker genuinely has no getBackgroundPage. Code feature-detects on
+// that to tell background from page contexts, so the property has to be absent.
+delete (fakeBrowser.runtime as { getBackgroundPage?: unknown })
+  .getBackgroundPage
 
-interface MockAlarms {
-  get: Mock
-  create: Mock
-  clear: Mock
-  onAlarm: {
-    addListener: Mock
-    removeListener: Mock
-    hasListener: Mock
-  }
-}
+// validateOrigin treats a thrown error as "malformed match pattern" and returns
+// the message, so the unimplemented stub would fail every mount config pattern.
+// The extension holds the permissions API, so answering true is what it sees.
+fakeBrowser.permissions.contains = async () => true
 
-interface MockChrome {
-  storage: {
-    local: MockStorage
-    sync: MockStorage
-    session: MockStorage
-  }
-  runtime: {
-    getManifest: Mock
-    onInstalled: {
-      addListener: Mock
-    }
-  }
-  alarms: MockAlarms
-}
+// unstubGlobals drops the stub after every test, so it has to be reapplied.
+vi.stubGlobal('chrome', fakeBrowser)
 
-const createMockStorage = (): MockStorage => ({
-  get: vi.fn(),
-  set: vi.fn(),
-  remove: vi.fn(),
-  clear: vi.fn(),
-  onChanged: {
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-  },
+beforeEach(() => {
+  vi.stubGlobal('chrome', fakeBrowser)
+  fakeBrowser.reset()
 })
-
-export const mockChrome: MockChrome = {
-  storage: {
-    local: createMockStorage(),
-    sync: createMockStorage(),
-    session: createMockStorage(),
-  },
-  runtime: {
-    getManifest: vi.fn(),
-    getURL: vi.fn(),
-    id: 'test',
-    onInstalled: {
-      addListener: vi.fn(),
-    },
-  },
-  alarms: {
-    get: vi.fn(async () => undefined),
-    create: vi.fn(async () => undefined),
-    clear: vi.fn(async () => undefined),
-    onAlarm: {
-      addListener: vi.fn(),
-      removeListener: vi.fn(),
-      hasListener: vi.fn(() => false),
-    },
-  },
-} as const
-
-global.chrome = mockChrome

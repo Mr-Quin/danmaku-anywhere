@@ -4,8 +4,9 @@ import { setMediaCorsRule } from './setMediaCorsRule'
 
 /**
  * Covers the media CORS-bypass session rule: it injects `Access-Control-Allow-
- * Origin: *` as a response header on the `media` resource type with no initiator
- * restriction, removes cleanly, and draws ids from the same shared allocator so
+ * Origin: *` as a response header and removes the request's `Origin` header on
+ * the `media` resource type, scopes itself to the requesting tab when one is
+ * known, removes cleanly, and draws ids from the same shared allocator so
  * concurrent rules never collide.
  */
 
@@ -48,12 +49,22 @@ describe('setMediaCorsRule', () => {
     expect(rule.action.responseHeaders).toEqual([
       { header: 'Access-Control-Allow-Origin', operation: 'set', value: '*' },
     ])
+    expect(rule.action.requestHeaders).toEqual([
+      { header: 'Origin', operation: 'remove' },
+    ])
     expect(rule.condition.resourceTypes).toEqual(['media'])
     expect(rule.condition.urlFilter).toBe('|https://cdn.example.com/video.mp4')
     expect(rule.condition.initiatorDomains).toBeUndefined()
+    expect(rule.condition.tabIds).toBeUndefined()
 
     await handle.removeRule()
     expect(rules).toHaveLength(0)
+  })
+
+  it('scopes the rule to the requesting tab when one is known', async () => {
+    await setMediaCorsRule('https://cdn.example.com/video.mp4', 42)
+
+    expect(rules[0].condition.tabIds).toEqual([42])
   })
 
   it('removes the rule when the handle goes out of scope', async () => {

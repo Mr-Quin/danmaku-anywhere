@@ -6,7 +6,7 @@ import {
 import type { ManifestRunner } from '@mr-quin/dango'
 import { describe, expect, it, vi } from 'vitest'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
-import type { ILogger } from '@/common/Logger'
+import { silentLogger } from '@/tests/silentLogger'
 import {
   DANMAKU_RUN_OPTIONS,
   MANIFEST_RUN_OPTIONS,
@@ -38,22 +38,14 @@ function makeRunner(
     configDefaults: vi.fn(
       () => (returns.configDefaults as Record<string, unknown>) ?? {}
     ),
-  } as unknown as ManifestRunner
+  } as unknown as ManifestRunner // lint-specs-allow-cast: ManifestRunner (from @mr-quin/dango) has private fields; double only implements the methods this suite exercises
 }
 
 function makeRegistry(runner: ManifestRunner): ManifestRegistry {
   return {
-    getRunner: vi.fn(() => runner),
-  } as unknown as ManifestRegistry
+    getRunner: vi.fn<ManifestRegistry['getRunner']>(() => runner),
+  } as unknown as ManifestRegistry // lint-specs-allow-cast: ManifestRegistry has private fields; double only implements getRunner
 }
-
-const silentLogger = {
-  debug: () => {},
-  info: () => {},
-  warn: () => {},
-  error: () => {},
-  sub: () => silentLogger,
-} as unknown as ILogger
 
 describe('ManifestProviderService.search', () => {
   it('adds provider / providerConfigId / schemaVersion and strips html on titles', async () => {

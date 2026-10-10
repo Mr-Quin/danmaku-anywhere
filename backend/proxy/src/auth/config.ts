@@ -2,6 +2,7 @@ import { betterAuth } from 'better-auth'
 import { drizzleAdapter } from 'better-auth/adapters/drizzle'
 import { admin, bearer, jwt, openAPI } from 'better-auth/plugins'
 import { ac, adminRole, moderatorRole, userRole } from '@/auth/permissions'
+import { parseTrustedOrigins } from '@/auth/trustedOrigins'
 import { getOrCreateDb } from '@/db'
 import { getOrCreateEmailService } from '@/email'
 
@@ -47,7 +48,7 @@ async function createAuth(env: Env) {
     baseURL,
     basePath: '/auth',
     secret,
-    trustedOrigins: [env.BETTER_AUTH_TRUSTED_ORIGINS],
+    trustedOrigins: parseTrustedOrigins(env.BETTER_AUTH_TRUSTED_ORIGINS),
     emailAndPassword: {
       enabled: true,
       minPasswordLength: 6,

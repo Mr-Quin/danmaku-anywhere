@@ -67,6 +67,12 @@ export class ProvidersPage {
     return this.page.getByText(/^(Update failed|更新失败)$/)
   }
 
+  installedHeading(count: number): Locator {
+    return this.page.getByText(
+      new RegExp(`^(Installed|已安装) \\(${count}\\)$`)
+    )
+  }
+
   checkedNeverLabel(): Locator {
     return this.page.getByText(/not checked yet|尚未检查/)
   }

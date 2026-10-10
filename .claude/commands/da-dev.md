@@ -56,7 +56,7 @@ Make the changes. Apply these in order:
 - **YAGNI**: don't add a config knob, parameter, or branch unless *this* PR needs it. "In case someone later wants to…" is the smell. Future flexibility is cheaper to add when it's actually needed than to remove when it isn't.
 - **Library / framework idioms**: use each library's blessed patterns rather than inventing your own. Before writing a helper, check whether the framework already exposes the primitive (e.g. React hook, Hono middleware, Playwright fixture, octokit method, MUI component). For unfamiliar APIs or recent versions, fetch current docs via the `context7` MCP instead of trusting model memory. Match the project's existing usage of a library; if everywhere else uses pattern A and you're tempted to introduce pattern B, the burden of proof is on B.
 - **e2e coverage**: every feature/fix lands with e2e coverage under `packages/danmaku-anywhere/e2e/` unless coverage is genuinely infeasible. State *why* in the PR body when skipping. Use `browser-verify` while authoring the spec.
-- **Committed agent docs stay portable.** Files under `.claude/`, `CLAUDE.md`, `AGENTS.md` must not contain absolute paths into a developer's machine, OS-specific commands without an alternative, or project-specific magic values. Workspace-specific values (ClickUp IDs, browser executable paths, etc.) live in environment variables (e.g. `CLICKUP_DA_*`, `CHROME_DEVTOOLS_EXECUTABLE`) that the developer sets in their shell, not in committed files; env vars are inherited across worktrees, unlike per-project agent memory. If a workflow depends on an MCP or local tool that may not be present, declare the prerequisite so the agent can stop and tell the human on a miss.
+- **Committed agent docs stay portable.** Files under `.claude/`, `CLAUDE.md`, `AGENTS.md` must not contain absolute paths into a developer's machine, OS-specific commands without an alternative, or project-specific magic values. Workspace-specific values (ClickUp IDs, browser executable paths, etc.) live in environment variables (e.g. `CLICKUP_DA_*`) that the developer sets in their shell, not in committed files; env vars are inherited across worktrees, unlike per-project agent memory. If a workflow depends on an MCP or local tool that may not be present, declare the prerequisite so the agent can stop and tell the human on a miss.
 
 ### 4. Verify
 
@@ -70,7 +70,7 @@ Make the changes. Apply these in order:
 | Packages      | `pnpm --filter <package> test`                     | N/A                                               |
 | Cross-cutting | `pnpm lint && pnpm --filter '...[origin/master]' test` | Depends on areas touched                          |
 
-Run e2e (`pnpm --filter @mr-quin/danmaku-anywhere test:e2e`) for any PR that adds or touches an e2e spec, or that changes content scripts, mount profiles, integration policies, dango manifests, or popup flows. The suite should be running before push.
+For extension changes, the `verifying-changes` skill owns which tier to run and the red-before-green rule.
 
 #### Record a verify summary
 
@@ -79,7 +79,7 @@ Verification you only narrate is unauditable: a reviewer can't tell whether the 
 - `lint` (tsc + biome): pass / fail
 - tests: the scope you ran (e.g. `pnpm --filter '...[origin/master]' test`) and the result (N passed)
 - e2e: which specs ran, or skipped + a one-line reason
-- browser-verify: what you observed, if you ran it
+- red before green: the spec you added, and that you saw it fail without the change (or why the change is a refactor with no natural red)
 
 This is a record of what you actually did, not a second gate: deciding *what* to run stays your judgment, the summary just makes that judgment reviewable. Writing it also surfaces a step you meant to run and didn't.
 
@@ -97,7 +97,9 @@ Skip for trivial changes (config-only, types, docs).
 
 #### Extension: agentic verification (for the agent)
 
-For any change with runtime behavior worth observing (not just visual changes), self-verify via the `browser-verify` skill. Use it to confirm wiring (commands fire, RPC propagates, storage writes invalidate) and to capture selectors and event sequencing for the e2e spec. To exercise an already-published preview build instead (reproducing against build N, bisecting nightlies), use `preview-build`.
+For any change with runtime behavior, the verification that counts is **a spec that went red before it went green** (see `e2e-spec`). Writing it is the verification; there is no separate "I looked at it in a browser" step to report.
+
+When you don't yet know what to assert, explore first with the `browser-verify` skill and lift selectors with `generate-locator` instead of retyping them. To exercise an already-published preview build (reproducing against build N, bisecting nightlies), use `preview-build`.
 
 #### Web app: Cloudflare preview
 
@@ -118,7 +120,7 @@ Before pushing, run reviews using **clean subagents** (no prior context). They h
 - Run `/security-review` when the change touches user input, auth, APIs, or data storage
 - When the change carries runtime behavior, data contracts, migrations, non-trivial logic, or new-or-changed tests, also do a manual pass on two axes the commands above don't cover (skip for config-only, docs-only, or types-only changes). Each axis must end in a named failure; "the structure looks fine" is not a finding.
   - **Architecture / pattern fit**: does the change sit at the right seam, consistent with how the codebase already solves this? Look for a new coupling that other code now silently depends on, an invariant the types don't enforce (so a future caller can break it unnoticed), or an abstraction that duplicates one already in the tree. Name the specific seam or invariant at risk.
-  - **Test gaps & theatre**: for each new or changed test, mentally invert its guard or mutate the value under assertion; if the test would still pass, it protects nothing. Then find the behavior this PR changed that no test would catch if it regressed. Name the test that would survive its own breakage, or the behavior left unasserted.
+  - **Test gaps & theatre**: red-before-green already proves each new spec fails without the change, so spend this pass on what it does not cover: find the behavior this PR changed that no test would catch if it regressed, and name it.
 
 Fix any issues found, then add a commit. Never include Co-Authored-By or AI attribution.
 
@@ -130,7 +132,7 @@ The PR itself is the human gate — push and open it without waiting.
 
 ```bash
 git push -u origin DA-XXX_<hint>
-gh pr create --title "(type) description [DA-XXX]" --label "ai-rereview" --body "$(cat <<'EOF'
+gh pr create --title "(type) description [DA-XXX]" --body "$(cat <<'EOF'
 ## Summary
 - <one short bullet per major change; "what" + "why" if non-obvious>
 
@@ -150,7 +152,6 @@ EOF
 - **DA-XXX must match** the branch name
 - Do NOT include ClickUp links in the PR body — they are posted automatically
 - Do NOT mention other DA-XXX in the body / commits; ClickUp auto-link will silently reopen those tasks
-- The `ai-rereview` label is required: `.github/workflows/ai-rereview.yml` watches it and re-requests AI reviewers on every push
 - Drop sections that don't apply (e.g. no `Notes` if there's nothing real to say) rather than padding
 
 **Keep the PR body in sync as the branch evolves.** Use `gh pr edit <N> --body ...` (same HEREDOC pattern as creation) whenever new commits change scope, add/remove behavior, or invalidate a claim in the original body. Stale bodies mislead reviewers.
