@@ -5,6 +5,7 @@ import type {
 import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
 import type { MediaInfo } from '../extractMedia.js'
 import type { HTTPHeader } from '../types.js'
+import { nextSessionRuleId } from './sessionRuleIds.js'
 
 const DA_EXT_ATTR = 'da-ext-version'
 
@@ -155,9 +156,7 @@ export const setRequestHeaderRule = async (headerRule: SetHeaderRule) => {
     return rule.condition.urlFilter?.includes(headerRule.url)
   })
 
-  const lastRule = existingRules.sort((a, b) => a.id - b.id).at(-1)
-
-  const lastId = lastRule?.id ?? 1
+  const ruleId = await nextSessionRuleId()
 
   // @ts-expect-error
   // biome-ignore lint/correctness/noUndeclaredVariables: browser is defined in firefox
@@ -244,7 +243,7 @@ export const setRequestHeaderRule = async (headerRule: SetHeaderRule) => {
   await chrome.declarativeNetRequest.updateSessionRules({
     addRules: [
       {
-        id: lastId + 1,
+        id: ruleId,
         action,
         condition: {
           urlFilter: `|${headerRule.url}`,
