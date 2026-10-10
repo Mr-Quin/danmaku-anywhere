@@ -48,14 +48,16 @@ export type DanmakuFetchRequest = DanmakuFetchByMeta | DanmakuFetchByStub
 
 export type DanmakuFetchDto = DanmakuFetchRequest
 
+export type KeptStored = {
+  fetchedCount: number
+  storedCount: number
+}
+
 export type DanmakuFetchResult = {
   episode: WithSeason<Episode>
   // Set when a refetch returned fewer comments than were stored, in which case
   // `episode` is the stored record, unchanged
-  keptStored?: {
-    fetchedCount: number
-    storedCount: number
-  }
+  keptStored?: KeptStored
 }
 
 export type DanmakuImportData = {

@@ -131,10 +131,12 @@ function build(
   } = {}
 ) {
   const filter = vi.fn(async () => opts.existingDanmaku ?? [])
-  // upsert<T extends EpisodeInsert> is generic; a double can't satisfy that
-  // signature without an unsafe cast, so it stays untyped here.
-  const upsert = vi.fn(async (e: unknown) => e)
-  const danmakuService = { filter, upsert }
+  const upsertUnlessFewer = vi.fn<DanmakuService['upsertUnlessFewer']>(
+    async (episode) => ({
+      episode: { ...episode, id: 1, version: 1, timeUpdated: 0 },
+    })
+  )
+  const danmakuService = { filter, upsertUnlessFewer }
 
   const season = makeSeason({
     manifestId: config.manifestId,
@@ -144,7 +146,8 @@ function build(
   })
 
   const mustGetById = vi.fn<SeasonService['mustGetById']>(async () => season)
-  // findExisting<T extends SeasonInsert> is generic; same as upsert above.
+  // findExisting<T extends SeasonInsert> is generic; a double can't satisfy
+  // that signature without an unsafe cast, so it stays untyped here.
   const findExisting = vi.fn(async () => opts.findExisting)
   const seasonService = { mustGetById, findExisting }
 
@@ -395,7 +398,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
         options: {},
       })
 
-      expect(danmakuService.upsert).toHaveBeenCalledWith(
+      expect(danmakuService.upsertUnlessFewer).toHaveBeenCalledWith(
         expect.objectContaining({ comments: [], commentCount: 0 })
       )
       expect(result.keptStored).toBeUndefined()
@@ -412,7 +415,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
           options: { automatic: true },
         })
       ).rejects.toThrow('No danmaku found')
-      expect(danmakuService.upsert).not.toHaveBeenCalled()
+      expect(danmakuService.upsertUnlessFewer).not.toHaveBeenCalled()
     })
 
     it('saves a non-empty result from an automatic fetch', async () => {
@@ -427,7 +430,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
         options: { automatic: true },
       })
 
-      expect(danmakuService.upsert).toHaveBeenCalledWith(
+      expect(danmakuService.upsertUnlessFewer).toHaveBeenCalledWith(
         expect.objectContaining({ commentCount: 2 })
       )
     })
@@ -467,93 +470,9 @@ describe('ProviderService legacy-maccms decoupling', () => {
       expect(provider.getDanmaku).not.toHaveBeenCalled()
     })
   })
-
-  describe('getDanmaku refetch over a stored episode', () => {
-    const iqiyiConfig = makeConfig('iqiyi')
-    const meta = {
-      indexedId: 'ep1',
-      seasonId: 1,
-      providerIds: {},
-      season: {
-        id: 1,
-        manifestId: iqiyiConfig.manifestId,
-        namespaceKey: computeNamespaceKey(iqiyiConfig, []),
-      },
-    } as WithSeason<EpisodeMeta>
-
-    function refetch(stored: CommentEntity[], fetched: CommentEntity[]) {
-      const storedEpisode = {
-        id: 5,
-        comments: stored,
-        commentCount: stored.length,
-      }
-      const provider = makeProvider({ getDanmaku: vi.fn(async () => fetched) })
-      const { service, danmakuService } = build(iqiyiConfig, provider, {
-        existingDanmaku: [storedEpisode],
-      })
-      const result = service.getDanmaku({
-        type: 'by-meta',
-        meta,
-        options: { forceUpdate: true },
-      })
-      return { result, danmakuService, storedEpisode }
-    }
-
-    it('keeps the stored episode when the refetch returns fewer comments', async () => {
-      const { result, danmakuService, storedEpisode } = refetch(
-        comments(5),
-        comments(3)
-      )
-
-      await expect(result).resolves.toEqual({
-        episode: storedEpisode,
-        keptStored: { fetchedCount: 3, storedCount: 5 },
-      })
-      expect(danmakuService.upsert).not.toHaveBeenCalled()
-    })
-
-    it('keeps the stored episode when the refetch returns nothing', async () => {
-      const { result, danmakuService } = refetch(comments(5), [])
-
-      await expect(result).resolves.toMatchObject({
-        keptStored: { fetchedCount: 0, storedCount: 5 },
-      })
-      expect(danmakuService.upsert).not.toHaveBeenCalled()
-    })
-
-    it('replaces the stored episode when the refetch returns as many comments', async () => {
-      const { result, danmakuService } = refetch(comments(3), comments(3))
-
-      await expect(result).resolves.not.toHaveProperty('keptStored')
-      expect(danmakuService.upsert).toHaveBeenCalledWith(
-        expect.objectContaining({ commentCount: 3 })
-      )
-    })
-
-    it('records when the replacing refetch checked the source', async () => {
-      vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
-      const { result, danmakuService } = refetch(comments(3), comments(4))
-
-      await result
-      expect(danmakuService.upsert).toHaveBeenCalledWith(
-        expect.objectContaining({ lastChecked: 1_700_000_000_000 })
-      )
-      vi.restoreAllMocks()
-    })
-
-    it('does not count stored comments the renderer cannot parse', async () => {
-      const { result, danmakuService } = refetch(
-        [...comments(2), { p: '10,7,16777215', m: 'positioned' }],
-        comments(2)
-      )
-
-      await expect(result).resolves.not.toHaveProperty('keptStored')
-      expect(danmakuService.upsert).toHaveBeenCalled()
-    })
-  })
 })
 
-describe('getDanmaku fetches racing on one episode', () => {
+describe('ProviderService.getDanmaku against persisted episodes', () => {
   const config = makeConfig('iqiyi')
   let db: DanmakuAnywhereDb
   let danmakuService: DanmakuService
@@ -568,9 +487,10 @@ describe('getDanmaku fetches racing on one episode', () => {
   afterEach(async () => {
     db.close()
     await Dexie.delete(DANMAKU_DB_NAME)
+    vi.restoreAllMocks()
   })
 
-  async function setup(storedCount?: number) {
+  async function setup(storedComments?: CommentEntity[]) {
     const season = await new SeasonService(db).upsert(
       makeSeasonInsert({
         manifestId: config.manifestId,
@@ -586,12 +506,12 @@ describe('getDanmaku fetches racing on one episode', () => {
       lastChecked: 0,
       season,
     }
-    if (storedCount !== undefined) {
+    if (storedComments) {
       const { season: _, ...insert } = meta
       await danmakuService.upsert({
         ...insert,
-        comments: comments(storedCount),
-        commentCount: storedCount,
+        comments: storedComments,
+        commentCount: storedComments.length,
       })
     }
 
@@ -612,12 +532,17 @@ describe('getDanmaku fetches racing on one episode', () => {
       registry: { ready: Promise.resolve(), getIdentityFieldsMap },
     })
 
-    function fetch() {
+    function fetch(forceUpdate: boolean) {
       return service.getDanmaku({
         type: 'by-meta',
         meta,
-        options: { forceUpdate: true },
+        options: { forceUpdate },
       })
+    }
+
+    async function refetch(fetched: CommentEntity[]) {
+      first.resolve(fetched)
+      return fetch(true)
     }
 
     async function stored() {
@@ -628,14 +553,66 @@ describe('getDanmaku fetches racing on one episode', () => {
       return episode
     }
 
-    return { first, second, getDanmaku, fetch, stored }
+    return { first, second, getDanmaku, fetch, refetch, stored }
   }
 
-  it('keeps the larger refetch when a smaller one resolves after it', async () => {
-    const { first, second, getDanmaku, fetch, stored } = await setup(3)
+  it('keeps the stored episode when the refetch returns fewer comments', async () => {
+    const { refetch, stored } = await setup(comments(5))
+    const before = await stored()
 
-    const refreshA = fetch()
-    const refreshB = fetch()
+    const result = await refetch(comments(3))
+
+    expect(result.keptStored).toEqual({ fetchedCount: 3, storedCount: 5 })
+    expect(result.episode).toEqual(before)
+    expect(await stored()).toEqual(before)
+  })
+
+  it('keeps the stored episode when the refetch returns nothing', async () => {
+    const { refetch, stored } = await setup(comments(5))
+
+    const result = await refetch([])
+
+    expect(result.keptStored).toEqual({ fetchedCount: 0, storedCount: 5 })
+    expect((await stored()).commentCount).toBe(5)
+  })
+
+  it('replaces the stored episode when the refetch returns as many comments', async () => {
+    const { refetch, stored } = await setup(comments(3))
+
+    const result = await refetch(comments(3))
+
+    expect(result).not.toHaveProperty('keptStored')
+    expect((await stored()).version).toBe(2)
+  })
+
+  it('records when the replacing refetch checked the source', async () => {
+    const { refetch, stored } = await setup(comments(3))
+    vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
+
+    await refetch(comments(4))
+
+    expect((await stored()).lastChecked).toBe(1_700_000_000_000)
+  })
+
+  it('does not count stored comments the renderer cannot parse', async () => {
+    const { refetch, stored } = await setup([
+      ...comments(2),
+      { p: '10,7,16777215', m: 'positioned' },
+    ])
+
+    const result = await refetch(comments(2))
+
+    expect(result).not.toHaveProperty('keptStored')
+    expect((await stored()).commentCount).toBe(2)
+  })
+
+  it('keeps the larger refetch when a smaller one resolves after it', async () => {
+    const { first, second, getDanmaku, fetch, stored } = await setup(
+      comments(3)
+    )
+
+    const refreshA = fetch(true)
+    const refreshB = fetch(true)
     await vi.waitFor(() => expect(getDanmaku).toHaveBeenCalledTimes(2))
 
     first.resolve(comments(6))
@@ -653,8 +630,8 @@ describe('getDanmaku fetches racing on one episode', () => {
   it('keeps the larger first fetch when a smaller one resolves after it', async () => {
     const { first, second, getDanmaku, fetch, stored } = await setup()
 
-    const fetchA = fetch()
-    const fetchB = fetch()
+    const fetchA = fetch(false)
+    const fetchB = fetch(false)
     await vi.waitFor(() => expect(getDanmaku).toHaveBeenCalledTimes(2))
 
     first.resolve(comments(6))

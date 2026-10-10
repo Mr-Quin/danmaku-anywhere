@@ -1,15 +1,11 @@
 import type {
-  CommentEntity,
   CustomSeason,
   EpisodeMeta,
   Season,
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import {
-  LEGACY_MACCMS_ID,
-  parseCommentEntityP,
-} from '@danmaku-anywhere/danmaku-converter'
+import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import { getDisplayStrings } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
@@ -52,11 +48,6 @@ import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from './ProviderFactory'
-
-function countRenderable(comments: CommentEntity[]): number {
-  return comments.filter((comment) => parseCommentEntityP(comment.p) !== null)
-    .length
-}
 
 function enrichEpisode(
   episode: OmitSeasonId<EpisodeMeta>,
@@ -240,36 +231,26 @@ export class ProviderService {
       throw new Error(`No danmaku found for ${meta.title}`)
     }
 
-    if (existingDanmaku) {
-      const fetchedCount = countRenderable(comments)
-      const storedCount = countRenderable(existingDanmaku.comments)
-      if (fetchedCount < storedCount) {
-        this.logger.warn(
-          `Refetch returned ${fetchedCount} comments, fewer than the ${storedCount} stored; keeping the stored episode`
-        )
-        return {
-          episode: existingDanmaku,
-          keptStored: { fetchedCount, storedCount },
-        }
-      }
-    }
-
     const { season, ...rest } = meta
 
-    const saved = await this.danmakuService.upsert({
-      ...rest,
-      seasonId: season.id,
-      comments,
-      commentCount: comments.length,
-      lastChecked: Date.now(),
-    })
+    const { episode, keptStored } = await this.danmakuService.upsertUnlessFewer(
+      {
+        ...rest,
+        seasonId: season.id,
+        comments,
+        commentCount: comments.length,
+        lastChecked: Date.now(),
+      }
+    )
 
-    return {
-      episode: {
-        ...saved,
-        season,
-      },
+    if (keptStored) {
+      this.logger.warn(
+        `Fetch returned ${keptStored.fetchedCount} comments, fewer than the ${keptStored.storedCount} stored; keeping the stored episode`
+      )
+      return { episode: { ...episode, season }, keptStored }
     }
+
+    return { episode: { ...episode, season } }
   }
 
   async parseUrl(url: string): Promise<WithSeason<EpisodeMeta>> {
