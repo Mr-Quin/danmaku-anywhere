@@ -209,9 +209,8 @@ describe('ConfigStateService', () => {
       expect(mockExtensionOptionsService.options.set).not.toHaveBeenCalled()
     })
 
-    it.each([0, 2, 99])(
-      'should refuse envelope version %i without touching any store',
-      async (version) => {
+    for (const version of [0, 2, 99]) {
+      it(`should refuse envelope version ${version} without touching any store`, async () => {
         await expect(
           service.restoreState({
             meta: { version, timestamp: 12345 },
@@ -223,8 +222,8 @@ describe('ConfigStateService', () => {
 
         expect(mockDanmakuOptionsService.options.set).not.toHaveBeenCalled()
         expect(mockDanmakuOptionsService.options.migrate).not.toHaveBeenCalled()
-      }
-    )
+      })
+    }
 
     it('should report a store whose payload fails its schema and still restore the rest', async () => {
       mockDanmakuOptionsService.backupSchema = z.object({
