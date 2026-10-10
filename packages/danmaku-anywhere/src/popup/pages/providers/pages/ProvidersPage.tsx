@@ -83,7 +83,11 @@ export const ProvidersPage = (): ReactElement => {
   }
 
   const handleAddDanDanPlayProvider = () => {
-    setEditingProvider(createCustomDanDanPlayProvider())
+    setEditingProvider(
+      createCustomDanDanPlayProvider({
+        name: t('providers.instance.defaultName', 'Self-hosted DanDanPlay'),
+      })
+    )
     setMode('add')
   }
 
@@ -93,7 +97,11 @@ export const ProvidersPage = (): ReactElement => {
   }
 
   const handleAddInstance = () => {
-    setEditingProvider(createCustomDanDanPlayProvider())
+    setEditingProvider(
+      createCustomDanDanPlayProvider({
+        name: t('providers.instance.defaultName', 'Self-hosted DanDanPlay'),
+      })
+    )
     setMode('add')
   }
 

@@ -738,6 +738,9 @@
       "reorderDone": "Done",
       "title": "Installed"
     },
+    "instance": {
+      "defaultName": "Self-hosted DanDanPlay"
+    },
     "name": "Danmaku Providers",
     "updates": {
       "failed": "Update failed",

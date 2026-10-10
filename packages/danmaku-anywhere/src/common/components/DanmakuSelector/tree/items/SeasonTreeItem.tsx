@@ -4,7 +4,6 @@ import { Chip, Skeleton, Stack, styled, Typography } from '@mui/material'
 import { type ReactElement, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isCustomSeason } from '@/common/danmaku/utils'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { SuspenseImage } from '../../../image/SuspenseImage'
 
 const ProviderChip = styled(Chip)(({ theme }) => {
@@ -41,7 +40,7 @@ const SeasonThumbnail = ({
 
 interface SeasonTreeItemProps {
   season: Season | CustomSeason
-  provider?: ProviderConfig
+  providerName?: string
   orphaned?: boolean
   fetchedCount?: number
   stubCount?: number
@@ -50,7 +49,7 @@ interface SeasonTreeItemProps {
 
 export const SeasonTreeItem = ({
   season,
-  provider,
+  providerName,
   orphaned,
   fetchedCount,
   stubCount,
@@ -128,9 +127,9 @@ export const SeasonTreeItem = ({
           <Typography noWrap variant="body2">
             {season.title}
           </Typography>
-          {provider && (
+          {providerName && (
             <ProviderChip
-              label={provider.name}
+              label={providerName}
               size="small"
               variant="outlined"
             />

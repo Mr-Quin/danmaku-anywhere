@@ -5,12 +5,11 @@ import type {
   Season,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { TreeViewDefaultItemModelProperties } from '@mui/x-tree-view/models'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 
 interface SeasonTreeItem extends TreeViewDefaultItemModelProperties {
   kind: 'season'
   data: Season | CustomSeason
-  provider?: ProviderConfig
+  providerName?: string
   // True when the season's provider config has been deleted: the season stays
   // viewable, but refresh is blocked since there is no source to re-fetch from.
   orphaned?: boolean
