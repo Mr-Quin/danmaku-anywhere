@@ -1,0 +1,28 @@
+<!--
+  native-video.html variant for an SPA whose router fires a bubbling synthetic
+  "pagehide" on its view container when switching views (Jellyfin's view
+  manager does this) and only renders the <video> after that switch.
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Integration test page</title>
+  </head>
+  <body>
+    <div data-testid="da-view">
+      <h1 data-testid="da-title">DA Integration Test</h1>
+      <span data-testid="da-episode">Episode 1</span>
+    </div>
+    <script>
+      window.switchView = () => {
+        const view = document.querySelector('[data-testid="da-view"]')
+        view.dispatchEvent(new CustomEvent('pagehide', { bubbles: true }))
+        const video = document.createElement('video')
+        video.dataset.testid = 'da-video'
+        video.playsInline = true
+        view.appendChild(video)
+      }
+    </script>
+  </body>
+</html>
