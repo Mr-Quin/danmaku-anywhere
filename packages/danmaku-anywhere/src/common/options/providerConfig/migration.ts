@@ -14,7 +14,7 @@ import { type ProviderConfig, providerConfigSchema } from './schema'
 
 // Names for built-ins migrated from storage older than the manifest catalog.
 // Fresh installs take the name from the manifest instead (see ProviderService).
-const LEGACY_BUILTIN_NAMES: Record<string, string> = {
+export const LEGACY_BUILTIN_NAMES: Record<string, string> = {
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]]: 'DanDanPlay',
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]]: 'Bilibili',
   [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]]: 'Tencent',

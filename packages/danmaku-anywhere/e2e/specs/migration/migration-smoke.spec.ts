@@ -16,6 +16,7 @@ import { mockCatalog } from '../../network/catalog'
 import { ImportPage } from '../../pom/ImportPage'
 import { Popup } from '../../pom/Popup'
 import { MigrationLegacyPopup } from '../../poms/legacy/v1.5.0/MigrationLegacyPopup'
+import { assertBuiltinNamesLocalized } from '../../setup/builtinNames'
 import { attachConsoleWatcher } from '../../setup/console-watcher'
 import { MIGRATION_EXTENSION_ID } from '../../setup/extensionKey'
 import {
@@ -274,6 +275,9 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   await assertUpgradedUi(context)
 
   await assertPostMigrationReimport(context)
+  await assertBuiltinNamesLocalized(context, MIGRATION_EXTENSION_ID, {
+    seasonChips: true,
+  })
 
   return context
 }

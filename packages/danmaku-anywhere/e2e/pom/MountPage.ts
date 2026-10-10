@@ -34,6 +34,10 @@ export class MountPage {
     return this.episodeItem(episodeId).getByTestId('comment-count')
   }
 
+  seasonItems(): Locator {
+    return this.page.locator(SELECTORS.treeItemPrefix('season-'))
+  }
+
   episodeItems(): Locator {
     return this.page.locator(SELECTORS.treeItemPrefix('episode-'))
   }
