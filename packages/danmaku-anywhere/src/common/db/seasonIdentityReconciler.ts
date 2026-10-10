@@ -18,7 +18,7 @@ type ReconcilableConfig = {
  * dropping providerConfigId, and rekey seasonMap entries the same way.
  *
  * Idempotent: a healed row has no providerConfigId; an unmatched row keeps it
- * for the next run (the caller schedules one per browser session), as does one
+ * for the next run (the caller runs one per service worker start), as does one
  * whose manifest the caller could not resolve: healing drops providerConfigId,
  * so a namespace stamped from a declaration we do not have is unrecoverable.
  * Returns the number of season rows healed.
