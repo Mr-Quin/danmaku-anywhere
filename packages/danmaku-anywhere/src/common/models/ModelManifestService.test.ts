@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import type { ILogger } from '@/common/Logger'
+import { silentLogger } from '@/tests/silentLogger'
 import { BASELINE_MANIFEST } from './baseline'
 import { ModelManifestService } from './ModelManifestService'
 
@@ -11,17 +11,6 @@ import { ModelManifestService } from './ModelManifestService'
  * lazy loads use the HTTP cache while refresh bypasses it. A fake fetch stands
  * in for the network.
  */
-
-function makeLogger(): ILogger {
-  const logger = {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    sub: () => logger,
-  } as unknown as ILogger
-  return logger
-}
 
 const remoteManifest = {
   version: 2,
@@ -52,11 +41,11 @@ function jsonResponse(body: unknown): Response {
     ok: true,
     status: 200,
     json: () => Promise.resolve(body),
-  } as unknown as Response
+  } as unknown as Response // lint-specs-allow-cast: partial fetch Response fixture, not a collaborator
 }
 
 function make(fetchFn: typeof fetch) {
-  return new ModelManifestService(makeLogger(), fetchFn)
+  return new ModelManifestService(silentLogger, fetchFn)
 }
 
 describe('ModelManifestService', () => {

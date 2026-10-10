@@ -114,6 +114,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/wicg-file-system-access": "^2023.10.7",
     "@vitejs/plugin-react": "^5.1.1",
+    "@webext-core/fake-browser": "^2.0.1",
     "fake-indexeddb": "^6.2.5",
     "i18next-cli": "^1.28.0",
     "jsdom": "^28.1.0",

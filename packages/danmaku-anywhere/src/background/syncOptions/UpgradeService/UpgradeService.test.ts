@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { LoggerSymbol } from '@/common/Logger'
 import { StoreServiceSymbol } from '@/common/options/IStoreService'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
-import { mockChrome } from '@/tests/mockChromeApis'
+import { silentLogger } from '@/tests/silentLogger'
 import { UpgradeService } from './UpgradeService'
 
 vi.mock('@/common/constants', () => {
@@ -11,6 +11,8 @@ vi.mock('@/common/constants', () => {
     EXTENSION_VERSION: '1.0.0',
   }
 })
+
+// lint-specs-allow-call-only: upgrade() returns void; the collaborator calls it makes, and with what merged context, are the only observable behavior
 
 describe('UpgradeService', () => {
   let container: Container
@@ -20,8 +22,6 @@ describe('UpgradeService', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
-
-    mockChrome.storage.local.get.mockImplementation((key, cb) => cb({}))
 
     mockStoreService = {
       options: {
@@ -41,18 +41,7 @@ describe('UpgradeService', () => {
     container.bind(UpgradeService).toSelf()
     container.bind(StoreServiceSymbol).toConstantValue(mockStoreService)
     container.bind(ReadinessService).toConstantValue(mockReadinessService)
-    container.bind(LoggerSymbol).toConstantValue({
-      sub: () => ({
-        debug: vi.fn(),
-        info: vi.fn(),
-        warn: vi.fn(),
-        error: vi.fn(),
-      }),
-      debug: vi.fn(),
-      info: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
-    })
+    container.bind(LoggerSymbol).toConstantValue(silentLogger)
 
     service = container.get(UpgradeService)
   })
