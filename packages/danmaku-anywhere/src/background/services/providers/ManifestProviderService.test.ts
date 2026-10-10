@@ -39,13 +39,13 @@ function makeRunner(
     configDefaults: vi.fn(
       () => (returns.configDefaults as Record<string, unknown>) ?? {}
     ),
-  } as unknown as ManifestRunner
+  } as unknown as ManifestRunner // lint-specs-allow-cast: ManifestRunner (from @mr-quin/dango) has private fields; double only implements the methods this suite exercises
 }
 
 function makeRegistry(runner: ManifestRunner): ManifestRegistry {
   return {
-    getRunner: vi.fn(() => runner),
-  } as unknown as ManifestRegistry
+    getRunner: vi.fn<ManifestRegistry['getRunner']>(() => runner),
+  } as unknown as ManifestRegistry // lint-specs-allow-cast: ManifestRegistry has private fields; double only implements getRunner
 }
 
 describe('ManifestProviderService.search', () => {
@@ -227,7 +227,7 @@ describe('ManifestProviderService.getDanmaku', () => {
     warn: ReturnType<typeof vi.fn>
   } {
     const warn = vi.fn()
-    const logger = { ...silentLogger, warn } as unknown as ILogger
+    const logger = { ...silentLogger, warn } satisfies ILogger
     const svc = new ManifestProviderService(
       {
         manifestId: 'dandanplay',
