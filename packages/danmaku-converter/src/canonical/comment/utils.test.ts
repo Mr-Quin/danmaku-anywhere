@@ -65,12 +65,13 @@ describe('zCommentEntity', () => {
     expect(zCommentEntity.safeParse(commentEntity).success).toBe(true)
   })
 
-  it.each([['garbage'], ['12,99,16777215'], ['abc,1,16777215']])(
-    'rejects an unparseable p %s',
-    (p) => {
-      expect(zCommentEntity.safeParse({ p, m: 'text' }).success).toBe(false)
-    }
-  )
+  it.each([
+    ['garbage'],
+    ['12,99,16777215'],
+    ['abc,1,16777215'],
+  ])('rejects an unparseable p %s', (p) => {
+    expect(zCommentEntity.safeParse({ p, m: 'text' }).success).toBe(false)
+  })
 
   it('leaves the stored shape lenient about p', () => {
     expect(
