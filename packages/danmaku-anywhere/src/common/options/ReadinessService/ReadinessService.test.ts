@@ -50,4 +50,20 @@ describe('ReadinessService', () => {
     await service.waitUntilReady()
     expect(isReady).toBe(true)
   })
+
+  it('unblocks when the version is recorded while the initial read is in flight', async () => {
+    await storeLastVersion('0.9.0')
+    const get = fakeBrowser.storage.local.get.bind(fakeBrowser.storage.local)
+    vi.spyOn(fakeBrowser.storage.local, 'get').mockImplementationOnce(
+      async (keys) => {
+        const stale = await get(keys)
+        await storeLastVersion('1.0.0')
+        return stale
+      }
+    )
+
+    const service = container.get(ReadinessService)
+
+    await expect(service.waitUntilReady()).resolves.toBeUndefined()
+  })
 })

@@ -23,9 +23,8 @@ export const DANMAKU_DB_NAME = 'danmaku-anywhere'
 
 type WithoutId<T> = Omit<T, 'id'>
 
-// v10 looks seasons up by provider and v12 derives providerConfigId from it, so
-// this must keep producing the season shape of that era, not whatever the
-// shared converter emits today.
+// Keep this independent of the shared converter: v10 looks seasons up by
+// provider and v12 derives providerConfigId from it.
 function extractSeasonV10(
   item:
     | DanDanPlayDanmakuInsertV3

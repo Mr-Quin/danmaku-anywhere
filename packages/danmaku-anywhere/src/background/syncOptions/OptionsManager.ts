@@ -58,6 +58,10 @@ export class OptionsManager {
       }
     })
 
+    chrome.runtime.onStartup.addListener(() => {
+      void this.upgradeOnce()
+    })
+
     // The worker can be killed mid-upgrade, and the next wake may be a popup or
     // a message rather than an install or startup event.
     void this.upgradeIfVersionChanged()

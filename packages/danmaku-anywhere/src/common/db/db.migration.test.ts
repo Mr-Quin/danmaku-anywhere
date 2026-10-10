@@ -259,6 +259,18 @@ const biliDanmakuV3 = {
   seasonTitle: 'Bili Show',
 }
 
+const tencentDanmakuV3 = {
+  provider: 'Tencent',
+  meta: { provider: 'Tencent', cid: 'tc1', vid: 'tv1' },
+  comments: [],
+  commentCount: 0,
+  version: 1,
+  timeUpdated: 1,
+  schemaVersion: 3,
+  episodeTitle: 'Tencent Episode',
+  seasonTitle: 'Tencent Show',
+}
+
 const customDanmakuV3 = {
   provider: 'Custom',
   meta: { provider: 'Custom', seasonTitle: 'Local', episodeTitle: 'Clip' },
@@ -282,6 +294,7 @@ describe('pre-v10 database upgraded to v15', () => {
         ddpDanmakuV3(10001, 100),
         ddpDanmakuV3(10002, 100),
         biliDanmakuV3,
+        tencentDanmakuV3,
         customDanmakuV3,
       ])
     legacy.close()
@@ -297,8 +310,9 @@ describe('pre-v10 database upgraded to v15', () => {
     ).toEqual([
       ['bilibili', 'bilibili', '700'],
       ['dandanplay', 'dandanplay', '100'],
+      ['tencent', 'tencent', 'tc1'],
     ])
-    expect(episodes).toHaveLength(3)
+    expect(episodes).toHaveLength(4)
     const seasonIds = new Set(seasons.map((s) => s.id))
     expect(episodes.every((e) => seasonIds.has(e.seasonId))).toBe(true)
     const ddpSeason = seasons.find((s) => s.manifestId === 'dandanplay')
