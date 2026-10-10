@@ -571,16 +571,12 @@ describe('migrateProviderConfigsToFlat', () => {
     })
   })
 
-  it('passes an already-flat record through', () => {
-    const alreadyFlat = {
-      id: 'dandanplay',
-      manifestId: 'dandanplay',
-      name: 'DanDanPlay',
-      enabled: true,
-      configValues: { chConvert: DanDanChConvert.None },
-    }
+  it('migrates a record with no options', () => {
+    const [flat] = migrateProviderConfigsToFlat([
+      { ...v150ProviderConfigs[1], options: undefined },
+    ])
 
-    expect(migrateProviderConfigsToFlat([alreadyFlat])).toEqual([alreadyFlat])
+    expect(flat.configValues).toEqual({})
   })
 
   it.each([
@@ -588,7 +584,7 @@ describe('migrateProviderConfigsToFlat', () => {
     ['no type', { ...v150ProviderConfigs[1], type: undefined }],
     ['no id', { ...v150ProviderConfigs[1], id: undefined }],
     ['an empty name', { ...v150ProviderConfigs[1], name: '' }],
-    ['a flat record that fails the schema', { manifestId: 'dandanplay' }],
+    ['no enabled flag', { ...v150ProviderConfigs[1], enabled: undefined }],
     ['a non-object', 'builtin:bilibili'],
     ['null', null],
   ])('drops a record with %s', (_, record) => {

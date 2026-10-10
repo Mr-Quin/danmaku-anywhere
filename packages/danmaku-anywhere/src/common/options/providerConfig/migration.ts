@@ -172,9 +172,7 @@ export function migrateDanmakuSourcesToProviders(
   }
 }
 
-// v1.5.0 stored a union keyed by `type` with per-type `options`. Each record is
-// translated on its own and dropped if the result does not parse, so one bad
-// entry costs only itself.
+// v1.5.0 stored a union keyed by `type` with per-type `options`.
 export function migrateProviderConfigsToFlat(
   data: unknown[]
 ): ProviderConfig[] {
@@ -197,15 +195,12 @@ export function migrateProviderConfigsToFlat(
 // biome-ignore lint/suspicious/noExplicitAny: legacy input shape
 function toFlatProviderConfig(old: any): unknown {
   if (old === null || typeof old !== 'object') {
-    return old
-  }
-  if (typeof old.manifestId === 'string') {
-    return old
+    return undefined
   }
   const base = {
     id: old.id,
     name: old.name,
-    enabled: old.enabled ?? true,
+    enabled: old.enabled,
   }
   const options = old.options ?? {}
   switch (old.type) {

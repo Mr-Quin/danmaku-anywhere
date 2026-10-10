@@ -52,7 +52,7 @@ export class ProviderConfigService implements IStoreService {
       .version(4, {
         upgrade: (data) => migrateDanDanPlayApiBaseUrl(data),
       })
-      // Kept as a no-op: nightly stores are already at v5, so a new step must be v6.
+      // No-op. Stores already at v5 exist, so the next step must be v6.
       .version(5, {
         upgrade: (data) => data,
       })
