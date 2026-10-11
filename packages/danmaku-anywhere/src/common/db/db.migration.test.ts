@@ -11,7 +11,10 @@ import { DANMAKU_DB_NAME, DanmakuAnywhereDb } from './db'
  * to the current version. Asserts that seasons end up keyed by bare
  * providerConfigId + indexedId with a manifestId, that self-hosted uuids
  * survive, that episodes, custom episodes and seasonMap ids are left as seeded,
- * and that no Chrome storage is read.
+ * and that no Chrome storage is read. A nightly profile that ran the previous
+ * v15 body (manifestId + namespaceKey, no providerConfigId) is healed to the
+ * same shape: duplicate keys turn into their own orphans, an old orphan only
+ * gains its missing manifestId, and complete rows are left alone.
  */
 
 const SELF_HOSTED_A = 'd9d068cc-d7a5-4277-990b-73b28f7637f8'
@@ -389,6 +392,202 @@ describe('v1.5.0 (v12) database upgraded to the current version', () => {
     const second = await snapshot()
 
     expect(second).toEqual(first)
+  })
+})
+
+const OLD_V15_STORES = {
+  episode:
+    '++id, indexedId, &[seasonId+indexedId], seasonId, timeUpdated, lastChecked',
+  season:
+    '++id, manifestId, namespaceKey, indexedId, [manifestId+namespaceKey+indexedId]',
+  customEpisode: '++id, title',
+  seasonMap: 'key, *seasonIds',
+  bookmark: '++id, &seasonId',
+}
+
+async function seedOldV15(seed: Seed & { bookmarks?: Row[] }): Promise<void> {
+  const db = new Dexie(DANMAKU_DB_NAME)
+  db.version(15).stores(OLD_V15_STORES)
+  await db.open()
+  await db.transaction('rw', db.tables, async () => {
+    await db.table('season').bulkAdd(seed.seasons ?? [])
+    await db.table('episode').bulkAdd(seed.episodes ?? [])
+    await db.table('seasonMap').bulkAdd(seed.seasonMaps ?? [])
+    await db.table('bookmark').bulkAdd(seed.bookmarks ?? [])
+  })
+  db.close()
+}
+
+function oldV15Season(id: number, identity: Row, indexedId: string): Row {
+  return {
+    id,
+    ...identity,
+    providerIds: { animeId: id },
+    title: `Show ${id}`,
+    type: 'tvseries',
+    indexedId,
+    schemaVersion: 1,
+    version: 1,
+    timeUpdated: 1700000000000,
+  }
+}
+
+const OLD_V15_SEASONS = [
+  oldV15Season(
+    1,
+    { manifestId: 'dandanplay', namespaceKey: 'dandanplay' },
+    '17981'
+  ),
+  oldV15Season(
+    2,
+    { manifestId: 'bilibili', namespaceKey: 'bilibili' },
+    '28339'
+  ),
+  oldV15Season(
+    3,
+    { manifestId: 'dandanplay', namespaceKey: 'ns:abc12345' },
+    '5550'
+  ),
+  oldV15Season(4, { providerConfigId: SELF_HOSTED_A }, '777'),
+]
+
+const OLD_V15_EPISODES = [
+  v150Episode(11, 1, 'DanDanPlay', 200),
+  v150Episode(31, 3, 'DanDanPlay', 50),
+].map(({ provider: _provider, ...episode }) => episode)
+
+describe('nightly database that ran the previous v15 body', () => {
+  it('gives every season a providerConfigId and drops namespaceKey', async () => {
+    await seedOldV15({ seasons: OLD_V15_SEASONS })
+
+    const db = await openCurrent()
+    const seasons = await db.season.toArray()
+    db.close()
+
+    expect(
+      seasons.map((s) => [s.id, s.providerConfigId, s.manifestId])
+    ).toEqual([
+      [1, 'dandanplay', 'dandanplay'],
+      [2, 'bilibili', 'bilibili'],
+      [3, 'ns:abc12345', 'dandanplay'],
+      [4, SELF_HOSTED_A, 'dandanplay'],
+    ])
+    expect(seasons.every((s) => !('namespaceKey' in s))).toBe(true)
+  })
+
+  it('only adds the missing manifestId to an old orphan', async () => {
+    await seedOldV15({ seasons: OLD_V15_SEASONS })
+
+    const db = await openCurrent()
+    const orphan = await db.season.get(4)
+    db.close()
+
+    expect(orphan).toEqual({ ...OLD_V15_SEASONS[3], manifestId: 'dandanplay' })
+  })
+
+  it('leaves a complete row exactly as stored', async () => {
+    const complete = oldV15Season(
+      5,
+      { manifestId: 'tencent', providerConfigId: 'tencent' },
+      'mzc00200'
+    )
+    await seedOldV15({ seasons: [...OLD_V15_SEASONS, complete] })
+
+    const db = await openCurrent()
+    const row = await db.season.get(5)
+    db.close()
+
+    expect(row).toEqual(complete)
+  })
+
+  it('turns a second row with the same derived key into its own orphan', async () => {
+    const identity = { manifestId: 'dandanplay', namespaceKey: 'ns:dup00001' }
+    const episodes = [
+      v150Episode(61, 6, 'DanDanPlay', 10),
+      v150Episode(71, 7, 'DanDanPlay', 10),
+    ].map(({ provider: _provider, ...episode }) => episode)
+    await seedOldV15({
+      seasons: [
+        oldV15Season(6, identity, '4242'),
+        oldV15Season(7, identity, '4242'),
+      ],
+      episodes,
+    })
+
+    const db = await openCurrent()
+    const seasons = await db.season.toArray()
+    const storedEpisodes = await db.episode.toArray()
+    db.close()
+
+    expect(seasons.map((s) => [s.id, s.providerConfigId])).toEqual([
+      [6, 'ns:dup00001'],
+      [7, 'orphan:7'],
+    ])
+    expect(storedEpisodes).toEqual(episodes)
+  })
+
+  it('leaves episodes, title mappings and bookmarks untouched', async () => {
+    const seasonMaps = [
+      {
+        key: 'Show',
+        seasons: { dandanplay: 1, 'ns:abc12345': 3 },
+        seasonIds: [1, 3],
+      },
+    ]
+    const bookmarks = [
+      {
+        id: 1,
+        seasonId: 3,
+        episodes: [],
+        lastRefreshed: 0,
+        version: 1,
+        timeUpdated: 0,
+      },
+    ]
+    await seedOldV15({
+      seasons: OLD_V15_SEASONS,
+      episodes: OLD_V15_EPISODES,
+      seasonMaps,
+      bookmarks,
+    })
+
+    const db = await openCurrent()
+    const state = {
+      episodes: await db.episode.toArray(),
+      seasonMaps: await db.seasonMap.toArray(),
+      bookmarks: await db.bookmark.toArray(),
+    }
+    db.close()
+
+    expect(state).toEqual({
+      episodes: OLD_V15_EPISODES,
+      seasonMaps,
+      bookmarks,
+    })
+  })
+
+  it('replaces the namespace index with the unique config id index', async () => {
+    await seedOldV15({ seasons: OLD_V15_SEASONS })
+
+    const db = await openCurrent()
+    const indexes = await seasonIndexes(db)
+    const byConfig = await db.season.get({
+      providerConfigId: 'ns:abc12345',
+      indexedId: '5550',
+    })
+    db.close()
+
+    const names = indexes.map((index) => index.name)
+    expect(indexes).toContainEqual({
+      name: '[providerConfigId+indexedId]',
+      unique: true,
+    })
+    expect(names).toEqual(
+      expect.arrayContaining(['manifestId', 'providerConfigId', 'indexedId'])
+    )
+    expect(names).not.toContain('[manifestId+namespaceKey+indexedId]')
+    expect(names).not.toContain('namespaceKey')
+    expect(byConfig?.id).toBe(3)
   })
 })
 

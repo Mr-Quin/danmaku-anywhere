@@ -88,6 +88,10 @@ function manifestIdForV15(season: {
   return V15_BUILTIN_ID_BY_PROVIDER.get(season.provider) ?? 'dandanplay'
 }
 
+function seasonKeyV16(providerConfigId: unknown, indexedId: unknown): string {
+  return JSON.stringify([providerConfigId, indexedId])
+}
+
 @injectable('Singleton')
 export class DanmakuAnywhereDb extends Dexie {
   episode!: Dexie.Table<Episode, number, WithoutId<Episode>>
@@ -529,6 +533,56 @@ export class DanmakuAnywhereDb extends Dexie {
           .toCollection()
           .modify((bookmark) => {
             delete bookmark.providerConfigId
+          })
+      })
+
+    // Only for nightly profiles that ran the previous v15 body, which keyed
+    // seasons by manifestId + namespaceKey. Store users never had namespaceKey.
+    this.version(16)
+      .stores({
+        episode:
+          '++id, indexedId, &[seasonId+indexedId], seasonId, timeUpdated, lastChecked',
+        season:
+          '++id, manifestId, providerConfigId, indexedId, &[providerConfigId+indexedId]',
+        customEpisode: '++id, title',
+        seasonMap: 'key, *seasonIds',
+        bookmark: '++id, &seasonId',
+      })
+      .upgrade(async (tx) => {
+        const seasons = tx.table('season')
+        const taken = new Set<string>()
+        await seasons.each((season) => {
+          if (typeof season.providerConfigId === 'string') {
+            taken.add(seasonKeyV16(season.providerConfigId, season.indexedId))
+          }
+        })
+
+        await seasons
+          .filter(
+            (season) =>
+              typeof season.providerConfigId !== 'string' ||
+              typeof season.manifestId !== 'string'
+          )
+          .modify((season) => {
+            if (typeof season.providerConfigId !== 'string') {
+              const derived =
+                season.namespaceKey === season.manifestId
+                  ? season.manifestId
+                  : season.namespaceKey
+              const key = seasonKeyV16(derived, season.indexedId)
+              // The previous v15 index was not unique, so two rows can derive
+              // the same key. The later one becomes an orphan of its own.
+              if (typeof derived === 'string' && !taken.has(key)) {
+                season.providerConfigId = derived
+                taken.add(key)
+              } else {
+                season.providerConfigId = `orphan:${season.id}`
+              }
+            }
+            if (typeof season.manifestId !== 'string') {
+              season.manifestId = manifestIdForV15(season)
+            }
+            delete season.namespaceKey
           })
       })
 
