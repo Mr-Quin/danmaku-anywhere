@@ -5,7 +5,7 @@ import {
   inject,
 } from '@angular/core'
 import { ButtonDirective } from 'primeng/button'
-import { ExtensionService } from '../../core/extension/extension.service'
+import { ExtensionDetector } from '../../core/backend/extension-detector'
 
 @Component({
   selector: 'da-feedback-form-button',
@@ -16,7 +16,7 @@ import { ExtensionService } from '../../core/extension/extension.service'
   `,
 })
 export class FeedbackFormButton {
-  protected readonly extensionService = inject(ExtensionService)
+  protected readonly extensionService = inject(ExtensionDetector)
 
   protected readonly $formUrl = computed(() => {
     const id = this.extensionService.$id()

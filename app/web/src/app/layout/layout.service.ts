@@ -2,7 +2,7 @@ import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout'
 import { computed, effect, Injectable, inject, signal } from '@angular/core'
 import { toSignal } from '@angular/core/rxjs-interop'
 import { type ActivatedRouteSnapshot, Router } from '@angular/router'
-import { ExtensionService } from '../core/extension/extension.service'
+import { ExtensionDetector } from '../core/backend/extension-detector'
 import { PlatformService } from '../core/services/platform.service'
 
 export type ScreenSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
@@ -13,7 +13,7 @@ export type ScreenSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 export class LayoutService {
   private router = inject(Router)
   private breakpointObserver = inject(BreakpointObserver)
-  private extensionService = inject(ExtensionService)
+  private extensionService = inject(ExtensionDetector)
   private platformService = inject(PlatformService)
 
   private $routerEvent = toSignal(this.router.events)

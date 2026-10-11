@@ -1,7 +1,22 @@
 <!doctype html>
-<html lang="zh" class="da-dark">
+<html lang="zh">
 <head>
   <meta charset="utf-8">
+  <script>
+    // Apply the persisted (or default-dark) theme before first paint so there
+    // is no flash and the html class matches what ThemeService will compute.
+    (function () {
+      try {
+        const stored = localStorage.getItem('da-theme')
+        document.documentElement.classList.toggle(
+          'da-dark',
+          stored ? stored === 'dark' : true
+        )
+      } catch {
+        document.documentElement.classList.add('da-dark')
+      }
+    })()
+  </script>
   <title>Danmaku Anywhere</title>
   <meta name="description" content="Danmaku Anywhere 配套网站 | 一站式看番">
   <meta property="og:title" content="Danmaku Anywhere">

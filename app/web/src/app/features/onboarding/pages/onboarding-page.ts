@@ -1,9 +1,10 @@
-import { CommonModule } from '@angular/common'
+import { CommonModule, isPlatformBrowser } from '@angular/common'
 import {
   ChangeDetectionStrategy,
   Component,
   inject,
   type OnInit,
+  PLATFORM_ID,
 } from '@angular/core'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { OnboardingService } from '../services/onboarding.service'
@@ -38,10 +39,13 @@ import { OnboardingService } from '../services/onboarding.service'
 })
 export class OnboardingPage implements OnInit {
   protected onboardingService = inject(OnboardingService)
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID))
 
   readonly $onboardingStatus = this.onboardingService.$onboardingStatus
 
   ngOnInit() {
-    void this.onboardingService.acceptKazumiPolicyAndInstallRecommended()
+    if (this.isBrowser) {
+      void this.onboardingService.acceptKazumiPolicyAndInstallRecommended()
+    }
   }
 }

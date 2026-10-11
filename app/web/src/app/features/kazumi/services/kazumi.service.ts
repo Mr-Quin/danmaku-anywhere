@@ -6,11 +6,7 @@ import {
   signal,
   untracked,
 } from '@angular/core'
-import {
-  getManifest,
-  getPolicy,
-  type KazumiPolicy,
-} from '@danmaku-anywhere/danmaku-provider/kazumi'
+import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
 import type { MediaInfo, SetHeaderRule } from '@danmaku-anywhere/web-scraper'
 import {
   injectMutation,
@@ -28,7 +24,8 @@ import {
   startWith,
   tap,
 } from 'rxjs'
-import { ExtensionMessagingService } from '../../../core/extension/extension-messaging.service'
+import { ExtensionMessenger } from '../../../core/backend/extension-messenger'
+import { KazumiCatalog } from '../../../core/backend/kazumi-catalog'
 import { queryKeys } from '../../../shared/query/queryKeys'
 import { sortArrayByOrder } from '../../../shared/utils/utils'
 import { withTimeout } from '../../../shared/utils/withTimeout'
@@ -80,7 +77,8 @@ export interface MediaSearchDetails {
 })
 export class KazumiService {
   private readonly db = new KazumiDb()
-  private readonly extensionMessagingService = inject(ExtensionMessagingService)
+  private readonly extensionMessagingService = inject(ExtensionMessenger)
+  private readonly kazumiCatalog = inject(KazumiCatalog)
   private readonly queryClient = inject(QueryClient)
 
   // active policy for tab
@@ -143,7 +141,7 @@ export class KazumiService {
   readonly manifestsQuery = injectQuery(() => {
     return {
       queryFn: async () => {
-        const result = await withTimeout(getManifest(), 5000)
+        const result = await withTimeout(this.kazumiCatalog.getManifest(), 5000)
         if (!result.success) throw result.error
         return result.data
       },
@@ -164,7 +162,10 @@ export class KazumiService {
   readonly addPolicyMutation = injectMutation(() => ({
     mutationKey: queryKeys.kazumi.local.all(),
     mutationFn: async (name: string) => {
-      const policy = await withTimeout(getPolicy(`${name}.json`), 5000)
+      const policy = await withTimeout(
+        this.kazumiCatalog.getPolicy(`${name}.json`),
+        5000
+      )
       if (!policy.success) throw policy.error
       const policyData = policy.data
 

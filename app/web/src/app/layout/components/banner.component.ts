@@ -4,7 +4,6 @@ import {
   input,
   output,
 } from '@angular/core'
-import { MaterialIcon } from '../../shared/components/material-icon'
 
 export interface BannerConfig {
   type?: 'info' | 'warning' | 'success' | 'error'
@@ -16,7 +15,7 @@ export interface BannerConfig {
 @Component({
   selector: 'da-banner',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MaterialIcon],
+  imports: [],
   template: `
     <div [class]="getBannerClasses()" class="p-1 flex justify-center relative">
       <div class="text-sm" [class]="config().textClass || 'text-black'">
@@ -28,7 +27,7 @@ export interface BannerConfig {
           [class]="config().textClass || 'text-black'"
           (click)="onDismiss.emit()"
         >
-          <da-mat-icon icon="close" />
+          <i class="pi pi-times"></i>
         </button>
       }
     </div>

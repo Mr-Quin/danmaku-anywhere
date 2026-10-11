@@ -9,7 +9,6 @@ import { Button } from 'primeng/button'
 import { Drawer } from 'primeng/drawer'
 import { environment } from '../../../../environments/environment'
 import { SettingsService } from '../../../features/settings/settings.service'
-import { MaterialIcon } from '../../../shared/components/material-icon'
 import { LayoutService } from '../../layout.service'
 import { NavigationItemComponent } from './navigation-item.component'
 
@@ -29,13 +28,7 @@ interface NavigationSection {
 @Component({
   selector: 'da-sidebar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    MaterialIcon,
-    Button,
-    NavigationItemComponent,
-    Drawer,
-  ],
+  imports: [CommonModule, Button, NavigationItemComponent, Drawer],
   template: `
     @if (!layoutService.$disableSidebar()) {
       <!--      Mobile -->
@@ -53,7 +46,7 @@ interface NavigationSection {
                 (onClick)="layoutService.toggleSidebar()"
               >
                 <ng-template #icon>
-                  <da-mat-icon icon="arrow_back_ios" size="xl" />
+                  <i class="pi pi-chevron-left text-xl"></i>
                 </ng-template>
               </p-button>
             </div>
@@ -110,7 +103,7 @@ interface NavigationSection {
           badgeSeverity="info"
         >
           <ng-template #icon>
-            <da-mat-icon icon="settings" size="lg" />
+            <i class="pi pi-cog text-lg"></i>
           </ng-template>
         </p-button>
       </div>
@@ -129,12 +122,12 @@ export class AppSidebar {
           {
             path: '/trending',
             label: '热门',
-            icon: 'mode_heat',
+            icon: 'pi-chart-line',
           },
           {
             path: '/calendar',
             label: '日历',
-            icon: 'calendar_today',
+            icon: 'pi-calendar',
           },
         ],
       },
@@ -144,7 +137,7 @@ export class AppSidebar {
           {
             path: '/local',
             label: '本地视频',
-            icon: 'folder_open',
+            icon: 'pi-folder-open',
           },
         ],
       },
@@ -154,7 +147,7 @@ export class AppSidebar {
           {
             path: '/kazumi',
             label: 'Kazumi',
-            icon: 'search',
+            icon: 'pi-search',
           },
         ],
       },
@@ -167,17 +160,17 @@ export class AppSidebar {
                 {
                   path: '/debug/video',
                   label: 'Video Debug',
-                  icon: 'bug_report',
+                  icon: 'pi-video',
                 },
                 {
                   path: '/debug/components',
                   label: 'Components',
-                  icon: 'toolbar',
+                  icon: 'pi-th-large',
                 },
                 {
                   path: '/debug/playground',
                   label: 'Playground',
-                  icon: 'science',
+                  icon: 'pi-wrench',
                 },
               ],
             },

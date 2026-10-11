@@ -4,10 +4,11 @@ import {
   Component,
   computed,
   inject,
+  output,
 } from '@angular/core'
 import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
 import { VirtualizedGrid } from '../../../../shared/components/virtualized-grid'
-import { ShowCard } from '../../components/show-card'
+import { ShowCard, type ShowCardData } from '../../components/show-card'
 import { ShowCardSkeleton } from '../../components/show-card-skeleton'
 import { BangumiService } from '../../services/bangumi.service'
 import { transformToShowCardData } from '../../utils/transform-to-show-card-data'
@@ -17,9 +18,9 @@ import { transformToShowCardData } from '../../utils/transform-to-show-card-data
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [CommonModule, ShowCard, ShowCardSkeleton, VirtualizedGrid],
   template: `
-    <div class="container mx-auto p-4">
-      <div class="mb-6">
-        <h1 class="text-3xl font-bold mb-2">热门动画</h1>
+    <div class="w-full p-3">
+      <div class="mb-4">
+        <h1 class="text-2xl font-bold">热门动画</h1>
       </div>
 
       <da-virtualized-grid
@@ -29,15 +30,20 @@ import { transformToShowCardData } from '../../utils/transform-to-show-card-data
         isInfiniteScroll
         [isFetchingNext]="trendingQuery.isFetchingNextPage()"
         [pageSize]="20"
-        [columnConfig]="columnConfig"
+        [minColumnWidth]="180"
         (onLoadMore)="handleLoadMore()"
       >
         <ng-template #skeleton>
           <da-show-card-skeleton />
         </ng-template>
 
-        <ng-template #body let-item="$implicit">
-          <da-show-card [show]="item" />
+        <ng-template #body let-item="$implicit" let-index="index">
+          <da-show-card
+            [show]="item"
+            [priority]="index === 0"
+            (detailsClick)="openDetails.emit(item)"
+            (watchClick)="openWatch.emit($event)"
+          />
         </ng-template>
 
         <ng-template #error>
@@ -56,15 +62,10 @@ import { transformToShowCardData } from '../../utils/transform-to-show-card-data
   `,
 })
 export class TrendingPage {
-  protected bangumiService = inject(BangumiService)
+  readonly openDetails = output<ShowCardData>()
+  readonly openWatch = output<ShowCardData>()
 
-  protected columnConfig = {
-    xs: 2,
-    sm: 3,
-    md: 4,
-    lg: 5,
-    xl: 6,
-  }
+  protected bangumiService = inject(BangumiService)
 
   trendingQuery = injectInfiniteQuery(() => {
     return this.bangumiService.getTrendingInfiniteQueryOptions()

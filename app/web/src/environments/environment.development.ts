@@ -5,4 +5,5 @@ export const environment: AppEnvironment = {
   production: false,
   apiRoot: 'https://api.danmaku-staging.weeblify.app',
   clarityProjectId: 's8yylv4jnd',
+  backendImpl: 'real',
 }

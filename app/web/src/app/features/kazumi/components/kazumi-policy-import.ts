@@ -10,20 +10,12 @@ import { FormsModule } from '@angular/forms'
 import { Button } from 'primeng/button'
 import { IconField } from 'primeng/iconfield'
 import { InputTextModule } from 'primeng/inputtext'
-import { MaterialIcon } from '../../../shared/components/material-icon'
 import { KazumiService } from '../services/kazumi.service'
 
 @Component({
   selector: 'da-kazumi-policy-import',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    Button,
-    FormsModule,
-    InputTextModule,
-    IconField,
-    MaterialIcon,
-  ],
+  imports: [CommonModule, Button, FormsModule, InputTextModule, IconField],
   template: `
     <div class="space-y-4">
       <div class="flex items-center gap-4">
@@ -43,7 +35,7 @@ import { KazumiService } from '../services/kazumi.service'
           (click)="refreshManifests()"
           [loading]="kazumiService.manifestsQuery.isPending()"
         >
-          <da-mat-icon icon="refresh" size="xl" />
+          <i class="pi pi-refresh text-xl"></i>
         </p-button>
       </div>
 
@@ -91,7 +83,7 @@ import { KazumiService } from '../services/kazumi.service'
                         disabled
                         size="small"
                       >
-                        <da-mat-icon icon="check" />
+                        <i class="pi pi-check"></i>
                         已导入
                       </p-button>
                     } @else {
@@ -101,7 +93,7 @@ import { KazumiService } from '../services/kazumi.service'
                         [loading]="isImporting"
                         size="small"
                       >
-                        <da-mat-icon icon="download" />
+                        <i class="pi pi-download"></i>
                         导入
                       </p-button>
                     }

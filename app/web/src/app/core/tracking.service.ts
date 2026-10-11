@@ -38,6 +38,9 @@ export class TrackingService {
     if (!isPlatformBrowser(this.platformId)) {
       return
     }
+    if (!environment.clarityProjectId) {
+      return
+    }
     try {
       const { clarity } = await import('clarity-js')
       clarity.start({

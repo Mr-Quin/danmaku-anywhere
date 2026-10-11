@@ -1,13 +1,12 @@
 import { computed, effect, Injectable, inject, signal } from '@angular/core'
 import { getExtensionAttr } from '@danmaku-anywhere/web-scraper'
+import { ExtensionDetector } from '../backend/extension-detector'
 import { TrackingService } from '../tracking.service'
 import { compareVersion } from './compareVersion'
 import { LATEST_EXTENSION_VERSION } from './latestExtensionVersion'
 
-@Injectable({
-  providedIn: 'root',
-})
-export class ExtensionService {
+@Injectable()
+export class ExtensionService extends ExtensionDetector {
   private trackingService = inject(TrackingService)
 
   private readonly $_version = signal<string | null>(null)
@@ -32,6 +31,7 @@ export class ExtensionService {
   readonly latestVersion = LATEST_EXTENSION_VERSION
 
   constructor() {
+    super()
     effect(() => {
       if (this.$isOutdated()) {
         this.trackingService.tag('extensionOutdated', 'true')

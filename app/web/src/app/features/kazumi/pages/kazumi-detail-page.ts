@@ -7,11 +7,11 @@ import {
   inject,
   input,
   linkedSignal,
+  output,
   signal,
   untracked,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { ActivatedRoute, Router } from '@angular/router'
 import type { MediaInfo } from '@danmaku-anywhere/web-scraper'
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { Button } from 'primeng/button'
@@ -25,7 +25,6 @@ import { Tag } from 'primeng/tag'
 import { defer, type Subscription, tap } from 'rxjs'
 import { TrackingService } from '../../../core/tracking.service'
 import { VideoPlayer } from '../../../core/video-player/video-player'
-import { MaterialIcon } from '../../../shared/components/material-icon'
 import { UnescapePipePipe } from '../../../shared/pipes/UrlDecodePipe'
 import { CommentsTab } from '../../bangumi/components/comments-tab'
 import { BangumiService } from '../../bangumi/services/bangumi.service'
@@ -44,7 +43,6 @@ interface Episode {
     Button,
     Skeleton,
     Tag,
-    MaterialIcon,
     FormsModule,
     Select,
     VideoPlayer,
@@ -88,6 +86,26 @@ interface Episode {
             </h1>
             <p-tag [value]="mediaDetails.policy.name" severity="secondary" />
           </div>
+          <div class="flex items-center gap-2">
+            <button
+              type="button"
+              data-testid="player-prev"
+              class="p-button p-button-secondary p-2"
+              [disabled]="!$hasPrevious()"
+              (click)="onPreviousEpisode()"
+            >
+              <i class="pi pi-step-backward"></i>
+            </button>
+            <button
+              type="button"
+              data-testid="player-next"
+              class="p-button p-button-secondary p-2"
+              [disabled]="!$hasNext()"
+              (click)="onNextEpisode()"
+            >
+              <i class="pi pi-step-forward"></i>
+            </button>
+          </div>
         </div>
       } @else {
         <div class="mb-10 flex">
@@ -101,6 +119,7 @@ interface Episode {
 
       <div class="grid grid-cols-1 xl:grid-cols-[1fr_424px] gap-8">
         <da-video-player
+          data-testid="video-player-host"
           [videoUrl]="$videoUrl()"
           [title]="$fullTitle()"
           [poster]="$posterUrl()"
@@ -134,7 +153,7 @@ interface Episode {
                     (click)="episodesQuery.refetch()"
                     label="重试">
                     <ng-template #icon>
-                      <da-mat-icon icon="refresh" />
+                      <i class="pi pi-refresh"></i>
                     </ng-template>
                   </p-button>
                 </div>
@@ -169,7 +188,7 @@ interface Episode {
               @for (media of mediaList; track $index) {
                 <p-button class="flex"
                           [styleClass]="media.src === $videoUrl() ? 'border-primary border' : ''"
-                          severity="secondary" (onClick)="$videoUrl.set(media.src)">
+                          severity="secondary" (onClick)="selectSource(media.src)">
                   <p-tag [value]="media.contentType" severity="success" />
                   <span class="whitespace-nowrap text-ellipsis overflow-hidden">
                 {{ media.src }}
@@ -201,9 +220,11 @@ interface Episode {
                       </div>
                     } @else {
                       @let selectedEpisode = $selectedEpisode();
-                      @for (episode of $playlist(); track episode.url) {
+                      @for (episode of $playlist(); track episode.url; let i = $index) {
                         @let isSelected = episode === selectedEpisode;
                         <div
+                          data-testid="episode-item"
+                          [attr.data-episode]="i"
                           class="p-4 p-button p-button-secondary transition-all hover:border-primary hover:border"
                           [class.border-primary]="isSelected"
                           (click)="changeEpisode(episode)"
@@ -233,11 +254,9 @@ interface Episode {
 export class KazumiDetailPage {
   private kazumiService = inject(KazumiService)
   private bangumiService = inject(BangumiService)
-  private router = inject(Router)
-  private route = inject(ActivatedRoute)
   private readonly trackingService = inject(TrackingService)
 
-  // query params
+  // watch params sourced from the player column (no longer URL-bound)
   readonly id = input<number>()
   readonly type = input<string>()
   readonly q = input<string>()
@@ -245,6 +264,11 @@ export class KazumiDetailPage {
   readonly policyName = input<string>()
   readonly p = input<number>()
   readonly e = input<number>()
+
+  readonly episodeChange = output<number>()
+  readonly sourceChange = output<string>()
+  readonly openComments = output<number>()
+  readonly openDetails = output<number>()
 
   protected $policy = computed(() => {
     const policyName = this.policyName()
@@ -376,13 +400,12 @@ export class KazumiDetailPage {
   })
 
   constructor() {
-    // Handle initial episode selection from URL parameter
+    // Initial episode selection from the episode input param.
     effect(() => {
       const episodeIndex = this.e()
       const playlist = this.$playlist()
       const currentSelected = this.$selectedEpisode()
 
-      // Only set initial episode if we have an index param, playlist is loaded, and current selection doesn't match
       if (
         episodeIndex !== undefined &&
         playlist.length > 0 &&
@@ -397,42 +420,12 @@ export class KazumiDetailPage {
       }
     })
 
-    // Sync playlist index from URL parameter
-    effect(() => {
-      const playlistOption = this.$playlistOption()
-      const currentPlaylistIndex = this.p()
-
-      if (playlistOption && currentPlaylistIndex !== playlistOption.value) {
-        this.updateUrlParams({
-          p: playlistOption.value,
-        })
-      }
-    })
-
-    // Sync selected episode from URL parameter
-    effect(() => {
-      const selectedEpisode = this.$selectedEpisode()
-      const currentEpisodeIndex = this.e()
-      const episodeIndex = this.$currentEpisodeIndex()
-
-      if (
-        selectedEpisode &&
-        episodeIndex >= 0 &&
-        currentEpisodeIndex !== episodeIndex
-      ) {
-        this.updateUrlParams({
-          e: episodeIndex,
-        })
-      }
-    })
-
-    // Set initial video URL after episode query is successful
-    // TODO: Show be set according to the watch history
+    // Default selection: pick the first episode once the playlist loads if
+    // nothing is selected yet. Without this the player would show no episode.
     effect(() => {
       const playlist = this.$playlist()
       if (playlist.length > 0) {
         if (!untracked(() => this.$selectedEpisode())) {
-          // if no episode is selected, set the first one
           this.changeEpisode(playlist[0])
         }
       }
@@ -450,15 +443,15 @@ export class KazumiDetailPage {
     // set url to empty string to unload the current video
     this.$videoUrl.set('')
     this.subscribeMediaStream(episode.url)
+    const index = this.$playlist().findIndex((ep) => ep.url === episode.url)
+    if (index >= 0) {
+      this.episodeChange.emit(index)
+    }
   }
 
-  private updateUrlParams(params: { p?: number; e?: number }) {
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: params,
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
-    })
+  protected selectSource(src: string) {
+    this.$videoUrl.set(src)
+    this.sourceChange.emit(src)
   }
 
   protected onPreviousEpisode() {

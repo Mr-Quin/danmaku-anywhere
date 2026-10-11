@@ -65,6 +65,8 @@ export class OnboardingService {
 
   private acceptPolicy() {
     this.$_acceptedPolicy.set(true)
-    localStorage.setItem(ACCEPTED_POLICY_KEY, '1')
+    if (this.isBrowser) {
+      localStorage.setItem(ACCEPTED_POLICY_KEY, '1')
+    }
   }
 }
