@@ -14,6 +14,7 @@ import { backgroundContainerModule } from '@/background/ioc'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
+import { EXTENSION_VERSION } from '@/common/constants'
 import { DANMAKU_DB_NAME, DanmakuAnywhereDb } from '@/common/db/db'
 import { LoggerSymbol } from '@/common/Logger'
 import { Language } from '@/common/localization/language'
@@ -836,6 +837,7 @@ describe('ProviderService.seedDefaultProviders', () => {
     lang?: Language
     catalog?: 'synced' | 'unreachable' | 'empty'
     existingConfigs?: ProviderConfig[]
+    providerConfigService?: ProviderConfigService
   }) {
     let seeded = opts.seeded ?? false
     const set = vi.fn<ProviderConfigService['options']['set']>(
@@ -851,7 +853,7 @@ describe('ProviderService.seedDefaultProviders', () => {
     const getAll = vi.fn<ProviderConfigService['getAll']>(
       async () => opts.existingConfigs ?? []
     )
-    const providerConfigService = {
+    const providerConfigService = opts.providerConfigService ?? {
       options: { set, onChange },
       markSeeded,
       hasSeeded,
@@ -940,6 +942,37 @@ describe('ProviderService.seedDefaultProviders', () => {
 
     expect(set).not.toHaveBeenCalled()
     expect(markSeeded).not.toHaveBeenCalled()
+  })
+
+  it('leaves the seed flag unset when the config write fails', async () => {
+    await fakeBrowser.storage.local.set({
+      lastVersion: { lastVersion: EXTENSION_VERSION },
+    })
+    const providerConfigService = createTestContainer([
+      backgroundContainerModule,
+    ]).get(ProviderConfigService)
+    await fakeBrowser.storage.sync.set({
+      providerConfig: {
+        data: [],
+        version: providerConfigService.options.latestVersion,
+      },
+    })
+    const syncSet = fakeBrowser.storage.sync.set.bind(fakeBrowser.storage.sync)
+    vi.spyOn(fakeBrowser.storage.sync, 'set').mockImplementation(
+      async (items) => {
+        if ('providerConfig' in items) {
+          throw new Error('QUOTA_BYTES quota exceeded')
+        }
+        return syncSet(items)
+      }
+    )
+    const { service } = buildForSeed({ providerConfigService })
+
+    await expect(service.seedDefaultProviders()).rejects.toThrow(
+      'QUOTA_BYTES quota exceeded'
+    )
+
+    expect(await providerConfigService.hasSeeded()).toBe(false)
   })
 
   it('stays unseeded for a later retry when the catalog has no manifests yet', async () => {
