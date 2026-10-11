@@ -13,6 +13,7 @@ export const ensureStandaloneReady = async () => {
   if (!readyPromise) {
     const upgradeService = uiContainer.get(StandaloneUpgradeService)
     readyPromise = upgradeService.upgrade().catch((error) => {
+      readyPromise = null
       Logger.error('Standalone upgrade failed', error)
       throw error
     })
