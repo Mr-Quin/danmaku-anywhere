@@ -230,9 +230,11 @@ export class ExtensionOptionsService implements IStoreService {
           const providers = migrateDanmakuSourcesToProviders(
             data.danmakuSources
           )
-          context.defer(() =>
-            this.providerConfigService.options.setUnblocked(providers)
-          )
+          const { options } = this.providerConfigService
+          context.defer({
+            store: options.key,
+            run: () => options.setUnblocked(providers),
+          })
           const { danmakuSources, ...rest } = data
           return rest
         },

@@ -136,9 +136,13 @@ export class ConfigStateService {
       })
     )
 
-    // Every deferred write lands before any store is written, so a store the
-    // backup carries itself wins over what another store's migration derived
-    // for it.
+    // A store the backup carries itself takes its own payload, not what
+    // another store's migration derived for it.
+    const restoredStores = new Set(
+      validated
+        .filter(({ check }) => check.ok)
+        .map(({ service }) => service.options.key)
+    )
     const accepted: {
       service: IStoreService
       data: unknown
@@ -150,7 +154,9 @@ export class ConfigStateService {
       }
       try {
         for (const write of check.deferred) {
-          await write()
+          if (!restoredStores.has(write.store)) {
+            await write.run()
+          }
         }
         accepted.push({
           service,

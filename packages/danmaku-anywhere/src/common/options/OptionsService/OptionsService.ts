@@ -99,7 +99,7 @@ export class OptionsService<T extends OptionsSchema> {
     }
 
     for (const write of deferred) {
-      await write()
+      await write.run()
     }
     await this.queueOperation(() => this.storageService.set(upgraded))
   }

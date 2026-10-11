@@ -13,14 +13,6 @@ import { makeProviderConfig, makeSeasonInsert } from '@/tests/factories'
 import { ManifestRegistry } from './ManifestRegistry'
 import { ProviderService } from './ProviderService'
 
-/**
- * Runs ProviderService through the real background container. Manifest-backed
- * calls made while the registry is still reading its stored manifests wait for
- * it instead of failing, while a cached episode is served without it. Deleting
- * a user manifest whose bookmark cleanup failed can be retried until nothing
- * is left.
- */
-
 const dandanplay = makeProviderConfig({ id: 'dandanplay', name: 'DDP' })
 
 async function seedProviders(

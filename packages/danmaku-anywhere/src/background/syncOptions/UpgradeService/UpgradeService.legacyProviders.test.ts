@@ -6,6 +6,11 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
 import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
+import {
+  failNextProviderWrite,
+  holdProviderWrites,
+  isSettledAfterMicrotasks,
+} from '@/tests/providerConfigWrites'
 import { readV150Store, seedV150Store } from '@/tests/v150Backup'
 import { UpgradeService } from './UpgradeService'
 
@@ -187,6 +192,34 @@ describe('startup upgrade of a profile that predates providerConfig', () => {
       version: 5,
       data: derivedBuiltins,
     })
+  })
+
+  it('does not resolve until the derived providers are written', async () => {
+    await seedLegacyProfile(unconfiguredCustom)
+    const release = holdProviderWrites()
+
+    const pending = createUpgradeContainer({ ready: false })
+      .get(UpgradeService)
+      .upgrade()
+
+    expect(await isSettledAfterMicrotasks(pending)).toBe(false)
+    release()
+    await pending
+    expect((await readStoredProviders()).data).toEqual(derivedBuiltins)
+  })
+
+  it('rejects and keeps danmakuSources when storage rejects the provider write', async () => {
+    await seedLegacyProfile(unconfiguredCustom)
+    failNextProviderWrite(new Error('QUOTA_BYTES quota exceeded'))
+
+    await expect(
+      createUpgradeContainer({ ready: false }).get(UpgradeService).upgrade()
+    ).rejects.toThrow(/extensionOptions/)
+
+    expect(await fakeBrowser.storage.local.get('lastVersion')).toEqual({})
+    const stored = await readStoredStore('extensionOptions')
+    expect(stored?.version).toBe(20)
+    expect(stored?.data).toHaveProperty('danmakuSources')
   })
 
   describe('when the provider write fails', () => {

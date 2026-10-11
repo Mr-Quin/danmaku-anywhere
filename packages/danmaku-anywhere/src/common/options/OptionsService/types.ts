@@ -8,12 +8,15 @@ export interface Options<T> {
 // Every store's data keyed by store key, read before any store is migrated
 export type StoreSnapshot = Record<string, unknown>
 
-export type DeferredWrite = () => Promise<void>
+export interface DeferredWrite {
+  // Key of the store the write targets
+  store: string
+  run: () => Promise<void>
+}
 
 export interface UpgradeContext {
   stores: StoreSnapshot
-  // Steps stay pure: a write to another store is handed back here and only
-  // runs once the migrated result of this store is accepted.
+  // A write to another store, run before this store's data is persisted
   defer: (write: DeferredWrite) => void
 }
 
