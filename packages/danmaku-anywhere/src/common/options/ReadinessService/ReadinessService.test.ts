@@ -17,6 +17,13 @@ function storeLastVersion(version: string) {
   })
 }
 
+/**
+ * ReadinessService resolves waiters once the stored lastVersion matches the
+ * running version, whether it already matched at startup or another context
+ * records it later. Reading or writing the marker rejects on a storage error
+ * instead of reporting a stale or successful result.
+ */
+
 describe('ReadinessService', () => {
   let container: Container
 
@@ -65,5 +72,27 @@ describe('ReadinessService', () => {
     const service = container.get(ReadinessService)
 
     await expect(service.waitUntilReady()).resolves.toBeUndefined()
+  })
+
+  it('isCurrentVersion rejects when the marker cannot be read', async () => {
+    await storeLastVersion('1.0.0')
+    const service = container.get(ReadinessService)
+    await service.waitUntilReady()
+    vi.spyOn(fakeBrowser.storage.local, 'get').mockRejectedValue(
+      new Error('IO error')
+    )
+
+    await expect(service.isCurrentVersion()).rejects.toThrow('IO error')
+  })
+
+  it('setVersion rejects when the marker cannot be written', async () => {
+    const service = container.get(ReadinessService)
+    vi.spyOn(fakeBrowser.storage.local, 'set').mockRejectedValue(
+      new Error('QUOTA_BYTES quota exceeded')
+    )
+
+    await expect(service.setVersion('1.0.0')).rejects.toThrow(
+      'QUOTA_BYTES quota exceeded'
+    )
   })
 })
