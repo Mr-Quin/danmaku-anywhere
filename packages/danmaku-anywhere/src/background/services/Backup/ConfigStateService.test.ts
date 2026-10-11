@@ -17,10 +17,13 @@ describe('ConfigStateService', () => {
   const createMockOptionService = (name: string, latestVersion = 1) => ({
     name,
     options: {
+      key: name,
       get: vi.fn(),
       getVersion: vi.fn(),
       set: vi.fn(),
-      upgrade: vi.fn().mockResolvedValue('upgraded'),
+      upgrade: vi.fn(),
+      migrate: vi.fn((data: unknown) => data),
+      readUnblocked: vi.fn(),
       latestVersion,
     },
   })
@@ -121,13 +124,10 @@ describe('ConfigStateService', () => {
         { opt: 'danmaku' },
         1
       )
-      expect(mockDanmakuOptionsService.options.upgrade).toHaveBeenCalled()
-
       expect(mockExtensionOptionsService.options.set).toHaveBeenCalledWith(
         { opt: 'ext' },
         2
       )
-      expect(mockExtensionOptionsService.options.upgrade).toHaveBeenCalled()
 
       // Others not in backup should not be called
       expect(mockMountConfigService.options.set).not.toHaveBeenCalled()
@@ -192,21 +192,21 @@ describe('ConfigStateService', () => {
       expect(mockExtensionOptionsService.options.set).not.toHaveBeenCalled()
     })
 
-    it.each([
-      0, 2, 99,
-    ])('should refuse envelope version %i without touching any store', async (version) => {
-      await expect(
-        service.restoreState({
-          meta: { version, timestamp: 12345 },
-          services: {
-            danmakuOptions: { data: { opt: 'danmaku' }, version: 1 },
-          },
-        })
-      ).rejects.toThrow(`Unsupported backup version ${version}`)
+    for (const version of [0, 2, 99]) {
+      it(`should refuse envelope version ${version} without touching any store`, async () => {
+        await expect(
+          service.restoreState({
+            meta: { version, timestamp: 12345 },
+            services: {
+              danmakuOptions: { data: { opt: 'danmaku' }, version: 1 },
+            },
+          })
+        ).rejects.toThrow(`Unsupported backup version ${version}`)
 
-      expect(mockDanmakuOptionsService.options.set).not.toHaveBeenCalled()
-      expect(mockDanmakuOptionsService.options.upgrade).not.toHaveBeenCalled()
-    })
+        expect(mockDanmakuOptionsService.options.set).not.toHaveBeenCalled()
+        expect(mockDanmakuOptionsService.options.migrate).not.toHaveBeenCalled()
+      })
+    }
 
     it('should report a store whose payload fails its schema and still restore the rest', async () => {
       mockDanmakuOptionsService.backupSchema = z.object({
@@ -309,8 +309,10 @@ describe('ConfigStateService', () => {
       expect(mockMountConfigService.options.set).toHaveBeenCalledWith([], 3)
     })
 
-    it('should report a store whose migration failed and reset it to defaults', async () => {
-      mockDanmakuOptionsService.options.upgrade.mockResolvedValue('reset')
+    it('should report a store whose migration throws and leave it untouched', async () => {
+      mockDanmakuOptionsService.options.migrate.mockImplementation(() => {
+        throw new Error('bad step')
+      })
 
       const result = await service.restoreState({
         meta: { version: 1, timestamp: 12345 },
@@ -322,11 +324,16 @@ describe('ConfigStateService', () => {
 
       expect(result.success).toBe(false)
       expect(result.details.danmakuOptions?.success).toBe(false)
-      expect(result.details.danmakuOptions?.error).toContain('reset')
+      expect(result.details.danmakuOptions?.error).toContain('bad step')
+      expect(mockDanmakuOptionsService.options.set).not.toHaveBeenCalled()
       expect(result.details.extensionOptions?.success).toBe(true)
     })
 
-    it('should pass a version 0 payload through as version 0 so migrations run', async () => {
+    it('should migrate a version 0 payload from version 0 and write it at the latest version', async () => {
+      mockDanmakuOptionsService.options.migrate.mockReturnValue({
+        migrated: true,
+      })
+
       await service.restoreState({
         meta: { version: 1, timestamp: 12345 },
         services: {
@@ -334,11 +341,56 @@ describe('ConfigStateService', () => {
         },
       })
 
-      expect(mockDanmakuOptionsService.options.set).toHaveBeenCalledWith(
+      expect(mockDanmakuOptionsService.options.migrate).toHaveBeenCalledWith(
         { legacyUnversioned: true },
-        0
+        0,
+        expect.anything()
       )
-      expect(mockDanmakuOptionsService.options.upgrade).toHaveBeenCalled()
+      expect(mockDanmakuOptionsService.options.set).toHaveBeenCalledWith(
+        { migrated: true },
+        1
+      )
+    })
+
+    it('should give migrations the restored payloads as context, and stored data for stores not in the backup', async () => {
+      mockMountConfigService.options.readUnblocked = vi
+        .fn()
+        .mockResolvedValue([{ stored: true }])
+
+      await service.restoreState(validBackup)
+
+      expect(mockExtensionOptionsService.options.migrate).toHaveBeenCalledWith(
+        { opt: 'ext' },
+        2,
+        expect.objectContaining({
+          danmakuOptions: { opt: 'danmaku' },
+          extensionOptions: { opt: 'ext' },
+          mountConfig: [{ stored: true }],
+        })
+      )
+    })
+
+    it('should count entries lost in migration as dropped', async () => {
+      mockMountConfigService.backupItemSchema = z.object({
+        name: z.string(),
+      })
+      mockMountConfigService.options.migrate.mockReturnValue([{ name: 'a' }])
+
+      const result = await service.restoreState({
+        meta: { version: 1, timestamp: 12345 },
+        services: {
+          mountConfig: {
+            data: [{ name: 'a' }, { name: 'b' }],
+            version: 1,
+          },
+        },
+      })
+
+      expect(result.details.mountConfig).toEqual({
+        success: true,
+        droppedEntries: 1,
+      })
+      expect(result.success).toBe(false)
     })
 
     it('should accept a payload that matches its schema', async () => {
@@ -375,7 +427,30 @@ describe('ConfigStateService', () => {
       expect(result.details.extensionOptions?.success).toBe(true)
     })
 
-    it('should not schema-check payloads older than the store schema, leaving them to migrations', async () => {
+    it('should schema-check an older payload after migrating it', async () => {
+      mockDanmakuOptionsService.backupSchema = z.object({
+        renamedInLaterVersion: z.string(),
+      })
+      mockDanmakuOptionsService.options.latestVersion = 4
+      mockDanmakuOptionsService.options.migrate.mockReturnValue({
+        renamedInLaterVersion: 'old',
+      })
+
+      const result = await service.restoreState({
+        meta: { version: 1, timestamp: 12345 },
+        services: {
+          danmakuOptions: { data: { legacyField: 'old' }, version: 2 },
+        },
+      })
+
+      expect(result.success).toBe(true)
+      expect(mockDanmakuOptionsService.options.set).toHaveBeenCalledWith(
+        { renamedInLaterVersion: 'old' },
+        4
+      )
+    })
+
+    it('should refuse an older payload that fails the schema once migrated', async () => {
       mockDanmakuOptionsService.backupSchema = z.object({
         renamedInLaterVersion: z.string(),
       })
@@ -388,12 +463,25 @@ describe('ConfigStateService', () => {
         },
       })
 
-      expect(result.success).toBe(true)
-      expect(mockDanmakuOptionsService.options.set).toHaveBeenCalledWith(
-        { legacyField: 'old' },
-        2
-      )
-      expect(mockDanmakuOptionsService.options.upgrade).toHaveBeenCalled()
+      expect(result.details.danmakuOptions?.success).toBe(false)
+      expect(mockDanmakuOptionsService.options.set).not.toHaveBeenCalled()
+    })
+
+    it('should refuse a list payload whose entries are all lost in migration', async () => {
+      mockMountConfigService.backupItemSchema = z.object({
+        name: z.string(),
+      })
+      mockMountConfigService.options.migrate.mockReturnValue([])
+
+      const result = await service.restoreState({
+        meta: { version: 1, timestamp: 12345 },
+        services: {
+          mountConfig: { data: [{ name: 'old shape' }], version: 1 },
+        },
+      })
+
+      expect(result.details.mountConfig?.success).toBe(false)
+      expect(mockMountConfigService.options.set).not.toHaveBeenCalled()
     })
 
     it('should ignore backup entries that do not match a known store', async () => {
@@ -441,7 +529,7 @@ describe('ConfigStateService', () => {
       await service.restoreState(maliciousBackup)
 
       expect(mockUserAuthService.options.set).not.toHaveBeenCalled()
-      expect(mockUserAuthService.options.upgrade).not.toHaveBeenCalled()
+      expect(mockUserAuthService.options.migrate).not.toHaveBeenCalled()
     })
   })
 })
