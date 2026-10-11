@@ -144,6 +144,14 @@ export class ProvidersPage {
       .click()
   }
 
+  async addDanDanPlayProvider(): Promise<void> {
+    await this.page
+      .getByRole('button', { name: /Add|添加/ })
+      .first()
+      .click()
+    await this.page.getByTestId('drilldown-menu-item-add-dandanplay').click()
+  }
+
   manifestJsonField(): Locator {
     return this.page.getByLabel(/Manifest JSON|配置 JSON/)
   }

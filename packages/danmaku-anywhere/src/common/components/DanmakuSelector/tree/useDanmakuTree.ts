@@ -22,6 +22,7 @@ import {
   isSourceEpisode,
   splitCustomEpisodePath,
 } from '@/common/danmaku/utils'
+import { providerDisplayNames } from '@/common/options/providerConfig/displayName'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import { useIdentityFieldsByManifest } from '@/common/providers/useIdentityFieldsByManifest'
@@ -166,6 +167,7 @@ export const useDanmakuTree = (
   const { treeItems, treeItemMap } = useMemo(() => {
     const treeItemMap = new Map<string, ExtendedTreeItem>()
     const treeItems: ExtendedTreeItem[] = []
+    const displayNames = providerDisplayNames(configs)
 
     function register(item: ExtendedTreeItem) {
       treeItemMap.set(item.id, item)
@@ -290,7 +292,7 @@ export const useDanmakuTree = (
           label: season.title,
           kind: 'season',
           data: season,
-          provider,
+          providerName: provider && displayNames.get(provider.id),
           orphaned,
           children,
         })
@@ -383,7 +385,7 @@ export const useDanmakuTree = (
         label: season.title,
         kind: 'season' as const,
         data: season,
-        provider,
+        providerName: provider && displayNames.get(provider.id),
         orphaned,
         bookmarked: true,
         children: stubNodes.sort(compareEpisodes),

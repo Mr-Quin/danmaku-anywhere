@@ -83,17 +83,16 @@ export const ProvidersPage = (): ReactElement => {
   }
 
   const handleAddDanDanPlayProvider = () => {
-    setEditingProvider(createCustomDanDanPlayProvider())
+    setEditingProvider(
+      createCustomDanDanPlayProvider({
+        name: t('providers.instance.defaultName', 'Self-hosted DanDanPlay'),
+      })
+    )
     setMode('add')
   }
 
   const handleAddMacCmsProvider = () => {
     setEditingProvider(createCustomMacCmsProvider())
-    setMode('add')
-  }
-
-  const handleAddInstance = () => {
-    setEditingProvider(createCustomDanDanPlayProvider())
     setMode('add')
   }
 
@@ -220,7 +219,7 @@ export const ProvidersPage = (): ReactElement => {
               filterActive={false}
               onEdit={handleEdit}
               onDelete={handleDelete}
-              onAddInstance={handleAddInstance}
+              onAddInstance={handleAddDanDanPlayProvider}
               onAddDefaultInstance={handleAddDefaultInstance}
               onViewSource={handleViewSource}
               onDeleteManifest={handleDeleteManifest}
@@ -280,7 +279,7 @@ export const ProvidersPage = (): ReactElement => {
                 filterActive={filterActive}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
-                onAddInstance={handleAddInstance}
+                onAddInstance={handleAddDanDanPlayProvider}
                 onAddDefaultInstance={handleAddDefaultInstance}
                 onViewSource={handleViewSource}
                 onDeleteManifest={handleDeleteManifest}
