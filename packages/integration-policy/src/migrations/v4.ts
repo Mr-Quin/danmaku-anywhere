@@ -1,0 +1,87 @@
+import { z } from 'zod'
+import { getRandomUUID } from '../uuid.js'
+import type { IntegrationPolicyV3, IntegrationV3 } from './v3.js'
+
+const regexString = z.string().refine(
+  (v) => {
+    if (v.length === 0) return true
+    try {
+      new RegExp(v)
+      return true
+    } catch {
+      return false
+    }
+  },
+  {
+    error: 'Invalid regex string',
+  }
+)
+
+const selectorSchema = z.object({
+  value: z.string(),
+  quick: z.boolean(),
+})
+
+const regexSchema = z.object({
+  value: regexString,
+  quick: z.boolean(),
+})
+
+const matcherSchema = z.object({
+  selector: z.array(selectorSchema),
+  regex: z.array(regexSchema),
+})
+
+const optionsSchema = z.object({
+  autoAdvanceOnEnded: z.boolean().default(false),
+  skipPercentage: z.number().min(0).max(1).default(0),
+  minVideoDuration: z.number().int().nonnegative().default(30),
+})
+
+export const zIntegrationPolicyV4 = z.object({
+  version: z.literal(4),
+  title: z.object({
+    selector: z.array(selectorSchema).min(1),
+    regex: z.array(regexSchema),
+  }),
+  episode: matcherSchema,
+  season: matcherSchema,
+  episodeTitle: matcherSchema,
+  nextEpisode: z.array(selectorSchema).min(1).optional(),
+  prevEpisode: z.array(selectorSchema).min(1).optional(),
+  options: optionsSchema,
+})
+
+export const zIntegrationV4 = z.object({
+  version: z.literal(4),
+  id: z
+    .uuid()
+    .optional()
+    .prefault(() => getRandomUUID()),
+  name: z.string().min(1),
+  policy: zIntegrationPolicyV4,
+})
+
+export type IntegrationV4 = z.infer<typeof zIntegrationV4>
+
+export type IntegrationPolicyV4 = z.infer<typeof zIntegrationPolicyV4>
+
+export function migrateV3PolicyToV4(
+  policy: IntegrationPolicyV3
+): IntegrationPolicyV4 {
+  return {
+    ...policy,
+    version: 4,
+    options: optionsSchema.parse({ ...policy.options }),
+  }
+}
+
+export function migrateV3ToV4(data: IntegrationV3[]): IntegrationV4[] {
+  return data.map((policy) => {
+    return {
+      ...policy,
+      version: 4,
+      policy: migrateV3PolicyToV4(policy.policy),
+    } satisfies IntegrationV4
+  })
+}

@@ -1,12 +1,22 @@
+import { zIntegrationPolicyV3 } from '@danmaku-anywhere/integration-policy'
 import JSZip from 'jszip'
 import { z } from 'zod'
 import { zIntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
 import { tryCatch, tryCatchSync } from '@/common/utils/tryCatch'
 
+// Share codes are pasted between users, so codes minted by older versions
+// stay in circulation and have to keep importing.
+const sharedPolicySchema = z.union([
+  zIntegrationPolicy.omit({ options: true }),
+  zIntegrationPolicyV3.omit({ options: true }).transform((policy) => {
+    return { ...policy, version: 4 as const }
+  }),
+])
+
 export const sharedMountConfigSchema = z.object({
   patterns: z.array(z.string()),
   name: z.string(),
-  policy: zIntegrationPolicy.omit({ options: true }),
+  policy: sharedPolicySchema,
 })
 
 export type SharedMountConfig = z.infer<typeof sharedMountConfigSchema>

@@ -3,8 +3,10 @@ import {
   type IntegrationV1,
   type IntegrationV2,
   type IntegrationV3,
+  type IntegrationV4,
   migrateV1ToV2,
   migrateV2ToV3,
+  migrateV3ToV4,
 } from '@danmaku-anywhere/integration-policy'
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
@@ -58,9 +60,14 @@ export class IntegrationPolicyService implements IStoreService {
           })
         },
       })
-      .version(LATEST_INTEGRATION_POLICY_VERSION, {
+      .version(4, {
         upgrade: (data: IntegrationV2[]): IntegrationV3[] => {
           return migrateV2ToV3(data)
+        },
+      })
+      .version(LATEST_INTEGRATION_POLICY_VERSION, {
+        upgrade: (data: IntegrationV3[]): IntegrationV4[] => {
+          return migrateV3ToV4(data)
         },
       })
   }

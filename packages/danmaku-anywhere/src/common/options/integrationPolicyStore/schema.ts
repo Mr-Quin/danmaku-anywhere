@@ -1,3 +1,7 @@
+import {
+  migrateV3ToV4,
+  zIntegrationV3,
+} from '@danmaku-anywhere/integration-policy'
 import { z } from 'zod'
 import { getRandomUUID } from '@/common/utils/utils'
 
@@ -31,10 +35,14 @@ const matcherSchema = z.object({
   regex: z.array(regexSchema),
 })
 
-const optionsSchema = z.object({})
+const optionsSchema = z.object({
+  autoAdvanceOnEnded: z.boolean().default(false),
+  skipPercentage: z.number().min(0).max(1).default(0),
+  minVideoDuration: z.number().int().nonnegative().default(30),
+})
 
 export const zIntegrationPolicy = z.object({
-  version: z.literal(3),
+  version: z.literal(4),
   title: z.object({
     selector: z.array(selectorSchema).min(1),
     regex: z.array(regexSchema),
@@ -42,6 +50,8 @@ export const zIntegrationPolicy = z.object({
   episode: matcherSchema,
   season: matcherSchema,
   episodeTitle: matcherSchema,
+  nextEpisode: z.array(selectorSchema).min(1).optional(),
+  prevEpisode: z.array(selectorSchema).min(1).optional(),
   options: optionsSchema,
 })
 
@@ -50,7 +60,7 @@ export type IntegrationPolicy = z.infer<typeof zIntegrationPolicy>
 export type IntegrationPolicySelector = z.input<typeof selectorSchema>
 
 export const zIntegration = z.object({
-  version: z.literal(3),
+  version: z.literal(4),
   id: z
     .uuid()
     .optional()
@@ -62,3 +72,10 @@ export const zIntegration = z.object({
 export type IntegrationInput = z.input<typeof zIntegration>
 
 export type Integration = z.output<typeof zIntegration>
+
+export const zStoredIntegration = z.union([
+  zIntegration,
+  zIntegrationV3.transform((integration) => {
+    return migrateV3ToV4([integration])[0]
+  }),
+])

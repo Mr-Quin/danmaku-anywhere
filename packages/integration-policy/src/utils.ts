@@ -1,15 +1,23 @@
+import { z } from 'zod'
+import { zIntegrationPolicyV3 } from './migrations/v3.js'
+import { migrateV3PolicyToV4 } from './migrations/v4.js'
 import {
   type IntegrationInput,
   type IntegrationPolicy,
   zIntegrationPolicy,
 } from './schema.js'
 
+const zStoredIntegrationPolicy = z.union([
+  zIntegrationPolicy,
+  zIntegrationPolicyV3.transform(migrateV3PolicyToV4),
+])
+
 export function createIntegrationInput(name = ''): IntegrationInput {
   return {
-    version: 3,
+    version: 4,
     name: name,
     policy: {
-      version: 3,
+      version: 4,
       title: {
         selector: [],
         regex: [],
@@ -36,5 +44,5 @@ export function serializeIntegration(policy: IntegrationPolicy): string {
 }
 
 export function deserializeIntegration(policy: string): IntegrationPolicy {
-  return zIntegrationPolicy.parse(JSON.parse(policy))
+  return zStoredIntegrationPolicy.parse(JSON.parse(policy))
 }
