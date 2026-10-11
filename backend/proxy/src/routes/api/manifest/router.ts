@@ -7,7 +7,7 @@ export const manifestRouter = factory.createApp()
 
 // New dango manifests reach users only after this tag is bumped and the worker
 // is redeployed.
-const dangoRef = 'v0.8.3'
+const dangoRef = 'v0.9.0'
 
 const dangoBaseUrl = `https://raw.githubusercontent.com/Mr-Quin/dango/${dangoRef}/packages/dango-manifests`
 
