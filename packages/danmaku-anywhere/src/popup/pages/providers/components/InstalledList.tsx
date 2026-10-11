@@ -36,15 +36,17 @@ interface InstalledListProps {
   onDeleteManifest: (manifestId: string) => void
 }
 
-function versionSubtitle(
+export function versionSubtitle(
   config: ProviderConfig,
   manifest?: ProviderManifestInfo
 ): string {
   if (manifest) {
     return `v${manifest.version}`
   }
-  // Only legacy MacCMS has no manifest; show its base URL in place of a version.
-  return (config.configValues.danmakuBaseUrl as string) ?? ''
+  // Legacy MacCMS has no manifest, and neither does anything else until the
+  // registry finishes seeding, which on a fresh offline start takes a moment.
+  // Show a base URL in place of a version when there is one.
+  return (config.configValues?.danmakuBaseUrl as string) ?? ''
 }
 
 export const InstalledList = ({
@@ -103,7 +105,7 @@ export const InstalledList = ({
         )}
         renderPrimary={(config) => displayName(config)}
         renderSecondary={(config) =>
-          (config.configValues.baseUrl as string) ??
+          (config.configValues?.baseUrl as string) ??
           versionSubtitle(config, manifestById.get(config.manifestId))
         }
       />
@@ -265,7 +267,7 @@ export const InstalledList = ({
                     key={config.id}
                     dense
                     primary={displayName(config)}
-                    secondary={(config.configValues.baseUrl as string) ?? ''}
+                    secondary={(config.configValues?.baseUrl as string) ?? ''}
                     mono
                     onClick={() => onEdit(config)}
                     action={
