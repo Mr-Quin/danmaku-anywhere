@@ -26,6 +26,7 @@ interface SchemaFieldProps {
   name: string
   schema: ConfigSchema
   required?: boolean
+  readOnly?: boolean
 }
 
 function fieldLabel(name: string, schema: ConfigSchema): string {
@@ -39,9 +40,13 @@ function fieldLabel(name: string, schema: ConfigSchema): string {
 export function SchemaObjectFields({
   schema,
   path,
+  readOnly = false,
+  readOnlyKeys,
 }: {
   schema: ConfigSchema
   path: string
+  readOnly?: boolean
+  readOnlyKeys?: ReadonlySet<string>
 }) {
   const fields = getObjectFields(schema)
   return (
@@ -52,13 +57,14 @@ export function SchemaObjectFields({
           name={`${path}.${field.key}`}
           schema={field.schema}
           required={field.required}
+          readOnly={readOnly || readOnlyKeys?.has(field.key)}
         />
       ))}
     </>
   )
 }
 
-function ScalarField({ name, schema, required }: SchemaFieldProps) {
+function ScalarField({ name, schema, required, readOnly }: SchemaFieldProps) {
   const { t } = useTranslation()
   const { control } = useFormContext()
   const kind = getFieldKind(schema)
@@ -90,6 +96,7 @@ function ScalarField({ name, schema, required }: SchemaFieldProps) {
           required={required}
           error={!!fieldState.error}
           helperText={fieldState.error?.message || schema.description}
+          slotProps={{ input: { readOnly } }}
           fullWidth
         />
       )}
@@ -97,7 +104,7 @@ function ScalarField({ name, schema, required }: SchemaFieldProps) {
   )
 }
 
-function SelectField({ name, schema, required }: SchemaFieldProps) {
+function SelectField({ name, schema, required, readOnly }: SchemaFieldProps) {
   const { t } = useTranslation()
   const { control } = useFormContext()
   const options = (schema.enum ?? []).filter(
@@ -124,6 +131,7 @@ function SelectField({ name, schema, required }: SchemaFieldProps) {
           error={!!fieldState.error}
           inputRef={ref}
           helperText={fieldState.error?.message || schema.description}
+          slotProps={{ input: { readOnly } }}
           fullWidth
         >
           {options.map((option) => (
@@ -137,7 +145,7 @@ function SelectField({ name, schema, required }: SchemaFieldProps) {
   )
 }
 
-function BooleanField({ name, schema }: SchemaFieldProps) {
+function BooleanField({ name, schema, readOnly }: SchemaFieldProps) {
   const { control } = useFormContext()
   return (
     <Box sx={{ width: '100%' }}>
@@ -151,6 +159,7 @@ function BooleanField({ name, schema }: SchemaFieldProps) {
                 {...field}
                 slotProps={{ input: { ref } }}
                 checked={!!value}
+                disabled={readOnly}
               />
             )}
           />
@@ -165,7 +174,7 @@ function BooleanField({ name, schema }: SchemaFieldProps) {
   )
 }
 
-function ObjectField({ name, schema }: SchemaFieldProps) {
+function ObjectField({ name, schema, readOnly }: SchemaFieldProps) {
   return (
     <Box sx={{ width: '100%' }}>
       <Typography sx={{ mb: schema.description ? 0 : 1 }}>
@@ -177,13 +186,13 @@ function ObjectField({ name, schema }: SchemaFieldProps) {
         </FormHelperText>
       ) : null}
       <Stack spacing={2}>
-        <SchemaObjectFields schema={schema} path={name} />
+        <SchemaObjectFields schema={schema} path={name} readOnly={readOnly} />
       </Stack>
     </Box>
   )
 }
 
-function ArrayField({ name, schema }: SchemaFieldProps) {
+function ArrayField({ name, schema, readOnly }: SchemaFieldProps) {
   const { t } = useTranslation()
   const { control } = useFormContext()
   const { fields, append, remove } = useFieldArray({ control, name })
@@ -213,51 +222,60 @@ function ArrayField({ name, schema }: SchemaFieldProps) {
             spacing={1}
             sx={{ alignItems: 'flex-start' }}
           >
-            <IconButton
-              onClick={() => remove(index)}
-              size="small"
-              aria-label={t('common.delete', 'Delete')}
-            >
-              <Remove />
-            </IconButton>
+            {readOnly ? null : (
+              <IconButton
+                onClick={() => remove(index)}
+                size="small"
+                aria-label={t('common.delete', 'Delete')}
+              >
+                <Remove />
+              </IconButton>
+            )}
             <Stack spacing={1} sx={{ flex: 1 }}>
               {isObjectItem ? (
                 <SchemaObjectFields
                   schema={itemSchema}
                   path={`${name}.${index}`}
+                  readOnly={readOnly}
                 />
               ) : (
-                <SchemaField name={`${name}.${index}`} schema={itemSchema} />
+                <SchemaField
+                  name={`${name}.${index}`}
+                  schema={itemSchema}
+                  readOnly={readOnly}
+                />
               )}
             </Stack>
           </Stack>
         ))}
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={appendEmptyItem}
-          sx={{ alignSelf: 'flex-start' }}
-        >
-          {t('providers.editor.addItem', 'Add')}
-        </Button>
+        {readOnly ? null : (
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={appendEmptyItem}
+            sx={{ alignSelf: 'flex-start' }}
+          >
+            {t('providers.editor.addItem', 'Add')}
+          </Button>
+        )}
       </Stack>
     </Box>
   )
 }
 
-export function SchemaField({ name, schema, required }: SchemaFieldProps) {
-  switch (getFieldKind(schema)) {
+export function SchemaField(props: SchemaFieldProps) {
+  switch (getFieldKind(props.schema)) {
     case 'select':
-      return <SelectField name={name} schema={schema} required={required} />
+      return <SelectField {...props} />
     case 'boolean':
-      return <BooleanField name={name} schema={schema} />
+      return <BooleanField {...props} />
     case 'object':
-      return <ObjectField name={name} schema={schema} />
+      return <ObjectField {...props} />
     case 'array':
-      return <ArrayField name={name} schema={schema} />
+      return <ArrayField {...props} />
     case 'number':
     case 'text':
-      return <ScalarField name={name} schema={schema} required={required} />
+      return <ScalarField {...props} />
     default:
       return null
   }

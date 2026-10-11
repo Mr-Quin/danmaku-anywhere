@@ -656,6 +656,7 @@
     },
     "editor": {
       "addItem": "添加",
+      "builtinServerLocked": "内置来源的服务器设置不能修改。如需使用其他服务器，请添加实例。",
       "manifest": {
         "author": "新建配置",
         "beta": "Beta",

@@ -1,5 +1,12 @@
 import type { ConfigSchema } from '@mr-quin/dango'
-import { Box, Button, CircularProgress, Stack, TextField } from '@mui/material'
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Stack,
+  TextField,
+} from '@mui/material'
 import { FormProvider, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
@@ -11,6 +18,7 @@ import { SchemaObjectFields } from './SchemaFields'
 import {
   buildDefaultValues,
   mergeConfigValues,
+  readOnlyConfigFields,
   validateConfigValues,
 } from './schemaForm'
 import type { ProviderFormProps } from './types'
@@ -76,6 +84,8 @@ function ConfigForm({
     onReset?.()
   }
 
+  const readOnlyKeys = readOnlyConfigFields(provider)
+
   return (
     <FormProvider {...methods}>
       <Stack
@@ -95,8 +105,20 @@ function ConfigForm({
           fullWidth
           required
         />
+        {readOnlyKeys.size > 0 ? (
+          <Alert severity="info" sx={{ width: '100%' }}>
+            {t(
+              'providers.editor.builtinServerLocked',
+              'The server of a built-in source cannot be changed. To use another server, add an instance instead.'
+            )}
+          </Alert>
+        ) : null}
         {configSchema ? (
-          <SchemaObjectFields schema={configSchema} path="config" />
+          <SchemaObjectFields
+            schema={configSchema}
+            path="config"
+            readOnlyKeys={readOnlyKeys}
+          />
         ) : null}
         <FormActions
           isEdit={isEdit}

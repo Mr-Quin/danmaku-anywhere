@@ -1,10 +1,12 @@
 import type { ConfigSchema } from '@mr-quin/dango'
 import { describe, expect, it } from 'vitest'
+import { makeProviderConfig } from '@/tests/factories'
 import {
   buildDefaultValues,
   getFieldKind,
   getObjectFields,
   mergeConfigValues,
+  readOnlyConfigFields,
   toNumberOrUndefined,
   validateConfigValues,
   validateScalar,
@@ -324,5 +326,30 @@ describe('mergeConfigValues', () => {
   it('does not resurrect a stored value that was cleared in the form', () => {
     const result = mergeConfigValues({ baseUrl: 'old' }, { baseUrl: '' })
     expect(result).toEqual({})
+  })
+})
+
+describe('readOnlyConfigFields', () => {
+  it('locks the server fields of a built-in config and leaves chConvert editable', () => {
+    const builtin = makeProviderConfig({
+      id: 'dandanplay',
+      manifestId: 'dandanplay',
+    })
+
+    const locked = readOnlyConfigFields(builtin)
+
+    expect([...locked].sort()).toEqual(
+      ['appId', 'appSecret', 'auth', 'baseUrl'].sort()
+    )
+    expect(locked.has('chConvert')).toBe(false)
+  })
+
+  it('locks nothing on a custom instance', () => {
+    const custom = makeProviderConfig({
+      id: 'd9d068cc-d7a5-4277-990b-73b28f7637f8',
+      manifestId: 'dandanplay',
+    })
+
+    expect(readOnlyConfigFields(custom).size).toBe(0)
   })
 })
