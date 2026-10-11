@@ -6,6 +6,7 @@ import {
 import { inject, injectable } from 'inversify'
 import { ConfigStateService } from '@/background/services/Backup/ConfigStateService'
 import type { IBackupSink } from '@/background/services/Backup/sinks/BackupSink.interface'
+import { ProviderService } from '@/background/services/providers/ProviderService'
 import type {
   BackupData,
   BackupRestoreResult,
@@ -19,7 +20,9 @@ export class BackupService {
     @inject(ConfigStateService)
     private configStateService: ConfigStateService,
     @inject(UserAuthStore)
-    private userAuthStore: UserAuthStore
+    private userAuthStore: UserAuthStore,
+    @inject(ProviderService)
+    private providerService: ProviderService
   ) {}
 
   async getBackupData(): Promise<BackupData> {
@@ -35,8 +38,16 @@ export class BackupService {
         throw new Error('Failed to parse backup data as JSON')
       }
     }
-    // TODO: validate backup data
-    return this.configStateService.restoreState(backupData as BackupData)
+    const result = await this.configStateService.restoreState(backupData)
+    // providerConfig version 1 is the pre-manifest shape, whose built-in names
+    // were fixed English literals.
+    if (
+      (backupData as BackupData).services.providerConfig?.version === 1 &&
+      result.details.providerConfig?.success
+    ) {
+      await this.providerService.localizeLegacyBuiltinNames()
+    }
+    return result
   }
 
   async backupTo(sink: IBackupSink): Promise<void> {
@@ -69,11 +80,11 @@ export class BackupService {
     return result.data
   }
 
-  async downloadCloudBackup(id: string): Promise<BackupData> {
+  async downloadCloudBackup(id: string): Promise<unknown> {
     const result = await downloadCloudBackupApi(id, this.getAuth())
     if (!result.success) {
       throw result.error
     }
-    return result.data as BackupData
+    return result.data
   }
 }

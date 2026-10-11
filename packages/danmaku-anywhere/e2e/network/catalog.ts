@@ -1,6 +1,8 @@
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
+import { getDisplayStrings, zManifest } from '@mr-quin/dango'
 import type { Route } from '@playwright/test'
+import { toManifestLocale } from '../../src/common/localization/language'
 import type { NetworkMock } from '../setup/profile'
 
 const nodeRequire = createRequire(import.meta.url)
@@ -23,6 +25,12 @@ function loadManifest(id: string): { apiVersion: number; version: string } {
 
 export function manifestVersion(id: string): string {
   return loadManifest(id).version
+}
+
+// The name a fresh install seeds for this manifest in the given app language.
+export function manifestDisplayName(id: string, language: string): string {
+  const manifest = zManifest.parse(loadManifest(id))
+  return getDisplayStrings(manifest, toManifestLocale(language)).name
 }
 
 // Shape of the chrome.storage `manifests` record as specs read it back.
@@ -93,8 +101,7 @@ export function mockCatalog(
 }
 
 // Simulates a fully unreachable proxy: both the index and file endpoints
-// fail. Used to exercise the offline bundled-catalog fallback in
-// ManifestRegistry, which only kicks in once the index request fails.
+// fail.
 export function offlineCatalog(): NetworkMock {
   return {
     pattern: /\/manifest(\/file)?(\?|$)/,

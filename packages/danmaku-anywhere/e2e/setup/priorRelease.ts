@@ -158,7 +158,12 @@ export async function ensureCurrentBuildForMigration(): Promise<string> {
     )
   }
 
-  const workerSlot = process.env.PLAYWRIGHT_WORKER_INDEX ?? '0'
+  // TEST_PARALLEL_INDEX is bounded by the worker count and is reused when a
+  // worker restarts, so it maps to a stable cache slot. Playwright does not
+  // set PLAYWRIGHT_WORKER_INDEX, so reading that gave every worker slot 0 and
+  // raced them on the same directory.
+  const workerSlot =
+    process.env.TEST_PARALLEL_INDEX ?? process.env.TEST_WORKER_INDEX ?? '0'
   const destRoot = path.join(CACHE_ROOT, `current-${workerSlot}`)
   const destExt = path.join(destRoot, 'extension')
   const stampPath = path.join(destRoot, '.src-mtime')
@@ -168,7 +173,12 @@ export async function ensureCurrentBuildForMigration(): Promise<string> {
   if (cachedMtime !== srcMtime) {
     await fs.rm(destRoot, { recursive: true, force: true })
     await fs.mkdir(destExt, { recursive: true })
-    await fs.cp(srcBuild, destExt, { recursive: true })
+    // Other workers load build/ unpacked, and Chrome writes and replaces
+    // build/_metadata while they do, so copying it races them.
+    await fs.cp(srcBuild, destExt, {
+      recursive: true,
+      filter: (src) => path.basename(src) !== '_metadata',
+    })
     await fs.writeFile(stampPath, srcMtime)
   }
 

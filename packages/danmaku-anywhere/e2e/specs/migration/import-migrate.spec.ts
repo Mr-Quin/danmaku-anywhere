@@ -2,8 +2,10 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { gunzipSync } from 'node:zlib'
+import { mockLoginProbes } from '../../network/loginProbes'
 import { ImportPage } from '../../pom/ImportPage'
 import { Popup } from '../../pom/Popup'
+import { assertBuiltinNamesLocalized } from '../../setup/builtinNames'
 import { expect, test } from '../../setup/fixtures'
 
 /**
@@ -11,9 +13,10 @@ import { expect, test } from '../../setup/fixtures'
  * export and migrates them on the way in (restoreState -> options.upgrade,
  * parseBackupMany -> episode v1->v4). Complements migration-smoke, which only
  * exercises startup migration of already-stored data. Asserts the restore
- * success toast and the danmaku import-result success, then that the imported
- * config and danmaku land in the current schema (bare provider ids, stripped
- * custom DanDanPlay baseUrl, resolvable season provider ids).
+ * success toast and the danmaku import-result success, that the restored
+ * built-ins show their localized names, then that the imported config and
+ * danmaku land in the current schema (bare provider ids, stripped custom
+ * DanDanPlay baseUrl, resolvable season provider ids).
  */
 
 const FIXTURES_DIR = path.join(
@@ -37,6 +40,9 @@ test.beforeEach(async ({ context }) => {
       body: 'null',
     })
   )
+  for (const probe of mockLoginProbes()) {
+    await context.route(probe.pattern, probe.respond)
+  }
 })
 
 test('current build migrates an imported v1.5.0 backup and danmaku export', async ({
@@ -55,6 +61,11 @@ test('current build migrates an imported v1.5.0 backup and danmaku export', asyn
   })
   await popup.toast.expectSuccess(/^(Import success|成功导入备份)$/)
 
+  // The library would load poster images this spec has no mocks for.
+  await assertBuiltinNamesLocalized(context, extensionId, {
+    seasonChips: false,
+  })
+
   const importPage = await ImportPage.open(page, extensionId)
   await importPage.selectFiles(DANMAKU_ZIP)
   await importPage.result.confirm()
@@ -72,7 +83,7 @@ test('current build migrates an imported v1.5.0 backup and danmaku export', asyn
   expect(
     ddpBaseUrls,
     'restored custom DanDanPlay baseUrl had its /api suffix stripped'
-  ).toContain('https://api.dandanplay.net')
+  ).toContain('https://ddp.selfhosted.example')
   for (const url of ddpBaseUrls) {
     expect(url, 'custom DanDanPlay config has a baseUrl').toBeDefined()
     expect(

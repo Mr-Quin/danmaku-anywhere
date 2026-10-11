@@ -2,5 +2,10 @@
   "enabledPlugins": {
     "cloudflare@claude-plugins-official": true
   },
-  "enabledMcpjsonServers": ["context7"]
+  "enabledMcpjsonServers": ["context7"],
+  "attribution": {
+    "commit": "",
+    "pr": "",
+    "sessionUrl": false
+  }
 }

@@ -16,10 +16,11 @@ import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { isBuiltinConfig } from '@/common/options/providerConfig/displayName'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
-import { groupInstalled, isHostedDanDanPlay } from '../catalog'
+import { groupInstalled, supportsInstances } from '../catalog'
 import { ManifestKindChip } from './ManifestKindChip'
 import { ProviderRow, sourceCardSx } from './ProviderRow'
 
@@ -36,15 +37,17 @@ interface InstalledListProps {
   onDeleteManifest: (manifestId: string) => void
 }
 
-function versionSubtitle(
+export function versionSubtitle(
   config: ProviderConfig,
   manifest?: ProviderManifestInfo
 ): string {
   if (manifest) {
     return `v${manifest.version}`
   }
-  // Only legacy MacCMS has no manifest; show its base URL in place of a version.
-  return (config.configValues.danmakuBaseUrl as string) ?? ''
+  // Legacy MacCMS has no manifest, and neither does anything else until the
+  // registry finishes seeding, which on a fresh offline start takes a moment.
+  // Show a base URL in place of a version when there is one.
+  return (config.configValues?.danmakuBaseUrl as string) ?? ''
 }
 
 export const InstalledList = ({
@@ -65,7 +68,7 @@ export const InstalledList = ({
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
 
   const displayName = (config: ProviderConfig) =>
-    isHostedDanDanPlay(config)
+    supportsInstances(config.manifestId) && isBuiltinConfig(config)
       ? `${config.name} (${t('providers.installed.builtIn', 'Built-in')})`
       : config.name
 
@@ -103,7 +106,7 @@ export const InstalledList = ({
         )}
         renderPrimary={(config) => displayName(config)}
         renderSecondary={(config) =>
-          (config.configValues.baseUrl as string) ??
+          (config.configValues?.baseUrl as string) ??
           versionSubtitle(config, manifestById.get(config.manifestId))
         }
       />
@@ -223,7 +226,7 @@ export const InstalledList = ({
             icon: <Code />,
           })
         }
-        if (!unit.configs.some(isHostedDanDanPlay)) {
+        if (!unit.configs.some(isBuiltinConfig)) {
           menuItems.push({
             id: 'add-default',
             label: t(
@@ -265,7 +268,7 @@ export const InstalledList = ({
                     key={config.id}
                     dense
                     primary={displayName(config)}
-                    secondary={(config.configValues.baseUrl as string) ?? ''}
+                    secondary={(config.configValues?.baseUrl as string) ?? ''}
                     mono
                     onClick={() => onEdit(config)}
                     action={

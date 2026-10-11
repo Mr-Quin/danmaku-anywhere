@@ -3,7 +3,7 @@ import { createTestUrl } from '@/test-utils/createTestUrl'
 import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 
 const dangoBaseUrl =
-  'https://raw.githubusercontent.com/Mr-Quin/dango/main/packages/dango-manifests'
+  'https://raw.githubusercontent.com/Mr-Quin/dango/v0.8.3/packages/dango-manifests'
 
 describe('Manifest API', () => {
   afterEach(() => {

@@ -207,4 +207,153 @@ describe('season identity migration (v15)', () => {
     expect('provider' in custom).toBe(false)
     expect(custom.title).toBe('Local Clip')
   })
+
+  it('drops the old unique compound index instead of leaving it alongside the new one', async () => {
+    await seedV14({
+      seasons: [
+        {
+          id: 1,
+          provider: 'Bilibili',
+          providerConfigId: 'bilibili',
+          indexedId: 'b1',
+        },
+      ],
+    })
+
+    const db = await upgradeToV15()
+    let indexNames: string[] = []
+    await db.transaction('r', 'season', async (tx) => {
+      indexNames = Array.from(tx.idbtrans.objectStore('season').indexNames)
+    })
+    db.close()
+
+    expect(indexNames).not.toContain('[providerConfigId+indexedId]')
+    expect(indexNames).not.toContain('provider')
+    expect(indexNames).not.toContain('providerConfigId')
+    expect(indexNames).toEqual(
+      expect.arrayContaining([
+        'manifestId',
+        'namespaceKey',
+        'indexedId',
+        '[manifestId+namespaceKey+indexedId]',
+      ])
+    )
+  })
+})
+
+const V9_STORES = {
+  danmaku:
+    '++id, provider, episodeId, seasonId, &[provider+episodeId], [provider+seasonId], timeUpdated',
+  titleMapping: '++id, originalTitle, title',
+}
+
+function ddpDanmakuV3(episodeId: number, animeId: number) {
+  return {
+    provider: 'DanDanPlay',
+    meta: {
+      provider: 'DanDanPlay',
+      episodeId,
+      animeId,
+      episodeTitle: `Episode ${episodeId}`,
+      animeTitle: 'DDP Show',
+    },
+    comments: [],
+    commentCount: 0,
+    version: 1,
+    timeUpdated: 1,
+    schemaVersion: 3,
+    params: {},
+    episodeId,
+    seasonId: animeId,
+    episodeTitle: `Episode ${episodeId}`,
+    seasonTitle: 'DDP Show',
+  }
+}
+
+const biliDanmakuV3 = {
+  provider: 'Bilibili',
+  meta: {
+    provider: 'Bilibili',
+    cid: 500,
+    aid: 600,
+    bvid: 'BV1xx',
+    seasonId: 700,
+    title: 'Bili Episode',
+  },
+  comments: [],
+  commentCount: 0,
+  version: 1,
+  timeUpdated: 1,
+  schemaVersion: 3,
+  episodeId: 500,
+  seasonId: 700,
+  episodeTitle: 'Bili Episode',
+  seasonTitle: 'Bili Show',
+}
+
+const tencentDanmakuV3 = {
+  provider: 'Tencent',
+  meta: { provider: 'Tencent', cid: 'tc1', vid: 'tv1' },
+  comments: [],
+  commentCount: 0,
+  version: 1,
+  timeUpdated: 1,
+  schemaVersion: 3,
+  episodeTitle: 'Tencent Episode',
+  seasonTitle: 'Tencent Show',
+}
+
+const customDanmakuV3 = {
+  provider: 'Custom',
+  meta: { provider: 'Custom', seasonTitle: 'Local', episodeTitle: 'Clip' },
+  comments: [],
+  commentCount: 0,
+  version: 1,
+  timeUpdated: 1,
+  schemaVersion: 3,
+  episodeTitle: 'Clip',
+  seasonTitle: 'Local',
+}
+
+describe('pre-v10 database upgraded to v15', () => {
+  it('keeps one season per show with every episode still attached', async () => {
+    const legacy = new Dexie(DANMAKU_DB_NAME)
+    legacy.version(9).stores(V9_STORES)
+    await legacy.open()
+    await legacy
+      .table('danmaku')
+      .bulkAdd([
+        ddpDanmakuV3(10001, 100),
+        ddpDanmakuV3(10002, 100),
+        biliDanmakuV3,
+        tencentDanmakuV3,
+        customDanmakuV3,
+      ])
+    legacy.close()
+
+    const db = await upgradeToV15()
+    const seasons = await db.season.toArray()
+    const episodes = await db.episode.toArray()
+    const customEpisodes = await db.customEpisode.toArray()
+    db.close()
+
+    expect(
+      seasons.map((s) => [s.manifestId, s.namespaceKey, s.indexedId]).sort()
+    ).toEqual([
+      ['bilibili', 'bilibili', '700'],
+      ['dandanplay', 'dandanplay', '100'],
+      ['tencent', 'tencent', 'tc1'],
+    ])
+    expect(episodes).toHaveLength(4)
+    const seasonIds = new Set(seasons.map((s) => s.id))
+    expect(episodes.every((e) => seasonIds.has(e.seasonId))).toBe(true)
+    const ddpSeason = seasons.find((s) => s.manifestId === 'dandanplay')
+    expect(
+      episodes
+        .filter((e) => e.seasonId === ddpSeason?.id)
+        .map((e) => e.indexedId)
+        .sort()
+    ).toEqual(['10001', '10002'])
+    expect(customEpisodes.map((c) => c.title)).toEqual(['Clip'])
+  })
 })

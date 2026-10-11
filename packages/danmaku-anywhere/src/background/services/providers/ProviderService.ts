@@ -1,6 +1,5 @@
 import type {
   CustomSeason,
-  Episode,
   EpisodeMeta,
   Season,
   SeasonInsert,
@@ -16,6 +15,7 @@ import type { SeasonQueryFilter, SeasonSearchRequest } from '@/common/anime/dto'
 import type {
   DanmakuFetchByMeta,
   DanmakuFetchRequest,
+  DanmakuFetchResult,
 } from '@/common/danmaku/dto'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { toManifestLocale } from '@/common/localization/language'
@@ -25,6 +25,7 @@ import {
   AUTO_IMPORT_PROVIDERS,
   autoImportToProviderConfig,
 } from '@/common/options/providerConfig/constant'
+import { localizeLegacyBuiltinNames } from '@/common/options/providerConfig/localizeLegacyNames'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { computeNamespaceKey } from '@/common/providers/namespaceKey'
@@ -64,6 +65,7 @@ function enrichEpisode(
 export class ProviderService {
   private readonly logger: ILogger
   private seeding: Promise<void> | null = null
+  private identitiesReconciled: Promise<void> | null = null
 
   constructor(
     @inject(DanmakuService)
@@ -91,7 +93,7 @@ export class ProviderService {
   async searchSeason(
     params: SeasonSearchRequest
   ): Promise<(Season | SeasonInsert)[] | CustomSeason[]> {
-    await this.manifestRegistry.ready
+    await this.seasonsReady()
     const providerConfig = await this.providerConfigService.mustGet(
       params.providerConfigId
     )
@@ -114,6 +116,7 @@ export class ProviderService {
   }
 
   async upsertSeason(data: SeasonInsert): Promise<Season> {
+    await this.seasonsReady()
     return this.seasonService.upsert(data)
   }
 
@@ -141,7 +144,7 @@ export class ProviderService {
   async fetchEpisodesBySeason(
     seasonId: number
   ): Promise<WithSeason<EpisodeMeta>[]> {
-    await this.manifestRegistry.ready
+    await this.seasonsReady()
     const season = await this.seasonService.mustGetById(seasonId)
 
     const providerConfig = await this.getConfigForSeason(season)
@@ -156,7 +159,7 @@ export class ProviderService {
   }
 
   async refreshSeason(filter: SeasonQueryFilter) {
-    await this.manifestRegistry.ready
+    await this.seasonsReady()
     const [season] = await this.seasonService.filter(filter)
     if (!season) {
       throw new Error('No season found for refresh filter')
@@ -196,8 +199,8 @@ export class ProviderService {
     return { type: 'by-meta', meta, options: request.options }
   }
 
-  async getDanmaku(request: DanmakuFetchRequest): Promise<WithSeason<Episode>> {
-    await this.manifestRegistry.ready
+  async getDanmaku(request: DanmakuFetchRequest): Promise<DanmakuFetchResult> {
+    await this.seasonsReady()
     const resolved = await this.resolveMeta(request)
     const { options = {}, meta } = resolved
 
@@ -208,7 +211,7 @@ export class ProviderService {
 
     if (existingDanmaku && !options.forceUpdate) {
       this.logger.debug('Danmaku found in db', existingDanmaku)
-      return existingDanmaku
+      return { episode: existingDanmaku }
     }
 
     if (options.forceUpdate) {
@@ -227,19 +230,30 @@ export class ProviderService {
 
     const comments = await service.getDanmaku(resolved)
 
+    if (options.automatic && comments.length === 0) {
+      throw new Error(`No danmaku found for ${meta.title}`)
+    }
+
     const { season, ...rest } = meta
 
-    const saved = await this.danmakuService.upsert({
-      ...rest,
-      seasonId: season.id,
-      comments,
-      commentCount: comments.length,
-    })
+    const { episode, keptStored } = await this.danmakuService.upsertUnlessFewer(
+      {
+        ...rest,
+        seasonId: season.id,
+        comments,
+        commentCount: comments.length,
+        lastChecked: Date.now(),
+      }
+    )
 
-    return {
-      ...saved,
-      season,
+    if (keptStored) {
+      this.logger.warn(
+        `Fetch returned ${keptStored.fetchedCount} comments, fewer than the ${keptStored.storedCount} stored; keeping the stored episode`
+      )
+      return { episode: { ...episode, season }, keptStored }
     }
+
+    return { episode: { ...episode, season } }
   }
 
   async parseUrl(url: string): Promise<WithSeason<EpisodeMeta>> {
@@ -247,7 +261,7 @@ export class ProviderService {
     // any pasted URL regardless of which sources the user has toggled on.
     // Disabling Bilibili would otherwise make a recognized bilibili.com
     // URL fail with "No provider found".
-    await this.manifestRegistry.ready
+    await this.seasonsReady()
     const configs = await this.providerConfigService.getAll()
     for (const config of configs) {
       const service = this.danmakuProviderFactory(config)
@@ -342,29 +356,21 @@ export class ProviderService {
         this.logger.error('Install handling failed:', e)
       })
     })
-    void this.reconcileSeasonIdentitiesOnce().catch((e) => {
-      this.logger.error('Season identity reconciliation failed:', e)
-    })
-    // Configs can also appear mid-session (another device syncing in, a
-    // re-added config); heal orphans right away rather than waiting for the
-    // next browser session.
-    this.providerConfigService.options.onChange(() => {
-      void this.reconcileSeasonIdentities().catch((e) => {
-        this.logger.error('Season identity reconciliation failed:', e)
-      })
-    })
+    void this.seasonsReady()
   }
 
-  // Once per browser session at startup, so routine service-worker wakes skip
-  // the sweep. Best-effort: a failure must never block startup.
-  private async reconcileSeasonIdentitiesOnce(): Promise<void> {
-    const RECONCILED_KEY = 'seasonIdentityReconciled'
-    const stored = await chrome.storage.session.get(RECONCILED_KEY)
-    if (stored[RECONCILED_KEY]) {
-      return
-    }
-    await this.reconcileSeasonIdentities()
-    await chrome.storage.session.set({ [RECONCILED_KEY]: true })
+  // One reconcile per service worker start. Season writes must wait for it:
+  // the reconciler never stamps an identity another row already holds, so a
+  // row upserted first strands the orphan it would have healed. A failed pass
+  // waits for the next service worker start.
+  async seasonsReady(): Promise<void> {
+    await this.manifestRegistry.ready
+    this.identitiesReconciled ??= this.reconcileSeasonIdentities().catch(
+      (e) => {
+        this.logger.error('Season identity reconciliation failed:', e)
+      }
+    )
+    await this.identitiesReconciled
   }
 
   // Namespace of a config under its manifest's identityFields declaration.
@@ -381,10 +387,11 @@ export class ProviderService {
   private async reconcileSeasonIdentities(): Promise<void> {
     const configs = await this.providerConfigService.getAll()
     const identityFields = await this.manifestRegistry.getIdentityFieldsMap()
+    // Undefined for an unresolved manifest, and the reconciler skips it.
     const healed = await this.seasonService.reconcileIdentities(
       configs.map((config) => ({
         ...config,
-        identityFields: identityFields[config.manifestId] ?? [],
+        identityFields: identityFields[config.manifestId],
       }))
     )
     if (healed > 0) {
@@ -397,25 +404,51 @@ export class ProviderService {
   }
 
   private async onInstalled(reason: string): Promise<void> {
-    if (reason === 'update') {
-      await this.lockSeedForExistingInstall()
+    const lockedExistingInstall =
+      reason === 'update' && (await this.lockSeedForExistingInstall())
+    // The seed flag is already locked, so a sync failure here must not skip
+    // the one chance to rename.
+    try {
+      await this.syncCatalog()
+    } finally {
+      if (lockedExistingInstall) {
+        await this.localizeLegacyBuiltinNames()
+      }
     }
-    await this.syncCatalog()
   }
 
   // Lock the flag for an existing install so its configs are never re-seeded,
   // even if the user has deleted them all. An unset flag with no configs is a
   // different user: their first-run seed never happened, so leave them
-  // unlocked for the sync that follows to heal.
-  private async lockSeedForExistingInstall(): Promise<void> {
+  // unlocked for the sync that follows to heal. Returns whether it locked.
+  private async lockSeedForExistingInstall(): Promise<boolean> {
     if (await this.providerConfigService.hasSeeded()) {
-      return
+      return false
     }
     const configs = await this.providerConfigService.getAll()
     if (configs.length === 0) {
-      return
+      return false
     }
     await this.providerConfigService.markSeeded()
+    return true
+  }
+
+  // Only for configs that came from pre-manifest storage (the update that
+  // locked the seed flag, or a restored pre-manifest backup), so a name the
+  // user sets later is never touched.
+  async localizeLegacyBuiltinNames(): Promise<void> {
+    await this.manifestRegistry.ready
+    const { lang } = await this.extensionOptions.get()
+    const names = new Map(
+      this.manifestRegistry
+        .listManifests(toManifestLocale(lang))
+        .map((m) => [m.id, m.name])
+    )
+    const configs = await this.providerConfigService.getAll()
+    const localized = localizeLegacyBuiltinNames(configs, names)
+    if (localized !== configs) {
+      await this.providerConfigService.options.set(localized)
+    }
   }
 
   // Throws on a catalog that produced no usable list so a user-driven refresh
@@ -465,9 +498,8 @@ export class ProviderService {
       }
       await this.manifestRegistry.recordChecked()
     }
-    // update() leaves the registry populated either way, from the catalog or
-    // from the bundle, so an unusable catalog still seeds working sources
-    // instead of leaving a first-run user with an empty list.
+    // The registry holds the bundled manifests from startup, so an unusable
+    // catalog still seeds working sources instead of an empty list.
     await this.seedDefaultProviders()
     return result
   }

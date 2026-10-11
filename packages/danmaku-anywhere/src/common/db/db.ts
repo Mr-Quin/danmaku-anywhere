@@ -1,15 +1,18 @@
 import {
+  type BiliBiliDanmakuInsertV3,
   type Bookmark,
   type CustomEpisode,
-  type DanmakuSourceType,
+  type DanDanPlayDanmakuInsertV3,
+  DanmakuSourceType,
   type DanmakuV3,
   type Episode,
   type EpisodeV4,
   episodeMigration,
   PROVIDER_TO_BUILTIN_ID,
   type Season,
-  type SeasonV1,
   stripBuiltinPrefix,
+  stripHtml,
+  type TencentDanmakuInsertV3,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Dexie } from 'dexie'
 import { injectable } from 'inversify'
@@ -19,6 +22,49 @@ import { resolveBuiltinSeasonIdentity } from './seasonIdentityBackfill'
 export const DANMAKU_DB_NAME = 'danmaku-anywhere'
 
 type WithoutId<T> = Omit<T, 'id'>
+
+// Keep this independent of the shared converter: v10 looks seasons up by
+// provider and v12 derives providerConfigId from it.
+function extractSeasonV10(
+  item:
+    | DanDanPlayDanmakuInsertV3
+    | BiliBiliDanmakuInsertV3
+    | TencentDanmakuInsertV3
+) {
+  const base = {
+    provider: item.provider,
+    providerConfigId: PROVIDER_TO_BUILTIN_ID[item.provider],
+    title: stripHtml(item.seasonTitle),
+    type: '',
+    schemaVersion: 1,
+  }
+  switch (item.provider) {
+    case DanmakuSourceType.DanDanPlay: {
+      return {
+        ...base,
+        providerIds: {
+          animeId: item.meta.animeId,
+          bangumiId: item.meta.animeId.toString(),
+        },
+        indexedId: item.meta.animeId.toString(),
+      }
+    }
+    case DanmakuSourceType.Bilibili: {
+      return {
+        ...base,
+        providerIds: { seasonId: item.meta.seasonId },
+        indexedId: item.meta.seasonId.toString(),
+      }
+    }
+    case DanmakuSourceType.Tencent: {
+      return {
+        ...base,
+        providerIds: { cid: item.meta.cid },
+        indexedId: item.meta.cid.toString(),
+      }
+    }
+  }
+}
 
 @injectable('Singleton')
 export class DanmakuAnywhereDb extends Dexie {
@@ -241,8 +287,8 @@ export class DanmakuAnywhereDb extends Dexie {
            * 2. for other danmaku types, first create a season for the danmaku
            */
           const getSeasonId = async () => {
-            const seasonInsert: WithoutId<SeasonV1> = {
-              ...episodeMigration.v3ExtractSeason(item),
+            const seasonInsert = {
+              ...extractSeasonV10(item),
               version: item.version,
               timeUpdated: Date.now(),
             }
@@ -444,9 +490,9 @@ export class DanmakuAnywhereDb extends Dexie {
      * keeps its providerConfigId so the runtime reconciler can heal it later
      * from live config storage, where there is no migration race.
      *
-     * The compound index is non-unique on purpose: orphaned seasons have no
-     * namespaceKey, so a unique index would collide them during creation and
-     * abort the upgrade. SeasonService.upsert enforces identity at the app layer.
+     * The compound index is non-unique. Identity is enforced by
+     * SeasonService.upsert and by the reconciler, which never stamps an
+     * identity another row already holds.
      */
     this.version(15)
       .stores({

@@ -179,6 +179,7 @@
       "mounted_other": "弹幕已装填：{{name}} ({{count}})",
       "mountedMultiple_other": "已装填{{count}}个多选弹幕",
       "mountError": "装填弹幕失败：{{message}}",
+      "refetchKeptStored": "获取到 {{fetched}} 条弹幕，少于已保存的 {{stored}} 条，已保留原有弹幕。",
       "refreshed_other": "弹幕已刷新：{{name}} ({{count}})",
       "refreshingDanmaku": "正在刷新弹幕",
       "unmounted": "弹幕已卸载",
@@ -486,6 +487,7 @@
     "backup": {
       "alert": {
         "exportSuccess": "成功导出备份",
+        "importPartial": "部分设置未能恢复：{{stores}}",
         "importSuccess": "成功导入备份"
       },
       "cloudBackup": "云备份",
@@ -714,6 +716,9 @@
       "reorder": "排序",
       "reorderDone": "完成",
       "title": "已安装"
+    },
+    "instance": {
+      "defaultName": "自建弹弹play"
     },
     "name": "弹幕源",
     "updates": {

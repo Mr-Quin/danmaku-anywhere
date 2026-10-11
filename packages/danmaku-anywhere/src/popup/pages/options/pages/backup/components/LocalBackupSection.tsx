@@ -90,6 +90,7 @@ export function LocalBackupSection({
               variant="soft"
               onClick={() => exportMutation.mutate()}
               disabled={exportMutation.isPending}
+              data-testid="backup-export-button"
               startIcon={
                 exportMutation.isPending ? (
                   <CircularProgress size={14} />
