@@ -1,8 +1,8 @@
-import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import type { ResolutionContext } from 'inversify'
 import type { IDanmakuProvider } from '@/background/services/providers/IDanmakuProvider'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
 import { MacCmsProviderService } from './MacCmsProviderService'
 import { ManifestProviderService } from './ManifestProviderService'
 import { ManifestRegistry } from './ManifestRegistry'
@@ -19,7 +19,7 @@ function createDanmakuProvider(
   logger: ILogger
 ): IDanmakuProvider {
   // MacCMS has no manifest; it resolves through the legacy service.
-  if (config.manifestId === LEGACY_MACCMS_ID) {
+  if (isLegacyMacCms(config)) {
     return new MacCmsProviderService(config, logger)
   }
   return new ManifestProviderService(

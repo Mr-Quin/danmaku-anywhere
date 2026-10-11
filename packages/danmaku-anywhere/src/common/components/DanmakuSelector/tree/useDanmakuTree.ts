@@ -25,7 +25,6 @@ import {
 import { providerDisplayNames } from '@/common/options/providerConfig/displayName'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
-import { useIdentityFieldsByManifest } from '@/common/providers/useIdentityFieldsByManifest'
 import { compareLocale } from '@/common/utils/collator'
 import { matchWithPinyin } from '@/common/utils/utils'
 
@@ -40,12 +39,7 @@ const matchesTypeFilter = (
   episode: GenericEpisodeLite,
   typeFilter: DanmakuSourceType[]
 ): boolean => {
-  const type = episodeProviderType(episode)
-  // An orphan has no provider type and no chip can select it; keep it visible.
-  if (type === undefined) {
-    return true
-  }
-  return typeFilter.includes(type)
+  return typeFilter.includes(episodeProviderType(episode))
 }
 
 const filterEpisodes = <T extends GenericEpisodeLite>(
@@ -160,7 +154,6 @@ export const useDanmakuTree = (
   const { data: seasons } = useGetAllSeasonsSuspense({ includeEmpty: true })
   const { data: bookmarks } = useBookmarksSuspense()
   const { getProviderById, configs } = useProviderConfig()
-  const identityFields = useIdentityFieldsByManifest()
 
   const { t } = useTranslation()
 
@@ -265,14 +258,9 @@ export const useDanmakuTree = (
         return
       }
 
-      const resolvedConfig = resolveSeasonConfig(
-        season,
-        configs,
-        identityFields
-      )
+      const resolvedConfig = resolveSeasonConfig(season, configs)
       const orphaned = resolvedConfig === undefined
-      const provider =
-        resolvedConfig ?? getProviderById(season.manifestId ?? '')
+      const provider = resolvedConfig ?? getProviderById(season.manifestId)
 
       const children = groupEpisodes.map((ep) =>
         register({
@@ -312,19 +300,10 @@ export const useDanmakuTree = (
         continue
       }
 
-      const resolvedConfig = resolveSeasonConfig(
-        season,
-        configs,
-        identityFields
-      )
+      const resolvedConfig = resolveSeasonConfig(season, configs)
       const orphaned = resolvedConfig === undefined
 
-      // Mirror matchesTypeFilter: an orphan has no provider type and no chip
-      // can select it; keep it visible.
-      const providerType = season.manifestId
-        ? providerTypeFromManifestId(season.manifestId)
-        : undefined
-      if (providerType !== undefined && !typeFilter.includes(providerType)) {
+      if (!typeFilter.includes(providerTypeFromManifestId(season.manifestId))) {
         continue
       }
 
@@ -378,8 +357,7 @@ export const useDanmakuTree = (
 
       // Season has no fetched episodes: create the node from its stubs (empty
       // for an orphan).
-      const provider =
-        resolvedConfig ?? getProviderById(season.manifestId ?? '')
+      const provider = resolvedConfig ?? getProviderById(season.manifestId)
       const seasonNode = register({
         id: `season-${season.id}`,
         label: season.title,
@@ -414,7 +392,6 @@ export const useDanmakuTree = (
     t,
     getProviderById,
     configs,
-    identityFields,
   ])
 
   return {

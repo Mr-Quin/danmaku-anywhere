@@ -26,6 +26,8 @@ Inversify IoC container (`src/common/ioc/`) wires up dependencies across these c
 
 The player frame mounts the danmaku overlay in a shadow root (`#danmaku-anywhere-player`, open in e2e builds / closed in prod). `DanmakuLayoutService` builds `wrapper` → `container` (danmaku comments) + `uiLayer` (in-player UI: skip button, info panel; `position: absolute`, `pointer-events: none`, z 10000), positioned over the `<video>`. Theme tokens (`--da-*`) are injected onto the shadow `:host` via `buildSakuraCssVars(mode)`.
 
+Season identity is `(providerConfigId, indexedId)`, enforced by a unique Dexie index. A season belongs to the provider config instance that fetched it; the row's `manifestId` only names the source type for chips and filters. Built-in configs have `id === manifestId` (`isBuiltinConfig`), so deleting and re-adding one reattaches its seasons. A re-created custom instance gets a new uuid, so the old seasons stay orphans: viewable, not refetchable, bookmarks dropped with the config. There is no relink action yet. Never derive season identity from config values such as `baseUrl`; editing a config must not detach its seasons, which is also why a built-in's server fields are read-only.
+
 ## Conventions
 
 - Functional components with hooks only

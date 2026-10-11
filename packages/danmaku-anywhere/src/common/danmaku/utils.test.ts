@@ -68,15 +68,6 @@ describe('episodeProviderType', () => {
       DanmakuSourceType.DanDanPlay
     )
   })
-
-  it('returns undefined for a source episode whose season has no manifestId', () => {
-    const orphan = {
-      seasonId: 7,
-      title: 'ep',
-      season: {},
-    } as unknown as GenericEpisode // lint-specs-allow-cast: partial fixture, not a collaborator
-    expect(episodeProviderType(orphan)).toBeUndefined()
-  })
 })
 
 describe('seasonProviderType', () => {
@@ -90,9 +81,5 @@ describe('seasonProviderType', () => {
     expect(
       seasonProviderType({ manifestId: 'bilibili' } as unknown as Season) // lint-specs-allow-cast: partial fixture, not a collaborator
     ).toBe(DanmakuSourceType.Bilibili)
-  })
-
-  it('returns undefined for an orphaned source season with no manifestId', () => {
-    expect(seasonProviderType({} as unknown as Season)).toBeUndefined() // lint-specs-allow-cast: partial fixture, not a collaborator
   })
 })

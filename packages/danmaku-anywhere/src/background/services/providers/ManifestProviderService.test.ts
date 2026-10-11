@@ -24,12 +24,8 @@ import type { ManifestRegistry } from './ManifestRegistry'
 
 const RUN_OPTS = MANIFEST_RUN_OPTIONS
 
-function makeRunner(
-  returns: Record<string, unknown>,
-  identityFields: string[] = []
-): ManifestRunner {
+function makeRunner(returns: Record<string, unknown>): ManifestRunner {
   return {
-    manifest: { identityFields },
     runSearch: vi.fn(async () => returns.search ?? []),
     runEpisodes: vi.fn(async () => returns.episodes ?? []),
     runDanmaku: vi.fn(async () => returns.danmaku ?? []),
@@ -49,7 +45,7 @@ function makeRegistry(runner: ManifestRunner): ManifestRegistry {
 }
 
 describe('ManifestProviderService.search', () => {
-  it('adds provider / providerConfigId / schemaVersion and strips html on titles', async () => {
+  it('adds manifestId / providerConfigId / schemaVersion and strips html on titles', async () => {
     const runner = makeRunner({
       search: [
         {
@@ -79,7 +75,7 @@ describe('ManifestProviderService.search', () => {
       providerIds: { seasonId: 123 },
       title: 'Frieren',
       manifestId: 'bilibili',
-      namespaceKey: 'bilibili',
+      providerConfigId: 'bilibili',
       schemaVersion: SEASON_SCHEMA_VERSION,
     })
     expect(runner.runSearch).toHaveBeenCalledWith({ q: 'frieren' }, RUN_OPTS)
@@ -151,7 +147,7 @@ describe('ManifestProviderService.getSeason', () => {
       providerIds: { seasonId: 41410 },
       title: '新标题',
       manifestId: 'bilibili',
-      namespaceKey: 'bilibili',
+      providerConfigId: 'bilibili',
       schemaVersion: SEASON_SCHEMA_VERSION,
     })
     expect(runner.runSeason).toHaveBeenCalledWith({ seasonId: 41410 }, RUN_OPTS)
@@ -322,24 +318,21 @@ describe('ManifestProviderService.getDanmaku', () => {
 
 describe('ManifestProviderService.parseUrl', () => {
   it('passes the private-host opt-in to the parseUrl pipeline', async () => {
-    const runner = makeRunner(
-      {
-        parseUrl: {
-          seasonInsert: {
-            providerIds: { seasonId: 1 },
-            indexedId: '1',
-            title: 'S',
-            type: 'tv',
-          },
-          episodeMeta: {
-            providerIds: { cid: 2 },
-            indexedId: '2',
-            title: 'E',
-          },
+    const runner = makeRunner({
+      parseUrl: {
+        seasonInsert: {
+          providerIds: { seasonId: 1 },
+          indexedId: '1',
+          title: 'S',
+          type: 'tv',
+        },
+        episodeMeta: {
+          providerIds: { cid: 2 },
+          indexedId: '2',
+          title: 'E',
         },
       },
-      ['baseUrl']
-    )
+    })
     const svc = new ManifestProviderService(
       {
         manifestId: 'dandanplay',
@@ -357,12 +350,9 @@ describe('ManifestProviderService.parseUrl', () => {
       undefined,
       RUN_OPTS
     )
-    // manifestId is the durable config identity; the per-instance namespaceKey
-    // is derived separately and is distinct from the bare manifestId.
     expect(result?.seasonInsert).toMatchObject({
       manifestId: 'dandanplay',
+      providerConfigId: 'custom-ddp-1',
     })
-    expect(result?.seasonInsert?.namespaceKey).toMatch(/^ns:/)
-    expect(result?.seasonInsert?.namespaceKey).not.toBe('dandanplay')
   })
 })

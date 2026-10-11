@@ -342,9 +342,6 @@ export class DanmakuService {
               this.db.season,
               this.db.episode,
               async () => {
-                // Identity-bearing seasons match on the compound index;
-                // identity-less (orphan) seasons match structurally, so a
-                // multi-episode backup shares one season row.
                 let existingSeason = await this.seasonService.findExisting(
                   item.season
                 )
@@ -361,7 +358,7 @@ export class DanmakuService {
               }
             )
             imported.push({
-              type: item.season.manifestId ?? 'unknown',
+              type: item.season.manifestId,
               title: item.episode.title,
               seasonId: savedSeasonId,
               seasonTitle: savedSeasonTitle,

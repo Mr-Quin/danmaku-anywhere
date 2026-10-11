@@ -27,11 +27,9 @@ describe('ManifestStore', () => {
     expect(await store.getAll()).toEqual({})
   })
 
-  it('get and has resolve against the stored record', async () => {
+  it('get resolves against the stored record', async () => {
     await backStorageWith({ 'a:1': { manifest: { id: 'a:1' }, kind: 'user' } })
     const store = new ManifestStore()
-    expect(await store.has('a:1')).toBe(true)
-    expect(await store.has('missing')).toBe(false)
     expect(await store.get('a:1')).toEqual({
       manifest: { id: 'a:1' },
       kind: 'user',

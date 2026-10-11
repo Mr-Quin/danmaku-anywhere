@@ -1,6 +1,6 @@
-import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import { useQueries } from '@tanstack/react-query'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
 import { sourceQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type { ProviderCookieSet } from '@/common/rpcClient/background/types'
@@ -20,7 +20,7 @@ export const useNeedsAttention = (
   // it has several instances, and surface one callout row per manifest.
   const seen = new Set<string>()
   const probeable = configs.filter((config) => {
-    if (!config.enabled || config.manifestId === LEGACY_MACCMS_ID) {
+    if (!config.enabled || isLegacyMacCms(config)) {
       return false
     }
     if (seen.has(config.manifestId)) {

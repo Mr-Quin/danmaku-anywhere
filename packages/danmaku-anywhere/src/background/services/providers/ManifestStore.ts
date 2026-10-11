@@ -20,7 +20,6 @@ export type ManifestRecord = Record<string, ManifestEntry>
 export interface IManifestStore {
   getAll(): Promise<ManifestRecord>
   get(id: string): Promise<ManifestEntry | undefined>
-  has(id: string): Promise<boolean>
   set(id: string, entry: ManifestEntry): Promise<void>
   setMany(entries: ManifestRecord): Promise<void>
   remove(id: string): Promise<void>
@@ -53,11 +52,6 @@ export class ManifestStore implements IManifestStore {
   async get(id: string): Promise<ManifestEntry | undefined> {
     const record = await this.getAll()
     return record[id]
-  }
-
-  async has(id: string): Promise<boolean> {
-    const record = await this.getAll()
-    return id in record
   }
 
   set(id: string, entry: ManifestEntry): Promise<void> {

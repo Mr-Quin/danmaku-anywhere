@@ -4,7 +4,7 @@ import { SeasonMap } from './SeasonMap'
 describe('SeasonMap', () => {
   it('serializes mappings created from a season', () => {
     const map = SeasonMap.fromSeason('media-key', {
-      namespaceKey: 'ddp',
+      providerConfigId: 'ddp',
       id: 10,
     })
 
@@ -14,17 +14,6 @@ describe('SeasonMap', () => {
         ddp: 10,
       },
       seasonIds: [10],
-      local: undefined,
-    })
-  })
-
-  it('creates an empty map for a season with no namespaceKey', () => {
-    const map = SeasonMap.fromSeason('media-key', { id: 10 })
-
-    expect(map.toSnapshot()).toEqual({
-      key: 'media-key',
-      seasons: {},
-      seasonIds: [],
       local: undefined,
     })
   })
@@ -82,7 +71,7 @@ describe('SeasonMap', () => {
     expect(SeasonMap.hasMapping(list, 'unknown', 'ddp', 10)).toBe(false)
   })
 
-  it('removes a specific namespace mapping', () => {
+  it('removes the mapping of one provider config', () => {
     const map = SeasonMap.fromSnapshot({
       key: 'media-key',
       seasons: {
@@ -155,17 +144,17 @@ describe('SeasonMap', () => {
 
     it('merge preserves self.local when other has none (additive)', () => {
       const a = SeasonMap.empty('test').withLocal('folder-a')
-      const b = SeasonMap.empty('test').withMapping('ns1', 42)
+      const b = SeasonMap.empty('test').withMapping('config-1', 42)
       const merged = a.merge(b)
       expect(merged.local).toBe('folder-a')
-      expect(merged.getSeasonId('ns1')).toBe(42)
+      expect(merged.getSeasonId('config-1')).toBe(42)
     })
 
     it('withLocal preserves existing season mappings', () => {
       const map = SeasonMap.empty('test')
-        .withMapping('ns1', 42)
+        .withMapping('config-1', 42)
         .withLocal('anime/show')
-      expect(map.getSeasonId('ns1')).toBe(42)
+      expect(map.getSeasonId('config-1')).toBe(42)
       expect(map.local).toBe('anime/show')
     })
   })

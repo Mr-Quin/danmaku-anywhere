@@ -305,7 +305,7 @@ export const SeasonCard = ({
 
   return (
     <Card
-      data-testid={`season-card-${seasonProviderType(season) ?? 'unknown'}-${
+      data-testid={`season-card-${seasonProviderType(season)}-${
         isPersistedSeason(season) ? season.id : season.indexedId
       }`}
     >

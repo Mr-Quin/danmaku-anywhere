@@ -1,4 +1,3 @@
-import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import { produce } from 'immer'
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
@@ -21,6 +20,7 @@ import {
 } from './migration'
 import type { ProviderConfig } from './schema'
 import { providerConfigSchema } from './schema'
+import { isLegacyMacCms } from './utils'
 
 @injectable('Singleton')
 export class ProviderConfigService implements IStoreService {
@@ -113,11 +113,6 @@ export class ProviderConfigService implements IStoreService {
     await this.seededFlag.set(true)
   }
 
-  async isIdUnique(id: string, excludeId?: string): Promise<boolean> {
-    const configs = await this.options.get()
-    return !configs.some((item) => item.id === id && item.id !== excludeId)
-  }
-
   async create(input: unknown) {
     const config = await providerConfigSchema.parseAsync(input)
 
@@ -171,7 +166,7 @@ export class ProviderConfigService implements IStoreService {
   supportsAutomaticMode(config: ProviderConfig): boolean {
     // Manifest-driven sources support automatic mode implicitly. Legacy MacCMS
     // has no manifest and is search-only, so it stays opt-out.
-    return config.manifestId !== LEGACY_MACCMS_ID
+    return !isLegacyMacCms(config)
   }
 
   async update<T extends ProviderConfig>(

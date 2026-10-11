@@ -5,7 +5,6 @@ import type {
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
-import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
 import { getDisplayStrings } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
@@ -19,7 +18,6 @@ import type {
 } from '@/common/danmaku/dto'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { toManifestLocale } from '@/common/localization/language'
-import { publishDataChange } from '@/common/messaging/dataChangeChannel'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import {
   AUTO_IMPORT_PROVIDERS,
@@ -28,9 +26,8 @@ import {
 import { localizeLegacyBuiltinNames } from '@/common/options/providerConfig/localizeLegacyNames'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import { computeNamespaceKey } from '@/common/providers/namespaceKey'
+import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
-import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import type {
   ProviderLoginStatus,
   ProviderManifestList,
@@ -65,7 +62,6 @@ function enrichEpisode(
 export class ProviderService {
   private readonly logger: ILogger
   private seeding: Promise<void> | null = null
-  private identitiesReconciled: Promise<void> | null = null
 
   constructor(
     @inject(DanmakuService)
@@ -93,7 +89,6 @@ export class ProviderService {
   async searchSeason(
     params: SeasonSearchRequest
   ): Promise<(Season | SeasonInsert)[] | CustomSeason[]> {
-    await this.seasonsReady()
     const providerConfig = await this.providerConfigService.mustGet(
       params.providerConfigId
     )
@@ -102,7 +97,7 @@ export class ProviderService {
 
     const seasonInserts = await service.search(params)
     // TODO: fix this once we fold custom seasons into the season insert
-    if (providerConfig.manifestId === LEGACY_MACCMS_ID) {
+    if (isLegacyMacCms(providerConfig)) {
       return seasonInserts as CustomSeason[]
     }
     // Surface existing ids so bookmark / cache indicators still resolve.
@@ -116,7 +111,6 @@ export class ProviderService {
   }
 
   async upsertSeason(data: SeasonInsert): Promise<Season> {
-    await this.seasonsReady()
     return this.seasonService.upsert(data)
   }
 
@@ -125,13 +119,11 @@ export class ProviderService {
   // The UI blocks refresh affordances for orphaned seasons, so this is the
   // fallback for any path that still reaches a provider call.
   private async getConfigForSeason(season: {
-    manifestId?: string
-    namespaceKey?: string
+    providerConfigId: string
   }): Promise<ProviderConfig> {
     const config = resolveSeasonConfig(
       season,
-      await this.providerConfigService.getAll(),
-      await this.manifestRegistry.getIdentityFieldsMap()
+      await this.providerConfigService.getAll()
     )
     if (!config) {
       throw new Error(
@@ -144,22 +136,21 @@ export class ProviderService {
   async fetchEpisodesBySeason(
     seasonId: number
   ): Promise<WithSeason<EpisodeMeta>[]> {
-    await this.seasonsReady()
     const season = await this.seasonService.mustGetById(seasonId)
 
     const providerConfig = await this.getConfigForSeason(season)
 
-    if (providerConfig.manifestId === LEGACY_MACCMS_ID) {
-      throw new Error('MacCMS does not support fetching episodes')
-    }
-
     const service = this.danmakuProviderFactory(providerConfig)
+    if (!service.getEpisodes) {
+      throw new Error(
+        `${providerConfig.name} does not support fetching episodes`
+      )
+    }
     const episodes = await service.getEpisodes(season.providerIds)
     return episodes.map((episode) => enrichEpisode(episode, season))
   }
 
   async refreshSeason(filter: SeasonQueryFilter) {
-    await this.seasonsReady()
     const [season] = await this.seasonService.filter(filter)
     if (!season) {
       throw new Error('No season found for refresh filter')
@@ -200,7 +191,6 @@ export class ProviderService {
   }
 
   async getDanmaku(request: DanmakuFetchRequest): Promise<DanmakuFetchResult> {
-    await this.seasonsReady()
     const resolved = await this.resolveMeta(request)
     const { options = {}, meta } = resolved
 
@@ -222,11 +212,10 @@ export class ProviderService {
 
     const config = await this.getConfigForSeason(meta.season)
 
-    if (config.manifestId === LEGACY_MACCMS_ID) {
-      throw new Error('MacCMS episodes are not refetchable')
-    }
-
     const service = this.danmakuProviderFactory(config)
+    if (!service.getDanmaku) {
+      throw new Error(`${config.name} episodes cannot be refetched`)
+    }
 
     const comments = await service.getDanmaku(resolved)
 
@@ -261,7 +250,6 @@ export class ProviderService {
     // any pasted URL regardless of which sources the user has toggled on.
     // Disabling Bilibili would otherwise make a recognized bilibili.com
     // URL fail with "No provider found".
-    await this.seasonsReady()
     const configs = await this.providerConfigService.getAll()
     for (const config of configs) {
       const service = this.danmakuProviderFactory(config)
@@ -327,13 +315,8 @@ export class ProviderService {
     const configs = await this.providerConfigService.getAll()
     for (const config of configs) {
       if (config.manifestId === manifestId) {
-        // Resolve before unregistering, while the declaration is still known.
-        const namespaceKey = await this.computeConfigNamespaceKey(config)
         await this.providerConfigService.deleteFromStorage(config.id)
-        await this.bookmarkService.deleteBySeasonIdentity(
-          manifestId,
-          namespaceKey
-        )
+        await this.bookmarkService.deleteByProviderConfig(config.id)
       }
     }
     await this.manifestRegistry.unregister(manifestId)
@@ -356,51 +339,6 @@ export class ProviderService {
         this.logger.error('Install handling failed:', e)
       })
     })
-    void this.seasonsReady()
-  }
-
-  // One reconcile per service worker start. Season writes must wait for it:
-  // the reconciler never stamps an identity another row already holds, so a
-  // row upserted first strands the orphan it would have healed. A failed pass
-  // waits for the next service worker start.
-  async seasonsReady(): Promise<void> {
-    await this.manifestRegistry.ready
-    this.identitiesReconciled ??= this.reconcileSeasonIdentities().catch(
-      (e) => {
-        this.logger.error('Season identity reconciliation failed:', e)
-      }
-    )
-    await this.identitiesReconciled
-  }
-
-  // Namespace of a config under its manifest's identityFields declaration.
-  async computeConfigNamespaceKey(config: ProviderConfig): Promise<string> {
-    return computeNamespaceKey(
-      config,
-      await this.manifestRegistry.getIdentityFields(config.manifestId)
-    )
-  }
-
-  // Heal v15-orphaned seasons against live configs. Open extension pages hold
-  // the season query cached, so a heal must broadcast an invalidation or they
-  // keep rendering the orphan state.
-  private async reconcileSeasonIdentities(): Promise<void> {
-    const configs = await this.providerConfigService.getAll()
-    const identityFields = await this.manifestRegistry.getIdentityFieldsMap()
-    // Undefined for an unresolved manifest, and the reconciler skips it.
-    const healed = await this.seasonService.reconcileIdentities(
-      configs.map((config) => ({
-        ...config,
-        identityFields: identityFields[config.manifestId],
-      }))
-    )
-    if (healed > 0) {
-      this.logger.debug(`Reconciled identity for ${healed} orphaned season(s)`)
-      publishDataChange({
-        type: 'invalidateQueries',
-        keys: [seasonQueryKeys.all()],
-      })
-    }
   }
 
   private async onInstalled(reason: string): Promise<void> {

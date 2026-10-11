@@ -91,11 +91,6 @@ export class ManifestRegistry {
     return entry.runner
   }
 
-  list(): string[] {
-    invariant(this.initialized, 'ManifestRegistry accessed before ready')
-    return [...this.runners.keys()]
-  }
-
   listManifests(locale?: string): ProviderManifestInfo[] {
     invariant(this.initialized, 'ManifestRegistry accessed before ready')
     return [...this.runners.values()].map(({ runner, kind }) => {
@@ -107,27 +102,8 @@ export class ManifestRegistry {
         version: manifest.version,
         configSchema: display.configSchema,
         kind,
-        identityFields: manifest.identityFields,
       }
     })
-  }
-
-  async getIdentityFields(manifestId: string): Promise<readonly string[]> {
-    await this.ready
-    const registered = this.runners.get(manifestId)
-    if (registered) {
-      return registered.runner.manifest.identityFields
-    }
-    return []
-  }
-
-  async getIdentityFieldsMap(): Promise<Record<string, readonly string[]>> {
-    await this.ready
-    const map: Record<string, readonly string[]> = {}
-    for (const [id, { runner }] of this.runners) {
-      map[id] = runner.manifest.identityFields
-    }
-    return map
   }
 
   getLastCheckedAt(): Promise<number | null> {
@@ -139,34 +115,10 @@ export class ManifestRegistry {
     return this.store.setLastCheckedAt(Date.now())
   }
 
-  async register(manifest: unknown, kind: ManifestKind): Promise<void> {
-    await this.ready
-    const parsed = zManifest.safeParse(manifest)
-    if (!parsed.success) {
-      throw new Error(
-        `invalid manifest: ${JSON.stringify(parsed.error.issues)}`
-      )
-    }
-    await this.store.set(parsed.data.id, { manifest, kind })
-    this.runners.set(parsed.data.id, {
-      runner: this.buildRunner(parsed.data),
-      kind,
-    })
-  }
-
   async unregister(manifestId: string): Promise<void> {
     await this.ready
     await this.store.remove(manifestId)
     this.runners.delete(manifestId)
-  }
-
-  async refresh(): Promise<void> {
-    await this.ready
-    const record = await this.store.getAll()
-    this.runners.clear()
-    for (const [id, entry] of Object.entries(record)) {
-      this.loadEntry(id, entry)
-    }
   }
 
   // Add-only except for 'bundled' entries, which the catalog copy replaces
@@ -303,8 +255,8 @@ export class ManifestRegistry {
     return this.store.get(manifestId)
   }
 
-  // The bundle fills in whatever the store lacks, so the built-in sources and
-  // their identityFields exist before any catalog sync.
+  // The bundle fills in whatever the store lacks, so the built-in sources exist
+  // before any catalog sync.
   private async init(): Promise<void> {
     const record = await this.store.getAll()
     for (const [id, entry] of Object.entries(record)) {

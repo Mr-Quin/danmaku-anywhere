@@ -14,7 +14,6 @@ const manifest: ProviderManifestInfo = {
   id: 'dandanplay',
   name: 'DanDanPlay',
   version: '0.5.0',
-  identityFields: [],
   kind: 'preinstalled',
 }
 

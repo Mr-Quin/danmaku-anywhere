@@ -112,7 +112,7 @@ export function BaseEpisodeListItem<
   const number = deriveEpisodeNumber(ep, index)
 
   const testIdSuffix = isSourceEpisode(ep) ? ep.indexedId : ep.id
-  const sourceKey = episodeProviderType(ep) ?? 'unknown'
+  const sourceKey = episodeProviderType(ep)
   const testId = `episode-list-item-${sourceKey}-${testIdSuffix}`
 
   const thumbSrc = isSourceEpisode(ep) ? ep.imageUrl : undefined
