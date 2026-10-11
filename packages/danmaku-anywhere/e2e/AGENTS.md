@@ -206,23 +206,27 @@ The baseline tag, repo, and asset filename template live in `e2e/migration.confi
 
 ### Seed data
 
-The smoke seeds state by driving v1.5.0's own popup UI from `e2e/poms/legacy/v1.5.0/MigrationLegacyPopup`. Two flows:
+The smoke seeds state by driving v1.5.0's own popup UI from `e2e/poms/legacy/v1.5.0/MigrationLegacyPopup`:
 
 - `restoreBackup(jsonPath)` — uploads to `/options/backup`, writes `chrome.storage`.
 - `importDanmaku(zipPath)` — uploads to `/mount`, writes IDB rows. v1.5.0's import auto-extracts zip files, so one zip can hold multiple danmaku files.
+- `addTitleMapping(snapshot)` — sends v1.5.0's `seasonMapAdd` RPC, so its own service worker writes the seasonMap row. v1.5.0 only creates one from the content script's floating panel.
+- `exportBackup()` and `toggleProvider(name)` — used by the fixture generator.
 
 Fixtures are committed as binaries under `e2e/fixtures/migration/`:
 
-- `backup.json.gz` — redacted chrome.storage backup.
+- `backup.json.gz` — a backup exported by v1.5.0 itself, so every store is at the version v1.5.0 writes (extensionOptions 22, danmakuOptions 7) and carries only fields v1.5.0 knows. Never replace it with an export from a later build: v1.5.0's restore writes a newer version verbatim, and the steps in between then never run.
 - `danmaku.zip` — one representative danmaku export per provider type.
 
-Regenerate with `scripts/prepareMigrationFixtures.mjs <backup.json> <export-root>`. The script strips API keys, auth headers, and user-identifying URLs; refuses to write if it can still detect anything resembling a secret.
+Regenerate `backup.json.gz` with `pnpm exec playwright test --config e2e/fixture-gen/playwright.config.ts`. The generator takes v1.5.0's fresh-install export, layers the user edits in `v150Backup.gen.ts` on top, restores that through v1.5.0's backup page, disables a built-in through its providers page, and saves v1.5.0's second export. The edits are synthetic, so nothing needs redacting; the migration specs assert on their values, so change both together.
+
+Regenerate `danmaku.zip` with `scripts/prepareMigrationFixtures.mjs <export-root>`. The script picks the smallest file per provider and renames entries so filenames do not leak watch history.
 
 ### Asserting post-swap
 
 Read state through a popup page (`chrome-extension://<id>/pages/popup.html`), not the service worker. The popup forces the new SW to wake and exercises RPC handlers, surfacing latent errors in the upgrade path. The swapped SW reference from Playwright may go stale.
 
-Smoke assertions combine an error gate AND positive data integrity assertions. The error gate catches throwing migrations (`OptionsService` logs them, Dexie's `db.open()` rejects). Positive assertions catch silent corruption (a migration that returns `[]` or drops a field without throwing) since no error fires. Neither alone is sufficient. Assertions match seeded state by ID rather than byte-equality so a v22 to v25 migration that legitimately reshapes fields still passes; the test fails only when an entry goes missing or the upgrade explicitly errors.
+Smoke assertions combine an error gate, a schema gate, AND positive data integrity assertions. The schema gate (`schemaViolations` in `e2e/setup/migrationState.ts`) parses every upgraded options store against its current zod schema, which catches a migration that tolerates bad data but leaves a required field missing. The error gate catches throwing migrations (`OptionsService` logs them, Dexie's `db.open()` rejects). Positive assertions catch silent corruption (a migration that returns `[]` or drops a field without throwing) since no error fires. Neither alone is sufficient. Assertions match seeded state by ID rather than byte-equality so a v22 to v25 migration that legitimately reshapes fields still passes; the test fails only when an entry goes missing or the upgrade explicitly errors.
 
 ### Helpers
 
@@ -230,5 +234,6 @@ Smoke assertions combine an error gate AND positive data integrity assertions. T
 - `ensureCurrentBuildForMigration()`: copies the current `build/` into `.e2e-cache/prior-releases/current-<workerSlot>/extension/`, injects the test key, bumps the manifest version.
 - `launchExtension({ userDataDir, extensionPath })`: launches a persistent context with the prior build via `--load-extension` and the CDP Extensions flag.
 - `swapExtension(launched, { extensionPath })`: swaps to the current build via CDP `Extensions.loadUnpacked` in the same context.
+- `upgradeToCurrentBuild(context, currentExt)` (`e2e/setup/priorInstall.ts`): swaps and returns once the upgrade has finished. While package.json still carries the baseline's version, the current build's `ReadinessService` sees v1.5.0's `lastVersion` as its own and never waits for the upgrade, so a spec that reads storage right after a bare `swapExtension` can catch a half-upgraded store. The helper records an older `lastVersion` before the swap and waits for the upgrade to write the current one.
 
 Vendored POMs for the prior release's UI live under `e2e/poms/legacy/<version>/` and are frozen. Never share with current POMs since current UI evolves.
