@@ -1,4 +1,6 @@
+import 'fake-indexeddb/auto'
 import {
+  type CommentEntity,
   DanmakuSourceType,
   type EpisodeMeta,
   LEGACY_MACCMS_ID,
@@ -6,7 +8,6 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import type { ManifestRunner } from '@mr-quin/dango'
 import { fakeBrowser } from '@webext-core/fake-browser'
-import 'fake-indexeddb/auto'
 import { Dexie } from 'dexie'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { backgroundContainerModule } from '@/background/ioc'
@@ -113,6 +114,13 @@ function buildService(doubles: ServiceDoubles = {}) {
   )
 }
 
+function comments(count: number): CommentEntity[] {
+  return Array.from({ length: count }, (_, i) => ({
+    p: `${i},1,16777215`,
+    m: `comment ${i}`,
+  }))
+}
+
 function build(
   config: ProviderConfig,
   provider: Pick<IDanmakuProvider, 'search' | 'getEpisodes' | 'getDanmaku'>,
@@ -123,10 +131,12 @@ function build(
   } = {}
 ) {
   const filter = vi.fn(async () => opts.existingDanmaku ?? [])
-  // upsert<T extends EpisodeInsert> is generic; a double can't satisfy that
-  // signature without an unsafe cast, so it stays untyped here.
-  const upsert = vi.fn(async (e: unknown) => e)
-  const danmakuService = { filter, upsert }
+  const upsertUnlessFewer = vi.fn<DanmakuService['upsertUnlessFewer']>(
+    async (episode) => ({
+      episode: { ...episode, id: 1, version: 1, timeUpdated: 0 },
+    })
+  )
+  const danmakuService = { filter, upsertUnlessFewer }
 
   const season = makeSeason({
     manifestId: config.manifestId,
@@ -136,7 +146,8 @@ function build(
   })
 
   const mustGetById = vi.fn<SeasonService['mustGetById']>(async () => season)
-  // findExisting<T extends SeasonInsert> is generic; same as upsert above.
+  // findExisting<T extends SeasonInsert> is generic; a double can't satisfy
+  // that signature without an unsafe cast, so it stays untyped here.
   const findExisting = vi.fn(async () => opts.findExisting)
   const seasonService = { mustGetById, findExisting }
 
@@ -373,8 +384,55 @@ describe('ProviderService legacy-maccms decoupling', () => {
         options: {},
       })
 
-      expect(result).toEqual(cached)
+      expect(result).toEqual({ episode: cached })
       expect(provider.getDanmaku).not.toHaveBeenCalled()
+    })
+
+    it('saves an empty result on a first manual fetch', async () => {
+      const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
+      const { service, danmakuService } = build(iqiyiConfig, provider)
+
+      const result = await service.getDanmaku({
+        type: 'by-meta',
+        meta,
+        options: {},
+      })
+
+      expect(danmakuService.upsertUnlessFewer).toHaveBeenCalledWith(
+        expect.objectContaining({ comments: [], commentCount: 0 })
+      )
+      expect(result.keptStored).toBeUndefined()
+    })
+
+    it('never saves an empty result from an automatic fetch', async () => {
+      const provider = makeProvider({ getDanmaku: vi.fn(async () => []) })
+      const { service, danmakuService } = build(iqiyiConfig, provider)
+
+      await expect(
+        service.getDanmaku({
+          type: 'by-meta',
+          meta,
+          options: { automatic: true },
+        })
+      ).rejects.toThrow('No danmaku found')
+      expect(danmakuService.upsertUnlessFewer).not.toHaveBeenCalled()
+    })
+
+    it('saves a non-empty result from an automatic fetch', async () => {
+      const provider = makeProvider({
+        getDanmaku: vi.fn(async () => comments(2)),
+      })
+      const { service, danmakuService } = build(iqiyiConfig, provider)
+
+      await service.getDanmaku({
+        type: 'by-meta',
+        meta,
+        options: { automatic: true },
+      })
+
+      expect(danmakuService.upsertUnlessFewer).toHaveBeenCalledWith(
+        expect.objectContaining({ commentCount: 2 })
+      )
     })
 
     it('throws for a legacy MacCMS config', async () => {
@@ -411,6 +469,181 @@ describe('ProviderService legacy-maccms decoupling', () => {
       ).rejects.toThrow('This source has been removed')
       expect(provider.getDanmaku).not.toHaveBeenCalled()
     })
+  })
+})
+
+describe('ProviderService.getDanmaku against persisted episodes', () => {
+  const config = makeConfig('iqiyi')
+  let db: DanmakuAnywhereDb
+  let danmakuService: DanmakuService
+
+  beforeEach(async () => {
+    await Dexie.delete(DANMAKU_DB_NAME)
+    db = new DanmakuAnywhereDb()
+    await db.open()
+    danmakuService = new DanmakuService(new SeasonService(db), db, silentLogger)
+  })
+
+  afterEach(async () => {
+    db.close()
+    await Dexie.delete(DANMAKU_DB_NAME)
+    vi.restoreAllMocks()
+  })
+
+  async function setup(storedComments?: CommentEntity[]) {
+    const season = await new SeasonService(db).upsert(
+      makeSeasonInsert({
+        manifestId: config.manifestId,
+        namespaceKey: computeNamespaceKey(config, []),
+      })
+    )
+    const meta: WithSeason<EpisodeMeta> = {
+      title: 'Episode 1',
+      indexedId: 'ep1',
+      seasonId: season.id,
+      providerIds: {},
+      schemaVersion: 4,
+      lastChecked: 0,
+      season,
+    }
+    if (storedComments) {
+      const { season: _, ...insert } = meta
+      await danmakuService.upsert({
+        ...insert,
+        comments: storedComments,
+        commentCount: storedComments.length,
+      })
+    }
+
+    const first = Promise.withResolvers<CommentEntity[]>()
+    const second = Promise.withResolvers<CommentEntity[]>()
+    const getDanmaku = vi
+      .fn<IDanmakuProvider['getDanmaku']>()
+      .mockReturnValueOnce(first.promise)
+      .mockReturnValueOnce(second.promise)
+    const getIdentityFieldsMap = vi.fn<
+      ManifestRegistry['getIdentityFieldsMap']
+    >(async () => ({}))
+    const getAll = vi.fn<ProviderConfigService['getAll']>(async () => [config])
+    const service = buildService({
+      danmakuService,
+      providerConfigService: { getAll },
+      factory: vi.fn(() => makeProvider({ getDanmaku })),
+      registry: { ready: Promise.resolve(), getIdentityFieldsMap },
+    })
+
+    function fetch(forceUpdate: boolean) {
+      return service.getDanmaku({
+        type: 'by-meta',
+        meta,
+        options: { forceUpdate },
+      })
+    }
+
+    async function refetch(fetched: CommentEntity[]) {
+      first.resolve(fetched)
+      return fetch(true)
+    }
+
+    async function stored() {
+      const [episode] = await danmakuService.filter({
+        indexedId: meta.indexedId,
+        seasonId: season.id,
+      })
+      return episode
+    }
+
+    return { first, second, getDanmaku, fetch, refetch, stored }
+  }
+
+  it('keeps the stored episode when the refetch returns fewer comments', async () => {
+    const { refetch, stored } = await setup(comments(5))
+    const before = await stored()
+
+    const result = await refetch(comments(3))
+
+    expect(result.keptStored).toEqual({ fetchedCount: 3, storedCount: 5 })
+    expect(result.episode).toEqual(before)
+    expect(await stored()).toEqual(before)
+  })
+
+  it('keeps the stored episode when the refetch returns nothing', async () => {
+    const { refetch, stored } = await setup(comments(5))
+
+    const result = await refetch([])
+
+    expect(result.keptStored).toEqual({ fetchedCount: 0, storedCount: 5 })
+    expect((await stored()).commentCount).toBe(5)
+  })
+
+  it('replaces the stored episode when the refetch returns as many comments', async () => {
+    const { refetch, stored } = await setup(comments(3))
+
+    const result = await refetch(comments(3))
+
+    expect(result).not.toHaveProperty('keptStored')
+    expect((await stored()).version).toBe(2)
+  })
+
+  it('records when the replacing refetch checked the source', async () => {
+    const { refetch, stored } = await setup(comments(3))
+    vi.spyOn(Date, 'now').mockReturnValue(1_700_000_000_000)
+
+    await refetch(comments(4))
+
+    expect((await stored()).lastChecked).toBe(1_700_000_000_000)
+  })
+
+  it('does not count stored comments the renderer cannot parse', async () => {
+    const { refetch, stored } = await setup([
+      ...comments(2),
+      { p: '10,7,16777215', m: 'positioned' },
+    ])
+
+    const result = await refetch(comments(2))
+
+    expect(result).not.toHaveProperty('keptStored')
+    expect((await stored()).commentCount).toBe(2)
+  })
+
+  it('keeps the larger refetch when a smaller one resolves after it', async () => {
+    const { first, second, getDanmaku, fetch, stored } = await setup(
+      comments(3)
+    )
+
+    const refreshA = fetch(true)
+    const refreshB = fetch(true)
+    await vi.waitFor(() => expect(getDanmaku).toHaveBeenCalledTimes(2))
+
+    first.resolve(comments(6))
+    await expect(refreshA).resolves.not.toHaveProperty('keptStored')
+    second.resolve(comments(4))
+    await expect(refreshB).resolves.toMatchObject({
+      keptStored: { fetchedCount: 4, storedCount: 6 },
+    })
+
+    const episode = await stored()
+    expect(episode.comments).toHaveLength(6)
+    expect(episode.commentCount).toBe(6)
+  })
+
+  it('keeps the larger first fetch when a smaller one resolves after it', async () => {
+    const { first, second, getDanmaku, fetch, stored } = await setup()
+
+    const fetchA = fetch(false)
+    const fetchB = fetch(false)
+    await vi.waitFor(() => expect(getDanmaku).toHaveBeenCalledTimes(2))
+
+    first.resolve(comments(6))
+    await expect(fetchA).resolves.not.toHaveProperty('keptStored')
+    second.resolve(comments(4))
+    await expect(fetchB).resolves.toMatchObject({
+      keptStored: { fetchedCount: 4, storedCount: 6 },
+    })
+
+    const episode = await stored()
+    expect(episode.comments).toHaveLength(6)
+    expect(episode.commentCount).toBe(6)
   })
 })
 

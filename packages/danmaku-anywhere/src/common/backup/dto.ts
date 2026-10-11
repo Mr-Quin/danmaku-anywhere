@@ -19,6 +19,8 @@ export interface BackupRestoreResult {
     {
       success: boolean
       error?: string
+      /** Entries dropped because they failed validation. */
+      droppedEntries?: number
     }
   >
 }
