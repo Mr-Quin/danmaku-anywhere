@@ -278,6 +278,17 @@ describe('ManifestProviderService.getDanmaku', () => {
     )
   })
 
+  it('drops a comment whose options the renderer cannot parse', async () => {
+    const { svc } = makeDanmakuService([
+      { p: '1,1,16777215', m: 'hi' },
+      { p: 'garbage', m: 'never renders' },
+    ])
+
+    const result = await svc.getDanmaku(makeRequest({ episodeId: 42 }))
+
+    expect(result).toEqual([{ p: '1,1,16777215', m: 'hi' }])
+  })
+
   it('keeps an empty result empty instead of failing', async () => {
     const { svc, warn } = makeDanmakuService([])
 

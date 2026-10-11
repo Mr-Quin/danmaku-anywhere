@@ -1,6 +1,5 @@
 import type {
   CustomSeason,
-  Episode,
   EpisodeMeta,
   Season,
   SeasonInsert,
@@ -16,6 +15,7 @@ import type { SeasonQueryFilter, SeasonSearchRequest } from '@/common/anime/dto'
 import type {
   DanmakuFetchByMeta,
   DanmakuFetchRequest,
+  DanmakuFetchResult,
 } from '@/common/danmaku/dto'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { toManifestLocale } from '@/common/localization/language'
@@ -196,7 +196,7 @@ export class ProviderService {
     return { type: 'by-meta', meta, options: request.options }
   }
 
-  async getDanmaku(request: DanmakuFetchRequest): Promise<WithSeason<Episode>> {
+  async getDanmaku(request: DanmakuFetchRequest): Promise<DanmakuFetchResult> {
     await this.manifestRegistry.ready
     const resolved = await this.resolveMeta(request)
     const { options = {}, meta } = resolved
@@ -208,7 +208,7 @@ export class ProviderService {
 
     if (existingDanmaku && !options.forceUpdate) {
       this.logger.debug('Danmaku found in db', existingDanmaku)
-      return existingDanmaku
+      return { episode: existingDanmaku }
     }
 
     if (options.forceUpdate) {
@@ -227,19 +227,30 @@ export class ProviderService {
 
     const comments = await service.getDanmaku(resolved)
 
+    if (options.automatic && comments.length === 0) {
+      throw new Error(`No danmaku found for ${meta.title}`)
+    }
+
     const { season, ...rest } = meta
 
-    const saved = await this.danmakuService.upsert({
-      ...rest,
-      seasonId: season.id,
-      comments,
-      commentCount: comments.length,
-    })
+    const { episode, keptStored } = await this.danmakuService.upsertUnlessFewer(
+      {
+        ...rest,
+        seasonId: season.id,
+        comments,
+        commentCount: comments.length,
+        lastChecked: Date.now(),
+      }
+    )
 
-    return {
-      ...saved,
-      season,
+    if (keptStored) {
+      this.logger.warn(
+        `Fetch returned ${keptStored.fetchedCount} comments, fewer than the ${keptStored.storedCount} stored; keeping the stored episode`
+      )
+      return { episode: { ...episode, season }, keptStored }
     }
+
+    return { episode: { ...episode, season } }
   }
 
   async parseUrl(url: string): Promise<WithSeason<EpisodeMeta>> {

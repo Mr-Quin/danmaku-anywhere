@@ -14,6 +14,8 @@ import { applyProfile } from '../../setup/profile'
  * 2 as a stub. Invokes the production episodePreloadNext RPC (the transport
  * the player fires at 50% playback) for episode 1, then asserts the episode-2
  * stub row is replaced by a fetched episode row with a non-zero comment count.
+ * When the next episode has no danmaku upstream, the preload saves nothing
+ * and the stub row stays.
  */
 
 test('mount tree: bookmark-driven preload caches the next episode', async ({
@@ -82,4 +84,45 @@ test('mount tree: bookmark-driven preload caches the next episode', async ({
   await expect(popup.mount.episodeCommentCount(nextEpisodeId)).toHaveText(
     String(preloaded?.commentCount)
   )
+})
+
+test('mount tree: a preload that finds no danmaku leaves the next episode unfetched', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, {
+    providers: { bilibili: { enabled: true } },
+    network: mockBilibiliXml({
+      searchBangumi: loadJsonFixture('bilibili-search-bangumi.json'),
+      searchFt: loadJsonFixture('bilibili-search-ft.json'),
+      season: loadJsonFixture('bilibili-season.json'),
+      xml: '<?xml version="1.0" encoding="UTF-8"?><i></i>',
+    }),
+  })
+
+  const season = await da.season.add(makeBilibiliSeason())
+  const episode = await da.episode.add(makeBilibiliEpisode(season.id))
+
+  const popup = await Popup.open(page, extensionId, '/mount')
+  const seasonItem = await popup.mount.waitForSeason(season.id)
+
+  await popup.mount.openItemMenu(seasonItem, 'bookmarkAdd')
+  await expect(seasonItem).toContainText(/\+1/)
+
+  await page.evaluate((meta) => {
+    return chrome.runtime.sendMessage({
+      method: 'episodePreloadNext',
+      input: meta,
+    })
+  }, episode)
+
+  await page.reload()
+  await popup.mount.waitForSeason(season.id)
+  await popup.mount.expandSeason(season.id)
+
+  await expect(popup.mount.stubItem(season.id, '1300002')).toBeVisible()
+  await expect(seasonItem).toContainText(/\+1/)
+  await expect(popup.mount.episodeItems()).toHaveCount(1)
 })
