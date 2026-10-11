@@ -40,8 +40,9 @@ function makeRunner(returns: Record<string, unknown>): ManifestRunner {
 
 function makeRegistry(runner: ManifestRunner): ManifestRegistry {
   return {
+    ready: Promise.resolve(),
     getRunner: vi.fn<ManifestRegistry['getRunner']>(() => runner),
-  } as unknown as ManifestRegistry // lint-specs-allow-cast: ManifestRegistry has private fields; double only implements getRunner
+  } as unknown as ManifestRegistry // lint-specs-allow-cast: ManifestRegistry has private fields; double only implements ready and getRunner
 }
 
 describe('ManifestProviderService.search', () => {

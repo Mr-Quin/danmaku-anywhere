@@ -1,6 +1,6 @@
 import type { ILogger } from '@/common/Logger'
 import type { IStoreService } from './IStoreService'
-import type { UpgradeContext } from './OptionsService/types'
+import type { StoreSnapshot } from './OptionsService/types'
 
 // Tries every store even after one fails, then rejects naming each store that
 // did not persist. Callers record the version marker only when this resolves,
@@ -9,11 +9,11 @@ export async function upgradeStores(
   services: IStoreService[],
   logger: ILogger
 ): Promise<void> {
-  const context: UpgradeContext = {}
+  const stores: StoreSnapshot = {}
   for (const service of services) {
     const stored = await service.options.readStoredUnblocked()
     if (stored) {
-      context[service.options.key] = stored.data
+      stores[service.options.key] = stored.data
     }
   }
 
@@ -21,7 +21,7 @@ export async function upgradeStores(
   const failed: string[] = []
   for (const service of services) {
     try {
-      await service.options.upgrade(context)
+      await service.options.upgrade(stores)
     } catch (error) {
       logger.error(`Failed to upgrade ${service.options.key}`, error)
       errors.push(error)

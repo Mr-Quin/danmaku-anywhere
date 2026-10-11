@@ -4,9 +4,11 @@ import { ExtStorageService } from '../../storage/ExtStorageService'
 import type { ReadinessService } from '../ReadinessService/ReadinessService'
 import { migrateOptions } from './migrationOptions'
 import type {
+  DeferredWrite,
   Options,
   OptionsSchema,
   PrevOptions,
+  StoreSnapshot,
   UpgradeContext,
   Version,
   VersionConfig,
@@ -62,8 +64,10 @@ export class OptionsService<T extends OptionsSchema> {
   }
 
   // Data that cannot be migrated is replaced with defaults. A storage error is
-  // not bad data: it propagates and the stored value stays as it was.
-  async upgrade(context: UpgradeContext = {}): Promise<void> {
+  // not bad data: it propagates and the stored value stays as it was. Writes
+  // deferred by the steps land before this store is persisted, so if one fails
+  // the old data is still here for the next attempt to migrate again.
+  async upgrade(stores: StoreSnapshot = {}): Promise<void> {
     if (this.versions.length === 0) {
       throw new Error('Cannot upgrade without any versions')
     }
@@ -78,6 +82,7 @@ export class OptionsService<T extends OptionsSchema> {
 
     this.logger.debug(`Found options with version '${stored.version}'`)
 
+    const deferred: DeferredWrite[] = []
     let upgraded: Options<T>
     try {
       upgraded = migrateOptions(
@@ -85,7 +90,7 @@ export class OptionsService<T extends OptionsSchema> {
         { data: stored.data, version: stored.version ?? 0 },
         this.versions,
         this.logger,
-        context
+        { stores, defer: (write) => deferred.push(write) }
       )
     } catch (error) {
       this.logger.error('Failed to upgrade options, reset to default', error)
@@ -93,6 +98,9 @@ export class OptionsService<T extends OptionsSchema> {
       return
     }
 
+    for (const write of deferred) {
+      await write()
+    }
     await this.queueOperation(() => this.storageService.set(upgraded))
   }
 
@@ -105,6 +113,14 @@ export class OptionsService<T extends OptionsSchema> {
       this.logger,
       context
     ).data
+  }
+
+  // Replaces the data at the latest version without waiting for readiness,
+  // for writes made while the stores are being upgraded or restored.
+  setUnblocked(data: T): Promise<void> {
+    return this.queueOperation(() =>
+      this.storageService.set({ data, version: this.latestVersion })
+    )
   }
 
   async get(): Promise<T> {

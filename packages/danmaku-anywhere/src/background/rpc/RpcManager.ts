@@ -384,8 +384,8 @@ export class RpcManager {
         return res.data
       },
       providerConfigDelete: async (id, sender) => {
-        await this.providerConfigService.deleteFromStorage(id)
         await this.bookmarkService.deleteByProviderConfig(id)
+        await this.providerConfigService.deleteFromStorage(id)
 
         void invalidateContentScriptData(sender.tab?.id)
       },

@@ -38,7 +38,7 @@ function upgrade(data: PrevOptions, fromVersion: number) {
     { data, version: fromVersion },
     captureVersions(),
     silentLogger,
-    { xpathPolicy: [] }
+    { stores: { xpathPolicy: [] }, defer: () => {} }
   )
 }
 
