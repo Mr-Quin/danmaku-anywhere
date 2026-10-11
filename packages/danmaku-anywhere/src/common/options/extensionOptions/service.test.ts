@@ -40,7 +40,7 @@ function upgrade(data: PrevOptions, fromVersion: number) {
     { data, version: fromVersion },
     captureVersions(),
     silentLogger,
-    {}
+    { stores: {}, defer: () => {} }
   )
 }
 

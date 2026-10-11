@@ -11,13 +11,29 @@ import {
   type IStoreService,
   StoreServiceSymbol,
 } from '@/common/options/IStoreService'
-import type { UpgradeContext } from '@/common/options/OptionsService/types'
+import type {
+  DeferredWrite,
+  StoreSnapshot,
+} from '@/common/options/OptionsService/types'
 
 type ServiceBackup = ParsedBackupData['services'][string]
 
 type PayloadCheck =
-  | { ok: true; data: unknown; droppedEntries: number }
+  | {
+      ok: true
+      data: unknown
+      droppedEntries: number
+      deferred: DeferredWrite[]
+    }
   | { ok: false; error: string }
+
+type EntriesCheck =
+  | { ok: true; data: unknown[]; droppedEntries: number }
+  | { ok: false; error: string }
+
+function describeError(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
 
 @injectable('Singleton')
 export class ConfigStateService {
@@ -93,7 +109,7 @@ export class ConfigStateService {
       })
       .filter((candidate) => candidate.backupData !== undefined)
 
-    const context: UpgradeContext = Object.fromEntries(
+    const stores: StoreSnapshot = Object.fromEntries(
       await Promise.all(
         this.services.map(async (service) => {
           const restored = services[service.name]
@@ -107,7 +123,7 @@ export class ConfigStateService {
 
     const validated = await Promise.all(
       candidates.map(async ({ service, backupData }) => {
-        const check = await this.checkPayload(service, backupData, context)
+        const check = await this.checkPayload(service, backupData, stores)
         if (!check.ok) {
           this.logger.error(
             `Rejected backup data for ${service.name}`,
@@ -120,20 +136,51 @@ export class ConfigStateService {
       })
     )
 
-    await Promise.all(
-      validated.map(async ({ service, check }) => {
-        if (!check.ok) {
-          return
+    // A store the backup carries itself takes its own payload, not what
+    // another store's migration derived for it.
+    const restoredStores = new Set(
+      validated
+        .filter(({ check }) => check.ok)
+        .map(({ service }) => service.options.key)
+    )
+    const accepted: {
+      service: IStoreService
+      data: unknown
+      dropped: number
+    }[] = []
+    for (const { service, check } of validated) {
+      if (!check.ok) {
+        continue
+      }
+      try {
+        for (const write of check.deferred) {
+          if (!restoredStores.has(write.store)) {
+            await write.run()
+          }
         }
+        accepted.push({
+          service,
+          data: check.data,
+          dropped: check.droppedEntries,
+        })
+      } catch (error) {
+        this.logger.error(`Failed to restore ${service.name}`, error)
+        result.success = false
+        result.details[service.name] = {
+          success: false,
+          error: describeError(error),
+        }
+      }
+    }
+
+    await Promise.all(
+      accepted.map(async ({ service, data, dropped }) => {
         const { name } = service
         try {
           this.logger.debug(`Restoring ${name}...`)
-          await service.options.set(check.data, service.options.latestVersion)
-          result.details[name] = {
-            success: true,
-            droppedEntries: check.droppedEntries,
-          }
-          if (check.droppedEntries > 0) {
+          await service.options.set(data, service.options.latestVersion)
+          result.details[name] = { success: true, droppedEntries: dropped }
+          if (dropped > 0) {
             result.success = false
           }
         } catch (error) {
@@ -141,7 +188,7 @@ export class ConfigStateService {
           result.success = false
           result.details[name] = {
             success: false,
-            error: error instanceof Error ? error.message : String(error),
+            error: describeError(error),
           }
         }
       })
@@ -153,7 +200,7 @@ export class ConfigStateService {
   private async checkPayload(
     service: IStoreService,
     backupData: ServiceBackup,
-    context: UpgradeContext
+    stores: StoreSnapshot
   ): Promise<PayloadCheck> {
     const { latestVersion } = service.options
     const { backupItemSchema, backupSchema } = service
@@ -171,27 +218,34 @@ export class ConfigStateService {
       return { ok: false, error: 'Expected a list of entries' }
     }
 
+    const deferred: DeferredWrite[] = []
     let migrated: unknown
     try {
-      migrated = service.options.migrate(
-        backupData.data,
-        backupData.version,
-        context
-      )
+      migrated = service.options.migrate(backupData.data, backupData.version, {
+        stores,
+        defer: (write) => deferred.push(write),
+      })
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error)
       return {
         ok: false,
-        error: `Could not migrate the restored data: ${message}`,
+        error: `Could not migrate the restored data: ${describeError(error)}`,
       }
     }
 
     if (backupItemSchema) {
-      return this.checkEntries(backupItemSchema, backupData.data, migrated)
+      const entries = await this.checkEntries(
+        backupItemSchema,
+        backupData.data,
+        migrated
+      )
+      if (!entries.ok) {
+        return entries
+      }
+      return { ...entries, deferred }
     }
 
     if (!backupSchema) {
-      return { ok: true, data: migrated, droppedEntries: 0 }
+      return { ok: true, data: migrated, droppedEntries: 0, deferred }
     }
 
     const parsed = await backupSchema.safeParseAsync(migrated)
@@ -200,14 +254,14 @@ export class ConfigStateService {
       return { ok: false, error: prettifyError(parsed.error) }
     }
 
-    return { ok: true, data: parsed.data, droppedEntries: 0 }
+    return { ok: true, data: parsed.data, droppedEntries: 0, deferred }
   }
 
   private async checkEntries(
     itemSchema: ZodType,
     original: unknown,
     migrated: unknown
-  ): Promise<PayloadCheck> {
+  ): Promise<EntriesCheck> {
     if (!Array.isArray(original) || !Array.isArray(migrated)) {
       return { ok: false, error: 'Expected a list of entries' }
     }

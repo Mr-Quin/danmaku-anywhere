@@ -250,6 +250,7 @@ export class ProviderService {
     // any pasted URL regardless of which sources the user has toggled on.
     // Disabling Bilibili would otherwise make a recognized bilibili.com
     // URL fail with "No provider found".
+    await this.manifestRegistry.ready
     const configs = await this.providerConfigService.getAll()
     for (const config of configs) {
       const service = this.danmakuProviderFactory(config)
@@ -304,9 +305,9 @@ export class ProviderService {
 
   // Removes a user manifest along with its config instances and their
   // bookmarks. Seasons and episodes stay orphaned-but-viewable, the same
-  // semantics as deleting a single provider config. The manifest unregisters
-  // last so a partial failure stays retryable (the kind guard re-passes while
-  // the manifest still exists).
+  // semantics as deleting a single provider config. Each config goes only
+  // after its bookmarks, and the manifest unregisters last, so a retry after a
+  // partial failure still finds whatever is left to clean up.
   async deleteUserManifest(manifestId: string): Promise<void> {
     const source = await this.manifestRegistry.getSource(manifestId)
     if (source?.kind !== 'user') {
@@ -315,8 +316,8 @@ export class ProviderService {
     const configs = await this.providerConfigService.getAll()
     for (const config of configs) {
       if (config.manifestId === manifestId) {
-        await this.providerConfigService.deleteFromStorage(config.id)
         await this.bookmarkService.deleteByProviderConfig(config.id)
+        await this.providerConfigService.deleteFromStorage(config.id)
       }
     }
     await this.manifestRegistry.unregister(manifestId)

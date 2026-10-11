@@ -8,7 +8,9 @@ import { createTestContainer } from '@/tests/createTestContainer'
 import { silentLogger } from '@/tests/silentLogger'
 import { migrateOptions } from './migrationOptions'
 import { OptionsService } from './OptionsService'
-import type { Options, Version } from './types' // Replace with your actual path
+import type { Options, UpgradeContext, Version } from './types' // Replace with your actual path
+
+const context: UpgradeContext = { stores: {}, defer: () => {} }
 
 const createOptions = <T>(data: T, version: number): Options<T> => ({
   data,
@@ -43,7 +45,7 @@ describe('migrateOptions', () => {
       { version: 2, upgrade: (d) => d },
     ]
 
-    const result = migrateOptions(options, versions, logger, {})
+    const result = migrateOptions(options, versions, logger, context)
 
     expect(result).toEqual(options)
   })
@@ -55,7 +57,7 @@ describe('migrateOptions', () => {
       { version: 2, upgrade: (d: any) => ({ ...d, baz: 'qux' }) },
     ]
 
-    const result = migrateOptions(options, versions, logger, {})
+    const result = migrateOptions(options, versions, logger, context)
 
     expect(result).toEqual(
       createOptions({ foo: 'bar', bar: 'baz', baz: 'qux' }, 2)
@@ -69,7 +71,7 @@ describe('migrateOptions', () => {
       { version: 2, upgrade: (d: any) => ({ ...d, bar: 'baz' }) },
     ]
 
-    const result = migrateOptions(options, versions, logger, {})
+    const result = migrateOptions(options, versions, logger, context)
 
     expect(result).toEqual(createOptions({ foo: 'bar', bar: 'baz' }, 2))
   })
@@ -88,10 +90,10 @@ describe('migrateOptions', () => {
       },
     ]
 
-    const v1 = migrateOptions(options, [versions[0]], logger, {})
+    const v1 = migrateOptions(options, [versions[0]], logger, context)
     expect(v1).toEqual(createOptions({ foo: 'bar', bar: { baz: 1 } }, 1))
 
-    const v2 = migrateOptions(v1, [versions[1]], logger, {})
+    const v2 = migrateOptions(v1, [versions[1]], logger, context)
     expect(v2).toEqual(
       createOptions({ foo: 'bar', baq: 3, bar: { baz: 2 } }, 2)
     )
@@ -110,7 +112,7 @@ describe('migrateOptions', () => {
       },
     ]
 
-    const result = migrateOptions(options, versions, logger, {})
+    const result = migrateOptions(options, versions, logger, context)
 
     expect(result).toEqual(
       createOptions({ foo: { bar: { baz: 'updated' }, newProp: 'added' } }, 2)
@@ -129,7 +131,7 @@ describe('migrateOptions', () => {
       },
     ]
 
-    const result = migrateOptions(options, versions, logger, {})
+    const result = migrateOptions(options, versions, logger, context)
 
     expect(result).toEqual(createOptions({ foo: { bar: {} } }, 2))
   })
@@ -142,7 +144,7 @@ describe('migrateOptions', () => {
         createOptions(createV7Options(), 7),
         v8 ? [v8] : [],
         logger,
-        {}
+        context
       )
 
       expect(result.version).toBe(8)
@@ -178,7 +180,7 @@ describe('migrateOptions', () => {
         createOptions(createV7Options(), 7),
         versions,
         logger,
-        {}
+        context
       )
 
       expect(result.version).toBe(9)
@@ -206,7 +208,7 @@ describe('migrateOptions', () => {
       },
     ]
 
-    const result = migrateOptions(options, versions, logger, {})
+    const result = migrateOptions(options, versions, logger, context)
     expect(result).toEqual(
       createOptions({ a: { b: 11, e: 5 }, d: 'new value' }, 2)
     )

@@ -1,7 +1,7 @@
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { produce } from 'immer'
 import { inject, injectable } from 'inversify'
-import { type ILogger, Logger, LoggerSymbol } from '@/common/Logger'
+import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { Language } from '@/common/localization/language'
 import { defaultExtensionOptions } from '@/common/options/extensionOptions/constant'
 import { defaultKeymap } from '@/common/options/extensionOptions/hotkeys'
@@ -223,26 +223,20 @@ export class ExtensionOptionsService implements IStoreService {
           }),
       })
       .version(21, {
-        upgrade: (data) => {
-          if (data.danmakuSources) {
-            const providers = migrateDanmakuSourcesToProviders(
-              data.danmakuSources
-            )
-
-            // set data in separate storage
-            try {
-              void this.providerConfigService.options.set(providers)
-            } catch (error) {
-              Logger.error(
-                'Failed to migrate provider configs from extension service to provider service'
-              )
-              Logger.error(error)
-            }
-
-            const { danmakuSources, ...rest } = data
-            return rest
+        upgrade: (data, context) => {
+          if (!data.danmakuSources) {
+            return data
           }
-          return data
+          const providers = migrateDanmakuSourcesToProviders(
+            data.danmakuSources
+          )
+          const { options } = this.providerConfigService
+          context.defer({
+            store: options.key,
+            run: () => options.setUnblocked(providers),
+          })
+          const { danmakuSources, ...rest } = data
+          return rest
         },
       })
       .version(22, {

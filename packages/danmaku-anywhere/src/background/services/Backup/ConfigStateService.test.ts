@@ -376,9 +376,11 @@ describe('ConfigStateService', () => {
         { opt: 'ext' },
         2,
         expect.objectContaining({
-          danmakuOptions: { opt: 'danmaku' },
-          extensionOptions: { opt: 'ext' },
-          mountConfig: [{ stored: true }],
+          stores: expect.objectContaining({
+            danmakuOptions: { opt: 'danmaku' },
+            extensionOptions: { opt: 'ext' },
+            mountConfig: [{ stored: true }],
+          }),
         })
       )
     })
