@@ -1,4 +1,5 @@
 import type {
+  Episode,
   EpisodeMeta,
   EpisodeStub,
   WithSeason,
@@ -25,6 +26,8 @@ export type CustomEpisodeQueryFilter = {
 
 interface DanmakuFetchOptions {
   forceUpdate?: boolean // force update danmaku from the provider even if it's already in db
+  // No user asked for this fetch, so an empty result is not saved
+  automatic?: boolean
   dandanplay?: GetCommentQuery
 }
 
@@ -44,6 +47,18 @@ export type DanmakuFetchByStub = {
 export type DanmakuFetchRequest = DanmakuFetchByMeta | DanmakuFetchByStub
 
 export type DanmakuFetchDto = DanmakuFetchRequest
+
+export type KeptStored = {
+  fetchedCount: number
+  storedCount: number
+}
+
+export type DanmakuFetchResult = {
+  episode: WithSeason<Episode>
+  // Set when a refetch returned fewer comments than were stored, in which case
+  // `episode` is the stored record, unchanged
+  keptStored?: KeptStored
+}
 
 export type DanmakuImportData = {
   title: string

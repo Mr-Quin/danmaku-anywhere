@@ -207,4 +207,36 @@ describe('season identity migration (v15)', () => {
     expect('provider' in custom).toBe(false)
     expect(custom.title).toBe('Local Clip')
   })
+
+  it('drops the old unique compound index instead of leaving it alongside the new one', async () => {
+    await seedV14({
+      seasons: [
+        {
+          id: 1,
+          provider: 'Bilibili',
+          providerConfigId: 'bilibili',
+          indexedId: 'b1',
+        },
+      ],
+    })
+
+    const db = await upgradeToV15()
+    let indexNames: string[] = []
+    await db.transaction('r', 'season', async (tx) => {
+      indexNames = Array.from(tx.idbtrans.objectStore('season').indexNames)
+    })
+    db.close()
+
+    expect(indexNames).not.toContain('[providerConfigId+indexedId]')
+    expect(indexNames).not.toContain('provider')
+    expect(indexNames).not.toContain('providerConfigId')
+    expect(indexNames).toEqual(
+      expect.arrayContaining([
+        'manifestId',
+        'namespaceKey',
+        'indexedId',
+        '[manifestId+namespaceKey+indexedId]',
+      ])
+    )
+  })
 })

@@ -182,6 +182,7 @@
       "mountedMultiple_one": "Mounted {{count}} selected danmaku",
       "mountedMultiple_other": "Mounted {{count}} selected danmaku",
       "mountError": "Failed to mount danmaku: {{message}}",
+      "refetchKeptStored": "Fetched {{fetched}} comments, fewer than the {{stored}} already saved. Kept the saved danmaku.",
       "refreshed_one": "Danmaku Refreshed: {{name}} ({{count}})",
       "refreshed_other": "Danmaku Refreshed: {{name}} ({{count}})",
       "refreshingDanmaku": "Refreshing danmaku",
@@ -501,6 +502,7 @@
     "backup": {
       "alert": {
         "exportSuccess": "Export success",
+        "importPartial": "Some settings could not be restored: {{stores}}",
         "importSuccess": "Import success"
       },
       "cloudBackup": "Cloud Backup",

@@ -1,18 +1,19 @@
-import { Hono } from 'hono'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { Handler, Hono } from 'hono'
+import { beforeEach, describe, expect, it, type Mock, vi } from 'vitest'
+import { factory } from '@/factory'
 import { makeUnitTestRequest } from '@/test-utils/makeUnitTestRequest'
 import { useCache } from './cache'
 
 describe('Cache Middleware', () => {
-  let app: Hono
-  let handlerSpy: ReturnType<typeof vi.fn>
+  let app: Hono<{ Bindings: Env }>
+  let handlerSpy: Mock<Handler<{ Bindings: Env }>>
 
   // Exercises the real Miniflare `caches.default`. The Cache API has no
   // clear-all, so every test uses a random path to avoid colliding with
   // entries the previous tests stored in the file-scoped cache.
   beforeEach(async () => {
     let callCount = 0
-    handlerSpy = vi.fn((c) => {
+    handlerSpy = vi.fn<Handler<{ Bindings: Env }>>((c) => {
       callCount += 1
       return c.json({ data: 'test', n: callCount })
     })
@@ -20,7 +21,7 @@ describe('Cache Middleware', () => {
 
   // Helper to create app with options
   const createTestApp = (options = {}) => {
-    app = new Hono()
+    app = factory.createApp()
     app.use('*', useCache(options))
     app.get('/:id', handlerSpy)
     return app

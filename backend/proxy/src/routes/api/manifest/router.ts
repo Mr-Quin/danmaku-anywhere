@@ -5,8 +5,11 @@ import { useCache } from '@/middleware/cache'
 
 export const manifestRouter = factory.createApp()
 
-const dangoBaseUrl =
-  'https://raw.githubusercontent.com/Mr-Quin/dango/main/packages/dango-manifests'
+// New dango manifests reach users only after this tag is bumped and the worker
+// is redeployed.
+const dangoRef = 'v0.8.3'
+
+const dangoBaseUrl = `https://raw.githubusercontent.com/Mr-Quin/dango/${dangoRef}/packages/dango-manifests`
 
 const filePattern = /^src\/manifests\/[\w.-]+\.json$/
 

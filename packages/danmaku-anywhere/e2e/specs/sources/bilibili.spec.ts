@@ -13,7 +13,8 @@ import { applyProfile } from '../../setup/profile'
  * Bilibili happy path in two danmakuTypePreference modes:
  *  - xml:   /x/v1/dm/list.so → text fixture
  *  - proto: /x/v2/dm/web/seg.so → protobuf segment (exercises the decoder)
- * Both share the search + season fetch paths via runHappyPath().
+ * Both share the search + season fetch paths via runHappyPath(), and each
+ * asserts the exact comment count its fixture parses to.
  */
 
 const COMMON = {
@@ -22,13 +23,20 @@ const COMMON = {
   season: loadJsonFixture('bilibili-season.json'),
 }
 
-async function runHappyPath(page: Page, extensionId: string): Promise<void> {
+const XML_COMMENT_COUNT = 3
+const PROTO_COMMENT_COUNT = 3000
+
+async function runHappyPath(
+  page: Page,
+  extensionId: string,
+  expectedCount: number
+): Promise<void> {
   const popup = await Popup.open(page, extensionId)
   await popup.search.submit('frieren')
   await popup.search.openFirstResult('Bilibili')
   const episode =
     await popup.seasonDetails.fetchDanmakuForFirstEpisode('Bilibili')
-  await popup.seasonDetails.expectCommentCount(episode)
+  await popup.seasonDetails.expectCommentCountToBe(episode, expectedCount)
 }
 
 test('bilibili xml: search → season → episode → fetch xml danmaku', async ({
@@ -45,7 +53,7 @@ test('bilibili xml: search → season → episode → fetch xml danmaku', async 
     }),
   })
 
-  await runHappyPath(page, extensionId)
+  await runHappyPath(page, extensionId, XML_COMMENT_COUNT)
 })
 
 test('bilibili proto: same flow, danmaku via /seg.so protobuf', async ({
@@ -67,5 +75,5 @@ test('bilibili proto: same flow, danmaku via /seg.so protobuf', async ({
     }),
   })
 
-  await runHappyPath(page, extensionId)
+  await runHappyPath(page, extensionId, PROTO_COMMENT_COUNT)
 })

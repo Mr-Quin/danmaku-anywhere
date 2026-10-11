@@ -1,6 +1,7 @@
 import { IntegrationPage } from '../../pom/IntegrationPage'
 import { expect, test } from '../../setup/fixtures'
 import {
+  FIXTURE_FIRST_TEXT,
   FIXTURE_SEEK_TIME_S,
   seedFixtureIntegration,
 } from '../../setup/integration'
@@ -37,12 +38,13 @@ test('integration auto-mount: native <video> happy path', async ({
 
   await integrationPage.playVideo()
 
-  await expect(async () => {
-    await integrationPage.setVideoTime(FIXTURE_SEEK_TIME_S)
-    await expect(integrationPage.commentElements().first()).toBeVisible({
-      timeout: 1_000,
-    })
-  }).toPass({ timeout: 15_000 })
+  await integrationPage.setVideoTime(FIXTURE_SEEK_TIME_S)
+
+  // Assert on what the renderer rendered rather than racing a node that
+  // despawns as it scrolls.
+  await da.danmakuRender.waitForRendered(FIXTURE_FIRST_TEXT)
+  // The overlay is the durable user-visible signal; a comment node despawns.
+  await expect(integrationPage.danmuContainer()).toBeVisible()
 })
 
 test('integration auto-mount: same-origin iframe <video> happy path', async ({
@@ -70,10 +72,11 @@ test('integration auto-mount: same-origin iframe <video> happy path', async ({
 
   await integrationPage.playVideo()
 
-  await expect(async () => {
-    await integrationPage.setVideoTime(FIXTURE_SEEK_TIME_S)
-    await expect(integrationPage.commentElements().first()).toBeVisible({
-      timeout: 1_000,
-    })
-  }).toPass({ timeout: 15_000 })
+  await integrationPage.setVideoTime(FIXTURE_SEEK_TIME_S)
+
+  // Assert on what the renderer rendered rather than racing a node that
+  // despawns as it scrolls.
+  await da.danmakuRender.waitForRendered(FIXTURE_FIRST_TEXT)
+  // The overlay is the durable user-visible signal; a comment node despawns.
+  await expect(integrationPage.danmuContainer()).toBeVisible()
 })

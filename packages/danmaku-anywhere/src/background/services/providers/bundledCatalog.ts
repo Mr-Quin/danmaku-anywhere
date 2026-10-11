@@ -9,6 +9,7 @@ export interface BundledCatalogEntry {
 
 interface BundledEntry extends BundledCatalogEntry {
   raw: unknown
+  identityFields: readonly string[]
 }
 
 // Vite eager glob: the manifest JSON files are inlined at build time, so the
@@ -41,11 +42,25 @@ for (const raw of Object.values(rawModules)) {
     version: manifest.version,
     file: manifestFile(manifest.id),
     raw,
+    identityFields: manifest.identityFields,
   })
 }
 
 export function bundledCatalogIndex(): BundledCatalogEntry[] {
-  return [...bundledById.values()].map(({ raw: _raw, ...entry }) => entry)
+  return [...bundledById.values()].map(
+    ({ raw: _raw, identityFields: _identityFields, ...entry }) => entry
+  )
+}
+
+// The identityFields declaration of every bundled manifest, keyed by id. Used
+// as a stand-in while the registry has not loaded a manifest yet, so a
+// namespace is never derived from a missing declaration.
+export function bundledIdentityFieldsMap(): Record<string, readonly string[]> {
+  const map: Record<string, readonly string[]> = {}
+  for (const [id, entry] of bundledById) {
+    map[id] = entry.identityFields
+  }
+  return map
 }
 
 export function bundledManifestRaw(id: string): unknown {

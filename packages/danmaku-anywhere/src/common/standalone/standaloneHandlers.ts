@@ -90,8 +90,10 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     episodeDeleteCustom: () => undefined,
     episodePreloadNext: () => undefined,
     episodeMatch: () => standaloneMatchEpisodeResult,
-    episodeFetch: () =>
-      null as unknown as BackgroundMethods['episodeFetch']['output'],
+    episodeFetch: () => ({
+      episode:
+        null as unknown as BackgroundMethods['episodeFetch']['output']['episode'],
+    }),
     episodeImport: () => ({
       success: [],
       error: [],

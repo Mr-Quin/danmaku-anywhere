@@ -52,8 +52,10 @@ test('source chips: selection persists across season details navigation', async 
     'true'
   )
   await popup.search.openFirstResult('Bilibili')
+  await expect(page).toHaveURL(/#\/search\/season$/)
 
   await page.goBack()
+  await expect(page).toHaveURL(/#\/search$/)
 
   await expect(popup.search.sourceChip('Bilibili')).toHaveAttribute(
     'aria-pressed',

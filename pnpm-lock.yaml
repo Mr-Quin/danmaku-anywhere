@@ -605,6 +605,9 @@ importers:
       '@danmaku-anywhere/danmaku-provider':
         specifier: workspace:*
         version: link:../danmaku-provider
+      async-mutex:
+        specifier: ^0.5.0
+        version: 0.5.0
       zod:
         specifier: ^4.3.5
         version: 4.4.3

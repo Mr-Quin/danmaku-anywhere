@@ -18,14 +18,17 @@ const zAiProviderBuiltIn = zAiProviderBaseConfig.extend({
   provider: z.enum([AI_PROVIDER_MAP.builtIn]),
 })
 
+const zOpenaiCompatibleSettings = z.object({
+  baseUrl: z.string(),
+  apiKey: z.string().optional(),
+  model: z.string(),
+  headers: z.record(z.string(), z.string()).optional(),
+  queryParams: z.record(z.string(), z.string()).optional(),
+})
+
 const zAiProviderOpenaiCompatible = zAiProviderBaseConfig.extend({
   provider: z.enum([AI_PROVIDER_MAP.openaiCompatible]),
-  settings: z.object({
-    baseUrl: z.string(),
-    apiKey: z.string().optional(),
-    model: z.string(),
-    headers: z.record(z.string(), z.string()).optional(),
-    queryParams: z.record(z.string(), z.string()).optional(),
+  settings: zOpenaiCompatibleSettings.extend({
     // values should be valid JSON
     providerOptions: z
       .record(
@@ -54,6 +57,23 @@ const zAiProviderOpenaiCompatible = zAiProviderBaseConfig.extend({
 export const zAiProviderConfig = z.discriminatedUnion('provider', [
   zAiProviderBuiltIn,
   zAiProviderOpenaiCompatible,
+])
+
+const zStoredIdentity = {
+  id: z.string(),
+  isBuiltIn: z.boolean(),
+}
+
+// Stored providerOptions are already parsed, so they cannot go back through
+// the input schema.
+export const zStoredAiProviderConfig = z.discriminatedUnion('provider', [
+  zAiProviderBuiltIn.extend(zStoredIdentity),
+  zAiProviderOpenaiCompatible.extend({
+    ...zStoredIdentity,
+    settings: zOpenaiCompatibleSettings.extend({
+      providerOptions: z.record(z.string(), z.json()).optional(),
+    }),
+  }),
 ])
 
 export type AiProviderConfigInput = z.input<typeof zAiProviderConfig>

@@ -9,11 +9,26 @@ export function useBackupImport(options?: { onSettled?: () => void }) {
 
   return useMutation({
     mutationFn: async (data: unknown) => chromeRpcClient.backupImport(data),
-    onSuccess: () => {
-      toast.success(
+    onSuccess: ({ data: result }) => {
+      if (result.success) {
+        toast.success(
+          t(
+            'optionsPage.backup.alert.importSuccess',
+            'Backup imported successfully'
+          )
+        )
+        return
+      }
+
+      const problems = Object.entries(result.details).filter(([, detail]) => {
+        return !detail.success || (detail.droppedEntries ?? 0) > 0
+      })
+
+      toast.error(
         t(
-          'optionsPage.backup.alert.importSuccess',
-          'Backup imported successfully'
+          'optionsPage.backup.alert.importPartial',
+          'Some settings could not be restored: {{stores}}',
+          { stores: problems.map(([name]) => name).join(', ') }
         )
       )
     },

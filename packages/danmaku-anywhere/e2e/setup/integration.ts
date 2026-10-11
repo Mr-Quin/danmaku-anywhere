@@ -85,8 +85,10 @@ export function buildFixtureIntegrationPolicy(): Integration['policy'] {
 export const FIXTURE_EPISODE_TITLE = 'DA Integration Test'
 // Seeking past FIXTURE_SEEK_TIME_S lands the cursor on at least one comment.
 export const FIXTURE_SEEK_TIME_S = 15
+// The comment due by FIXTURE_SEEK_TIME_S.
+export const FIXTURE_FIRST_TEXT = 'first'
 const FIXTURE_COMMENTS = [
-  { p: '12,1,16777215,e2e-1', m: 'first' },
+  { p: '12,1,16777215,e2e-1', m: FIXTURE_FIRST_TEXT },
   { p: '24,1,16777215,e2e-2', m: 'second' },
   { p: '36,1,16777215,e2e-3', m: 'third' },
 ]

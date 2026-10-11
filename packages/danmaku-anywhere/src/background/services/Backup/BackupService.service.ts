@@ -38,13 +38,11 @@ export class BackupService {
         throw new Error('Failed to parse backup data as JSON')
       }
     }
-    // TODO: validate backup data
-    const data = backupData as BackupData
-    const result = await this.configStateService.restoreState(data)
+    const result = await this.configStateService.restoreState(backupData)
     // providerConfig version 1 is the pre-manifest shape, whose built-in names
     // were fixed English literals.
     if (
-      data.services.providerConfig?.version === 1 &&
+      (backupData as BackupData).services.providerConfig?.version === 1 &&
       result.details.providerConfig?.success
     ) {
       await this.providerService.localizeLegacyBuiltinNames()
@@ -82,11 +80,11 @@ export class BackupService {
     return result.data
   }
 
-  async downloadCloudBackup(id: string): Promise<BackupData> {
+  async downloadCloudBackup(id: string): Promise<unknown> {
     const result = await downloadCloudBackupApi(id, this.getAuth())
     if (!result.success) {
       throw result.error
     }
-    return result.data as BackupData
+    return result.data
   }
 }

@@ -44,6 +44,16 @@ export class Toast {
     ).toBeVisible({ timeout })
   }
 
+  async expectWarning(
+    matcher: string | RegExp,
+    options: ExpectOptions = {}
+  ): Promise<void> {
+    const { timeout = 5_000 } = options
+    await expect(
+      this.bySeverity('warning').filter({ hasText: matcher })
+    ).toBeVisible({ timeout })
+  }
+
   async expectError(
     matcher: string | RegExp,
     options: ExpectOptions = {}
