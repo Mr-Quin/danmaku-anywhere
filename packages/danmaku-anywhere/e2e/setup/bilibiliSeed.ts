@@ -13,7 +13,7 @@ export function makeBilibiliSeason(
   return {
     providerIds: { seasonId: 41410, mediaId: 28219412 },
     manifestId: 'bilibili',
-    namespaceKey: 'bilibili',
+    providerConfigId: 'bilibili',
     indexedId: '41410',
     title: '葬送的芙莉莲',
     type: '番剧',

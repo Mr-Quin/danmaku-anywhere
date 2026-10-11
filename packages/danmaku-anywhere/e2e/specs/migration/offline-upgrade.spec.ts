@@ -6,7 +6,6 @@ import { createGunzip } from 'node:zlib'
 import type { BrowserContext, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import { DANMAKU_DB_NAME } from '../../../src/common/db/db'
-import { computeNamespaceKey } from '../../../src/common/providers/namespaceKey'
 import { mockCatalog, offlineCatalog } from '../../network/catalog'
 import { mockDandanplay } from '../../network/dandanplay'
 import { mockLoginProbes } from '../../network/loginProbes'
@@ -28,11 +27,11 @@ import {
  * blocked network, a downed backend) must still land on a working install.
  * Swaps a real v1.5.0 profile to HEAD with the catalog dead throughout:
  * asserts all 13 bundled manifests are registered before any sync, a built-in
- * source can still fetch fresh danmaku through the mocked provider API, the
- * self-hosted DanDanPlay season keeps its own namespace instead of
- * collapsing onto the shared built-in one, and a later reachable sync
- * reconciles on top of the offline state with no duplicate rows and no
- * re-seeded provider configs.
+ * source can still fetch fresh danmaku through the mocked provider API, every
+ * season carries a manifestId and a bare providerConfigId with the self-hosted
+ * DanDanPlay season keeping its uuid, and a later reachable sync lands on top
+ * of the offline state with no duplicate rows and no re-seeded provider
+ * configs.
  */
 
 const FIXTURES_DIR = path.join(
@@ -54,19 +53,19 @@ const BUILTIN_DDP_EPISODE_INDEXED_ID = '2690012'
 const BUILTIN_DDP_IMPORTED_COMMENT_COUNT = 1
 const REFRESHED_COMMENT_COUNT = 4 // ddp-comments.json's comment count.
 const BUNDLED_MANIFEST_COUNT = 13
+const BUILTIN_MANIFEST_IDS = ['dandanplay', 'bilibili', 'tencent']
 
 // An unreachable catalog is the point of the offline swap, not a
 // regression: boot's syncCatalog() and the Providers page's pending-updates
-// query each hit the dead index and log their own failure. Same pair
-// offline-fallback.spec.ts allows.
+// query each hit the dead index and log their own failure.
 const OFFLINE_ERROR_PATTERNS = [
   /Failed to fetch manifest catalog/,
-  /Error in RPC handler/,
+  /Error in RPC handler.*Failed to fetch the manifest catalog/,
 ]
 
 test.setTimeout(120_000)
 
-test('prior install, swap with an unreachable catalog, built-in danmaku still fetches, self-hosted keeps its namespace, later sync reconciles cleanly', async (// biome-ignore lint/correctness/noEmptyPattern: Playwright fixtures arg
+test('prior install, swap with an unreachable catalog, built-in danmaku still fetches, self-hosted keeps its config id, later sync lands cleanly', async (// biome-ignore lint/correctness/noEmptyPattern: Playwright fixtures arg
 {}, testInfo) => {
   await withPriorInstall(testInfo, run)
 })
@@ -103,6 +102,7 @@ async function run({
   await legacyPopup.importDanmaku(DANMAKU_ZIP)
   await legacyPopup.close()
   await seedSelfHostedSeason(context)
+  const idbCountsBeforeSwap = await readIdbCountsInNewPage(context)
 
   await upgradeToCurrentBuild(context, currentExt)
 
@@ -133,7 +133,12 @@ async function run({
   ).toBe('bundled')
 
   // Existing seasons/episodes survive with data intact, checked by id.
+  expect(
+    await readIdbCounts(page),
+    'the swap keeps every season and episode'
+  ).toEqual(idbCountsBeforeSwap)
   const seasons = await readSeasons(page)
+  assertSeasonIdentities(seasons)
   const builtinSeason = seasons.find(
     (s) =>
       s.manifestId === 'dandanplay' &&
@@ -143,8 +148,8 @@ async function run({
     throw new Error('the fixture must carry a built-in DanDanPlay season')
   }
   expect(
-    builtinSeason.namespaceKey,
-    'a built-in season keys to its manifestId'
+    builtinSeason.providerConfigId,
+    'a built-in season keys to its bare config id'
   ).toBe('dandanplay')
 
   const episodes = await readEpisodes(page)
@@ -161,33 +166,13 @@ async function run({
     'the imported episode kept its cached comment count through the migration'
   ).toBe(BUILTIN_DDP_IMPORTED_COMMENT_COUNT)
 
-  // Self-hosted keeps its own namespace: the highest-value assertion here,
-  // since offline the only declaration available is the bundled one.
   const providerConfigs = await readProviderConfigs(page)
-  const selfHostedConfig = providerConfigs.find(
-    (c) => c.id === SELF_HOSTED_DDP_CONFIG_ID
-  )
-  if (!selfHostedConfig) {
-    throw new Error('the fixture must carry the self-hosted DanDanPlay config')
-  }
-  const selfHostedNamespace = computeNamespaceKey(selfHostedConfig, ['baseUrl'])
   expect(
-    selfHostedNamespace,
-    'a self-hosted config hashes to a ns: namespace, distinct from a builtin'
-  ).toMatch(/^ns:/)
-  await expect
-    .poll(
-      async () => {
-        const rows = await readSeasons(page)
-        return rows.find((s) => s.indexedId === SELF_HOSTED_SEASON_INDEXED_ID)
-          ?.namespaceKey
-      },
-      {
-        message:
-          'the self-hosted season keeps its own namespace instead of the shared dandanplay one',
-      }
-    )
-    .toBe(selfHostedNamespace)
+    seasons
+      .filter((s) => s.providerConfigId === SELF_HOSTED_DDP_CONFIG_ID)
+      .map((s) => s.indexedId),
+    'the self-hosted season keeps its uuid'
+  ).toEqual([SELF_HOSTED_SEASON_INDEXED_ID])
 
   // Danmaku still fetches for a built-in source: force-refresh the imported
   // episode, which bypasses the cache and re-hits the (mocked) provider API
@@ -216,6 +201,7 @@ async function run({
     .locator('[role="treeitem"]')
     .count()
   const idbCountsBeforeSync = await readIdbCounts(page)
+  const seasonsBeforeSync = await readSeasons(page)
   const configIdsBeforeSync = providerConfigs.map((c) => c.id).sort()
 
   const errorsBeforeSync = offlineSwapErrors(consoleWatcher)
@@ -253,13 +239,9 @@ async function run({
   ).toEqual(idbCountsBeforeSync)
 
   const seasonsAfterSync = await readSeasons(page)
-  const selfHostedAfterSync = seasonsAfterSync.find(
-    (s) => s.indexedId === SELF_HOSTED_SEASON_INDEXED_ID
+  expect(seasonsAfterSync, 'a reachable sync leaves seasons untouched').toEqual(
+    seasonsBeforeSync
   )
-  expect(
-    selfHostedAfterSync?.namespaceKey,
-    'the self-hosted namespace stays stable across a later reachable sync'
-  ).toBe(selfHostedNamespace)
 
   await Popup.open(page, MIGRATION_EXTENSION_ID, '/mount')
   const treeItemCountAfterSync = await page.locator('[role="treeitem"]').count()
@@ -275,6 +257,22 @@ async function run({
   ).toEqual([])
 }
 
+function assertSeasonIdentities(seasons: SeasonRow[]): void {
+  for (const season of seasons) {
+    expect(
+      BUILTIN_MANIFEST_IDS,
+      `season ${season.id} has a built-in manifestId`
+    ).toContain(season.manifestId)
+    expect(
+      [season.manifestId, SELF_HOSTED_DDP_CONFIG_ID],
+      `season ${season.id} is keyed by its built-in id or the self-hosted uuid`
+    ).toContain(season.providerConfigId)
+    expect('provider' in season, `season ${season.id} has no provider`).toBe(
+      false
+    )
+  }
+}
+
 function offlineSwapErrors(watcher: ConsoleWatcher): string[] {
   return migrationErrors(watcher).filter((e) => {
     return !OFFLINE_ERROR_PATTERNS.some((p) => p.test(e))
@@ -288,8 +286,8 @@ async function gunzipTo(src: string, dest: string): Promise<string> {
 
 // v1.5.0's danmaku import rewrites every imported season's providerConfigId
 // to the builtin for its provider tag, so no UI route can produce a season
-// owned by a self-hosted server. Write the v14 row directly instead; the swap
-// still runs the real v15 migration and the real runtime reconciler over it.
+// owned by a self-hosted server. Write the v12 row directly instead; the swap
+// still runs the real upgrade over it.
 async function seedSelfHostedSeason(context: BrowserContext): Promise<void> {
   const page = await context.newPage()
   await page.goto(
@@ -340,7 +338,7 @@ interface SeasonRow {
   id: number
   indexedId?: string
   manifestId?: string
-  namespaceKey?: string
+  providerConfigId?: string
 }
 
 async function readSeasons(page: Page): Promise<SeasonRow[]> {
@@ -406,6 +404,19 @@ interface IdbCounts {
   seasons: number
   episodes: number
   customEpisodes: number
+}
+
+async function readIdbCountsInNewPage(
+  context: BrowserContext
+): Promise<IdbCounts> {
+  const page = await context.newPage()
+  await page.goto(
+    `chrome-extension://${MIGRATION_EXTENSION_ID}/pages/popup.html`,
+    { waitUntil: 'domcontentloaded', timeout: POPUP_TIMEOUT_MS }
+  )
+  const counts = await readIdbCounts(page)
+  await page.close()
+  return counts
 }
 
 async function readIdbCounts(page: Page): Promise<IdbCounts> {

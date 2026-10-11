@@ -10,7 +10,6 @@ import type { BrowserContext, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
 import packageJson from '../../../package.json' with { type: 'json' }
 import { DANMAKU_DB_NAME } from '../../../src/common/db/db'
-import { computeNamespaceKey } from '../../../src/common/providers/namespaceKey'
 import migrationConfig from '../../migration.config.json' with { type: 'json' }
 import { mockCatalog } from '../../network/catalog'
 import { ImportPage } from '../../pom/ImportPage'
@@ -38,7 +37,9 @@ import { launchExtension } from '../../setup/swapExtension'
  * import, title mappings), swaps to the current build, and asserts the upgrade
  * ran without errors and kept the data: every options store parses against its
  * current schema and keeps the user's values, sources keep their order and
- * enabled flags, and title mappings follow the season rekey.
+ * enabled flags, every season is keyed by a bare provider config id with a
+ * manifestId (the self-hosted one keeps its uuid), and title mappings follow
+ * the prefix strip.
  *
  * Two non-obvious mechanics, both documented in e2e/AGENTS.md:
  *   - userDataDir lives under os.tmpdir() to dodge Windows MAX_PATH.
@@ -56,11 +57,15 @@ const BACKUP_GZ = path.join(FIXTURES_DIR, 'backup.json.gz')
 const DANMAKU_ZIP = path.join(FIXTURES_DIR, 'danmaku.zip')
 const POPUP_TIMEOUT_MS = 5_000
 
-// Mirrors the checked-in backup fixture: the self-hosted DanDanPlay server the
-// upgrade must keep on its own namespace, and the season it owns.
+// Mirrors the checked-in backup fixture: the self-hosted DanDanPlay server whose
+// id the upgrade must keep on the season it owns.
 const SELF_HOSTED_DDP_BASE_URL = 'https://ddp.selfhosted.example'
 const SELF_HOSTED_DDP_CONFIG_ID = 'd9d068cc-d7a5-4277-990b-73b28f7637f8'
 const SELF_HOSTED_SEASON_INDEXED_ID = '90001'
+// The danmaku zip carries one episode exported from the self-hosted server.
+// v1.5.0's import files it under the built-in; a current import keeps its uuid.
+const SELF_HOSTED_ZIP_SEASON_INDEXED_ID = '17998'
+const BUILTIN_MANIFEST_IDS = ['dandanplay', 'bilibili', 'tencent']
 const PUBLIC_COMPAT_DDP_BASE_URL = 'https://danmu.selfhosted.example'
 const MACCMS_CONFIG_ID = '21999133-1b22-4e15-a48b-a8c6677cd902'
 const PUBLIC_COMPAT_DDP_CONFIG_ID = 'e15d5979-e823-4ce8-a2ab-513dc358dae1'
@@ -150,8 +155,7 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   const probe = await openProbePage(context)
   const postSync = await readSyncSnapshot(probe)
   const postIdb = await readIdbCounts(probe)
-  const postSeasonConfigIds = await readSeasonConfigIds(probe)
-  const postSeasonIdentity = await readSeasonNamespaceKeys(probe)
+  const postSeasonIdentity = await readSeasonIdentities(probe)
   const postCustomDdpConfigs = await readCustomDdpConfigs(probe)
   const postMacCmsConfig = await readMacCmsConfig(probe)
   const postOptions = await readOptionsSnapshot(probe)
@@ -186,82 +190,19 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   expect(postSync.aiProviderConfigIds, 'AI provider IDs preserved').toEqual(
     seededSync.aiProviderConfigIds
   )
-  expect(postIdb.seasons, 'season count preserved').toBeGreaterThanOrEqual(
-    seededIdb.seasons
-  )
-  expect(postIdb.episodes, 'episode count preserved').toBeGreaterThanOrEqual(
-    seededIdb.episodes
-  )
-  expect(
-    postIdb.customEpisodes,
-    'customEpisode count preserved'
-  ).toBeGreaterThanOrEqual(seededIdb.customEpisodes)
+  expect(postIdb, 'season and episode counts preserved').toEqual(seededIdb)
   assertCustomDdpConfigs(postCustomDdpConfigs)
   assertMacCmsConfig(postMacCmsConfig)
-  // v15 deletes the legacy provider / providerConfigId fields from every season
-  // row. readSeasonConfigIds reads providerConfigId, so it must come back empty.
+  expect(postSeasonIdentity.length, 'every seeded season survived').toBe(
+    seededIdb.seasons
+  )
+  assertSeasonIdentities(postSeasonIdentity)
   expect(
-    postSeasonConfigIds,
-    'no season retains a providerConfigId after v15'
-  ).toEqual([])
-  for (const row of postSeasonIdentity) {
-    expect(row.hasProvider, `season ${row.id} dropped its provider field`).toBe(
-      false
-    )
-    expect(
-      row.hasProviderConfigId,
-      `season ${row.id} dropped its providerConfigId field`
-    ).toBe(false)
-  }
-  expect(
-    postSeasonIdentity.length,
-    'fixture should have at least one season'
-  ).toBeGreaterThan(0)
-  const selfHosted = postCustomDdpConfigs.find((config) => {
-    return config.configValues?.baseUrl === SELF_HOSTED_DDP_BASE_URL
-  })
-  if (!selfHosted) {
-    throw new Error('the fixture must carry a self-hosted DanDanPlay config')
-  }
-  const selfHostedNamespace = computeNamespaceKey(selfHosted, ['baseUrl'])
-  expect(
-    selfHostedNamespace,
-    'a self-hosted config hashes to a ns: namespaceKey, distinct from a builtin'
-  ).toMatch(/^ns:/)
-
-  // Seasons the self-hosted server owns must keep its namespace. Deriving one
-  // before the manifest registry has loaded the dandanplay declaration would
-  // collapse them onto the shared public `dandanplay` namespace and drop the
-  // providerConfigId that could ever correct them.
-  const selfHostedSeasons = postSeasonIdentity.filter((row) => {
-    return row.namespaceKey === selfHostedNamespace
-  })
-  expect(
-    selfHostedSeasons.map((row) => row.indexedId),
-    'the self-hosted season kept its own namespace'
+    postSeasonIdentity
+      .filter((row) => row.providerConfigId === SELF_HOSTED_DDP_CONFIG_ID)
+      .map((row) => row.indexedId),
+    'the self-hosted season kept its uuid'
   ).toEqual([SELF_HOSTED_SEASON_INDEXED_ID])
-
-  for (const row of postSeasonIdentity) {
-    expect(
-      row.manifestId,
-      `season ${row.id} backfilled a manifestId`
-    ).toBeTruthy()
-    expect(
-      ['dandanplay', 'bilibili', 'tencent'],
-      `season ${row.id} healed to a known manifestId`
-    ).toContain(row.manifestId)
-    if (row.indexedId === SELF_HOSTED_SEASON_INDEXED_ID) {
-      expect(
-        row.namespaceKey,
-        `season ${row.id} keys to the self-hosted namespace`
-      ).toBe(selfHostedNamespace)
-      continue
-    }
-    expect(
-      row.namespaceKey,
-      `season ${row.id} namespaceKey equals its manifestId`
-    ).toBe(row.manifestId)
-  }
 
   expect
     .soft(
@@ -271,7 +212,7 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
     .toEqual({})
   assertUserOptions(postOptions)
   assertProviderOrder(postOptions)
-  await assertTitleMappings(context, mappedSeasons, selfHostedNamespace)
+  await assertTitleMappings(context, mappedSeasons)
   await assertUpgradedUi(context)
 
   await assertPostMigrationReimport(context)
@@ -282,31 +223,68 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   return context
 }
 
-// Post-migration sanity: re-importing the original backup into the upgraded DB
-// must behave under the new identity rules. Built-in seasons dedup against the
-// migrated rows (no duplicates), and the self-hosted entry re-imports as a fresh
-// orphan: not dropped on a nullish-identity lookup, not mislabeled as a builtin.
+// Every season is keyed by a bare config id: a built-in's id is its manifest
+// id, and only the fixture's self-hosted server owns a uuid-keyed season.
+function assertSeasonIdentities(rows: SeasonIdentityRow[]): void {
+  for (const row of rows) {
+    expect(row.hasProvider, `season ${row.id} dropped its provider field`).toBe(
+      false
+    )
+    expect(
+      row.hasNamespaceKey,
+      `season ${row.id} carries no namespaceKey`
+    ).toBe(false)
+    expect(
+      BUILTIN_MANIFEST_IDS,
+      `season ${row.id} has a built-in manifestId`
+    ).toContain(row.manifestId)
+    if (row.providerConfigId === SELF_HOSTED_DDP_CONFIG_ID) {
+      expect(
+        row.manifestId,
+        `self-hosted season ${row.id} is a dandanplay season`
+      ).toBe('dandanplay')
+      continue
+    }
+    expect(
+      row.providerConfigId,
+      `season ${row.id} is keyed by its built-in config id`
+    ).toBe(row.manifestId)
+  }
+}
+
+// Re-importing the original danmaku zip into the upgraded DB: built-in entries
+// dedup onto the migrated rows, and the entry exported from the self-hosted
+// server lands under that server's config instead of the built-in.
 async function assertPostMigrationReimport(
   context: BrowserContext
 ): Promise<void> {
   const page = await context.newPage()
   const importPage = await ImportPage.open(page, MIGRATION_EXTENSION_ID)
-  const before = await readIdbCounts(page)
+  const before = await readSeasonIdentities(page)
 
   await importPage.selectFiles(DANMAKU_ZIP)
   await importPage.result.confirm()
   await importPage.result.expectSuccess()
 
-  const after = await readIdbCounts(page)
-  const identities = await readSeasonNamespaceKeys(page)
+  const after = await readSeasonIdentities(page)
   await page.close()
 
-  const orphans = identities.filter((s) => !s.manifestId)
-  expect(orphans.length, 'self-hosted entry re-imported as an orphan').toBe(1)
+  assertSeasonIdentities(after)
+  const beforeIds = new Set(before.map((row) => row.id))
+  const added = after.filter((row) => !beforeIds.has(row.id))
   expect(
-    after.seasons,
-    'built-in seasons dedup; only the orphan is added'
-  ).toBe(before.seasons + 1)
+    added.map((row) => [row.providerConfigId, row.indexedId]),
+    'only the self-hosted entry adds a season, under its own config'
+  ).toEqual([[SELF_HOSTED_DDP_CONFIG_ID, SELF_HOSTED_ZIP_SEASON_INDEXED_ID]])
+  expect(
+    after
+      .filter((row) => row.providerConfigId === SELF_HOSTED_DDP_CONFIG_ID)
+      .map((row) => row.indexedId)
+      .sort(),
+    'the migrated self-hosted season kept its uuid through the re-import'
+  ).toEqual(
+    [SELF_HOSTED_SEASON_INDEXED_ID, SELF_HOSTED_ZIP_SEASON_INDEXED_ID].sort()
+  )
 }
 
 // Values the fixture generator set through v1.5.0, so they differ from every
@@ -537,12 +515,10 @@ interface SeasonMapRow {
   seasonIds: number[]
 }
 
-// v14 strips the builtin prefix and v15 rekeys built-ins by namespace; the
-// custom key is left for the runtime reconciler, which runs after boot.
+// v14 strips the builtin prefix; a custom config id is already bare.
 async function assertTitleMappings(
   context: BrowserContext,
-  seasons: MappedSeasons,
-  selfHostedNamespace: string
+  seasons: MappedSeasons
 ): Promise<void> {
   const page = await context.newPage()
   await Popup.open(page, MIGRATION_EXTENSION_ID, '/title-mapping')
@@ -553,40 +529,33 @@ async function assertTitleMappings(
     page.getByText(SELF_HOSTED_TITLE_MAPPING, { exact: true })
   ).toBeVisible()
 
-  await expect
-    .poll(
-      async () => {
-        const rows = await readIdbRows<SeasonMapRow>(page, 'seasonMap')
-        return rows
-          .map((row) => ({
-            key: row.key,
-            seasons: row.seasons,
-            seasonIds: [...row.seasonIds].sort((a, b) => a - b),
-          }))
-          .sort((a, b) => a.key.localeCompare(b.key))
+  const rows = await readIdbRows<SeasonMapRow>(page, 'seasonMap')
+  expect(
+    rows
+      .map((row) => ({
+        key: row.key,
+        seasons: row.seasons,
+        seasonIds: [...row.seasonIds].sort((a, b) => a - b),
+      }))
+      .sort((a, b) => a.key.localeCompare(b.key)),
+    'title mappings keep their seasons under bare config ids'
+  ).toEqual([
+    {
+      key: BUILTIN_TITLE_MAPPING,
+      seasons: {
+        dandanplay: seasons.dandanplay,
+        bilibili: seasons.bilibili,
       },
-      {
-        message: 'title mappings follow the season rekey',
-        timeout: 15_000,
-      }
-    )
-    .toEqual([
-      {
-        key: BUILTIN_TITLE_MAPPING,
-        seasons: {
-          dandanplay: seasons.dandanplay,
-          bilibili: seasons.bilibili,
-        },
-        seasonIds: [seasons.dandanplay, seasons.bilibili].sort((a, b) => {
-          return a - b
-        }),
-      },
-      {
-        key: SELF_HOSTED_TITLE_MAPPING,
-        seasons: { [selfHostedNamespace]: seasons.selfHosted },
-        seasonIds: [seasons.selfHosted],
-      },
-    ])
+      seasonIds: [seasons.dandanplay, seasons.bilibili].sort((a, b) => {
+        return a - b
+      }),
+    },
+    {
+      key: SELF_HOSTED_TITLE_MAPPING,
+      seasons: { [SELF_HOSTED_DDP_CONFIG_ID]: seasons.selfHosted },
+      seasonIds: [seasons.selfHosted],
+    },
+  ])
   await page.close()
 }
 
@@ -798,54 +767,28 @@ interface SeasonIdentityRow {
   id: number
   indexedId?: string
   manifestId?: string
-  namespaceKey?: string
+  providerConfigId?: string
   hasProvider: boolean
-  hasProviderConfigId: boolean
+  hasNamespaceKey: boolean
 }
 
-async function readSeasonNamespaceKeys(
-  page: Page
-): Promise<SeasonIdentityRow[]> {
-  return page.evaluate(
-    (dbName) =>
-      new Promise<SeasonIdentityRow[]>((resolve, reject) => {
-        const req = indexedDB.open(dbName)
-        req.onerror = () => reject(req.error)
-        req.onsuccess = () => {
-          const db = req.result
-          try {
-            const tx = db.transaction(['season'], 'readonly')
-            const getAll = tx.objectStore('season').getAll()
-            tx.oncomplete = () => {
-              db.close()
-              const seasons = getAll.result as Array<{
-                id: number
-                indexedId?: string
-                manifestId?: string
-                namespaceKey?: string
-                provider?: unknown
-                providerConfigId?: unknown
-              }>
-              resolve(
-                seasons.map((s) => ({
-                  id: s.id,
-                  indexedId: s.indexedId,
-                  manifestId: s.manifestId,
-                  namespaceKey: s.namespaceKey,
-                  hasProvider: 'provider' in s,
-                  hasProviderConfigId: 'providerConfigId' in s,
-                }))
-              )
-            }
-            tx.onerror = () => reject(tx.error)
-          } catch (e) {
-            db.close()
-            reject(e)
-          }
-        }
-      }),
-    DANMAKU_DB_NAME
-  )
+async function readSeasonIdentities(page: Page): Promise<SeasonIdentityRow[]> {
+  const rows = await readIdbRows<{
+    id: number
+    indexedId?: string
+    manifestId?: string
+    providerConfigId?: string
+    provider?: unknown
+    namespaceKey?: unknown
+  }>(page, 'season')
+  return rows.map((row) => ({
+    id: row.id,
+    indexedId: row.indexedId,
+    manifestId: row.manifestId,
+    providerConfigId: row.providerConfigId,
+    hasProvider: 'provider' in row,
+    hasNamespaceKey: 'namespaceKey' in row,
+  }))
 }
 
 interface IdbCounts {
@@ -895,8 +838,8 @@ async function readIdbCounts(page: Page): Promise<IdbCounts> {
 
 // v1.5.0's danmaku import rewrites every imported season's providerConfigId to
 // the builtin for its provider tag, so no UI route can produce a season owned
-// by a self-hosted server. Write the v14 row directly instead; the swap still
-// runs the real v15 migration and the real runtime reconciler over it.
+// by a self-hosted server. Write the v12 row directly instead; the swap still
+// runs the real upgrade over it.
 async function seedSelfHostedSeason(context: BrowserContext): Promise<void> {
   const page = await context.newPage()
   await page.goto(
