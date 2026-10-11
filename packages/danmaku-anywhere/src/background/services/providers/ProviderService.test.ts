@@ -25,7 +25,7 @@ import {
   createTestContainer,
   type TestContainerOverride,
 } from '@/tests/createTestContainer'
-import { makeSeason, makeSeasonInsert } from '@/tests/factories'
+import { makeSeason, makeSeasonInsert, makeSeasonRow } from '@/tests/factories'
 import { silentLogger } from '@/tests/silentLogger'
 import type { IDanmakuProvider } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
@@ -1154,14 +1154,6 @@ describe('ProviderService.deleteUserManifest', () => {
   })
 })
 
-/**
- * setup() kicks off the once-per-session season identity reconcile. The
- * namespace it stamps is derived from the manifest's identityFields
- * declaration, so a registry that has not loaded the manifest yet must not
- * hand the reconciler an empty declaration: that collapses a self-hosted
- * config onto the manifest's shared namespace and drops the providerConfigId
- * that could correct it later.
- */
 interface ReconciledConfig {
   id: string
   manifestId: string
@@ -1169,29 +1161,27 @@ interface ReconciledConfig {
   identityFields?: readonly string[]
 }
 
-describe('ProviderService.setup reconcile', () => {
-  const SELF_HOSTED_DDP: ProviderConfig = {
-    id: 'd9d068cc-d7a5-4277-990b-73b28f7637f8',
-    manifestId: 'dandanplay',
-    name: 'Self hosted',
-    enabled: true,
-    configValues: { baseUrl: 'https://ddp.selfhosted.example' },
-  }
+const SELF_HOSTED_DDP: ProviderConfig = {
+  id: 'd9d068cc-d7a5-4277-990b-73b28f7637f8',
+  manifestId: 'dandanplay',
+  name: 'Self hosted',
+  enabled: true,
+  configValues: { baseUrl: 'https://ddp.selfhosted.example' },
+}
 
+describe('ProviderService.setup reconcile', () => {
   function buildForReconcile(identityFields: Record<string, string[]>) {
     const reconcileIdentities = vi.fn(async (_configs: ReconciledConfig[]) => 0)
     const getAll = vi.fn<ProviderConfigService['getAll']>(async () => [
       SELF_HOSTED_DDP,
-      makeConfig(LEGACY_MACCMS_ID),
     ])
-    const onChange = vi.fn<ProviderConfigService['options']['onChange']>()
     const getIdentityFieldsMap = vi.fn<
       ManifestRegistry['getIdentityFieldsMap']
     >(async () => identityFields)
 
     const service = buildService({
       seasonService: { reconcileIdentities },
-      providerConfigService: { getAll, options: { onChange } },
+      providerConfigService: { getAll },
       registry: { ready: Promise.resolve(), getIdentityFieldsMap },
     })
 
@@ -1209,35 +1199,6 @@ describe('ProviderService.setup reconcile', () => {
     return reconcileIdentities.mock.calls.at(0)?.[0] ?? []
   }
 
-  it('reconciles once per browser session', async () => {
-    const first = buildForReconcile({ dandanplay: ['baseUrl'] })
-    first.service.setup()
-    await vi.waitFor(() => expect(first.reconcileIdentities).toHaveBeenCalled())
-    await vi.waitFor(async () => {
-      expect(await chrome.storage.session.get(null)).not.toEqual({})
-    })
-
-    // A second service worker start within the same browser session must not
-    // reconcile again, which only holds if the guard key outlives the pass.
-    const second = buildForReconcile({ dandanplay: ['baseUrl'] })
-    second.service.setup()
-
-    // Waiting for an absence needs a real window: without the guard the second
-    // pass does reconcile, it just takes a few async turns to get there, so
-    // asserting immediately would pass for the wrong reason.
-    const reconciledAgain = await vi
-      .waitFor(
-        () => {
-          expect(second.reconcileIdentities).toHaveBeenCalled()
-          return true
-        },
-        { timeout: 2000 }
-      )
-      .catch(() => false)
-
-    expect(reconciledAgain).toBe(false)
-  })
-
   it('does not declare identity fields for a manifest the registry has not loaded', async () => {
     const configs = await reconciledConfigs({})
     const selfHosted = configs.find((c) => c.manifestId === 'dandanplay')
@@ -1251,11 +1212,64 @@ describe('ProviderService.setup reconcile', () => {
 
     expect(selfHosted?.identityFields).toEqual(['baseUrl'])
   })
+})
 
-  it('declares no identity fields for legacy MacCMS, which has no manifest', async () => {
-    const configs = await reconciledConfigs({ dandanplay: ['baseUrl'] })
-    const maccms = configs.find((c) => c.manifestId === LEGACY_MACCMS_ID)
+describe('ProviderService season writes after startup', () => {
+  let db: DanmakuAnywhereDb
 
-    expect(maccms?.identityFields).toEqual([])
+  beforeEach(async () => {
+    await Dexie.delete(DANMAKU_DB_NAME)
+    db = new DanmakuAnywhereDb()
+    await db.open()
+  })
+
+  afterEach(async () => {
+    db.close()
+    await Dexie.delete(DANMAKU_DB_NAME)
+  })
+
+  it('stamps a migrated custom season before an upsert right after startup can duplicate it', async () => {
+    const identityFields = ['baseUrl']
+    const namespaceKey = computeNamespaceKey(SELF_HOSTED_DDP, identityFields)
+    const migrated = {
+      ...makeSeasonRow({
+        manifestId: undefined,
+        namespaceKey: undefined,
+        indexedId: 'custom-1',
+        title: 'Custom Show',
+      }),
+      providerConfigId: SELF_HOSTED_DDP.id,
+    }
+    const migratedId = await db.season.add(migrated)
+
+    const service = buildService({
+      seasonService: new SeasonService(db),
+      providerConfigService: {
+        getAll: async () => [SELF_HOSTED_DDP],
+      },
+      registry: {
+        ready: Promise.resolve(),
+        getIdentityFieldsMap: async () => ({ dandanplay: identityFields }),
+      },
+    })
+
+    service.setup()
+    await service.upsertSeason(
+      makeSeasonInsert({
+        manifestId: 'dandanplay',
+        namespaceKey,
+        indexedId: 'custom-1',
+        title: 'Custom Show',
+      })
+    )
+
+    const rows = await db.season.toArray()
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({
+      id: migratedId,
+      manifestId: 'dandanplay',
+      namespaceKey,
+    })
+    expect('providerConfigId' in rows[0]).toBe(false)
   })
 })

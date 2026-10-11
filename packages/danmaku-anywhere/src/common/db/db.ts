@@ -444,9 +444,9 @@ export class DanmakuAnywhereDb extends Dexie {
      * keeps its providerConfigId so the runtime reconciler can heal it later
      * from live config storage, where there is no migration race.
      *
-     * The compound index is non-unique on purpose: orphaned seasons have no
-     * namespaceKey, so a unique index would collide them during creation and
-     * abort the upgrade. SeasonService.upsert enforces identity at the app layer.
+     * The compound index is non-unique. Identity is enforced by
+     * SeasonService.upsert and by the reconciler, which never stamps an
+     * identity another row already holds.
      */
     this.version(15)
       .stores({
