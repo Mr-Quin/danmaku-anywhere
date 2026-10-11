@@ -21,7 +21,7 @@ export type SeasonQueryFilter = {
   id?: number
   ids?: number[]
   manifestId?: string
-  namespaceKey?: string
+  providerConfigId?: string
   indexedId?: string
 }
 

@@ -1,5 +1,4 @@
 import type { ProviderConfig } from '../../../src/common/options/providerConfig/schema'
-import { computeNamespaceKey } from '../../../src/common/providers/namespaceKey'
 import { Popup } from '../../pom/Popup'
 import { makeBilibiliEpisode } from '../../setup/bilibiliSeed'
 import type { DaClient } from '../../setup/da-client'
@@ -27,13 +26,13 @@ const homeServer: ProviderConfig = {
 
 async function seedSeason(
   da: DaClient,
-  namespaceKey: string,
+  providerConfigId: string,
   indexedId: string,
   title: string
 ): Promise<number> {
   const season = await da.season.add({
     manifestId: 'dandanplay',
-    namespaceKey,
+    providerConfigId,
     indexedId,
     title,
     type: '',
@@ -64,12 +63,7 @@ test('seasons of two same-named dandanplay instances get distinct chips', async 
     '1001',
     'Hosted Show'
   )
-  const homeSeasonId = await seedSeason(
-    da,
-    computeNamespaceKey(homeServer, ['baseUrl']),
-    '1002',
-    'Home Show'
-  )
+  const homeSeasonId = await seedSeason(da, homeServer.id, '1002', 'Home Show')
 
   const popup = await Popup.open(page, extensionId, '/mount')
   const builtinSeason = await popup.mount.waitForSeason(builtinSeasonId)

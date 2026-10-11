@@ -4,8 +4,8 @@ import type {
   SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
 
-// Buckets a season by source manifest; custom and orphaned seasons (no
-// manifestId) share `unknown`. Callers needing uniqueness append id/indexedId.
+// Buckets a season by source manifest; custom seasons share `unknown`. Callers
+// needing uniqueness append id/indexedId.
 export function seasonSourceKey(
   season: Season | SeasonInsert | CustomSeason
 ): string {

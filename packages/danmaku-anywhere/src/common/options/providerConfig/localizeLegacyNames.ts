@@ -1,3 +1,4 @@
+import { isBuiltinConfig } from './displayName'
 import { LEGACY_BUILTIN_NAMES } from './migration'
 import type { ProviderConfig } from './schema'
 
@@ -11,7 +12,7 @@ export function localizeLegacyBuiltinNames(
 ): ProviderConfig[] {
   let changed = false
   const out = configs.map((config) => {
-    if (config.id !== config.manifestId) {
+    if (!isBuiltinConfig(config)) {
       return config
     }
     if (LEGACY_BUILTIN_NAMES[config.id] !== config.name) {

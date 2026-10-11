@@ -47,7 +47,7 @@ export function SeasonResultRow({ season, onClick }: SeasonResultRowProps) {
 
   const downloaded =
     season.localEpisodeCount !== undefined && season.localEpisodeCount > 0
-  const sourceType = seasonProviderType(season) ?? 'unknown'
+  const sourceType = seasonProviderType(season)
   const testId = `season-card-${sourceType}-${
     isPersistedSeason(season) ? season.id : season.indexedId
   }`

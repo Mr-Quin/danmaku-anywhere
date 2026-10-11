@@ -20,12 +20,11 @@ import { Language } from '@/common/localization/language'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import { computeNamespaceKey } from '@/common/providers/namespaceKey'
 import {
   createTestContainer,
   type TestContainerOverride,
 } from '@/tests/createTestContainer'
-import { makeSeason, makeSeasonInsert, makeSeasonRow } from '@/tests/factories'
+import { makeSeason, makeSeasonInsert } from '@/tests/factories'
 import { silentLogger } from '@/tests/silentLogger'
 import type { IDanmakuProvider } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
@@ -140,7 +139,7 @@ function build(
 
   const season = makeSeason({
     manifestId: config.manifestId,
-    namespaceKey: computeNamespaceKey(config, []),
+    providerConfigId: config.id,
     providerIds: { animeId: 42 },
     title: 'Show',
   })
@@ -162,17 +161,11 @@ function build(
 
   const factory = vi.fn(() => provider)
 
-  const getIdentityFieldsMap = vi.fn<ManifestRegistry['getIdentityFieldsMap']>(
-    async () => ({})
-  )
-  const registry = { ready: Promise.resolve(), getIdentityFieldsMap }
-
   const service = buildService({
     danmakuService,
     seasonService,
     providerConfigService,
     factory,
-    registry,
   })
 
   return { service, provider, danmakuService, seasonService }
@@ -277,14 +270,14 @@ describe('ProviderService legacy-maccms decoupling', () => {
       expect(provider.getEpisodes).toHaveBeenCalledWith({ animeId: 42 })
     })
 
-    it('throws for a legacy MacCMS config', async () => {
-      const provider = makeProvider()
-      const { service } = build(makeConfig(LEGACY_MACCMS_ID), provider)
+    it('throws for a legacy MacCMS config, whose provider has no episode fetch', async () => {
+      const { service } = build(makeConfig(LEGACY_MACCMS_ID), {
+        search: vi.fn(async () => []),
+      })
 
       await expect(service.fetchEpisodesBySeason(1)).rejects.toThrow(
-        'MacCMS does not support fetching episodes'
+        'does not support fetching episodes'
       )
-      expect(provider.getEpisodes).not.toHaveBeenCalled()
     })
 
     it('throws a source-removed error when the season is orphaned', async () => {
@@ -358,7 +351,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
       season: {
         id: 1,
         manifestId: iqiyiConfig.manifestId,
-        namespaceKey: computeNamespaceKey(iqiyiConfig, []),
+        providerConfigId: iqiyiConfig.id,
       },
     } as WithSeason<EpisodeMeta>
 
@@ -435,23 +428,23 @@ describe('ProviderService legacy-maccms decoupling', () => {
       )
     })
 
-    it('throws for a legacy MacCMS config', async () => {
-      const provider = makeProvider()
+    it('throws for a legacy MacCMS config, whose provider cannot refetch danmaku', async () => {
       const maccmsConfig = makeConfig(LEGACY_MACCMS_ID)
       const maccmsMeta = {
         ...meta,
         season: {
           id: 1,
           manifestId: maccmsConfig.manifestId,
-          namespaceKey: computeNamespaceKey(maccmsConfig, []),
+          providerConfigId: maccmsConfig.id,
         },
       } as WithSeason<EpisodeMeta>
-      const { service } = build(maccmsConfig, provider)
+      const { service } = build(maccmsConfig, {
+        search: vi.fn(async () => []),
+      })
 
       await expect(
         service.getDanmaku({ type: 'by-meta', meta: maccmsMeta, options: {} })
-      ).rejects.toThrow('MacCMS episodes are not refetchable')
-      expect(provider.getDanmaku).not.toHaveBeenCalled()
+      ).rejects.toThrow('episodes cannot be refetched')
     })
 
     it('throws a source-removed error when forcing an orphaned season', async () => {
@@ -494,7 +487,7 @@ describe('ProviderService.getDanmaku against persisted episodes', () => {
     const season = await new SeasonService(db).upsert(
       makeSeasonInsert({
         manifestId: config.manifestId,
-        namespaceKey: computeNamespaceKey(config, []),
+        providerConfigId: config.id,
       })
     )
     const meta: WithSeason<EpisodeMeta> = {
@@ -518,18 +511,14 @@ describe('ProviderService.getDanmaku against persisted episodes', () => {
     const first = Promise.withResolvers<CommentEntity[]>()
     const second = Promise.withResolvers<CommentEntity[]>()
     const getDanmaku = vi
-      .fn<IDanmakuProvider['getDanmaku']>()
+      .fn<NonNullable<IDanmakuProvider['getDanmaku']>>()
       .mockReturnValueOnce(first.promise)
       .mockReturnValueOnce(second.promise)
-    const getIdentityFieldsMap = vi.fn<
-      ManifestRegistry['getIdentityFieldsMap']
-    >(async () => ({}))
     const getAll = vi.fn<ProviderConfigService['getAll']>(async () => [config])
     const service = buildService({
       danmakuService,
       providerConfigService: { getAll },
       factory: vi.fn(() => makeProvider({ getDanmaku })),
-      registry: { ready: Promise.resolve(), getIdentityFieldsMap },
     })
 
     function fetch(forceUpdate: boolean) {
@@ -1174,13 +1163,9 @@ describe('ProviderService.deleteUserManifest', () => {
     const getSource = vi.fn<ManifestRegistry['getSource']>(async () =>
       opts.kind ? { manifest: {}, kind: opts.kind } : undefined
     )
-    const getIdentityFields = vi.fn<ManifestRegistry['getIdentityFields']>(
-      async () => []
-    )
     const registry = {
       ready: Promise.resolve(),
       getSource,
-      getIdentityFields,
       unregister,
     }
 
@@ -1192,10 +1177,10 @@ describe('ProviderService.deleteUserManifest', () => {
     )
     const providerConfigService = { getAll, deleteFromStorage }
 
-    const deleteBySeasonIdentity = vi.fn<
-      BookmarkService['deleteBySeasonIdentity']
+    const deleteByProviderConfig = vi.fn<
+      BookmarkService['deleteByProviderConfig']
     >(async () => {})
-    const bookmarkService = { deleteBySeasonIdentity }
+    const bookmarkService = { deleteByProviderConfig }
 
     const service = buildService({
       providerConfigService,
@@ -1203,11 +1188,11 @@ describe('ProviderService.deleteUserManifest', () => {
       registry,
       bookmarkService,
     })
-    return { service, unregister, deleteFromStorage, deleteBySeasonIdentity }
+    return { service, unregister, deleteFromStorage, deleteByProviderConfig }
   }
 
   it('removes the manifest configs and their bookmarks, then unregisters', async () => {
-    const { service, unregister, deleteFromStorage, deleteBySeasonIdentity } =
+    const { service, unregister, deleteFromStorage, deleteByProviderConfig } =
       buildForDelete({
         kind: 'user',
         configs: [
@@ -1220,8 +1205,8 @@ describe('ProviderService.deleteUserManifest', () => {
 
     expect(deleteFromStorage).toHaveBeenCalledTimes(1)
     expect(deleteFromStorage).toHaveBeenCalledWith('cfg-1')
-    // cfg-1 has no baseUrl, so its namespaceKey falls back to its manifestId.
-    expect(deleteBySeasonIdentity).toHaveBeenCalledWith('mine:one', 'mine:one')
+    expect(deleteByProviderConfig).toHaveBeenCalledTimes(1)
+    expect(deleteByProviderConfig).toHaveBeenCalledWith('cfg-1')
     expect(unregister).toHaveBeenCalledWith('mine:one')
   })
 
@@ -1248,67 +1233,19 @@ describe('ProviderService.deleteUserManifest', () => {
   })
 })
 
-interface ReconciledConfig {
-  id: string
-  manifestId: string
-  configValues?: Record<string, unknown>
-  identityFields?: readonly string[]
-}
-
-const SELF_HOSTED_DDP: ProviderConfig = {
-  id: 'd9d068cc-d7a5-4277-990b-73b28f7637f8',
-  manifestId: 'dandanplay',
-  name: 'Self hosted',
-  enabled: true,
-  configValues: { baseUrl: 'https://ddp.selfhosted.example' },
-}
-
-describe('ProviderService.setup reconcile', () => {
-  function buildForReconcile(identityFields: Record<string, string[]>) {
-    const reconcileIdentities = vi.fn(async (_configs: ReconciledConfig[]) => 0)
-    const getAll = vi.fn<ProviderConfigService['getAll']>(async () => [
-      SELF_HOSTED_DDP,
-    ])
-    const getIdentityFieldsMap = vi.fn<
-      ManifestRegistry['getIdentityFieldsMap']
-    >(async () => identityFields)
-
-    const service = buildService({
-      seasonService: { reconcileIdentities },
-      providerConfigService: { getAll },
-      registry: { ready: Promise.resolve(), getIdentityFieldsMap },
-    })
-
-    return { service, reconcileIdentities }
+describe('ProviderService season resolution by config id', () => {
+  const serverA: ProviderConfig = {
+    id: 'd9d068cc-d7a5-4277-990b-73b28f7637f8',
+    manifestId: 'dandanplay',
+    name: 'Server A',
+    enabled: true,
+    configValues: { baseUrl: 'https://ddp.selfhosted.example' },
   }
-
-  async function reconciledConfigs(
-    identityFields: Record<string, string[]>
-  ): Promise<ReconciledConfig[]> {
-    const { service, reconcileIdentities } = buildForReconcile(identityFields)
-
-    service.setup()
-    await vi.waitFor(() => expect(reconcileIdentities).toHaveBeenCalled())
-
-    return reconcileIdentities.mock.calls.at(0)?.[0] ?? []
+  const serverAAgain: ProviderConfig = {
+    ...serverA,
+    id: '0f6a3c52-91b4-4c1e-8f0d-2b7e5a9c4d13',
+    name: 'Server A again',
   }
-
-  it('does not declare identity fields for a manifest the registry has not loaded', async () => {
-    const configs = await reconciledConfigs({})
-    const selfHosted = configs.find((c) => c.manifestId === 'dandanplay')
-
-    expect(selfHosted?.identityFields).toBeUndefined()
-  })
-
-  it('declares the manifest identity fields once the registry has loaded it', async () => {
-    const configs = await reconciledConfigs({ dandanplay: ['baseUrl'] })
-    const selfHosted = configs.find((c) => c.manifestId === 'dandanplay')
-
-    expect(selfHosted?.identityFields).toEqual(['baseUrl'])
-  })
-})
-
-describe('ProviderService season writes after startup', () => {
   let db: DanmakuAnywhereDb
 
   beforeEach(async () => {
@@ -1322,48 +1259,63 @@ describe('ProviderService season writes after startup', () => {
     await Dexie.delete(DANMAKU_DB_NAME)
   })
 
-  it('stamps a migrated custom season before an upsert right after startup can duplicate it', async () => {
-    const identityFields = ['baseUrl']
-    const namespaceKey = computeNamespaceKey(SELF_HOSTED_DDP, identityFields)
-    const migrated = {
-      ...makeSeasonRow({
-        manifestId: undefined,
-        namespaceKey: undefined,
-        indexedId: 'custom-1',
-        title: 'Custom Show',
-      }),
-      providerConfigId: SELF_HOSTED_DDP.id,
-    }
-    const migratedId = await db.season.add(migrated)
-
-    const service = buildService({
-      seasonService: new SeasonService(db),
-      providerConfigService: {
-        getAll: async () => [SELF_HOSTED_DDP],
-      },
-      registry: {
-        ready: Promise.resolve(),
-        getIdentityFieldsMap: async () => ({ dandanplay: identityFields }),
-      },
+  function buildWithDb(configs: ProviderConfig[]) {
+    const factory = vi.fn((config: ProviderConfig) => ({
+      search: async () => [
+        makeSeasonInsert({
+          manifestId: config.manifestId,
+          providerConfigId: config.id,
+          indexedId: 'show-1',
+          title: 'Fresh title',
+        }),
+      ],
+    }))
+    const mustGet = vi.fn<ProviderConfigService['mustGet']>(async (id) => {
+      const config = configs.find((c) => c.id === id)
+      if (!config) {
+        throw new Error(`missing ${id}`)
+      }
+      return config
     })
+    return buildService({
+      seasonService: new SeasonService(db),
+      providerConfigService: { getAll: async () => configs, mustGet },
+      factory,
+    })
+  }
 
-    service.setup()
-    await service.upsertSeason(
+  it('surfaces the stored row only for the config that fetched it', async () => {
+    const stored = await new SeasonService(db).upsert(
       makeSeasonInsert({
-        manifestId: 'dandanplay',
-        namespaceKey,
-        indexedId: 'custom-1',
-        title: 'Custom Show',
+        providerConfigId: serverA.id,
+        indexedId: 'show-1',
+        title: 'Stored title',
       })
     )
+    const service = buildWithDb([serverA, serverAAgain])
 
-    const rows = await db.season.toArray()
-    expect(rows).toHaveLength(1)
-    expect(rows[0]).toMatchObject({
-      id: migratedId,
-      manifestId: 'dandanplay',
-      namespaceKey,
+    const [fromA] = await service.searchSeason({
+      providerConfigId: serverA.id,
+      keyword: 'show',
     })
-    expect('providerConfigId' in rows[0]).toBe(false)
+    const [fromAAgain] = await service.searchSeason({
+      providerConfigId: serverAAgain.id,
+      keyword: 'show',
+    })
+
+    expect(fromA).toMatchObject({ id: stored.id, title: 'Stored title' })
+    expect(fromAAgain).not.toHaveProperty('id')
+    expect(fromAAgain).toMatchObject({ providerConfigId: serverAAgain.id })
+  })
+
+  it('throws the source-removed error for a season whose config is gone', async () => {
+    const orphan = await new SeasonService(db).upsert(
+      makeSeasonInsert({ providerConfigId: serverA.id, indexedId: 'show-1' })
+    )
+    const service = buildWithDb([serverAAgain])
+
+    await expect(service.fetchEpisodesBySeason(orphan.id)).rejects.toThrow(
+      'This source has been removed'
+    )
   })
 })

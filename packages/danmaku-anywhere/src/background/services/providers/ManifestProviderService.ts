@@ -13,7 +13,6 @@ import type { ManifestRunner, RunOptions } from '@mr-quin/dango'
 import type { z } from 'zod'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { ILogger } from '@/common/Logger'
-import { computeNamespaceKey } from '@/common/providers/namespaceKey'
 import { findEpisodeByNumber } from './common/findEpisodeByNumber'
 import type {
   IDanmakuProvider,
@@ -25,7 +24,7 @@ import type { ManifestRegistry } from './ManifestRegistry'
 import { resolveManifestInputs } from './manifestInputs'
 
 // Manifest output shapes: the canonical fields a search/episodes/danmaku
-// pipeline must emit. The host adds `manifestId` / `namespaceKey` /
+// pipeline must emit. The host adds `manifestId` / `providerConfigId` /
 // `schemaVersion` and runs `stripHtml` on titles.
 interface ManifestSearchRow {
   providerIds: Record<string, unknown>
@@ -117,17 +116,14 @@ export class ManifestProviderService implements IDanmakuProvider {
     private readonly logger: ILogger
   ) {}
 
-  // Derived from the runner because the manifest declares which config fields
-  // identify an instance (identityFields).
-  private namespaceKeyFor(runner: ManifestRunner): string {
-    return computeNamespaceKey(
-      {
-        id: this.config.providerConfigId,
-        manifestId: this.config.manifestId,
-        configValues: this.config.configValues,
-      },
-      runner.manifest.identityFields
-    )
+  private stampSeason(row: ManifestSearchRow): SeasonInsert {
+    return {
+      ...row,
+      title: stripHtml(row.title),
+      manifestId: this.config.manifestId,
+      providerConfigId: this.config.providerConfigId,
+      schemaVersion: SEASON_SCHEMA_VERSION,
+    }
   }
 
   private resolveInputs(
@@ -149,13 +145,7 @@ export class ManifestProviderService implements IDanmakuProvider {
       inputs,
       MANIFEST_RUN_OPTIONS
     )
-    return rows.map((row) => ({
-      ...row,
-      title: stripHtml(row.title),
-      manifestId: this.config.manifestId,
-      namespaceKey: this.namespaceKeyFor(runner),
-      schemaVersion: SEASON_SCHEMA_VERSION,
-    }))
+    return rows.map((row) => this.stampSeason(row))
   }
 
   async getSeason(
@@ -178,13 +168,7 @@ export class ManifestProviderService implements IDanmakuProvider {
     if (row === null) {
       return null
     }
-    return {
-      ...row,
-      title: stripHtml(row.title),
-      manifestId: this.config.manifestId,
-      namespaceKey: this.namespaceKeyFor(runner),
-      schemaVersion: SEASON_SCHEMA_VERSION,
-    }
+    return this.stampSeason(row)
   }
 
   async getEpisodes(
@@ -282,13 +266,7 @@ export class ManifestProviderService implements IDanmakuProvider {
     }
     const now = Date.now()
     return {
-      seasonInsert: {
-        ...result.seasonInsert,
-        title: stripHtml(result.seasonInsert.title),
-        manifestId: this.config.manifestId,
-        namespaceKey: this.namespaceKeyFor(runner),
-        schemaVersion: SEASON_SCHEMA_VERSION,
-      },
+      seasonInsert: this.stampSeason(result.seasonInsert),
       episodeMeta: {
         ...result.episodeMeta,
         title: stripHtml(result.episodeMeta.title),

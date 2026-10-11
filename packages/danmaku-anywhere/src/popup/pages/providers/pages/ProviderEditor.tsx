@@ -1,13 +1,11 @@
-import {
-  LEGACY_MACCMS_ID,
-  PROVIDER_TO_BUILTIN_ID,
-} from '@danmaku-anywhere/danmaku-converter'
+import { PROVIDER_TO_BUILTIN_ID } from '@danmaku-anywhere/danmaku-converter'
 import { Box } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 import { MacCmsProviderForm } from '../components/forms/MacCmsProviderForm'
@@ -72,14 +70,14 @@ export const ProviderEditor = ({
         'Add DanDanPlay Compatible Provider'
       )
     }
-    if (provider.manifestId === LEGACY_MACCMS_ID) {
+    if (isLegacyMacCms(provider)) {
       return t('providers.editor.title.addMacCms', 'Add VOD Provider')
     }
     return t('providers.editor.title.add', 'Add Provider')
   }
 
   const renderForm = () => {
-    if (provider.manifestId === LEGACY_MACCMS_ID) {
+    if (isLegacyMacCms(provider)) {
       return (
         <MacCmsProviderForm
           provider={provider}

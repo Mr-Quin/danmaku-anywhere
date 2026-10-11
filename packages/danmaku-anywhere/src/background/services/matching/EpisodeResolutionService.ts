@@ -6,7 +6,6 @@ import type {
 import { inject, injectable } from 'inversify'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
-import { ManifestRegistry } from '../providers/ManifestRegistry'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
@@ -18,8 +17,7 @@ export class EpisodeResolutionService {
     @inject(ProviderConfigService)
     private providerConfigService: ProviderConfigService,
     @inject(DanmakuProviderFactory)
-    private danmakuProviderFactory: IDanmakuProviderFactory,
-    @inject(ManifestRegistry) private manifestRegistry: ManifestRegistry
+    private danmakuProviderFactory: IDanmakuProviderFactory
   ) {}
 
   async resolveEpisode(
@@ -28,8 +26,7 @@ export class EpisodeResolutionService {
   ): Promise<WithSeason<EpisodeMeta>> {
     const providerConfig = resolveSeasonConfig(
       season,
-      await this.providerConfigService.getAll(),
-      await this.manifestRegistry.getIdentityFieldsMap()
+      await this.providerConfigService.getAll()
     )
     if (!providerConfig) {
       throw new Error(`Provider config not found for season: ${season.title}`)

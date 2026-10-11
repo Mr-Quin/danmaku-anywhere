@@ -16,7 +16,8 @@ import { expect, test } from '../../setup/fixtures'
  * success toast and the danmaku import-result success, that the restored
  * built-ins show their localized names, then that the imported config and
  * danmaku land in the current schema (bare provider ids, stripped custom
- * DanDanPlay baseUrl, resolvable season provider ids).
+ * DanDanPlay baseUrl, every season attached to its live config, the
+ * self-hosted one by its uuid).
  */
 
 const FIXTURES_DIR = path.join(
@@ -96,20 +97,24 @@ test('current build migrates an imported v1.5.0 backup and danmaku export', asyn
   expect(seasons.length, 'seasons imported').toBeGreaterThan(0)
   const customEpisodes = await da.episode.listCustom()
   expect(customEpisodes.length, 'custom danmaku imported').toBeGreaterThan(0)
-  // Built-in backups carry a structural config id, so they resolve to a live
-  // config. A self-hosted backup's namespace lived in config storage the old
-  // format never embedded, so it imports as an orphan (manifestId undefined)
-  // instead of being mislabeled as the public instance. The orphan must still
-  // import, not get dropped on a nullish-identity lookup.
-  const providerManifestIds = new Set(providers.map((p) => p.manifestId))
-  const resolved = seasons.filter((s) => s.manifestId !== undefined)
-  const orphaned = seasons.filter((s) => s.manifestId === undefined)
-  for (const season of resolved) {
+  const providerIds = new Set(providers.map((p) => p.id))
+  for (const season of seasons) {
     expect(
-      providerManifestIds.has(season.manifestId as string),
-      `season manifestId ${season.manifestId} resolves to a live config`
+      providerIds.has(season.providerConfigId),
+      `season ${season.indexedId} resolves to its live config ${season.providerConfigId}`
     ).toBe(true)
   }
-  expect(resolved.length, 'built-in seasons resolve to a live config').toBe(3)
-  expect(orphaned.length, 'self-hosted season imported as an orphan').toBe(1)
+  expect(
+    seasons
+      .map((s) => [s.providerConfigId, s.manifestId])
+      .sort((a, b) => a.join().localeCompare(b.join())),
+    'built-in seasons key to their bare id, the self-hosted one keeps its uuid'
+  ).toEqual(
+    [
+      ['bilibili', 'bilibili'],
+      ['dandanplay', 'dandanplay'],
+      ['tencent', 'tencent'],
+      ['d9d068cc-d7a5-4277-990b-73b28f7637f8', 'dandanplay'],
+    ].sort((a, b) => a.join().localeCompare(b.join()))
+  )
 })

@@ -13,6 +13,7 @@ import {
   DanmakuSourceType,
   PROVIDER_TO_BUILTIN_ID,
   resolveBuiltinManifestId,
+  stripBuiltinPrefix,
 } from '../provider/provider.js'
 import type { SeasonInsertV1 } from '../season/index.js'
 
@@ -61,58 +62,42 @@ export type BackupParseResult = {
   skipped: [number, unknown[]][]
 }
 
-// Recover builtin identity from a backup the way the v15 migration does:
-// structurally, from providerConfigId. A built-in id stamps manifestId; a
-// self-hosted uuid stays unstamped (imports as an orphan, not mislabeled as the
-// public instance); a backup predating providerConfigId falls back to its
-// provider tag (safe: self-hosted didn't exist then).
-//
-// An imported self-hosted orphan is permanent, unlike a migrated one: the uuid
-// is meaningless off its origin machine, so the schema drops it and the
-// reconciler can't match it. It still imports and renders, but can't reparent.
-function recoverBackupManifestId(season: {
-  manifestId?: unknown
-  providerConfigId?: unknown
-  provider?: unknown
-}): string | undefined {
-  const fromConfigId = resolveBuiltinManifestId(
-    typeof season.providerConfigId === 'string'
-      ? season.providerConfigId
-      : undefined
-  )
-  if (fromConfigId) {
-    return fromConfigId
-  }
-  if (season.providerConfigId != null) {
+function builtinIdFromProviderTag(provider: unknown): string | undefined {
+  if (typeof provider !== 'string' || !(provider in PROVIDER_TO_BUILTIN_ID)) {
     return undefined
   }
-  const fromProviderTag =
-    typeof season.provider === 'string' &&
-    season.provider in PROVIDER_TO_BUILTIN_ID
-      ? PROVIDER_TO_BUILTIN_ID[season.provider as DanmakuSourceType]
-      : undefined
-  return resolveBuiltinManifestId(fromProviderTag)
+  return PROVIDER_TO_BUILTIN_ID[provider as DanmakuSourceType]
+}
+
+// Backups from v1.5.0 tag seasons with `provider` and a possibly prefixed
+// providerConfigId; older ones predate providerConfigId, which was always the
+// built-in instance of the tagged provider then.
+function withSeasonSource(
+  season: Record<string, unknown>
+): Record<string, unknown> {
+  const fromProviderTag = builtinIdFromProviderTag(season['provider'])
+  const providerConfigId =
+    typeof season['providerConfigId'] === 'string'
+      ? stripBuiltinPrefix(season['providerConfigId'])
+      : fromProviderTag
+  const manifestId =
+    typeof season['manifestId'] === 'string'
+      ? season['manifestId']
+      : (resolveBuiltinManifestId(providerConfigId) ?? fromProviderTag)
+  return { ...season, manifestId, providerConfigId }
 }
 
 const zEpisodeInsertV4WithSeasonV1Preprocessed = z.preprocess((data) => {
-  const d = data as { season?: Record<string, unknown> } & Record<
-    string,
-    unknown
-  >
-  if (!d?.season || typeof d.season['manifestId'] === 'string') {
+  if (data === null || typeof data !== 'object' || !('season' in data)) {
     return data
   }
-  const builtinId = recoverBackupManifestId(d.season)
-  if (!builtinId) {
+  const { season } = data
+  if (season === null || typeof season !== 'object') {
     return data
   }
   return {
-    ...d,
-    season: {
-      ...d.season,
-      manifestId: builtinId,
-      namespaceKey: builtinId,
-    },
+    ...data,
+    season: withSeasonSource(season as Record<string, unknown>),
   }
 }, zEpisodeInsertV4WithSeasonV1)
 

@@ -27,6 +27,8 @@ export function makeSeasonInsert(
 ): SeasonInsert {
   return {
     title: 'Test season',
+    manifestId: 'dandanplay',
+    providerConfigId: 'dandanplay',
     type: 'anime',
     indexedId: 'season-1',
     providerIds: {},

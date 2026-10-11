@@ -7,10 +7,9 @@ import { SeasonService } from './SeasonService'
 
 /**
  * Exercises season identity at the persistence layer against a real (in-memory)
- * Dexie: a season carrying manifestId + namespaceKey dedups on upsert via the
- * compound index, while an orphaned season with no identity dedups structurally
- * on indexedId + title against other orphans only (never onto an
- * identity-bearing row), so multi-episode backups import into one season.
+ * Dexie: a season is the same row when providerConfigId and indexedId match,
+ * two configs (even for one server) keep separate rows, and an orphan whose
+ * config was deleted still dedups onto its own row.
  */
 
 let db: DanmakuAnywhereDb
@@ -28,61 +27,71 @@ afterEach(async () => {
   await Dexie.delete(DANMAKU_DB_NAME)
 })
 
+const SERVER_A = 'd9d068cc-d7a5-4277-990b-73b28f7637f8'
+const SERVER_A_AGAIN = '0f6a3c52-91b4-4c1e-8f0d-2b7e5a9c4d13'
+
 describe('SeasonService identity', () => {
-  it('dedups a season on its manifestId + namespaceKey + indexedId', async () => {
+  it('updates the row with the same providerConfigId and indexedId', async () => {
     const season = makeSeasonInsert({
-      manifestId: 'dandanplay',
-      namespaceKey: 'dandanplay',
+      providerConfigId: 'dandanplay',
       indexedId: '17981',
     })
     const first = await service.upsert(season)
     const second = await service.upsert({ ...season, title: 'Renamed' })
 
     expect(second.id).toBe(first.id)
+    expect(second.title).toBe('Renamed')
+    expect(second.version).toBe(2)
     expect(await db.season.count()).toBe(1)
   })
 
-  it('returns undefined from findExisting for an identity-less season instead of throwing', async () => {
-    const orphan = makeSeasonInsert({
-      manifestId: undefined,
-      namespaceKey: undefined,
-    })
-    await expect(service.findExisting(orphan)).resolves.toBeUndefined()
-  })
-
-  it('inserts an identity-less season on upsert', async () => {
-    const orphan = makeSeasonInsert({
-      manifestId: undefined,
-      namespaceKey: undefined,
-    })
-    const saved = await service.upsert(orphan)
-
-    expect(saved.id).toBeGreaterThan(0)
-    expect(await db.season.count()).toBe(1)
-  })
-
-  it('dedups identity-less seasons on indexedId + title across upserts', async () => {
-    const first = await service.upsert(makeSeasonInsert({}))
-    const second = await service.upsert(makeSeasonInsert({}))
-
-    expect(second.id).toBe(first.id)
-    expect(await db.season.count()).toBe(1)
-  })
-
-  it('keeps identity-less seasons with different titles separate', async () => {
-    await service.upsert(makeSeasonInsert({ title: 'Show A' }))
-    await service.upsert(makeSeasonInsert({ title: 'Show B' }))
-
-    expect(await db.season.count()).toBe(2)
-  })
-
-  it('does not match an identity-less season onto an identity-bearing row', async () => {
-    const live = await service.upsert(
-      makeSeasonInsert({ manifestId: 'bilibili', namespaceKey: 'bilibili' })
+  it('keeps separate rows for two configs pointing at the same server', async () => {
+    const first = await service.upsert(
+      makeSeasonInsert({ providerConfigId: SERVER_A, indexedId: '100' })
     )
-    const orphan = await service.upsert(makeSeasonInsert({}))
+    const second = await service.upsert(
+      makeSeasonInsert({ providerConfigId: SERVER_A_AGAIN, indexedId: '100' })
+    )
 
-    expect(orphan.id).not.toBe(live.id)
+    expect(second.id).not.toBe(first.id)
     expect(await db.season.count()).toBe(2)
+  })
+
+  it('keeps a built-in and a self-hosted season with the same indexedId apart', async () => {
+    await service.upsert(
+      makeSeasonInsert({ providerConfigId: 'dandanplay', indexedId: '100' })
+    )
+    await service.upsert(
+      makeSeasonInsert({ providerConfigId: SERVER_A, indexedId: '100' })
+    )
+
+    expect(await db.season.count()).toBe(2)
+  })
+
+  it('does not match a season with the same indexedId under another manifest config', async () => {
+    const ddp = await service.upsert(
+      makeSeasonInsert({ providerConfigId: 'dandanplay', indexedId: '1' })
+    )
+    const bili = await service.upsert(
+      makeSeasonInsert({
+        manifestId: 'bilibili',
+        providerConfigId: 'bilibili',
+        indexedId: '1',
+      })
+    )
+
+    expect(bili.id).not.toBe(ddp.id)
+  })
+
+  it('finds an orphan by its own config id after the config is gone', async () => {
+    const orphan = await service.upsert(
+      makeSeasonInsert({ providerConfigId: SERVER_A, indexedId: '5550' })
+    )
+
+    const found = await service.findExisting(
+      makeSeasonInsert({ providerConfigId: SERVER_A, indexedId: '5550' })
+    )
+
+    expect(found?.id).toBe(orphan.id)
   })
 })

@@ -38,24 +38,20 @@ export function isCustomSeason(
 
 export function episodeProviderType<T extends AnyEpisode>(
   episode: T
-): DanmakuSourceType | undefined {
+): DanmakuSourceType {
   if (!isSourceEpisode(episode)) {
     return DanmakuSourceType.MacCMS
   }
-  return episode.season.manifestId
-    ? providerTypeFromManifestId(episode.season.manifestId)
-    : undefined
+  return providerTypeFromManifestId(episode.season.manifestId)
 }
 
 export function seasonProviderType(
   season: Season | SeasonInsert | CustomSeason
-): DanmakuSourceType | undefined {
+): DanmakuSourceType {
   if (isCustomSeason(season)) {
     return DanmakuSourceType.MacCMS
   }
-  return season.manifestId
-    ? providerTypeFromManifestId(season.manifestId)
-    : undefined
+  return providerTypeFromManifestId(season.manifestId)
 }
 
 export const episodeToString = (episode: GenericEpisodeLite) => {

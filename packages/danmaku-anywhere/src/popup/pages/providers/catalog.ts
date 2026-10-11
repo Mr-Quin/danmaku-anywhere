@@ -1,7 +1,6 @@
 import { PROVIDER_TO_BUILTIN_ID } from '@danmaku-anywhere/danmaku-converter'
 import type { ConfigSchema } from '@mr-quin/dango'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { PROXY_DDP_BASE_URL } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { getRandomUUID } from '@/common/utils/utils'
@@ -37,13 +36,6 @@ export function supportsInstances(manifestId: string): boolean {
   return MULTI_INSTANCE_MANIFEST_IDS.has(manifestId)
 }
 
-export function isHostedDanDanPlay(config: ProviderConfig): boolean {
-  return (
-    config.manifestId === DDP_MANIFEST_ID &&
-    config.configValues?.baseUrl === PROXY_DDP_BASE_URL
-  )
-}
-
 export type InstalledUnit =
   | { type: 'single'; id: string; config: ProviderConfig }
   | { type: 'group'; id: string; manifestId: string; configs: ProviderConfig[] }
@@ -68,12 +60,6 @@ export function groupInstalled(configs: ProviderConfig[]): InstalledUnit[] {
     })
   }
   return units
-}
-
-export function flattenUnits(units: InstalledUnit[]): ProviderConfig[] {
-  return units.flatMap((unit) =>
-    unit.type === 'single' ? [unit.config] : unit.configs
-  )
 }
 
 // Keep only updates for sources the user installed; a catalog-only manifest is

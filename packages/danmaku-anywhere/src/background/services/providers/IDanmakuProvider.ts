@@ -26,11 +26,11 @@ export interface IDanmakuProvider {
     seasonRemoteIds: Season['providerIds']
   ): Promise<SeasonInsert | null>
 
-  getEpisodes(
+  getEpisodes?(
     seasonRemoteIds: Season['providerIds']
   ): Promise<OmitSeasonId<EpisodeMeta>[]>
 
-  getDanmaku(request: DanmakuFetchByMeta): Promise<CommentEntity[]>
+  getDanmaku?(request: DanmakuFetchByMeta): Promise<CommentEntity[]>
 
   findEpisode?(
     season: Season,

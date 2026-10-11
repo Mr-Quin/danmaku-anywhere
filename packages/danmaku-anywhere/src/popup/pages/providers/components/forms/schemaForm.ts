@@ -1,5 +1,7 @@
 import type { ConfigSchema } from '@mr-quin/dango'
 import { i18n } from '@/common/localization/i18n'
+import { isBuiltinConfig } from '@/common/options/providerConfig/displayName'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { tryCatchSync } from '@/common/utils/tryCatch'
 
 export type FieldKind =
@@ -29,6 +31,26 @@ export function toNumberOrUndefined(value: unknown): number | undefined {
   }
   const parsed = Number(trimmed)
   return Number.isNaN(parsed) ? undefined : parsed
+}
+
+// Seasons are keyed by the config that fetched them, so pointing the built-in
+// at another server would mix two catalogs under one id. A different server
+// gets its own instance.
+const BUILTIN_READ_ONLY_FIELDS: ReadonlySet<string> = new Set([
+  'baseUrl',
+  'appId',
+  'appSecret',
+  'auth',
+])
+
+const NO_READ_ONLY_FIELDS: ReadonlySet<string> = new Set()
+
+export function readOnlyConfigFields(
+  config: ProviderConfig
+): ReadonlySet<string> {
+  return isBuiltinConfig(config)
+    ? BUILTIN_READ_ONLY_FIELDS
+    : NO_READ_ONLY_FIELDS
 }
 
 export function getFieldKind(schema: ConfigSchema): FieldKind {

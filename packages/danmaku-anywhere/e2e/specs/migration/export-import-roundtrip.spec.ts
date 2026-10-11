@@ -9,13 +9,14 @@ import { expect, test } from '../../setup/fixtures'
 import { applyProfile } from '../../setup/profile'
 
 /**
- * Post-migration sanity: a season the v15 migration leaves orphaned (no
- * manifestId / namespaceKey) must survive an export -> delete -> re-import
- * round-trip. Guards the import path that previously queried the season identity
- * index with nullish keys, threw a DataError, and silently dropped the season.
- * Asserts the orphan badge before export, the import success dialog, and that
- * the season + its episode come back in the mount tree afterward.
+ * A season whose config was deleted (an orphan) must survive an export ->
+ * delete -> re-import round-trip with its providerConfigId intact, so a later
+ * relink can still find it. Asserts the orphan badge before export, the import
+ * success dialog, and that the season + its episode come back orphaned in the
+ * mount tree under the same config id.
  */
+
+const DELETED_CONFIG_ID = '3e2d1c0b-9a8f-4e7d-8c6b-5a4f3e2d1c0b'
 
 const COMMENTS: CommentEntity[] = [
   { p: '0.00,1,25,16777215,0,0,0,0', m: 'hello' },
@@ -33,7 +34,7 @@ test('an orphaned season survives an export/import round-trip', async ({
   })
 
   const season = await da.season.add(
-    makeBilibiliSeason({ manifestId: undefined, namespaceKey: undefined })
+    makeBilibiliSeason({ providerConfigId: DELETED_CONFIG_ID })
   )
   await da.episode.add(makeBilibiliEpisode(season.id, { comments: COMMENTS }))
 
@@ -59,6 +60,8 @@ test('an orphaned season survives an export/import round-trip', async ({
   expect(restored).toHaveLength(1)
   expect(restored[0].title).toBe(season.title)
   expect(restored[0].localEpisodeCount).toBe(1)
+  expect(restored[0].providerConfigId).toBe(DELETED_CONFIG_ID)
+  expect(restored[0].manifestId).toBe('bilibili')
 
   // The popup does not live-refresh on background DB writes, so re-open it.
   const reopened = await Popup.open(page, extensionId, '/mount')

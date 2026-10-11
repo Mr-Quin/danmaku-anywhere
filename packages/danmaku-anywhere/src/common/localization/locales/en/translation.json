@@ -677,6 +677,7 @@
     },
     "editor": {
       "addItem": "Add",
+      "builtinServerLocked": "The server of a built-in source cannot be changed. To use another server, add an instance instead.",
       "manifest": {
         "author": "Author a manifest",
         "beta": "Beta",

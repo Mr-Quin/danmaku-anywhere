@@ -2,25 +2,12 @@ import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
 import type { SeasonGetAllRequest, SeasonQueryFilter } from '@/common/anime/dto'
 import { DanmakuAnywhereDb } from '@/common/db/db'
-import { reconcileSeasonIdentity } from '@/common/db/seasonIdentityReconciler'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import type { DbEntity } from '@/common/types/dbEntity'
 
 @injectable('Singleton')
 export class SeasonService {
   constructor(@inject(DanmakuAnywhereDb) private db: DanmakuAnywhereDb) {}
-
-  // Heal v15-orphaned seasons against live configs. See reconcileSeasonIdentity.
-  async reconcileIdentities(
-    configs: {
-      id: string
-      manifestId: string
-      configValues?: Record<string, unknown>
-      identityFields?: readonly string[]
-    }[]
-  ): Promise<number> {
-    return reconcileSeasonIdentity(this.db, configs)
-  }
 
   async bulkUpsert<T extends SeasonInsert>(data: T[]): Promise<DbEntity<T>[]> {
     const results: DbEntity<T>[] = []
@@ -35,34 +22,10 @@ export class SeasonService {
   async findExisting<T extends SeasonInsert>(
     data: T
   ): Promise<DbEntity<T> | undefined> {
-    // An orphaned season has no identity for the compound index (querying it
-    // with nullish components throws a DataError), but backups re-import such
-    // seasons one episode at a time, so match them structurally instead or
-    // every episode would insert a fresh season row.
-    if (data.manifestId == null || data.namespaceKey == null) {
-      return this.findExistingOrphan(data)
-    }
     return this.db.season.get({
-      manifestId: data.manifestId,
-      namespaceKey: data.namespaceKey,
+      providerConfigId: data.providerConfigId,
       indexedId: data.indexedId,
     }) as Promise<DbEntity<T> | undefined>
-  }
-
-  // Orphans only match orphans: an identity-bearing row that happens to share
-  // indexedId + title belongs to a live source and must stay separate.
-  private async findExistingOrphan<T extends SeasonInsert>(
-    data: T
-  ): Promise<DbEntity<T> | undefined> {
-    return this.db.season
-      .where('indexedId')
-      .equals(data.indexedId)
-      .filter(
-        (season) =>
-          (season.manifestId == null || season.namespaceKey == null) &&
-          season.title === data.title
-      )
-      .first() as Promise<DbEntity<T> | undefined>
   }
 
   async upsert<T extends SeasonInsert>(data: T): Promise<DbEntity<T>> {

@@ -17,7 +17,6 @@ import {
 import { Dexie } from 'dexie'
 import { injectable } from 'inversify'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
-import { resolveBuiltinSeasonIdentity } from './seasonIdentityBackfill'
 
 export const DANMAKU_DB_NAME = 'danmaku-anywhere'
 
@@ -64,6 +63,33 @@ function extractSeasonV10(
       }
     }
   }
+}
+
+const V15_BUILTIN_IDS = new Set(['dandanplay', 'bilibili', 'tencent'])
+
+const V15_BUILTIN_ID_BY_PROVIDER = new Map<unknown, string>([
+  ['DanDanPlay', 'dandanplay'],
+  ['Bilibili', 'bilibili'],
+  ['Tencent', 'tencent'],
+])
+
+// A built-in config id is its manifest id. Every custom instance v1.5.0 could
+// create was DanDanPlay-compatible, and MacCMS never stored seasons.
+function manifestIdForV15(season: {
+  provider?: unknown
+  providerConfigId?: unknown
+}): string {
+  if (
+    typeof season.providerConfigId === 'string' &&
+    V15_BUILTIN_IDS.has(season.providerConfigId)
+  ) {
+    return season.providerConfigId
+  }
+  return V15_BUILTIN_ID_BY_PROVIDER.get(season.provider) ?? 'dandanplay'
+}
+
+function seasonKeyV16(providerConfigId: unknown, indexedId: unknown): string {
+  return JSON.stringify([providerConfigId, indexedId])
 }
 
 @injectable('Singleton')
@@ -479,27 +505,16 @@ export class DanmakuAnywhereDb extends Dexie {
       })
 
     /**
-     * Make manifestId + namespaceKey the durable season identity, then drop the
-     * dead provider / providerConfigId fields and their indexes. Runs after
-     * v14's prefix strip, so season.providerConfigId is already bare here.
-     *
-     * Identity is recovered from the season row alone (see
-     * resolveBuiltinSeasonIdentity), never from provider config storage: reading
-     * it here would couple this upgrade to a second, racing migration system and
-     * orphan custom seasons nondeterministically. A row that cannot be resolved
-     * keeps its providerConfigId so the runtime reconciler can heal it later
-     * from live config storage, where there is no migration race.
-     *
-     * The compound index is non-unique. Identity is enforced by
-     * SeasonService.upsert and by the reconciler, which never stamps an
-     * identity another row already holds.
+     * Seasons are identified by providerConfigId + indexedId and carry the
+     * manifestId of the source type. Runs after v14's prefix strip, so
+     * providerConfigId is already bare here.
      */
     this.version(15)
       .stores({
         episode:
           '++id, indexedId, &[seasonId+indexedId], seasonId, timeUpdated, lastChecked',
         season:
-          '++id, manifestId, namespaceKey, indexedId, [manifestId+namespaceKey+indexedId]',
+          '++id, manifestId, providerConfigId, indexedId, &[providerConfigId+indexedId]',
         customEpisode: '++id, title',
         seasonMap: 'key, *seasonIds',
         bookmark: '++id, &seasonId',
@@ -509,53 +524,8 @@ export class DanmakuAnywhereDb extends Dexie {
           .table('season')
           .toCollection()
           .modify((season) => {
-            const identity = resolveBuiltinSeasonIdentity(
-              season.providerConfigId
-            )
-            if (identity !== undefined) {
-              season.manifestId = identity
-              season.namespaceKey = identity
-              delete season.providerConfigId
-            }
+            season.manifestId = manifestIdForV15(season)
             delete season.provider
-          })
-
-        await tx
-          .table('episode')
-          .toCollection()
-          .modify((episode) => {
-            delete episode.provider
-          })
-
-        await tx
-          .table('customEpisode')
-          .toCollection()
-          .modify((customEpisode) => {
-            delete customEpisode.provider
-          })
-
-        // Rekey seasonMap entries from providerConfigId to namespaceKey. A
-        // custom key resolves to no identity here; keep it under the old config
-        // id so the runtime reconciler can rekey it against live configs, the
-        // same way orphaned season rows keep their providerConfigId.
-        await tx
-          .table('seasonMap')
-          .toCollection()
-          .modify((entry) => {
-            if (
-              !entry.seasons ||
-              typeof entry.seasons !== 'object' ||
-              Array.isArray(entry.seasons)
-            ) {
-              return
-            }
-            const remapped: Record<string, number> = {}
-            for (const [configId, seasonId] of Object.entries(entry.seasons)) {
-              const identity = resolveBuiltinSeasonIdentity(configId)
-              remapped[identity ?? configId] = seasonId as number
-            }
-            entry.seasons = remapped
-            entry.seasonIds = Array.from(new Set(Object.values(remapped)))
           })
 
         await tx
@@ -563,6 +533,56 @@ export class DanmakuAnywhereDb extends Dexie {
           .toCollection()
           .modify((bookmark) => {
             delete bookmark.providerConfigId
+          })
+      })
+
+    // Only for nightly profiles that ran the previous v15 body, which keyed
+    // seasons by manifestId + namespaceKey. Store users never had namespaceKey.
+    this.version(16)
+      .stores({
+        episode:
+          '++id, indexedId, &[seasonId+indexedId], seasonId, timeUpdated, lastChecked',
+        season:
+          '++id, manifestId, providerConfigId, indexedId, &[providerConfigId+indexedId]',
+        customEpisode: '++id, title',
+        seasonMap: 'key, *seasonIds',
+        bookmark: '++id, &seasonId',
+      })
+      .upgrade(async (tx) => {
+        const seasons = tx.table('season')
+        const taken = new Set<string>()
+        await seasons.each((season) => {
+          if (typeof season.providerConfigId === 'string') {
+            taken.add(seasonKeyV16(season.providerConfigId, season.indexedId))
+          }
+        })
+
+        await seasons
+          .filter(
+            (season) =>
+              typeof season.providerConfigId !== 'string' ||
+              typeof season.manifestId !== 'string'
+          )
+          .modify((season) => {
+            if (typeof season.providerConfigId !== 'string') {
+              const derived =
+                season.namespaceKey === season.manifestId
+                  ? season.manifestId
+                  : season.namespaceKey
+              const key = seasonKeyV16(derived, season.indexedId)
+              // The previous v15 index was not unique, so two rows can derive
+              // the same key. The later one becomes an orphan of its own.
+              if (typeof derived === 'string' && !taken.has(key)) {
+                season.providerConfigId = derived
+                taken.add(key)
+              } else {
+                season.providerConfigId = `orphan:${season.id}`
+              }
+            }
+            if (typeof season.manifestId !== 'string') {
+              season.manifestId = manifestIdForV15(season)
+            }
+            delete season.namespaceKey
           })
       })
 

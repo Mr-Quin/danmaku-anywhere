@@ -133,7 +133,7 @@ describe('BookmarkService.preloadNextEpisode', () => {
   })
 })
 
-describe('BookmarkService.deleteBySeasonIdentity', () => {
+describe('BookmarkService.deleteByProviderConfig', () => {
   let db: DanmakuAnywhereDb
   let service: BookmarkService
 
@@ -163,33 +163,26 @@ describe('BookmarkService.deleteBySeasonIdentity', () => {
     await Dexie.delete(DANMAKU_DB_NAME)
   })
 
-  it('deletes only bookmarks of seasons matching both manifestId and namespaceKey', async () => {
-    const sharedNamespace = 'ns:abcd1234'
+  it('deletes only the bookmarks of seasons fetched by that config', async () => {
     const deleted = await addBookmarkedSeason({
-      manifestId: 'alpha',
-      namespaceKey: sharedNamespace,
+      providerConfigId: 'server-a',
     })
-    const otherManifest = await addBookmarkedSeason({
-      manifestId: 'beta',
-      namespaceKey: sharedNamespace,
-      indexedId: 'idx-2',
+    const sameServerOtherConfig = await addBookmarkedSeason({
+      providerConfigId: 'server-a-again',
     })
-    const otherNamespace = await addBookmarkedSeason({
-      manifestId: 'alpha',
-      namespaceKey: 'alpha',
-      indexedId: 'idx-3',
+    const builtin = await addBookmarkedSeason({
+      providerConfigId: 'dandanplay',
     })
 
-    await service.deleteBySeasonIdentity('alpha', sharedNamespace)
+    await service.deleteByProviderConfig('server-a')
 
     expect(await db.bookmark.where({ seasonId: deleted }).first()).toBe(
       undefined
     )
     expect(
-      await db.bookmark.where({ seasonId: otherManifest }).first()
+      await db.bookmark.where({ seasonId: sameServerOtherConfig }).first()
     ).toBeDefined()
-    expect(
-      await db.bookmark.where({ seasonId: otherNamespace }).first()
-    ).toBeDefined()
+    expect(await db.bookmark.where({ seasonId: builtin }).first()).toBeDefined()
+    expect(await db.season.get(deleted)).toBeDefined()
   })
 })

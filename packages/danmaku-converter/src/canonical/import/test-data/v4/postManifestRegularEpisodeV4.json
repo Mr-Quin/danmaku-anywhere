@@ -10,7 +10,7 @@
   "lastChecked": 0,
   "season": {
     "manifestId": "dandanplay",
-    "namespaceKey": "ns:abc12345",
+    "providerConfigId": "5b0f7c3e-2a41-4d8e-9c6b-0e1f2a3b4c5d",
     "providerIds": { "animeId": 444, "bangumiId": "444" },
     "title": "Post-manifest Self-hosted Show",
     "type": "",

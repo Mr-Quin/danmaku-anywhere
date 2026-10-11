@@ -41,13 +41,13 @@ export function stripBuiltinPrefix(id: string): string {
 }
 
 // legacy:maccms appears in PROVIDER_TO_BUILTIN_ID for config-migration mapping
-// but is not a real manifest, so it is not a built-in season identity.
+// but is not a real manifest.
 const BUILTIN_MANIFEST_IDS = new Set<string>(
   Object.values(PROVIDER_TO_BUILTIN_ID).filter((id) => id !== LEGACY_MACCMS_ID)
 )
 
 // A built-in config id is itself the manifest id (minus any builtin: prefix). A
-// custom id keys off a baseUrl that isn't on the id, so it can't be recovered.
+// custom instance id is a uuid and names no manifest.
 export function resolveBuiltinManifestId(
   providerConfigId: string | undefined | null
 ): string | undefined {
