@@ -2,8 +2,21 @@ import { fakeBrowser } from '@webext-core/fake-browser'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import type { BackupData } from '@/common/backup/dto'
+import { EXTENSION_VERSION } from '@/common/constants'
+import type { IStoreService } from '@/common/options/IStoreService'
+import { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
 import { silentLogger } from '@/tests/silentLogger'
 import { ConfigStateService } from './ConfigStateService'
+
+/**
+ * ConfigStateService exports every backed-up store and restores a backup store
+ * by store: each payload is migrated and validated before anything is written,
+ * and the result reports each store's outcome. Over real storage, a store
+ * whose write fails is reported with the storage error while the others report
+ * their own outcome, and an export fails on a read error instead of exporting
+ * defaults.
+ */
 
 describe('ConfigStateService', () => {
   let service: ConfigStateService
@@ -531,5 +544,84 @@ describe('ConfigStateService', () => {
       expect(mockUserAuthService.options.set).not.toHaveBeenCalled()
       expect(mockUserAuthService.options.migrate).not.toHaveBeenCalled()
     })
+  })
+})
+
+describe('ConfigStateService over chrome.storage', () => {
+  async function createStore(readiness: ReadinessService, name: string) {
+    await fakeBrowser.storage.sync.set({
+      [name]: { data: { value: 'stored' }, version: 1 },
+    })
+    const options = new OptionsService<{ value: string }>(
+      readiness,
+      name,
+      { value: 'default' },
+      silentLogger
+    ).version(1, { upgrade: (data) => data })
+    return { name, options } satisfies IStoreService
+  }
+
+  async function readStored(name: string) {
+    const stored = await fakeBrowser.storage.sync.get(name)
+    return stored[name]
+  }
+
+  async function setup() {
+    await fakeBrowser.storage.local.set({
+      lastVersion: { lastVersion: EXTENSION_VERSION },
+    })
+    const readiness = new ReadinessService(silentLogger)
+    const stores = [
+      await createStore(readiness, 'alpha'),
+      await createStore(readiness, 'beta'),
+    ]
+    return new ConfigStateService(stores, silentLogger)
+  }
+
+  const backup: BackupData = {
+    meta: { version: 1, timestamp: 12345 },
+    services: {
+      alpha: { data: { value: 'restored' }, version: 1 },
+      beta: { data: { value: 'restored' }, version: 1 },
+    },
+  }
+
+  it('reports a store whose write fails with the storage error and restores the rest', async () => {
+    const service = await setup()
+    const set = fakeBrowser.storage.sync.set.bind(fakeBrowser.storage.sync)
+    vi.spyOn(fakeBrowser.storage.sync, 'set').mockImplementation(
+      async (items) => {
+        if ('alpha' in items) {
+          throw new Error('QUOTA_BYTES_PER_ITEM quota exceeded')
+        }
+        return set(items)
+      }
+    )
+
+    const result = await service.restoreState(backup)
+
+    expect(result.success).toBe(false)
+    expect(result.details.alpha).toEqual({
+      success: false,
+      error: 'QUOTA_BYTES_PER_ITEM quota exceeded',
+    })
+    expect(result.details.beta).toEqual({ success: true, droppedEntries: 0 })
+    expect(await readStored('alpha')).toEqual({
+      data: { value: 'stored' },
+      version: 1,
+    })
+    expect(await readStored('beta')).toEqual({
+      data: { value: 'restored' },
+      version: 1,
+    })
+  })
+
+  it('getState rejects when a store cannot be read', async () => {
+    const service = await setup()
+    vi.spyOn(fakeBrowser.storage.sync, 'get').mockRejectedValue(
+      new Error('IO error')
+    )
+
+    await expect(service.getState()).rejects.toThrow('IO error')
   })
 })

@@ -2,6 +2,13 @@ import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { ExtStorageService } from './ExtStorageService'
 
+/**
+ * ExtStorageService wraps one chrome.storage key. Covers read/set/delete/clear
+ * against fake storage, local and cross-context subscriber notification, and
+ * that a failing storage API rejects instead of looking like an absent key or a
+ * successful write, with no subscriber told about a write that did not land.
+ */
+
 describe('ExtStorageService', () => {
   let service: ExtStorageService<string>
 
@@ -122,6 +129,53 @@ describe('ExtStorageService', () => {
 
       await service.set('testValue')
 
+      expect(listener).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('storage failures', () => {
+    test('read rejects when the storage API fails', async () => {
+      await fakeBrowser.storage.local.set({ testKey: 'testValue' })
+      vi.spyOn(fakeBrowser.storage.local, 'get').mockRejectedValue(
+        new Error('IO error')
+      )
+
+      await expect(service.read()).rejects.toThrow('IO error')
+    })
+
+    test('set rejects and notifies no subscriber when the write fails', async () => {
+      vi.spyOn(fakeBrowser.storage.local, 'set').mockRejectedValue(
+        new Error('QUOTA_BYTES quota exceeded')
+      )
+      const listener = vi.fn()
+      service.subscribe(listener)
+
+      await expect(service.set('testValue')).rejects.toThrow(
+        'QUOTA_BYTES quota exceeded'
+      )
+      expect(listener).not.toHaveBeenCalled()
+    })
+
+    test('delete rejects and notifies no subscriber when the removal fails', async () => {
+      await fakeBrowser.storage.local.set({ testKey: 'testValue' })
+      vi.spyOn(fakeBrowser.storage.local, 'remove').mockRejectedValue(
+        new Error('IO error')
+      )
+      const listener = vi.fn()
+      service.subscribe(listener)
+
+      await expect(service.delete()).rejects.toThrow('IO error')
+      expect(listener).not.toHaveBeenCalled()
+    })
+
+    test('clearStorage rejects and notifies no subscriber when the clear fails', async () => {
+      vi.spyOn(fakeBrowser.storage.local, 'clear').mockRejectedValue(
+        new Error('IO error')
+      )
+      const listener = vi.fn()
+      service.subscribe(listener)
+
+      await expect(service.clearStorage()).rejects.toThrow('IO error')
       expect(listener).not.toHaveBeenCalled()
     })
   })

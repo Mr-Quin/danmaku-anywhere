@@ -8,12 +8,14 @@ import type {
 } from '@/common/options/OptionsService/types'
 import { createTestContainer } from '@/tests/createTestContainer'
 import { silentLogger } from '@/tests/silentLogger'
+import { migrateMountConfigV4V5 } from './migrations/migrateMountConfigV4V5'
 import { MountConfigService } from './service'
 
 /**
  * Drives the real mountConfig upgrade chain (defined inline in
  * MountConfigService) against corrupted/non-array stored shapes, to prove
- * that one bad record no longer costs the user every mount config.
+ * that one bad record no longer costs the user every mount config. The v4 to
+ * v5 step treats an absent integration policy store as an empty one.
  */
 
 // Resolving the real MountConfigService registers its .version(n, ...) upgrade
@@ -90,5 +92,21 @@ describe('mountConfig upgrade chain (v1 to latest)', () => {
 
     expect(result.data).toHaveLength(2)
     expect(result.data.map((c: { name: string }) => c.name)).toEqual(['A', 'B'])
+  })
+})
+
+describe('migrateMountConfigV4V5', () => {
+  it('keeps a config that names an integration when no policy store was stored', () => {
+    const config = {
+      patterns: ['https://a.example.com/*'],
+      mediaQuery: 'video',
+      name: 'A',
+      integration: 'policy-1',
+    }
+
+    expect(migrateMountConfigV4V5([config], {})).toEqual([config])
+    expect(migrateMountConfigV4V5([config], {})).toEqual(
+      migrateMountConfigV4V5([config], { xpathPolicy: [] })
+    )
   })
 })

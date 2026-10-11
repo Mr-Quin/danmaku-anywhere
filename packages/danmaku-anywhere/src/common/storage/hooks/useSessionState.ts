@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { Logger } from '@/common/Logger'
 import type { NonFunctionGuard } from '@/common/types/utils'
 import { useExtStorage } from './useExtStorage'
 
@@ -27,9 +28,14 @@ export const useSessionState = <T>(
   }, [data])
 
   useEffect(() => {
-    update.mutateAsync(state).then(() => {
-      setEnableQuery(true)
-    })
+    update
+      .mutateAsync(state)
+      .then(() => {
+        setEnableQuery(true)
+      })
+      .catch((error) => {
+        Logger.error(`Failed to save session state for ${key}`, error)
+      })
   }, [state])
 
   return [state, setState, isLoading] as const

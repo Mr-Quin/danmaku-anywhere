@@ -12,7 +12,7 @@ export function migrateMountConfigV4V5(data: any, context: any): any {
               draft.mode = 'manual'
             } else {
               // read the integration
-              const integration = context.xpathPolicy.find(
+              const integration = (context.xpathPolicy ?? []).find(
                 (policy: any) => policy.id === draft.integration
               )
               if (integration) {

@@ -6,6 +6,7 @@ import {
   StoreServiceSymbol,
 } from '@/common/options/IStoreService'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
+import { upgradeStores } from '@/common/options/upgradeStores'
 import { isServiceWorker } from '@/common/utils/utils'
 
 @injectable('Singleton')
@@ -33,26 +34,8 @@ export class UpgradeService {
 
     this.logger.debug('Starting upgrade...')
 
-    // gather context
-    const context: Record<string, unknown> = {}
-    for (const service of this.services) {
-      // special method to read without waiting for readiness
-      const data = await service.options.readUnblocked()
-      if (data) {
-        context[service.options.key] = data
-      }
-    }
+    await upgradeStores(this.services, this.logger)
 
-    // upgrade each service
-    for (const service of this.services) {
-      try {
-        await service.options.upgrade(context)
-      } catch (error) {
-        this.logger.error(`Failed to upgrade ${service.options.key}`, error)
-      }
-    }
-
-    // mark as ready
     const currentVersion = EXTENSION_VERSION
     await this.readinessService.setVersion(currentVersion)
 

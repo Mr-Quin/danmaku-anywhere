@@ -61,39 +61,39 @@ export class OptionsService<T extends OptionsSchema> {
     return this
   }
 
-  // upgrade options to latest version
+  // Data that cannot be migrated is replaced with defaults. A storage error is
+  // not bad data: it propagates and the stored value stays as it was.
   async upgrade(context: UpgradeContext = {}): Promise<void> {
     if (this.versions.length === 0) {
       throw new Error('Cannot upgrade without any versions')
     }
 
-    const options = await this.storageService.read()
+    const stored = await this.storageService.read()
 
-    this.logger.debug('Init')
-
-    if (!options) {
-      // if no options, set default options as the latest version
+    if (!stored) {
       this.logger.debug('No existing options found, using default options')
-
       await this.reset()
       return
     }
 
-    this.logger.debug(`Found options with version '${options.version}'`)
+    this.logger.debug(`Found options with version '${stored.version}'`)
+
+    let upgraded: Options<T>
     try {
-      // if options is not versioned, assume version 0 for purpose of upgrading
-      options.version ??= 0
-      const upgradedOptions = migrateOptions(
-        options,
+      upgraded = migrateOptions(
+        // unversioned options predate versioning, so they start from 0
+        { data: stored.data, version: stored.version ?? 0 },
         this.versions,
         this.logger,
         context
       )
-      await this.storageService.set(upgradedOptions)
     } catch (error) {
       this.logger.error('Failed to upgrade options, reset to default', error)
       await this.reset()
+      return
     }
+
+    await this.queueOperation(() => this.storageService.set(upgraded))
   }
 
   // Unlike upgrade(), a failing step throws instead of resetting the store to
@@ -167,12 +167,17 @@ export class OptionsService<T extends OptionsSchema> {
   }
 
   // Read without waiting for readiness
-  async readUnblocked() {
+  async readUnblocked(): Promise<T> {
     const options = await this.storageService.read()
     if (!options) {
       return this.defaultOptions
     }
     return options.data
+  }
+
+  // The stored envelope as is, or undefined when the store was never written
+  readStoredUnblocked(): Promise<Options<T> | undefined> {
+    return this.storageService.read()
   }
 
   private setup() {

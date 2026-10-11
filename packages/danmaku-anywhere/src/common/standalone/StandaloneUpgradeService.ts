@@ -6,6 +6,7 @@ import {
   StoreServiceSymbol,
 } from '@/common/options/IStoreService'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
+import { upgradeStores } from '@/common/options/upgradeStores'
 
 @injectable('Singleton')
 export class StandaloneUpgradeService {
@@ -28,21 +29,7 @@ export class StandaloneUpgradeService {
   async upgrade() {
     this.logger.debug('Starting standalone upgrade...')
 
-    const context: Record<string, unknown> = {}
-    for (const service of this.services) {
-      const data = await service.options.readUnblocked()
-      if (data) {
-        context[service.options.key] = data
-      }
-    }
-
-    for (const service of this.services) {
-      try {
-        await service.options.upgrade(context)
-      } catch (error) {
-        this.logger.error(`Failed to upgrade ${service.options.key}`, error)
-      }
-    }
+    await upgradeStores(this.services, this.logger)
 
     const currentVersion = EXTENSION_VERSION
     await this.readinessService.setVersion(currentVersion)

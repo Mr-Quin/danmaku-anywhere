@@ -9,7 +9,8 @@ import { ManifestStore } from './ManifestStore'
  * get/has/set/setMany/remove read and mutate the stored record without
  * clobbering sibling entries, that lastCheckedAt round-trips through its own
  * storage key, and that the write mutex serializes concurrent read-modify-write
- * so no write is lost.
+ * so no write is lost. A failing storage API rejects instead of reading as an
+ * empty record or dropping a write.
  */
 
 async function backStorageWith(record: ManifestRecord) {
@@ -116,5 +117,45 @@ describe('ManifestStore', () => {
       'b:2',
       'c:3',
     ])
+  })
+
+  it('getAll rejects when storage cannot be read', async () => {
+    await backStorageWith({ 'a:1': { manifest: { id: 'a:1' }, kind: 'user' } })
+    vi.spyOn(fakeBrowser.storage.local, 'get').mockRejectedValue(
+      new Error('IO error')
+    )
+    const store = new ManifestStore()
+
+    await expect(store.getAll()).rejects.toThrow('IO error')
+  })
+
+  it('setMany rejects when the write fails and leaves the record', async () => {
+    const existing: ManifestRecord = {
+      'a:1': { manifest: { id: 'a:1' }, kind: 'user' },
+    }
+    await backStorageWith(existing)
+    const set = vi
+      .spyOn(fakeBrowser.storage.local, 'set')
+      .mockRejectedValue(new Error('QUOTA_BYTES quota exceeded'))
+    const store = new ManifestStore()
+
+    await expect(
+      store.setMany({ 'b:2': { manifest: { id: 'b:2' }, kind: 'user' } })
+    ).rejects.toThrow('QUOTA_BYTES quota exceeded')
+
+    set.mockRestore()
+    expect(await readStoredManifests()).toEqual(existing)
+  })
+
+  it('remove rejects when the write fails', async () => {
+    await backStorageWith({ 'a:1': { manifest: { id: 'a:1' }, kind: 'user' } })
+    vi.spyOn(fakeBrowser.storage.local, 'set').mockRejectedValue(
+      new Error('QUOTA_BYTES quota exceeded')
+    )
+    const store = new ManifestStore()
+
+    await expect(store.remove('a:1')).rejects.toThrow(
+      'QUOTA_BYTES quota exceeded'
+    )
   })
 })

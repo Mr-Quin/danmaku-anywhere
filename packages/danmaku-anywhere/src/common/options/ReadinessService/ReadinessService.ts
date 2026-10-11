@@ -2,7 +2,6 @@ import { inject, injectable } from 'inversify'
 import { EXTENSION_VERSION } from '@/common/constants'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
-import { tryCatch } from '@/common/utils/tryCatch'
 
 interface LastVersion {
   lastVersion: string
@@ -25,7 +24,9 @@ export class ReadinessService {
 
     this.logger = logger.sub('[ReadinessService]')
 
-    void this.init()
+    this.init().catch((err) => {
+      this.logger.error('Failed to read last version', err)
+    })
   }
 
   async waitUntilReady() {
@@ -40,12 +41,12 @@ export class ReadinessService {
     }
   }
 
-  async isCurrentVersion() {
+  async isCurrentVersion(): Promise<boolean> {
     const result = await this.storage.read()
     return result?.lastVersion === EXTENSION_VERSION
   }
 
-  setVersion(version: string) {
+  setVersion(version: string): Promise<void> {
     return this.storage.set({ lastVersion: version })
   }
 
@@ -62,13 +63,7 @@ export class ReadinessService {
     })
     this.storage.setup()
 
-    const [result, err] = await tryCatch(() => this.storage.read())
-
-    if (err) {
-      this.logger.error('Failed to read last version', err)
-      return
-    }
-
+    const result = await this.storage.read()
     const lastVersion = result?.lastVersion
 
     if (lastVersion === currentVersion) {

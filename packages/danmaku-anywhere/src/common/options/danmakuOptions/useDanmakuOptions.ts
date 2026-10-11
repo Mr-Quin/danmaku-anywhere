@@ -9,6 +9,7 @@ export const useDanmakuOptions = () => {
     'danmakuOptions',
     {
       storageType: 'sync',
+      isOptionStore: true,
     }
   )
 

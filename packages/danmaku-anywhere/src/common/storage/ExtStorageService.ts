@@ -1,6 +1,4 @@
 import { getStorageArea } from '@/common/storage/getStorageArea'
-import { tryCatch } from '@/common/utils/tryCatch'
-import { Logger } from '../Logger'
 import { invariant } from '../utils/utils'
 
 export interface ExtStorageServiceOptions {
@@ -29,69 +27,41 @@ export class ExtStorageService<T> {
     this.#listenToStorageChanges()
   }
 
-  async read() {
-    const [data, err] = await tryCatch(() => this.storage.get(this.key))
+  async read(): Promise<T | undefined> {
+    const data = await this.storage.get(this.key)
 
-    if (err) {
-      Logger.error(err)
-      return
+    if (this.key === null || Array.isArray(this.key)) {
+      return data as T
     }
-
-    if (this.key === null || Array.isArray(this.key)) return data as T
-    return data[this.key] as T
+    return data[this.key] as T | undefined
   }
 
-  async set(value: T) {
+  async set(value: T): Promise<void> {
     invariant(
       typeof this.key === 'string',
       'Key must be a string when setting value'
     )
 
-    const [res, err] = await tryCatch(() =>
-      this.storage.set({ [this.key as string]: value })
-    )
-
-    if (err) {
-      Logger.error(err)
-      return
-    }
+    await this.storage.set({ [this.key]: value })
 
     this.#notifyListeners(value)
-
-    return res
   }
 
-  async delete() {
+  async delete(): Promise<void> {
     invariant(
       this.key !== null,
       'Key cannot be null when deleting value, you must explicitly call clearStorage()'
     )
 
-    const [res, err] = await tryCatch(() =>
-      this.storage.remove(this.key as string | string[])
-    )
-
-    if (err) {
-      Logger.error(err)
-      return
-    }
+    await this.storage.remove(this.key)
 
     this.#notifyListeners(undefined)
-
-    return res
   }
 
-  async clearStorage() {
-    const [res, err] = await tryCatch(() => this.storage.clear())
-
-    if (err) {
-      Logger.error(err)
-      return
-    }
+  async clearStorage(): Promise<void> {
+    await this.storage.clear()
 
     this.#notifyListeners(undefined)
-
-    return res
   }
 
   subscribe(listener: ExtStorageServiceListener<T>) {

@@ -14,6 +14,7 @@ export const useProviderConfig = () => {
     ...rest
   } = useSuspenseExtStorageQuery<ProviderConfigOptions>('providerConfig', {
     storageType: 'sync',
+    isOptionStore: true,
   })
 
   const configs: ProviderConfig[] = options.data

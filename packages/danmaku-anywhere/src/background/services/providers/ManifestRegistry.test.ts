@@ -1,11 +1,13 @@
+import { fakeBrowser } from '@webext-core/fake-browser'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { silentLogger } from '@/tests/silentLogger'
 import { bundledCatalogIndex } from './bundledCatalog'
 import { ManifestRegistry } from './ManifestRegistry'
-import type {
-  IManifestStore,
-  ManifestEntry,
-  ManifestRecord,
+import {
+  type IManifestStore,
+  type ManifestEntry,
+  type ManifestRecord,
+  ManifestStore,
 } from './ManifestStore'
 
 /**
@@ -19,7 +21,9 @@ import type {
  * manifests registered on init and replaced by the catalog copy once it
  * downloads, that neither update() nor getPendingUpdates
  * stamps lastCheckedAt (only recordChecked does), and
- * unregister / hydrate-skip-invalid.
+ * unregister / hydrate-skip-invalid. A store that fails to read or write
+ * rejects the call and leaves the in-memory runners and the stored record as
+ * they were.
  */
 
 function makeManifest(
@@ -876,6 +880,109 @@ describe('ManifestRegistry', () => {
       kind: 'user',
     })
     expect(await registry.getSource('missing')).toBeUndefined()
+  })
+})
+
+describe('ManifestRegistry storage failures', () => {
+  class FlakyStore extends InMemoryStore {
+    failReads = false
+    failWrites = false
+
+    override async getAll() {
+      if (this.failReads) {
+        throw new Error('IO error')
+      }
+      return super.getAll()
+    }
+
+    override async setMany(entries: ManifestRecord) {
+      if (this.failWrites) {
+        throw new Error('QUOTA_BYTES quota exceeded')
+      }
+      await super.setMany(entries)
+    }
+
+    override async remove(id: string) {
+      if (this.failWrites) {
+        throw new Error('QUOTA_BYTES quota exceeded')
+      }
+      await super.remove(id)
+    }
+  }
+
+  it('rejects ready when the store cannot be read', async () => {
+    const store = new FlakyStore()
+    store.failReads = true
+    const registry = new ManifestRegistry(silentLogger, store)
+
+    await expect(registry.ready).rejects.toThrow('IO error')
+  })
+
+  it('saveUserManifest rejects on a failed write and registers no runner', async () => {
+    const store = new FlakyStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+    store.failWrites = true
+
+    await expect(
+      registry.saveUserManifest(makeManifest('mine:one'), 'create')
+    ).rejects.toThrow('QUOTA_BYTES quota exceeded')
+
+    expect(() => registry.getRunner('mine:one')).toThrow(
+      /no manifest registered/
+    )
+  })
+
+  it('unregister rejects on a failed write and keeps the runner', async () => {
+    const store = new FlakyStore({
+      'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+    store.failWrites = true
+
+    await expect(registry.unregister('mine:one')).rejects.toThrow(
+      'QUOTA_BYTES quota exceeded'
+    )
+
+    expect(registry.getRunner('mine:one')).toBeDefined()
+  })
+
+  it('update registers no catalog runner when the store write fails', async () => {
+    stubCatalogFetch([catalogEntry('one')], {
+      [manifestPath('one')]: makeManifest('one'),
+    })
+    const store = new FlakyStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+    store.failWrites = true
+
+    await expect(registry.update()).rejects.toThrow(
+      'QUOTA_BYTES quota exceeded'
+    )
+
+    expect(() => registry.getRunner('one')).toThrow(/no manifest registered/)
+  })
+
+  it('does not reseed over stored manifests that chrome.storage failed to read', async () => {
+    const userEntry: ManifestEntry = {
+      manifest: makeManifest('mine:one'),
+      kind: 'user',
+    }
+    await fakeBrowser.storage.local.set({
+      manifests: { 'mine:one': userEntry },
+    })
+    const get = vi
+      .spyOn(fakeBrowser.storage.local, 'get')
+      .mockRejectedValue(new Error('IO error'))
+
+    const registry = new ManifestRegistry(silentLogger, new ManifestStore())
+
+    await expect(registry.ready).rejects.toThrow('IO error')
+    get.mockRestore()
+    expect(await fakeBrowser.storage.local.get('manifests')).toEqual({
+      manifests: { 'mine:one': userEntry },
+    })
   })
 })
 

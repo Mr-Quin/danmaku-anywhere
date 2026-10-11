@@ -12,6 +12,13 @@ vi.mock('@/common/constants', () => {
   }
 })
 
+/**
+ * UpgradeService runs every store's upgrade with the stored data of all stores
+ * as context. The version marker is written and readiness signalled only when
+ * every store persisted; otherwise the call rejects naming the failed stores
+ * and a later call starts over.
+ */
+
 // lint-specs-allow-call-only: upgrade() returns void; the collaborator calls it makes, and with what merged context, are the only observable behavior
 
 describe('UpgradeService', () => {
@@ -26,7 +33,9 @@ describe('UpgradeService', () => {
     mockStoreService = {
       options: {
         key: 'testService',
-        readUnblocked: vi.fn().mockResolvedValue({ foo: 'bar' }),
+        readStoredUnblocked: vi
+          .fn()
+          .mockResolvedValue({ data: { foo: 'bar' }, version: 1 }),
         upgrade: vi.fn().mockResolvedValue(undefined),
       },
     }
@@ -62,38 +71,93 @@ describe('UpgradeService', () => {
     })
   })
 
-  it('should continue if one service upgrade fails', async () => {
-    const mockStoreServiceSuccess = {
-      options: {
-        key: 'successService',
-        readUnblocked: vi.fn().mockResolvedValue({ foo: 'bar' }),
-        upgrade: vi.fn().mockResolvedValue(undefined),
-      },
-    }
-    const mockStoreServiceFail = {
-      options: {
-        key: 'failService',
-        readUnblocked: vi.fn().mockResolvedValue({ baz: 'qux' }),
-        upgrade: vi.fn().mockRejectedValue(new Error('Upgrade failed')),
-      },
-    }
-
-    // Rebind services for this test
-    container.unbind(StoreServiceSymbol)
-    container.bind(StoreServiceSymbol).toConstantValue(mockStoreServiceSuccess)
-    container.bind(StoreServiceSymbol).toConstantValue(mockStoreServiceFail)
-
-    // Rebind UpgradeService to clear singleton instance and injection
-    container.unbind(UpgradeService)
-    container.bind(UpgradeService).toSelf()
-
-    // Re-resolve service to get new dependencies
-    service = container.get(UpgradeService)
+  it('leaves an absent store out of the context', async () => {
+    mockStoreService.options.readStoredUnblocked.mockResolvedValue(undefined)
 
     await service.upgrade()
 
-    expect(mockStoreServiceSuccess.options.upgrade).toHaveBeenCalled()
-    expect(mockStoreServiceFail.options.upgrade).toHaveBeenCalled()
-    expect(mockReadinessService.setReady).toHaveBeenCalled()
+    expect(mockStoreService.options.upgrade).toHaveBeenCalledWith({})
+  })
+
+  it('rejects without reading further when a store cannot be read', async () => {
+    mockStoreService.options.readStoredUnblocked.mockRejectedValue(
+      new Error('IO error')
+    )
+
+    await expect(service.upgrade()).rejects.toThrow('IO error')
+
+    expect(mockStoreService.options.upgrade).not.toHaveBeenCalled()
+    expect(mockReadinessService.setVersion).not.toHaveBeenCalled()
+    expect(mockReadinessService.setReady).not.toHaveBeenCalled()
+  })
+
+  describe('when one store fails to persist', () => {
+    let mockStoreServiceSuccess: any
+    let mockStoreServiceFail: any
+
+    beforeEach(() => {
+      mockStoreServiceSuccess = {
+        options: {
+          key: 'successService',
+          readStoredUnblocked: vi
+            .fn()
+            .mockResolvedValue({ data: { foo: 'bar' }, version: 1 }),
+          upgrade: vi.fn().mockResolvedValue(undefined),
+        },
+      }
+      mockStoreServiceFail = {
+        options: {
+          key: 'failService',
+          readStoredUnblocked: vi
+            .fn()
+            .mockResolvedValue({ data: { baz: 'qux' }, version: 1 }),
+          upgrade: vi
+            .fn()
+            .mockRejectedValueOnce(new Error('QUOTA_BYTES quota exceeded'))
+            .mockResolvedValue(undefined),
+        },
+      }
+
+      container.unbind(StoreServiceSymbol)
+      container.bind(StoreServiceSymbol).toConstantValue(mockStoreServiceFail)
+      container
+        .bind(StoreServiceSymbol)
+        .toConstantValue(mockStoreServiceSuccess)
+      container.unbind(UpgradeService)
+      container.bind(UpgradeService).toSelf()
+      service = container.get(UpgradeService)
+    })
+
+    it('still upgrades the other stores', async () => {
+      await service.upgrade().catch(() => {})
+
+      expect(mockStoreServiceSuccess.options.upgrade).toHaveBeenCalled()
+    })
+
+    it('rejects naming the failed store without recording the version', async () => {
+      await expect(service.upgrade()).rejects.toThrow(/failService/)
+
+      expect(mockReadinessService.setVersion).not.toHaveBeenCalled()
+      expect(mockReadinessService.setReady).not.toHaveBeenCalled()
+    })
+
+    it('runs every store again on the next call', async () => {
+      await service.upgrade().catch(() => {})
+
+      await service.upgrade()
+
+      expect(mockStoreServiceFail.options.upgrade).toHaveBeenCalledTimes(2)
+      expect(mockStoreServiceSuccess.options.upgrade).toHaveBeenCalledTimes(2)
+      expect(mockReadinessService.setVersion).toHaveBeenCalledWith('1.0.0')
+      expect(mockReadinessService.setReady).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('does not signal readiness when the version write fails', async () => {
+    mockReadinessService.setVersion.mockRejectedValue(new Error('IO error'))
+
+    await expect(service.upgrade()).rejects.toThrow('IO error')
+
+    expect(mockReadinessService.setReady).not.toHaveBeenCalled()
   })
 })

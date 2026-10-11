@@ -10,6 +10,7 @@ export const useNamingRules = () => {
     'localMatchingRule',
     {
       storageType: 'local',
+      isOptionStore: true,
     }
   )
 

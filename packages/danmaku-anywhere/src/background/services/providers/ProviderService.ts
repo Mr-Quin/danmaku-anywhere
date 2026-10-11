@@ -339,6 +339,9 @@ export class ProviderService {
         this.logger.error('Install handling failed:', e)
       })
     })
+    this.manifestRegistry.ready.catch((e) => {
+      this.logger.error('Failed to load manifests:', e)
+    })
   }
 
   private async onInstalled(reason: string): Promise<void> {
