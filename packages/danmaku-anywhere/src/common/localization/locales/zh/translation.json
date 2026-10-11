@@ -486,6 +486,7 @@
     "backup": {
       "alert": {
         "exportSuccess": "成功导出备份",
+        "importPartial": "部分设置未能恢复：{{stores}}",
         "importSuccess": "成功导入备份"
       },
       "cloudBackup": "云备份",
