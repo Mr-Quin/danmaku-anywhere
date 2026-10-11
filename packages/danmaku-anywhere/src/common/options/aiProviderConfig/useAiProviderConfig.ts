@@ -15,6 +15,7 @@ export const useAiProviderConfig = () => {
     ...rest
   } = useSuspenseExtStorageQuery<AiProviderConfigOptions>('aiProviderConfig', {
     storageType: 'sync',
+    isOptionStore: true,
   })
 
   const configs: AiProviderConfig[] = options.data || []
