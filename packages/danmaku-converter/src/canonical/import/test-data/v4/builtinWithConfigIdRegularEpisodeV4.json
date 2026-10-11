@@ -1,6 +1,6 @@
 {
   "provider": "DanDanPlay",
-  "providerConfigId": "dandanplay",
+  "providerConfigId": "builtin:dandanplay",
   "seasonId": 222,
   "title": "Public ep 1",
   "providerIds": { "episodeId": 333001 },
@@ -12,7 +12,7 @@
   "lastChecked": 0,
   "season": {
     "provider": "DanDanPlay",
-    "providerConfigId": "dandanplay",
+    "providerConfigId": "builtin:dandanplay",
     "providerIds": { "animeId": 333, "bangumiId": "333" },
     "title": "Public Show",
     "type": "",

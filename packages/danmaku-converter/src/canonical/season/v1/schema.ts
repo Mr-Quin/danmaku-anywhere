@@ -20,14 +20,11 @@ export const zBaseSeasonV1 = z.object({
 // pipeline knows how to consume on refetch.
 export const zSeasonInsertV1 = zBaseSeasonV1.extend({
   providerIds: z.record(z.string(), z.unknown()),
-  // Durable identity of the source manifest. The instance handle used at fetch
-  // time changes when a config is deleted and re-added; manifestId survives
-  // that, so orphaned seasons can reparent.
-  manifestId: z.string().optional(),
-  // The content namespace the providerIds are valid in. Self-hosted instances
-  // that share a manifest have separate id spaces, so this is what a live
-  // config is matched against to reparent (manifestId alone is too coarse).
-  namespaceKey: z.string().optional(),
+  manifestId: z.string(),
+  // The provider config instance that fetched this season. With indexedId it
+  // is the season's identity. It may name a config that no longer exists, in
+  // which case the season is an orphan.
+  providerConfigId: z.string(),
 })
 
 export type SeasonInsertV1 = z.infer<typeof zSeasonInsertV1>
