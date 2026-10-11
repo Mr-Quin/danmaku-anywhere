@@ -361,11 +361,11 @@ importers:
         specifier: 0.10.18
         version: 0.10.18
       '@mr-quin/dango':
-        specifier: ^0.8.1
-        version: 0.8.1
+        specifier: ^0.9.0
+        version: 0.9.0
       '@mr-quin/dango-manifests':
-        specifier: ^0.8.1
-        version: 0.8.1
+        specifier: ^0.9.0
+        version: 0.9.0
       '@mui/icons-material':
         specifier: ^9.0.1
         version: 9.0.1(@mui/material@9.0.1(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.2.15)(react@19.2.0))(@types/react@19.2.15)(react@19.2.0))(@types/react@19.2.15)(react-dom@19.2.0(react@19.2.0))(react@19.2.0))(@types/react@19.2.15)(react@19.2.0)
@@ -1161,8 +1161,8 @@ packages:
     resolution: {integrity: sha512-ctxtJ/eA+t+6q2++vj5j7FYX3nRu311q1wfYH3xjlLOsczhlhxAg2FWNUXhpGvAw3BWo1xBcvOV6/YLc2r5FJw==}
     hasBin: true
 
-  '@bufbuild/protobuf@2.12.0':
-    resolution: {integrity: sha512-B/XlCaFIP8LOwzo+bz5uFzATYokcwCKQcghqnlfwSmM5eX/qTkvDBnDPs+gXtX/RyjxJ4DRikECcPJbyALA8FA==}
+  '@bufbuild/protobuf@2.16.0':
+    resolution: {integrity: sha512-FWa0sPlqYGJgpTs6OxBRcL/AW4JT0OIO+W1ajerluoTVh8CV0B7XM1qsNCRgnkSCkRCgOICKHRQlY17jrsm0+Q==}
 
   '@cloudflare/kv-asset-handler@0.4.2':
     resolution: {integrity: sha512-SIOD2DxrRRwQ+jgzlXCqoEFiKOFqaPjhnNTGKXSRLvp1HiOvapLaFG2kEr9dYQTYe8rKrd9uvDUzmAITeNyaHQ==}
@@ -1192,6 +1192,7 @@ packages:
 
   '@cloudflare/vitest-pool-workers@0.13.5':
     resolution: {integrity: sha512-T9yRcJXbJOguWvwCv4NjjPt0iOwUorbuR1pkEPWhmRKWBmZJ9ag/WFrIxCjQ6ZIFkKprJR3y+nels4jRQVZNiA==}
+    deprecated: '@cloudflare/vitest-pool-workers has been renamed to @cloudflare/vitest-plugin. This package will not receive future updates.'
     peerDependencies:
       '@vitest/runner': ^4.1.0
       '@vitest/snapshot': ^4.1.0
@@ -2969,11 +2970,11 @@ packages:
       '@cfworker/json-schema':
         optional: true
 
-  '@mr-quin/dango-manifests@0.8.1':
-    resolution: {integrity: sha512-WDuNE0RB7HF3pc1r0MHaKTaBHhgLHP7yox/xL6siNWF3C92PTghxDug+EwgeU6H6tIu6u9APekGzrck7tjtuDQ==}
+  '@mr-quin/dango-manifests@0.9.0':
+    resolution: {integrity: sha512-34NNXrMzLMDMYUIGNfCEjoJSk1/0lCIX7kJHyt/0AjNWi952S0hcE1p2JqtAKjAbddD3gdjFCU2X1xJzTUGchw==}
 
-  '@mr-quin/dango@0.8.1':
-    resolution: {integrity: sha512-kNNwGCvSlOGkVx52bQ0yaIPJDSa5zMdIJLEZSRttpR3/Z5z2SaTirWMJVPietPqqFQ6YjQ/910ju6ddI+zJmxw==}
+  '@mr-quin/dango@0.9.0':
+    resolution: {integrity: sha512-Em9UIwAaxUw+68GQPDG1/c5oWyy0OhhxEDFXLMS4olG2x0ZB3FFYEOFQel0Pn8Bx/gjSn9pLPgA3DdVJivBpCg==}
     engines: {node: '>=20'}
 
   '@mr-quin/danmu@0.20.0-rc.4':
@@ -5879,6 +5880,7 @@ packages:
   eslint@9.39.2:
     resolution: {integrity: sha512-LEyamqS7W5HB3ujJyvi0HQK/dtVINZvd5mAAp9eT5S/ujByGjiZLCzPcHVzuXbpJDJF/cxwHlfceVUDZ2lnSTw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -6009,8 +6011,8 @@ packages:
   fast-wrap-ansi@0.2.2:
     resolution: {integrity: sha512-7F2Fl+TjRSenLqlU3UjSH0iyqopqoZIu7eZVpEirP2g1GtWa2G/ecEmBdgz31+Mxr+ELclgg6sokpSFIQiZ02Q==}
 
-  fast-xml-parser@4.5.6:
-    resolution: {integrity: sha512-Yd4vkROfJf8AuJrDIVMVmYfULKmIJszVsMv7Vo71aocsKgFxpdlpSHXSaInvyYfgw2PRuObQSW2GFpVMUjxu9A==}
+  fast-xml-parser@4.5.7:
+    resolution: {integrity: sha512-a6Qh1RMCNbSrU1+sAyAAZH3rTe+OaWJbNZIq0S+ifZciUUOQtlVxBJwoTUE2bYhysmG/RYyI5WJFIKdBahJdrQ==}
     hasBin: true
 
   fastq@1.20.1:
@@ -6609,8 +6611,8 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
-  jsonata@2.2.1:
-    resolution: {integrity: sha512-xd1uwUrKeIcJbsWhaoS3qAX4Ea8m0Mw0G5nlnAQvPT7TbZ5qaPdzBVTQia9KfyuyQm+nenfyjvzUDTRYHsC2sw==}
+  jsonata@2.2.2:
+    resolution: {integrity: sha512-XDFH2PuaAXv0AXJEWwElXbqADmKFGKMLMkFb+qOz0EhjQW2EIJ6pgtordLU+4u3IVERyBfqy6bi6kZKEncvRqA==}
     engines: {node: '>= 8'}
 
   jsonc-parser@3.3.1:
@@ -9369,7 +9371,7 @@ snapshots:
     dependencies:
       css-tree: 3.2.1
 
-  '@bufbuild/protobuf@2.12.0': {}
+  '@bufbuild/protobuf@2.16.0': {}
 
   '@cloudflare/kv-asset-handler@0.4.2': {}
 
@@ -10652,14 +10654,14 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@mr-quin/dango-manifests@0.8.1': {}
+  '@mr-quin/dango-manifests@0.9.0': {}
 
-  '@mr-quin/dango@0.8.1':
+  '@mr-quin/dango@0.9.0':
     dependencies:
-      '@bufbuild/protobuf': 2.12.0
-      fast-xml-parser: 4.5.6
+      '@bufbuild/protobuf': 2.16.0
+      fast-xml-parser: 4.5.7
       js-md5: 0.8.3
-      jsonata: 2.2.1
+      jsonata: 2.2.2
       zod: 4.4.3
 
   '@mr-quin/danmu@0.20.0-rc.4':
@@ -13450,7 +13452,7 @@ snapshots:
     dependencies:
       fast-string-width: 3.0.2
 
-  fast-xml-parser@4.5.6:
+  fast-xml-parser@4.5.7:
     dependencies:
       strnum: 1.1.2
 
@@ -14064,7 +14066,7 @@ snapshots:
 
   json5@2.2.3: {}
 
-  jsonata@2.2.1: {}
+  jsonata@2.2.2: {}
 
   jsonc-parser@3.3.1: {}
 
