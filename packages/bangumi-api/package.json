@@ -24,7 +24,7 @@
     "generate:schemas": "pnpx openapi-typescript https://next.bgm.tv/p1/openapi.yaml -o ./src/schema-next.d.ts && pnpx openapi-typescript https://bangumi.github.io/api/dist.json -o ./src/schema.d.ts"
   },
   "peerDependencies": {
-    "openapi-fetch": "^0.14.0"
+    "openapi-fetch": "^0.17.0"
   },
   "devDependencies": {
     "openapi-typescript": "^7.13.0"
