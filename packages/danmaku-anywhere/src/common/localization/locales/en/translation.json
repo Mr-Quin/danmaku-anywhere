@@ -374,7 +374,7 @@
     },
     "alert": {
       "aiDisabledTooPermissive": "AI is disabled because the match pattern is too permissive",
-      "AIResult": "AI Parsing Result: {{title}}",
+      "finding": "Finding danmaku for {{name}}…",
       "matchError": "Failed to match episode: {{message}}",
       "noEpisodeFound": "No episode found for {{title}}",
       "noIntegration": "Integration policy not configured",
@@ -972,5 +972,8 @@
     "noSeasons": "No options for the selected source",
     "title": "Title Mappings",
     "unmapped": "Unmapped"
+  },
+  "toast": {
+    "region": "Notifications"
   }
 }

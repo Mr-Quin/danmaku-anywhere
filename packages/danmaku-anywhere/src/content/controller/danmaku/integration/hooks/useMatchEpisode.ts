@@ -1,25 +1,24 @@
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import type { MatchEpisodeInput } from '@/common/anime/dto'
-import { useToast } from '@/common/components/Toast/toastStore'
 import { Logger } from '@/common/Logger'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { episodeToast } from '@/content/controller/danmaku/integration/episodeToast'
 import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
-import { useSourceErrorToast } from './useSourceErrorToast'
+import { useDescribeSourceError } from './useDescribeSourceError'
 
 export const useMatchEpisode = () => {
   const { t } = useTranslation()
 
-  const toast = useToast.use.toast()
   const { open, setAnimes } = usePopup()
-  const showSourceError = useSourceErrorToast()
+  const describeSourceError = useDescribeSourceError()
 
   const mutation = useMutation({
     mutationFn: (input: MatchEpisodeInput) => {
       return chromeRpcClient.episodeMatch(input)
     },
     onError: (e) => {
-      showSourceError({
+      const { message, ...action } = describeSourceError({
         error: e,
         fallbackMessage: t(
           'integration.alert.matchError',
@@ -29,6 +28,7 @@ export const useMatchEpisode = () => {
           }
         ),
       })
+      episodeToast.fail(message, action)
     },
     onSuccess: (result, v) => {
       switch (result.data.status) {
@@ -37,13 +37,14 @@ export const useMatchEpisode = () => {
         }
         case 'disambiguation': {
           const anime = result.data.data
+          episodeToast.dismiss()
           setAnimes(anime)
           open({ animes: anime, tab: PopupTab.Selector })
           break
         }
         case 'notFound':
           Logger.info(`No episode matched for ${v.title}`, result.data.cause)
-          toast.error(
+          episodeToast.fail(
             t(
               'integration.alert.noEpisodeFound',
               'No episode found for {{title}}',

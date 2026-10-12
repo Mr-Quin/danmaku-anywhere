@@ -360,7 +360,7 @@
     },
     "alert": {
       "aiDisabledTooPermissive": "AI已禁用：匹配模式过于宽松",
-      "AIResult": "AI解析结果：{{title}}",
+      "finding": "正在为 {{name}} 查找弹幕…",
       "matchError": "匹配剧集失败：{{message}}",
       "noEpisodeFound": "未找到匹配的剧集：{{title}}",
       "noIntegration": "未设置自动化配置",
@@ -940,5 +940,8 @@
     "noSeasons": "没有可以映射的番剧",
     "title": "标题映射",
     "unmapped": "未映射"
+  },
+  "toast": {
+    "region": "通知"
   }
 }
