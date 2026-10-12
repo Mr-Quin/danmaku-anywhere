@@ -1,4 +1,5 @@
 import type { Download, Locator, Page } from '@playwright/test'
+import { ConfirmDialog } from './ConfirmDialog'
 
 const SELECTORS = {
   restoreInput: '[data-testid="backup-restore-input"]',
@@ -12,12 +13,21 @@ interface FilePayload {
 }
 
 // The /options/backup sub-page. Restore drives a hidden file input wired to
-// the backupImport RPC.
+// the backupImport RPC, behind a confirmation dialog.
 export class BackupPage {
-  constructor(private readonly page: Page) {}
+  private readonly dialog: ConfirmDialog
+
+  constructor(private readonly page: Page) {
+    this.dialog = new ConfirmDialog(page)
+  }
+
+  async chooseRestoreFile(file: FilePayload): Promise<void> {
+    await this.page.locator(SELECTORS.restoreInput).setInputFiles(file)
+  }
 
   async restoreFromFile(file: FilePayload): Promise<void> {
-    await this.page.locator(SELECTORS.restoreInput).setInputFiles(file)
+    await this.chooseRestoreFile(file)
+    await this.dialog.confirm()
   }
 
   async exportToFile(): Promise<Download> {

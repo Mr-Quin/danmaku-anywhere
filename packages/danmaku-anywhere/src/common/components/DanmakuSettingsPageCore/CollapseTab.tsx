@@ -210,7 +210,7 @@ export function CollapseTab({
             title={t('danmakuFilter.maxDedupe', 'Max identical')}
             hint={t(
               'danmakuFilter.maxDedupeHint',
-              'Only dedupe comments that appear less than this number of times.'
+              'Only dedupe comments that appear at most this many times.'
             )}
             disabled={!collapse.dedupe.enabled}
             control={

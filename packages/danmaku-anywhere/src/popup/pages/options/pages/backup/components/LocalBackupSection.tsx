@@ -4,6 +4,7 @@ import { styled } from '@mui/material/styles'
 import { useMutation } from '@tanstack/react-query'
 import { type ChangeEvent, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { createDownload } from '@/common/utils/utils'
@@ -25,6 +26,7 @@ export function LocalBackupSection({
 }) {
   const { t } = useTranslation()
   const { toast } = useToast()
+  const dialog = useDialog()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const exportMutation = useMutation({
@@ -63,7 +65,15 @@ export function LocalBackupSection({
     const reader = new FileReader()
     reader.onload = (e) => {
       const content = e.target?.result as string
-      importMutation.mutate(content)
+      dialog.confirm({
+        title: t('optionsPage.backup.restoreConfirmTitle', 'Restore Settings?'),
+        content: t(
+          'optionsPage.backup.restoreConfirmDesc',
+          'Restoring this backup will overwrite your current settings. Are you sure you want to proceed?'
+        ),
+        confirmText: t('common.restore', 'Restore'),
+        onConfirm: () => importMutation.mutate(content),
+      })
     }
     reader.readAsText(file)
 

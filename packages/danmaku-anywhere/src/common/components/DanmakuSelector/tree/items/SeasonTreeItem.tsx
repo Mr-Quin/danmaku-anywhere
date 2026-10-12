@@ -1,6 +1,13 @@
 import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
 import { Favorite, Folder } from '@mui/icons-material'
-import { Chip, Skeleton, Stack, styled, Typography } from '@mui/material'
+import {
+  Chip,
+  Skeleton,
+  Stack,
+  styled,
+  Tooltip,
+  Typography,
+} from '@mui/material'
 import { type ReactElement, Suspense } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isCustomSeason } from '@/common/danmaku/utils'
@@ -59,42 +66,41 @@ export const SeasonTreeItem = ({
   const isCustom = isCustomSeason(season)
 
   const renderCounts = () => {
-    const hasFetched = fetchedCount !== undefined && fetchedCount > 0
-    const hasStubs = stubCount !== undefined && stubCount > 0
+    const fetched = fetchedCount ?? 0
+    const stubs = stubCount ?? 0
 
-    if (!hasFetched && !hasStubs) {
+    if (fetched === 0 && stubs === 0) {
       return null
     }
 
+    const total = fetched + stubs
+    const label =
+      stubs > 0
+        ? t(
+            'mountPage.episodeCount.downloadedOfTotal',
+            '{{fetched}} of {{count}} episodes downloaded',
+            { fetched, count: total }
+          )
+        : t(
+            'mountPage.episodeCount.downloaded',
+            '{{count}} episodes downloaded',
+            {
+              count: fetched,
+            }
+          )
+
     return (
-      <Typography
-        variant="caption"
-        component="span"
-        sx={{ whiteSpace: 'nowrap' }}
-      >
-        {hasFetched && (
-          <Typography
-            variant="caption"
-            component="span"
-            sx={{
-              color: 'text.secondary',
-            }}
-          >
-            ({fetchedCount})
-          </Typography>
-        )}
-        {hasStubs && (
-          <Typography
-            variant="caption"
-            component="span"
-            sx={{
-              color: 'text.disabled',
-            }}
-          >
-            {` +${stubCount}`}
-          </Typography>
-        )}
-      </Typography>
+      <Tooltip title={label}>
+        <Typography
+          variant="caption"
+          component="span"
+          aria-label={label}
+          data-testid="season-episode-count"
+          sx={{ whiteSpace: 'nowrap', color: 'text.secondary' }}
+        >
+          {stubs > 0 ? `${fetched}/${total}` : fetched}
+        </Typography>
+      </Tooltip>
     )
   }
 

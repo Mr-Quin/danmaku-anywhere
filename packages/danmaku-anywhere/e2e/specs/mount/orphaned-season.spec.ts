@@ -52,7 +52,7 @@ test('deleting a provider orphans its season but keeps it viewable', async ({
 
   const popup = await Popup.open(page, extensionId, '/mount')
   let seasonItem = await popup.mount.waitForSeason(season.id)
-  await expect(seasonItem).toContainText(/\+1/)
+  await expect(popup.mount.seasonEpisodeCount(season.id)).toHaveText('1/2')
 
   await Popup.open(page, extensionId, '/providers')
   await popup.providers.deleteProvider('Bilibili')
@@ -66,7 +66,7 @@ test('deleting a provider orphans its season but keeps it viewable', async ({
   await Popup.open(page, extensionId, '/mount')
   seasonItem = await popup.mount.waitForSeason(season.id)
   await expect(popup.mount.seasonOrphanedBadge(season.id)).toBeVisible()
-  await expect(seasonItem).not.toContainText(/\+\d+/)
+  await expect(popup.mount.seasonEpisodeCount(season.id)).toHaveText('1')
 
   await popup.mount.expandSeason(season.id)
   await expect(popup.mount.episodeCommentCount(ep.id)).toHaveText(

@@ -55,6 +55,7 @@ const Footer = () => {
         size="small"
         sx={{ color: 'text.secondary' }}
         onClick={() => window.open(EXTENSION_REPO, '_blank')}
+        aria-label="GitHub"
       >
         <GitHub fontSize="small" />
       </IconButton>
@@ -135,7 +136,7 @@ export const Options = () => {
                 title={t('optionsPage.pages.backup', 'Backup & Restore')}
                 subtitle={
                   session
-                    ? t('optionsPage.menu.cloudReady', 'Cloud sync ready')
+                    ? t('optionsPage.menu.cloudReady', 'Cloud backup available')
                     : t('optionsPage.menu.localOnly', 'Local backup')
                 }
                 onClick={() => navigate('backup')}

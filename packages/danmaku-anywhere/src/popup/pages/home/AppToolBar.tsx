@@ -65,6 +65,7 @@ export const AppToolBar = () => {
           onClick={() => {
             navigate('/options')
           }}
+          aria-label={t('optionsPage.name', 'Settings')}
           sx={{
             color: 'inherit',
           }}
@@ -87,7 +88,11 @@ export const AppToolBar = () => {
           <DrilldownMenu
             icon={<OpenInNew />}
             buttonTestId="open-in-new-button"
-            ButtonProps={{ edge: 'end', sx: { color: 'inherit' } }}
+            ButtonProps={{
+              edge: 'end',
+              sx: { color: 'inherit' },
+              'aria-label': t('common.openInNew', 'Open in new window or tab'),
+            }}
             items={[
               {
                 id: 'open-in-window',

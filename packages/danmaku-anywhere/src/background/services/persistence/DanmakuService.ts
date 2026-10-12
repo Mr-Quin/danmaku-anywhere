@@ -35,6 +35,21 @@ function countRenderable(comments: CommentEntity[]): number {
     .length
 }
 
+function hasSameComments(a: CommentEntity[], b: CommentEntity[]): boolean {
+  if (a.length !== b.length) {
+    return false
+  }
+  return a.every((comment, i) => {
+    const other = b[i]
+    return (
+      comment.p === other.p &&
+      comment.m === other.m &&
+      comment.s === other.s &&
+      comment.cid === other.cid
+    )
+  })
+}
+
 @injectable('Singleton')
 export class DanmakuService {
   private logger: ILogger
@@ -74,6 +89,23 @@ export class DanmakuService {
       commentCount: importData.comments.length,
       title: importData.title,
       schemaVersion: EPISODE_SCHEMA_VERSION,
+    })
+  }
+
+  // A custom episode has no upstream id, so a file counts as already imported
+  // when an episode with the same title (the file's path within the import)
+  // holds the same comments. Files that only share a name, like two shows'
+  // 01.xml, still import.
+  private async hasCustomCopy(
+    title: string,
+    comments: CommentEntity[]
+  ): Promise<boolean> {
+    const sameTitle = await this.db.customEpisode
+      .where('title')
+      .equals(title)
+      .toArray()
+    return sameTitle.some((episode) => {
+      return hasSameComments(episode.comments, comments)
     })
   }
 
@@ -319,6 +351,7 @@ export class DanmakuService {
   async import(importData: DanmakuImportData[]): Promise<DanmakuImportResult> {
     const results: DanmakuImportResult = {
       success: [],
+      alreadyImported: [],
       error: [],
     }
 
@@ -329,6 +362,11 @@ export class DanmakuService {
       for (const [i, item] of data.parsed) {
         try {
           if (item.type === 'Custom') {
+            const { title, comments } = item.episode
+            if (await this.hasCustomCopy(title, comments)) {
+              results.alreadyImported.push({ title })
+              continue
+            }
             await this.addCustom(item.episode)
             results.success.push({
               title: item.episode.title,
@@ -398,6 +436,10 @@ export class DanmakuService {
         const customParse = zCombinedDanmaku.safeParse(data)
 
         if (customParse.success) {
+          if (await this.hasCustomCopy(title, customParse.data)) {
+            results.alreadyImported.push({ title })
+            return
+          }
           await this.importCustom({
             comments: customParse.data,
             title,

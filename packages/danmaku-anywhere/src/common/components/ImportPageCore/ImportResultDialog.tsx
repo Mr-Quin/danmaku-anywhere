@@ -113,6 +113,7 @@ export const ImportResultDialog = <T,>({
           onClick={handleClose}
           color="primary"
           disabled={status === 'uploading'}
+          data-testid="import-result-close"
         >
           {status === 'uploadSuccess' || status === 'error'
             ? t('common.close', 'Close')

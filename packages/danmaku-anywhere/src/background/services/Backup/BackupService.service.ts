@@ -7,6 +7,7 @@ import { inject, injectable } from 'inversify'
 import { ConfigStateService } from '@/background/services/Backup/ConfigStateService'
 import type { IBackupSink } from '@/background/services/Backup/sinks/BackupSink.interface'
 import { ProviderService } from '@/background/services/providers/ProviderService'
+import { BackupFileError } from '@/common/backup/BackupFileError'
 import type {
   BackupData,
   BackupRestoreResult,
@@ -35,7 +36,10 @@ export class BackupService {
       try {
         backupData = JSON.parse(backup)
       } catch {
-        throw new Error('Failed to parse backup data as JSON')
+        throw new BackupFileError(
+          'notJson',
+          'Failed to parse backup data as JSON'
+        )
       }
     }
     const result = await this.configStateService.restoreState(backupData)

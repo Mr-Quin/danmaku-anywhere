@@ -2,6 +2,10 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import {
+  describeBackupImportError,
+  describeRestoreProblems,
+} from './backupImportMessages'
 
 export function useBackupImport(options?: { onSettled?: () => void }) {
   const { t } = useTranslation()
@@ -20,23 +24,16 @@ export function useBackupImport(options?: { onSettled?: () => void }) {
         return
       }
 
-      const problems = Object.entries(result.details).filter(([, detail]) => {
-        return !detail.success || (detail.droppedEntries ?? 0) > 0
-      })
-
       toast.error(
         t(
           'optionsPage.backup.alert.importPartial',
           'Some settings could not be restored: {{stores}}',
-          { stores: problems.map(([name]) => name).join(', ') }
+          { stores: describeRestoreProblems(result) }
         )
       )
     },
     onError: (error) => {
-      toast.error(
-        t('optionsPage.backup.importError', 'Import failed') +
-          `: ${error.message}`
-      )
+      toast.error(describeBackupImportError(error))
     },
     onSettled: options?.onSettled,
   })

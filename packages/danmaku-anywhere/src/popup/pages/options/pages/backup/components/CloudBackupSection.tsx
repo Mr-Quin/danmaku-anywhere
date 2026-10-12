@@ -166,7 +166,7 @@ export function CloudBackupSection({
           >
             {t(
               'optionsPage.backup.cloudDescription',
-              'Sync your settings to the cloud. Up to 3 revisions are kept.'
+              'Save a copy of your settings to the cloud when you choose. Danmaku is not included. The last 3 backups are kept.'
             )}
           </Typography>
           <Button

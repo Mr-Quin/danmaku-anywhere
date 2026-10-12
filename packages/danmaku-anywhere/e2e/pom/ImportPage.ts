@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import type { Locator, Page } from '@playwright/test'
 import { ImportResultDialog } from './ImportResultDialog'
 
 const SELECTORS = {
@@ -22,7 +22,9 @@ export class ImportPage {
     return new ImportPage(page)
   }
 
-  async selectFiles(files: string | string[]): Promise<void> {
+  async selectFiles(
+    files: Parameters<Locator['setInputFiles']>[0]
+  ): Promise<void> {
     await this.page.locator(SELECTORS.fileInput).setInputFiles(files)
   }
 }

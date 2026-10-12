@@ -96,6 +96,7 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     }),
     episodeImport: () => ({
       success: [],
+      alreadyImported: [],
       error: [],
     }),
     mediaParseUrl: () =>

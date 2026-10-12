@@ -1,5 +1,6 @@
 import { inject, injectable, multiInject } from 'inversify'
 import { prettifyError, type ZodType } from 'zod'
+import { BackupFileError } from '@/common/backup/BackupFileError'
 import type { BackupData, BackupRestoreResult } from '@/common/backup/dto'
 import {
   BACKUP_FORMAT_VERSION,
@@ -86,13 +87,17 @@ export class ConfigStateService {
     const parsed = backupDataSchema.safeParse(backup)
 
     if (!parsed.success) {
-      throw new Error(`Invalid backup format: ${prettifyError(parsed.error)}`)
+      throw new BackupFileError(
+        'invalidFormat',
+        `Invalid backup format: ${prettifyError(parsed.error)}`
+      )
     }
 
     const { meta, services } = parsed.data
 
     if (meta.version !== BACKUP_FORMAT_VERSION) {
-      throw new Error(
+      throw new BackupFileError(
+        'unsupportedVersion',
         `Unsupported backup version ${meta.version}, this extension can only restore version ${BACKUP_FORMAT_VERSION} backups`
       )
     }

@@ -1,6 +1,7 @@
 import { ChevronLeft } from '@mui/icons-material'
 import { IconButton, Toolbar, Typography } from '@mui/material'
 import type { PropsWithChildren, ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { TOOLBAR_MIN_HEIGHT } from '@/common/theme/sakura'
 
 type PageToolbarProps = {
@@ -18,10 +19,13 @@ export const TabToolbar = ({
   showBackButton,
   onGoBack,
 }: PageToolbarProps) => {
+  const { t } = useTranslation()
+
   const backButton = showBackButton && (
     <IconButton
       onClick={onGoBack}
       size="small"
+      aria-label={t('common.back', 'Back')}
       sx={{ ml: -0.5, mr: 0.25, flexShrink: 0 }}
     >
       <ChevronLeft fontSize="small" />

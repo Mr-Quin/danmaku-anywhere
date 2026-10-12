@@ -40,7 +40,9 @@ test('settings menu shows the account card and live status subtitles', async ({
 
   const popup = await Popup.open(page, extensionId, '/options')
 
-  await expect(popup.options.subtitle('Sign in to sync')).toBeVisible()
+  await expect(
+    popup.options.subtitle('Sign in to back up settings')
+  ).toBeVisible()
   await expect(popup.options.subtitle('Retention: 7 days')).toBeVisible()
 })
 

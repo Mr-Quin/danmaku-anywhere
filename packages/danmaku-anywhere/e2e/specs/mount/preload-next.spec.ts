@@ -41,7 +41,7 @@ test('mount tree: bookmark-driven preload caches the next episode', async ({
   const seasonItem = await popup.mount.waitForSeason(season.id)
 
   await popup.mount.openItemMenu(seasonItem, 'bookmarkAdd')
-  await expect(seasonItem).toContainText(/\+1/)
+  await expect(popup.mount.seasonEpisodeCount(season.id)).toHaveText('1/2')
 
   await popup.mount.expandSeason(season.id)
   const nextStub = popup.mount.stubItem(season.id, '1300002')
@@ -64,7 +64,7 @@ test('mount tree: bookmark-driven preload caches the next episode', async ({
   await popup.mount.expandSeason(season.id)
 
   await expect(nextStub).toBeHidden()
-  await expect(seasonItem).not.toContainText(/\+\d+/)
+  await expect(popup.mount.seasonEpisodeCount(season.id)).toHaveText('2')
 
   const episodeItems = popup.mount.episodeItems()
   await expect(episodeItems).toHaveCount(2)
@@ -109,7 +109,7 @@ test('mount tree: a preload that finds no danmaku leaves the next episode unfetc
   const seasonItem = await popup.mount.waitForSeason(season.id)
 
   await popup.mount.openItemMenu(seasonItem, 'bookmarkAdd')
-  await expect(seasonItem).toContainText(/\+1/)
+  await expect(popup.mount.seasonEpisodeCount(season.id)).toHaveText('1/2')
 
   await page.evaluate((meta) => {
     return chrome.runtime.sendMessage({
@@ -123,6 +123,6 @@ test('mount tree: a preload that finds no danmaku leaves the next episode unfetc
   await popup.mount.expandSeason(season.id)
 
   await expect(popup.mount.stubItem(season.id, '1300002')).toBeVisible()
-  await expect(seasonItem).toContainText(/\+1/)
+  await expect(popup.mount.seasonEpisodeCount(season.id)).toHaveText('1/2')
   await expect(popup.mount.episodeItems()).toHaveCount(1)
 })

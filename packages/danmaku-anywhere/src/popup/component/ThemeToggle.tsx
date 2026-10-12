@@ -38,21 +38,22 @@ export const ThemeToggle = () => {
     }
   }
 
-  const getTooltip = () => {
+  const getActionLabel = () => {
     switch (colorMode) {
       case ColorMode.Light:
-        return t('optionsPage.theme.colorMode.light', 'Light')
+        return t('optionsPage.theme.switchToSystem', 'Switch to system theme')
       case ColorMode.System:
-        return t('optionsPage.theme.colorMode.system', 'System')
+        return t('optionsPage.theme.switchToDark', 'Switch to dark theme')
       case ColorMode.Dark:
-        return t('optionsPage.theme.colorMode.dark', 'Dark')
+        return t('optionsPage.theme.switchToLight', 'Switch to light theme')
     }
   }
 
   return (
-    <Tooltip title={getTooltip()}>
+    <Tooltip title={getActionLabel()}>
       <IconButton
         onClick={handleToggle}
+        aria-label={getActionLabel()}
         sx={{
           color: 'inherit',
         }}

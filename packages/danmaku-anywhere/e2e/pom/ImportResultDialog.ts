@@ -2,7 +2,9 @@ import { expect, type Locator, type Page } from '@playwright/test'
 
 const SELECTORS = {
   confirm: '[data-testid="import-result-confirm"]',
+  close: '[data-testid="import-result-close"]',
   success: '[data-testid="import-result-success"]',
+  alreadyImported: '[data-testid="import-result-already-imported"]',
 }
 
 interface ExpectOptions {
@@ -25,6 +27,15 @@ export class ImportResultDialog {
     const { timeout = 5_000 } = options
     await this.expectVisible({ timeout })
     await this.confirmButton.click({ timeout })
+  }
+
+  async close(): Promise<void> {
+    await this.page.locator(SELECTORS.close).click()
+    await expect(this.confirmButton).toBeHidden()
+  }
+
+  alreadyImported(): Locator {
+    return this.page.locator(SELECTORS.alreadyImported)
   }
 
   // A backup import parses and migrates every file before the result renders,

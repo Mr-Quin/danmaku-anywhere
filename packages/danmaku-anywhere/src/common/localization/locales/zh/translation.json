@@ -62,7 +62,8 @@
     "add": "关注",
     "refreshEpisodes": "刷新剧集",
     "remove": "已关注",
-    "tooltip": "关注此番剧后即可在弹幕库中查看全部剧集，包括尚未下载的。"
+    "tooltip": "关注此番剧后即可在弹幕库中查看全部剧集，包括尚未下载的。",
+    "unfollow": "取消关注"
   },
   "common": {
     "acknowledge": "知道了",
@@ -70,6 +71,7 @@
     "advanced": "高级",
     "apply": "应用",
     "autoSave": "自动保存",
+    "back": "返回",
     "cancel": "取消",
     "close": "关闭",
     "confirm": "确认",
@@ -92,9 +94,11 @@
     "import": "导入",
     "itsEmpty": "这里什么都没有...",
     "key": "键",
+    "moreActions": "更多操作",
     "multiselect": "多选",
     "name": "名称",
     "next": "下一步",
+    "openInNew": "在新窗口或标签页中打开",
     "openInNewTab": "在新标签页中打开",
     "openInNewWindow": "在新窗口中打开",
     "pip": "画中画",
@@ -282,6 +286,7 @@
     "resetToZero": "归零"
   },
   "importPage": {
+    "alreadyImported_other": "已跳过 {{count}} 个弹幕库中已有的文件",
     "confirm": "确认导入",
     "help": {
       "dragNDrop1": "拖拽文件到此处",
@@ -434,6 +439,10 @@
       "pageUnsupported": "该类型页面无法装填弹幕"
     },
     "confirmDeleteMultiple_other": "确定要删除{{count}}个弹幕吗？",
+    "episodeCount": {
+      "downloaded_other": "已下载 {{count}} 集",
+      "downloadedOfTotal_other": "已下载 {{fetched}}/{{count}} 集"
+    },
     "goSearch": "前往搜索",
     "importDanmaku": "导入弹幕（或拖拽至此）",
     "libraryEmpty": "弹幕库里什么也没有...",
@@ -462,8 +471,8 @@
   },
   "optionsPage": {
     "account": {
-      "signInDescription": "将配置与弹幕备份到云端",
-      "signInToSync": "登录以同步"
+      "signInDescription": "将设置备份到云端，不包含弹幕。",
+      "signInToBackUp": "登录以备份设置"
     },
     "advanced": {
       "behavior": "行为",
@@ -494,12 +503,17 @@
       "cloudBackupCreate": "创建云备份",
       "cloudCreateError": "云备份失败：{{message}}",
       "cloudCreateSuccess": "云备份已创建",
-      "cloudDescription": "将设置同步到云端。最多保留3个版本。",
+      "cloudDescription": "手动将设置备份到云端，不包含弹幕。最多保留最近 3 个备份。",
       "cloudDownloadError": "下载云备份失败：{{message}}",
       "cloudKeepsLast": "保留最近 3 个",
       "cloudListError": "加载云备份失败。",
       "cloudRevisions": "历史版本",
       "cloudSignInTitle": "登录以启用云备份",
+      "error": {
+        "invalidFormat": "此备份文件已损坏，或不是由弹幕任何地方创建的。",
+        "notJson": "此文件不是弹幕任何地方的备份文件。",
+        "unsupportedVersion": "当前版本的弹幕任何地方无法读取此备份格式。"
+      },
       "export": "导出",
       "exportRowDesc": "将设置保存为 JSON 文件",
       "exportToFile": "保存到文件",
@@ -512,7 +526,11 @@
       "localBackup": "本地备份",
       "noCloudBackups": "暂无云备份。创建一个开始使用。",
       "restoreConfirmDesc": "恢复此备份将覆盖您当前的设置。确定要继续吗？",
-      "restoreConfirmTitle": "恢复设置？"
+      "restoreConfirmTitle": "恢复设置？",
+      "store": {
+        "extensionOptions": "通用设置",
+        "localMatchingRule": "命名规则"
+      }
     },
     "danmakuSource": {
       "macCms": {
@@ -538,7 +556,7 @@
     "debugLogging": "调试日志",
     "debugLoggingDesc": "在开发者控制台输出详细日志。",
     "enableAnalytics": "匿名数据收集",
-    "enableAnalyticsDesc": "自愿分享使用统计以帮助改进。",
+    "enableAnalyticsDesc": "分享匿名使用统计以帮助改进。",
     "enableFullscreenInteraction": "全屏时启用交互",
     "enableFullscreenInteractionDesc": "在全屏时仍可使用弹幕控制。",
     "help": {
@@ -565,7 +583,7 @@
       "aboutSubtitle": "帮助、致谢、许可",
       "aboutSupport": "关于与支持",
       "advancedSubtitle": "诊断、实验性选项",
-      "cloudReady": "云同步已就绪",
+      "cloudReady": "可使用云备份",
       "data": "数据",
       "general": "通用",
       "localOnly": "本地备份",
@@ -612,11 +630,9 @@
     "showFloatingButtonDesc": "在视频页面显示快捷操作按钮。",
     "submit": "提交",
     "theme": {
-      "colorMode": {
-        "dark": "深色",
-        "light": "浅色",
-        "system": "跟随系统"
-      }
+      "switchToDark": "切换到深色主题",
+      "switchToLight": "切换到浅色主题",
+      "switchToSystem": "切换到跟随系统主题"
     },
     "uploadDebugData": "提交调试数据",
     "uploadDebugDataDesc": "上传诊断数据并复制参考 ID。",

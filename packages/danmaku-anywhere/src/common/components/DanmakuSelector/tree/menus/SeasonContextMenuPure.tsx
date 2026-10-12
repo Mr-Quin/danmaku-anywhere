@@ -107,7 +107,7 @@ export const SeasonContextMenuPure = ({
         {
           kind: 'item',
           id: 'bookmarkRemove',
-          label: t('bookmark.remove', 'Following'),
+          label: t('bookmark.unfollow', 'Unfollow'),
           icon: <Favorite fontSize="small" />,
           onClick: onBookmarkToggle,
           loading: isBookmarkLoading,

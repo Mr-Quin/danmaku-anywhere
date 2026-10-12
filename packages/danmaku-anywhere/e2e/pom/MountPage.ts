@@ -22,6 +22,10 @@ export class MountPage {
     return this.page.locator(SELECTORS.treeItem(`season-${seasonId}`))
   }
 
+  seasonEpisodeCount(seasonId: number): Locator {
+    return this.seasonItem(seasonId).getByTestId('season-episode-count').first()
+  }
+
   seasonExpand(seasonId: number): Locator {
     return this.page.locator(SELECTORS.treeItemExpand(`season-${seasonId}`))
   }

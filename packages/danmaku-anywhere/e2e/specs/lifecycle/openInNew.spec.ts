@@ -81,6 +81,13 @@ test('open in new tab keeps the current route', async ({
 }) => {
   const popup = await Popup.open(page, extensionId, '/config')
 
+  await expect(
+    page.getByRole('button', { name: /^(Settings|设置)$/ })
+  ).toBeVisible()
+  await expect(
+    page.getByRole('button', { name: /^(Switch to .+ theme|切换到.+主题)$/ })
+  ).toBeVisible()
+
   await popup.appBar.openOpenInNewMenu()
   const detachedPagePromise = context.waitForEvent('page')
   await popup.appBar.openInNewTabItem().click()

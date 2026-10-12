@@ -106,8 +106,19 @@ export const ImportResultContent = ({
         }
       })
 
+      const alreadyImportedCount = result.alreadyImported.length
+
       return (
         <Stack spacing={2}>
+          {alreadyImportedCount > 0 && (
+            <Alert severity="info" data-testid="import-result-already-imported">
+              {t(
+                'importPage.alreadyImported',
+                'Skipped {{count}} files already in the library',
+                { count: alreadyImportedCount }
+              )}
+            </Alert>
+          )}
           {(totalImportedCount > 0 || totalSkipped > 0) && (
             <>
               <Alert severity="success" data-testid="import-result-success">
@@ -115,7 +126,7 @@ export const ImportResultContent = ({
                   count: totalImportedCount,
                 })}
                 {totalSkipped > 0 &&
-                  ` (${t('importPage.skipped', 'Skpped {{count}} files', { count: totalSkipped })})`}
+                  ` (${t('importPage.skipped', 'Skipped {{count}} files', { count: totalSkipped })})`}
               </Alert>
               <Stack spacing={1}>
                 {customImports.length > 0 && (
