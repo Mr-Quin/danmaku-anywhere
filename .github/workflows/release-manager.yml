@@ -8,8 +8,9 @@ name: Release Manager App
 # Flow:
 #   1. Push a release-manager-v<version> tag (or run manually) -> the build job compiles,
 #      signs, and creates a DRAFT GitHub release with the AppImage, its signature, and a
-#      latest.json updater manifest. A second job adds a Windows NSIS installer to the
-#      same draft (installer only, no self-update, so no updater artifacts or signing).
+#      latest.json updater manifest. A second job adds a Windows NSIS installer and a
+#      portable executable to the same draft (no self-update on Windows, so no updater
+#      artifacts or signing).
 #      Nothing is published automatically. A manual run builds the same bundles
 #      without releasing and uploads them as workflow artifacts for download.
 #   2. A human reviews and PUBLISHES that draft release.
@@ -135,6 +136,32 @@ jobs:
           name: release-manager-windows-installer
           path: app/release-manager/src-tauri/target/release/bundle/nsis/*.exe
           if-no-files-found: error
+
+      # The plain build output already embeds the frontend, so it runs without
+      # the installer. It still needs the WebView2 runtime, which Windows 11 ships.
+      - name: Stage portable executable
+        id: portable
+        shell: bash
+        run: |
+          version=$(node -p "require('./app/release-manager/src-tauri/tauri.conf.json').version")
+          file="portable/release-manager_${version}_x64-portable.exe"
+          mkdir -p portable
+          cp app/release-manager/src-tauri/target/release/release-manager.exe "$file"
+          echo "file=$file" >> "$GITHUB_OUTPUT"
+
+      - name: Upload portable artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-manager-windows-portable
+          path: ${{ steps.portable.outputs.file }}
+          if-no-files-found: error
+
+      - name: Attach portable executable to the draft release
+        if: github.event_name == 'push'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "$GITHUB_REF_NAME" "${{ steps.portable.outputs.file }}" --repo "$GITHUB_REPOSITORY" --clobber
 
   promote-latest:
     # When a human publishes a release-manager-v* draft, copy its updater manifest onto
