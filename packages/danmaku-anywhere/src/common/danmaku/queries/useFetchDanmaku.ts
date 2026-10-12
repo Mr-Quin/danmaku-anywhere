@@ -53,7 +53,11 @@ export const useFetchDanmaku = () => {
         )
       )
     },
-    onError: async (error) => {
+    onError: async (error, variables) => {
+      // Automatic fetches are reported by the integration that started them.
+      if (variables.options?.automatic) {
+        return
+      }
       toast.error(describeSourceError(error))
     },
   })

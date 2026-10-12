@@ -5,7 +5,13 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { useStore } from '@/content/controller/store/store'
 
-export const useUnmountDanmaku = () => {
+interface UnmountDanmakuOptions {
+  silent?: boolean
+}
+
+export const useUnmountDanmaku = ({
+  silent = false,
+}: UnmountDanmakuOptions = {}) => {
   const { toast } = useToast()
   const { t } = useTranslation()
 
@@ -29,7 +35,9 @@ export const useUnmountDanmaku = () => {
     onSuccess: (_, frameId) => {
       if (frameId) updateFrame(frameId, { mounted: false })
       unmount()
-      toast.info(t('danmaku.alert.unmounted', 'Danmaku Unmounted'))
+      if (!silent) {
+        toast.info(t('danmaku.alert.unmounted', 'Danmaku Unmounted'))
+      }
     },
     onError: (err) => {
       toast.error(err.message)

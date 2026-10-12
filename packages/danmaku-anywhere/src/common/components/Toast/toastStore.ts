@@ -43,6 +43,16 @@ interface ToastStoreState {
   toast: Toast
 }
 
+const DEFAULT_DURATION_MS = 3500
+const ACTIONABLE_ERROR_DURATION_MS = 10_000
+
+function defaultDuration(severity: Severity, actionFn?: () => void): number {
+  if (severity === 'error' && actionFn) {
+    return ACTIONABLE_ERROR_DURATION_MS
+  }
+  return DEFAULT_DURATION_MS
+}
+
 const toastStore = create<ToastStoreState>((set, get) => ({
   notifications: [],
   close: (key) => {
@@ -79,7 +89,7 @@ const toastStore = create<ToastStoreState>((set, get) => ({
   },
   enqueue: ({
     message,
-    duration = 3500,
+    duration,
     severity = 'info',
     actionFn,
     actionLabel,
@@ -90,7 +100,7 @@ const toastStore = create<ToastStoreState>((set, get) => ({
         {
           message,
           severity,
-          duration,
+          duration: duration ?? defaultDuration(severity, actionFn),
           actionFn,
           actionLabel,
           key: `${performance.now()}-${Math.random()}`,

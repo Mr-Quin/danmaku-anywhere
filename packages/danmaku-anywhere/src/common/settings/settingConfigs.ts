@@ -206,6 +206,11 @@ const advancedSettings: AdvancedSettingConfig[] = [
         'optionsPage.autoBookmark',
         'Follow automatically when preloading the next episode'
       ),
+    description: () =>
+      i18n.t(
+        'optionsPage.autoBookmarkDesc',
+        "Follow a show once you are halfway through an episode, so the next episode's danmaku is preloaded."
+      ),
     category: 'advanced',
     group: 'behavior',
     type: 'toggle',
@@ -242,7 +247,7 @@ const playerSettings: ToggleSettingConfig<ExtensionOptions>[] = [
     description: () =>
       i18n.t(
         'optionsPage.player.showDanmakuTimelineDesc',
-        'Overlay a comment-density timeline above the scrubber.'
+        'Draw a comment-density graph along the bottom edge of the video.'
       ),
     category: 'player',
     type: 'toggle',

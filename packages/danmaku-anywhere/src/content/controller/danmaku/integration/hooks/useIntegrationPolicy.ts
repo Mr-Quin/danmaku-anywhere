@@ -14,6 +14,7 @@ import type { MediaInfo } from '@/content/controller/danmaku/integration/models/
 import type { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { ObserverFactory } from '@/content/controller/danmaku/integration/observers/ObserverFactory'
 import { useStore } from '@/content/controller/store/store'
+import { useSourceErrorToast } from './useSourceErrorToast'
 import { useSyncIntegrationManualMode } from './useSyncIntegrationManualMode'
 import { useWarnIncompleteConfig } from './useWarnIncompleteConfig'
 
@@ -31,7 +32,7 @@ export const useIntegrationPolicy = () => {
     }
     return `${af.frameId}:${af.videoChangeCount}`
   })
-  const unmountDanmaku = useUnmountDanmaku()
+  const unmountDanmaku = useUnmountDanmaku({ silent: true })
   const {
     setMediaInfo,
     setErrorMessage,
@@ -42,6 +43,7 @@ export const useIntegrationPolicy = () => {
   } = useStore.use.integration()
 
   const matchEpisode = useMatchEpisode()
+  const showSourceError = useSourceErrorToast()
   const { loadMutation, mountDanmaku } = useLoadDanmaku()
 
   const integrationPolicy = useActiveIntegration()
@@ -116,12 +118,6 @@ export const useIntegrationPolicy = () => {
           originalTitle: state.originalTitle,
         }
 
-        toast.info(
-          t('integration.alert.search', 'Searching for anime: {{title}}', {
-            title: state.toString(),
-          })
-        )
-
         matchEpisode.mutate(episodeMatchPayload, {
           onSuccess: (result) => {
             if (result.data.status !== 'success') {
@@ -129,13 +125,8 @@ export const useIntegrationPolicy = () => {
             }
             const matched = result.data.data
             if (isCustomEpisode(matched)) {
-              toast.success(
-                t(
-                  'integration.alert.matchedLocalDanmaku',
-                  'Matched local danmaku'
-                )
-              )
-              void mountDanmaku([matched])
+              // A local file's title often names only the show.
+              void mountDanmaku([matched], { displayName: state.toString() })
             } else {
               loadMutation.mutate(
                 {
@@ -147,16 +138,18 @@ export const useIntegrationPolicy = () => {
                   },
                 },
                 {
-                  onError: () => {
-                    toast.error(
-                      t(
+                  onError: (error) => {
+                    showSourceError({
+                      error,
+                      fallbackMessage: t(
                         'danmaku.alert.fetchError',
                         'Failed to fetch danmaku: {{message}}',
                         {
-                          message: episodeMatchPayload.title,
+                          message: error.message,
                         }
-                      )
-                    )
+                      ),
+                      providerConfigId: matched.season.providerConfigId,
+                    })
                   },
                 }
               )

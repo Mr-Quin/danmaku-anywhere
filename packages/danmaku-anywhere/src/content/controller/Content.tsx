@@ -2,32 +2,38 @@ import { Suspense } from 'react'
 
 import { GlobalDialog } from '@/common/components/Dialog/GlobalDialog'
 import { Toast } from '@/common/components/Toast/Toast'
+import { DanmakuHotkeys } from '@/content/controller/common/components/DanmakuHotkeys'
 import { SwitchLanguage } from '@/content/controller/common/components/SwitchLanguage'
 import { ControllerRpcServer } from '@/content/controller/controllerRpc/ControllerRpcServer'
 import { FrameManager } from '@/content/controller/danmaku/frame/FrameManager'
 import { RegisterIntegration } from '@/content/controller/danmaku/integration/RegisterIntegration'
 import { IconManagerComponent } from '@/content/controller/iconManager/IconManagerComponent'
 import { usePopup } from '@/content/controller/store/popupStore'
-import { useStore } from '@/content/controller/store/store'
 import { PopupUi } from '@/content/controller/ui/PopupUi'
 import { HIGHLIGHTER_PORTAL_ID } from './common/constants/rootId'
 
 export const Content = () => {
-  const isVisible = useStore((state) => state.danmaku.isVisible)
   const setHighlighterPortal = usePopup.use.setHighlighterPortal()
 
   return (
     <>
       <Suspense fallback={null}>
         <IconManagerComponent />
-        {isVisible && <RegisterIntegration />}
+        <RegisterIntegration />
         <FrameManager />
+        <DanmakuHotkeys />
       </Suspense>
       <ControllerRpcServer />
       <Suspense fallback={null}>
         <PopupUi />
       </Suspense>
-      <Toast stackable disableCloseOnClickAway />
+      <Toast
+        stackable
+        disableCloseOnClickAway
+        snackbarProps={{
+          anchorOrigin: { vertical: 'top', horizontal: 'center' },
+        }}
+      />
       <GlobalDialog />
       <SwitchLanguage />
       <div

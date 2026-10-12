@@ -77,6 +77,50 @@ export class IntegrationPage {
     })
   }
 
+  // The XPath integration watches this node's text, so editing it plays the
+  // part of an SPA moving to another episode.
+  async setEpisodeText(text: string): Promise<void> {
+    await this.page.evaluate((value) => {
+      const episode = document.querySelector('[data-testid="da-episode"]')
+      if (!episode) {
+        throw new Error('IntegrationPage.setEpisodeText: no episode node')
+      }
+      episode.textContent = value
+    }, text)
+  }
+
+  // Element fullscreen needs a user gesture, so this clicks a page button
+  // that requests it rather than calling requestFullscreen from evaluate.
+  async enterIframeFullscreen(): Promise<void> {
+    if (!this.iframeSelector) {
+      throw new Error('IntegrationPage.enterIframeFullscreen: no iframe in use')
+    }
+    await this.page.evaluate((selector) => {
+      const button = document.createElement('button')
+      button.textContent = 'fullscreen iframe'
+      button.dataset.testid = 'da-fullscreen-iframe'
+      button.style.cssText = 'position:fixed;top:8px;right:8px;z-index:1'
+      button.addEventListener('click', () => {
+        void document.querySelector(selector)?.requestFullscreen()
+      })
+      document.body.appendChild(button)
+    }, this.iframeSelector)
+    await this.page.getByTestId('da-fullscreen-iframe').click()
+    await this.page.waitForFunction(
+      () => document.fullscreenElement?.nodeName === 'IFRAME'
+    )
+  }
+
+  floatingButton(): Locator {
+    return this.page.getByRole('button', {
+      name: /^(Open Danmaku Anywhere|打开 Danmaku Anywhere)$/,
+    })
+  }
+
+  controllerWindow(): Locator {
+    return this.page.getByTestId('controller-window')
+  }
+
   private get target(): Page | Frame {
     return this.videoFrame ?? this.page
   }

@@ -22,7 +22,7 @@
 
 .da-skip-button-wrapper {
   position: absolute;
-  bottom: 40px;
+  bottom: 72px;
   left: 20px;
   pointer-events: auto;
   font-family: var(--da-font);
