@@ -1,6 +1,6 @@
 {
   "productName": "Release Manager",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "fish.quin.danmaku-anywhere.release-manager",
   "build": {
     "frontendDist": "../dist",

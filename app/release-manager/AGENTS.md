@@ -6,9 +6,11 @@ A standalone, self-updating desktop app (Tauri 2) that downloads extension
 release/preview builds from the `Mr-Quin/danmaku-anywhere` GitHub releases and
 manages which cached build is the "active" unpacked folder loaded into
 `chrome://extensions`. Primary target is Linux, shipped as a self-updating
-AppImage. Windows also ships as an NSIS installer (installer only: no in-app
-self-update, so its build produces no updater artifacts and needs no signing
-key). The core is cross-platform; the unix-only bits (config file mode, the
+AppImage. Windows also ships as an NSIS installer plus a portable executable
+(no in-app self-update on Windows, so its build produces no updater artifacts
+and needs no signing key). The portable file is the plain `release-manager.exe`
+from the build renamed; it uses the same `~/.da-release-manager` data dir as
+the installed app and, unlike the installer, does not bootstrap WebView2. The core is cross-platform; the unix-only bits (config file mode, the
 libwayland trampoline) are `cfg`-gated.
 
 It is versioned and released independently of the extension, with its own
@@ -138,7 +140,10 @@ Push a `release-manager-v<version>` tag (or run the workflow manually). CI build
 and signs the AppImage and creates a draft release with `latest.json`. A human
 publishes the draft; publishing promotes `latest.json` onto the floating
 `release-manager-latest` release that the updater polls. A manual run creates no
-release but uploads the AppImage and the Windows installer as workflow artifacts,
-which is the way to get a CI-built installer to try without tagging. The first
+release but uploads the AppImage, the Windows installer and the portable
+executable as workflow artifacts, which is the way to get a CI-built build to
+try without tagging. Bump the version in `tauri.conf.json`, `package.json` and
+`src-tauri/Cargo.toml` before tagging; the tag must equal
+`release-manager-v<that version>` or the two jobs target different releases. The first
 install is manual (download the AppImage from the release); self-update covers
 every version after that.
