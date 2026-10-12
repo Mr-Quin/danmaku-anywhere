@@ -9,11 +9,12 @@ import {
   Typography,
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
+import { useLocation, useNavigate } from 'react-router'
 
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
+import { resolveTargetTab } from '@/common/rpc/targetTab'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { TOOLBAR_MIN_HEIGHT } from '@/common/theme/sakura'
 import { ThemeToggle } from '@/popup/component/ThemeToggle'
@@ -21,17 +22,23 @@ import { EnableExtensionToggle } from './EnableExtensionToggle'
 
 export const AppToolBar = () => {
   const navigate = useNavigate()
+  const { pathname, search } = useLocation()
   const isAnyLoading = useAnyLoading()
   const { isMobile } = usePlatformInfo()
 
   const { t } = useTranslation()
 
-  const openInWindow = () => {
-    void chromeRpcClient.openPopupInNewWindow({ path: '' })
+  const getDetachTarget = async () => {
+    const tab = await resolveTargetTab()
+    return { path: `${pathname}${search}`, tabId: tab?.id }
   }
 
-  const openInTab = () => {
-    void chromeRpcClient.openPopupInNewTab({ path: '' })
+  const openInWindow = async () => {
+    void chromeRpcClient.openPopupInNewWindow(await getDetachTarget())
+  }
+
+  const openInTab = async () => {
+    void chromeRpcClient.openPopupInNewTab(await getDetachTarget())
   }
 
   return (
@@ -58,6 +65,7 @@ export const AppToolBar = () => {
           onClick={() => {
             navigate('/options')
           }}
+          aria-label={t('optionsPage.name', 'Settings')}
           sx={{
             color: 'inherit',
           }}
@@ -80,7 +88,11 @@ export const AppToolBar = () => {
           <DrilldownMenu
             icon={<OpenInNew />}
             buttonTestId="open-in-new-button"
-            ButtonProps={{ edge: 'end', sx: { color: 'inherit' } }}
+            ButtonProps={{
+              edge: 'end',
+              sx: { color: 'inherit' },
+              'aria-label': t('common.openInNew', 'Open in new window or tab'),
+            }}
             items={[
               {
                 id: 'open-in-window',

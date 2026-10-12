@@ -52,7 +52,7 @@ export class Popup {
     page: Page,
     extensionId: string,
     hashRoute = '/search',
-    opts: { detached?: boolean } = {}
+    opts: { detached?: boolean; tabId?: number } = {}
   ): Promise<Popup> {
     // detached=1 makes the popup fill the viewport instead of its fixed 500px
     // box, so a narrow viewport can exercise width-dependent layout.
@@ -61,7 +61,14 @@ export class Popup {
     // navigation: the SPA and its React Query cache survive, exactly like a
     // user switching tabs inside the popup. Stale-cache bugs are reachable
     // this way; use page.reload() if a spec needs a cold popup instead.
-    const query = opts.detached ? '?detached=1' : ''
+    const params = new URLSearchParams()
+    if (opts.detached) {
+      params.set('detached', '1')
+    }
+    if (opts.tabId !== undefined) {
+      params.set('tabId', String(opts.tabId))
+    }
+    const query = params.size > 0 ? `?${params}` : ''
     await page.goto(
       `chrome-extension://${extensionId}/pages/popup.html${query}#${hashRoute}`
     )

@@ -121,5 +121,8 @@ describe('BackupService.importAll', () => {
     await expect(service.importAll('not json')).rejects.toThrow(
       'Failed to parse backup data as JSON'
     )
+    await expect(service.importAll('not json')).rejects.toMatchObject({
+      problem: 'notJson',
+    })
   })
 })

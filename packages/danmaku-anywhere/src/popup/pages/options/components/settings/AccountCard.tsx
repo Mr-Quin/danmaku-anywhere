@@ -85,7 +85,10 @@ export const AccountCard = () => {
         </Box>
         <Box sx={{ flex: 1, minWidth: 0 }}>
           <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            {t('optionsPage.account.signInToSync', 'Sign in to sync')}
+            {t(
+              'optionsPage.account.signInToBackUp',
+              'Sign in to back up settings'
+            )}
           </Typography>
           <Typography
             variant="caption"
@@ -93,7 +96,7 @@ export const AccountCard = () => {
           >
             {t(
               'optionsPage.account.signInDescription',
-              'Back up configs and danmaku to the cloud'
+              'Back up your settings to the cloud. Danmaku is not included.'
             )}
           </Typography>
         </Box>

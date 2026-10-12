@@ -260,7 +260,7 @@ export type BackgroundMethods = {
   >
   providerDeleteUserManifest: RPCDef<{ manifestId: string }, void>
   fetchImage: RPCDef<{ src: string }, string | null>
-  getActiveTabUrl: RPCDef<void, string | null>
+  getActiveTabUrl: RPCDef<{ tabId?: number } | void, string | null>
   getFrameId: RPCDef<void, number>
   getExtensionManifest: RPCDef<void, chrome.runtime.ManifestV3>
   getAlarm: RPCDef<string, chrome.alarms.Alarm | null>
@@ -283,10 +283,10 @@ export type BackgroundMethods = {
     ExtractTitleResponse['result']
   >
   openPopupInNewWindow: RPCDef<
-    { path: string; width?: number; height?: number },
+    { path: string; tabId?: number; width?: number; height?: number },
     void
   >
-  openPopupInNewTab: RPCDef<{ path: string }, void>
+  openPopupInNewTab: RPCDef<{ path: string; tabId?: number }, void>
   getConfigMacCms: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   getConfigDanmuIcu: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   providerConfigDelete: RPCDef<string, void>

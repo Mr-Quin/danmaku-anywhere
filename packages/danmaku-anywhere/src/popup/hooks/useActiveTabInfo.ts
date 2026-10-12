@@ -1,6 +1,7 @@
 import { useSuspenseQuery } from '@tanstack/react-query'
 
 import { controlQueryKeys } from '@/common/queries/queryKeys'
+import { getTargetTabId } from '@/common/rpc/targetTab'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 export interface ActiveTabInfo {
@@ -49,7 +50,9 @@ export function useActiveTabInfo(): ActiveTabInfo | null {
     queryKey: controlQueryKeys.activeTab(),
     queryFn: async () => {
       try {
-        const res = await chromeRpcClient.getActiveTabUrl()
+        const res = await chromeRpcClient.getActiveTabUrl({
+          tabId: getTargetTabId(),
+        })
         return res.data ?? ''
       } catch {
         return ''

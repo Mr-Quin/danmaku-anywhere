@@ -62,7 +62,8 @@
     "add": "Follow",
     "refreshEpisodes": "Refresh Episodes",
     "remove": "Following",
-    "tooltip": "Save to your library to see all episodes anytime, including ones you have not downloaded yet."
+    "tooltip": "Save to your library to see all episodes anytime, including ones you have not downloaded yet.",
+    "unfollow": "Unfollow"
   },
   "common": {
     "acknowledge": "Ok",
@@ -70,6 +71,7 @@
     "advanced": "Advanced",
     "apply": "Apply",
     "autoSave": "Auto-save",
+    "back": "Back",
     "cancel": "Cancel",
     "close": "Close",
     "confirm": "Confirm",
@@ -93,9 +95,11 @@
     "import": "Import",
     "itsEmpty": "There's nothing here...",
     "key": "Key",
+    "moreActions": "More actions",
     "multiselect": "Multiselect",
     "name": "Name",
     "next": "Next",
+    "openInNew": "Open in new window or tab",
     "openInNewTab": "Open in new tab",
     "openInNewWindow": "Open in new window",
     "pip": "Picture-in-Picture",
@@ -234,7 +238,7 @@
     "liveCount": "Show combo counter",
     "liveCountHint": "Counter increases as repeats arrive. Turn off to show the total number of similar comments upfront.",
     "maxDedupe": "Max identical",
-    "maxDedupeHint": "Only dedupe comments that appear less than this number of times.",
+    "maxDedupeHint": "Only dedupe comments that appear at most this many times.",
     "minCount": "Minimum copies",
     "minCountHint": "Only trigger collapse when at least this many comments arrive. Applies for both auto-collapse and patterns.",
     "noActiveFilters": "No active filters",
@@ -289,6 +293,8 @@
     "resetToZero": "Reset to 0"
   },
   "importPage": {
+    "alreadyImported_one": "Skipped {{count}} file already in the library",
+    "alreadyImported_other": "Skipped {{count}} files already in the library",
     "confirm": "Confirm Import",
     "help": {
       "dragNDrop1": "Drag and drop files here",
@@ -305,8 +311,8 @@
     "parseError": "Failed to parse file",
     "pickFiles": "Pick files",
     "pickFolder": "Pick folder",
-    "skipped_one": "Skpped {{count}} file",
-    "skipped_other": "Skpped {{count}} files",
+    "skipped_one": "Skipped {{count}} file",
+    "skipped_other": "Skipped {{count}} files",
     "urlDialog": {
       "errors": {
         "fetchFailed": "Failed to fetch the URL.",
@@ -448,6 +454,12 @@
     },
     "confirmDeleteMultiple_one": "Are you sure you want to delete {{count}} item?",
     "confirmDeleteMultiple_other": "Are you sure you want to delete {{count}} items?",
+    "episodeCount": {
+      "downloaded_one": "{{count}} episode downloaded",
+      "downloaded_other": "{{count}} episodes downloaded",
+      "downloadedOfTotal_one": "{{fetched}} of {{count}} episode downloaded",
+      "downloadedOfTotal_other": "{{fetched}} of {{count}} episodes downloaded"
+    },
     "goSearch": "Go search",
     "importDanmaku": "Import danmaku (or drag and drop)",
     "libraryEmpty": "The Library is empty...",
@@ -477,8 +489,8 @@
   },
   "optionsPage": {
     "account": {
-      "signInDescription": "Back up configs and danmaku to the cloud",
-      "signInToSync": "Sign in to sync"
+      "signInDescription": "Back up your settings to the cloud. Danmaku is not included.",
+      "signInToBackUp": "Sign in to back up settings"
     },
     "advanced": {
       "behavior": "Behavior",
@@ -509,12 +521,17 @@
       "cloudBackupCreate": "Create Cloud Backup",
       "cloudCreateError": "Cloud backup failed: {{message}}",
       "cloudCreateSuccess": "Cloud backup created",
-      "cloudDescription": "Sync your settings to the cloud. Up to 3 revisions are kept.",
+      "cloudDescription": "Save a copy of your settings to the cloud when you choose. Danmaku is not included. The last 3 backups are kept.",
       "cloudDownloadError": "Failed to download cloud backup: {{message}}",
       "cloudKeepsLast": "Keeps last 3",
       "cloudListError": "Failed to load cloud backups.",
       "cloudRevisions": "Revisions",
       "cloudSignInTitle": "Sign in to enable cloud backup",
+      "error": {
+        "invalidFormat": "This backup file is damaged or was not made by Danmaku Anywhere.",
+        "notJson": "This file is not a Danmaku Anywhere backup.",
+        "unsupportedVersion": "This version of Danmaku Anywhere cannot read this backup format."
+      },
       "export": "Export",
       "exportRowDesc": "Save settings to a JSON file",
       "exportToFile": "Save to File",
@@ -527,7 +544,11 @@
       "localBackup": "Local Backup",
       "noCloudBackups": "No cloud backups yet. Create one to get started.",
       "restoreConfirmDesc": "Restoring this backup will overwrite your current settings. Are you sure you want to proceed?",
-      "restoreConfirmTitle": "Restore Settings?"
+      "restoreConfirmTitle": "Restore Settings?",
+      "store": {
+        "extensionOptions": "General settings",
+        "localMatchingRule": "Naming rules"
+      }
     },
     "danmakuSource": {
       "macCms": {
@@ -553,7 +574,7 @@
     "debugLogging": "Debug logging",
     "debugLoggingDesc": "Verbose logs in the developer console.",
     "enableAnalytics": "Enable anonymous analytics",
-    "enableAnalyticsDesc": "Share opt-in usage stats to guide development.",
+    "enableAnalyticsDesc": "Share anonymous usage stats to guide development.",
     "enableFullscreenInteraction": "Enable fullscreen interaction",
     "enableFullscreenInteractionDesc": "Keep danmaku controls reachable in fullscreen.",
     "help": {
@@ -581,7 +602,7 @@
       "aboutSubtitle": "Help, credits, licenses",
       "aboutSupport": "About & Support",
       "advancedSubtitle": "Diagnostics, experimental flags",
-      "cloudReady": "Cloud sync ready",
+      "cloudReady": "Cloud backup available",
       "data": "Data",
       "general": "General",
       "localOnly": "Local backup",
@@ -631,11 +652,9 @@
     "showFloatingButtonDesc": "Show the quick-action button on video pages.",
     "submit": "Submit",
     "theme": {
-      "colorMode": {
-        "dark": "Dark",
-        "light": "Light",
-        "system": "System"
-      }
+      "switchToDark": "Switch to dark theme",
+      "switchToLight": "Switch to light theme",
+      "switchToSystem": "Switch to system theme"
     },
     "uploadDebugData": "Submit Debug Data",
     "uploadDebugDataDesc": "Upload diagnostics and copy a reference ID.",

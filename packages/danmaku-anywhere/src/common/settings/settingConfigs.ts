@@ -156,7 +156,7 @@ const advancedSettings: AdvancedSettingConfig[] = [
     description: () =>
       i18n.t(
         'optionsPage.enableAnalyticsDesc',
-        'Share opt-in usage stats to guide development.'
+        'Share anonymous usage stats to guide development.'
       ),
     category: 'advanced',
     group: 'privacy',

@@ -14,6 +14,7 @@ import {
   useId,
   useState,
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
 import { DrilldownMenuList } from './DrilldownMenuList'
 
@@ -42,6 +43,7 @@ export const DrilldownMenu = ({
   dense = false,
   renderButton: renderButtonProp,
 }: DrilldownMenuProps): ReactElement => {
+  const { t } = useTranslation()
   const buttonId = useId()
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -65,6 +67,8 @@ export const DrilldownMenu = ({
         id={buttonId}
         onClick={handleClick}
         data-testid={buttonTestId}
+        aria-label={t('common.moreActions', 'More actions')}
+        aria-haspopup="menu"
         {...ButtonProps}
       >
         {icon ?? <MoreVert fontSize={ButtonProps?.size} />}

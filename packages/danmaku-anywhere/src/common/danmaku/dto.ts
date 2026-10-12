@@ -88,6 +88,9 @@ export type DanmakuImportResult = {
         }
       }
   )[]
+  alreadyImported: {
+    title: string
+  }[]
   error: {
     title: string
     message: string

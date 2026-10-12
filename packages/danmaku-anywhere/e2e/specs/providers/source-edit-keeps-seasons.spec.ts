@@ -99,14 +99,14 @@ test('a followed season with no downloaded episodes stays visible when its confi
   ])
 
   const popup = await Popup.open(page, extensionId, '/mount')
-  const seasonItem = await popup.mount.waitForSeason(seasonId)
+  await popup.mount.waitForSeason(seasonId)
   await expect(popup.mount.seasonOrphanedBadge(seasonId)).toBeHidden()
-  await expect(seasonItem).toContainText(/\+1/)
+  await expect(popup.mount.seasonEpisodeCount(seasonId)).toHaveText('0/1')
 
   await da.providerConfig.set([])
 
   const reopened = await Popup.open(page, extensionId, '/mount')
-  const orphanItem = await reopened.mount.waitForSeason(seasonId)
+  await reopened.mount.waitForSeason(seasonId)
   await expect(reopened.mount.seasonOrphanedBadge(seasonId)).toBeVisible()
-  await expect(orphanItem).not.toContainText(/\+\d+/)
+  await expect(reopened.mount.seasonEpisodeCount(seasonId)).toBeHidden()
 })
