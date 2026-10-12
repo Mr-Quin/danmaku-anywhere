@@ -67,12 +67,17 @@ async function mountWithOcclusion(
   context: BrowserContext,
   page: Page,
   da: DaClient,
-  options: { debug?: boolean; danmaku?: Partial<DanmakuOptions> } = {}
+  options: {
+    debug?: boolean
+    infoPanel?: boolean
+    danmaku?: Partial<DanmakuOptions>
+  } = {}
 ): Promise<IntegrationPage> {
   await applyProfile(context, da, {
     extensionOptions: {
       matchLocalDanmaku: true,
       debug: options.debug ?? false,
+      infoPanel: { enabled: options.infoPanel ?? false },
     },
     rawStorage: [
       {
@@ -204,6 +209,7 @@ test('occlusion: with debug on, the anime model without WebGPU surfaces a transl
 }) => {
   const integrationPage = await mountWithOcclusion(context, page, da, {
     debug: true,
+    infoPanel: true,
     danmaku: { occlusionModel: 'anime' },
   })
 
