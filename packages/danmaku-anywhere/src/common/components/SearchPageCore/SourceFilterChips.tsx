@@ -10,6 +10,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
+import { providerDisplayNames } from '@/common/options/providerConfig/displayName'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { computeChipOverflow } from './computeChipOverflow'
 
@@ -65,19 +66,22 @@ const CountText = styled('span', {
   opacity: active ? 0.85 : 0.65,
 }))
 
-function providerLabel(provider: ProviderConfig): string {
-  return provider.name
+function providerLabel(
+  provider: ProviderConfig,
+  displayNames: Map<string, string>
+): string {
+  return displayNames.get(provider.id) ?? provider.name
 }
 
 function chipBody(
-  provider: ProviderConfig,
+  label: string,
   active: boolean,
   state: SourceChipState | undefined
 ): ReactNode {
   if (state?.isPending) {
     return (
       <>
-        {providerLabel(provider)}
+        {label}
         <CircularProgress
           size={9}
           thickness={6}
@@ -91,7 +95,7 @@ function chipBody(
   }
   return (
     <>
-      {providerLabel(provider)}
+      {label}
       {typeof state?.count === 'number' ? (
         <CountText active={active}>· {state.count}</CountText>
       ) : null}
@@ -111,6 +115,11 @@ export function SourceFilterChips({
   const [containerWidth, setContainerWidth] = useState(0)
   const [widths, setWidths] = useState<Record<string, number>>({})
   const [overflowWidth, setOverflowWidth] = useState(0)
+
+  const displayNames = useMemo(
+    () => providerDisplayNames(providers),
+    [providers]
+  )
 
   useLayoutEffect(() => {
     const el = containerRef.current
@@ -136,7 +145,7 @@ export function SourceFilterChips({
   const measureSignature = providers
     .map(
       (p) =>
-        `${p.id}:${providerLabel(p)}:${states[p.id]?.isPending}:${states[p.id]?.count}`
+        `${p.id}:${providerLabel(p, displayNames)}:${states[p.id]?.isPending}:${states[p.id]?.count}`
     )
     .join('|')
 
@@ -177,10 +186,10 @@ export function SourceFilterChips({
       kind: 'item',
       id: provider.id,
       icon: null,
-      label: providerLabel(provider),
+      label: providerLabel(provider, displayNames),
       onClick: () => onChange(provider.id),
     }))
-  }, [overflow, onChange])
+  }, [overflow, onChange, displayNames])
 
   return (
     <Box
@@ -205,7 +214,11 @@ export function SourceFilterChips({
             aria-pressed={active}
             data-testid={`source-chip-${providerTypeFromManifestId(provider.manifestId)}`}
           >
-            {chipBody(provider, active, states[provider.id])}
+            {chipBody(
+              providerLabel(provider, displayNames),
+              active,
+              states[provider.id]
+            )}
           </Chip>
         )
       })}
@@ -253,7 +266,11 @@ export function SourceFilterChips({
               tabIndex={-1}
               data-measure-id={provider.id}
             >
-              {chipBody(provider, active, states[provider.id])}
+              {chipBody(
+                providerLabel(provider, displayNames),
+                active,
+                states[provider.id]
+              )}
             </Chip>
           )
         })}

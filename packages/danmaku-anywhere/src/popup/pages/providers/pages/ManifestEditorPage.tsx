@@ -18,6 +18,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type { ManifestValidationIssue } from '@/common/rpcClient/background/types'
+import { DOCS_PATHS } from '@/common/utils/docsPaths'
 import { tryCatchSync } from '@/common/utils/tryCatch'
 import { docsLink } from '@/common/utils/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
@@ -30,8 +31,6 @@ import {
   useSaveUserManifest,
 } from '../hooks/useManifestEditor'
 import { STARTER_MANIFEST, stringifyManifest } from '../manifestEditor'
-
-const MANIFEST_DOCS_PATH = 'docs/danmaku-manifest/'
 
 type EditorMode = 'create' | 'edit' | 'view'
 
@@ -252,7 +251,7 @@ function ManifestEditor({
         variant="text"
         size="small"
         component="a"
-        href={docsLink(MANIFEST_DOCS_PATH)}
+        href={docsLink(DOCS_PATHS.manifest)}
         target="_blank"
         rel="noopener noreferrer"
       >

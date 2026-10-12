@@ -1,7 +1,7 @@
 import { Box, useTheme } from '@mui/material'
 import { useRef } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
-import { useLocation } from 'react-router'
+import { Navigate, useLocation } from 'react-router'
 
 import type { Integration } from '@/common/options/integrationPolicyStore/schema'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
@@ -9,7 +9,7 @@ import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 
 export const IntegrationPolicyEditor = () => {
   const theme = useTheme()
-  const config: Integration = useLocation().state
+  const config: Integration | undefined = useLocation().state
   const preRef = useRef<HTMLPreElement>(null)
 
   const selectAll = () => {
@@ -25,6 +25,10 @@ export const IntegrationPolicyEditor = () => {
   }
 
   useHotkeys('ctrl+a', selectAll, { preventDefault: true })
+
+  if (!config) {
+    return <Navigate to="/config/integration-policy" replace />
+  }
 
   return (
     <OptionsPageLayout direction="left">

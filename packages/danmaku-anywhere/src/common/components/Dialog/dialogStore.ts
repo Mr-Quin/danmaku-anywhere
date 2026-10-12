@@ -9,7 +9,8 @@ export interface DialogConfig {
   content?: ReactNode
   confirmText?: ReactNode
   cancelText?: ReactNode
-  onConfirm?: () => void | Promise<void>
+  // Resolving to false keeps the dialog open.
+  onConfirm?: () => void | boolean | Promise<void | boolean>
   onCancel?: () => void
   confirmButtonProps?: ButtonProps
   cancelButtonProps?: ButtonProps

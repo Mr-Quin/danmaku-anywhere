@@ -67,11 +67,12 @@ export const DialogRender = ({
 
     try {
       const result = config.onConfirm()
+      let keepOpen = result === false
       if (result instanceof Promise) {
         setLoading(id, true)
-        await result
-        onClose(id)
-      } else {
+        keepOpen = (await result) === false
+      }
+      if (!keepOpen) {
         onClose(id)
       }
     } catch (error) {

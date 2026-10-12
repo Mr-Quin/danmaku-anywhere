@@ -274,6 +274,9 @@ export class RpcManager {
         void invalidateContentScriptData(sender.tab?.id)
         return result
       },
+      danmakuCountPurgeable: async (days) => {
+        return this.danmakuService.countOlderThan(days)
+      },
       danmakuPurgeCache: async (days, sender) => {
         const result = await this.danmakuService.purgeOlderThan(days)
         void invalidateContentScriptData(sender.tab?.id)

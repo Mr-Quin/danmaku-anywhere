@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react'
-import { matchRoutes } from 'react-router'
 import { RouterProvider } from 'react-router/dom'
 import { getStorageArea } from '@/common/storage/getStorageArea'
 import { isDetachedWindow } from '@/popup/utils/isDetachedWindow'
 import { getAncestorPaths } from './getAncestorPaths'
+import { hasExplicitRoute, resolveRestoreTarget } from './resolveRestoreTarget'
 import {
+  INITIAL_HASH,
   POPUP_DEFAULT_ROUTE,
   POPUP_ROUTE_STORAGE_KEY,
   router,
@@ -25,20 +26,19 @@ async function restoreRoute(
     if (signal.aborted) {
       return
     }
-    const persisted = data?.[POPUP_ROUTE_STORAGE_KEY]
-    if (
-      typeof persisted !== 'string' ||
-      persisted === '' ||
-      persisted === '/' ||
-      persisted === POPUP_DEFAULT_ROUTE
-    ) {
-      return
-    }
-    if (!matchRoutes(routes, persisted)) {
+    const target = resolveRestoreTarget(
+      data?.[POPUP_ROUTE_STORAGE_KEY],
+      routes,
+      POPUP_DEFAULT_ROUTE
+    )
+    if (target.kind === 'invalid') {
       void storage.remove(POPUP_ROUTE_STORAGE_KEY).catch(() => undefined)
       return
     }
-    const ancestors = getAncestorPaths(persisted, routes, POPUP_DEFAULT_ROUTE)
+    if (target.kind === 'none') {
+      return
+    }
+    const ancestors = getAncestorPaths(target.path, routes, POPUP_DEFAULT_ROUTE)
     for (const ancestor of ancestors) {
       if (signal.aborted) {
         return
@@ -49,7 +49,7 @@ async function restoreRoute(
       return
     }
     openGate()
-    await router.navigate(persisted)
+    await router.navigate(target.path)
   } finally {
     openGate()
   }
@@ -84,6 +84,10 @@ export const RootRouter = () => {
 
   useEffect(() => {
     if (isDetachedWindow()) {
+      return
+    }
+    if (hasExplicitRoute(INITIAL_HASH)) {
+      restored.current = true
       return
     }
     const ac = new AbortController()

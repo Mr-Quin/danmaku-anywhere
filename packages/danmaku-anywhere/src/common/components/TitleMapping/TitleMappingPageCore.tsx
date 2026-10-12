@@ -1,5 +1,5 @@
 import { Delete } from '@mui/icons-material'
-import { Button, Checkbox, Collapse, Typography } from '@mui/material'
+import { Button, Checkbox, Collapse, Stack, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
@@ -146,15 +146,21 @@ export const TitleMappingPageCore = ({
       {activeMapping ? (
         <TitleMappingDetails map={activeMapping} />
       ) : mappings.length === 0 ? (
-        <Typography
-          variant="body1"
-          align="center"
-          sx={{
-            color: 'text.secondary',
-          }}
-        >
-          {t('titleMapping.empty', 'No title mappings found.')}
-        </Typography>
+        <Stack sx={{ px: 3, py: 2, gap: 1, alignItems: 'center' }}>
+          <Typography variant="body1" align="center">
+            {t('titleMapping.empty', 'No title mappings found.')}
+          </Typography>
+          <Typography
+            variant="body2"
+            align="center"
+            sx={{ color: 'text.secondary' }}
+          >
+            {t(
+              'titleMapping.emptyHint',
+              'A title mapping links a video page title to a show. One is saved when a video is matched to a show, automatically or when you pick a search result on the page, so later episodes match straight away.'
+            )}
+          </Typography>
+        </Stack>
       ) : (
         <TitleMappingList
           mappings={mappings}

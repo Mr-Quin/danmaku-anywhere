@@ -21,6 +21,7 @@ import { useDanmakuTreeActions } from '@/common/components/DanmakuSelector/useDa
 import { useImportFlow } from '@/common/components/DanmakuSelector/useImportFlow'
 import { ImportResultDialog } from '@/common/components/ImportPageCore/ImportResultDialog'
 import { TabLayout } from '@/common/components/layout/TabLayout'
+import { danmakuSourceTypeList } from '@/common/danmaku/enums'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { ImportResultContent } from '../ImportPageCore/ImportResultContent'
 import { ScrollBox } from '../layout/ScrollBox'
@@ -73,6 +74,11 @@ export const MountPageContent = ({
     onMount,
     onToggleMultiselect,
   })
+
+  const handleClearFilter = () => {
+    onFilterChange('')
+    onSelectedTypesChange(danmakuSourceTypeList)
+  }
 
   const handleToggleMultiselect = () => {
     danmakuTreeRef.current?.clearSelection()
@@ -166,6 +172,8 @@ export const MountPageContent = ({
             multiselect={multiselect}
             onImport={importFlow.openFileInput}
             onGoSearch={onGoSearch}
+            onClearFilter={handleClearFilter}
+            isConnected={isConnected}
           />
         </ScrollBox>
 

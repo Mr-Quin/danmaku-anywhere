@@ -13,6 +13,7 @@ import {
 import { Suspense, useState } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
 import { useTranslation } from 'react-i18next'
+import { Navigate } from 'react-router'
 import { BookmarkToggleButton } from '@/common/bookmark/components/BookmarkToggleButton'
 import { BaseEpisodeListItem } from '@/common/components/EpisodeList/BaseEpisodeListItem'
 import { EpisodeSearchList } from '@/common/components/EpisodeList/EpisodeSearchList'
@@ -34,7 +35,9 @@ export const SeasonDetailsPage = () => {
   const goBack = useGoBack()
   const [filter, setFilter] = useState('')
 
-  if (!season || !provider) return null
+  if (!season || !provider) {
+    return <Navigate to="/search" replace />
+  }
 
   const episodes = 'episodes' in season ? season.episodes : undefined
   const episodeCount = Array.isArray(episodes) ? episodes.length : undefined

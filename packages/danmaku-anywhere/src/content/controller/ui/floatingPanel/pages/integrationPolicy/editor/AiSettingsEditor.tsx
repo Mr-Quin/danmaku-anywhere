@@ -17,6 +17,7 @@ import {
   zMountConfigAiConfig,
 } from '@/common/options/mountConfig/schema'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
+import { DOCS_PATHS } from '@/common/utils/docsPaths'
 import { docsLink } from '@/common/utils/utils'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useStore } from '@/content/controller/store/store'
@@ -76,7 +77,7 @@ export const AiSettingsEditor = (): ReactElement => {
               <Button
                 variant="text"
                 component="a"
-                href={docsLink('docs/integration/ai')}
+                href={docsLink(DOCS_PATHS.aiMatching)}
                 target="_blank"
               >
                 {t('common.docs', 'Docs')}

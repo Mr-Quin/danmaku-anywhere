@@ -13,10 +13,11 @@ import { useTranslation } from 'react-i18next'
 import Markdown from 'react-markdown'
 import { ExternalLink } from '@/common/components/ExternalLink'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
+import { releaseNotesSection } from './releaseNotesSection'
 import { useLatestReleaseNotes } from './useLatestReleaseNotes'
 
 export const ReleaseNotes = () => {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const { partialUpdate, data: extensionOptions } = useExtensionOptions()
   const query = useLatestReleaseNotes()
 
@@ -58,11 +59,13 @@ export const ReleaseNotes = () => {
       </DialogTitle>
       <DialogContent>
         <DialogContentText component="div">
-          <Markdown urlTransform={(url) => url}>{query.data.body}</Markdown>
+          <Markdown urlTransform={(url) => url}>
+            {releaseNotesSection(query.data.body, i18n.language)}
+          </Markdown>
         </DialogContentText>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="success" variant="contained">
+        <Button onClick={handleClose} color="primary" variant="contained">
           {t('common.acknowledge', 'OK')}
         </Button>
       </DialogActions>

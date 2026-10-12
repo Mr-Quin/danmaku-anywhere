@@ -73,7 +73,6 @@ export const RetentionPolicyPage = () => {
     control,
     handleSubmit,
     reset,
-    getValues,
     formState: { errors, isDirty },
   } = useForm<RetentionPolicy>({
     resolver: standardSchemaResolver(retentionPolicySchema),
@@ -98,26 +97,62 @@ export const RetentionPolicyPage = () => {
     },
   })
 
+  const purgeDays = retentionPolicy.deleteCommentsAfter
+
   const { mutate: purgeDanmaku, isPending: isPurgingDanmaku } = useMutation({
     meta: {
       invalidates: [episodeQueryKeys.all(), seasonQueryKeys.all()],
     },
     mutationFn: async () => {
-      const res = await chromeRpcClient.danmakuPurgeCache(
-        getValues().deleteCommentsAfter
-      )
+      const res = await chromeRpcClient.danmakuPurgeCache(purgeDays)
       return res.data
     },
     onSuccess: (count) => {
       toast.success(
         t(
-          'optionsPage.retentionPolicy.alert.nDanmakuDeleted',
-          '{{count}} danmaku deleted',
-          {
-            count,
-          }
+          'optionsPage.retentionPolicy.alert.nEpisodesDeleted',
+          '{{count}} episodes deleted',
+          { count }
         )
       )
+    },
+  })
+
+  const { mutate: confirmPurge, isPending: isCountingPurgeable } = useMutation({
+    mutationFn: async () => {
+      const res = await chromeRpcClient.danmakuCountPurgeable(purgeDays)
+      return res.data
+    },
+    onSuccess: (count) => {
+      if (count === 0) {
+        toast.info(
+          t(
+            'optionsPage.retentionPolicy.alert.nothingToPurge',
+            'No episodes older than {{days}} days',
+            { days: purgeDays }
+          )
+        )
+        return
+      }
+      dialog.delete({
+        title: t(
+          'optionsPage.retentionPolicy.purgeConfirm.title',
+          'Purge old episodes'
+        ),
+        content: t(
+          'optionsPage.retentionPolicy.purgeConfirm.content',
+          'Delete {{count}} downloaded episodes not updated in the last {{days}} days, with all of their danmaku? Imported episodes are kept. This cannot be undone.',
+          { count, days: purgeDays }
+        ),
+        confirmText: t(
+          'optionsPage.retentionPolicy.purgeConfirm.confirm',
+          'Purge'
+        ),
+        onConfirm: () => purgeDanmaku(),
+      })
+    },
+    onError: (error) => {
+      toast.error(error.message)
     },
   })
 
@@ -215,8 +250,8 @@ export const RetentionPolicyPage = () => {
                   'Enable Retention Policy'
                 )}
                 subtitle={t(
-                  'optionsPage.retentionPolicy.enabledDesc',
-                  'Automatically purge comments older than the limit below.'
+                  'optionsPage.retentionPolicy.enabledDescEpisodes',
+                  'Automatically delete downloaded episodes not updated within the limit below.'
                 )}
                 checked={value}
                 onToggle={onChange}
@@ -231,8 +266,8 @@ export const RetentionPolicyPage = () => {
             sx={{ display: 'block', color: 'text.secondary', mb: 0.5 }}
           >
             {t(
-              'optionsPage.retentionPolicy.deleteCommentsAfter',
-              'Delete comments older than'
+              'optionsPage.retentionPolicy.deleteEpisodesAfter',
+              'Delete episodes not updated in'
             )}
           </Typography>
           <Controller
@@ -285,17 +320,29 @@ export const RetentionPolicyPage = () => {
               {t('common.apply', 'Apply')}
             </Button>
             <Button
-              onClick={() => purgeDanmaku()}
-              loading={isPurgingDanmaku}
+              onClick={() => confirmPurge()}
+              loading={isPurgingDanmaku || isCountingPurgeable}
               variant="outlined"
               color="error"
-              disabled={isDirty}
+              disabled={isDirty || !retentionPolicy.enabled}
               startIcon={<DeleteOutlined />}
               sx={{ flex: 1 }}
+              data-testid="retention-purge-now"
             >
               {t('optionsPage.retentionPolicy.purgeNow', 'Purge Now')}
             </Button>
           </Stack>
+          {!retentionPolicy.enabled && (
+            <Typography
+              variant="caption"
+              sx={{ display: 'block', color: 'text.secondary', mt: 0.5 }}
+            >
+              {t(
+                'optionsPage.retentionPolicy.purgeDisabled',
+                'Turn on the retention policy to purge old episodes.'
+              )}
+            </Typography>
+          )}
         </Box>
 
         <Box sx={{ px: 1.5, mt: 2.5, pb: 2 }}>

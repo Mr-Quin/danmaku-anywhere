@@ -403,7 +403,8 @@ export const About = () => {
               color: 'text.secondary',
             }}
           >
-            Copyright © 2023-2025 Mr-Quin. Licensed under AGPL-3.0.
+            Copyright © 2023-{new Date().getFullYear()} Mr-Quin. Licensed under
+            AGPL-3.0.
           </Typography>
         </Box>
       </Box>

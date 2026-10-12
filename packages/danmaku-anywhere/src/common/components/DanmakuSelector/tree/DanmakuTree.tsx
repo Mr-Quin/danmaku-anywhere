@@ -31,6 +31,8 @@ import { usePersistedExpandedItems } from '@/common/components/DanmakuSelector/t
 import { isCustomEpisode, isCustomSeason } from '@/common/danmaku/utils'
 import { useNamingRules } from '@/common/options/localMatchingRule/useLocalMatchingRule'
 import { EmptyDanmakuTree } from '../components/EmptyDanmakuTree'
+import { NoMatchingDanmaku } from '../components/NoMatchingDanmaku'
+import { libraryViewState } from './libraryViewState'
 
 export interface DanmakuSelection {
   allEpisodes: GenericEpisodeLite[]
@@ -124,6 +126,8 @@ interface DanmakuSelectorProps {
   onSelectionChange?: (selection: string[]) => void
   onImport: () => void
   onGoSearch: () => void
+  onClearFilter: () => void
+  isConnected?: boolean
   canMount?: boolean
   multiselect?: boolean
   ref: Ref<DanmakuTreeApi>
@@ -139,16 +143,16 @@ export const DanmakuTree = ({
   multiselect = false,
   onImport,
   onGoSearch,
+  onClearFilter,
+  isConnected = false,
   ref,
 }: DanmakuSelectorProps): React.ReactElement => {
   const [selectedNodeIds, setSelectedNodeIds] = useState<string[]>([])
   const [contextMenu, setContextMenu] =
     useState<DanmakuTreeContextMenuState | null>(null)
 
-  const { treeItems, treeItemMap, bookmarks } = useDanmakuTree(
-    filter,
-    typeFilter
-  )
+  const { treeItems, treeItemMap, bookmarks, episodes, customEpisodes } =
+    useDanmakuTree(filter, typeFilter)
 
   const apiRef = useRichTreeViewApiRef()
   const bookmarkRefresh = useBookmarkRefresh({ silent: true })
@@ -266,8 +270,26 @@ export const DanmakuTree = ({
     ]
   )
 
-  if (treeItems.length === 0) {
-    return <EmptyDanmakuTree onImport={onImport} onGoSearch={onGoSearch} />
+  const viewState = libraryViewState({
+    visibleItemCount: treeItems.length,
+    libraryItemCount:
+      episodes.length + customEpisodes.length + bookmarks.length,
+    filter,
+    typeFilter,
+  })
+
+  if (viewState === 'noMatch') {
+    return <NoMatchingDanmaku query={filter} onClearFilter={onClearFilter} />
+  }
+
+  if (viewState === 'empty') {
+    return (
+      <EmptyDanmakuTree
+        onImport={onImport}
+        onGoSearch={onGoSearch}
+        showMountHint={isConnected}
+      />
+    )
   }
 
   return (
