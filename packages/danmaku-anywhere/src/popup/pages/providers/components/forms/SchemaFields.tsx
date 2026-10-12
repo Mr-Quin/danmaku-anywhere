@@ -18,6 +18,7 @@ import {
   buildDefaultValues,
   getFieldKind,
   getObjectFields,
+  getSelectOptions,
   toNumberOrUndefined,
   validateScalar,
 } from './schemaForm'
@@ -41,14 +42,16 @@ export function SchemaObjectFields({
   schema,
   path,
   readOnly = false,
-  readOnlyKeys,
+  hiddenKeys,
 }: {
   schema: ConfigSchema
   path: string
   readOnly?: boolean
-  readOnlyKeys?: ReadonlySet<string>
+  hiddenKeys?: ReadonlySet<string>
 }) {
-  const fields = getObjectFields(schema)
+  const fields = getObjectFields(schema).filter(
+    (field) => !hiddenKeys?.has(field.key)
+  )
   return (
     <>
       {fields.map((field) => (
@@ -57,7 +60,7 @@ export function SchemaObjectFields({
           name={`${path}.${field.key}`}
           schema={field.schema}
           required={field.required}
-          readOnly={readOnly || readOnlyKeys?.has(field.key)}
+          readOnly={readOnly}
         />
       ))}
     </>
@@ -107,10 +110,7 @@ function ScalarField({ name, schema, required, readOnly }: SchemaFieldProps) {
 function SelectField({ name, schema, required, readOnly }: SchemaFieldProps) {
   const { t } = useTranslation()
   const { control } = useFormContext()
-  const options = (schema.enum ?? []).filter(
-    (option): option is string | number =>
-      typeof option === 'string' || typeof option === 'number'
-  )
+  const options = getSelectOptions(schema)
   return (
     <Controller
       name={name}
@@ -135,8 +135,8 @@ function SelectField({ name, schema, required, readOnly }: SchemaFieldProps) {
           fullWidth
         >
           {options.map((option) => (
-            <MenuItem key={String(option)} value={option}>
-              {String(option)}
+            <MenuItem key={String(option.value)} value={option.value}>
+              {option.label}
             </MenuItem>
           ))}
         </TextField>

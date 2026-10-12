@@ -700,6 +700,7 @@
         "minLength": "不能少于 {{min}} 个字符",
         "pattern": "必须匹配模式 {{pattern}}",
         "required": "此项为必填项",
+        "requiredAlternatives": "请填写{{fields}}",
         "url": "不是有效的 URL"
       }
     },

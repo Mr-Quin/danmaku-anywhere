@@ -722,6 +722,7 @@
         "minLength": "Must be at least {{min}} characters",
         "pattern": "Must match the pattern {{pattern}}",
         "required": "This field is required",
+        "requiredAlternatives": "Fill in {{fields}}",
         "url": "Not a valid URL"
       }
     },

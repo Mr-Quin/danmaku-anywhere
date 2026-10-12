@@ -15,6 +15,10 @@ import { applyProfile } from '../../setup/profile'
  * (format: uri, minimum) surface as field errors and block saving until
  * the values are fixed. Field titles localize with the UI language,
  * so they are matched against both the English source and the zh override.
+ * A labelled enum (oneOf const/title) lists its titles, not the raw values.
+ * The built-in DanDanPlay hides its server and credential fields behind a
+ * note, which a built-in without a server field does not show, and its
+ * editor fits the popup without a sideways scrollbar.
  * Finally, a provider whose manifest spec fails to load shows an error with a
  * retry action instead of a stripped name-only form that would drop its config.
  */
@@ -42,13 +46,18 @@ test('renders configSchema fields and saves a custom DanDanPlay server', async (
   await popup.providers.edit('My DDP Server')
 
   await popup.providers.expectFieldVisible(/Base URL|基础地址/)
-  await popup.providers.expectFieldVisible(/Chinese conversion|中文转换/)
+  await popup.providers.expectFieldVisible(
+    /Chinese conversion|中文转换|简繁转换/
+  )
 
   await popup.providers.fillField(
     /Base URL|基础地址/,
     'https://compat.example.invalid'
   )
-  await popup.providers.selectOption(/Chinese conversion|中文转换/, '2')
+  await popup.providers.selectOption(
+    /Chinese conversion|中文转换|简繁转换/,
+    /^(2|Convert to traditional|转换成繁体)$/
+  )
   await popup.providers.save()
 
   await popup.toast.expectSuccess(/Provider updated|弹幕源已更新/)
@@ -64,7 +73,17 @@ test('enforces the schema required constraint on auth headers', async ({
   extensionId,
   da,
 }) => {
-  await applyProfile(context, da, { customProviders: [customDdp] })
+  await applyProfile(context, da, {
+    customProviders: [
+      {
+        ...customDdp,
+        configValues: {
+          ...customDdp.configValues,
+          baseUrl: 'https://compat.example.invalid',
+        },
+      },
+    ],
+  })
 
   const popup = await Popup.open(page, extensionId, '/providers')
   await popup.providers.edit('My DDP Server')
@@ -105,9 +124,13 @@ test('edits the built-in Bilibili provider via the generic form', async ({
 
   await popup.providers.expectFieldVisible(/Danmaku format|弹幕格式/)
   await expect(popup.providers.nameField()).toBeEnabled()
+  await expect(page.getByText(BUILTIN_SERVER_NOTE)).toHaveCount(0)
 
   await popup.providers.nameField().fill('Bilibili Custom')
-  await popup.providers.selectOption(/Danmaku format|弹幕格式/, 'protobuf')
+  await popup.providers.selectOption(
+    /Danmaku format|弹幕格式/,
+    /^(protobuf|Protobuf.*)$/
+  )
   await popup.providers.save()
 
   await popup.toast.expectSuccess(/Provider updated|弹幕源已更新/)
@@ -115,6 +138,123 @@ test('edits the built-in Bilibili provider via the generic form', async ({
   const saved = await da.providerConfig.get('bilibili')
   expect(saved?.name).toBe('Bilibili Custom')
   expect(saved?.configValues.danmakuFormat).toBe('protobuf')
+})
+
+const BUILTIN_SERVER_NOTE =
+  /server of a built-in source cannot be changed|内置来源的服务器设置不能修改/
+
+test('hides the server and credential fields of the built-in DanDanPlay', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, {
+    providers: { dandanplay: { enabled: true } },
+  })
+
+  const popup = await Popup.open(page, extensionId, '/providers')
+  await popup.providers.edit(/\((Built-in|内置)\)/)
+
+  await popup.providers.expectFieldVisible(
+    /Chinese conversion|中文转换|简繁转换/
+  )
+  await expect(page.getByText(BUILTIN_SERVER_NOTE)).toBeVisible()
+  for (const hidden of [
+    /Base URL|基础地址/,
+    /App ID|应用 ID/,
+    /App Secret|应用密钥/,
+    /Enable auth headers|启用鉴权请求头/,
+  ]) {
+    await expect(popup.providers.field(hidden)).toHaveCount(0)
+  }
+  await expect(page.getByText(/^(Headers|请求头)$/)).toHaveCount(0)
+})
+
+test('the built-in DanDanPlay editor does not scroll sideways', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, {
+    providers: { dandanplay: { enabled: true } },
+  })
+
+  const popup = await Popup.open(page, extensionId, '/providers')
+  await popup.providers.edit(/\((Built-in|内置)\)/)
+  await expect(page.getByText(BUILTIN_SERVER_NOTE)).toBeVisible()
+
+  const sidewaysScrollers = await page.evaluate(() => {
+    return [...document.querySelectorAll('body *')].filter((el) => {
+      const { overflowX } = getComputedStyle(el)
+      const scrolls = overflowX === 'auto' || overflowX === 'scroll'
+      return scrolls && el.scrollWidth > el.clientWidth + 1
+    }).length
+  })
+  expect(sidewaysScrollers).toBe(0)
+})
+
+const labelledManifest = {
+  apiVersion: 1,
+  id: 'user:labelled-source',
+  name: 'Labelled Source',
+  version: '1.0.0',
+  hosts: ['example.com'],
+  configSchema: {
+    type: 'object',
+    properties: {
+      convert: {
+        type: 'integer',
+        title: 'Conversion',
+        enum: [0, 1, 2],
+        oneOf: [
+          { const: 0, title: 'No conversion' },
+          { const: 1, title: 'To simplified' },
+          { const: 2, title: 'To traditional' },
+        ],
+        default: 0,
+      },
+    },
+  },
+  locales: {
+    'zh-CN': {
+      'configSchema.properties.convert.title': '转换',
+      'configSchema.properties.convert.oneOf.2.title': '转为繁体',
+    },
+  },
+}
+
+test('lists labelled enum options by their titles', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, {})
+
+  const popup = await Popup.open(page, extensionId, '/providers')
+  await popup.providers.authorManifest()
+  await popup.providers.setManifestJson(JSON.stringify(labelledManifest))
+  await expect(popup.providers.manifestValid()).toBeVisible()
+  await popup.providers.save()
+  await popup.toast.expectSuccess(/Manifest saved|配置已保存/)
+
+  await popup.providers.edit('Labelled Source')
+  await expect(popup.providers.field(/Conversion|转换/)).toHaveText(
+    'No conversion'
+  )
+  await popup.providers.selectOption(
+    /Conversion|转换/,
+    /^(To traditional|转为繁体)$/
+  )
+  await popup.providers.save()
+  await popup.toast.expectSuccess(/Provider updated|弹幕源已更新/)
+
+  const saved = (await da.providerConfig.list()).find(
+    (config) => config.manifestId === 'user:labelled-source'
+  )
+  expect(saved?.configValues.convert).toBe(2)
 })
 
 // Authored through the manifest editor because no bundled manifest carries

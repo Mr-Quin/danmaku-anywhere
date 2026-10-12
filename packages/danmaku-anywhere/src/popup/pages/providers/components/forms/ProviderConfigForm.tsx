@@ -17,8 +17,9 @@ import { FormActions } from './FormActions'
 import { SchemaObjectFields } from './SchemaFields'
 import {
   buildDefaultValues,
+  getObjectFields,
+  hiddenConfigFields,
   mergeConfigValues,
-  readOnlyConfigFields,
   validateConfigValues,
 } from './schemaForm'
 import type { ProviderFormProps } from './types'
@@ -41,6 +42,8 @@ function ConfigForm({
 }: ConfigFormProps) {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
+
+  const hiddenKeys = hiddenConfigFields(provider)
 
   const methods = useForm<FormValues>({
     defaultValues: {
@@ -66,9 +69,14 @@ function ConfigForm({
       }
       // Rendered fields are already validated by their own rules, so an error
       // here usually sits on a field the form does not render. Toast it so the
-      // blocked save is never silent.
+      // blocked save is never silent, naming the field when it has no inline
+      // label to show the error next to.
       const [first] = configErrors
-      toast.error(`${first.path}: ${first.message}`)
+      const [topKey] = first.path.split('.')
+      const rendered =
+        configSchema?.properties?.[topKey] !== undefined &&
+        !hiddenKeys.has(topKey)
+      toast.error(rendered ? first.message : `${first.path}: ${first.message}`)
       return
     }
     const next: ProviderConfig = {
@@ -84,7 +92,9 @@ function ConfigForm({
     onReset?.()
   }
 
-  const readOnlyKeys = readOnlyConfigFields(provider)
+  const hidesServer = getObjectFields(configSchema).some((field) =>
+    hiddenKeys.has(field.key)
+  )
 
   return (
     <FormProvider {...methods}>
@@ -105,8 +115,8 @@ function ConfigForm({
           fullWidth
           required
         />
-        {readOnlyKeys.size > 0 ? (
-          <Alert severity="info" sx={{ width: '100%' }}>
+        {hidesServer ? (
+          <Alert severity="info" sx={{ alignSelf: 'stretch' }}>
             {t(
               'providers.editor.builtinServerLocked',
               'The server of a built-in source cannot be changed. To use another server, add an instance instead.'
@@ -117,7 +127,7 @@ function ConfigForm({
           <SchemaObjectFields
             schema={configSchema}
             path="config"
-            readOnlyKeys={readOnlyKeys}
+            hiddenKeys={hiddenKeys}
           />
         ) : null}
         <FormActions

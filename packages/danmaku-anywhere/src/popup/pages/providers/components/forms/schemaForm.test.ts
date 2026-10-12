@@ -5,8 +5,9 @@ import {
   buildDefaultValues,
   getFieldKind,
   getObjectFields,
+  getSelectOptions,
+  hiddenConfigFields,
   mergeConfigValues,
-  readOnlyConfigFields,
   toNumberOrUndefined,
   validateConfigValues,
   validateScalar,
@@ -17,7 +18,8 @@ import {
  * shape the generic provider config form consumes: field kinds for rendering
  * and react-hook-form default values seeded from stored config + schema
  * defaults. Exercises string/enum/number/boolean/object/array shapes drawn from
- * the real dandanplay and bilibili manifests.
+ * the real dandanplay and bilibili manifests, labelled enum options
+ * (oneOf const/title), and object-level anyOf required alternatives.
  */
 
 const ddpSchema: ConfigSchema = {
@@ -83,6 +85,56 @@ describe('getFieldKind', () => {
   it('classifies object and array', () => {
     expect(getFieldKind({ type: 'object' })).toBe('object')
     expect(getFieldKind({ type: 'array' })).toBe('array')
+  })
+})
+
+describe('getSelectOptions', () => {
+  it('labels options from oneOf const/title', () => {
+    const schema: ConfigSchema = {
+      type: 'integer',
+      enum: [0, 1],
+      oneOf: [
+        { const: 0, title: 'No conversion' },
+        { const: 1, title: 'Simplified' },
+      ],
+    }
+
+    expect(getSelectOptions(schema)).toEqual([
+      { value: 0, label: 'No conversion' },
+      { value: 1, label: 'Simplified' },
+    ])
+    expect(getFieldKind(schema)).toBe('select')
+  })
+
+  it('treats a oneOf of consts without enum as a select', () => {
+    const schema: ConfigSchema = {
+      type: 'string',
+      oneOf: [{ const: 'xml', title: 'XML' }, { const: 'protobuf' }],
+    }
+
+    expect(getSelectOptions(schema)).toEqual([
+      { value: 'xml', label: 'XML' },
+      { value: 'protobuf', label: 'protobuf' },
+    ])
+  })
+
+  it('falls back to the raw enum values when no option is labelled', () => {
+    expect(
+      getSelectOptions({ type: 'string', enum: ['xml', 'protobuf'] })
+    ).toEqual([
+      { value: 'xml', label: 'xml' },
+      { value: 'protobuf', label: 'protobuf' },
+    ])
+  })
+
+  it('ignores a oneOf that is not a list of options', () => {
+    const schema: ConfigSchema = {
+      type: 'string',
+      enum: ['a'],
+      oneOf: [{ type: 'string', minLength: 3 }],
+    }
+
+    expect(getSelectOptions(schema)).toEqual([{ value: 'a', label: 'a' }])
   })
 })
 
@@ -177,6 +229,20 @@ describe('buildDefaultValues', () => {
   it('falls back to the default when a stored number is NaN', () => {
     const result = buildDefaultValues(ddpSchema, { chConvert: Number.NaN })
     expect(result.chConvert).toBe(0)
+  })
+
+  it('keeps a stored select value that is one of the labelled options', () => {
+    const schema: ConfigSchema = {
+      type: 'object',
+      properties: {
+        mode: {
+          type: 'string',
+          oneOf: [{ const: 'a' }, { const: 'b' }],
+        },
+      },
+    }
+    expect(buildDefaultValues(schema, { mode: 'b' })).toEqual({ mode: 'b' })
+    expect(buildDefaultValues(schema, { mode: 'c' })).toEqual({ mode: 'a' })
   })
 
   it('ignores a stored select value that is not one of the enum options', () => {
@@ -296,6 +362,29 @@ describe('validateConfigValues', () => {
     expect(validateConfigValues(schema, { legacyOnly: 'keep' })).toEqual([])
   })
 
+  it('requires one of the anyOf required alternatives', () => {
+    const schema: ConfigSchema = {
+      type: 'object',
+      anyOf: [{ required: ['baseUrl'] }, { required: ['appId', 'appSecret'] }],
+      properties: {
+        baseUrl: { type: 'string', title: 'Base URL' },
+        appId: { type: 'string', title: 'App ID' },
+        appSecret: { type: 'string', title: 'App Secret' },
+      },
+    }
+
+    expect(validateConfigValues(schema, {})).toMatchObject([
+      { path: 'baseUrl' },
+    ])
+    expect(validateConfigValues(schema, { appId: 'id' })).toHaveLength(1)
+    expect(validateConfigValues(schema, { baseUrl: 'https://a.test' })).toEqual(
+      []
+    )
+    expect(
+      validateConfigValues(schema, { appId: 'id', appSecret: 'secret' })
+    ).toEqual([])
+  })
+
   it('accepts a fully valid config', () => {
     const errors = validateConfigValues(ddpSchema, {
       baseUrl: 'https://example.test',
@@ -329,27 +418,27 @@ describe('mergeConfigValues', () => {
   })
 })
 
-describe('readOnlyConfigFields', () => {
-  it('locks the server fields of a built-in config and leaves chConvert editable', () => {
+describe('hiddenConfigFields', () => {
+  it('hides the server fields of a built-in config and leaves chConvert editable', () => {
     const builtin = makeProviderConfig({
       id: 'dandanplay',
       manifestId: 'dandanplay',
     })
 
-    const locked = readOnlyConfigFields(builtin)
+    const hidden = hiddenConfigFields(builtin)
 
-    expect([...locked].sort()).toEqual(
+    expect([...hidden].sort()).toEqual(
       ['appId', 'appSecret', 'auth', 'baseUrl'].sort()
     )
-    expect(locked.has('chConvert')).toBe(false)
+    expect(hidden.has('chConvert')).toBe(false)
   })
 
-  it('locks nothing on a custom instance', () => {
+  it('hides nothing on a custom instance', () => {
     const custom = makeProviderConfig({
       id: 'd9d068cc-d7a5-4277-990b-73b28f7637f8',
       manifestId: 'dandanplay',
     })
 
-    expect(readOnlyConfigFields(custom).size).toBe(0)
+    expect(hiddenConfigFields(custom).size).toBe(0)
   })
 })
