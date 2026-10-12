@@ -2,6 +2,8 @@ import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
+import { isInfoPanelEnabled } from '@/common/options/extensionOptions/infoPanel'
+import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
@@ -165,15 +167,10 @@ export class PlayerCommandHandler {
     })
   }
 
-  private applyExtensionOptions(options: {
-    playerOptions: {
-      showSkipButton: boolean
-      showDanmakuTimeline: boolean
-      enableFullscreenInteraction: boolean
-    }
-    infoPanel: { enabled: boolean }
-  }) {
-    this.infoPanel.setEnabled(options.infoPanel.enabled)
+  private applyExtensionOptions(
+    options: Pick<ExtensionOptions, 'playerOptions' | 'infoPanel'>
+  ) {
+    this.infoPanel.setEnabled(isInfoPanelEnabled(options.infoPanel))
     if (options.playerOptions.showSkipButton) {
       this.videoSkip.enable()
     } else {

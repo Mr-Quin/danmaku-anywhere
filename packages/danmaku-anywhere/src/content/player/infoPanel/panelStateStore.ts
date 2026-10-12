@@ -7,6 +7,7 @@ interface PanelStateStore {
   entries: Partial<Record<PanelSource, PanelEntry>>
   // Panel-wide gate from the infoPanel.enabled setting; covers every source.
   enabled: boolean
+  // Idle state from the player, held on for a short intro when content arrives.
   active: boolean
   pipActive: boolean
   setEntry: (source: PanelSource, entry: PanelEntry | undefined) => void
@@ -17,7 +18,7 @@ interface PanelStateStore {
 
 const usePanelStateStoreBase = create<PanelStateStore>()((set) => ({
   entries: {},
-  enabled: true,
+  enabled: false,
   active: true,
   pipActive: false,
   setEntry: (source, entry) =>
@@ -36,3 +37,13 @@ const usePanelStateStoreBase = create<PanelStateStore>()((set) => ({
 }))
 
 export const usePanelStateStore = createSelectors(usePanelStateStoreBase)
+
+export function isPanelRendered(
+  state: Pick<PanelStateStore, 'enabled' | 'pipActive' | 'entries'>
+): boolean {
+  return (
+    state.enabled &&
+    !state.pipActive &&
+    Object.values(state.entries).some((entry) => entry !== undefined)
+  )
+}

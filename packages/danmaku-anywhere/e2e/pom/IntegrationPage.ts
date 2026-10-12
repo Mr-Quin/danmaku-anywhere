@@ -132,6 +132,26 @@ export class IntegrationPage {
     })
   }
 
+  // Pointer activity over the video is what wakes the in-player overlays. A
+  // corner is used because the info panel may cover the video's center.
+  async movePointerOverVideo(): Promise<void> {
+    const selector = 'video[data-testid="da-video"]'
+    const video = this.iframeSelector
+      ? this.page.frameLocator(this.iframeSelector).locator(selector)
+      : this.page.locator(selector)
+    const box = await video.boundingBox()
+    if (!box) {
+      throw new Error(
+        'IntegrationPage.movePointerOverVideo: video not laid out'
+      )
+    }
+    await this.page.mouse.move(box.x + box.width - 4, box.y + box.height - 4)
+  }
+
+  async movePointerOffVideo(): Promise<void> {
+    await this.page.mouse.move(0, 0)
+  }
+
   async pauseVideo(): Promise<void> {
     await this.target.evaluate(() => {
       const v = document.querySelector(

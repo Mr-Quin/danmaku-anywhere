@@ -17,7 +17,7 @@ import {
   type Size,
 } from './panelBounds'
 import type { OcclusionEntry, PanelEntry, PanelSource } from './panelEntry'
-import { usePanelStateStore } from './panelStateStore'
+import { isPanelRendered, usePanelStateStore } from './panelStateStore'
 import { panelView } from './panelView'
 
 // Fixed display order, one row per source; a new source slots in here.
@@ -175,9 +175,8 @@ export function PlayerInfoPanel() {
   const entries = SOURCE_ORDER.map((source) => stored[source]).filter(
     (entry): entry is PanelEntry => entry !== undefined
   )
-  const enabled = usePanelStateStore.use.enabled()
+  const rendered = usePanelStateStore(isPanelRendered)
   const active = usePanelStateStore.use.active()
-  const pipActive = usePanelStateStore.use.pipActive()
   const [hovered, setHovered] = useState(false)
   const [dragging, setDragging] = useState(false)
   const [dismissed, setDismissed] = useState(false)
@@ -276,8 +275,6 @@ export function PlayerInfoPanel() {
     { filterTaps: true }
   )
 
-  const rendered = enabled && !pipActive && entries.length > 0
-
   // A container resize (e.g. fullscreen) re-places the panel from its stored
   // fraction so it keeps its proportional spot. The panel's own size changes
   // (expanding on hover) only re-clamp, so it grows from a fixed top-left rather
@@ -351,7 +348,7 @@ export function PlayerInfoPanel() {
       {dismissed ? (
         <button
           type="button"
-          className="da-ip-tab"
+          className={active ? 'da-ip-tab da-ip-tab--visible' : 'da-ip-tab'}
           style={{ top: `${offset.y}px` }}
           aria-label={i18n.t('infoPanel.show', 'Show info panel')}
           onClick={() => setDismissed(false)}

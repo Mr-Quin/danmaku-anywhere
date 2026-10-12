@@ -14,8 +14,9 @@ import { applyProfile } from '../../setup/profile'
  * mounts danmaku on a native <video>, the pipeline row renders in the player
  * shadow root with its source and (mounted) success severity on the row, its
  * headline reflects the mounted substate, and hovering expands it to show the
- * comment count and the localized provider chip. A second case collapses the
- * panel and asserts it docks to a left-edge tab and restores. Asserts panel DOM.
+ * comment count and the localized provider chip. Further cases assert the panel
+ * fades on its own without pointer activity, and that collapsing docks it to a
+ * left-edge tab that fades with it and restores on tap. Asserts panel DOM.
  */
 
 const ORIGIN = 'https://da-test.invalid'
@@ -33,7 +34,7 @@ async function mountPanel(context: BrowserContext, page: Page) {
   const da = await getDaClient(context)
 
   await applyProfile(context, da, {
-    extensionOptions: { matchLocalDanmaku: true },
+    extensionOptions: { matchLocalDanmaku: true, infoPanel: { enabled: true } },
   })
   const episode = await da.episode.addCustom({
     provider: DanmakuSourceType.MacCMS,
@@ -77,6 +78,7 @@ test('info panel reflects the mounted state in-video', async ({
   // Collapsed, the glance shows the title rather than the status word.
   await expect(integrationPage.infoPanelGlanceTitle()).toBeVisible()
 
+  await integrationPage.movePointerOverVideo()
   await integrationPage.infoPanel().hover()
   // Expanded, the header shows the status headline and the body the details.
   await expect(integrationPage.infoPanelHeadline()).toHaveText(
@@ -98,16 +100,37 @@ test('collapsing docks the panel to a tab and tapping it restores', async ({
   const panel = integrationPage.infoPanel()
   await expect(panel).toBeVisible({ timeout: 5_000 })
 
+  await integrationPage.movePointerOverVideo()
   await panel.hover()
   await integrationPage.infoPanelCollapseButton().click()
 
   // The panel docks (slides off) but stays mounted, leaving the edge tab.
   await expect(panel).toHaveClass(/da-ip--docked/)
-  await expect(integrationPage.infoPanelTab()).toBeVisible()
+  const tab = integrationPage.infoPanelTab()
+  await expect(tab).toHaveCSS('opacity', '1')
 
-  await integrationPage.infoPanelTab().click()
+  await integrationPage.movePointerOffVideo()
+  await expect(tab).toHaveCSS('opacity', '0', { timeout: 6_000 })
+
+  await integrationPage.movePointerOverVideo()
+  await expect(tab).toHaveCSS('opacity', '1')
+  await tab.click()
 
   await expect(panel).not.toHaveClass(/da-ip--docked/)
   await expect(integrationPage.infoPanelTab()).toHaveCount(0)
   await expect(integrationPage.infoPanelRow('pipeline')).toBeVisible()
+})
+
+test('the panel fades on its own after appearing, and returns on pointer activity', async ({
+  context,
+  page,
+}) => {
+  const integrationPage = await mountPanel(context, page)
+
+  const panel = integrationPage.infoPanel()
+  await expect(panel).toHaveClass(/da-ip--visible/, { timeout: 5_000 })
+  await expect(panel).not.toHaveClass(/da-ip--visible/, { timeout: 6_000 })
+
+  await integrationPage.movePointerOverVideo()
+  await expect(panel).toHaveClass(/da-ip--visible/)
 })

@@ -1,0 +1,25 @@
+<!--
+  A page with two videos: a small one in the top frame and a larger one in a
+  same-origin iframe. The integration reads title and episode from the top
+  frame. The iframe's video is larger, so its frame becomes the active one and
+  holds the danmaku, while the top frame's video stays without.
+-->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Integration test two videos</title>
+  </head>
+  <body>
+    <h1 data-testid="da-title">DA Integration Test</h1>
+    <span data-testid="da-episode">Episode 1</span>
+    <video data-testid="da-video" playsinline width="320" height="180"></video>
+    <iframe
+      data-testid="da-iframe"
+      src="/iframe-inner.html"
+      width="640"
+      height="360"
+      style="border: 0"
+    ></iframe>
+  </body>
+</html>

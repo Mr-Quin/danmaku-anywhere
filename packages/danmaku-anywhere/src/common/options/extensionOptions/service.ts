@@ -282,9 +282,7 @@ export class ExtensionOptionsService implements IStoreService {
       .version(27, {
         upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
-            draft.infoPanel = {
-              enabled: true,
-            }
+            draft.infoPanel = {}
           }),
       })
   }

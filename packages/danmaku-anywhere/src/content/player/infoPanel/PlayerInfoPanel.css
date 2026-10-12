@@ -211,6 +211,13 @@
   color: color-mix(in srgb, var(--da-text) 60%, transparent);
   cursor: grab;
   touch-action: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+.da-ip-tab--visible {
+  opacity: 1;
   pointer-events: auto;
 }
 

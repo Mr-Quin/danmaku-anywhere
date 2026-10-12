@@ -7,7 +7,8 @@ import { DanmakuLayoutService } from '@/content/player/danmakuLayout/DanmakuLayo
 import { PlayerIdleService } from '@/content/player/idle/PlayerIdle.service'
 import { PlayerInfoPanel } from './PlayerInfoPanel'
 import type { OcclusionEntry } from './panelEntry'
-import { usePanelStateStore } from './panelStateStore'
+import { isPanelRendered, usePanelStateStore } from './panelStateStore'
+import { PanelVisibility } from './panelVisibility'
 
 @injectable('Singleton')
 export class InfoPanelService {
@@ -38,10 +39,15 @@ export class InfoPanelService {
     this.root = createRoot(this.mountNode)
     this.root.render(createElement(PlayerInfoPanel))
 
-    usePanelStateStore.getState().setActive(this.playerIdle.getActive())
-    this.playerIdle.subscribe((active) => {
-      usePanelStateStore.getState().setActive(active)
-    })
+    const store = usePanelStateStore
+    const visibility = new PanelVisibility(
+      this.playerIdle.getActive(),
+      (active) => store.getState().setActive(active)
+    )
+    visibility.setHasContent(isPanelRendered(store.getState()))
+    store.getState().setActive(visibility.isVisible())
+    this.playerIdle.subscribe((active) => visibility.setIdleActive(active))
+    store.subscribe((state) => visibility.setHasContent(isPanelRendered(state)))
 
     this.logger.debug('Info panel mounted')
   }

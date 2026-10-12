@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import type { MatchEpisodeInput } from '@/common/anime/dto'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { Logger } from '@/common/Logger'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 
@@ -38,11 +39,12 @@ export const useMatchEpisode = () => {
           break
         }
         case 'notFound':
+          Logger.info(`No episode matched for ${v.title}`, result.data.cause)
           toast.error(
             t(
-              'integration.alert.noEpisodeMatched',
-              'No episode matched for {{title}}: {{cause}}',
-              { title: v.title, cause: result.data.cause }
+              'integration.alert.noEpisodeFound',
+              'No episode found for {{title}}',
+              { title: v.title }
             ),
             {
               actionFn: () => open({ tab: PopupTab.Search }),

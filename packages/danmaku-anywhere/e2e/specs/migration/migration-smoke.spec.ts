@@ -315,8 +315,14 @@ function assertUserOptions(snapshot: OptionsSnapshot): void {
       },
       showFloatingButton: true,
       autoBookmark: false,
-      infoPanel: { enabled: true },
+      infoPanel: {},
     })
+  expect
+    .soft(
+      snapshot.extensionOptions?.data,
+      'the info panel is left to the build default, not switched on or off'
+    )
+    .not.toHaveProperty('infoPanel.enabled')
 
   expect
     .soft(

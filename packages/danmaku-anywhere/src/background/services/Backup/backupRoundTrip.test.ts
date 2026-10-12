@@ -179,6 +179,29 @@ describe('backup round trip', () => {
     expect(result.success).toBe(true)
   })
 
+  it('keeps an unset info panel choice unset through export and restore', async () => {
+    const backup = await configStateService.getState()
+    const result = await configStateService.restoreState(
+      JSON.parse(JSON.stringify(backup))
+    )
+
+    expect(result.success).toBe(true)
+    const restored = await extensionOptionsService.get()
+    expect(restored.infoPanel).not.toHaveProperty('enabled')
+  })
+
+  it('keeps an explicit info panel choice through export and restore', async () => {
+    await extensionOptionsService.update({ infoPanel: { enabled: false } })
+
+    const backup = await configStateService.getState()
+    await extensionOptionsService.update({ infoPanel: {} })
+    await configStateService.restoreState(JSON.parse(JSON.stringify(backup)))
+
+    expect((await extensionOptionsService.get()).infoPanel).toEqual({
+      enabled: false,
+    })
+  })
+
   it('restores default state with no user data seeded', async () => {
     const backup = await configStateService.getState()
     const result = await configStateService.restoreState(backup)

@@ -344,9 +344,9 @@
     "alert": {
       "aiDisabledTooPermissive": "AI已禁用：匹配模式过于宽松",
       "AIResult": "AI解析结果：{{title}}",
-      "matchedLocalDanmaku": "以匹配本地弹幕",
+      "matchedLocalDanmaku": "已匹配本地弹幕",
       "matchError": "匹配剧集失败：{{message}}",
-      "noEpisodeMatched": "未找到匹配的剧集（{{title}}）：{{cause}}",
+      "noEpisodeFound": "未找到匹配的剧集：{{title}}",
       "noIntegration": "未设置自动化配置",
       "openSearch": "打开搜索页面",
       "search": "搜索番剧：{{title}}",
@@ -556,7 +556,8 @@
       "unmountComments": "卸载弹幕"
     },
     "infoPanel": {
-      "enabled": "显示信息面板"
+      "enabled": "显示信息面板",
+      "enabledDesc": "在视频上叠加一张卡片，显示已装填的剧集和弹幕数量。"
     },
     "language": "语言",
     "matchLocalDanmaku": "匹配本地弹幕",
