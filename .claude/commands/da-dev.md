@@ -136,6 +136,11 @@ gh pr create --title "(type) description [DA-XXX]" --body "$(cat <<'EOF'
 ## Summary
 - <one short bullet per major change; "what" + "why" if non-obvious>
 
+## Screenshots
+| Before | After |
+|---|---|
+| ![<what master shows>](https://raw.githubusercontent.com/Mr-Quin/danmaku-anywhere/pr-media/pr-<N>/01-before-<name>.png) | ![<what the branch shows>](https://raw.githubusercontent.com/Mr-Quin/danmaku-anywhere/pr-media/pr-<N>/01-after-<name>.png) |
+
 ## Test plan
 - Verified: lint <result> · tests <scope -> result> · e2e <specs ran / skipped + why> (the step 4 verify summary)
 - [ ] <commands or e2e spec(s) the reviewer should run; reference paths under `packages/danmaku-anywhere/e2e/specs/...`>
@@ -153,6 +158,13 @@ EOF
 - Do NOT include ClickUp links in the PR body — they are posted automatically
 - Do NOT mention other DA-XXX in the body / commits; ClickUp auto-link will silently reopen those tasks
 - Drop sections that don't apply (e.g. no `Notes` if there's nothing real to say) rather than padding
+
+**Visual changes need screenshots, and a clip where behaviour is involved.** Any PR that changes what a user sees (popup, options, in-player UI, toasts, copy) carries before and after images in the `Screenshots` section; a change that moves, animates or depends on a sequence of steps also gets a short clip. Drop the section only for changes with nothing visible.
+
+- Capture before from a master build and after from the branch build, with the same profile, size and steps so the pair lines up. Drive the extension with Playwright (`browser-verify`, or a script that reuses the e2e harness fixtures); the popup is `chrome-extension://<id>/pages/popup.html` at its real 500x600 size. Show zh as well when the change touches copy.
+- Clips: record with Playwright `recordVideo`, then convert to a GIF of 3-10 s, at most 800 px wide and 3 MB: `ffmpeg -i in.webm -vf "fps=12,scale=800:-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse" out.gif`. GitHub only plays video that was uploaded through its web UI, so use GIFs.
+- Host the files on the `pr-media` orphan branch under `pr-<N>/` (`git worktree add ../da-pr-media pr-media`, commit, push) and embed them with `raw.githubusercontent.com/Mr-Quin/danmaku-anywhere/pr-media/pr-<N>/<file>` URLs. Say in the PR when a capture uses anything injected into the test page (labels, a fake cursor).
+- Include the media when opening the PR. If the branch changes what is shown later, replace the files and update the section.
 
 **Keep the PR body in sync as the branch evolves.** Use `gh pr edit <N> --body ...` (same HEREDOC pattern as creation) whenever new commits change scope, add/remove behavior, or invalidate a claim in the original body. Stale bodies mislead reviewers.
 

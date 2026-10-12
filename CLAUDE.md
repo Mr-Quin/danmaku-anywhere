@@ -127,6 +127,10 @@ Each package/app has its own `AGENTS.md` with package-specific conventions and g
 
 Keep `AGENTS.md` files updated when adding conventions or gotchas that are specific to that package.
 
+## Pull requests
+
+Every PR that changes something a user can see includes before and after screenshots in its body, and a short clip when the change involves motion or a sequence of steps. How to capture and host them is in the PR step of `.claude/commands/da-dev.md`.
+
 ## Pre-commit hooks
 
 Lefthook runs Biome check on staged files before each commit (auto-fixes formatting). If a commit fails, check the Biome output.
