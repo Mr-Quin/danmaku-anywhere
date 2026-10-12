@@ -11,6 +11,8 @@ const SAVE = /^(Save|保存)$/
 const ADD_PATTERN = /^(Add Pattern|添加模式)$/
 const NAME_LABEL = /Name|名称/
 const PATTERN_LABEL = /(Pattern|模式) 1/
+const IMPORT_SHARE_CODE = /^(Import Share Code|导入分享码)$/
+const SHARE_CODE_PLACEHOLDER = /^(Paste code here|粘贴分享码)$/
 
 // POM for the mount-config list (#/config) and the stepper-based config editor
 // (#/config/add, #/config/edit). List rows carry no testid, so they are
@@ -56,6 +58,15 @@ export class MountConfigPage {
 
   async save(): Promise<void> {
     await this.page.getByRole('button', { name: SAVE }).click()
+  }
+
+  async importShareCode(code: string): Promise<void> {
+    await this.page.getByRole('button', { name: IMPORT_SHARE_CODE }).click()
+    await this.shareCodeInput().fill(code)
+  }
+
+  shareCodeInput(): Locator {
+    return this.page.getByPlaceholder(SHARE_CODE_PLACEHOLDER)
   }
 
   async openRowMenu(name: string, actionId: string): Promise<void> {

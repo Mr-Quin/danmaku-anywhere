@@ -9,7 +9,12 @@ const SELECTORS = {
   multiselectToggle: '[data-testid="multiselect-toggle"]',
   multiselectSelectAll: '[data-testid="multiselect-select-all"]',
   bulkDelete: '[data-testid="mount-bulk-delete"]',
+  noMatches: '[data-testid="library-no-matches"]',
+  mountHint: '[data-testid="library-mount-hint"]',
 }
+
+const FILTER = /^(Search|搜索)$/
+const CLEAR_FILTER = /^(Clear filter|清除筛选)$/
 
 export class MountPage {
   constructor(private readonly page: Page) {}
@@ -139,5 +144,31 @@ export class MountPage {
 
   async bulkDelete(): Promise<void> {
     await this.page.locator(SELECTORS.bulkDelete).click()
+  }
+
+  bulkDeleteButton(): Locator {
+    return this.page.locator(SELECTORS.bulkDelete)
+  }
+
+  multiselectToggle(): Locator {
+    return this.page.locator(SELECTORS.multiselectToggle)
+  }
+
+  async filter(text: string): Promise<void> {
+    await this.page.getByRole('button', { name: FILTER }).click()
+    await this.page.getByRole('textbox', { name: FILTER }).fill(text)
+    await this.page.keyboard.press('Escape')
+  }
+
+  noMatches(): Locator {
+    return this.page.locator(SELECTORS.noMatches)
+  }
+
+  async clearFilter(): Promise<void> {
+    await this.noMatches().getByRole('button', { name: CLEAR_FILTER }).click()
+  }
+
+  mountHint(): Locator {
+    return this.page.locator(SELECTORS.mountHint)
   }
 }

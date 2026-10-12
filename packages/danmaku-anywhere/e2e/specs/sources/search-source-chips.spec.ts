@@ -1,6 +1,7 @@
 import { expect } from '@playwright/test'
+import type { ProviderConfig } from '../../../src/common/options/providerConfig/schema'
 import { mockBilibiliXml } from '../../network/bilibili'
-import { mockDandanplay } from '../../network/dandanplay'
+import { mockDandanplay, mockDandanplayCustom } from '../../network/dandanplay'
 import { mockTencent } from '../../network/tencent'
 import { Popup } from '../../pom/Popup'
 import { test } from '../../setup/fixtures'
@@ -12,7 +13,9 @@ import { applyProfile } from '../../setup/profile'
  * back: picking the Bilibili chip then returning keeps Bilibili active rather
  * than resetting to the first provider. Also covers chip overflow at a narrow
  * width: providers that don't fit collapse into a +N chip whose menu activates
- * the hidden source and swaps it into the visible row.
+ * the hidden source and swaps it into the visible row. A self-hosted
+ * DanDanPlay named like the built-in gets its host on its chip so the two
+ * chips can be told apart.
  */
 
 test('source chips: selection persists across season details navigation', async ({
@@ -112,4 +115,48 @@ test('source chips: overflow collapses into a +N menu that activates hidden sour
     'true'
   )
   await expect(popup.search.seasonCard('Tencent')).toBeVisible()
+})
+
+test('source chips: a self-hosted DanDanPlay named like the built-in shows its host', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  const selfHosted: ProviderConfig = {
+    id: 'home-ddp',
+    manifestId: 'dandanplay',
+    name: 'DanDanPlay',
+    enabled: true,
+    configValues: {
+      baseUrl: 'https://ddp.home.invalid',
+      auth: { enabled: false, headers: [] },
+    },
+  }
+
+  await applyProfile(context, da, {
+    providers: { dandanplay: { enabled: true } },
+    customProviders: [selfHosted],
+    network: [
+      mockDandanplay({
+        search: loadJsonFixture('ddp-search.json'),
+        bangumi: loadJsonFixture('ddp-bangumi.json'),
+        comments: loadJsonFixture('ddp-comments.json'),
+      }),
+      ...mockDandanplayCustom({
+        baseUrl: 'https://ddp.home.invalid',
+        search: loadJsonFixture('ddp-compat-search.json'),
+        bangumi: loadJsonFixture('ddp-compat-bangumi.json'),
+        comments: loadJsonFixture('ddp-compat-comments.json'),
+      }),
+    ],
+  })
+
+  const popup = await Popup.open(page, extensionId)
+  await popup.search.submit('frieren')
+
+  const chips = popup.search.sourceChip('DanDanPlay')
+  await expect(chips).toHaveCount(2)
+  await expect(chips.nth(0)).toHaveText(/^DanDanPlay(?! \()/)
+  await expect(chips.nth(1)).toHaveText(/^DanDanPlay \(ddp\.home\.invalid\)/)
 })
