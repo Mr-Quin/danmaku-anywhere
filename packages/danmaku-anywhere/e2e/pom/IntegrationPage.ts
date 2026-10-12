@@ -111,9 +111,12 @@ export class IntegrationPage {
     )
   }
 
-  floatingButton(): Locator {
+  // Outside an element in fullscreen the page is inert, and an inert button
+  // drops out of the accessibility tree while still being drawn.
+  floatingButton({ includeInert = false } = {}): Locator {
     return this.page.getByRole('button', {
       name: /^(Open Danmaku Anywhere|打开 Danmaku Anywhere)$/,
+      includeHidden: includeInert,
     })
   }
 
@@ -217,6 +220,13 @@ export class IntegrationPage {
         .locator('#danmaku-anywhere-player .da-danmaku')
     }
     return this.page.locator('#danmaku-anywhere-player .da-danmaku')
+  }
+
+  // Hiding danmaku keeps the comment nodes and sets visibility: hidden on them.
+  async commentVisibilities(): Promise<string[]> {
+    return this.commentElements().evaluateAll((nodes) =>
+      nodes.map((node) => getComputedStyle(node).visibility)
+    )
   }
 
   // The danmu library's container element, where the occlusion mask-image is

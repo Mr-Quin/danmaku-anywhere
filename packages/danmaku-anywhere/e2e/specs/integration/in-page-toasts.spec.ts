@@ -33,7 +33,7 @@ test('a page load shows one toast naming the mounted episode', async ({
 
   const toast = new Toast(page)
   await toast.expectSuccess(EPISODE_1_MOUNTED, { timeout: 15_000 })
-  await expect(toast.all()).toHaveCount(1)
+  expect(await toast.all().count()).toBe(1)
 
   const box = await toast.all().boundingBox()
   const viewport = page.viewportSize()
@@ -62,7 +62,7 @@ test('an episode change shows only the new mount toast', async ({
   await integrationPage.setEpisodeText('Episode 2')
 
   await toast.expectSuccess(EPISODE_2_MOUNTED, { timeout: 15_000 })
-  await expect(toast.all()).toHaveCount(1)
+  expect(await toast.all().count()).toBe(1)
   await expect
     .poll(async () => (await da.mount.current())?.isMounted)
     .toBe(true)

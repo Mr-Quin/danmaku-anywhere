@@ -64,7 +64,7 @@ test('a failed search shows one error naming the source', async ({
   const toast = new Toast(page)
   await toast.expectError(UNREACHABLE, { timeout: 15_000 })
   const error = toast.bySeverity('error')
-  await expect(error).toHaveCount(1)
+  expect(await error.count()).toBe(1)
   await expect(error).not.toContainText('proxy.test.invalid')
   await expect(error.getByRole('button', { name: OPEN_SEARCH })).toBeVisible()
 
@@ -110,5 +110,5 @@ test('a failed comment fetch shows one error naming the source', async ({
   // A duplicate report would arrive just after the first, so let it render
   // before counting.
   await page.waitForTimeout(1_000)
-  await expect(toast.bySeverity('error')).toHaveCount(1)
+  expect(await toast.bySeverity('error').count()).toBe(1)
 })
