@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
 import { readV150Store } from '@/tests/v150Backup'
 import { defaultKeymap } from './hotkeys'
+import { isInfoPanelEnabled } from './infoPanel'
 import { type ExtensionOptions, extensionOptionsSchema } from './schema'
 import { ExtensionOptionsService } from './service'
 
@@ -78,10 +79,15 @@ describe('extensionOptions upgrade from the v1.5.0 fixture', () => {
   it('adds the fields introduced after v22 with their defaults', () => {
     expect(upgraded.showFloatingButton).toBe(true)
     expect(upgraded.autoBookmark).toBe(false)
-    expect(upgraded.infoPanel).toEqual({ enabled: true })
+    expect(upgraded.infoPanel).toEqual({})
     expect(upgraded.hotkeys.openSearchPanel).toEqual(
       defaultKeymap.openSearchPanel
     )
+  })
+
+  it('leaves the info panel unset so it follows the build default', () => {
+    expect(isInfoPanelEnabled(upgraded.infoPanel)).toBe(false)
+    expect(isInfoPanelEnabled(upgraded.infoPanel, true)).toBe(true)
   })
 
   it('does not bring back the retired danmakuSources', () => {
@@ -101,7 +107,7 @@ describe('extensionOptions upgrade from the v1.5.0 fixture', () => {
       },
       showFloatingButton: true,
       autoBookmark: false,
-      infoPanel: { enabled: true },
+      infoPanel: {},
     })
   })
 

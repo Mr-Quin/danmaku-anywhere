@@ -6,14 +6,19 @@ export interface IdleTrackerOptions {
    * subtree (e.g. the video element and its overlay siblings).
    */
   shouldCount?: (event: Event) => boolean
+  /**
+   * Start the idle countdown at construction instead of at the first activity,
+   * so the tracker goes idle even if the user never touches the target.
+   */
+  armOnStart?: boolean
 }
 
 const DEFAULT_IDLE_MS = 3000
 
 /**
- * Tracks whether the user has been active within `idleMs`. Stays active until
- * the first activity, so a freshly mounted consumer is not hidden a few seconds
- * after load with no interaction.
+ * Tracks whether the user has been active within `idleMs`. Unless `armOnStart`
+ * is set, stays active until the first activity, so a freshly mounted consumer
+ * is not hidden a few seconds after load with no interaction.
  */
 export class IdleTracker {
   private readonly target: EventTarget
@@ -34,6 +39,9 @@ export class IdleTracker {
       capture: true,
       passive: true,
     })
+    if (options.armOnStart) {
+      this.armIdleTimer()
+    }
   }
 
   subscribe(listener: (active: boolean) => void): () => void {
@@ -71,6 +79,10 @@ export class IdleTracker {
       return
     }
     this.setActive(true)
+    this.armIdleTimer()
+  }
+
+  private armIdleTimer(): void {
     clearTimeout(this.timeoutId)
     this.timeoutId = setTimeout(() => this.setActive(false), this.idleMs)
   }

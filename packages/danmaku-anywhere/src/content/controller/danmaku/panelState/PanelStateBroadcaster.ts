@@ -4,12 +4,28 @@ import type { PipelineEntry } from '@/common/rpcClient/background/types'
 import { useStore } from '@/content/controller/store/store'
 import { setLatestPipelineEntry } from './latestPipelineEntry'
 import { panelEntriesEqual } from './panelEntryEqual'
+import { panelEntryForFrame, shownPipelineEntry } from './panelEntryForFrame'
 import { selectPanelState } from './selectPanelState'
 
 type StoreState = ReturnType<typeof useStore.getState>
 
+interface Broadcast {
+  entry: PipelineEntry | null
+  activeFrameId: number | undefined
+}
+
+function sameBroadcast(a: Broadcast, b: Broadcast): boolean {
+  if (a.activeFrameId !== b.activeFrameId) {
+    return false
+  }
+  if (a.entry === null || b.entry === null) {
+    return a.entry === b.entry
+  }
+  return panelEntriesEqual(a.entry, b.entry)
+}
+
 class PanelStateBroadcaster {
-  #prevEntry: PipelineEntry | null = null
+  #prev: Broadcast | null = null
 
   start(): () => void {
     this.#sync(useStore.getState())
@@ -38,15 +54,20 @@ class PanelStateBroadcaster {
 
     setLatestPipelineEntry(entry)
 
-    if (this.#prevEntry !== null && panelEntriesEqual(this.#prevEntry, entry)) {
+    const activeFrameId = state.frame.activeFrame?.frameId
+    const next = { entry: shownPipelineEntry(entry), activeFrameId }
+    if (this.#prev && sameBroadcast(this.#prev, next)) {
       return
     }
-    this.#prevEntry = entry
+    this.#prev = next
 
     for (const frame of state.frame.allFrames.values()) {
       if (frame.started) {
         void playerRpcClient.player['relay:command:syncPanelState'](
-          { frameId: frame.frameId, data: entry },
+          {
+            frameId: frame.frameId,
+            data: panelEntryForFrame(entry, frame.frameId, activeFrameId),
+          },
           { optional: true, silent: true }
         )
       }

@@ -160,7 +160,12 @@ export const extensionOptionsSchema = z.object({
   autoBookmark: z.boolean(),
 
   infoPanel: z.object({
-    enabled: z.boolean(),
+    /**
+     * Absent until the user flips the setting, so a later build can change
+     * INFO_PANEL_ENABLED_BY_DEFAULT without overriding an explicit choice.
+     * Read it through isInfoPanelEnabled.
+     */
+    enabled: z.boolean().optional(),
   }),
 })
 

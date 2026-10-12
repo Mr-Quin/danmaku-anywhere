@@ -2,10 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { IdleTracker } from './idleTracker'
 
 /**
- * Exercises the vanilla idle tracker shared by the density chart and info
- * panel. Verifies it stays active until the first activity, the idle timer
- * flips state after the configured timeout, repeated activity resets the
- * timer, and destroy detaches listeners and clears subscribers.
+ * Exercises the vanilla idle tracker shared by the player overlays and the
+ * floating button. Verifies it stays active until the first activity unless
+ * armed on start, the idle timer flips state after the configured timeout,
+ * repeated activity resets the timer, and destroy detaches listeners and clears
+ * subscribers.
  */
 describe('IdleTracker', () => {
   beforeEach(() => {
@@ -38,6 +39,34 @@ describe('IdleTracker', () => {
     expect(listener).toHaveBeenCalledWith(false)
 
     tracker.destroy()
+  })
+
+  it('goes idle without any activity when armed on start', () => {
+    const target = document.createElement('div')
+    const tracker = new IdleTracker(target, { idleMs: 1000, armOnStart: true })
+    const listener = vi.fn()
+    tracker.subscribe(listener)
+
+    expect(tracker.getActive()).toBe(true)
+    vi.advanceTimersByTime(999)
+    expect(tracker.getActive()).toBe(true)
+    vi.advanceTimersByTime(1)
+    expect(tracker.getActive()).toBe(false)
+    expect(listener).toHaveBeenCalledWith(false)
+
+    activity(target)
+    expect(tracker.getActive()).toBe(true)
+
+    tracker.destroy()
+  })
+
+  it('cancels the start timer on destroy', () => {
+    const target = document.createElement('div')
+    const tracker = new IdleTracker(target, { idleMs: 1000, armOnStart: true })
+
+    tracker.destroy()
+    vi.advanceTimersByTime(5000)
+    expect(tracker.getActive()).toBe(true)
   })
 
   it('resets the idle timer on activity', () => {

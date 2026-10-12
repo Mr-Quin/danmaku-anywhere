@@ -21,6 +21,7 @@ import { selectBestFrame } from '@/content/controller/danmaku/frame/selectBestFr
 import { useMigrateDanmaku } from '@/content/controller/danmaku/frame/useMigrateDanmaku'
 import { usePreloadNextEpisode } from '@/content/controller/danmaku/frame/usePreloadNextEpisode'
 import { getLatestPipelineEntry } from '@/content/controller/danmaku/panelState/latestPipelineEntry'
+import { panelEntryForFrame } from '@/content/controller/danmaku/panelState/panelEntryForFrame'
 import { useStore } from '@/content/controller/store/store'
 import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.types'
 
@@ -213,8 +214,13 @@ export const FrameManager = () => {
           handleOcclusionStatus(data)
         },
         'relay:event:requestPanelState': async ({ frameId }) => {
+          const entry = panelEntryForFrame(
+            getLatestPipelineEntry(),
+            frameId,
+            useStore.getState().frame.activeFrame?.frameId
+          )
           void playerRpcClient.player['relay:command:syncPanelState'](
-            { frameId, data: getLatestPipelineEntry() },
+            { frameId, data: entry },
             { optional: true, silent: true }
           )
         },

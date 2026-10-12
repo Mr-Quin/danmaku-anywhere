@@ -67,6 +67,7 @@ export class PlayerIdleService {
     }
     this.followVideo(this.videoNodeObs.activeVideo)
     this.tracker = new IdleTracker(document, {
+      armOnStart: true,
       shouldCount: (event) => {
         return this.videoRect !== null && isOverRect(event, this.videoRect)
       },

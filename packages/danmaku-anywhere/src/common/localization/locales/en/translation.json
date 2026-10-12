@@ -357,7 +357,7 @@
       "AIResult": "AI Parsing Result: {{title}}",
       "matchedLocalDanmaku": "Matched local danmaku",
       "matchError": "Failed to match episode: {{message}}",
-      "noEpisodeMatched": "No episode matched for {{title}}: {{cause}}",
+      "noEpisodeFound": "No episode found for {{title}}",
       "noIntegration": "Integration policy not configured",
       "openSearch": "Open search page",
       "search": "Searching for anime: {{title}}",
@@ -571,7 +571,8 @@
       "unmountComments": "Unmount comments"
     },
     "infoPanel": {
-      "enabled": "Show info panel"
+      "enabled": "Show info panel",
+      "enabledDesc": "Overlay a card on the video with the mounted episode and comment count."
     },
     "language": "Language",
     "matchLocalDanmaku": "Enable matching local Danmaku",

@@ -87,7 +87,7 @@ describe('extensionOptions upgrade chain (v22 to v27)', () => {
     expect(result.data.restrictInitiatorDomain).toBe(true)
     expect(result.data.showFloatingButton).toBe(true)
     expect(result.data.autoBookmark).toBe(false)
-    expect(result.data.infoPanel).toEqual({ enabled: true })
+    expect(result.data.infoPanel).toEqual({})
   })
 
   it('preserves pre-existing user values across the chain', () => {

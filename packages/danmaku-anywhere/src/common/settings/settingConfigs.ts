@@ -1,5 +1,6 @@
 import { i18n } from '@/common/localization/i18n'
 import { useToast } from '../components/Toast/toastStore'
+import { isInfoPanelEnabled } from '../options/extensionOptions/infoPanel'
 import type { ExtensionOptions } from '../options/extensionOptions/schema'
 import { chromeRpcClient } from '../rpcClient/background/client'
 import { copyToClipboard } from '../utils/copyToClipboard'
@@ -250,9 +251,14 @@ const playerSettings: ToggleSettingConfig<ExtensionOptions>[] = [
   {
     id: 'toggle.infoPanel.enabled',
     label: () => i18n.t('optionsPage.infoPanel.enabled', 'Show info panel'),
+    description: () =>
+      i18n.t(
+        'optionsPage.infoPanel.enabledDesc',
+        'Overlay a card on the video with the mounted episode and comment count.'
+      ),
     category: 'player',
     type: 'toggle',
-    getValue: (options) => options.infoPanel.enabled,
+    getValue: (options) => isInfoPanelEnabled(options.infoPanel),
     createUpdate: (options, newValue) => ({
       infoPanel: { ...options.infoPanel, enabled: newValue },
     }),
