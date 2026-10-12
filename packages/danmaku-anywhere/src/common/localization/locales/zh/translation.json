@@ -640,15 +640,23 @@
     "uploadDebugDataSuccess": "提交成功 {{ id }}"
   },
   "providers": {
+    "add": {
+      "dandanplay": "弹弹play 兼容服务器",
+      "dandanplayHint": "自建或第三方服务器",
+      "manifest": "从配置创建自定义弹幕源",
+      "manifestHint": "高级：以 JSON 编写弹幕源",
+      "vod": "VOD",
+      "vodHint": "MacCMS 影视站的弹幕接口"
+    },
     "alert": {
       "created": "弹幕源已创建",
       "deleted": "弹幕源已删除",
       "updated": "弹幕源已更新"
     },
     "attention": {
+      "optionalTitle": "可选登录",
       "signIn": "登录",
-      "signInHint": "登录以获取完整弹幕",
-      "title": "存在问题"
+      "signInHint": "登录以获取完整弹幕"
     },
     "catalog": {
       "checked": {
@@ -666,18 +674,17 @@
       "version": "v{{version}}"
     },
     "delete": {
-      "manifestMessage": "删除“{{name}}”？这将移除该配置及其实例，已保存的弹幕将无法再刷新。",
+      "confirm": "删除“{{name}}”？将取消关注来自该弹幕源的番剧，已保存的番剧也无法再刷新。重新添加该弹幕源不会恢复关注。",
+      "manifestConfirm": "删除“{{name}}”？这将移除该配置及其实例，取消关注来自它的番剧，已保存的弹幕也无法再刷新。",
       "manifestTitle": "删除自定义源",
-      "message": "确定要删除 \"{{name}}\" 吗？删除后，与此弹幕源相关的所有番剧将无法刷新。",
       "title": "删除弹幕源"
     },
     "editor": {
       "addItem": "添加",
       "builtinServerLocked": "内置来源的服务器设置不能修改。如需使用其他服务器，请添加实例。",
       "manifest": {
-        "author": "新建配置",
         "beta": "Beta",
-        "createTitle": "新建配置",
+        "createTitle": "自定义弹幕源",
         "duplicate": "复制",
         "editTitle": "编辑配置",
         "importFailed": "配置已保存，但创建弹幕源失败：{{message}}。请从列表中导入。",
@@ -717,6 +724,7 @@
         "minLength": "不能少于 {{min}} 个字符",
         "pattern": "必须匹配模式 {{pattern}}",
         "required": "此项为必填项",
+        "requiredAlternatives": "请填写{{fields}}",
         "url": "不是有效的 URL"
       }
     },
@@ -756,6 +764,7 @@
     "episodesHint": "点击剧集下载弹幕。已下载的剧集会显示在弹幕库中。",
     "epsCount_other": "{{count}} 集",
     "error": {
+      "network": "无法连接{{name}}，请检查网络后重试。",
       "noProviders": "没有启用的弹幕来源，请在设置中启用",
       "noResultFound": "没有找到结果, 请尝试其他关键词"
     },
@@ -767,12 +776,14 @@
     "moreSources": "更多来源",
     "parse": {
       "alert": {
-        "importSuccess": "导入成功",
-        "parseError": "解析失败"
+        "importSuccess": "导入成功"
       },
+      "failed": "无法解析此链接",
       "import": "获取弹幕",
+      "networkError": "无法连接该网站，请检查网络后重试。",
       "parse": "解析",
       "parsed": "已解析",
+      "searchInstead": "改为按标题搜索",
       "urlDetected": "检测到链接，改为解析"
     },
     "resultsCount_other": "{{count}} 个结果",
@@ -784,6 +795,7 @@
       "sources": "来源",
       "title": "设置"
     },
+    "signInRequired": "{{name}}需要登录才能搜索",
     "title": "搜索",
     "titleMapping": "标题映射",
     "titleMappingDialog": {

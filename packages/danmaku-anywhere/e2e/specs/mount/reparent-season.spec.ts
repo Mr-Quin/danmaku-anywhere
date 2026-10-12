@@ -48,7 +48,7 @@ test('a season reparents when its source config is re-added', async ({
   await expect(popup.mount.seasonOrphanedBadge(season.id)).toBeHidden()
 
   await Popup.open(page, extensionId, '/providers')
-  await popup.providers.deleteProvider('Bilibili')
+  await popup.providers.deleteProvider(/Bilibili|B站/)
   await popup.dialog.confirm()
   await popup.toast.expectSuccess(/Provider deleted|弹幕源已删除/)
 

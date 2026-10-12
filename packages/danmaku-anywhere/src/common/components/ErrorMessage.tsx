@@ -12,12 +12,14 @@ type ErrorMessageProps = {
   showMessage?: boolean
   size?: number
   beforeContent?: ReactNode
+  action?: ReactNode
 }
 
 export const ErrorMessage = ({
   message,
   showMessage = true,
   beforeContent,
+  action,
   size = 300,
 }: ErrorMessageProps) => {
   const { t } = useTranslation()
@@ -31,6 +33,7 @@ export const ErrorMessage = ({
           <Typography color="error">{message}</Typography>
         </>
       ) : null}
+      {action}
       <ErrorBoundary fallback={null}>
         <Suspense fallback={null}>
           <SuspenseImage

@@ -35,26 +35,69 @@ export function toNumberOrUndefined(value: unknown): number | undefined {
 
 // Seasons are keyed by the config that fetched them, so pointing the built-in
 // at another server would mix two catalogs under one id. A different server
-// gets its own instance.
-const BUILTIN_READ_ONLY_FIELDS: ReadonlySet<string> = new Set([
+// gets its own instance. The built-in talks to the hosted proxy, which signs
+// requests itself, so its credential fields have nothing to do either.
+const BUILTIN_HIDDEN_FIELDS: ReadonlySet<string> = new Set([
   'baseUrl',
   'appId',
   'appSecret',
   'auth',
 ])
 
-const NO_READ_ONLY_FIELDS: ReadonlySet<string> = new Set()
+const NO_HIDDEN_FIELDS: ReadonlySet<string> = new Set()
 
-export function readOnlyConfigFields(
+export function hiddenConfigFields(
   config: ProviderConfig
 ): ReadonlySet<string> {
-  return isBuiltinConfig(config)
-    ? BUILTIN_READ_ONLY_FIELDS
-    : NO_READ_ONLY_FIELDS
+  return isBuiltinConfig(config) ? BUILTIN_HIDDEN_FIELDS : NO_HIDDEN_FIELDS
+}
+
+export interface SelectOption {
+  value: string | number
+  label: string
+}
+
+function isOptionValue(value: unknown): value is string | number {
+  return typeof value === 'string' || typeof value === 'number'
+}
+
+// JSON Schema's labelled enum: `oneOf: [{ const, title }]`. Only used when
+// every branch is such an option, so a oneOf that combines real subschemas is
+// not mistaken for a choice list.
+function labelledOptions(branches: unknown): SelectOption[] | null {
+  if (!Array.isArray(branches) || branches.length === 0) {
+    return null
+  }
+  const options: SelectOption[] = []
+  for (const branch of branches) {
+    if (!isRecord(branch) || !isOptionValue(branch.const)) {
+      return null
+    }
+    const title = branch.title
+    options.push({
+      value: branch.const,
+      label:
+        typeof title === 'string' && title.length > 0
+          ? title
+          : String(branch.const),
+    })
+  }
+  return options
+}
+
+export function getSelectOptions(schema: ConfigSchema): SelectOption[] {
+  const labelled =
+    labelledOptions(schema.oneOf) ?? labelledOptions(schema.anyOf)
+  if (labelled) {
+    return labelled
+  }
+  return (schema.enum ?? [])
+    .filter(isOptionValue)
+    .map((value) => ({ value, label: String(value) }))
 }
 
 export function getFieldKind(schema: ConfigSchema): FieldKind {
-  if (Array.isArray(schema.enum) && schema.enum.length > 0) {
+  if (getSelectOptions(schema).length > 0) {
     return 'select'
   }
   switch (schema.type) {
@@ -129,14 +172,14 @@ function buildFieldDefault(schema: ConfigSchema, value: unknown): unknown {
       }
       return typeof schema.default === 'boolean' ? schema.default : false
     case 'select': {
-      const options = schema.enum ?? []
-      if (hasStoredValue(value) && options.includes(value)) {
+      const values = getSelectOptions(schema).map((option) => option.value)
+      if (hasStoredValue(value) && values.some((option) => option === value)) {
         return value
       }
       if (schema.default !== undefined) {
         return schema.default
       }
-      return options[0] ?? ''
+      return values[0] ?? ''
     }
     case 'number':
       if (hasStoredValue(value)) {
@@ -298,12 +341,73 @@ function collectErrors(
   }
 }
 
+// `anyOf: [{ required: [...] }, ...]` on an object: at least one of the key
+// sets has to be filled in, e.g. a server URL or a pair of credentials.
+function requiredAlternatives(schema: ConfigSchema): string[][] {
+  if (!Array.isArray(schema.anyOf)) {
+    return []
+  }
+  const alternatives: string[][] = []
+  for (const branch of schema.anyOf) {
+    if (!isRecord(branch) || !Array.isArray(branch.required)) {
+      return []
+    }
+    const keys = branch.required.filter(
+      (key): key is string => typeof key === 'string'
+    )
+    if (keys.length === 0) {
+      return []
+    }
+    alternatives.push(keys)
+  }
+  return alternatives
+}
+
+function fieldTitle(schema: ConfigSchema, key: string): string {
+  const title = schema.properties?.[key]?.title
+  return typeof title === 'string' && title.length > 0 ? title : key
+}
+
+function collectAlternativeErrors(
+  schema: ConfigSchema,
+  record: Record<string, unknown>,
+  path: string,
+  errors: ConfigValueError[]
+): void {
+  const alternatives = requiredAlternatives(schema)
+  if (alternatives.length === 0) {
+    return
+  }
+  const satisfied = alternatives.some((keys) =>
+    keys.every((key) => !isEmptyValue(record[key]))
+  )
+  if (satisfied) {
+    return
+  }
+  const language = i18n.language
+  const and = new Intl.ListFormat(language, { type: 'conjunction' })
+  const or = new Intl.ListFormat(language, { type: 'disjunction' })
+  const fields = or.format(
+    alternatives.map((keys) =>
+      and.format(keys.map((key) => fieldTitle(schema, key)))
+    )
+  )
+  const message = i18n.t(
+    'providers.editor.validation.requiredAlternatives',
+    'Fill in {{fields}}',
+    { fields }
+  )
+  const [firstKey] = alternatives[0]
+  errors.push({ path: joinPath(path, firstKey), message })
+}
+
 function collectObjectErrors(
   schema: ConfigSchema,
   record: Record<string, unknown>,
   path: string,
   errors: ConfigValueError[]
 ): void {
+  collectAlternativeErrors(schema, record, path, errors)
   const required = new Set(schema.required ?? [])
   for (const [key, propSchema] of Object.entries(schema.properties ?? {})) {
     const childPath = joinPath(path, key)

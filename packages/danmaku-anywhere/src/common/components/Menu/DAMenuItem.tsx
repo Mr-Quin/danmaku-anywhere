@@ -85,7 +85,11 @@ export const DAMenuItem = ({ item, onClose }: DAMenuItemProps) => {
               {item.loading ? <CircularProgress size={24} /> : item.icon}
             </ListItemIcon>
           ) : null}
-          <ListItemText>{item.label}</ListItemText>
+          <ListItemText
+            primary={item.label}
+            secondary={item.secondary}
+            slotProps={{ secondary: { variant: 'caption' } }}
+          />
         </StyledMenuItem>
       </div>
     </Tooltip>

@@ -139,9 +139,7 @@ export class ProvidersPage {
       .getByRole('button', { name: /Add|添加/ })
       .first()
       .click()
-    await this.page
-      .getByRole('menuitem', { name: /Author a manifest|新建配置/ })
-      .click()
+    await this.page.getByTestId('drilldown-menu-item-author-manifest').click()
   }
 
   async addDanDanPlayProvider(): Promise<void> {

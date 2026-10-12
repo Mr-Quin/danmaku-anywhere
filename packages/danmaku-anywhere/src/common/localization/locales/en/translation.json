@@ -661,15 +661,23 @@
     "uploadDebugDataSuccess": "Submitted {{ id }}"
   },
   "providers": {
+    "add": {
+      "dandanplay": "DanDanPlay-compatible server",
+      "dandanplayHint": "A self-hosted or third-party server",
+      "manifest": "Custom source from manifest",
+      "manifestHint": "Advanced: write the source as JSON",
+      "vod": "VOD",
+      "vodHint": "Danmaku API of a MacCMS video site"
+    },
     "alert": {
       "created": "Provider created",
       "deleted": "Provider deleted",
       "updated": "Provider updated"
     },
     "attention": {
+      "optionalTitle": "Optional sign-in",
       "signIn": "Sign in",
-      "signInHint": "Sign in for complete danmaku",
-      "title": "Needs attention"
+      "signInHint": "Sign in for complete danmaku"
     },
     "catalog": {
       "checked": {
@@ -690,16 +698,15 @@
       "version": "v{{version}}"
     },
     "delete": {
-      "manifestMessage": "Delete \"{{name}}\"? This removes the manifest and its instances; saved danmaku for it can no longer be refreshed.",
+      "confirm": "Delete \"{{name}}\"? Seasons you follow from it are unfollowed, and its saved seasons can no longer be refreshed. Adding the source again does not bring the follows back.",
+      "manifestConfirm": "Delete \"{{name}}\"? This removes the manifest and its instances. Seasons you follow from it are unfollowed, and its saved danmaku can no longer be refreshed.",
       "manifestTitle": "Delete custom source",
-      "message": "Are you sure you want to delete \"{{name}}\"? Once a provider is deleted, the season and episodes associated with it will no longer be able to be refreshed.",
       "title": "Delete Provider"
     },
     "editor": {
       "addItem": "Add",
       "builtinServerLocked": "The server of a built-in source cannot be changed. To use another server, add an instance instead.",
       "manifest": {
-        "author": "Author a manifest",
         "beta": "Beta",
         "createTitle": "Author manifest",
         "duplicate": "Duplicate",
@@ -742,6 +749,7 @@
         "minLength": "Must be at least {{min}} characters",
         "pattern": "Must match the pattern {{pattern}}",
         "required": "This field is required",
+        "requiredAlternatives": "Fill in {{fields}}",
         "url": "Not a valid URL"
       }
     },
@@ -754,7 +762,7 @@
       "builtIn": "Built-in",
       "custom": "Custom",
       "empty": "No matching sources",
-      "instances_one": "{{count}} instances",
+      "instances_one": "{{count}} instance",
       "instances_other": "{{count}} instances",
       "none": "No sources installed",
       "reorder": "Reorder",
@@ -783,6 +791,7 @@
     "epsCount_one": "{{count}} ep",
     "epsCount_other": "{{count}} eps",
     "error": {
+      "network": "Couldn't reach {{name}}. Check your connection and try again.",
       "noProviders": "No danmaku sources enabled, please enable in settings",
       "noResultFound": "No results found, try a different search term"
     },
@@ -794,12 +803,14 @@
     "moreSources": "More sources",
     "parse": {
       "alert": {
-        "importSuccess": "Import successful",
-        "parseError": "Parse failed"
+        "importSuccess": "Import successful"
       },
+      "failed": "Couldn't parse this URL",
       "import": "Download Danmaku",
+      "networkError": "Couldn't reach the site. Check your connection and try again.",
       "parse": "Parse",
       "parsed": "Parsed",
+      "searchInstead": "Search by title instead",
       "urlDetected": "URL detected. Parsing instead of searching."
     },
     "resultsCount_one": "{{count}} result",
@@ -812,6 +823,7 @@
       "sources": "Sources",
       "title": "Settings"
     },
+    "signInRequired": "{{name}} needs you to sign in to search",
     "title": "Search",
     "titleMapping": "Map Title",
     "titleMappingDialog": {

@@ -3,7 +3,7 @@ import type {
   Season,
   SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
-import { Box, Button } from '@mui/material'
+import { Box, Button, Stack } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { NothingHere } from '@/common/components/NothingHere'
@@ -12,10 +12,16 @@ import { SeasonResultRow, SeasonResultRowSkeleton } from './SeasonResultRow'
 
 type SeasonOrInsert = Season | SeasonInsert | CustomSeason
 
+export interface SignInPrompt {
+  sourceName: string
+  url?: string
+}
+
 interface SeasonResultsListProps {
   isLoading: boolean
   data: SeasonOrInsert[] | null
   error?: string
+  signIn?: SignInPrompt
   onRetry: () => void
   onSeasonClick: (season: SeasonOrInsert) => void
 }
@@ -42,6 +48,7 @@ export function SeasonResultsList({
   isLoading,
   data,
   error,
+  signIn,
   onRetry,
   onSeasonClick,
 }: SeasonResultsListProps) {
@@ -63,12 +70,47 @@ export function SeasonResultsList({
         <ErrorMessage
           message={error}
           size={160}
-          beforeContent={
+          action={
             <Button onClick={onRetry} variant="text" data-testid="search-retry">
               {t('searchPage.retrySearch', 'Retry')}
             </Button>
           }
         />
+      </CenterFill>
+    )
+  }
+
+  if (signIn && (!data || data.length === 0)) {
+    const signInUrl =
+      signIn.url && /^https?:\/\//i.test(signIn.url) ? signIn.url : undefined
+    return (
+      <CenterFill>
+        <NothingHere
+          message={t(
+            'searchPage.signInRequired',
+            '{{name}} needs you to sign in to search',
+            { name: signIn.sourceName }
+          )}
+          size={160}
+        >
+          <Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+            {signInUrl ? (
+              <Button
+                variant="contained"
+                size="small"
+                href={signInUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="search-sign-in"
+              >
+                {t('providers.attention.signIn', 'Sign in')}
+              </Button>
+            ) : null}
+            <Button variant="text" size="small" onClick={onRetry}>
+              {t('searchPage.retrySearch', 'Retry')}
+            </Button>
+          </Stack>
+        </NothingHere>
       </CenterFill>
     )
   }
