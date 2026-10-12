@@ -9,6 +9,7 @@ import type {
   GroupStore,
 } from './collapse/types'
 import { mapIter, sampleByTime } from './iterator'
+import { occlusionMaskPlacement } from './occlusionMask'
 import { type DanmakuOptions, DEFAULT_DANMAKU_OPTIONS } from './options'
 import { type ParsedComment, transformComment } from './parser'
 import { type BindContext, bindVideo } from './plugins/bindVideo'
@@ -148,7 +149,7 @@ export class DanmakuRenderer {
     // survives the swap (the live loop only re-pushes on the next frame, which
     // never comes while paused).
     if (this.occlusionMaskUrl) {
-      manager.updateOccludedUrl(this.occlusionMaskUrl)
+      this.applyOcclusionMask()
     }
 
     if (!this.media.paused) {
@@ -243,6 +244,27 @@ export class DanmakuRenderer {
         end: `${this.config.area.xEnd}%`,
       },
     })
+    if (this.occlusionMaskUrl) {
+      this.applyOcclusionMask()
+    }
+  }
+
+  private applyOcclusionMask(): void {
+    if (!this.manager) {
+      return
+    }
+    this.manager.updateOccludedUrl(this.occlusionMaskUrl)
+    if (!this.occlusionMaskUrl) {
+      return
+    }
+    // updateOccludedUrl sizes the mask with `cover`, which only fits when the
+    // container spans the whole video.
+    const { size, position } = occlusionMaskPlacement(this.config.area)
+    const container = this.manager.container
+    container.setStyle('maskSize', size)
+    container.setStyle('webkitMaskSize', size)
+    container.setStyle('maskPosition', position)
+    container.setStyle('webkitMaskPosition', position)
   }
 
   private mergeConfig = (config?: Partial<DanmakuOptions>): DanmakuOptions => {
@@ -294,6 +316,6 @@ export class DanmakuRenderer {
 
   setOcclusionMaskUrl(url?: string): void {
     this.occlusionMaskUrl = url
-    this.manager?.updateOccludedUrl(url ?? undefined)
+    this.applyOcclusionMask()
   }
 }

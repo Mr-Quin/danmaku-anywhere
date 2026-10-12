@@ -1,5 +1,6 @@
 import {
   Box,
+  Chip,
   Collapse,
   debounce,
   Stack,
@@ -13,7 +14,7 @@ import { DocIcon } from '@/common/components/DocIcon'
 import { getScrollBarProps } from '@/common/components/layout/ScrollBox'
 import { SegmentedTabs } from '@/common/components/SegmentedTabs'
 import { SettingsBlock } from '@/common/components/SettingsBlock'
-import { IS_CHROME } from '@/common/constants'
+import { IS_CHROME, IS_OCCLUSION_SUPPORTED } from '@/common/constants'
 import { usePlatformInfo } from '@/common/hooks/usePlatformInfo'
 import { useResetForm } from '@/common/hooks/useResetForm'
 import type { DanmakuOptions } from '@/common/options/danmakuOptions/constant'
@@ -655,9 +656,28 @@ export const DanmakuStylesForm = ({
           />
         </Stack>
       </SettingsBlock>
-      {IS_CHROME && (
+      {IS_OCCLUSION_SUPPORTED && (
         <SettingsBlock
-          title={t('stylePage.occlusion', 'Render behind people')}
+          title={
+            <Stack
+              component="span"
+              direction="row"
+              spacing={1}
+              sx={{ alignItems: 'center' }}
+            >
+              <span>{t('stylePage.occlusion', 'Render behind people')}</span>
+              <Chip
+                component="span"
+                size="small"
+                color="warning"
+                label={t('stylePage.occlusionExperimental', 'Experimental')}
+              />
+            </Stack>
+          }
+          subtitle={t(
+            'stylePage.occlusionCaption',
+            'Works on live-action video. The built-in People model is not made for anime.'
+          )}
           sx={{
             borderWidth: 3,
             borderStyle: 'solid',

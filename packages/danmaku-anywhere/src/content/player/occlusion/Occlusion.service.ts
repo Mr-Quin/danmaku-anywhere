@@ -1,4 +1,5 @@
 import { inject, injectable } from 'inversify'
+import { IS_OCCLUSION_SUPPORTED } from '@/common/constants'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ModelEntry } from '@/common/models/schema'
 import { FrameSource } from './frameSource'
@@ -20,6 +21,7 @@ import type { MaskProvider } from './types'
 const DEFAULT_CAPTURE_SIZE = 256
 const DEFAULT_MIN_INTERVAL_MS = 80
 const DEFAULT_OUTPUT_MAX_SIDE = 320
+const MAX_CONSECUTIVE_FRAME_FAILURES = 5
 
 function modelKey(descriptor: ModelEntry): string {
   // Any descriptor field changing must rebuild the provider.
@@ -60,6 +62,7 @@ export class OcclusionService {
   private lastError: string | null = null
   private lastStatusReason?: OcclusionStatusReason
   private lastAppliedTs = 0
+  private consecutiveFailures = 0
 
   constructor(
     @inject(MaskProviderFactory)
@@ -142,6 +145,12 @@ export class OcclusionService {
     if (!this.provider) {
       return
     }
+    // The settings hide occlusion where it is unsupported, but the enable flag
+    // still arrives through sync storage and restored backups.
+    if (!IS_OCCLUSION_SUPPORTED) {
+      this.log('start skipped: occlusion is not supported in this browser')
+      return
+    }
     // The enable flag is synced storage, so it reaches browsers without rVFC.
     if (typeof video.requestVideoFrameCallback !== 'function') {
       this.status(
@@ -154,6 +163,7 @@ export class OcclusionService {
     this.lastStatusReason = undefined
     this.fps = null
     this.lastAppliedTs = 0
+    this.consecutiveFailures = 0
     this.video = video
     this.setRunning(true)
     this.log('starting')
@@ -258,7 +268,11 @@ export class OcclusionService {
       try {
         await this.segmentAndApply(video)
       } catch (e) {
-        this.log(`frame failed: ${e instanceof Error ? e.message : e}`)
+        if (this.running && this.video === video) {
+          this.recordFrameFailure(
+            `frame failed: ${e instanceof Error ? e.message : e}`
+          )
+        }
       } finally {
         this.busy = false
       }
@@ -276,7 +290,7 @@ export class OcclusionService {
     const outcome = await this.frameSource.read(video, isStale)
     if (outcome.status === 'disabled') {
       if (outcome.failure.kind === 'protected') {
-        this.disableForTaint()
+        this.disableForTaint(outcome.failure.evidence === 'encrypted')
       } else {
         this.disableForUnreadable()
       }
@@ -289,7 +303,7 @@ export class OcclusionService {
     const t0 = performance.now()
     const frame = await this.captureFrame(outcome.frame.element, video)
     if (frame === 'taint') {
-      this.disableForTaint()
+      this.disableForTaint(Boolean(video.mediaKeys))
       return
     }
     if (!frame) {
@@ -301,14 +315,15 @@ export class OcclusionService {
     }
 
     const result = await provider.segment(frame, { threshold: this.threshold })
-    if (!result) {
-      this.status(
-        'segment',
-        'segment returned no result (provider failed or timed out)'
-      )
+    // Disposing the provider on stop settles the in-flight frame with null,
+    // which is not a failure.
+    if (isStale()) {
       return
     }
-    if (isStale()) {
+    if (!result) {
+      this.recordFrameFailure(
+        'segment returned no result (provider failed or timed out)'
+      )
       return
     }
 
@@ -321,6 +336,7 @@ export class OcclusionService {
     }
 
     this.applyMask(composed.url)
+    this.consecutiveFailures = 0
     this.lastError = null
     this.lastStatusReason = undefined
     const appliedAt = performance.now()
@@ -390,12 +406,29 @@ export class OcclusionService {
     this.status('unreadable', 'disabled: could not read frames from this video')
   }
 
-  private disableForTaint(): void {
+  private disableForTaint(encrypted: boolean): void {
     this.debugView?.showDisabled('disabled (tainted canvas)')
     // status() must run after stop(): stop clears running/fps but the status
     // sets lastError, which must survive.
     this.stop()
-    this.status('taint', 'disabled: video canvas is tainted (cross-origin/DRM)')
+    if (encrypted) {
+      this.status('drm', 'disabled: video is encrypted (DRM)')
+    } else {
+      this.status('taint', 'disabled: video canvas is tainted (cross-origin)')
+    }
+  }
+
+  private recordFrameFailure(message: string): void {
+    this.log(message)
+    this.consecutiveFailures++
+    if (this.consecutiveFailures < MAX_CONSECUTIVE_FRAME_FAILURES) {
+      return
+    }
+    this.stop()
+    this.status(
+      'segment',
+      `stopped after ${this.consecutiveFailures} failed frames in a row: ${message}`
+    )
   }
 
   private renderDebug(

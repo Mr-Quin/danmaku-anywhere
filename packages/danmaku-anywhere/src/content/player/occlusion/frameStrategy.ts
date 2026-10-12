@@ -6,7 +6,7 @@ export interface Frame {
 export type FrameFailure =
   | {
       kind: 'protected'
-      evidence: 'encrypted' | 'non-http' | 'same-origin' | 'clone-tainted'
+      evidence: 'encrypted' | 'non-http' | 'clone-tainted'
     }
   | { kind: 'unavailable'; evidence: 'clone-failed' | 'clone-stalled' }
 

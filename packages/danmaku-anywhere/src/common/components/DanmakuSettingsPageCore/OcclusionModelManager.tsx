@@ -16,11 +16,11 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { DEFAULT_MODEL_ID } from '@/common/models/baseline'
 import type { ModelManagementState } from '@/common/models/dto'
 import type { ModelEntry } from '@/common/models/schema'
+import { hasWebGpuAdapter } from '@/common/models/webgpu'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
 const MODELS_QUERY_KEY = ['occlusionModels']
-
-const webgpuAvailable = typeof navigator !== 'undefined' && 'gpu' in navigator
+const WEBGPU_QUERY_KEY = ['webgpuAdapter']
 
 function formatMb(bytes: number): string {
   return `${(bytes / 1_000_000).toFixed(1)} MB`
@@ -43,6 +43,12 @@ export function OcclusionModelManager({
     queryKey: MODELS_QUERY_KEY,
     queryFn: () => chromeRpcClient.occlusionGetModels(),
     select: (res) => res.data,
+  })
+
+  const { data: webgpuAvailable = false } = useQuery({
+    queryKey: WEBGPU_QUERY_KEY,
+    queryFn: hasWebGpuAdapter,
+    staleTime: Number.POSITIVE_INFINITY,
   })
 
   function applyState(state: ModelManagementState) {
@@ -83,6 +89,11 @@ export function OcclusionModelManager({
   })
 
   const models = data?.models ?? []
+  // The saved model may not be offered (a hosted one restored from a backup);
+  // the player then runs the default, so show that as active.
+  const effectiveActiveId = models.some((model) => model.id === activeModelId)
+    ? activeModelId
+    : DEFAULT_MODEL_ID
   const storageById = new Map(
     (data?.storage ?? []).map((entry) => [entry.id, entry.sizeBytes])
   )
@@ -94,7 +105,8 @@ export function OcclusionModelManager({
   function renderHostedAction(
     id: string,
     isDownloaded: boolean,
-    busy: boolean
+    busy: boolean,
+    blocked: boolean
   ) {
     if (busy) {
       return <CircularProgress size={18} />
@@ -114,6 +126,7 @@ export function OcclusionModelManager({
     return (
       <Button
         size="small"
+        disabled={blocked}
         data-testid={`occlusion-model-download-${id}`}
         onClick={() => download.mutate(id)}
       >
@@ -153,7 +166,7 @@ export function OcclusionModelManager({
             const downloadedSize = storageById.get(model.id)
             const isDownloaded = downloadedSize !== undefined
             const isHosted = model.delivery === 'hosted'
-            const isActive = model.id === activeModelId
+            const isActive = model.id === effectiveActiveId
             const blockedByWebgpu = model.requiresWebGpu && !webgpuAvailable
             const busy =
               (download.isPending && download.variables === model.id) ||
@@ -212,7 +225,12 @@ export function OcclusionModelManager({
                 ) : null}
                 {isHosted ? (
                   <Box sx={{ flexShrink: 0, minWidth: 88, textAlign: 'right' }}>
-                    {renderHostedAction(model.id, isDownloaded, busy)}
+                    {renderHostedAction(
+                      model.id,
+                      isDownloaded,
+                      busy,
+                      blockedByWebgpu
+                    )}
                   </Box>
                 ) : null}
               </Stack>
@@ -236,8 +254,8 @@ function modelStateText(
 ): string {
   if (state.blockedByWebgpu) {
     return t(
-      'stylePage.occlusionModels.needsWebgpu',
-      'Needs a WebGPU-capable browser'
+      'stylePage.occlusionModels.webgpuUnavailable',
+      'Needs WebGPU, and the GPU is not available to this browser'
     )
   }
   if (state.isActive) {

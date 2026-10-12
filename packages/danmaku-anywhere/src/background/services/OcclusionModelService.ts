@@ -2,7 +2,12 @@ import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ModelManagementState } from '@/common/models/dto'
 import { ModelManifestService } from '@/common/models/ModelManifestService'
+import {
+  offeredModels,
+  resolveOfferedModel,
+} from '@/common/models/offeredModels'
 import { type ModelEntry, modelDownloadUrl } from '@/common/models/schema'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { RpcException } from '@/common/rpc/types'
 import {
   fetchAndCacheFile,
@@ -31,6 +36,8 @@ export class OcclusionModelService {
   constructor(
     @inject(ModelManifestService)
     private readonly manifest: ModelManifestService,
+    @inject(ExtensionOptionsService)
+    private readonly extensionOptions: ExtensionOptionsService,
     @inject(LoggerSymbol) logger: ILogger
   ) {
     this.logger = logger.sub('[OcclusionModelService]')
@@ -38,7 +45,7 @@ export class OcclusionModelService {
 
   async getState(): Promise<ModelManagementState> {
     const [models, storage] = await Promise.all([
-      this.manifest.listModels(),
+      this.offeredModels(),
       listCachedFiles(),
     ])
     return { models, storage }
@@ -49,8 +56,16 @@ export class OcclusionModelService {
     return this.getState()
   }
 
-  resolveModel(id: string): Promise<ModelEntry> {
-    return this.manifest.resolveModel(id)
+  async resolveModel(id: string): Promise<ModelEntry> {
+    return resolveOfferedModel(await this.offeredModels(), id)
+  }
+
+  private async offeredModels(): Promise<ModelEntry[]> {
+    const [models, options] = await Promise.all([
+      this.manifest.listModels(),
+      this.extensionOptions.get(),
+    ])
+    return offeredModels(models, options.debug)
   }
 
   download(id: string): Promise<ModelManagementState> {
@@ -70,7 +85,8 @@ export class OcclusionModelService {
     id: string,
     signal: AbortSignal
   ): Promise<ModelManagementState> {
-    const model = await this.manifest.getModel(id)
+    const offered = await this.offeredModels()
+    const model = offered.find((entry) => entry.id === id)
     const url = model && modelDownloadUrl(model)
     if (!model || model.delivery !== 'hosted' || !url) {
       throw new RpcException(`model "${id}" is not a downloadable hosted model`)

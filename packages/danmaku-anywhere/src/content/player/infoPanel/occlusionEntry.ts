@@ -18,14 +18,14 @@ const LOADING_REASONS: ReadonlySet<OcclusionStatusReason> = new Set([
 export class OcclusionEntryDeriver {
   private running = false
   private active = false
-  private error?: string
-  private loadingMessage?: string
+  private errorReason?: OcclusionStatusReason
+  private loadingReason?: OcclusionStatusReason
 
   setRunning(running: boolean): void {
     this.running = running
     if (running) {
-      this.error = undefined
-      this.loadingMessage = undefined
+      this.errorReason = undefined
+      this.loadingReason = undefined
     } else {
       this.active = false
     }
@@ -33,15 +33,15 @@ export class OcclusionEntryDeriver {
 
   setActive(): void {
     this.active = true
-    this.error = undefined
-    this.loadingMessage = undefined
+    this.errorReason = undefined
+    this.loadingReason = undefined
   }
 
   setStatus(status: OcclusionStatus): void {
     if (LOADING_REASONS.has(status.reason)) {
-      this.loadingMessage = status.message
+      this.loadingReason = status.reason
     } else {
-      this.error = status.message
+      this.errorReason = status.reason
     }
   }
 
@@ -50,23 +50,23 @@ export class OcclusionEntryDeriver {
   reset(): void {
     this.running = false
     this.active = false
-    this.error = undefined
-    this.loadingMessage = undefined
+    this.errorReason = undefined
+    this.loadingReason = undefined
   }
 
   current(): OcclusionEntry | undefined {
     if (this.active) {
       return { source: 'occlusion', state: 'on' }
     }
-    if (this.error !== undefined) {
-      return { source: 'occlusion', state: 'error', message: this.error }
+    if (this.errorReason !== undefined) {
+      return { source: 'occlusion', state: 'error', reason: this.errorReason }
     }
     if (this.running) {
-      return this.loadingMessage !== undefined
+      return this.loadingReason !== undefined
         ? {
             source: 'occlusion',
             state: 'loading',
-            message: this.loadingMessage,
+            reason: this.loadingReason,
           }
         : { source: 'occlusion', state: 'loading' }
     }

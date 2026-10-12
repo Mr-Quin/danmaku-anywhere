@@ -6,6 +6,7 @@ import {
   type ModelPreprocessing,
   modelDownloadUrl,
 } from '@/common/models/schema'
+import { hasWebGpuAdapter } from '@/common/models/webgpu'
 import { fetchAndCacheFile } from '@/common/storage/opfsFileCache'
 
 /**
@@ -73,7 +74,7 @@ async function initOrt(
   if (ortSession) {
     return
   }
-  if (model.requiresWebGpu && !navigator.gpu) {
+  if (model.requiresWebGpu && !(await hasWebGpuAdapter())) {
     throw new Error('WebGPU is unavailable; this model requires WebGPU')
   }
   const url = modelDownloadUrl(model)

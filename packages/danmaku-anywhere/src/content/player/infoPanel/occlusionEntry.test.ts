@@ -2,6 +2,12 @@ import { describe, expect, it } from 'vitest'
 import type { OcclusionStatusReason } from '@/content/player/occlusion/Occlusion.types'
 import { OcclusionEntryDeriver } from './occlusionEntry'
 
+/**
+ * The info panel's occlusion row as a state machine over the service's running,
+ * active and status signals. Rows carry the status reason, never the service's
+ * log text, so the panel can show translated copy.
+ */
+
 function status(reason: OcclusionStatusReason, message: string = reason) {
   return { reason, message }
 }
@@ -17,14 +23,14 @@ describe('OcclusionEntryDeriver', () => {
     expect(d.current()).toEqual({ source: 'occlusion', state: 'loading' })
   })
 
-  it('surfaces the download message while loading', () => {
+  it('surfaces the download reason while loading', () => {
     const d = new OcclusionEntryDeriver()
     d.setRunning(true)
-    d.setStatus(status('downloading', 'downloading model'))
+    d.setStatus(status('downloading', 'downloading model (~176 MB)'))
     expect(d.current()).toEqual({
       source: 'occlusion',
       state: 'loading',
-      message: 'downloading model',
+      reason: 'downloading',
     })
   })
 
@@ -36,11 +42,13 @@ describe('OcclusionEntryDeriver', () => {
     expect(d.current()).toEqual({ source: 'occlusion', state: 'on' })
   })
 
-  it('maps every failure reason to error with its message', () => {
+  it('maps every failure reason to an error row carrying the reason, not the log text', () => {
     const failures: OcclusionStatusReason[] = [
       'init',
       'webgpu',
       'taint',
+      'drm',
+      'unreadable',
       'unavailable',
       'segment',
     ]
@@ -50,7 +58,7 @@ describe('OcclusionEntryDeriver', () => {
       expect(d.current()).toEqual({
         source: 'occlusion',
         state: 'error',
-        message: `${reason} failed`,
+        reason,
       })
     }
   })
@@ -72,7 +80,7 @@ describe('OcclusionEntryDeriver', () => {
     expect(d.current()).toEqual({
       source: 'occlusion',
       state: 'error',
-      message: 'provider init failed',
+      reason: 'init',
     })
   })
 

@@ -4,7 +4,6 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
 import { uiContainer } from '@/common/ioc/uiIoc'
 import { Logger } from '@/common/Logger'
-import { i18n } from '@/common/localization/i18n'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
@@ -24,49 +23,10 @@ import { getLatestPipelineEntry } from '@/content/controller/danmaku/panelState/
 import { panelEntryForFrame } from '@/content/controller/danmaku/panelState/panelEntryForFrame'
 import { useStore } from '@/content/controller/store/store'
 import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.types'
+import { occlusionStatusText } from '@/content/player/occlusion/occlusionStatusText'
 
 const logger = Logger.sub('[FrameManager]')
 const frameRegistry = uiContainer.get(FrameRegistry)
-
-function occlusionStatusText(reason: OcclusionStatus['reason']): string {
-  switch (reason) {
-    case 'downloading':
-      return i18n.t(
-        'stylePage.occlusionStatus.downloading',
-        'Downloading the anime occlusion model. This happens once and may take a while.'
-      )
-    case 'taint':
-      return i18n.t(
-        'stylePage.occlusionError.taint',
-        'Occlusion turned off: this video is protected (cross-origin or DRM) and cannot be read.'
-      )
-    case 'unreadable':
-      return i18n.t(
-        'stylePage.occlusionError.unreadable',
-        "Occlusion turned off: the extension could not read this video's frames. The site may be blocking the extra request."
-      )
-    case 'webgpu':
-      return i18n.t(
-        'stylePage.occlusionError.webgpu',
-        'The anime occlusion model needs a WebGPU-capable browser. Switch to the People model or update your browser.'
-      )
-    case 'segment':
-      return i18n.t(
-        'stylePage.occlusionError.segment',
-        'Occlusion ran but produced no result.'
-      )
-    case 'unavailable':
-      return i18n.t(
-        'stylePage.occlusionError.unavailable',
-        'Occlusion is not supported on this video.'
-      )
-    case 'init':
-      return i18n.t(
-        'stylePage.occlusionError.init',
-        'Failed to load the occlusion model.'
-      )
-  }
-}
 
 export const FrameManager = () => {
   const { toast } = useToast()

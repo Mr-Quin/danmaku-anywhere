@@ -65,20 +65,11 @@ describe('frameStrategyFactory', () => {
     })
   })
 
-  it('treats a tainted same-origin source as protected', () => {
-    expect(classify({ currentSrc: `${location.origin}/media/v.webm` })).toEqual(
-      {
-        kind: 'failed',
-        failure: { kind: 'protected', evidence: 'same-origin' },
-      }
-    )
-  })
+  it('clones a tainted same-origin source, which may redirect to a CDN', () => {
+    const plan = classify({ currentSrc: `${location.origin}/media/v.webm` })
 
-  it('resolves a relative source against the page origin', () => {
-    expect(classify({ currentSrc: '/media/v.webm' })).toEqual({
-      kind: 'failed',
-      failure: { kind: 'protected', evidence: 'same-origin' },
-    })
+    expect(plan.kind).toBe('strategy')
+    expect(plan).toHaveProperty('strategy', expect.any(CloneFrameStrategy))
   })
 
   it('treats a tainted blob source as protected', () => {
@@ -94,15 +85,6 @@ describe('frameStrategyFactory', () => {
     expect(classify({ currentSrc: 'data:video/mp4;base64,AAAA' })).toEqual({
       kind: 'failed',
       failure: { kind: 'protected', evidence: 'non-http' },
-    })
-  })
-
-  it('does not read an unparseable source as same-origin', () => {
-    const plan = classify({ currentSrc: 'http://[' })
-
-    expect(plan).not.toEqual({
-      kind: 'failed',
-      failure: { kind: 'protected', evidence: 'same-origin' },
     })
   })
 

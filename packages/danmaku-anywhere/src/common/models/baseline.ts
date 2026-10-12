@@ -38,6 +38,7 @@ export const BASELINE_MANIFEST: ModelManifest = modelManifestSchema.parse({
       url: 'https://assets.danmaku.weeblify.app/models/anime-isnet.onnx',
       sha256:
         'bed52e3bc068689c1b37f73871e184ae65e183cb6232097bb7fb72a72372f60e',
+      sizeBytes: 176_166_467,
       inputSize: 320,
       requiresWebGpu: true,
       capture: { size: 512, preserveAspect: true, minIntervalMs: 500 },

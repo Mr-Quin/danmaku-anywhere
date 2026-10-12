@@ -30,26 +30,13 @@ function classify(video: HTMLVideoElement): FramePlan {
       failure: { kind: 'protected', evidence: 'encrypted' },
     }
   }
-  // Same-origin media cannot taint, so a tainted one is protected.
-  if (isSameOrigin(video.currentSrc)) {
-    return {
-      kind: 'failed',
-      failure: { kind: 'protected', evidence: 'same-origin' },
-    }
-  }
   if (!/^https?:/i.test(video.currentSrc)) {
     return {
       kind: 'failed',
       failure: { kind: 'protected', evidence: 'non-http' },
     }
   }
+  // A same-origin URL still taints when it redirects to another origin, as
+  // signed CDN links do, so it gets the same recovery as a cross-origin one.
   return { kind: 'strategy', strategy: new CloneFrameStrategy(video) }
-}
-
-function isSameOrigin(src: string): boolean {
-  try {
-    return new URL(src, location.href).origin === location.origin
-  } catch {
-    return false
-  }
 }

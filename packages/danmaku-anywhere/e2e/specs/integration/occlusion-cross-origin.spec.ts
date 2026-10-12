@@ -13,8 +13,10 @@ import { applyProfile } from '../../setup/profile'
  * Occlusion cross-origin behavior over real network (route-fulfilled .invalid
  * origins can't exercise DNR). Page on localhost:8889, video on 127.0.0.1:8889,
  * so the canvas genuinely taints. Asserts recovery through the DNR clone for a
- * plain, Origin-blocked, once-rejected, slow, and swapped source, and that a
- * source nothing can rescue reports the video unreadable, playback intact.
+ * plain, Origin-blocked, once-rejected, slow, and swapped source, and for a
+ * same-origin URL that redirects to a CORS-enabled CDN, which must not be
+ * reported as protected. A source nothing can rescue reports the video
+ * unreadable, playback intact.
  */
 
 const PAGE_ORIGIN = 'http://localhost:8889'
@@ -29,6 +31,7 @@ const VIDEO_UNRECOVERABLE = `${MEDIA_ORIGIN}/cors-fail/media/sample-motion.webm`
 const VIDEO_ORIGIN_BLOCKED = `${MEDIA_ORIGIN}/origin-block/media/sample-motion.webm`
 const VIDEO_FLAKY_CLONE = `${MEDIA_ORIGIN}/flaky-clone/media/sample-motion.webm`
 const VIDEO_SLOW_CLONE = `${MEDIA_ORIGIN}/slow-clone/media/sample-motion.webm`
+const VIDEO_SAME_ORIGIN_REDIRECT = `${PAGE_ORIGIN}/redirect-cdn/media/sample-motion.webm`
 const MOUNT_PATTERN = `${PAGE_ORIGIN}/*`
 
 const EPISODE_TITLE = 'DA Harness Native Video'
@@ -152,6 +155,27 @@ test('occlusion recovers a cross-origin tainted video via the DNR clone', async 
   await expect
     .poll(() => maskImageOf(integrationPage.danmuContainer()))
     .toMatch(/^url\(/)
+})
+
+test('occlusion recovers a same-origin URL that redirects to a CDN', async ({
+  context,
+  page,
+}) => {
+  const da = await seedOcclusionMount(context)
+  const integrationPage = new IntegrationPage(page)
+  const toast = new Toast(page)
+
+  await page.bringToFront()
+  await page.goto(PAGE_URL)
+  await setVideoSrc(page, VIDEO_SAME_ORIGIN_REDIRECT)
+
+  await expect.poll(() => videoTaintState(page)).toBe('SecurityError')
+  await da.mount.waitForMount(undefined, 15_000)
+
+  await expect
+    .poll(() => maskImageOf(integrationPage.danmuContainer()))
+    .toMatch(/^url\(/)
+  await expect(toast.bySeverity('error')).toHaveCount(0)
 })
 
 test('occlusion recovers when the source rejects a clone request carrying Origin', async ({
