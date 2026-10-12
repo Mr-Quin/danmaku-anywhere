@@ -162,7 +162,7 @@ type VideoInfo = {
 }
 
 export const getVideoUrlFromResponse = (
-  res: chrome.webRequest.WebResponseHeadersDetails
+  res: chrome.webRequest.OnResponseStartedDetails
 ): VideoInfo | undefined => {
   const url = new URL(res.url)
   const [_, ext] = ccFileNameParse(url.pathname)

@@ -132,8 +132,8 @@ export const createTab = async (
       state: 'minimized',
     })
 
-    if (!win.id || !win.tabs || !win.tabs[0].id) {
-      if (win.id !== undefined) {
+    if (!win?.id || !win.tabs || !win.tabs[0].id) {
+      if (win?.id !== undefined) {
         await removeWindow(win.id)
       }
       throw new Error('Failed to create window')

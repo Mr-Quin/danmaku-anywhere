@@ -286,7 +286,7 @@ export class RpcManager {
           return null
         }
 
-        return chrome.alarms.get(name)
+        return (await chrome.alarms.get(name)) ?? null
       },
       getFrameId: async (_, sender) => {
         if (sender.frameId === undefined) {

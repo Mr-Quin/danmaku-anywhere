@@ -95,7 +95,7 @@ export class ExtStorageService<T> {
       const change = changes[this.key as string]
 
       if (change) {
-        this.#notifyListeners(change.newValue)
+        this.#notifyListeners(change.newValue as T | undefined)
       }
     }
 

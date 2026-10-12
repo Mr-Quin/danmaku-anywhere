@@ -22,7 +22,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
-    "@types/chrome": "^0.0.325",
+    "@types/chrome": "^0.3.5",
     "vitest": "^4.1.11"
   }
 }

@@ -83,6 +83,7 @@ export class ScriptingManager {
       return chrome.scripting.updateContentScripts([
         {
           id: MAIN_CONTENT_SCRIPT_ID,
+          js: [contentScript],
           matches: patterns,
         },
       ])

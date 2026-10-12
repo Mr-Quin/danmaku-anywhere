@@ -62,11 +62,11 @@ class RpcServer<TRecords extends RPCRecord> {
     }
   }
 
-  listen(messageEvent: chrome.runtime.ExtensionMessageEvent) {
+  listen(messageEvent: typeof chrome.runtime.onMessage) {
     messageEvent.addListener(this.listener)
   }
 
-  unlisten(messageEvent: chrome.runtime.ExtensionMessageEvent) {
+  unlisten(messageEvent: typeof chrome.runtime.onMessage) {
     messageEvent.removeListener(this.listener)
   }
 
