@@ -2,10 +2,6 @@ import { Add, Code } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import { ListAddButton } from '@/common/components/ListAddButton'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
-import {
-  DanmakuSourceType,
-  localizedDanmakuSourceType,
-} from '@/common/danmaku/enums'
 
 interface ProviderAddMenuProps {
   onAddDanDanPlayProvider: () => void
@@ -29,21 +25,35 @@ export const ProviderAddMenu = ({
       items={[
         {
           id: 'add-dandanplay',
-          label: localizedDanmakuSourceType(DanmakuSourceType.DanDanPlay),
+          label: t('providers.add.dandanplay', 'DanDanPlay-compatible server'),
+          secondary: t(
+            'providers.add.dandanplayHint',
+            'A self-hosted or third-party server'
+          ),
           onClick: onAddDanDanPlayProvider,
           icon: <Add />,
         },
         {
           id: 'add-maccms',
-          label: localizedDanmakuSourceType(DanmakuSourceType.MacCMS),
+          label: t('providers.add.vod', 'VOD'),
+          secondary: t(
+            'providers.add.vodHint',
+            'Danmaku API of a MacCMS video site'
+          ),
           onClick: onAddMacCmsProvider,
           icon: <Add />,
         },
+        { kind: 'separator', id: 'advanced-separator' },
         {
           id: 'author-manifest',
-          label: t('providers.editor.manifest.author', 'Author a manifest'),
+          label: t('providers.add.manifest', 'Custom source from manifest'),
+          secondary: t(
+            'providers.add.manifestHint',
+            'Advanced: write the source as JSON'
+          ),
           onClick: onAuthorManifest,
           icon: <Code />,
+          color: 'text.secondary',
         },
       ]}
     />

@@ -5,6 +5,7 @@ export type DAMenuItemConfig =
       kind?: 'item'
       icon: ReactNode
       label: string
+      secondary?: string
       id: string
       onClick: () => void
       disabled?: boolean

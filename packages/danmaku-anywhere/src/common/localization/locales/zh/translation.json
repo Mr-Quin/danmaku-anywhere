@@ -623,15 +623,23 @@
     "uploadDebugDataSuccess": "提交成功 {{ id }}"
   },
   "providers": {
+    "add": {
+      "dandanplay": "弹弹play 兼容服务器",
+      "dandanplayHint": "自建或第三方服务器",
+      "manifest": "从配置创建自定义弹幕源",
+      "manifestHint": "高级：以 JSON 编写弹幕源",
+      "vod": "VOD",
+      "vodHint": "MacCMS 影视站的弹幕接口"
+    },
     "alert": {
       "created": "弹幕源已创建",
       "deleted": "弹幕源已删除",
       "updated": "弹幕源已更新"
     },
     "attention": {
+      "optionalTitle": "可选登录",
       "signIn": "登录",
-      "signInHint": "登录以获取完整弹幕",
-      "title": "存在问题"
+      "signInHint": "登录以获取完整弹幕"
     },
     "catalog": {
       "checked": {
@@ -649,18 +657,17 @@
       "version": "v{{version}}"
     },
     "delete": {
-      "manifestMessage": "删除“{{name}}”？这将移除该配置及其实例，已保存的弹幕将无法再刷新。",
+      "confirm": "删除“{{name}}”？将取消关注来自该弹幕源的番剧，已保存的番剧也无法再刷新。重新添加该弹幕源不会恢复关注。",
+      "manifestConfirm": "删除“{{name}}”？这将移除该配置及其实例，取消关注来自它的番剧，已保存的弹幕也无法再刷新。",
       "manifestTitle": "删除自定义源",
-      "message": "确定要删除 \"{{name}}\" 吗？删除后，与此弹幕源相关的所有番剧将无法刷新。",
       "title": "删除弹幕源"
     },
     "editor": {
       "addItem": "添加",
       "builtinServerLocked": "内置来源的服务器设置不能修改。如需使用其他服务器，请添加实例。",
       "manifest": {
-        "author": "新建配置",
         "beta": "Beta",
-        "createTitle": "新建配置",
+        "createTitle": "自定义弹幕源",
         "duplicate": "复制",
         "editTitle": "编辑配置",
         "importFailed": "配置已保存，但创建弹幕源失败：{{message}}。请从列表中导入。",

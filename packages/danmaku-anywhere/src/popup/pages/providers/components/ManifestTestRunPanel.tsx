@@ -118,6 +118,7 @@ export const ManifestTestRunPanel = ({
             }
             disabled={disabled || search.isPending || keyword.trim() === ''}
             onClick={handleSearch}
+            sx={{ flexShrink: 0, whiteSpace: 'nowrap', alignSelf: 'stretch' }}
           >
             {t('providers.editor.testRun.search', 'Search')}
           </Button>

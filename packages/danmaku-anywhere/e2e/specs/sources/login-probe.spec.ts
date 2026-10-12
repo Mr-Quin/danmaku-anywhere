@@ -6,13 +6,13 @@ import { applyProfile } from '../../setup/profile'
  * Verifies the manifest-driven loginProbe flow end-to-end: opening /providers
  * probes each enabled source via providerProbeLogin(manifestId). The background
  * routes each manifest's loginProbe through the engine; sources reporting
- * logged-out surface in the "Needs attention" callout with a Sign in action,
+ * logged-out surface in the "Optional sign-in" callout with a Sign in action,
  * and the callout is absent when every probe reports logged-in.
  */
 
 // Probe-warning matchers used only here; the providers list has no POM for the
-// "needs attention" state and a single spec doesn't warrant one.
-const ATTENTION = /Needs attention|存在问题/
+// sign-in callout and a single spec doesn't warrant one.
+const ATTENTION = /Optional sign-in|可选登录/
 const SIGN_IN = /^(Sign in|登录)$/
 
 const NAV_URL = /api\.bilibili\.com\/x\/web-interface\/nav/

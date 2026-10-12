@@ -27,7 +27,7 @@ export const NeedsAttentionCallout = ({
   return (
     <Box sx={{ pb: 0.5 }}>
       <SectionHeader
-        title={t('providers.attention.title', 'Needs attention')}
+        title={t('providers.attention.optionalTitle', 'Optional sign-in')}
         count={attention.length}
       />
       <Box
@@ -54,7 +54,7 @@ export const NeedsAttentionCallout = ({
               action={
                 <Button
                   size="small"
-                  variant="outlined"
+                  variant="text"
                   disabled={!canSignIn}
                   onClick={() => chrome.tabs.create({ url })}
                 >

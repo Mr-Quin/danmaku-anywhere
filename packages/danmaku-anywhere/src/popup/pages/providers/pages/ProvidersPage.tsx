@@ -150,8 +150,8 @@ export const ProvidersPage = (): ReactElement => {
     dialog.delete({
       title: t('providers.delete.title', 'Delete Provider'),
       content: t(
-        'providers.delete.message',
-        'Are you sure you want to delete "{{name}}"? Once a provider is deleted, the season and episodes associated with it will no longer be able to be refreshed.',
+        'providers.delete.confirm',
+        'Delete "{{name}}"? Seasons you follow from it are unfollowed, and its saved seasons can no longer be refreshed. Adding the source again does not bring the follows back.',
         { name: provider.name }
       ),
       confirmText: t('common.delete', 'Delete'),
@@ -176,8 +176,8 @@ export const ProvidersPage = (): ReactElement => {
     dialog.delete({
       title: t('providers.delete.manifestTitle', 'Delete custom source'),
       content: t(
-        'providers.delete.manifestMessage',
-        'Delete "{{name}}"? This removes the manifest and its instances; saved danmaku for it can no longer be refreshed.',
+        'providers.delete.manifestConfirm',
+        'Delete "{{name}}"? This removes the manifest and its instances. Seasons you follow from it are unfollowed, and its saved danmaku can no longer be refreshed.',
         { name }
       ),
       confirmText: t('common.delete', 'Delete'),

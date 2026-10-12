@@ -115,7 +115,7 @@ export const ImportResultContent = ({
                   count: totalImportedCount,
                 })}
                 {totalSkipped > 0 &&
-                  ` (${t('importPage.skipped', 'Skpped {{count}} files', { count: totalSkipped })})`}
+                  ` (${t('importPage.skipped', 'Skipped {{count}} files', { count: totalSkipped })})`}
               </Alert>
               <Stack spacing={1}>
                 {customImports.length > 0 && (
