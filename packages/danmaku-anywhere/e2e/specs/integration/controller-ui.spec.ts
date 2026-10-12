@@ -83,7 +83,9 @@ test('iframe fullscreen hides the floating button', async ({
   await expect(integrationPage.floatingButton()).toBeVisible()
 
   await integrationPage.enterIframeFullscreen()
-  await expect(integrationPage.floatingButton()).toHaveCount(0)
+  await expect(
+    integrationPage.floatingButton({ includeInert: true })
+  ).toHaveCount(0)
 
   await page.evaluate(() => document.exitFullscreen())
   await expect(integrationPage.floatingButton()).toBeVisible()

@@ -81,10 +81,16 @@ test('hidden danmaku follow an episode change and stay hidden', async ({
   await integrationPage.playVideo()
   await integrationPage.setVideoTime(FIXTURE_SEEK_TIME_S)
   await da.danmakuRender.waitForRendered(FIXTURE_FIRST_TEXT)
-  await expect(integrationPage.commentElements().first()).toBeAttached()
-  await expect(
-    integrationPage.commentElements().filter({ visible: true })
-  ).toHaveCount(0)
+  // A comment can scroll off before the check runs; seeking again re-emits it.
+  await expect(async () => {
+    await integrationPage.setVideoTime(FIXTURE_SEEK_TIME_S)
+    await expect(integrationPage.commentElements().first()).toBeAttached({
+      timeout: 1_000,
+    })
+    const visibilities = await integrationPage.commentVisibilities()
+    expect(visibilities.length).toBeGreaterThan(0)
+    expect(visibilities).toEqual(visibilities.map(() => 'hidden'))
+  }).toPass({ timeout: 10_000 })
 
   await expect(toast.all()).toHaveCount(0, { timeout: 10_000 })
   await page.keyboard.press('Shift+B')
