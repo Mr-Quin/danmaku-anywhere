@@ -81,7 +81,7 @@ export const Home = () => {
           <Tab
             icon={<BoltOutlinedIcon />}
             iconPosition="top"
-            label={t('tabs.providers', 'Providers')}
+            label={t('tabs.providers', 'Sources')}
             value="/providers"
             to="/providers"
             component={Link}

@@ -27,7 +27,7 @@ test('authoring a manifest saves and auto-imports it as a custom source', async 
   await expect(popup.providers.manifestValid()).toBeVisible()
 
   await popup.providers.save()
-  await popup.toast.expectSuccess(/Manifest saved|配置已保存/)
+  await popup.toast.expectSuccess(/Manifest saved|清单已保存/)
 
   await expect(popup.providers.row('New Source')).toBeVisible()
   await expect(popup.providers.customChip()).toBeVisible()
@@ -52,10 +52,10 @@ test('deleting a custom source removes the manifest and its config', async ({
   await expect(popup.providers.row('New Source')).toBeVisible()
 
   await popup.providers.deleteProvider('New Source')
-  await popup.dialog.expectTitle(/Delete custom source|删除自定义源/)
+  await popup.dialog.expectTitle(/Delete custom source|删除自定义弹幕源/)
   await popup.dialog.confirm()
 
-  await popup.toast.expectSuccess(/Provider deleted|弹幕源已删除/)
+  await popup.toast.expectSuccess(/Source deleted|弹幕源已删除/)
   // Gone entirely: not reachable from Installed nor the catalog section.
   await expect(popup.providers.row('New Source')).toBeHidden()
 

@@ -153,7 +153,7 @@ export const RetentionPolicyPage = () => {
             }
             label={t(
               'optionsPage.dataManagement.wipeData.includeCustomEpisodes',
-              'Include custom episodes'
+              'Also delete local danmaku'
             )}
           />
         </>
@@ -248,7 +248,7 @@ export const RetentionPolicyPage = () => {
                   input: {
                     endAdornment: (
                       <InputAdornment position="end">
-                        {t('common.duration.day', {
+                        {t('common.duration.dayUnit', 'days', {
                           count: Number.parseInt(`${field.value}`),
                         })}
                       </InputAdornment>

@@ -36,7 +36,7 @@ export const ImportPageCore = () => {
         <Typography variant="subtitle2" gutterBottom>
           {t(
             'importPage.importDesc',
-            'When importing local danmaku, file names will be used as episode names. Supports .json, .xml, and .bin (Bilibili protobuf) files'
+            'When importing local danmaku, file names will be used as episode names. Supports .json, .xml, and .bin (Bilibili protobuf) files.'
           )}
         </Typography>
         <FileUpload

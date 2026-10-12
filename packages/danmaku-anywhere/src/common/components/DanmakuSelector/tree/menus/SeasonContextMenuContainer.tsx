@@ -75,7 +75,7 @@ export const SeasonContextMenuContainer = ({
       title: t('common.confirmDeleteTitle', 'Confirm delete'),
       content: t(
         'danmakuPage.confirmDeleteMessage',
-        'Are you sure to delete the selected Danmaku?'
+        'Delete the selected danmaku?'
       ),
       confirmText: t('common.delete', 'Delete'),
       onConfirm: async () => {

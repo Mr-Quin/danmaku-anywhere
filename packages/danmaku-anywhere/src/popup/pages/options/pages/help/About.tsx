@@ -66,7 +66,7 @@ const resources = [
   {
     id: 'reportBug',
     icon: () => <BugReport color="error" />,
-    title: () => i18n.t('aboutPage.reportBug', 'Report a Bug'),
+    title: () => i18n.t('aboutPage.reportBug', 'Report a bug'),
     description: () =>
       i18n.t(
         'aboutPage.reportIssueDescription',

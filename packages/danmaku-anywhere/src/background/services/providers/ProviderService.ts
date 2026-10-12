@@ -28,6 +28,7 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
+import { SourceError } from '@/common/providers/SourceError'
 import type {
   ProviderLoginStatus,
   ProviderManifestList,
@@ -126,7 +127,8 @@ export class ProviderService {
       await this.providerConfigService.getAll()
     )
     if (!config) {
-      throw new Error(
+      throw new SourceError(
+        'sourceRemoved',
         'This source has been removed, so new danmaku cannot be fetched.'
       )
     }
@@ -142,8 +144,10 @@ export class ProviderService {
 
     const service = this.danmakuProviderFactory(providerConfig)
     if (!service.getEpisodes) {
-      throw new Error(
-        `${providerConfig.name} does not support fetching episodes`
+      throw new SourceError(
+        'episodesUnsupported',
+        `${providerConfig.name} does not support fetching episodes`,
+        providerConfig.name
       )
     }
     const episodes = await service.getEpisodes(season.providerIds)
@@ -214,7 +218,11 @@ export class ProviderService {
 
     const service = this.danmakuProviderFactory(config)
     if (!service.getDanmaku) {
-      throw new Error(`${config.name} episodes cannot be refetched`)
+      throw new SourceError(
+        'refetchUnsupported',
+        `${config.name} episodes cannot be refetched`,
+        config.name
+      )
     }
 
     const comments = await service.getDanmaku(resolved)
@@ -268,7 +276,10 @@ export class ProviderService {
       }
     }
 
-    throw new Error('No provider found capable of parsing URL')
+    throw new SourceError(
+      'noUrlParser',
+      'No provider found capable of parsing URL'
+    )
   }
 
   async probeLogin<T = unknown>(manifestId: string): Promise<T | null> {

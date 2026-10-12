@@ -33,7 +33,7 @@ test('catalog: refresh surfaces an uninstalled source and import installs it', a
 
   await popup.providers.import(iqiyiName)
 
-  await popup.toast.expectSuccess(/Provider created|创建/)
+  await popup.toast.expectSuccess(/Source created|弹幕源已创建/)
   await expect(popup.providers.importButton(iqiyiName)).toBeHidden()
   await expect(popup.providers.row(iqiyiName)).toBeVisible()
 

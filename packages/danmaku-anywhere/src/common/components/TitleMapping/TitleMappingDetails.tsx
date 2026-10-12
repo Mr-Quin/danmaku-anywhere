@@ -120,7 +120,7 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
                 isOptionEqualToValue={(option, value) => option.id === value.id}
                 noOptionsText={t(
                   'titleMapping.noSeasons',
-                  'No options for the selected provider'
+                  'No options for the selected source'
                 )}
                 slotProps={{
                   popper: {

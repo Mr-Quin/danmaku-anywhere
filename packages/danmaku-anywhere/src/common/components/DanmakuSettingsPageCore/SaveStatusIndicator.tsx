@@ -17,7 +17,7 @@ export const SaveStatusIndicator = ({ status }: SaveStatusIndicatorProps) => {
           icon: (
             <Sync sx={{ fontSize: 16, animation: 'spin 1s linear infinite' }} />
           ),
-          text: t('common.saving', 'Saving...'),
+          text: t('common.saving', 'Saving…'),
           color: 'primary.main',
         }
       case 'saved':

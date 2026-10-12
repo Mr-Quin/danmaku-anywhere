@@ -6,12 +6,12 @@
     "message": "A browser extension that injects danmaku into almost any website with a video player."
   },
   "menuAddMountConfig": {
-    "message": "Add Config for this site"
+    "message": "Add mount config for this site"
   },
   "menuEnableMountConfig": {
-    "message": "Enable Config: $1"
+    "message": "Enable config: $1"
   },
   "menuDisableMountConfig": {
-    "message": "Disable Config: $1"
+    "message": "Disable config: $1"
   }
 }

@@ -129,7 +129,7 @@ export const SignUpForm = () => {
           {isPending ? (
             <CircularProgress size={24} />
           ) : (
-            t('optionsPage.auth.signUp', 'Sign Up')
+            t('optionsPage.auth.signUp', 'Sign up')
           )}
         </Button>
       </Stack>

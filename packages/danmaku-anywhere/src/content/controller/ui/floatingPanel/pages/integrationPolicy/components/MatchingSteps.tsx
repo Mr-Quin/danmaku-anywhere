@@ -11,6 +11,7 @@ import {
 } from '@mui/material'
 import { type ReactNode, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { aiProviderDisplayName } from '@/common/options/aiProviderConfig/aiProviderDisplayName'
 import { useAiProviderConfig } from '@/common/options/aiProviderConfig/useAiProviderConfig'
 import { useImportShareCodeDialog } from '@/common/options/combinedPolicy/useImportShareCodeDialog'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
@@ -133,10 +134,12 @@ export const MatchingSteps = () => {
             return null
           }
 
+          const provider = getProviderById(aiConfig.providerId)
+
           return (
             <>
               <Typography variant="subtitle2">
-                {getProviderById(aiConfig.providerId)?.name}
+                {provider ? aiProviderDisplayName(provider) : null}
               </Typography>
               <Button
                 variant="contained"

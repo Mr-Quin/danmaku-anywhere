@@ -65,14 +65,14 @@ function chipFor(
       }
     case 'whitelist':
       return {
-        label: t('danmaku.disposition.whitelist', 'White list'),
+        label: t('danmaku.disposition.whitelist', 'Whitelist'),
         color: 'info',
       }
     case 'head':
       return {
         label: t(
           'danmaku.disposition.collapseHead',
-          'Collapse head: {{label}} ×{{count}}',
+          'Shown as {{label}} ×{{count}}',
           { label: decision.label, count: decision.finalCount }
         ),
         color: 'secondary',
