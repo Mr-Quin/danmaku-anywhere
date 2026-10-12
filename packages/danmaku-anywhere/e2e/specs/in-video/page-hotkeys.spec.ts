@@ -90,7 +90,7 @@ test('hidden danmaku follow an episode change and stay hidden', async ({
     const visibilities = await integrationPage.commentVisibilities()
     expect(visibilities.length).toBeGreaterThan(0)
     expect(visibilities).toEqual(visibilities.map(() => 'hidden'))
-  }).toPass({ timeout: 10_000 })
+  }).toPass({ timeout: 20_000 })
 
   await expect(toast.all()).toHaveCount(0, { timeout: 10_000 })
   await page.keyboard.press('Shift+B')

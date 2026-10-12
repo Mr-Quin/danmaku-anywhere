@@ -4,7 +4,6 @@ import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isPersistedSeason } from '@/common/anime/utils'
 import { SeasonGrid } from '@/common/components/Season/SeasonGrid'
-import { useToast } from '@/common/components/Toast/toastStore'
 import { isCustomEpisode, isCustomSeason } from '@/common/danmaku/utils'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
@@ -13,7 +12,6 @@ import { useStore } from '@/content/controller/store/store'
 
 export const SelectorPage = () => {
   const { t } = useTranslation()
-  const { toast } = useToast()
 
   const selectorBoxRef = useRef<HTMLDivElement>(undefined)
   const { animes, toggleOpen } = usePopup()
@@ -53,26 +51,17 @@ export const SelectorPage = () => {
         }
         loadMutation.mutate(
           {
-            type: 'by-meta',
-            meta: result.data.data,
-            options: {
-              forceUpdate: false,
+            request: {
+              type: 'by-meta',
+              meta: result.data.data,
+              options: {
+                forceUpdate: false,
+              },
             },
           },
           {
             onSettled: () => {
               toggleOpen()
-            },
-            onError: () => {
-              toast.error(
-                t(
-                  'danmaku.alert.fetchError',
-                  'Failed to fetch danmaku: {{message}}',
-                  {
-                    message: selectedSeason.title,
-                  }
-                )
-              )
             },
           }
         )

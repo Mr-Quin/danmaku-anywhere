@@ -68,8 +68,16 @@ const useMountDanmaku = () => {
   })
 }
 
+const REFRESH_TOAST_ID = 'refresh-danmaku'
+
 interface MountDanmakuOptions {
-  displayName?: string
+  // The caller reports the result itself
+  silent?: boolean
+}
+
+interface LoadDanmakuInput {
+  request: DanmakuFetchDto
+  silent?: boolean
 }
 
 function isOnlyMounted(episode: Episode): boolean {
@@ -99,31 +107,36 @@ export const useLoadDanmaku = () => {
     isSourceEpisode(episodes[0]) &&
     episodes[0].season.manifestId === 'dandanplay'
 
+  const describeMounted = useEventCallback(
+    (episode: GenericEpisode, name?: string) => {
+      const refreshable =
+        isSourceEpisode(episode) && episode.season.manifestId === 'dandanplay'
+      return {
+        message: t(
+          'danmaku.alert.mounted',
+          'Mounted {{name}}: {{count}} comments',
+          {
+            name: name ?? episodeToString(episode),
+            count: episode.commentCount,
+          }
+        ),
+        actionFn: refreshable ? refreshComments : undefined,
+        actionLabel: t('danmaku.refresh', 'Refresh Danmaku'),
+      }
+    }
+  )
+
   const mountDanmaku = useEventCallback(
     (episodes: GenericEpisode[], options: MountDanmakuOptions = {}) => {
       return mountMutation.mutateAsync(episodes, {
         // This is called in addition to the onSuccess of mountMutation
         onSuccess: () => {
+          if (options.silent) {
+            return
+          }
           if (episodes.length === 1) {
-            const episode = episodes[0]
-            toast.success(
-              t(
-                'danmaku.alert.mounted',
-                'Mounted {{name}}: {{count}} comments',
-                {
-                  name: options.displayName ?? episodeToString(episode),
-                  count: episode.commentCount,
-                }
-              ),
-              {
-                actionFn:
-                  isSourceEpisode(episode) &&
-                  episode.season.manifestId === 'dandanplay'
-                    ? refreshComments
-                    : undefined,
-                actionLabel: t('danmaku.refresh', 'Refresh Danmaku'),
-              }
-            )
+            const { message, ...action } = describeMounted(episodes[0])
+            toast.success(message, action)
           } else {
             toast.success(
               t(
@@ -141,15 +154,17 @@ export const useLoadDanmaku = () => {
   )
 
   const loadMutation = useMutation({
-    mutationFn: async (data: DanmakuFetchDto) => {
-      return fetchMutation.mutateAsync(data, {
-        onSuccess: ({ episode, keptStored }) => {
-          if (keptStored && isOnlyMounted(episode)) {
-            return
-          }
-          mountDanmaku([episode])
-        },
-      })
+    mutationFn: async ({ request, silent = false }: LoadDanmakuInput) => {
+      const result = await fetchMutation.mutateAsync(request)
+      if (result.keptStored && isOnlyMounted(result.episode)) {
+        return { ...result, mounted: false }
+      }
+      // A mount failure is already reported by the mount mutation.
+      const mounted = await mountDanmaku([result.episode], { silent }).then(
+        () => true,
+        () => false
+      )
+      return { ...result, mounted }
     },
   })
 
@@ -173,31 +188,37 @@ export const useLoadDanmaku = () => {
       return
     }
 
-    toast.info(t('danmaku.alert.refreshingDanmaku', 'Refreshing danmaku'))
-    loadMutation.mutate(
-      {
-        type: 'by-meta',
-        meta: episode as WithSeason<Episode>,
-        options: { forceUpdate: true },
-      },
-      {
-        onSuccess: ({ episode: refreshed, keptStored }) => {
-          if (keptStored) {
-            return
-          }
-          toast.success(
-            t(
-              'danmaku.alert.refreshed',
-              'Refreshed {{name}}: {{count}} comments',
-              {
-                name: episodeToString(refreshed),
-                count: refreshed.commentCount,
-              }
-            )
-          )
-        },
+    toast.info(t('danmaku.alert.refreshingDanmaku', 'Refreshing danmaku'), {
+      id: REFRESH_TOAST_ID,
+      duration: null,
+      loading: true,
+    })
+    try {
+      const { episode: refreshed, keptStored } = await loadMutation.mutateAsync(
+        {
+          request: {
+            type: 'by-meta',
+            meta: episode as WithSeason<Episode>,
+            options: { forceUpdate: true },
+          },
+          silent: true,
+        }
+      )
+      // useFetchDanmaku reports a kept-stored refetch and any failure itself.
+      if (keptStored) {
+        toast.dismiss(REFRESH_TOAST_ID)
+        return
       }
-    )
+      toast.success(
+        t('danmaku.alert.refreshed', 'Refreshed {{name}}: {{count}} comments', {
+          name: episodeToString(refreshed),
+          count: refreshed.commentCount,
+        }),
+        { id: REFRESH_TOAST_ID }
+      )
+    } catch {
+      toast.dismiss(REFRESH_TOAST_ID)
+    }
   })
 
   return {
@@ -206,5 +227,6 @@ export const useLoadDanmaku = () => {
     refreshComments,
     canRefresh,
     mountDanmaku,
+    describeMounted,
   }
 }

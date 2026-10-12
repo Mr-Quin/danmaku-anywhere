@@ -15,7 +15,7 @@ interface AlertWithIndicatorProps {
   pause?: boolean
 }
 
-const AlertWithIndicator = styled(Alert, {
+export const AlertWithIndicator = styled(Alert, {
   shouldForwardProp: (prop) => prop !== 'pause',
 })<AlertWithIndicatorProps>(({ severity, duration, pause, theme }) => {
   const opaqueBase = {
@@ -75,13 +75,12 @@ interface StackableSnackbarProps {
 const StackableSnackbar = styled(Snackbar, {
   shouldForwardProp: (prop) =>
     !['stackable', 'pause'].some((key) => key === prop),
-})<StackableSnackbarProps>(({ stackable, index, anchorOrigin }) => {
+})<StackableSnackbarProps>(({ stackable, index }) => {
   if (!stackable || index === undefined) return {}
-  const edge = anchorOrigin?.vertical === 'top' ? 'top' : 'bottom'
   return {
     '&.MuiSnackbar-root': {
-      [edge]: `${20 + index * 60}px`,
-      transition: `${edge} 0.3s ease-in-out`,
+      bottom: `${20 + index * 60}px`,
+      transition: 'bottom 0.3s ease-in-out',
     },
   }
 })
@@ -93,7 +92,17 @@ export const Toast = (props: ToastProps) => {
 
   return notifications.map(
     (
-      { key, message, duration, severity, actionLabel, actionFn, open, paused },
+      {
+        key,
+        revision,
+        message,
+        duration,
+        severity,
+        actionLabel,
+        actionFn,
+        open,
+        paused,
+      },
       i
     ) => {
       return (
@@ -101,7 +110,7 @@ export const Toast = (props: ToastProps) => {
           stackable={props.stackable}
           index={i}
           open={open}
-          key={key}
+          key={`${key}:${revision}`}
           autoHideDuration={duration}
           onClose={(_, reason) => {
             if (reason === 'clickaway' && props.disableCloseOnClickAway) return
@@ -118,7 +127,7 @@ export const Toast = (props: ToastProps) => {
           {...props.snackbarProps}
         >
           <AlertWithIndicator
-            duration={duration}
+            duration={duration ?? undefined}
             onClose={() => close(key)}
             onMouseOver={() => pause(key)}
             onMouseLeave={() => unpause(key)}

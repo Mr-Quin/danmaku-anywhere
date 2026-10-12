@@ -106,9 +106,11 @@ export const SeasonDetailsPage = ({
                   meta: WithSeason<EpisodeMeta>
                 ) => {
                   await loadMutation.mutateAsync({
-                    type: 'by-meta',
-                    meta,
-                    options: { forceUpdate: true },
+                    request: {
+                      type: 'by-meta',
+                      meta,
+                      options: { forceUpdate: true },
+                    },
                   })
                 }
 

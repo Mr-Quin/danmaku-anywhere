@@ -9,12 +9,13 @@ import { useActiveConfig } from '@/content/controller/common/context/useActiveCo
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
+import { episodeToast } from '@/content/controller/danmaku/integration/episodeToast'
 import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import type { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { ObserverFactory } from '@/content/controller/danmaku/integration/observers/ObserverFactory'
 import { useStore } from '@/content/controller/store/store'
-import { useSourceErrorToast } from './useSourceErrorToast'
+import { useDescribeSourceError } from './useDescribeSourceError'
 import { useSyncIntegrationManualMode } from './useSyncIntegrationManualMode'
 import { useWarnIncompleteConfig } from './useWarnIncompleteConfig'
 
@@ -43,8 +44,8 @@ export const useIntegrationPolicy = () => {
   } = useStore.use.integration()
 
   const matchEpisode = useMatchEpisode()
-  const showSourceError = useSourceErrorToast()
-  const { loadMutation, mountDanmaku } = useLoadDanmaku()
+  const describeSourceError = useDescribeSourceError()
+  const { loadMutation, mountDanmaku, describeMounted } = useLoadDanmaku()
 
   const integrationPolicy = useActiveIntegration()
   const activeConfig = useActiveConfig()
@@ -87,7 +88,7 @@ export const useIntegrationPolicy = () => {
     newObserver.on({
       statusChange: (status: string) => {
         if (status === 'Extracting video info using AI...') {
-          toast.info(
+          episodeToast.start(
             t('integration.alert.usingAI', 'Using AI to parse show information')
           )
         }
@@ -97,19 +98,19 @@ export const useIntegrationPolicy = () => {
           mediaInfo: state.toJSON(),
           policy: integrationPolicy,
         })
-        if (activeConfig.mode === 'ai') {
-          toast.success(
-            t('integration.alert.AIResult', 'AI Parsing Result: {{title}}', {
-              title: state.toString(),
-            })
-          )
-        }
         if (useStore.getState().danmaku.isMounted) {
           unmountDanmaku.mutate()
         }
 
         setMediaInfo(state)
         setErrorMessage()
+
+        const name = state.toString()
+        episodeToast.start(
+          t('integration.alert.finding', 'Finding danmaku for {{name}}…', {
+            name,
+          })
+        )
 
         const episodeMatchPayload = {
           mapKey: state.getKey(),
@@ -125,11 +126,19 @@ export const useIntegrationPolicy = () => {
             }
             const matched = result.data.data
             if (isCustomEpisode(matched)) {
-              // A local file's title often names only the show.
-              void mountDanmaku([matched], { displayName: state.toString() })
-            } else {
-              loadMutation.mutate(
-                {
+              mountDanmaku([matched], { silent: true }).then(
+                () => {
+                  // A local file's title often names only the show.
+                  const { message, ...action } = describeMounted(matched, name)
+                  episodeToast.succeed(message, action)
+                },
+                () => episodeToast.dismiss()
+              )
+              return
+            }
+            loadMutation.mutate(
+              {
+                request: {
                   type: 'by-meta',
                   meta: matched,
                   options: {
@@ -137,23 +146,33 @@ export const useIntegrationPolicy = () => {
                     automatic: true,
                   },
                 },
-                {
-                  onError: (error) => {
-                    showSourceError({
-                      error,
-                      fallbackMessage: t(
-                        'danmaku.alert.fetchError',
-                        'Failed to fetch danmaku: {{message}}',
-                        {
-                          message: error.message,
-                        }
-                      ),
-                      providerConfigId: matched.season.providerConfigId,
-                    })
-                  },
-                }
-              )
-            }
+                silent: true,
+              },
+              {
+                onSuccess: ({ episode, mounted }) => {
+                  if (!mounted) {
+                    episodeToast.dismiss()
+                    return
+                  }
+                  const { message, ...action } = describeMounted(episode)
+                  episodeToast.succeed(message, action)
+                },
+                onError: (error) => {
+                  const { message, ...action } = describeSourceError({
+                    error,
+                    fallbackMessage: t(
+                      'danmaku.alert.fetchError',
+                      'Failed to fetch danmaku: {{message}}',
+                      {
+                        message: error.message,
+                      }
+                    ),
+                    providerConfigId: matched.season.providerConfigId,
+                  })
+                  episodeToast.fail(message, action)
+                },
+              }
+            )
           },
         })
       },
@@ -162,7 +181,7 @@ export const useIntegrationPolicy = () => {
       },
       error: (error: Error) => {
         getTrackingService().track('integrationPolicyError', { error })
-        toast.error(error.message)
+        episodeToast.fail(error.message)
         setErrorMessage(error.message)
       },
     })
@@ -171,6 +190,7 @@ export const useIntegrationPolicy = () => {
     setObserver(newObserver)
 
     return () => {
+      episodeToast.cancel()
       newObserver.destroy()
       setObserver(null)
     }
@@ -184,6 +204,7 @@ export const useIntegrationPolicy = () => {
       observer.run()
     } else {
       observer.reset()
+      episodeToast.cancel()
       resetIntegration()
     }
   }, [activeFrameVideoKey, observer])
