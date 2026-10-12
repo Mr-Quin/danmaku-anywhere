@@ -5,27 +5,30 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { Logger } from '@/common/Logger'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
+import { useSourceErrorToast } from './useSourceErrorToast'
 
 export const useMatchEpisode = () => {
   const { t } = useTranslation()
 
   const toast = useToast.use.toast()
   const { open, setAnimes } = usePopup()
+  const showSourceError = useSourceErrorToast()
 
   const mutation = useMutation({
     mutationFn: (input: MatchEpisodeInput) => {
       return chromeRpcClient.episodeMatch(input)
     },
     onError: (e) => {
-      toast.error(
-        t(
+      showSourceError({
+        error: e,
+        fallbackMessage: t(
           'integration.alert.matchError',
           'Failed to match episode: {{message}}',
           {
             message: e.message,
           }
-        )
-      )
+        ),
+      })
     },
     onSuccess: (result, v) => {
       switch (result.data.status) {

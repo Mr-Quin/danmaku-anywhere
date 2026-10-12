@@ -75,12 +75,13 @@ interface StackableSnackbarProps {
 const StackableSnackbar = styled(Snackbar, {
   shouldForwardProp: (prop) =>
     !['stackable', 'pause'].some((key) => key === prop),
-})<StackableSnackbarProps>(({ stackable, index }) => {
+})<StackableSnackbarProps>(({ stackable, index, anchorOrigin }) => {
   if (!stackable || index === undefined) return {}
+  const edge = anchorOrigin?.vertical === 'top' ? 'top' : 'bottom'
   return {
     '&.MuiSnackbar-root': {
-      bottom: `${20 + index * 60}px`,
-      transition: 'bottom 0.3s ease-in-out',
+      [edge]: `${20 + index * 60}px`,
+      transition: `${edge} 0.3s ease-in-out`,
     },
   }
 })

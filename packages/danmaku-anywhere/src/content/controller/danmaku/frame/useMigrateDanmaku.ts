@@ -11,7 +11,7 @@ export const useMigrateDanmaku = () => {
   const prevActiveFrameId = useRef<number>(activeFrame?.frameId)
 
   const { mountDanmaku } = useLoadDanmaku()
-  const unmountDanmaku = useUnmountDanmaku()
+  const unmountDanmaku = useUnmountDanmaku({ silent: true })
 
   useEffect(() => {
     if (!activeFrame) {

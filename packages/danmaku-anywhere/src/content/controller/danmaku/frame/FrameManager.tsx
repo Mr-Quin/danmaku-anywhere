@@ -4,9 +4,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
 import { uiContainer } from '@/common/ioc/uiIoc'
 import { Logger } from '@/common/Logger'
-import { i18n } from '@/common/localization/i18n'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
-import { describeSourceError } from '@/common/providers/describeSourceError'
 import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type {
@@ -41,7 +39,7 @@ export const FrameManager = () => {
 
   const { updateFrame } = useStore.use.frame()
 
-  const unmountDanmaku = useUnmountDanmaku()
+  const unmountDanmaku = useUnmountDanmaku({ silent: true })
   const { preloadNext, canLoadNext } = usePreloadNextEpisode()
 
   useMigrateDanmaku()
@@ -116,17 +114,7 @@ export const FrameManager = () => {
     if (frameId !== activeFrame?.frameId || !canLoadNext()) {
       return
     }
-    try {
-      await preloadNext()
-    } catch (err) {
-      toast.error(
-        i18n.t(
-          'danmaku.alert.preloadError',
-          'Failed to preload the next episode: {{message}}',
-          { message: describeSourceError(err) }
-        )
-      )
-    }
+    await preloadNext()
   })
 
   const handleShowPopover = useEventCallback(() => {

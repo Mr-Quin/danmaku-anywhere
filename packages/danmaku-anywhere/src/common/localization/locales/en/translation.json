@@ -63,7 +63,7 @@
     "add": "Follow",
     "refreshEpisodes": "Refresh Episodes",
     "remove": "Following",
-    "tooltip": "Follow to see all episodes in your library anytime, including ones you have not downloaded yet.",
+    "tooltip": "Follow to see all episodes in your library anytime, including ones you have not downloaded yet, and to preload the next episode's danmaku while you watch.",
     "unfollow": "Unfollow"
   },
   "common": {
@@ -182,17 +182,19 @@
       "exported": "Export successful",
       "exportError": "Export failed: {{message}}",
       "fetchError": "Failed to fetch danmaku: {{message}}",
-      "mounted_one": "Danmaku Mounted: {{name}} ({{count}})",
-      "mounted_other": "Danmaku Mounted: {{name}} ({{count}})",
+      "hidden": "Danmaku hidden",
+      "hiddenWithHotkey": "Danmaku hidden ({{hotkey}} to show)",
+      "mounted_one": "Mounted {{name}}: {{count}} comment",
+      "mounted_other": "Mounted {{name}}: {{count}} comments",
       "mountedMultiple_one": "Mounted {{count}} selected danmaku",
       "mountedMultiple_other": "Mounted {{count}} selected danmaku",
       "mountError": "Failed to mount danmaku: {{message}}",
-      "preloadError": "Failed to preload the next episode: {{message}}",
       "refetchKeptStored_one": "Fetched {{fetched}} comment, fewer than the {{stored}} already saved. Kept the saved danmaku.",
       "refetchKeptStored_other": "Fetched {{fetched}} comments, fewer than the {{stored}} already saved. Kept the saved danmaku.",
-      "refreshed_one": "Danmaku Refreshed: {{name}} ({{count}})",
-      "refreshed_other": "Danmaku Refreshed: {{name}} ({{count}})",
+      "refreshed_one": "Refreshed {{name}}: {{count}} comment",
+      "refreshed_other": "Refreshed {{name}}: {{count}} comments",
       "refreshingDanmaku": "Refreshing danmaku",
+      "shown": "Danmaku shown",
       "unmounted": "Danmaku Unmounted",
       "xmlExported": "Export XML successful",
       "xmlExportError": "Failed to export XML: {{message}}"
@@ -287,6 +289,10 @@
   "error": {
     "unknown": "Something went wrong."
   },
+  "floatingButton": {
+    "label": "Open Danmaku Anywhere",
+    "tooltip": "Danmaku Anywhere. Right-click for quick actions"
+  },
   "form": {
     "precision": {
       "alt": "Alt",
@@ -366,14 +372,13 @@
     "alert": {
       "aiDisabledTooPermissive": "AI is disabled because the match pattern is too permissive",
       "AIResult": "AI Parsing Result: {{title}}",
-      "matchedLocalDanmaku": "Matched local danmaku",
       "matchError": "Failed to match episode: {{message}}",
       "noEpisodeFound": "No episode found for {{title}}",
       "noIntegration": "Integration policy not configured",
       "openSearch": "Open search page",
-      "search": "Searching for anime: {{title}}",
-      "usingAI": "Using AI to parse show information",
-      "usingMode": "Using Mode: {{mode}}"
+      "sourceUnreachable": "Couldn't reach {{source}}",
+      "sourceUnreachableUnnamed": "Couldn't reach the danmaku source",
+      "usingAI": "Using AI to parse show information"
     },
     "autoMode": "Auto Mode",
     "createConfig": "Create Integration",
@@ -516,6 +521,7 @@
       "signUpSuccess": "Sign up successful"
     },
     "autoBookmark": "Follow automatically when preloading the next episode",
+    "autoBookmarkDesc": "Follow a show once you are halfway through an episode, so the next episode's danmaku is preloaded.",
     "backup": {
       "alert": {
         "exportSuccess": "Export success",
@@ -631,7 +637,7 @@
     "player": {
       "inPlayerControls": "In-player controls",
       "showDanmakuTimeline": "Show danmaku density",
-      "showDanmakuTimelineDesc": "Overlay a comment-density timeline above the scrubber.",
+      "showDanmakuTimelineDesc": "Draw a comment-density graph along the bottom edge of the video.",
       "showSkipButton": "Show skip button (OP/ED)",
       "showSkipButtonDesc": "Surface a one-tap skip during intro and outro segments."
     },
@@ -844,6 +850,9 @@
   "selectorPage": {
     "noAnimeFound": "Nothing to select from",
     "selectAnime": "Multiple matches found for {{name}}, please select"
+  },
+  "skipButton": {
+    "skipTo": "Skip to {{time}}"
   },
   "stylePage": {
     "customCssDescription": "Custom CSS rules applied to every danmaku. These override other style settings.",

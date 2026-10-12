@@ -63,7 +63,7 @@
     "add": "关注",
     "refreshEpisodes": "刷新剧集",
     "remove": "已关注",
-    "tooltip": "关注此番剧后即可在弹幕库中查看全部剧集，包括尚未下载的。",
+    "tooltip": "关注此番剧后即可在弹幕库中查看全部剧集（包括尚未下载的），并在观看时预加载下一集的弹幕。",
     "unfollow": "取消关注"
   },
   "common": {
@@ -181,13 +181,15 @@
       "exported": "导出成功",
       "exportError": "导出失败：{{message}}",
       "fetchError": "获取弹幕失败：{{message}}",
-      "mounted_other": "弹幕已装填：{{name}} ({{count}})",
+      "hidden": "弹幕已隐藏",
+      "hiddenWithHotkey": "弹幕已隐藏（按 {{hotkey}} 显示）",
+      "mounted_other": "已装填 {{name}}：{{count}} 条弹幕",
       "mountedMultiple_other": "已装填 {{count}} 个选中的弹幕",
       "mountError": "装填弹幕失败：{{message}}",
-      "preloadError": "预加载下一集失败：{{message}}",
       "refetchKeptStored_other": "获取到 {{fetched}} 条弹幕，少于已保存的 {{stored}} 条，已保留原有弹幕。",
-      "refreshed_other": "弹幕已刷新：{{name}} ({{count}})",
+      "refreshed_other": "已刷新 {{name}}：{{count}} 条弹幕",
       "refreshingDanmaku": "正在刷新弹幕",
+      "shown": "弹幕已显示",
       "unmounted": "弹幕已卸载",
       "xmlExported": "导出XML成功",
       "xmlExportError": "导出XML失败：{{message}}"
@@ -279,6 +281,10 @@
   "error": {
     "unknown": "出错啦！"
   },
+  "floatingButton": {
+    "label": "打开 Danmaku Anywhere",
+    "tooltip": "Danmaku Anywhere。右键打开快捷操作"
+  },
   "form": {
     "precision": {
       "alt": "Alt",
@@ -352,14 +358,13 @@
     "alert": {
       "aiDisabledTooPermissive": "AI已禁用：匹配模式过于宽松",
       "AIResult": "AI解析结果：{{title}}",
-      "matchedLocalDanmaku": "已匹配本地弹幕",
       "matchError": "匹配剧集失败：{{message}}",
       "noEpisodeFound": "未找到匹配的剧集：{{title}}",
       "noIntegration": "未设置自动化配置",
       "openSearch": "打开搜索页面",
-      "search": "搜索番剧：{{title}}",
-      "usingAI": "正在使用AI解析",
-      "usingMode": "正在使用模式：{{mode}}"
+      "sourceUnreachable": "无法连接到 {{source}}",
+      "sourceUnreachableUnnamed": "无法连接到弹幕源",
+      "usingAI": "正在使用AI解析"
     },
     "autoMode": "自动模式",
     "createConfig": "创建自动化配置",
@@ -496,6 +501,7 @@
       "signUpSuccess": "注册成功"
     },
     "autoBookmark": "预加载下一集时自动关注番剧",
+    "autoBookmarkDesc": "一集看到一半时自动关注该番剧，以便预加载下一集的弹幕。",
     "backup": {
       "alert": {
         "exportSuccess": "成功导出备份",
@@ -609,7 +615,7 @@
     "player": {
       "inPlayerControls": "播放器内控制",
       "showDanmakuTimeline": "显示弹幕密度",
-      "showDanmakuTimelineDesc": "在进度条上方叠加弹幕密度时间轴。",
+      "showDanmakuTimelineDesc": "沿视频底部绘制弹幕密度图。",
       "showSkipButton": "显示跳过按钮（OP/ED）",
       "showSkipButtonDesc": "在片头和片尾显示一键跳过按钮。"
     },
@@ -814,6 +820,9 @@
   "selectorPage": {
     "noAnimeFound": "没有可供选择的内容",
     "selectAnime": "找到多个匹配项：{{name}}，请选择"
+  },
+  "skipButton": {
+    "skipTo": "空降至 {{time}}"
   },
   "stylePage": {
     "customCssDescription": "自定义 CSS 将应用到每条弹幕，并覆盖其他样式设置。",

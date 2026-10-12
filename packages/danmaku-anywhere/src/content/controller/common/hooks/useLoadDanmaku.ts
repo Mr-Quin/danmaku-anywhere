@@ -12,7 +12,6 @@ import type { DanmakuFetchDto, MacCMSFetchData } from '@/common/danmaku/dto'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
 import { episodeToString, isSourceEpisode } from '@/common/danmaku/utils'
-import { describeSourceError } from '@/common/providers/describeSourceError'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { concatArr } from '@/common/utils/utils'
 import { useStore } from '@/content/controller/store/store'
@@ -49,6 +48,14 @@ const useMountDanmaku = () => {
         throw new DanmakuMountError('mountFailed', 'Failed to mount danmaku')
       }
 
+      // A fresh mount renders visible, so carry over a hide the user asked for.
+      if (!useStore.getState().danmaku.isVisible) {
+        await playerRpcClient.player['relay:command:show']({
+          frameId: activeFrame.frameId,
+          data: false,
+        })
+      }
+
       return activeFrame.frameId
     },
     onSuccess: (mountedFrameId, danmaku) => {
@@ -59,6 +66,10 @@ const useMountDanmaku = () => {
       toast.error(describeMountError(err))
     },
   })
+}
+
+interface MountDanmakuOptions {
+  displayName?: string
 }
 
 function isOnlyMounted(episode: Episode): boolean {
@@ -88,44 +99,46 @@ export const useLoadDanmaku = () => {
     isSourceEpisode(episodes[0]) &&
     episodes[0].season.manifestId === 'dandanplay'
 
-  const mountDanmaku = useEventCallback((episodes: GenericEpisode[]) => {
-    return mountMutation.mutateAsync(episodes, {
-      // This is called in addition to the onSuccess of mountMutation
-      onSuccess: () => {
-        if (episodes.length === 1) {
-          const episode = episodes[0]
-          toast.success(
-            t(
-              'danmaku.alert.mounted',
-              'Danmaku Mounted: {{name}} ({{count}})',
+  const mountDanmaku = useEventCallback(
+    (episodes: GenericEpisode[], options: MountDanmakuOptions = {}) => {
+      return mountMutation.mutateAsync(episodes, {
+        // This is called in addition to the onSuccess of mountMutation
+        onSuccess: () => {
+          if (episodes.length === 1) {
+            const episode = episodes[0]
+            toast.success(
+              t(
+                'danmaku.alert.mounted',
+                'Mounted {{name}}: {{count}} comments',
+                {
+                  name: options.displayName ?? episodeToString(episode),
+                  count: episode.commentCount,
+                }
+              ),
               {
-                name: episodeToString(episode),
-                count: episode.commentCount,
-              }
-            ),
-            {
-              actionFn:
-                isSourceEpisode(episode) &&
-                episode.season.manifestId === 'dandanplay'
-                  ? refreshComments
-                  : undefined,
-              actionLabel: t('danmaku.refresh', 'Refresh Danmaku'),
-            }
-          )
-        } else {
-          toast.success(
-            t(
-              'danmaku.alert.mountedMultiple',
-              'Mounted {{count}} selected danmaku',
-              {
-                count: episodes.length,
+                actionFn:
+                  isSourceEpisode(episode) &&
+                  episode.season.manifestId === 'dandanplay'
+                    ? refreshComments
+                    : undefined,
+                actionLabel: t('danmaku.refresh', 'Refresh Danmaku'),
               }
             )
-          )
-        }
-      },
-    })
-  })
+          } else {
+            toast.success(
+              t(
+                'danmaku.alert.mountedMultiple',
+                'Mounted {{count}} selected danmaku',
+                {
+                  count: episodes.length,
+                }
+              )
+            )
+          }
+        },
+      })
+    }
+  )
 
   const loadMutation = useMutation({
     mutationFn: async (data: DanmakuFetchDto) => {
@@ -136,9 +149,6 @@ export const useLoadDanmaku = () => {
           }
           mountDanmaku([episode])
         },
-        onError: (err) => {
-          toast.error(describeSourceError(err))
-        },
       })
     },
   })
@@ -148,9 +158,6 @@ export const useLoadDanmaku = () => {
       return fetchGenericMutation.mutateAsync(data, {
         onSuccess: (cache) => {
           mountDanmaku([cache])
-        },
-        onError: (err) => {
-          toast.error(err.message)
         },
       })
     },
@@ -181,7 +188,7 @@ export const useLoadDanmaku = () => {
           toast.success(
             t(
               'danmaku.alert.refreshed',
-              'Danmaku Refreshed: {{name}} ({{count}})',
+              'Refreshed {{name}}: {{count}} comments',
               {
                 name: episodeToString(refreshed),
                 count: refreshed.commentCount,
