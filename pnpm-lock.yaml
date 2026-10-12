@@ -138,9 +138,6 @@ importers:
       '@fortawesome/free-brands-svg-icons':
         specifier: ^7.3.1
         version: 7.3.1
-      '@ngrx/signals':
-        specifier: ^20.1.0
-        version: 20.1.0(@angular/core@21.2.25(@angular/compiler@21.2.25)(rxjs@7.8.2))(rxjs@7.8.2)
       '@primeuix/themes':
         specifier: ^2.0.3
         version: 2.0.3
@@ -300,9 +297,6 @@ importers:
 
   packages/danmaku-anywhere:
     dependencies:
-      '@ai-sdk/openai':
-        specifier: ^3.0.125
-        version: 3.0.125(zod@4.6.5)
       '@ai-sdk/openai-compatible':
         specifier: ^3.0.67
         version: 3.0.67(zod@4.6.5)
@@ -369,9 +363,6 @@ importers:
       '@mui/icons-material':
         specifier: ^9.5.0
         version: 9.5.0(@mui/material@9.5.0(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@types/react@19.3.0)(react@19.3.0)
-      '@mui/lab':
-        specifier: 9.0.0-beta.3
-        version: 9.0.0-beta.3(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0))(@mui/material@9.5.0(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       '@mui/material':
         specifier: ^9.5.0
         version: 9.5.0(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -633,27 +624,11 @@ packages:
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
 
-  '@ai-sdk/openai@3.0.125':
-    resolution: {integrity: sha512-nTpvcroTmK+XPOHQ3qq4VkRuzP7AOHU2o909JkjRFEJ9SxZZ9UtMPyefm9SLh7G/8A1fjp7lormr6ReUHXqixw==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      zod: ^3.25.76 || ^4.1.8
-
-  '@ai-sdk/provider-utils@4.0.57':
-    resolution: {integrity: sha512-89a7sPvZqXsP3PigcAQLWntu/duIVEcN/RyChAB+j6p3C7NwW767sVttvL8r0+BetTg63uAXQoYHCZZueQKBSw==}
-    engines: {node: '>=18.17'}
-    peerDependencies:
-      zod: ^3.25.76 || ^4.1.8
-
   '@ai-sdk/provider-utils@5.0.58':
     resolution: {integrity: sha512-iXSwKR/7LpHzAlyrUl+bTinwzmZ3Nmup1viwPisM5Gn5cogRdIG4rV9w1ZDuKFcrXyu/AeVs42E1CX/0aNwrfQ==}
     engines: {node: '>=22'}
     peerDependencies:
       zod: ^3.25.76 || ^4.1.8
-
-  '@ai-sdk/provider@3.0.18':
-    resolution: {integrity: sha512-IpefF5ssZVOZCD4Wu7zxt6PwZoGT2HLVjxpJ10Bjx6EAmRfLYJPjyrfxb0RYDlwvXnDb9nkQ7Do/oJVDuRFzew==}
-    engines: {node: '>=18'}
 
   '@ai-sdk/provider@4.0.26':
     resolution: {integrity: sha512-BZ443uBEq6HuMA+Z4b7Hpm65GpZSo7pWqnYqpf/7tAO3C48JbtvAhOE2JnODFj+jodsZzfRHkAyQb64xuD2tZQ==}
@@ -2867,27 +2842,6 @@ packages:
       '@types/react':
         optional: true
 
-  '@mui/lab@9.0.0-beta.3':
-    resolution: {integrity: sha512-V824ch6JKO14QWcsbzqzyrxQpNKfnbq84NchzEH1e5ry5B4l0n+i8TmJwJWwxjMH0yxyE4tKorywGHu4oKRBlA==}
-    engines: {node: '>=14.0.0'}
-    peerDependencies:
-      '@emotion/react': ^11.5.0
-      '@emotion/styled': ^11.3.0
-      '@mui/material': ^9.0.1
-      '@mui/material-pigment-css': ^9.0.1
-      '@types/react': ^17.0.0 || ^18.0.0 || ^19.0.0
-      react: ^17.0.0 || ^18.0.0 || ^19.0.0
-      react-dom: ^17.0.0 || ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      '@emotion/react':
-        optional: true
-      '@emotion/styled':
-        optional: true
-      '@mui/material-pigment-css':
-        optional: true
-      '@types/react':
-        optional: true
-
   '@mui/material@9.5.0':
     resolution: {integrity: sha512-QgqvdVjZoKxP8E8SBxYY6LrdV+kw00moXweZQWBbMMdifPKZAGfUaaXhGKIca6fjKnCL6HJIe/AWWCpqNvyHVw==}
     engines: {node: '>=14.0.0'}
@@ -3137,15 +3091,6 @@ packages:
     peerDependencies:
       '@emnapi/core': ^1.7.1 || ^2.0.0-alpha.4
       '@emnapi/runtime': ^1.7.1 || ^2.0.0-alpha.4
-
-  '@ngrx/signals@20.1.0':
-    resolution: {integrity: sha512-ARAHp5yA131Sw6FEtY8XtYcdGcwW5lgpZaJoDIRxc6i12VO3ZDZYp3M/FQhpIDMDXkXHR+pDqoitrqvzI69aQA==}
-    peerDependencies:
-      '@angular/core': ^20.0.0
-      rxjs: ^6.5.3 || ^7.4.0
-    peerDependenciesMeta:
-      rxjs:
-        optional: true
 
   '@noble/ciphers@2.4.0':
     resolution: {integrity: sha512-AnjFn0Jv92laAkvMrghlFZq4qQCIN/4DxFV/eooqtC2YTjB7kBeLMS2T9KJX4Dn+ZVXLOwK0lSgqDtx9gvxtiw==}
@@ -8737,20 +8682,6 @@ snapshots:
       '@ai-sdk/provider-utils': 5.0.58(zod@4.6.5)
       zod: 4.6.5
 
-  '@ai-sdk/openai@3.0.125(zod@4.6.5)':
-    dependencies:
-      '@ai-sdk/provider': 3.0.18
-      '@ai-sdk/provider-utils': 4.0.57(zod@4.6.5)
-      zod: 4.6.5
-
-  '@ai-sdk/provider-utils@4.0.57(zod@4.6.5)':
-    dependencies:
-      '@ai-sdk/provider': 3.0.18
-      '@standard-schema/spec': 1.1.0
-      eventsource-parser: 3.1.1
-      undici: 6.29.0
-      zod: 4.6.5
-
   '@ai-sdk/provider-utils@5.0.58(zod@4.6.5)':
     dependencies:
       '@ai-sdk/provider': 4.0.26
@@ -8759,10 +8690,6 @@ snapshots:
       eventsource-parser: 3.1.1
       undici: 7.30.0
       zod: 4.6.5
-
-  '@ai-sdk/provider@3.0.18':
-    dependencies:
-      json-schema: 0.4.0
 
   '@ai-sdk/provider@4.0.26':
     dependencies:
@@ -10624,22 +10551,6 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.3.0
 
-  '@mui/lab@9.0.0-beta.3(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0))(@mui/material@9.5.0(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
-    dependencies:
-      '@babel/runtime': 7.29.10
-      '@mui/material': 9.5.0(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@mui/system': 9.5.0(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0)
-      '@mui/types': 9.5.0(@types/react@19.3.0)
-      '@mui/utils': 9.5.0(@types/react@19.3.0)(react@19.3.0)
-      clsx: 2.1.1
-      prop-types: 15.8.1
-      react: 19.3.0
-      react-dom: 19.3.0(react@19.3.0)
-    optionalDependencies:
-      '@emotion/react': 11.14.0(@types/react@19.3.0)(react@19.3.0)
-      '@emotion/styled': 11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0)
-      '@types/react': 19.3.0
-
   '@mui/material@9.5.0(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)':
     dependencies:
       '@babel/runtime': 8.0.7
@@ -10865,13 +10776,6 @@ snapshots:
       '@emnapi/runtime': 1.11.3
       '@tybys/wasm-util': 0.10.4
     optional: true
-
-  '@ngrx/signals@20.1.0(@angular/core@21.2.25(@angular/compiler@21.2.25)(rxjs@7.8.2))(rxjs@7.8.2)':
-    dependencies:
-      '@angular/core': 21.2.25(@angular/compiler@21.2.25)(rxjs@7.8.2)
-      tslib: 2.8.1
-    optionalDependencies:
-      rxjs: 7.8.2
 
   '@noble/ciphers@2.4.0': {}
 
