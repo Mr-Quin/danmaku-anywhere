@@ -747,6 +747,7 @@
     "episodesHint": "点击剧集下载弹幕。已下载的剧集会显示在弹幕库中。",
     "epsCount_other": "{{count}} 集",
     "error": {
+      "network": "无法连接{{name}}，请检查网络后重试。",
       "noProviders": "没有启用的弹幕来源，请在设置中启用",
       "noResultFound": "没有找到结果, 请尝试其他关键词"
     },
@@ -758,12 +759,14 @@
     "moreSources": "更多来源",
     "parse": {
       "alert": {
-        "importSuccess": "导入成功",
-        "parseError": "解析失败"
+        "importSuccess": "导入成功"
       },
+      "failed": "无法解析此链接",
       "import": "获取弹幕",
+      "networkError": "无法连接该网站，请检查网络后重试。",
       "parse": "解析",
       "parsed": "已解析",
+      "searchInstead": "改为按标题搜索",
       "urlDetected": "检测到链接，改为解析"
     },
     "resultsCount_other": "{{count}} 个结果",
@@ -775,6 +778,7 @@
       "sources": "来源",
       "title": "设置"
     },
+    "signInRequired": "{{name}}需要登录才能搜索",
     "title": "搜索",
     "titleMapping": "标题映射",
     "titleMappingDialog": {

@@ -1,5 +1,5 @@
 import type { Episode, WithSeason } from '@danmaku-anywhere/danmaku-converter'
-import { CheckCircle, Download, Info } from '@mui/icons-material'
+import { CheckCircle, Download, ErrorOutlined, Info } from '@mui/icons-material'
 import {
   alpha,
   Box,
@@ -10,7 +10,6 @@ import {
 } from '@mui/material'
 import type { QueryKey } from '@tanstack/react-query'
 import { useQuery } from '@tanstack/react-query'
-import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import {
@@ -21,6 +20,7 @@ import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
+import { isNetworkError } from '@/common/utils/networkError'
 
 const PARSEABLE_HOSTS: Record<string, DanmakuSourceType> = {
   'www.bilibili.com': DanmakuSourceType.Bilibili,
@@ -55,12 +55,14 @@ interface UrlParseSectionProps {
   url: string
   submitToken: number
   onImportSuccess?: (episode: WithSeason<Episode>) => void
+  onSearchInstead?: () => void
 }
 
 export function UrlParseSection({
   url,
   submitToken,
   onImportSuccess,
+  onSearchInstead,
 }: UrlParseSectionProps) {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
@@ -84,12 +86,6 @@ export function UrlParseSection({
   })
 
   const fetchDanmaku = useFetchDanmaku()
-
-  useEffect(() => {
-    if (query.error) {
-      toast.error(t('searchPage.parse.alert.parseError', 'Parse failed'))
-    }
-  }, [query.error, t, toast])
 
   const handleFetchDanmaku = () => {
     if (!query.data) {
@@ -136,6 +132,63 @@ export function UrlParseSection({
       >
         <CircularProgress size={20} />
       </Stack>
+    )
+  }
+
+  if (query.isError) {
+    const reason = isNetworkError(query.error)
+      ? t(
+          'searchPage.parse.networkError',
+          "Couldn't reach the site. Check your connection and try again."
+        )
+      : query.error.message
+    return (
+      <Box
+        data-testid="parse-error"
+        sx={(theme) => ({
+          borderRadius: 1.5,
+          border: `1px solid ${theme.palette.divider}`,
+          backgroundColor: theme.palette.background.paper,
+          padding: 1.5,
+        })}
+      >
+        <Stack spacing={1}>
+          <Stack
+            direction="row"
+            spacing={0.75}
+            sx={{
+              alignItems: 'center',
+            }}
+          >
+            <ErrorOutlined sx={{ fontSize: 14, color: 'error.main' }} />
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              {t('searchPage.parse.failed', "Couldn't parse this URL")}
+            </Typography>
+          </Stack>
+          {reason ? (
+            <Typography
+              variant="body2"
+              sx={{ color: 'text.secondary', overflowWrap: 'anywhere' }}
+            >
+              {reason}
+            </Typography>
+          ) : null}
+          <Stack direction="row" spacing={1}>
+            <Button
+              variant="outlined"
+              size="small"
+              onClick={() => void query.refetch()}
+            >
+              {t('searchPage.retrySearch', 'Retry')}
+            </Button>
+            {onSearchInstead ? (
+              <Button variant="text" size="small" onClick={onSearchInstead}>
+                {t('searchPage.parse.searchInstead', 'Search by title instead')}
+              </Button>
+            ) : null}
+          </Stack>
+        </Stack>
+      </Box>
     )
   }
 

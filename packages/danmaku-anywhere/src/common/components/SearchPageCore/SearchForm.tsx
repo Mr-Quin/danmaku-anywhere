@@ -7,10 +7,14 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import { Download, Search } from '@mui/icons-material'
 import { Box, Button, Skeleton, Stack, Typography } from '@mui/material'
-import { useQueries } from '@tanstack/react-query'
+import { useQueries, useQueryClient } from '@tanstack/react-query'
 import { type ReactNode, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { searchSeasonForProvider } from '@/common/anime/queries/searchSeasonForProvider'
+import {
+  type ProviderSearchFailure,
+  type ProviderSeasonResult,
+  searchSeasonForProvider,
+} from '@/common/anime/queries/searchSeasonForProvider'
 import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
@@ -25,8 +29,19 @@ import { SearchMascot } from './SearchMascot'
 import { SeasonResultsList } from './SeasonResultsList'
 import { SourceFilterChips } from './SourceFilterChips'
 import { isParseableUrl, UrlParseSection } from './UrlParseSection'
+import { useSignInPrompt } from './useSignInPrompt'
 
 type SeasonOrInsert = Season | SeasonInsert | CustomSeason
+
+// A source that failed or came back empty is worth asking again when the user
+// presses Search on the same keyword; a source with results is not.
+function shouldRefetchOnResubmit(result: unknown): boolean {
+  const data = result as ProviderSeasonResult | undefined
+  if (!data) {
+    return false
+  }
+  return !data.success || data.data.length === 0
+}
 
 interface SearchFormProps {
   searchTerm: string
@@ -48,6 +63,7 @@ export function SearchForm({
   focusToken,
 }: SearchFormProps) {
   const { t } = useTranslation()
+  const queryClient = useQueryClient()
 
   const { data: extOptions } = useExtensionOptions()
   const { configs } = useProviderConfig()
@@ -68,20 +84,13 @@ export function SearchForm({
     enabledProviders.find((p) => p.id === providerId)?.id ??
     enabledProviders[0]?.id
 
-  const unknownErrorMessage = t('error.unknown', 'Something went wrong.')
-
   const providerQueries = useQueries({
     queries: enabledProviders.map((provider) => ({
       queryKey: seasonQueryKeys.search({
         keyword: committedSearchTerm,
         providerConfigId: provider.id,
       }),
-      queryFn: () =>
-        searchSeasonForProvider(
-          provider.id,
-          committedSearchTerm,
-          unknownErrorMessage
-        ),
+      queryFn: () => searchSeasonForProvider(provider.id, committedSearchTerm),
       enabled:
         !!committedSearchTerm && !isUrl && provider.id === activeProviderId,
       staleTime: Number.POSITIVE_INFINITY,
@@ -114,6 +123,21 @@ export function SearchForm({
     : undefined
   const activeProvider = enabledProviders.find((p) => p.id === activeProviderId)
 
+  const activeResultEmpty =
+    activeQuery?.data?.success === true && activeQuery.data.data.length === 0
+  const signIn = useSignInPrompt(activeProvider, activeResultEmpty)
+
+  const describeFailure = (failure: ProviderSearchFailure): string => {
+    if (failure.kind === 'network') {
+      return t(
+        'searchPage.error.network',
+        "Couldn't reach {{name}}. Check your connection and try again.",
+        { name: activeProvider?.name ?? '' }
+      )
+    }
+    return failure.message || t('error.unknown', 'Something went wrong.')
+  }
+
   const handleSearchSubmit = (keyword?: string) => {
     const raw = keyword ?? searchTerm
     const trimmed = raw.trim()
@@ -123,6 +147,16 @@ export function SearchForm({
 
     if (!processed) {
       return
+    }
+
+    if (processed === committedSearchTerm) {
+      void queryClient.invalidateQueries({
+        queryKey: seasonQueryKeys.search({ keyword: processed }),
+        predicate: (query) => shouldRefetchOnResubmit(query.state.data),
+      })
+      if (signIn.needsSignIn) {
+        signIn.recheck()
+      }
     }
 
     onSearchTermChange(processed)
@@ -183,6 +217,7 @@ export function SearchForm({
           url={committedParseUrl}
           submitToken={parseSubmitToken}
           onImportSuccess={onImportSuccess}
+          onSearchInstead={() => onSearchTermChange('')}
         />
       )
     }
@@ -215,11 +250,19 @@ export function SearchForm({
           data={activeQuery.data?.success ? activeQuery.data.data : null}
           error={
             activeQuery.data?.success === false
-              ? activeQuery.data.error
+              ? describeFailure(activeQuery.data.error)
+              : undefined
+          }
+          signIn={
+            signIn.needsSignIn
+              ? { sourceName: activeProvider.name, url: signIn.signInUrl }
               : undefined
           }
           onRetry={() => {
             void activeQuery.refetch()
+            if (signIn.needsSignIn) {
+              signIn.recheck()
+            }
           }}
           onSeasonClick={(season) => onSeasonClick(season, activeProvider)}
         />

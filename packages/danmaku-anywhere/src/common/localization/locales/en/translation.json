@@ -771,6 +771,7 @@
     "epsCount_one": "{{count}} ep",
     "epsCount_other": "{{count}} eps",
     "error": {
+      "network": "Couldn't reach {{name}}. Check your connection and try again.",
       "noProviders": "No danmaku sources enabled, please enable in settings",
       "noResultFound": "No results found, try a different search term"
     },
@@ -782,12 +783,14 @@
     "moreSources": "More sources",
     "parse": {
       "alert": {
-        "importSuccess": "Import successful",
-        "parseError": "Parse failed"
+        "importSuccess": "Import successful"
       },
+      "failed": "Couldn't parse this URL",
       "import": "Download Danmaku",
+      "networkError": "Couldn't reach the site. Check your connection and try again.",
       "parse": "Parse",
       "parsed": "Parsed",
+      "searchInstead": "Search by title instead",
       "urlDetected": "URL detected. Parsing instead of searching."
     },
     "resultsCount_one": "{{count}} result",
@@ -800,6 +803,7 @@
       "sources": "Sources",
       "title": "Settings"
     },
+    "signInRequired": "{{name}} needs you to sign in to search",
     "title": "Search",
     "titleMapping": "Map Title",
     "titleMappingDialog": {
