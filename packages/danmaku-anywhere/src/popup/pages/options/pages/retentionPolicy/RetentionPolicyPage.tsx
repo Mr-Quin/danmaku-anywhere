@@ -128,7 +128,7 @@ export const RetentionPolicyPage = () => {
         toast.info(
           t(
             'optionsPage.retentionPolicy.alert.nothingToPurge',
-            'No episodes older than {{days}} days',
+            'No episodes are past the {{days}}-day limit',
             { days: purgeDays }
           )
         )
@@ -141,7 +141,7 @@ export const RetentionPolicyPage = () => {
         ),
         content: t(
           'optionsPage.retentionPolicy.purgeConfirm.content',
-          'Delete {{count}} downloaded episodes not updated in the last {{days}} days, with all of their danmaku? Imported episodes are kept. This cannot be undone.',
+          'Delete {{count}} downloaded episodes not updated within the {{days}}-day limit, along with their danmaku? Imported episodes are kept. This cannot be undone.',
           { count, days: purgeDays }
         ),
         confirmText: t(
