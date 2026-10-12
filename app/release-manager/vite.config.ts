@@ -10,5 +10,10 @@ export default defineConfig({
   server: {
     port: 1420,
     strictPort: true,
+    // Cargo rebuilds into src-tauri/target while Vite is running. Watching
+    // it crashes Vite on Windows with EBUSY on the freshly linked DLL.
+    watch: {
+      ignored: ['**/src-tauri/**'],
+    },
   },
 })
