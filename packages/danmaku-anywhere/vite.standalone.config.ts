@@ -31,7 +31,7 @@ export default defineConfig({
   },
   build: {
     emptyOutDir: true,
-    rollupOptions: {
+    rolldownOptions: {
       input: {
         index: 'index.html',
       },

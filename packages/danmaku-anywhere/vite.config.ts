@@ -130,7 +130,7 @@ export default defineConfig({
   },
   build: {
     emptyOutDir: true,
-    rollupOptions: {
+    rolldownOptions: {
       input: {
         app: 'pages/popup.html',
         dashboard: 'pages/dashboard.html',
