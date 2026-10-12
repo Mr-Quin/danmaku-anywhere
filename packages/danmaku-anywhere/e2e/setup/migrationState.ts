@@ -109,7 +109,7 @@ export async function dismissReleaseNotes(page: Page): Promise<void> {
       timeout: 15_000,
     })
     .toBe(true)
-  await page.getByRole('button', { name: /^(Ok|知道了)$/ }).click()
+  await page.getByRole('button', { name: /^(OK|知道了)$/ }).click()
   await expect
     .poll(() => readShowReleaseNotes(page), {
       message: 'dismissing the release notes turned them off',

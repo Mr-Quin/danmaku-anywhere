@@ -58,7 +58,7 @@ export function parseRule(
         error: () =>
           i18n.t(
             'danmakuFilter.validation.invalidRegex',
-            'Invalid regex {{message}}',
+            'Invalid regex: {{message}}',
             { message: err.message }
           ),
       }

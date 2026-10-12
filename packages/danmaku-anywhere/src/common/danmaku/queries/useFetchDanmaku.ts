@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
+import { describeSourceError } from '@/common/providers/describeSourceError'
 import {
   bookmarkQueryKeys,
   episodeQueryKeys,
@@ -45,6 +46,7 @@ export const useFetchDanmaku = () => {
           'danmaku.alert.refetchKeptStored',
           'Fetched {{fetched}} comments, fewer than the {{stored}} already saved. Kept the saved danmaku.',
           {
+            count: keptStored.fetchedCount,
             fetched: keptStored.fetchedCount,
             stored: keptStored.storedCount,
           }
@@ -52,7 +54,7 @@ export const useFetchDanmaku = () => {
       )
     },
     onError: async (error) => {
-      toast.error(error.message)
+      toast.error(describeSourceError(error))
     },
   })
 

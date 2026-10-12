@@ -23,7 +23,7 @@ export const NothingHere = ({
   return (
     <Center>
       <Typography>
-        {message ?? t('common.itsEmpty', "There's nothing here...")}
+        {message ?? t('common.itsEmpty', "There's nothing here…")}
       </Typography>
       {children}
       <ErrorBoundary fallback={null}>

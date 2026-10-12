@@ -90,7 +90,7 @@ export const SearchPage = (): React.ReactElement | null => {
           <Typography>
             {t(
               'searchPage.error.noProviders',
-              'No danmaku sources enabled, please enable in settings'
+              'No danmaku sources enabled. Enable one on the Sources page.'
             )}
           </Typography>
         </Center>

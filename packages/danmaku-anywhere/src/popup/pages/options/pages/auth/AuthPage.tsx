@@ -36,8 +36,8 @@ export const AuthPage = () => {
           variant="fullWidth"
           sx={{ mb: 3 }}
         >
-          <Tab label={t('optionsPage.auth.signIn', 'Sign In')} value="signIn" />
-          <Tab label={t('optionsPage.auth.signUp', 'Sign Up')} value="signUp" />
+          <Tab label={t('optionsPage.auth.signIn', 'Sign in')} value="signIn" />
+          <Tab label={t('optionsPage.auth.signUp', 'Sign up')} value="signUp" />
         </Tabs>
         <Box
           sx={{

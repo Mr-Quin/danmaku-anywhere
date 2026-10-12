@@ -276,9 +276,11 @@ describe('ProviderService legacy-maccms decoupling', () => {
         search: vi.fn(async () => []),
       })
 
-      await expect(service.fetchEpisodesBySeason(1)).rejects.toThrow(
-        'does not support fetching episodes'
-      )
+      await expect(service.fetchEpisodesBySeason(1)).rejects.toMatchObject({
+        name: 'SourceError',
+        problem: 'episodesUnsupported',
+        sourceName: LEGACY_MACCMS_ID,
+      })
     })
 
     it('throws a source-removed error when the season is orphaned', async () => {
@@ -287,9 +289,10 @@ describe('ProviderService legacy-maccms decoupling', () => {
         configMissing: true,
       })
 
-      await expect(service.fetchEpisodesBySeason(1)).rejects.toThrow(
-        'This source has been removed'
-      )
+      await expect(service.fetchEpisodesBySeason(1)).rejects.toMatchObject({
+        name: 'SourceError',
+        problem: 'sourceRemoved',
+      })
       expect(provider.getEpisodes).not.toHaveBeenCalled()
     })
   })
@@ -445,7 +448,10 @@ describe('ProviderService legacy-maccms decoupling', () => {
 
       await expect(
         service.getDanmaku({ type: 'by-meta', meta: maccmsMeta, options: {} })
-      ).rejects.toThrow('episodes cannot be refetched')
+      ).rejects.toMatchObject({
+        name: 'SourceError',
+        problem: 'refetchUnsupported',
+      })
     })
 
     it('throws a source-removed error when forcing an orphaned season', async () => {
@@ -460,9 +466,19 @@ describe('ProviderService legacy-maccms decoupling', () => {
           meta,
           options: { forceUpdate: true },
         })
-      ).rejects.toThrow('This source has been removed')
+      ).rejects.toMatchObject({ name: 'SourceError', problem: 'sourceRemoved' })
       expect(provider.getDanmaku).not.toHaveBeenCalled()
     })
+  })
+})
+
+describe('ProviderService.parseUrl', () => {
+  it('throws a no-parser source error when no source can parse the URL', async () => {
+    const { service } = build(makeConfig('iqiyi'), makeProvider())
+
+    await expect(
+      service.parseUrl('https://example.com/video/1')
+    ).rejects.toMatchObject({ name: 'SourceError', problem: 'noUrlParser' })
   })
 })
 
@@ -1365,8 +1381,8 @@ describe('ProviderService season resolution by config id', () => {
     )
     const service = buildWithDb([serverAAgain])
 
-    await expect(service.fetchEpisodesBySeason(orphan.id)).rejects.toThrow(
-      'This source has been removed'
-    )
+    await expect(
+      service.fetchEpisodesBySeason(orphan.id)
+    ).rejects.toMatchObject({ name: 'SourceError', problem: 'sourceRemoved' })
   })
 })

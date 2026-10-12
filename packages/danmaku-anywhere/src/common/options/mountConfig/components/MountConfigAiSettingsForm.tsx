@@ -11,6 +11,7 @@ import {
 import { useTranslation } from 'react-i18next'
 import { EXTRACT_TITLE_SYSTEM_PROMPT } from '@/common/ai/prompts'
 import { OutlineAccordion } from '@/common/components/OutlineAccordion'
+import { aiProviderDisplayName } from '@/common/options/aiProviderConfig/aiProviderDisplayName'
 import { useAiProviderConfig } from '@/common/options/aiProviderConfig/useAiProviderConfig'
 import {
   DEFAULT_MOUNT_CONFIG_AI_CONFIG,
@@ -73,7 +74,7 @@ export const MountConfigAiSettingsForm = ({
       >
         {configs.map((config) => (
           <MenuItem key={config.id} value={config.id}>
-            {config.name}
+            {aiProviderDisplayName(config)}
           </MenuItem>
         ))}
       </TextField>

@@ -25,7 +25,7 @@ export const useAddSeasonMap = () => {
       toast.error(
         t(
           'searchPage.alert.mappingFailed',
-          'Failed to save mapping：{{message}}',
+          'Failed to save mapping: {{message}}',
           { message: e.message }
         )
       )

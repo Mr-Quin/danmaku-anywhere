@@ -101,7 +101,7 @@ export const AccountCard = () => {
           </Typography>
         </Box>
         <Button variant="soft" onClick={goToAuth}>
-          {t('optionsPage.auth.signIn', 'Sign In')}
+          {t('optionsPage.auth.signIn', 'Sign in')}
         </Button>
       </Box>
     )

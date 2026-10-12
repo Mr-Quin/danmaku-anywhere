@@ -353,7 +353,7 @@ export function CollapseTab({
       </SettingsBlock>
 
       <SettingsBlock
-        title={t('danmakuFilter.whiteListHeader', 'White List')}
+        title={t('danmakuFilter.whiteListHeader', 'Whitelist')}
         subtitle={t(
           'danmakuFilter.whiteListHint',
           'Rules listed here will not be collapsed or deduped.'
@@ -373,7 +373,7 @@ export function CollapseTab({
             rules={collapse.whiteList}
             onDelete={handleDeleteWhiteList}
             onEdit={onEditWhiteList}
-            emptyText={t('danmakuFilter.noWhiteList', 'No White List')}
+            emptyText={t('danmakuFilter.noWhiteList', 'No whitelist rules')}
           />
         </Stack>
       </SettingsBlock>

@@ -5,6 +5,7 @@ import { DraggableList } from '@/common/components/DraggableList'
 import { ListItemPrimaryStack } from '@/common/components/ListItemPrimaryStack'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { localizedAiProviderType } from '@/common/options/aiProviderConfig/AiProviderType'
+import { aiProviderDisplayName } from '@/common/options/aiProviderConfig/aiProviderDisplayName'
 import { BUILT_IN_AI_PROVIDER_ID } from '@/common/options/aiProviderConfig/constant'
 import type { AiProviderConfig } from '@/common/options/aiProviderConfig/schema'
 import {
@@ -29,7 +30,7 @@ export const AiProviderConfigList = ({
 
   const renderItem = (config: AiProviderConfig) => {
     return (
-      <ListItemPrimaryStack text={config.name}>
+      <ListItemPrimaryStack text={aiProviderDisplayName(config)}>
         <Chip
           label={localizedAiProviderType(config.provider)}
           size="small"

@@ -61,7 +61,7 @@ export const UserProfile = ({ user }: { user: AuthUserInfo }) => {
           onClick={() => signOutMutation.mutate()}
           disabled={signOutMutation.isPending}
         >
-          {t('optionsPage.auth.signOut', 'Sign Out')}
+          {t('optionsPage.auth.signOut', 'Sign out')}
         </Button>
       </Box>
     </Box>

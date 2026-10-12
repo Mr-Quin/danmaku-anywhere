@@ -60,7 +60,7 @@ test('renders configSchema fields and saves a custom DanDanPlay server', async (
   )
   await popup.providers.save()
 
-  await popup.toast.expectSuccess(/Provider updated|弹幕源已更新/)
+  await popup.toast.expectSuccess(/Source updated|弹幕源已更新/)
 
   const saved = await da.providerConfig.get('custom-ddp-form')
   expect(saved?.configValues.baseUrl).toBe('https://compat.example.invalid')
@@ -100,7 +100,7 @@ test('enforces the schema required constraint on auth headers', async ({
   await popup.providers.fillField(/Value|值/, 'secret')
   await popup.providers.save()
 
-  await popup.toast.expectSuccess(/Provider updated|弹幕源已更新/)
+  await popup.toast.expectSuccess(/Source updated|弹幕源已更新/)
 
   const saved = await da.providerConfig.get('custom-ddp-form')
   expect(saved?.configValues.auth).toMatchObject({
@@ -133,7 +133,7 @@ test('edits the built-in Bilibili provider via the generic form', async ({
   )
   await popup.providers.save()
 
-  await popup.toast.expectSuccess(/Provider updated|弹幕源已更新/)
+  await popup.toast.expectSuccess(/Source updated|弹幕源已更新/)
 
   const saved = await da.providerConfig.get('bilibili')
   expect(saved?.name).toBe('Bilibili Custom')
@@ -141,7 +141,7 @@ test('edits the built-in Bilibili provider via the generic form', async ({
 })
 
 const BUILTIN_SERVER_NOTE =
-  /server of a built-in source cannot be changed|内置来源的服务器设置不能修改/
+  /server of a built-in source cannot be changed|内置弹幕源的服务器设置不能修改/
 
 test('hides the server and credential fields of the built-in DanDanPlay', async ({
   context,
@@ -238,7 +238,7 @@ test('lists labelled enum options by their titles', async ({
   await popup.providers.setManifestJson(JSON.stringify(labelledManifest))
   await expect(popup.providers.manifestValid()).toBeVisible()
   await popup.providers.save()
-  await popup.toast.expectSuccess(/Manifest saved|配置已保存/)
+  await popup.toast.expectSuccess(/Manifest saved|清单已保存/)
 
   await popup.providers.edit('Labelled Source')
   await expect(popup.providers.field(/Conversion|转换/)).toHaveText(
@@ -249,7 +249,7 @@ test('lists labelled enum options by their titles', async ({
     /^(To traditional|转为繁体)$/
   )
   await popup.providers.save()
-  await popup.toast.expectSuccess(/Provider updated|弹幕源已更新/)
+  await popup.toast.expectSuccess(/Source updated|弹幕源已更新/)
 
   const saved = (await da.providerConfig.list()).find(
     (config) => config.manifestId === 'user:labelled-source'
@@ -295,7 +295,7 @@ test('enforces configSchema constraints before saving config values', async ({
   await popup.providers.setManifestJson(JSON.stringify(constrainedManifest))
   await expect(popup.providers.manifestValid()).toBeVisible()
   await popup.providers.save()
-  await popup.toast.expectSuccess(/Manifest saved|配置已保存/)
+  await popup.toast.expectSuccess(/Manifest saved|清单已保存/)
 
   await popup.providers.edit('Constrained Source')
   await popup.providers.fillField('Base URL', 'not a url')
@@ -318,7 +318,7 @@ test('enforces configSchema constraints before saving config values', async ({
   await popup.providers.fillField('Limit', '50')
   await popup.providers.save()
 
-  await popup.toast.expectSuccess(/Provider updated|弹幕源已更新/)
+  await popup.toast.expectSuccess(/Source updated|弹幕源已更新/)
 
   const saved = (await da.providerConfig.list()).find(
     (config) => config.manifestId === 'user:constrained-source'

@@ -147,9 +147,9 @@ function ManifestEditor({
       return t('providers.editor.manifest.viewTitle', 'Manifest source')
     }
     if (mode === 'edit') {
-      return t('providers.editor.manifest.editTitle', 'Edit manifest')
+      return t('providers.editor.manifest.editTitle', 'Edit source manifest')
     }
-    return t('providers.editor.manifest.createTitle', 'Author manifest')
+    return t('providers.editor.manifest.createTitle', 'New source manifest')
   }
 
   // Forking a read-only manifest must not reuse its id, or the create-guard

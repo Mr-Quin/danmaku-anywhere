@@ -262,7 +262,7 @@ function modelStateText(
     return t('stylePage.occlusionModels.active', 'Active')
   }
   if (!state.isHosted) {
-    return t('stylePage.occlusionModels.builtIn', 'Built in')
+    return t('stylePage.occlusionModels.builtIn', 'Built-in')
   }
   if (state.isDownloaded && state.downloadedSize !== undefined) {
     return t('stylePage.occlusionModels.downloaded', {

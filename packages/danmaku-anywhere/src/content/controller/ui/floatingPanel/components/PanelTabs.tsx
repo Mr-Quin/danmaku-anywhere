@@ -1,4 +1,5 @@
 import { Badge, Tab } from '@mui/material'
+import { useTranslation } from 'react-i18next'
 import { match } from 'ts-pattern'
 
 import { SidebarTabs } from '@/common/components/SidebarTabs'
@@ -9,6 +10,7 @@ import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 import { routes } from '@/content/controller/ui/router/routes'
 
 export const PanelTabs = () => {
+  const { t } = useTranslation()
   const { tab, setTab } = usePopup()
   const { data: options } = useExtensionOptions()
   const activeConfig = useActiveConfig()
@@ -34,7 +36,11 @@ export const PanelTabs = () => {
   const isIncomplete = isConfigIncomplete(activeConfig)
 
   return (
-    <SidebarTabs value={tab} onChange={handleTabChange} aria-label="Popup">
+    <SidebarTabs
+      value={tab}
+      onChange={handleTabChange}
+      aria-label={t('common.danmakuAnywhere', 'Danmaku Anywhere')}
+    >
       {tabs.map((route) => {
         const icon =
           route.tab === PopupTab.Policy && isIncomplete ? (

@@ -50,7 +50,7 @@ test('a season reparents when its source config is re-added', async ({
   await Popup.open(page, extensionId, '/providers')
   await popup.providers.deleteProvider(/Bilibili|B站/)
   await popup.dialog.confirm()
-  await popup.toast.expectSuccess(/Provider deleted|弹幕源已删除/)
+  await popup.toast.expectSuccess(/Source deleted|弹幕源已删除/)
 
   await Popup.open(page, extensionId, '/mount')
   await popup.mount.waitForSeason(season.id)
@@ -108,7 +108,7 @@ test('a season stays orphaned when its self-hosted source is deleted and re-crea
   await Popup.open(page, extensionId, '/providers')
   await popup.providers.deleteProvider('Home Server')
   await popup.dialog.confirm()
-  await popup.toast.expectSuccess(/Provider deleted|弹幕源已删除/)
+  await popup.toast.expectSuccess(/Source deleted|弹幕源已删除/)
 
   const remaining = await da.providerConfig.list()
   await da.providerConfig.set([

@@ -65,7 +65,7 @@ test('renaming a self-hosted source and moving it to another host keeps its seas
     'https://other-host.invalid/api'
   )
   await popup.providers.save()
-  await popup.toast.expectSuccess(/Provider updated|弹幕源已更新/)
+  await popup.toast.expectSuccess(/Source updated|弹幕源已更新/)
 
   const mount = await Popup.open(page, extensionId, '/mount')
   const seasonItem = await mount.mount.waitForSeason(seasonId)

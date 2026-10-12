@@ -160,7 +160,7 @@ export const ProviderConfigForm = (props: ProviderFormProps) => {
       <ErrorMessage
         message={t(
           'providers.editor.specError',
-          'Failed to load provider settings. Some fields are missing, saving now would drop them.'
+          'Failed to load source settings. Some fields are missing, saving now would drop them.'
         )}
         size={160}
         beforeContent={

@@ -78,7 +78,9 @@ function PipelineBody({ entry }: { entry: PipelineEntry }) {
             {entry.commentCount.toLocaleString()}
           </span>
           <span className="da-ip-count-label">
-            {i18n.t('infoPanel.comments', 'comments')}
+            {i18n.t('infoPanel.comments', 'comments', {
+              count: entry.commentCount,
+            })}
           </span>
           {entry.provider ? (
             <span data-da-ip-source className="da-ip-source">

@@ -25,6 +25,7 @@ import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { assertMacCmsConfig } from '@/common/options/providerConfig/utils'
+import { describeSourceError } from '@/common/providers/describeSourceError'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 
 type SeasonDetailsPageProps = {
@@ -91,7 +92,7 @@ export const SeasonDetailsPage = ({
       >
         <ErrorBoundary
           fallbackRender={({ error }) => (
-            <ErrorMessage message={(error as Error).message} />
+            <ErrorMessage message={describeSourceError(error)} />
           )}
         >
           <Suspense fallback={null}>

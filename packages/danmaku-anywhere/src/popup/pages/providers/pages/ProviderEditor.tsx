@@ -34,7 +34,7 @@ export const ProviderEditor = ({
         { id: provider.id, config: data },
         {
           onSuccess: () => {
-            toast.success(t('providers.alert.updated', 'Provider updated'))
+            toast.success(t('providers.alert.updated', 'Source updated'))
             onClose()
           },
           onError: (error) => {
@@ -46,7 +46,7 @@ export const ProviderEditor = ({
 
     return create.mutate(data, {
       onSuccess: () => {
-        toast.success(t('providers.alert.created', 'Provider created'))
+        toast.success(t('providers.alert.created', 'Source created'))
         onClose()
       },
       onError: (error) => {
@@ -60,20 +60,20 @@ export const ProviderEditor = ({
 
   const getTitle = () => {
     if (isEdit) {
-      return t('providers.editor.title.edit', 'Edit Provider: {{name}}', {
+      return t('providers.editor.title.edit', 'Edit Source: {{name}}', {
         name: provider.name,
       })
     }
     if (isCustomDdp) {
       return t(
         'providers.editor.title.addDanDanPlay',
-        'Add DanDanPlay Compatible Provider'
+        'Add DanDanPlay Compatible Source'
       )
     }
     if (isLegacyMacCms(provider)) {
-      return t('providers.editor.title.addMacCms', 'Add VOD Provider')
+      return t('providers.editor.title.addMacCms', 'Add VOD Source')
     }
-    return t('providers.editor.title.add', 'Add Provider')
+    return t('providers.editor.title.add', 'Add Source')
   }
 
   const renderForm = () => {

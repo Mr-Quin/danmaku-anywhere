@@ -24,6 +24,7 @@ import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
 import { assertMacCmsConfig } from '@/common/options/providerConfig/utils'
+import { describeSourceError } from '@/common/providers/describeSourceError'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { useStore } from '@/popup/store'
 
@@ -85,7 +86,7 @@ export const SeasonDetailsPage = () => {
       >
         <ErrorBoundary
           fallbackRender={({ error }) => (
-            <ErrorMessage message={(error as Error).message} />
+            <ErrorMessage message={describeSourceError(error)} />
           )}
         >
           <Suspense fallback={null}>

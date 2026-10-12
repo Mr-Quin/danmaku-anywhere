@@ -20,7 +20,7 @@ export const useShowAddSeasonMapDialog = () => {
       title: t('searchPage.titleMapping', 'Map Title'),
       content: t(
         'searchPage.titleMappingDialog.confirmation',
-        'Map `{{original}}` to `{{mapped}}` ?',
+        'Map "{{original}}" to "{{mapped}}"?',
         {
           original: mapKey,
           mapped: season.title,

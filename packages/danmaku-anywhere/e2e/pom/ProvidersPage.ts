@@ -151,7 +151,7 @@ export class ProvidersPage {
   }
 
   manifestJsonField(): Locator {
-    return this.page.getByLabel(/Manifest JSON|配置 JSON/)
+    return this.page.getByLabel(/Manifest JSON|清单 JSON/)
   }
 
   setManifestJson(value: string): Promise<void> {
@@ -159,7 +159,7 @@ export class ProvidersPage {
   }
 
   manifestValid(): Locator {
-    return this.page.getByText(/Manifest is valid|配置有效/)
+    return this.page.getByText(/Manifest is valid|清单有效/)
   }
 
   manifestJsonError(): Locator {
