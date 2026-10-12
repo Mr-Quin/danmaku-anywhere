@@ -36,6 +36,7 @@ import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
 import type { RPCServerHandlers, RRPServerHandler } from '@/common/rpc/server'
 import { createRpcServer } from '@/common/rpc/server'
+import { buildDetachedPopupUrl, findTargetTab } from '@/common/rpc/targetTab'
 import type { AnyRPCDef } from '@/common/rpc/types'
 import { RpcException } from '@/common/rpc/types'
 import type {
@@ -301,15 +302,9 @@ export class RpcManager {
       exportDebugData: async () => {
         return this.debugFileService.upload()
       },
-      getActiveTabUrl: async () => {
-        const tabs = await chrome.tabs.query({
-          active: true,
-          currentWindow: true,
-        })
-
-        const activeTab = tabs[0]
-
-        return activeTab?.url ?? null
+      getActiveTabUrl: async (input) => {
+        const tab = await findTargetTab(input?.tabId)
+        return tab?.url ?? null
       },
       mountConfigGetAll: async () => {
         return this.mountConfigService.getAll()
@@ -356,17 +351,17 @@ export class RpcManager {
         }
         await setRequestHeaderRule(rule, sender.tab.id)
       },
-      openPopupInNewWindow: async ({ path, width, height }) => {
+      openPopupInNewWindow: async ({ path, tabId, width, height }) => {
         void chrome.windows.create({
-          url: chrome.runtime.getURL(`pages/popup.html?detached=1#/${path}`),
+          url: buildDetachedPopupUrl(path, tabId),
           type: 'popup',
           width: width ?? 550,
           height: height ?? 650,
         })
       },
-      openPopupInNewTab: async ({ path }) => {
+      openPopupInNewTab: async ({ path, tabId }) => {
         void chrome.tabs.create({
-          url: chrome.runtime.getURL(`pages/popup.html?detached=1#/${path}`),
+          url: buildDetachedPopupUrl(path, tabId),
         })
       },
       getConfigMacCms: async (input) => {
