@@ -1,5 +1,6 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createLogger, type LogEntry } from '@/common/Logger'
 import { silentLogger } from '@/tests/silentLogger'
 import { bundledCatalogIndex } from './bundledCatalog'
 import { ManifestRegistry } from './ManifestRegistry'
@@ -16,7 +17,9 @@ import {
  * seeding (seed empty, add missing, never replace a changed preinstalled, leave
  * user imports), detect-vs-apply (getPendingUpdates diffs versions without
  * fetching files or applying; applyUpdates replaces only the named preinstalled
- * ids, never a user import or an unseeded id), skipping a bad/failed file,
+ * ids, never a user import or an unseeded id), skipping a bad/failed file
+ * (a timed-out file is logged with its error name and path while the rest
+ * still apply), file fetches getting a longer timeout than the index,
  * index failures (one retry after a delay, then give up), the bundled
  * manifests registered on init and replaced by the catalog copy once it
  * downloads, that neither update() nor getPendingUpdates
@@ -520,6 +523,73 @@ describe('ManifestRegistry', () => {
     })
     await registry.update()
     expect(nonBundled(registeredIds(registry))).toEqual(['broken', 'good'])
+  })
+
+  it('update applies the other files when one times out and logs the timeout readably', async () => {
+    const entries = [
+      catalogEntry('good'),
+      catalogEntry('slow'),
+      catalogEntry('other'),
+    ]
+    const files: Record<string, unknown> = {
+      [manifestPath('good')]: makeManifest('good'),
+      [manifestPath('other')]: makeManifest('other'),
+    }
+    stubFetch((url) => {
+      if (!url.includes('/manifest/file')) {
+        return { status: 200, body: { manifests: entries } }
+      }
+      const file = fileParam(url)
+      if (file === manifestPath('slow')) {
+        throw new DOMException('signal timed out', 'TimeoutError')
+      }
+      return { status: 200, body: files[file] }
+    })
+    const consoleError = vi
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined)
+    const logEntries: LogEntry[] = []
+    const logger = createLogger('', {
+      onLog: (entry) => logEntries.push(entry),
+    })
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(logger, store)
+
+    expect(await registry.update()).toBe('synced')
+    expect(nonBundled(Object.keys(await store.getAll()))).toEqual([
+      'good',
+      'other',
+    ])
+
+    const consoleArgs = consoleError.mock.calls.find((args) =>
+      args.includes('Failed to fetch catalog manifest:')
+    )
+    expect(consoleArgs).toBeDefined()
+    expect(consoleArgs?.every((arg) => typeof arg === 'string')).toBe(true)
+    const consoleLine = consoleArgs?.join(' ')
+    expect(consoleLine).toContain('TimeoutError: signal timed out')
+    expect(consoleLine).toContain(manifestPath('slow'))
+
+    const stored = logEntries.find((entry) =>
+      entry.message.includes('Failed to fetch catalog manifest')
+    )
+    expect(stored?.level).toBe('error')
+    expect(stored?.message).toContain(manifestPath('slow'))
+    expect(stored?.message).toContain('"name":"TimeoutError"')
+    expect(stored?.message).toContain('"message":"signal timed out"')
+  })
+
+  it('file fetches get a longer timeout than the index fetch', async () => {
+    const timeout = vi.spyOn(AbortSignal, 'timeout')
+    stubCatalogFetch([catalogEntry('one')], {
+      [manifestPath('one')]: makeManifest('one'),
+    })
+    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+    await registry.update()
+
+    expect(timeout).toHaveBeenCalledTimes(2)
+    const [[indexMs], [fileMs]] = timeout.mock.calls
+    expect(fileMs).toBeGreaterThan(indexMs)
   })
 
   it('update does not re-fetch or rewrite an unchanged manifest', async () => {

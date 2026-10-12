@@ -48,6 +48,12 @@ export const CATALOG_EMPTY_MESSAGE =
 
 export type CatalogSyncResult = 'synced' | 'unreachable' | 'empty'
 
+const INDEX_TIMEOUT_MS = 5000
+// File fetches run concurrently, so this only stretches a sync when a file is
+// actually slow, typically the first request after a catalog release while
+// the edge cache is still cold.
+const FILE_TIMEOUT_MS = 15000
+
 function storedVersion(manifest: unknown): unknown {
   if (
     manifest !== null &&
@@ -345,7 +351,7 @@ export class ManifestRegistry {
 
   private async fetchIndex(): Promise<CatalogEntry[]> {
     const index = zCatalogIndex.parse(
-      await this.fetchJson(`${this.baseUrl}/manifest`)
+      await this.fetchJson(`${this.baseUrl}/manifest`, INDEX_TIMEOUT_MS)
     )
     return index.manifests.filter((entry) => {
       if (SUPPORTED_API_VERSIONS.has(entry.apiVersion)) {
@@ -369,10 +375,11 @@ export class ManifestRegistry {
     let raw: unknown
     try {
       raw = await this.fetchJson(
-        `${this.baseUrl}/manifest/file?file=${encodeURIComponent(file)}`
+        `${this.baseUrl}/manifest/file?file=${encodeURIComponent(file)}`,
+        FILE_TIMEOUT_MS
       )
     } catch (e) {
-      this.log.error('Failed to fetch catalog manifest:', id, e)
+      this.log.error('Failed to fetch catalog manifest:', id, file, e)
       return null
     }
     const parsed = zManifest.safeParse(raw)
@@ -397,9 +404,9 @@ export class ManifestRegistry {
     return { raw, parsed: parsed.data }
   }
 
-  private async fetchJson(url: string): Promise<unknown> {
+  private async fetchJson(url: string, timeoutMs: number): Promise<unknown> {
     const res = await extensionFetchLike(url, {
-      signal: AbortSignal.timeout(5000),
+      signal: AbortSignal.timeout(timeoutMs),
     })
     if (res.status !== 200) {
       throw new Error(`catalog fetch failed (${res.status}): ${url}`)

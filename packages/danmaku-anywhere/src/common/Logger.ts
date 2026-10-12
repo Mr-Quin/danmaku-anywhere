@@ -20,6 +20,42 @@ export interface LogEntry {
   context: string
 }
 
+// DOMException is not an Error subclass in every realm (jsdom, for one), so
+// instanceof Error alone misses abort and timeout errors from fetch.
+function isErrorLike(value: unknown): value is Error {
+  if (value instanceof Error) {
+    return true
+  }
+  return typeof DOMException !== 'undefined' && value instanceof DOMException
+}
+
+function describeError(err: Error): string {
+  const head = err.message ? `${err.name}: ${err.message}` : err.name
+  const lines = [head]
+  if (typeof err.stack === 'string' && err.stack.length > 0) {
+    // V8 stacks start with the head line, Firefox stacks are frames only.
+    if (err.stack.startsWith(head)) {
+      lines[0] = err.stack
+    } else {
+      lines.push(err.stack)
+    }
+  }
+  if (isErrorLike(err.cause)) {
+    lines.push(`Caused by: ${describeError(err.cause)}`)
+  }
+  return lines.join('\n')
+}
+
+// Chrome's extension error view stringifies each console argument, which
+// turns an error object into "[object DOMException]", so errors go to the
+// console as text.
+function toConsoleArg(arg: unknown): unknown {
+  if (isErrorLike(arg)) {
+    return describeError(arg)
+  }
+  return arg
+}
+
 function formatArgs(args: unknown[]): string {
   if (args.length === 0) return ''
   if (args.length === 1) {
@@ -33,7 +69,7 @@ function formatArgs(args: unknown[]): string {
       if (typeof arg === 'string') {
         return arg
       }
-      if (arg instanceof Error) {
+      if (isErrorLike(arg)) {
         return JSON.stringify(serializeErrorJson(arg))
       }
       try {
@@ -68,7 +104,7 @@ export const createLogger = (
   const methods: ConsoleMethod[] = ['log', 'info', 'warn', 'error', 'debug']
 
   function log(method: ConsoleMethod, ...args: unknown[]) {
-    console[method].call(console, prefix, ...args)
+    console[method].call(console, prefix, ...args.map(toConsoleArg))
 
     if (options.onLog) {
       const env = options.env
