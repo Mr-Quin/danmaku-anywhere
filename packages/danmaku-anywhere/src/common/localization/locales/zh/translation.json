@@ -786,16 +786,19 @@
     "maxOnScreen": "最大同屏弹幕数",
     "name": "弹幕设置",
     "occlusion": "显示在人物后方",
+    "occlusionCaption": "适用于真人视频。内置的真人模型不适用于动画。",
     "occlusionConfidence": "置信度阈值",
     "occlusionEdgeSoftness": "边缘柔化",
     "occlusionError": {
+      "crossOrigin": "已关闭遮挡：该视频来自其他网站，且该网站不允许读取画面。",
+      "drm": "已关闭遮挡：该视频受 DRM 保护，无法读取画面。",
       "init": "加载遮挡模型失败。",
-      "segment": "遮挡已运行，但未生成结果。",
-      "taint": "已关闭遮挡：该视频受保护（跨域或 DRM），无法读取画面。",
+      "segmentFailing": "遮挡已停止：模型在该视频上持续出错。",
       "unavailable": "该视频不支持遮挡功能。",
       "unreadable": "已关闭遮挡：无法读取该视频的画面，站点可能拦截了额外的请求。",
-      "webgpu": "动画遮挡模型需要支持 WebGPU 的浏览器。请切换到真人模型或更新浏览器。"
+      "webgpuUnavailable": "该遮挡模型需要 WebGPU，但浏览器无法使用 GPU。请切换到真人模型。"
     },
+    "occlusionExperimental": "实验性",
     "occlusionModels": {
       "active": "使用中",
       "builtIn": "内置",
@@ -805,19 +808,19 @@
       "downloaded": "已下载 ({{size}})",
       "downloadError": "下载模型失败",
       "empty": "暂无可用模型",
-      "needsWebgpu": "需要支持 WebGPU 的浏览器",
       "notDownloaded": "未下载",
       "notDownloadedSize": "未下载 ({{size}})",
       "refresh": "刷新",
       "refreshError": "刷新模型失败",
-      "title": "模型"
+      "title": "模型",
+      "webgpuUnavailable": "需要 WebGPU，但浏览器无法使用 GPU"
     },
     "occlusionQuality": "性能",
     "occlusionQualityHigh": "高",
     "occlusionQualityLow": "低",
     "occlusionQualityMedium": "中",
     "occlusionStatus": {
-      "downloading": "正在下载动画遮挡模型。仅需下载一次，可能需要一些时间。"
+      "downloadingModel": "正在下载遮挡模型。只需下载一次，可能需要一些时间。"
     },
     "offset": "时间轴",
     "opacity": "不透明度",

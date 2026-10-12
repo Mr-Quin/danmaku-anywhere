@@ -7,9 +7,8 @@ import { ModelManifestService } from './ModelManifestService'
  * Exercises ModelManifestService resolution: a successful fetch validates and is
  * served (and cached in memory for the session), a fetch error or invalid
  * payload falls back to the baseline, a failed refresh keeps the manifest
- * already resolved this session, resolveModel falls back to the default id, and
- * lazy loads use the HTTP cache while refresh bypasses it. A fake fetch stands
- * in for the network.
+ * already resolved this session, and lazy loads use the HTTP cache while
+ * refresh bypasses it. A fake fetch stands in for the network.
  */
 
 const remoteManifest = {
@@ -65,7 +64,7 @@ describe('ModelManifestService', () => {
     const service = make(fetchFn)
 
     await service.listModels()
-    await service.getModel('people')
+    await service.listModels()
 
     expect(fetchFn).toHaveBeenCalledTimes(1)
   })
@@ -114,13 +113,5 @@ describe('ModelManifestService', () => {
     const afterRefresh = await service.refresh()
 
     expect(afterRefresh.map((m) => m.id)).toEqual(['people', 'fast-anime'])
-  })
-
-  it('resolves a missing id to the default model', async () => {
-    const service = make(
-      vi.fn().mockResolvedValue(jsonResponse(remoteManifest))
-    )
-
-    expect((await service.resolveModel('does-not-exist')).id).toBe('people')
   })
 })

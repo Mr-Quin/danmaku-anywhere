@@ -9,6 +9,7 @@ import type {
 import { clampOffset } from '@/content/common/hooks/clampOffset'
 import { usePersistedPosition } from '@/content/common/hooks/usePersistedPosition'
 import type { DragOffset } from '@/content/controller/ui/components/dragOffset'
+import { occlusionStatusText } from '@/content/player/occlusion/occlusionStatusText'
 import { entryView } from './entryView'
 import {
   computePanelBounds,
@@ -91,13 +92,13 @@ function PipelineBody({ entry }: { entry: PipelineEntry }) {
 }
 
 function OcclusionBody({ entry }: { entry: OcclusionEntry }) {
-  if (!entry.message) {
+  if (!entry.reason) {
     return null
   }
   return (
     <div className="da-ip-body">
       <p data-da-ip-message className="da-ip-message">
-        {entry.message}
+        {occlusionStatusText(entry.reason)}
       </p>
     </div>
   )

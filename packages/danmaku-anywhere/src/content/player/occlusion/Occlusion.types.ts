@@ -5,6 +5,7 @@ export type OcclusionStatusReason =
   | 'downloading'
   | 'init'
   | 'taint'
+  | 'drm'
   | 'unreadable'
   | 'webgpu'
   | 'segment'

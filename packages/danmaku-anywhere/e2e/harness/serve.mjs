@@ -51,7 +51,7 @@ function resolvePath(urlPath) {
   return resolved
 }
 
-function sendRange(req, res, filePath, size, type) {
+function sendRange(req, res, filePath, size, type, extraHeaders) {
   const match = /^bytes=(\d*)-(\d*)$/.exec(req.headers.range)
   if (!match) {
     res.writeHead(416, { 'Content-Range': `bytes */${size}` })
@@ -74,6 +74,7 @@ function sendRange(req, res, filePath, size, type) {
     return
   }
   res.writeHead(206, {
+    ...extraHeaders,
     'Content-Type': type,
     'Content-Range': `bytes ${start}-${end}/${size}`,
     'Accept-Ranges': 'bytes',
@@ -89,6 +90,10 @@ const ORIGIN_BLOCK_PREFIX = '/origin-block/'
 const FLAKY_CLONE_PREFIX = '/flaky-clone/'
 const SLOW_CLONE_PREFIX = '/slow-clone/'
 const SLOW_CLONE_DELAY_MS = 10_000
+// A same-origin URL that redirects to another origin which allows CORS, the
+// shape of a signed CDN link.
+const REDIRECT_CDN_PREFIX = '/redirect-cdn/'
+const CDN_PREFIX = '/cdn/'
 
 const flakyRejected = new Set()
 
@@ -103,6 +108,20 @@ function reject(res, status) {
 
 function handle(req, res) {
   let urlPath = req.url
+  if (urlPath.startsWith(REDIRECT_CDN_PREFIX)) {
+    const rest = urlPath.slice(REDIRECT_CDN_PREFIX.length)
+    res.writeHead(302, {
+      Location: `http://127.0.0.1:${port}${CDN_PREFIX}${rest}`,
+    })
+    res.end()
+    return
+  }
+  if (urlPath.startsWith(CDN_PREFIX)) {
+    serveFile(req, res, `/${urlPath.slice(CDN_PREFIX.length)}`, {
+      'Access-Control-Allow-Origin': '*',
+    })
+    return
+  }
   if (urlPath.startsWith(CORS_FAIL_PREFIX)) {
     if (isCloneRequest(req)) {
       reject(res, 403)
@@ -136,7 +155,7 @@ function handle(req, res) {
   serveFile(req, res, urlPath)
 }
 
-function serveFile(req, res, urlPath) {
+function serveFile(req, res, urlPath, extraHeaders = {}) {
   const filePath = resolvePath(urlPath)
   if (!filePath) {
     res.writeHead(403)
@@ -158,10 +177,11 @@ function serveFile(req, res, urlPath) {
   }
   const type = contentTypeFor(filePath)
   if (req.headers.range) {
-    sendRange(req, res, filePath, stat.size, type)
+    sendRange(req, res, filePath, stat.size, type, extraHeaders)
     return
   }
   res.writeHead(200, {
+    ...extraHeaders,
     'Content-Type': type,
     'Accept-Ranges': 'bytes',
     'Content-Length': stat.size,

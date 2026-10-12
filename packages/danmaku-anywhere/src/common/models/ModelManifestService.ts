@@ -1,7 +1,7 @@
 import { inject, injectable, optional } from 'inversify'
 import { IS_DA_E2E } from '@/common/constants'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
-import { BASELINE_MANIFEST, DEFAULT_MODEL_ID, MANIFEST_URL } from './baseline'
+import { BASELINE_MANIFEST, MANIFEST_URL } from './baseline'
 import {
   type ModelEntry,
   type ModelManifest,
@@ -35,20 +35,6 @@ export class ModelManifestService {
 
   async listModels(): Promise<ModelEntry[]> {
     return (await this.getManifest()).models
-  }
-
-  async getModel(id: string): Promise<ModelEntry | undefined> {
-    return (await this.getManifest()).models.find((model) => model.id === id)
-  }
-
-  /** Resolves a saved id to a usable model, falling back to the default. */
-  async resolveModel(id: string): Promise<ModelEntry> {
-    const { models } = await this.getManifest()
-    return (
-      models.find((model) => model.id === id) ??
-      models.find((model) => model.id === DEFAULT_MODEL_ID) ??
-      models[0]
-    )
   }
 
   /** Manual refresh: bypass the cache to pick up a just-uploaded manifest. */

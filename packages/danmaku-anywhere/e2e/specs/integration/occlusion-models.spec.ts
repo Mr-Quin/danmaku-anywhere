@@ -7,11 +7,14 @@ import { applyProfile } from '../../setup/profile'
 
 /**
  * Model management UI in the occlusion settings, against the bundled baseline
- * (people + the hosted anime model) and the real background-worker OPFS. A fake
- * model blob is written into the extension-origin OPFS the worker shares with
- * the segmenter iframe; the popup then lists the models, reflects that download
- * state, switches the active model (persisting to danmakuOptions), and on delete
- * actually evicts the OPFS file. No real model download or manifest fetch.
+ * (people + the hosted anime model) and the real background-worker OPFS. Hosted
+ * models are offered only with the debug option on: without it the section,
+ * marked Experimental, lists People alone and shows it active even when the
+ * saved model is a hosted one. With debug on, a fake model blob is written into
+ * the extension-origin OPFS the worker shares with the segmenter iframe; the
+ * popup then lists the models, reflects that download state, switches the
+ * active model (persisting to danmakuOptions), and on delete actually evicts the
+ * OPFS file. No real model download or manifest fetch.
  */
 
 function seedModelFile(
@@ -60,6 +63,7 @@ test('occlusion models: lists, reflects OPFS state, switches active, and evicts 
   da,
 }) => {
   await applyProfile(context, da, {
+    extensionOptions: { debug: true },
     rawStorage: [
       {
         area: 'sync',
@@ -96,4 +100,38 @@ test('occlusion models: lists, reflects OPFS state, switches active, and evicts 
   await page.getByTestId('occlusion-model-delete-anime').click()
   await expect(page.getByTestId('occlusion-model-download-anime')).toBeVisible()
   await expect.poll(() => modelFileSize(context, 'anime')).toBeNull()
+})
+
+test('occlusion models: without debug, only People is offered and shown active', async ({
+  context,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, {
+    extensionOptions: { debug: false },
+    rawStorage: [
+      {
+        area: 'sync',
+        key: 'danmakuOptions',
+        value: {
+          data: {
+            ...defaultDanmakuOptions,
+            occlusion: true,
+            occlusionModel: 'anime',
+          },
+          version: 10,
+        },
+      },
+    ],
+  })
+
+  const page = await context.newPage()
+  await Popup.open(page, extensionId, '/styles')
+
+  await expect(page.getByText(/^(Experimental|实验性)$/)).toBeVisible()
+  await expect(page.getByTestId('occlusion-model-people')).toBeVisible()
+  await expect(
+    page.getByTestId('occlusion-model-people').getByRole('radio')
+  ).toBeChecked()
+  await expect(page.getByTestId('occlusion-model-anime')).toHaveCount(0)
 })

@@ -1,16 +1,31 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { modelEntrySchema } from '@/common/models/schema'
 import { silentLogger } from '@/tests/silentLogger'
 
-const { read, reset } = vi.hoisted(() => ({
+const { read, reset, compose, support } = vi.hoisted(() => ({
   read: vi.fn(),
   reset: vi.fn(),
+  compose: vi.fn(),
+  support: { occlusion: true },
 }))
 
 vi.mock('./frameSource', () => ({
   FrameSource: class {
     read = read
     reset = reset
+  },
+}))
+
+vi.mock('./MaskCompositor', () => ({
+  MaskCompositor: class {
+    compose = compose
+  },
+}))
+
+vi.mock('@/common/constants', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/common/constants')>()),
+  get IS_OCCLUSION_SUPPORTED() {
+    return support.occlusion
   },
 }))
 
@@ -43,9 +58,26 @@ const animeModel = modelEntrySchema.parse({
  * Exercises the idle stats defaults, the 'unavailable' gate when
  * requestVideoFrameCallback is missing (classified status + lastError), that the
  * debug flag is reflected in stats and flipped via setDebug, and how a frame
- * read outcome is classified. A successful capture is not driven here since
- * jsdom lacks createImageBitmap.
+ * read outcome is classified, including encrypted media as DRM and any other
+ * taint as cross-origin. Drives the segment loop with a stubbed capture and
+ * compositor to cover failure counting: a frame settled by a reset is not a
+ * failure, and repeated failures stop the loop with a status. A browser without
+ * occlusion support never starts.
  */
+
+beforeEach(() => {
+  support.occlusion = true
+  vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('visible')
+  vi.stubGlobal(
+    'createImageBitmap',
+    vi.fn(async () => ({ close: vi.fn() }))
+  )
+})
+
+afterEach(() => {
+  read.mockReset()
+  compose.mockReset()
+})
 
 const factory: IMaskProviderFactory = (descriptor) =>
   new MockMaskProvider(descriptor)
@@ -164,10 +196,25 @@ async function runOneFrame(
 }
 
 describe('OcclusionService frame read outcomes', () => {
-  it('disables with a taint status when the video is protected', async () => {
+  it('disables with a drm status when the video is encrypted', async () => {
     read.mockResolvedValue({
       status: 'disabled',
       failure: { kind: 'protected', evidence: 'encrypted' },
+    })
+    const statuses: OcclusionStatus[] = []
+    const service = new OcclusionService(factory, silentLogger)
+    service.configure(makeConfig({ onStatus: (s) => statuses.push(s) }))
+
+    await runOneFrame(service, new FakeFrameVideo())
+
+    expect(statuses.map((s) => s.reason)).toEqual(['drm'])
+    expect(service.getStats().running).toBe(false)
+  })
+
+  it('disables with a cross-origin taint status when the clone stays tainted', async () => {
+    read.mockResolvedValue({
+      status: 'disabled',
+      failure: { kind: 'protected', evidence: 'clone-tainted' },
     })
     const statuses: OcclusionStatus[] = []
     const service = new OcclusionService(factory, silentLogger)
@@ -213,6 +260,133 @@ describe('OcclusionService frame read outcomes', () => {
 
     expect(statuses).toEqual([])
     expect(applyMask).not.toHaveBeenCalled()
+    expect(service.getStats().running).toBe(true)
+  })
+})
+
+describe('OcclusionService browser support', () => {
+  it('does not start where occlusion is unsupported, even when enabled', async () => {
+    support.occlusion = false
+    const statuses: OcclusionStatus[] = []
+    const onRunningChange = vi.fn()
+    const service = new OcclusionService(factory, silentLogger)
+    service.configure(
+      makeConfig({ onStatus: (s) => statuses.push(s), onRunningChange })
+    )
+    const video = new FakeFrameVideo()
+    const requestFrame = vi.spyOn(video, 'requestVideoFrameCallback')
+
+    service.start(video as unknown as HTMLVideoElement) // lint-specs-allow-cast: partial fake of a stable external DOM interface
+    await flush()
+
+    expect(service.getStats().running).toBe(false)
+    expect(onRunningChange).not.toHaveBeenCalled()
+    expect(requestFrame).not.toHaveBeenCalled()
+    expect(statuses).toEqual([])
+  })
+})
+
+describe('OcclusionService segment failures', () => {
+  const composed = {
+    url: 'data:image/png;base64,',
+    mask: { data: new Uint8ClampedArray(4), width: 1, height: 1 },
+  }
+  const okResult = {
+    category: new Uint8Array(1),
+    maskSize: { width: 1, height: 1 },
+  }
+
+  function startLoop(provider: MaskProvider) {
+    const statuses: OcclusionStatus[] = []
+    const applyMask = vi.fn()
+    const video = new FakeFrameVideo()
+    read.mockResolvedValue({
+      status: 'frame',
+      frame: { element: video, mediaTime: 0 },
+    })
+    compose.mockReturnValue(composed)
+    const service = new OcclusionService(() => provider, silentLogger)
+    service.configure(
+      makeConfig({
+        minIntervalMs: 0,
+        applyMask,
+        onStatus: (s) => statuses.push(s),
+      })
+    )
+    service.start(video as unknown as HTMLVideoElement) // lint-specs-allow-cast: partial fake of a stable external DOM interface
+    return { service, video, statuses, applyMask }
+  }
+
+  async function frames(video: FakeFrameVideo, count: number) {
+    for (let i = 0; i < count; i++) {
+      await flush()
+      video.fireFrame()
+      await flush()
+    }
+  }
+
+  it('does not count the in-flight frame that a reset settles as a failure', async () => {
+    let calls = 0
+    let settle: ((result: null) => void) | undefined
+    const provider: MaskProvider = {
+      init: () => Promise.resolve(),
+      segment: () => {
+        calls++
+        if (calls < 5) {
+          return Promise.resolve(null)
+        }
+        return new Promise((resolve) => {
+          settle = resolve
+        })
+      },
+      dispose: () => settle?.(null),
+    }
+    const { service, video, statuses } = startLoop(provider)
+    await frames(video, 5)
+    expect(settle).toBeDefined()
+
+    service.reset()
+    await flush()
+
+    expect(statuses).toEqual([])
+    expect(service.getStats().lastError).toBeNull()
+  })
+
+  it.each([
+    ['returns no result', () => Promise.resolve(null)],
+    ['throws', () => Promise.reject(new Error('segmenter failed'))],
+  ])('stops with a segment status once the segmenter %s on five frames in a row', async (_, segment) => {
+    const provider: MaskProvider = {
+      init: () => Promise.resolve(),
+      segment,
+    }
+    const { service, video, statuses } = startLoop(provider)
+
+    await frames(video, 4)
+    expect(statuses).toEqual([])
+    expect(service.getStats().running).toBe(true)
+
+    await frames(video, 1)
+    expect(statuses.map((s) => s.reason)).toEqual(['segment'])
+    expect(service.getStats().running).toBe(false)
+
+    const requestFrame = vi.spyOn(video, 'requestVideoFrameCallback')
+    await frames(video, 2)
+    expect(requestFrame).not.toHaveBeenCalled()
+  })
+
+  it('keeps running when a good frame breaks a run of failures', async () => {
+    const results = [null, null, null, null, okResult, null, null, null, null]
+    const provider: MaskProvider = {
+      init: () => Promise.resolve(),
+      segment: () => Promise.resolve(results.shift() ?? null),
+    }
+    const { service, video, statuses, applyMask } = startLoop(provider)
+
+    await frames(video, 9)
+
+    expect(statuses).toEqual([])
+    expect(applyMask).toHaveBeenCalledWith(composed.url)
     expect(service.getStats().running).toBe(true)
   })
 })

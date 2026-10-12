@@ -15,6 +15,8 @@ export const IS_EXTERNALLY_CONNECTABLE = EXTERNALLY_CONNECTABLE_PATTERNS.some(
 export const IS_FIREFOX = import.meta.env.VITE_TARGET_BROWSER === 'firefox'
 export const IS_CHROME = import.meta.env.VITE_TARGET_BROWSER === 'chrome'
 
+export const IS_OCCLUSION_SUPPORTED = IS_CHROME
+
 export type DaEnv = 'dev' | 'preview' | 'prod' | 'e2e'
 
 export const DA_ENV: DaEnv = import.meta.env.VITE_DA_ENV
