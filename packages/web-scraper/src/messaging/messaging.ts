@@ -198,7 +198,6 @@ async function installHeaderRule(
 
   const ruleId = await nextSessionRuleId()
 
-  // @ts-expect-error
   // biome-ignore lint/correctness/noUndeclaredVariables: browser is defined in firefox
   const isChrome = typeof browser === 'undefined'
 

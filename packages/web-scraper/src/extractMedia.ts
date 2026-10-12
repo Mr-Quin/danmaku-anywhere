@@ -44,16 +44,14 @@ export const extractMedia = async (
     }
   }
 
-  const requestListener = (
-    details: chrome.webRequest.WebRequestHeadersDetails
-  ) => {
+  const requestListener = (details: chrome.webRequest.OnSendHeadersDetails) => {
     if (details.requestHeaders) {
       requests.set(details.requestId, details.requestHeaders)
     }
   }
 
   const responseListener = (
-    details: chrome.webRequest.WebResponseHeadersDetails
+    details: chrome.webRequest.OnResponseStartedDetails
   ) => {
     const videoInfo = getVideoUrlFromResponse(details)
 

@@ -23,10 +23,7 @@ export const DEFAULT_MOUNT_CONFIG_AI_CONFIG: MountConfigAiConfig = {
 }
 
 export const mountConfigInputSchema = z.object({
-  id: z
-    .uuid()
-    .optional()
-    .prefault(() => getRandomUUID()),
+  id: z.uuid().prefault(() => getRandomUUID()),
   author: z.string().optional(),
   description: z.string().optional(),
   patterns: z.array(

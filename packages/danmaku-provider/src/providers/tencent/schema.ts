@@ -17,7 +17,7 @@ const zTencentVideoSeason = z.object({
     videoType: z.number(),
     typeName: z.string(),
     title: z.string(),
-    year: z.number().optional().prefault(0), // year of release, null or 0 for non-seasonal
+    year: z.number().prefault(0), // year of release, null or 0 for non-seasonal
     imgUrl: z.url(),
     episodeSites: z.array(
       z.object({

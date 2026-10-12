@@ -30,8 +30,8 @@ export const zDomain = z
 export const uploadSchema = z.object({
   name: z.string().min(1).trim(),
   config: zIntegrationPolicy,
-  domains: z.array(zDomain).optional().prefault([]),
-  tags: z.array(z.string().min(1).trim()).optional().prefault([]),
+  domains: z.array(zDomain).prefault([]),
+  tags: z.array(z.string().min(1).trim()).prefault([]),
   authorId: z.string().trim().optional(),
   authorName: z.string().trim().optional(),
 })

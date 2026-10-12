@@ -9,7 +9,7 @@ const { isDev, browser, appVersion } = getBuildContext()
 
 const { isChrome, isFirefox } = browser
 
-const permissions: chrome.runtime.ManifestPermissions[] = [
+const permissions: chrome.runtime.ManifestPermission[] = [
   'storage',
   'unlimitedStorage',
   'activeTab',

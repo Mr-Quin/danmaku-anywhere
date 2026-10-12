@@ -51,10 +51,7 @@ export type IntegrationPolicySelector = z.input<typeof selectorSchema>
 
 export const zIntegration = z.object({
   version: z.literal(3),
-  id: z
-    .uuid()
-    .optional()
-    .prefault(() => getRandomUUID()),
+  id: z.uuid().prefault(() => getRandomUUID()),
   name: z.string().min(1),
   policy: zIntegrationPolicy,
 })

@@ -50,10 +50,7 @@ export const zIntegrationPolicyV3 = z.object({
 
 export const zIntegrationV3 = z.object({
   version: z.literal(3),
-  id: z
-    .uuid()
-    .optional()
-    .prefault(() => getRandomUUID()),
+  id: z.uuid().prefault(() => getRandomUUID()),
   name: z.string().min(1),
   policy: zIntegrationPolicyV3,
 })

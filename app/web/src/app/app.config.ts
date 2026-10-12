@@ -16,8 +16,8 @@ import {
   withInMemoryScrolling,
 } from '@angular/router'
 import { provideServiceWorker } from '@angular/service-worker'
-import { definePreset } from '@primeng/themes'
-import Aura from '@primeng/themes/aura'
+import { definePreset } from '@primeuix/themes'
+import Aura from '@primeuix/themes/aura'
 import { provideQueryClient } from '@tanstack/angular-query-experimental'
 import { ConfirmationService, MessageService } from 'primeng/api'
 import { providePrimeNG } from 'primeng/config'

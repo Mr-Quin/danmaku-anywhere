@@ -10,7 +10,7 @@ const zBaseEpisodeV1 = z.object({
   comments: z.array(zCommentImport),
   version: z.number(),
   timeUpdated: z.number(),
-  schemaVersion: z.literal(1).optional().prefault(1), // Does not exist in schema, but we can default it to 1
+  schemaVersion: z.literal(1).prefault(1), // Does not exist in schema, but we can default it to 1
 })
 
 const schema = {

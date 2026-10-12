@@ -75,7 +75,7 @@ export class GenAIService {
 
     const { output } = await generateText({
       model,
-      system: systemPrompt + userInstruction,
+      instructions: systemPrompt + userInstruction,
       prompt: truncatedInput,
       output: Output.object({
         schema: z.object({

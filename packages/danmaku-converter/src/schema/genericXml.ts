@@ -50,7 +50,7 @@ const zXmlParsedEntry = z
         ),
       s: z.string().optional(),
     }),
-    _text: z.string().optional().prefault(''),
+    _text: z.string().prefault(''),
   })
   .transform((data) => {
     // drop font size

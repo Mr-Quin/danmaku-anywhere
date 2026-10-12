@@ -15,21 +15,21 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.6",
+    "@astrojs/check": "^0.9.10",
     "@astrojs/react": "^4.4.2",
-    "@astrojs/starlight": "^0.37.0",
+    "@astrojs/starlight": "^0.37.7",
     "@astrojs/starlight-tailwind": "^4.0.2",
-    "@tailwindcss/vite": "^4.1.7",
-    "@types/chrome": "^0.0.287",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "astro": "^5.16.4",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/chrome": "^0.3.5",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "astro": "^5.18.2",
+    "daisyui": "^5.7.47",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "sharp": "^0.33.5",
-    "tailwindcss": "^4.1.7",
-    "typescript": "^5.6.3",
-    "daisyui": "^5.5.8"
+    "sharp": "^0.35.5",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^6.0.3"
   },
   "packageManager": "pnpm@10.11.0"
 }

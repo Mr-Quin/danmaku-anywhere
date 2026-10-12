@@ -60,7 +60,7 @@ describe('OptionsManager', () => {
     container.get(OptionsManager).setup()
     await fakeBrowser.runtime.onInstalled.trigger({
       reason: 'install',
-    } as chrome.runtime.InstalledDetails)
+    })
     await fakeBrowser.runtime.onStartup.trigger()
     await container.get(DanmakuOptionsService).get()
 
