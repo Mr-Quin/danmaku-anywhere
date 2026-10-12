@@ -48,13 +48,17 @@ test('reopened popup at a nested route rebuilds back stack to ancestors', async 
   extensionId,
   da,
 }) => {
-  await da.storage.setRaw('session', 'popup:lastRoute', '/options/advanced')
+  await da.storage.setRaw(
+    'session',
+    'popup:lastRoute',
+    '/config/integration-policy'
+  )
 
   await openPopup(page, extensionId)
-  await expect(page).toHaveURL(/#\/options\/advanced$/)
+  await expect(page).toHaveURL(/#\/config\/integration-policy$/)
 
   await page.goBack()
-  await expect(page).toHaveURL(/#\/options$/)
+  await expect(page).toHaveURL(/#\/config$/)
 
   await page.goBack()
   await expect(page).toHaveURL(/#\/mount$/)
@@ -107,14 +111,15 @@ test('an explicit route wins over the restored one', async ({
 }) => {
   await da.storage.setRaw('session', 'popup:lastRoute', '/styles')
 
-  await Popup.open(page, extensionId, '/options/help')
+  await Popup.open(page, extensionId, '/config')
 
-  await expect(page.getByText(/Licensed under AGPL-3\.0/)).toBeVisible()
+  const addButton = page.getByRole('button', { name: /^(Add|添加)$/ })
+  await expect(addButton).toBeVisible()
   // Restoring is async after load and leaves no trace when skipped, so give
   // it time to run before checking that the page did not move.
   await page.waitForTimeout(1_000)
-  await expect(page).toHaveURL(/#\/options\/help$/)
-  await expect(page.getByText(/Licensed under AGPL-3\.0/)).toBeVisible()
+  await expect(page).toHaveURL(/#\/config$/)
+  await expect(addButton).toBeVisible()
 })
 
 test('invalid stored route is cleared and popup falls back to /mount', async ({

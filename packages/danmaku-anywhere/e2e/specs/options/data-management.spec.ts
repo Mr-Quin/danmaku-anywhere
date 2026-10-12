@@ -14,6 +14,18 @@ import { applyProfile } from '../../setup/profile'
  */
 
 const DAY = 24 * 60 * 60 * 1000
+
+// The options pages read the auth session for the account card. Stub it to
+// "no session".
+test.beforeEach(async ({ context }) => {
+  await context.route('**/auth/get-session*', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: 'null',
+    })
+  )
+})
 const PURGE_NOW = /^(Purge Now|立即清理)$/
 
 async function seedEpisodes(da: import('../../setup/da-client').DaClient) {

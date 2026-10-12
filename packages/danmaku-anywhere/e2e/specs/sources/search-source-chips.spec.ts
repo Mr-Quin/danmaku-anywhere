@@ -1,4 +1,5 @@
 import { expect } from '@playwright/test'
+import { Language } from '../../../src/common/localization/language'
 import type { ProviderConfig } from '../../../src/common/options/providerConfig/schema'
 import { mockBilibiliXml } from '../../network/bilibili'
 import { mockDandanplay, mockDandanplayCustom } from '../../network/dandanplay'
@@ -137,6 +138,7 @@ test('source chips: a self-hosted DanDanPlay named like the built-in shows its h
   await applyProfile(context, da, {
     providers: { dandanplay: { enabled: true } },
     customProviders: [selfHosted],
+    extensionOptions: { lang: Language.en },
     network: [
       mockDandanplay({
         search: loadJsonFixture('ddp-search.json'),
