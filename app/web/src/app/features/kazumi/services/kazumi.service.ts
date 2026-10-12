@@ -130,7 +130,7 @@ export class KazumiService {
     return false
   })
 
-  readonly localPoliciesQuery = injectQuery(() => ({
+  private readonly localPoliciesOptions = queryOptions({
     queryFn: async () => {
       const policies = await this.db.policies.toArray()
       const orderSetting = await this.db.getOrders()
@@ -138,18 +138,28 @@ export class KazumiService {
       return sortArrayByOrder(policies, orderSetting, (p) => p.name)
     },
     queryKey: queryKeys.kazumi.local.all(),
-  }))
-
-  readonly manifestsQuery = injectQuery(() => {
-    return {
-      queryFn: async () => {
-        const result = await withTimeout(getManifest(), 5000)
-        if (!result.success) throw result.error
-        return result.data
-      },
-      queryKey: queryKeys.kazumi.manifest.all(),
-    }
   })
+
+  private readonly manifestsOptions = queryOptions({
+    queryFn: async () => {
+      const result = await withTimeout(getManifest(), 5000)
+      if (!result.success) throw result.error
+      return result.data
+    },
+    queryKey: queryKeys.kazumi.manifest.all(),
+  })
+
+  readonly localPoliciesQuery = injectQuery(() => this.localPoliciesOptions)
+
+  readonly manifestsQuery = injectQuery(() => this.manifestsOptions)
+
+  loadLocalPolicies() {
+    return this.queryClient.query(this.localPoliciesOptions)
+  }
+
+  loadManifests() {
+    return this.queryClient.query(this.manifestsOptions)
+  }
 
   readonly orderQuery = injectQuery(() => {
     return {
@@ -223,7 +233,7 @@ export class KazumiService {
   readonly addRecommendedPolicyMutation = injectMutation(() => ({
     mutationKey: queryKeys.kazumi.local.all(),
     mutationFn: async () => {
-      const manifest = await this.manifestsQuery.promise()
+      const manifest = await this.loadManifests()
 
       const recommendedKeys = ['dlma', '7sefun', 'ffdm', 'yinghua']
 

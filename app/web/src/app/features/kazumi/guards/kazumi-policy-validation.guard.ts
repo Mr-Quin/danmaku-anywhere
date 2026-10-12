@@ -36,7 +36,7 @@ export const validateKazumiPolicy: CanActivateFn = async (
   }
 
   const [localPolicies, err] = await tryCatch(() =>
-    kazumiService.localPoliciesQuery.promise()
+    kazumiService.loadLocalPolicies()
   )
   // This really should not happen, but just in case
   if (err) {

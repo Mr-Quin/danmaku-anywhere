@@ -132,15 +132,15 @@ export const zGetCommentQuery = z.object({
   /**
    * 起始弹幕编号，忽略此编号以前的弹幕。默认值为0
    */
-  from: z.number().optional().prefault(0),
+  from: z.number().prefault(0),
   /**
    * 是否同时获取关联的第三方弹幕。默认值为false
    */
-  withRelated: z.boolean().optional().prefault(false),
+  withRelated: z.boolean().prefault(false),
   /**
    * 中文简繁转换。0-不转换，1-转换为简体，2-转换为繁体。
    */
-  chConvert: z.enum(DanDanChConvert).optional().prefault(DanDanChConvert.None),
+  chConvert: z.enum(DanDanChConvert).prefault(DanDanChConvert.None),
 })
 
 export type GetCommentQuery = z.input<typeof zGetCommentQuery>

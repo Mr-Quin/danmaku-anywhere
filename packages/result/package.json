@@ -14,8 +14,7 @@
     "lint": "biome check --fix",
     "type-check": "tsgo --noEmit"
   },
-  "dependencies": {},
   "devDependencies": {
-    "vitest": "^4.0.13"
+    "vitest": "^4.1.11"
   }
 }

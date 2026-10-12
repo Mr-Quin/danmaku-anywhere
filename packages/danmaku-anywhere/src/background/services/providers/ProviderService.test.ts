@@ -1004,7 +1004,10 @@ describe('ProviderService.seedDefaultProviders', () => {
     })
 
     service.setup()
-    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
+    await fakeBrowser.runtime.onInstalled.trigger({
+      reason: 'update',
+      previousVersion: '1.5.0',
+    })
 
     expect(markSeeded).toHaveBeenCalled()
     expect(set).not.toHaveBeenCalled()
@@ -1074,7 +1077,10 @@ describe('ProviderService.seedDefaultProviders', () => {
     const { service, set, markSeeded } = buildForSeed({})
 
     service.setup()
-    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
+    await fakeBrowser.runtime.onInstalled.trigger({
+      reason: 'update',
+      previousVersion: '1.5.0',
+    })
 
     expect(set).toHaveBeenCalledTimes(1)
     expect(markSeeded).toHaveBeenCalledTimes(1)
@@ -1084,7 +1090,10 @@ describe('ProviderService.seedDefaultProviders', () => {
     const { service, set, hasSeeded } = buildForSeed({ seeded: true })
 
     service.setup()
-    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
+    await fakeBrowser.runtime.onInstalled.trigger({
+      reason: 'update',
+      previousVersion: '1.5.0',
+    })
 
     // hasSeeded proves the handler ran; without it the negative assertion below
     // would also hold when no listener was registered at all.
@@ -1123,7 +1132,10 @@ describe('ProviderService.seedDefaultProviders', () => {
     })
 
     service.setup()
-    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
+    await fakeBrowser.runtime.onInstalled.trigger({
+      reason: 'update',
+      previousVersion: '1.5.0',
+    })
 
     expect(set).toHaveBeenCalledTimes(1)
     expect(set.mock.calls[0][0].map((c) => c.name)).toEqual([
@@ -1141,7 +1153,10 @@ describe('ProviderService.seedDefaultProviders', () => {
     vi.spyOn(service, 'syncCatalog').mockRejectedValue(new Error('boom'))
 
     service.setup()
-    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
+    await fakeBrowser.runtime.onInstalled.trigger({
+      reason: 'update',
+      previousVersion: '1.5.0',
+    })
 
     expect(set).toHaveBeenCalledTimes(1)
     expect(set.mock.calls[0][0].map((c) => c.name)).toEqual([
@@ -1169,7 +1184,10 @@ describe('ProviderService.seedDefaultProviders', () => {
     })
 
     service.setup()
-    await fakeBrowser.runtime.onInstalled.trigger({ reason: 'update' })
+    await fakeBrowser.runtime.onInstalled.trigger({
+      reason: 'update',
+      previousVersion: '1.5.0',
+    })
 
     expect(hasSeeded).toHaveBeenCalled()
     expect(set).not.toHaveBeenCalled()

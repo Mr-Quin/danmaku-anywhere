@@ -15,11 +15,10 @@
     "type-check": "tsgo --noEmit",
     "test": "vitest run"
   },
-  "dependencies": {},
   "peerDependencies": {
-    "zod": "^4.3.5"
+    "zod": "^4.6.5"
   },
   "devDependencies": {
-    "vitest": "^4.0.13"
+    "vitest": "^4.1.11"
   }
 }

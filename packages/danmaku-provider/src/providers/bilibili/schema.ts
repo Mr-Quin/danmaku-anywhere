@@ -36,7 +36,7 @@ export type BilibiliMedia = z.infer<typeof zBilibiliSearchMedia>
 export const zBilibiliSearchResponse = zBilibiliApiResponseBase.extend({
   data: z
     .object({
-      result: z.array(zBilibiliSearchMedia).optional().prefault([]),
+      result: z.array(zBilibiliSearchMedia).prefault([]),
     })
     .optional(),
 })

@@ -31,7 +31,7 @@
     "@biomejs/biome": "^2.4.15",
     "@typescript/native-preview": "7.0.0-dev.20260521.1",
     "knip": "6.14.1",
-    "lefthook": "^2.1.8",
+    "lefthook": "^2.2.1",
     "typescript": "^6.0.3"
   },
   "packageManager": "pnpm@11.2.2"
