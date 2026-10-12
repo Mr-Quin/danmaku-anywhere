@@ -75,13 +75,16 @@ async fn write_unzipped(dest: &Path, files: &HashMap<String, Vec<u8>>) -> Result
 
     for (name, bytes) in files {
         let rel = Path::new(name);
-        // A build archive never needs an absolute path or a parent ref; reject both
-        // outright so no entry can escape the destination, then keep the containment
-        // check below as a second guard.
+        // A build archive never needs an absolute path, a parent ref or a Windows
+        // drive prefix; reject them outright so no entry can escape the destination,
+        // then keep the containment check below as a second guard. A bare "C:name"
+        // is not absolute, yet Path::join would replace the destination with it.
         let unsafe_entry = rel.components().any(|c| {
             matches!(
                 c,
-                std::path::Component::ParentDir | std::path::Component::RootDir
+                std::path::Component::ParentDir
+                    | std::path::Component::RootDir
+                    | std::path::Component::Prefix(_)
             )
         });
         if rel.is_absolute() || unsafe_entry {
@@ -357,23 +360,54 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn write_unzipped_backslash_is_filename_not_separator_on_unix() {
+    async fn write_unzipped_backslash_entry_stays_inside_dest() {
         let dir = tempdir().unwrap();
         let dest = dir.path().join("out");
         tokio::fs::create_dir_all(&dest).await.unwrap();
 
         let mut files = HashMap::new();
         files.insert("manifest.json".to_string(), br#"{"version":"1.0"}"#.to_vec());
-        // On Unix a backslash is a valid filename character, not a path separator.
-        // The entry should land as a single file inside dest, not break out via traversal.
         files.insert("sub\\file.txt".to_string(), b"data".to_vec());
+        files.insert("..\\escape.txt".to_string(), b"pwned".to_vec());
 
         write_unzipped(&dest, &files).await.unwrap();
 
         assert!(dest.join("manifest.json").exists());
-        // Lands as the literal filename "sub\file.txt" inside dest (Unix-only behavior)
+        assert!(!dir.path().join("escape.txt").exists());
+        // On Unix a backslash is an ordinary filename character; on Windows it
+        // separates path components. Either way the entry lands inside dest.
         #[cfg(unix)]
         assert!(dest.join("sub\\file.txt").exists());
+        #[cfg(windows)]
+        assert!(dest.join("sub").join("file.txt").exists());
+    }
+
+    #[cfg(windows)]
+    #[tokio::test]
+    async fn write_unzipped_skips_drive_prefixed_entries() {
+        let dir = tempdir().unwrap();
+        let dest = dir.path().join("out");
+        tokio::fs::create_dir_all(&dest).await.unwrap();
+        let cwd = std::env::current_dir().unwrap();
+
+        let mut files = HashMap::new();
+        files.insert("manifest.json".to_string(), br#"{"version":"1.0"}"#.to_vec());
+        files.insert("C:drive-relative.txt".to_string(), b"pwned".to_vec());
+        files.insert("C:\\drive-absolute.txt".to_string(), b"pwned".to_vec());
+        files.insert("\\\\?\\C:\\verbatim.txt".to_string(), b"pwned".to_vec());
+
+        write_unzipped(&dest, &files).await.unwrap();
+
+        assert!(dest.join("manifest.json").exists());
+        assert!(!cwd.join("drive-relative.txt").exists());
+        assert!(!Path::new("C:\\drive-absolute.txt").exists());
+        assert!(!Path::new("C:\\verbatim.txt").exists());
+        let mut entries = tokio::fs::read_dir(&dest).await.unwrap();
+        let mut names = Vec::new();
+        while let Some(entry) = entries.next_entry().await.unwrap() {
+            names.push(entry.file_name().to_string_lossy().into_owned());
+        }
+        assert_eq!(names, vec!["manifest.json".to_string()]);
     }
 
     #[tokio::test]

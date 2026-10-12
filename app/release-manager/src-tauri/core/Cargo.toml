@@ -17,3 +17,6 @@ tempfile = "3"
 tokio = { version = "1", features = ["test-util", "macros", "rt", "net"] }
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
 zip = "2"
+
+[target.'cfg(windows)'.dev-dependencies]
+junction = "1"

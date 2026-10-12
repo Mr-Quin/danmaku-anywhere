@@ -11,12 +11,31 @@ pub fn active_path(data_dir: &Path) -> PathBuf {
     data_dir.join(ACTIVE_DIR)
 }
 
+// Windows only deletes a directory symlink or junction through remove_dir;
+// remove_file on one fails with access denied.
+#[cfg(windows)]
+async fn remove_non_dir(path: &Path, file_type: std::fs::FileType) -> std::io::Result<()> {
+    use std::os::windows::fs::FileTypeExt;
+    if file_type.is_symlink_dir() {
+        fs::remove_dir(path).await
+    } else {
+        fs::remove_file(path).await
+    }
+}
+
+#[cfg(not(windows))]
+async fn remove_non_dir(path: &Path, _file_type: std::fs::FileType) -> std::io::Result<()> {
+    fs::remove_file(path).await
+}
+
 async fn ensure_real_dir(dir: &Path) -> Result<(), RmError> {
     if let Ok(meta) = fs::symlink_metadata(dir).await {
         if !meta.file_type().is_dir() {
-            fs::remove_file(dir).await.map_err(|e| RmError::Swap {
-                message: e.to_string(),
-            })?;
+            remove_non_dir(dir, meta.file_type())
+                .await
+                .map_err(|e| RmError::Swap {
+                    message: e.to_string(),
+                })?;
         }
     }
     fs::create_dir_all(dir).await.map_err(|e| RmError::Swap {
@@ -149,6 +168,19 @@ mod tests {
         assert_eq!(content, "one");
     }
 
+    // Creating a real symlink on Windows needs Developer Mode or admin rights,
+    // so the test uses a junction there, which any user can create. Both are
+    // reparse points and both must be replaced by a real directory.
+    #[cfg(unix)]
+    fn link_dir(target: &Path, link: &Path) {
+        std::os::unix::fs::symlink(target, link).unwrap();
+    }
+
+    #[cfg(windows)]
+    fn link_dir(target: &Path, link: &Path) {
+        junction::create(target, link).unwrap();
+    }
+
     #[tokio::test]
     async fn set_active_replaces_symlink_with_real_dir() {
         let dir = tempdir().unwrap();
@@ -157,16 +189,13 @@ mod tests {
         setup_cache(data_dir, "v2", "two").await;
 
         let active = active_path(data_dir);
-        #[cfg(unix)]
-        {
-            let cache_v1 = data_dir.join("cache").join("v1");
-            std::os::unix::fs::symlink(&cache_v1, &active).unwrap();
-            let before = fs::symlink_metadata(&active).await.unwrap();
-            assert!(before.file_type().is_symlink());
-        }
+        let cache_v1 = data_dir.join("cache").join("v1");
+        link_dir(&cache_v1, &active);
+        let before = fs::symlink_metadata(&active).await.unwrap();
+        assert!(before.file_type().is_symlink());
 
         let result = set_active(data_dir, "v2").await;
-        assert!(result.is_ok());
+        assert!(result.is_ok(), "set_active failed: {:?}", result.err());
 
         let meta = fs::symlink_metadata(&active).await.unwrap();
         assert!(!meta.file_type().is_symlink());
@@ -174,6 +203,9 @@ mod tests {
 
         let content = fs::read_to_string(active.join("manifest.json")).await.unwrap();
         assert_eq!(content, "two");
+
+        let untouched = fs::read_to_string(cache_v1.join("manifest.json")).await.unwrap();
+        assert_eq!(untouched, "one", "removing the link must not touch its target");
     }
 
     #[tokio::test]

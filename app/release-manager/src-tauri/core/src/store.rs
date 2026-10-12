@@ -153,18 +153,16 @@ mod tests {
         assert_eq!(reloaded.builds.len(), 1);
     }
 
+    #[cfg(unix)]
     #[tokio::test]
     async fn file_permissions_are_0600() {
+        use std::os::unix::fs::PermissionsExt;
         let dir = tempdir().unwrap();
         let store = ConfigStore::new(dir.path());
         store.save(&Config { active_tag: None, builds: vec![] }).await.unwrap();
 
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let meta = std::fs::metadata(dir.path().join("config.json")).unwrap();
-            assert_eq!(meta.permissions().mode() & 0o777, 0o600);
-        }
+        let meta = std::fs::metadata(dir.path().join("config.json")).unwrap();
+        assert_eq!(meta.permissions().mode() & 0o777, 0o600);
     }
 
     #[tokio::test]
