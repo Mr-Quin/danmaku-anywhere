@@ -31,7 +31,6 @@ export const useImportShareCodeDialog = (
       content: (
         <TextField
           autoFocus
-          slotProps={{ htmlInput: { 'data-testid': 'share-code-input' } }}
           margin="dense"
           placeholder={t(
             'configPage.importShareCodePlaceholder',
