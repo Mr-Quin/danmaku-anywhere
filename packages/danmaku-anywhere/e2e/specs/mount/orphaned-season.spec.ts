@@ -55,7 +55,7 @@ test('deleting a provider orphans its season but keeps it viewable', async ({
   await expect(seasonItem).toContainText(/\+1/)
 
   await Popup.open(page, extensionId, '/providers')
-  await popup.providers.deleteProvider('Bilibili')
+  await popup.providers.deleteProvider(/Bilibili|B站/)
   await popup.dialog.confirm()
   await popup.toast.expectSuccess(/Provider deleted|弹幕源已删除/)
 

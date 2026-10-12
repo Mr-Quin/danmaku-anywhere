@@ -1,3 +1,4 @@
+import { Language } from '../../../src/common/localization/language'
 import type { ProviderConfig } from '../../../src/common/options/providerConfig/schema'
 import { Popup } from '../../pom/Popup'
 import { makeBilibiliEpisode } from '../../setup/bilibiliSeed'
@@ -7,7 +8,8 @@ import { applyProfile } from '../../setup/profile'
 
 /**
  * The built-in DanDanPlay and a self-hosted instance of the same manifest can
- * carry the same name. Seeds one season under each and asserts their tree
+ * carry the same name, here in an English UI where the built-in shows as
+ * DanDanPlay. Seeds one season under each and asserts their tree
  * chips read differently: the built-in keeps its name, the self-hosted one
  * adds its server host. A new instance also starts with its own default name,
  * and a user's mirror of the hosted proxy URL is not labelled built-in.
@@ -56,6 +58,7 @@ test('seasons of two same-named dandanplay instances get distinct chips', async 
   await applyProfile(context, da, {
     providers: { dandanplay: { enabled: true } },
     customProviders: [homeServer],
+    extensionOptions: { lang: Language.en },
   })
   const builtinSeasonId = await seedSeason(
     da,
@@ -120,6 +123,6 @@ test('a self-hosted mirror of the proxy URL is not labelled built-in', async ({
 
   await expect(popup.providers.row('My DDP Mirror')).toBeVisible()
   await expect(
-    popup.providers.row(/^DanDanPlay \((Built-in|内置)\)$/)
+    popup.providers.row(/^(DanDanPlay|弹弹play) \((Built-in|内置)\)$/)
   ).toBeVisible()
 })
