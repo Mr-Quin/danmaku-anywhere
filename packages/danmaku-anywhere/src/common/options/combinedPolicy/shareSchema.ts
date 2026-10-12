@@ -40,7 +40,7 @@ export const decodeShareConfig = async (
 ): Promise<SharedMountConfig> => {
   const zip = new JSZip()
   const [loadedZip, error] = await tryCatch(() =>
-    zip.loadAsync(code.trim(), { base64: true })
+    zip.loadAsync(code, { base64: true })
   )
 
   if (error) {
