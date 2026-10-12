@@ -20,16 +20,16 @@
     "@astrojs/starlight": "^0.37.7",
     "@astrojs/starlight-tailwind": "^4.0.2",
     "@tailwindcss/vite": "^4.3.3",
-    "@types/chrome": "^0.0.287",
+    "@types/chrome": "^0.3.5",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "astro": "^5.18.2",
     "daisyui": "^5.7.47",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "sharp": "^0.33.5",
+    "sharp": "^0.35.5",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.9.3"
+    "typescript": "^6.0.3"
   },
   "packageManager": "pnpm@10.11.0"
 }
