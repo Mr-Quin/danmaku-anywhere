@@ -298,6 +298,8 @@ export type BackgroundMethods = {
   cloudBackupCreate: RPCDef<void, { success: boolean; id: string }>
   cloudBackupDownload: RPCDef<string, unknown>
   dataWipeDanmaku: RPCDef<{ includeCustomEpisodes: boolean }, void>
+  optionsEnsureUpgraded: RPCDef<void, void>
+  optionsUpgrade: RPCDef<void, void>
   bookmarkAdd: RPCDef<BookmarkAddInput, Bookmark>
   bookmarkDelete: RPCDef<BookmarkDeleteInput, void>
   bookmarkDeleteBySeason: RPCDef<BookmarkDeleteBySeasonInput, void>

@@ -1,13 +1,13 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import type { Container } from 'inversify'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { UpgradeService } from '@/background/syncOptions/UpgradeService/UpgradeService'
 import {
   type IStoreService,
   StoreServiceSymbol,
 } from '@/common/options/IStoreService'
 import { PROXY_DDP_BASE_URL } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { OptionsUpgradeService } from '@/common/options/upgrade/OptionsUpgradeService'
 import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
 import {
   readV150Backup,
@@ -48,7 +48,7 @@ async function upgradeAtStartup() {
     await seedV150Store(name)
   }
   const container = createUpgradeContainer({ ready: false })
-  await container.get(UpgradeService).upgrade()
+  await container.get(OptionsUpgradeService).upgrade()
   return readStores(container)
 }
 

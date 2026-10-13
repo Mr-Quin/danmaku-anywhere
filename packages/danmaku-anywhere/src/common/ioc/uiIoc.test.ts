@@ -1,6 +1,7 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { Container } from 'inversify'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createBackgroundContainer } from '@/background/ioc'
 import { LoggerSymbol } from '@/common/Logger'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import {
@@ -8,7 +9,8 @@ import {
   StoreServiceSymbol,
 } from '@/common/options/IStoreService'
 import { OptionsServiceFactory } from '@/common/options/OptionsService/OptionServiceFactory'
-import { StandaloneUpgradeService } from '@/common/standalone/StandaloneUpgradeService'
+import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
+import { OptionsUpgraderSymbol } from '@/common/options/upgrade/OptionsUpgrader'
 import { FrameRegistry } from '@/content/controller/danmaku/frame/FrameRegistry.service'
 import { MaskProviderFactory } from '@/content/player/occlusion/maskProviderFactory'
 import { PlayerScript } from '@/content/player/PlayerScript.service'
@@ -16,7 +18,9 @@ import { PlayerScript } from '@/content/player/PlayerScript.service'
 /**
  * UI IoC wiring must be constructible independently of its default export.
  * Importing the module must not read browser storage before an entrypoint
- * explicitly starts the UI language bootstrap.
+ * explicitly starts the UI language bootstrap. Every build binds the same
+ * option stores as the background, and the upgrader goes over RPC except in
+ * the standalone build, which upgrades in the page.
  */
 describe('createUiContainer', () => {
   beforeEach(() => {
@@ -52,7 +56,7 @@ describe('createUiContainer', () => {
       ExtensionOptionsService,
       FrameRegistry,
       PlayerScript,
-      StandaloneUpgradeService,
+      ReadinessService,
     ]
 
     for (const service of services) {
@@ -66,27 +70,48 @@ describe('createUiContainer', () => {
     expect(testContainer.get(OptionsServiceFactory)).toBeTypeOf('function')
   })
 
-  it('binds the standalone stores on the exported module itself', async () => {
+  it('binds the same option stores as the background', async () => {
+    const { createUiContainer } = await import('./uiIoc')
+
+    const uiStores = createUiContainer()
+      .getAll<IStoreService>(StoreServiceSymbol)
+      .map((store) => store.name)
+    const backgroundStores = createBackgroundContainer()
+      .getAll<IStoreService>(StoreServiceSymbol)
+      .map((store) => store.name)
+
+    expect(uiStores.length).toBeGreaterThan(0)
+    expect(uiStores).toEqual(backgroundStores)
+  })
+
+  it('upgrades over RPC in the extension', async () => {
+    const { createUiContainer } = await import('./uiIoc')
+    const { RpcOptionsUpgrader } = await import(
+      '@/common/options/upgrade/RpcOptionsUpgrader'
+    )
+
+    expect(createUiContainer().get(OptionsUpgraderSymbol)).toBeInstanceOf(
+      RpcOptionsUpgrader
+    )
+  })
+
+  it('upgrades in the page in the standalone build', async () => {
     vi.stubEnv('VITE_STANDALONE', 'true')
     vi.resetModules()
 
-    const { createUiContainer, uiContainerModule } = await import('./uiIoc')
-
+    const { uiContainerModule } = await import('./uiIoc')
+    const { OptionsUpgradeService } = await import(
+      '@/common/options/upgrade/OptionsUpgradeService'
+    )
     const moduleOnly = new Container({
       autobind: true,
       defaultScope: 'Singleton',
     })
     moduleOnly.load(uiContainerModule)
 
-    const moduleStores = moduleOnly
-      .getAll<IStoreService>(StoreServiceSymbol)
-      .map((store) => store.constructor)
-    const productionStores = createUiContainer()
-      .getAll<IStoreService>(StoreServiceSymbol)
-      .map((store) => store.constructor)
-
-    expect(moduleStores.length).toBeGreaterThan(0)
-    expect(moduleStores).toEqual(productionStores)
+    expect(moduleOnly.get(OptionsUpgraderSymbol)).toBe(
+      moduleOnly.get(OptionsUpgradeService)
+    )
   })
 
   it('bootstraps the UI language once per container', async () => {

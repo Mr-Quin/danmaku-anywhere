@@ -22,3 +22,7 @@ export interface IStoreService {
 }
 
 export const StoreServiceSymbol = Symbol.for('StoreService')
+
+export type IOptionStoresProvider = () => IStoreService[]
+
+export const OptionStoresProvider = Symbol.for('OptionStoresProvider')

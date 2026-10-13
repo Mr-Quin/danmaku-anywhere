@@ -6,16 +6,19 @@ import './index.css'
 
 import { injectFonts } from '@/common/fonts'
 import { queryClient } from '@/common/queries/queryClient'
-import { ensureStandaloneReady } from '@/common/standalone/ensureStandaloneReady'
 import { Theme } from '@/common/theme/Theme'
 import { App } from './App'
 import '@/common/localization/i18n'
 import { EnvironmentContext } from '@/common/environment/context'
-import { bootstrapUiLanguage, uiContainer } from '@/common/ioc/uiIoc'
+import {
+  bootstrapUiLanguage,
+  requestOptionsUpgrade,
+  uiContainer,
+} from '@/common/ioc/uiIoc'
 
-const bootstrap = async () => {
+const bootstrap = () => {
   bootstrapUiLanguage(uiContainer)
-  await ensureStandaloneReady()
+  requestOptionsUpgrade(uiContainer)
 
   injectFonts(document.head)
 
@@ -38,4 +41,4 @@ const bootstrap = async () => {
   )
 }
 
-void bootstrap()
+bootstrap()

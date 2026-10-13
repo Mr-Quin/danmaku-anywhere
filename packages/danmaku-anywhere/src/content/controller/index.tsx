@@ -8,7 +8,6 @@ import { injectFonts } from '@/common/fonts'
 import { Logger } from '@/common/Logger'
 import { queryClient } from '@/common/queries/queryClient'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { ensureStandaloneReady } from '@/common/standalone/ensureStandaloneReady'
 import { Theme } from '@/common/theme/Theme'
 import { App } from './App'
 import '@/common/localization/i18n'
@@ -25,7 +24,6 @@ import { startPanelStateBroadcaster } from '@/content/controller/danmaku/panelSt
 import { useStore } from '@/content/controller/store/store'
 
 bootstrapUiLanguage(uiContainer)
-await ensureStandaloneReady()
 startPanelStateBroadcaster()
 
 if (!IS_DA_PROD) {
