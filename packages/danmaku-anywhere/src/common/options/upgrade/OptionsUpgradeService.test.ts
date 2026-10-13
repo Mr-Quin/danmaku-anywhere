@@ -291,8 +291,8 @@ describe('OptionsUpgradeService', () => {
     await fakeBrowser.storage.local.set({
       beta: { data: { count: 5 }, version: 2 },
       [UPGRADE_SNAPSHOT_KEY]: {
-        alpha: { data: { count: 1 }, version: 1 },
-        beta: { data: { count: 0 }, version: 2 },
+        alpha: { stored: { data: { count: 1 }, version: 1 }, target: 3 },
+        beta: { stored: { data: { count: 0 }, version: 2 }, target: 3 },
       },
     })
     const { upgrader, seenStores } = setup(['alpha', 'beta'], ['alpha', 'beta'])
@@ -315,6 +315,26 @@ describe('OptionsUpgradeService', () => {
     expect(await readRaw(UPGRADE_SNAPSHOT_KEY)).toBeDefined()
 
     await release.upgrader.ensureUpgraded()
+    const next = setup(['alpha', 'beta'], ['beta'])
+    await next.upgrader.upgradeForNewBuild()
+
+    expect(next.seenStores.at(-1)).toEqual({
+      alpha: { count: 2 },
+      beta: { count: 5 },
+    })
+  })
+
+  it('does not hand a later release the snapshot of a successful run even without a wake', async () => {
+    await storeV1('alpha', 1)
+    await fakeBrowser.storage.local.set({
+      beta: { data: { count: 5 }, version: 2 },
+    })
+    vi.spyOn(fakeBrowser.storage.local, 'remove').mockRejectedValueOnce(
+      new Error('IO error')
+    )
+    await setup(['alpha', 'beta']).upgrader.upgrade()
+    expect(await readRaw(UPGRADE_SNAPSHOT_KEY)).toBeDefined()
+
     const next = setup(['alpha', 'beta'], ['beta'])
     await next.upgrader.upgradeForNewBuild()
 

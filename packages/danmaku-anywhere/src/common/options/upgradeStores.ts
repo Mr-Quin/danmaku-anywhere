@@ -3,9 +3,14 @@ import type { IStoreService } from './IStoreService'
 import { isStoredAtVersion } from './OptionsService/storedVersion'
 import type { Options, StoreSnapshot } from './OptionsService/types'
 
-// Every store's envelope, version included, as it was before the first
-// upgrade step persisted.
-export type UpgradeSnapshot = Record<string, Options<unknown>>
+// Each store's envelope, version included, as it was before the first
+// upgrade step persisted, and the version that upgrade was taking it to.
+export interface SnapshotEntry {
+  stored?: Options<unknown>
+  target: number
+}
+
+export type UpgradeSnapshot = Record<string, SnapshotEntry>
 
 export interface UpgradeSnapshotStore {
   // The snapshot an earlier attempt of the same upgrade saved, if any
@@ -23,7 +28,7 @@ export async function upgradeStores(
   logger: ILogger,
   snapshots: UpgradeSnapshotStore
 ): Promise<void> {
-  const current: UpgradeSnapshot = {}
+  const current: Record<string, Options<unknown>> = {}
   for (const service of services) {
     const stored = await service.options.readStoredUnblocked()
     if (stored) {
@@ -47,8 +52,10 @@ export async function upgradeStores(
     await snapshots.save(snapshot)
   }
   const stores: StoreSnapshot = {}
-  for (const [key, stored] of Object.entries(snapshot)) {
-    stores[key] = stored.data
+  for (const [key, entry] of Object.entries(snapshot)) {
+    if (entry.stored) {
+      stores[key] = entry.stored.data
+    }
   }
 
   const errors: unknown[] = []
@@ -71,18 +78,34 @@ export async function upgradeStores(
   }
 }
 
-// A partial run of the same upgrade leaves each store either untouched since
-// it was captured or at its latest version, and those captured entries are
-// kept. A store that is neither, deleted by hand or synced from another
-// device at some other version, is captured again from what is stored now.
+// A snapshot belongs to one build's upgrade: a later build has other targets,
+// and its upgrade starts from what is stored now, even if the earlier run
+// succeeded but could not delete its snapshot. Within the same upgrade, a
+// partial run leaves each store either untouched since it was captured or at
+// its latest version, and those captured entries are kept. A store that is
+// neither, deleted by hand or synced from another device at some other
+// version, is captured again from what is stored now.
 function reconcileSnapshot(
   kept: UpgradeSnapshot | undefined,
-  current: UpgradeSnapshot,
+  current: Record<string, Options<unknown>>,
   services: IStoreService[]
 ): { snapshot: UpgradeSnapshot; changed: boolean } {
-  if (!kept) {
-    return { snapshot: current, changed: true }
+  const fresh = (service: IStoreService): SnapshotEntry => {
+    const { key, latestVersion } = service.options
+    return { stored: current[key], target: latestVersion }
   }
+  const sameBuild = services.every((service) => {
+    return kept?.[service.options.key]?.target === service.options.latestVersion
+  })
+  if (!kept || !sameBuild) {
+    return {
+      snapshot: Object.fromEntries(
+        services.map((service) => [service.options.key, fresh(service)])
+      ),
+      changed: true,
+    }
+  }
+
   const snapshot: UpgradeSnapshot = {}
   let changed = false
   for (const service of services) {
@@ -90,13 +113,12 @@ function reconcileSnapshot(
     const now = current[key]
     const captured = kept[key]
     const stillValid =
-      isStoredAtVersion(now, latestVersion) || isSameVersion(now, captured)
-    const entry = stillValid ? captured : now
-    if (entry !== captured) {
+      captured.target === latestVersion &&
+      (isStoredAtVersion(now, latestVersion) ||
+        isSameVersion(now, captured.stored))
+    snapshot[key] = stillValid ? captured : fresh(service)
+    if (!stillValid) {
       changed = true
-    }
-    if (entry) {
-      snapshot[key] = entry
     }
   }
   return { snapshot, changed }
