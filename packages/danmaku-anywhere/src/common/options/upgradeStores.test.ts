@@ -10,9 +10,11 @@ import { upgradeStores } from './upgradeStores'
  * upgradeStores migrates every store with a snapshot of all stored data taken
  * before any store is written. The snapshot is kept in storage.local until an
  * attempt succeeds, so a retry after a partial upgrade still hands every step
- * the data from before the first attempt. A store that fails does not stop
- * the others, and the call then rejects naming each failed store. A read
- * error while taking the snapshot rejects before anything is written.
+ * the data from before the first attempt. A snapshot that does not match the
+ * stores, left behind when deleting it failed, is replaced. A store that
+ * fails does not stop the others, and the call then rejects naming each
+ * failed store. A read error while taking the snapshot rejects before
+ * anything is written.
  */
 
 interface Value {
@@ -39,6 +41,21 @@ function createStore(key: string, onMigrate?: (stores: StoreSnapshot) => void) {
     descriptor: { key, area: 'local', latestVersion: 2 },
     options,
   } satisfies IStoreService
+}
+
+// The same store in a later release that adds a version 3.
+function createNextReleaseStore(
+  key: string,
+  onMigrate?: (stores: StoreSnapshot) => void
+) {
+  const store = createStore(key)
+  store.options.version(3, {
+    upgrade: (data: Value, context) => {
+      onMigrate?.(context.stores)
+      return data
+    },
+  })
+  return { ...store, descriptor: { ...store.descriptor, latestVersion: 3 } }
 }
 
 function storeV1(key: string, value: string) {
@@ -142,6 +159,33 @@ describe('upgradeStores', () => {
     expect(await readRaw('optionsUpgradeSnapshot')).toEqual({
       alpha: { data: { value: 'a' }, version: 1 },
     })
+  })
+
+  it('discards a snapshot a failed delete left for a later upgrade', async () => {
+    await storeV1('alpha', 'a')
+    await storeV1('beta', 'b')
+    vi.spyOn(fakeBrowser.storage.local, 'remove').mockRejectedValueOnce(
+      new Error('IO error')
+    )
+    await upgradeStores(
+      [createStore('alpha'), createStore('beta')],
+      silentLogger
+    )
+    expect(await readRaw('optionsUpgradeSnapshot')).toBeDefined()
+
+    const seen: StoreSnapshot[] = []
+    await upgradeStores(
+      [
+        createNextReleaseStore('alpha'),
+        createNextReleaseStore('beta', (snapshot) => seen.push(snapshot)),
+      ],
+      silentLogger
+    )
+
+    expect(seen).toEqual([
+      { alpha: { value: 'a upgraded' }, beta: { value: 'b upgraded' } },
+    ])
+    expect(await readRaw('optionsUpgradeSnapshot')).toBeUndefined()
   })
 
   it('writes no snapshot when every store is already current', async () => {
