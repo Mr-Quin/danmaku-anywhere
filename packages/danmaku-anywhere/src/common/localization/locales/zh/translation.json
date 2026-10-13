@@ -21,6 +21,7 @@
     "apiKey": "API密钥",
     "baseUrl": "基础地址",
     "baseUrlHelper": "例如：https://api.openai.com/v1",
+    "builtInHint": "由弹幕任何地方提供，无需设置。",
     "builtInName": "弹幕任何地方AI",
     "configure": "配置AI",
     "delete": {
@@ -140,6 +141,7 @@
       "mediaQuery": "视频节点",
       "name": "名称",
       "pattern": "模式",
+      "patternRequired": "至少需要一个网址模式",
       "step": {
         "ai": "编辑AI",
         "automation": "自动化",
@@ -147,7 +149,7 @@
       },
       "title": {
         "create": "添加配置",
-        "edit": "编辑{{name}}"
+        "edit": "编辑：{{name}}"
       },
       "tooPermissive": "匹配模式过于宽松，AI功能将被禁用",
       "urlPatterns": "URL 模式"
@@ -157,6 +159,7 @@
       "error": "导入失败：{{message}}",
       "fileUpload": "上传文件",
       "hasIntegration": "含自动化",
+      "invalidCode": "分享码无效",
       "name": "导入配置",
       "presets": "预设",
       "success": "导入成功"
@@ -441,7 +444,9 @@
       "noMountConfig": "该网站暂无装填配置",
       "pageUnsupported": "该类型页面无法装填弹幕"
     },
+    "clearFilter": "清除筛选",
     "confirmDeleteMultiple_other": "确定要删除{{count}}个弹幕吗？",
+    "emptyMountHint": "搜索这部番剧，下载一集，然后点击它即可装填到当前视频。",
     "episodeCount": {
       "downloaded_other": "已下载 {{count}} 集",
       "downloadedOfTotal_other": "已下载 {{fetched}}/{{count}} 集"
@@ -449,6 +454,8 @@
     "goSearch": "前往搜索",
     "importDanmaku": "导入弹幕（或拖拽至此）",
     "libraryEmpty": "弹幕库里什么也没有…",
+    "noMatchesFor": "没有与“{{query}}”匹配的弹幕",
+    "noMatchesForSources": "所选弹幕源中没有弹幕",
     "or": "或者",
     "pageTitle": "弹幕库",
     "selectedCount_other": "已选择{{count}}"
@@ -617,11 +624,18 @@
     "restrictInitiatorDomainDesc": "将网络规则范围限制在本扩展。",
     "retentionPolicy": {
       "alert": {
-        "nDanmakuDeleted_other": "已删除{{count}}条弹幕"
+        "nEpisodesDeleted_other": "已删除{{count}}集",
+        "nothingToPurge": "没有超过{{days}}天保留期限的剧集"
       },
-      "deleteCommentsAfter": "弹幕保留时间",
+      "deleteEpisodesAfter": "剧集保留时间",
       "enabled": "启用自动删除",
-      "enabledDesc": "自动清除早于下方期限的弹幕。",
+      "enabledDescEpisodes": "自动删除超过下方期限未更新的已下载剧集。",
+      "purgeConfirm": {
+        "confirm": "清理",
+        "content_other": "将删除{{count}}集超过{{days}}天保留期限未更新的已下载剧集及其弹幕，导入的剧集会保留。此操作无法撤销，确定吗？",
+        "title": "清理旧剧集"
+      },
+      "purgeDisabled": "开启保留策略后才能清理旧剧集。",
       "purgeNow": "立即清理",
       "title": "保留策略",
       "tooltip": {
@@ -913,6 +927,7 @@
     "deleteConfirm_other": "确定要删除 {{count}} 个标题映射吗？",
     "deleteConfirmOne": "确定要删除此标题映射吗？",
     "empty": "没有标题映射",
+    "emptyHint": "标题映射把视频页面的标题对应到一部番剧。视频与番剧匹配成功时（自动匹配，或在页面上选择搜索结果）会保存一条映射，之后的剧集即可直接匹配。",
     "noSeasons": "没有可以映射的番剧",
     "title": "标题映射",
     "unmapped": "未映射"

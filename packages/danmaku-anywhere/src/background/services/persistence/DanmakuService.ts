@@ -493,20 +493,28 @@ export class DanmakuService {
     return results
   }
 
+  private purgeableOlderThan(days: number) {
+    const threshold = Date.now() - days * 24 * 60 * 60 * 1000
+    // custom episodes live in their own table and are never purged
+    return {
+      threshold,
+      collection: this.db.episode.where('timeUpdated').below(threshold),
+    }
+  }
+
+  async countOlderThan(days: number) {
+    if (days <= 0) return 0
+    return this.purgeableOlderThan(days).collection.count()
+  }
+
   async purgeOlderThan(days: number) {
     if (days <= 0) return 0
 
-    const now = Date.now()
-    const threshold = now - days * 24 * 60 * 60 * 1000
-
-    // delete danmaku older than threshold, ignoring custom danmaku
-    const deleteCount = await this.db.episode
-      .where('timeUpdated')
-      .below(threshold)
-      .delete()
+    const { threshold, collection } = this.purgeableOlderThan(days)
+    const deleteCount = await collection.delete()
 
     this.logger.log(
-      `Purged ${deleteCount} danmaku older than ${new Date(threshold).toLocaleString()}`
+      `Purged ${deleteCount} episodes not updated since ${new Date(threshold).toLocaleString()}`
     )
 
     return deleteCount

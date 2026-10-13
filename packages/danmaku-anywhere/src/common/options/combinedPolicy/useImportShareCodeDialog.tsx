@@ -5,6 +5,7 @@ import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import { CombinedPolicyService } from '@/common/options/combinedPolicy/index'
+import { InvalidShareCodeError } from '@/common/options/combinedPolicy/shareSchema'
 import { serializeError } from '@/common/utils/serializeError'
 
 export const useImportShareCodeDialog = (
@@ -19,7 +20,12 @@ export const useImportShareCodeDialog = (
 
   const codeRef = useRef<string>('')
 
+  const invalidCodeMessage = () => {
+    return t('configPage.import.invalidCode', 'This share code is not valid')
+  }
+
   return () => {
+    codeRef.current = ''
     dialog.confirm({
       title: t('configPage.importShareCode', 'Import Share Code'),
       content: (
@@ -40,11 +46,12 @@ export const useImportShareCodeDialog = (
         />
       ),
       onConfirm: async () => {
-        const code = codeRef.current
+        const code = codeRef.current.trim()
+        if (!code) {
+          toast.error(invalidCodeMessage())
+          return false
+        }
         try {
-          if (!code) {
-            throw new Error('No code')
-          }
           if (options.type === 'integration') {
             await combinedPolicyService.importShareCodeToConfig(
               code,
@@ -56,6 +63,10 @@ export const useImportShareCodeDialog = (
           toast.success(t('configPage.import.success', 'Config imported'))
           codeRef.current = ''
         } catch (e) {
+          if (e instanceof InvalidShareCodeError) {
+            toast.error(invalidCodeMessage())
+            return false
+          }
           toast.error(
             t('configPage.import.error', 'Import failed: {{message}}', {
               message: serializeError(e).message,

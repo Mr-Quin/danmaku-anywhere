@@ -223,6 +223,7 @@ export type BackgroundMethods = {
   seasonMapDeleteMany: RPCDef<{ keys: string[] }, void>
 
   seasonMapGetAll: RPCDef<void, SeasonMapSnapshot[]>
+  danmakuCountPurgeable: RPCDef<number, number>
   danmakuPurgeCache: RPCDef<number, number>
   bilibiliSetCookies: RPCDef<void, void>
   providerProbeLogin: RPCDef<{ manifestId: string }, ProviderLoginStatus>

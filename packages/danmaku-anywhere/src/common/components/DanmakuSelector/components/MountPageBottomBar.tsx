@@ -1,9 +1,54 @@
 import { Delete, Download, PlayArrow } from '@mui/icons-material'
-import { Button, Collapse, Paper, Stack, Typography } from '@mui/material'
-import { type ReactElement, useMemo } from 'react'
+import {
+  Button,
+  type ButtonProps,
+  Collapse,
+  Paper,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+import { type ReactElement, type ReactNode, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import { NARROW_CONTAINER_QUERY } from '@/common/components/layout/narrowContainer'
 import type { DAMenuItemConfig } from '../../Menu/DAMenuItemConfig'
 import { DrilldownMenu } from '../../Menu/DrilldownMenu'
+
+type BarActionProps = Omit<ButtonProps, 'children' | 'startIcon'> & {
+  icon: ReactNode
+  label: string
+}
+
+// Collapses to its icon in a narrow bar so labels never wrap.
+function BarAction({ icon, label, sx, ...props }: BarActionProps) {
+  return (
+    <Tooltip title={label}>
+      <span>
+        <Button
+          variant="contained"
+          size="small"
+          startIcon={icon}
+          aria-label={label}
+          {...props}
+          sx={[
+            {
+              whiteSpace: 'nowrap',
+              [NARROW_CONTAINER_QUERY]: {
+                minWidth: 0,
+                px: 1,
+                '& .MuiButton-startIcon': { mx: 0 },
+                '& .bar-action-label': { display: 'none' },
+              },
+            },
+            ...(Array.isArray(sx) ? sx : [sx]),
+          ]}
+        >
+          <span className="bar-action-label">{label}</span>
+        </Button>
+      </span>
+    </Tooltip>
+  )
+}
 
 interface MountPageBottomBarProps {
   open: boolean
@@ -60,6 +105,7 @@ export const MountPageBottomBar = ({
           bgcolor: 'background.paper',
           borderTop: 1,
           borderColor: 'divider',
+          containerType: 'inline-size',
         }}
       >
         <Stack
@@ -76,7 +122,11 @@ export const MountPageBottomBar = ({
               gap: 1,
             }}
           >
-            <Button onClick={onCancel} size="small" sx={{ minWidth: 0, px: 1 }}>
+            <Button
+              onClick={onCancel}
+              size="small"
+              sx={{ minWidth: 0, px: 1, whiteSpace: 'nowrap' }}
+            >
               {t('common.cancel', 'Cancel')}
             </Button>
             <Typography
@@ -84,6 +134,7 @@ export const MountPageBottomBar = ({
               sx={{
                 color: 'text.secondary',
                 lineHeight: 1,
+                whiteSpace: 'nowrap',
               }}
             >
               {t('mountPage.selectedCount', '{{count}} selected', {
@@ -97,45 +148,36 @@ export const MountPageBottomBar = ({
               gap: 1,
             }}
           >
-            <Button
-              variant="contained"
+            <BarAction
               onClick={onMount}
-              startIcon={<PlayArrow />}
-              size="small"
+              icon={<PlayArrow />}
+              label={t('danmaku.mountShort', 'Mount')}
               disabled={selectionCount === 0 || isMounting}
-            >
-              {t('danmaku.mountShort', 'Mount')}
-            </Button>
+            />
             {exportItems.length > 0 && (
               <DrilldownMenu
                 items={exportItems}
                 dense
                 renderButton={(props) => (
-                  <Button
+                  <BarAction
                     id={props.id}
-                    variant="contained"
-                    startIcon={<Download />}
                     onClick={props.onClick}
-                    size="small"
+                    icon={<Download />}
+                    label={t('common.export', 'Export')}
                     disabled={selectionCount === 0}
-                  >
-                    {t('common.export', 'Export')}
-                  </Button>
+                  />
                 )}
               />
             )}
             {onDelete && (
-              <Button
-                variant="contained"
+              <BarAction
                 color="error"
-                startIcon={<Delete />}
+                icon={<Delete />}
+                label={t('common.delete', 'Delete')}
                 onClick={onDelete}
-                size="small"
                 disabled={selectionCount === 0}
                 data-testid="mount-bulk-delete"
-              >
-                {t('common.delete', 'Delete')}
-              </Button>
+              />
             )}
           </Stack>
         </Stack>

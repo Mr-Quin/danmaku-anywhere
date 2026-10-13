@@ -1,5 +1,5 @@
 import type { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
-import { Button, Checkbox, Collapse } from '@mui/material'
+import { Box, Button, Checkbox, Collapse } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { FilterButton } from '@/common/components/FilterButton'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
@@ -51,51 +51,53 @@ export const MountPageToolbar = ({
     }
   }
   return (
-    <TabToolbar
-      title={t('mountPage.pageTitle', 'Danmaku Library')}
-      leftElement={
-        <Collapse in={multiselect} orientation="horizontal" unmountOnExit>
-          <Checkbox
-            checked={selectionCount > 0}
-            onChange={handleSelection}
-            size="small"
-            edge="start"
-            data-testid="multiselect-select-all"
-          />
-        </Collapse>
-      }
-    >
-      <FilterButton
-        filter={filter}
-        onChange={onFilterChange}
-        open={isFilterOpen}
-        onOpen={() => setIsFilterOpen(true)}
-        onClose={() => setIsFilterOpen(false)}
-      />
-      <TypeSelector
-        selectedTypes={selectedTypes as DanmakuSourceType[]}
-        setSelectedType={(types) => onSelectedTypesChange(types)}
-      />
-      <MultiselectChip active={multiselect} onToggle={onToggleMultiselect} />
+    <Box sx={{ containerType: 'inline-size', flexShrink: 0 }}>
+      <TabToolbar
+        title={t('mountPage.pageTitle', 'Danmaku Library')}
+        leftElement={
+          <Collapse in={multiselect} orientation="horizontal" unmountOnExit>
+            <Checkbox
+              checked={selectionCount > 0}
+              onChange={handleSelection}
+              size="small"
+              edge="start"
+              data-testid="multiselect-select-all"
+            />
+          </Collapse>
+        }
+      >
+        <FilterButton
+          filter={filter}
+          onChange={onFilterChange}
+          open={isFilterOpen}
+          onOpen={() => setIsFilterOpen(true)}
+          onClose={() => setIsFilterOpen(false)}
+        />
+        <TypeSelector
+          selectedTypes={selectedTypes as DanmakuSourceType[]}
+          setSelectedType={(types) => onSelectedTypesChange(types)}
+        />
+        <MultiselectChip active={multiselect} onToggle={onToggleMultiselect} />
 
-      {onUnmount && (
-        <Collapse in={isMounted} unmountOnExit orientation="horizontal">
-          <Button
-            variant="outlined"
-            onClick={onUnmount}
-            color="warning"
-            disabled={!isMounted}
-            sx={{ whiteSpace: 'nowrap', ml: 1 }}
-          >
-            {t('danmaku.unmount', 'Unmount')}
-          </Button>
-        </Collapse>
-      )}
-      <DrilldownMenu
-        items={menuItems}
-        dense
-        ButtonProps={{ size: 'small', edge: 'end' }}
-      />
-    </TabToolbar>
+        {onUnmount && (
+          <Collapse in={isMounted} unmountOnExit orientation="horizontal">
+            <Button
+              variant="outlined"
+              onClick={onUnmount}
+              color="warning"
+              disabled={!isMounted}
+              sx={{ whiteSpace: 'nowrap', ml: 1 }}
+            >
+              {t('danmaku.unmount', 'Unmount')}
+            </Button>
+          </Collapse>
+        )}
+        <DrilldownMenu
+          items={menuItems}
+          dense
+          ButtonProps={{ size: 'small', edge: 'end' }}
+        />
+      </TabToolbar>
+    </Box>
   )
 }

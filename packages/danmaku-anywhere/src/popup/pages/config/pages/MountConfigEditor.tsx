@@ -3,6 +3,7 @@ import type { ReactElement } from 'react'
 import { Suspense, useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { Navigate } from 'react-router'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { MountConfigAiSettingsForm } from '@/common/options/mountConfig/components/MountConfigAiSettingsForm'
@@ -77,6 +78,13 @@ export const MountConfigEditor = ({
 
   const toast = useToast.use.toast()
 
+  const patternRequiredMessage = () => {
+    return t(
+      'configPage.editor.patternRequired',
+      'At least one pattern is required'
+    )
+  }
+
   useEffect(() => {
     return subscribe({
       formState: {
@@ -99,13 +107,11 @@ export const MountConfigEditor = ({
   const handleNext = async () => {
     const isValid = await trigger(['name', 'mediaQuery', 'patterns'])
     if (isValid) {
-      // Check if at least one pattern is added and valid
       const currentPatterns = watch('patterns')
       if (currentPatterns.length === 0) {
-        toast.error('At least one pattern is required')
+        toast.error(patternRequiredMessage())
         return
       }
-      // Also check pattern values manually if needed, but trigger should handle validation defined in register
       setActiveStep((prev) => prev + 1)
     }
   }
@@ -116,7 +122,7 @@ export const MountConfigEditor = ({
 
   const handleSave = async (data: MountConfigForm) => {
     if (data.patterns.length === 0) {
-      toast.error('At least one pattern is required')
+      toast.error(patternRequiredMessage())
       return
     }
 
@@ -149,6 +155,10 @@ export const MountConfigEditor = ({
 
   const automationMode = watch('mode')
   const isAiMode = automationMode === 'ai'
+
+  if (isEdit && !config.id) {
+    return <Navigate to="/config" replace />
+  }
 
   const handleSmartNext = async () => {
     if (activeStep === 0) {

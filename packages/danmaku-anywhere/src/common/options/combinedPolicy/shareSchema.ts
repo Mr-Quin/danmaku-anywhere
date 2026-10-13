@@ -28,6 +28,13 @@ export const encodeShareConfig = async (
   return code
 }
 
+export class InvalidShareCodeError extends Error {
+  constructor(reason: string) {
+    super(`Invalid share code: ${reason}`)
+    this.name = 'InvalidShareCodeError'
+  }
+}
+
 export const decodeShareConfig = async (
   code: string
 ): Promise<SharedMountConfig> => {
@@ -37,13 +44,13 @@ export const decodeShareConfig = async (
   )
 
   if (error) {
-    throw new Error('Invalid share code: ' + error.message)
+    throw new InvalidShareCodeError(error.message)
   }
 
   const file = loadedZip.file('config.json')
 
   if (!file) {
-    throw new Error('Invalid share code: missing config.json')
+    throw new InvalidShareCodeError('missing config.json')
   }
 
   const text = await file.async('string')
@@ -51,8 +58,12 @@ export const decodeShareConfig = async (
   const [json, err] = tryCatchSync(() => JSON.parse(text))
 
   if (err) {
-    throw new Error('Invalid share code: ' + err.message)
+    throw new InvalidShareCodeError(err.message)
   }
 
-  return sharedMountConfigSchema.parseAsync(json)
+  const parsed = sharedMountConfigSchema.safeParse(json)
+  if (!parsed.success) {
+    throw new InvalidShareCodeError(parsed.error.message)
+  }
+  return parsed.data
 }

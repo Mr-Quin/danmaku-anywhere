@@ -9,6 +9,11 @@ import { useNavigate } from 'react-router'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
+import { useActiveTabInfo } from '@/popup/hooks/useActiveTabInfo'
+import {
+  bannerDismissalKey,
+  useBannerDismissals,
+} from '@/popup/hooks/useBannerDismissals'
 import type { MountAvailability } from '@/popup/hooks/useMountAvailability'
 import { useMountAvailability } from '@/popup/hooks/useMountAvailability'
 import { useStore } from '@/popup/store'
@@ -90,32 +95,32 @@ export const MountAvailabilityBanner = (): ReactElement => {
   const { update: updateMountConfig } = useEditMountConfig()
 
   const availability = useMountAvailability()
+  const tabInfo = useActiveTabInfo()
+  const { isDismissed, dismiss } = useBannerDismissals()
+  const dismissalKey = bannerDismissalKey(
+    availability.kind,
+    tabInfo?.pattern ?? ''
+  )
 
-  const [dismissedKind, setDismissedKind] = useState<
-    MountAvailability['kind'] | null
-  >(null)
   const [displayedAvailability, setDisplayedAvailability] =
     useState<MountAvailability | null>(null)
 
   const shouldShow =
     availability.kind !== 'connected' &&
     availability.kind !== 'pending' &&
-    dismissedKind !== availability.kind
+    !isDismissed(dismissalKey)
 
   // Sync the displayed availability before paint so Collapse has content to
   // measure on the frame the banner opens. We clear on the Collapse onExited
   // callback below instead of tearing down mid-animation.
   useLayoutEffect(() => {
-    if (dismissedKind !== null && dismissedKind !== availability.kind) {
-      setDismissedKind(null)
-    }
     if (shouldShow) {
       setDisplayedAvailability(availability)
     }
-  }, [availability, dismissedKind, shouldShow])
+  }, [availability, shouldShow])
 
   const handleDismiss = () => {
-    setDismissedKind(availability.kind)
+    dismiss(dismissalKey)
   }
 
   const handleExited = () => {

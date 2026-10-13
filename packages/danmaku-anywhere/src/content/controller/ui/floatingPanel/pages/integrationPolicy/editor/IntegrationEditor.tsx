@@ -18,6 +18,7 @@ import type {
 } from '@/common/options/integrationPolicyStore/schema'
 import { zIntegration } from '@/common/options/integrationPolicyStore/schema'
 import { useIntegrationPolicyStore } from '@/common/options/integrationPolicyStore/useIntegrationPolicyStore'
+import { DOCS_PATHS } from '@/common/utils/docsPaths'
 import { docsLink } from '@/common/utils/utils'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
@@ -124,7 +125,7 @@ export const IntegrationEditor = (): ReactElement => {
               <Button
                 variant="text"
                 component="a"
-                href={docsLink('docs/integration-policy/')}
+                href={docsLink(DOCS_PATHS.integrationPolicy)}
                 target="_blank"
               >
                 {t('common.docs', 'Docs')}

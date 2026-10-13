@@ -44,12 +44,18 @@ export const AiProviderConfigList = ({
     <DraggableList<AiProviderConfig>
       items={configs}
       onEdit={onEdit}
+      clickable={(config) => config.id !== BUILT_IN_AI_PROVIDER_ID}
       onReorder={(sourceIndex, destinationIndex) => {
         reorder.mutate({ sourceIndex, destinationIndex })
       }}
       renderPrimary={renderItem}
       renderSecondary={(config) =>
-        config.provider === 'built-in' ? '' : config.settings.baseUrl
+        config.provider === 'built-in'
+          ? t(
+              'ai.builtInHint',
+              'Provided by Danmaku Anywhere, nothing to set up.'
+            )
+          : config.settings.baseUrl
       }
       renderSecondaryAction={(config) => (
         <>

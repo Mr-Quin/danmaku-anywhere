@@ -22,9 +22,19 @@ import { ManifestEditorPage } from '../pages/providers/pages/ManifestEditorPage'
 import { ProvidersPage } from '../pages/providers/pages/ProvidersPage'
 import { SearchPage } from '../pages/search/SearchPage'
 import { StylesPage } from '../pages/styles/StylesPage'
+import type { PopupRouteHandle } from './resolveRestoreTarget'
 
 export const POPUP_ROUTE_STORAGE_KEY = 'popup:lastRoute'
 export const POPUP_DEFAULT_ROUTE = '/mount'
+
+// Read before the router exists: the index redirect rewrites an empty hash to
+// the default route as soon as the router initializes.
+export const INITIAL_HASH =
+  typeof window === 'undefined' ? '' : window.location.hash
+
+function restoreTo(path: string): PopupRouteHandle {
+  return { restoreTo: path }
+}
 
 export const routes: RouteObject[] = [
   {
@@ -43,7 +53,11 @@ export const routes: RouteObject[] = [
         path: 'search',
         children: [
           { index: true, Component: SearchPage },
-          { path: 'season', Component: SeasonDetailsPage },
+          {
+            path: 'season',
+            Component: SeasonDetailsPage,
+            handle: restoreTo('/search'),
+          },
         ],
       },
       {
@@ -57,10 +71,12 @@ export const routes: RouteObject[] = [
           {
             path: 'add',
             element: <MountConfigEditor mode="add" />,
+            handle: restoreTo('/config'),
           },
           {
             path: 'edit',
             element: <MountConfigEditor mode="edit" />,
+            handle: restoreTo('/config'),
           },
           {
             path: 'import',
@@ -73,6 +89,7 @@ export const routes: RouteObject[] = [
               {
                 path: 'edit',
                 element: <IntegrationPolicyEditor />,
+                handle: restoreTo('/config/integration-policy'),
               },
             ],
           },
@@ -85,6 +102,7 @@ export const routes: RouteObject[] = [
           {
             path: 'editor',
             Component: ManifestEditorPage,
+            handle: restoreTo('/providers'),
           },
         ],
       },

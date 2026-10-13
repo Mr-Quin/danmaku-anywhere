@@ -21,6 +21,7 @@
     "apiKey": "API Key",
     "baseUrl": "Base URL",
     "baseUrlHelper": "e.g. https://api.openai.com/v1",
+    "builtInHint": "Provided by Danmaku Anywhere, nothing to set up.",
     "builtInName": "Danmaku Anywhere AI",
     "configure": "Configure AI",
     "delete": {
@@ -141,6 +142,7 @@
       "mediaQuery": "Video Node",
       "name": "Name",
       "pattern": "Pattern",
+      "patternRequired": "At least one pattern is required",
       "step": {
         "ai": "AI Configuration",
         "automation": "Automation",
@@ -158,6 +160,7 @@
       "error": "Import failed: {{message}}",
       "fileUpload": "Upload File",
       "hasIntegration": "Includes Integration",
+      "invalidCode": "This share code is not valid",
       "name": "Import Config",
       "presets": "Presets",
       "success": "Config imported"
@@ -457,8 +460,10 @@
       "noMountConfig": "No mount config for this site",
       "pageUnsupported": "This page cannot host danmaku"
     },
+    "clearFilter": "Clear filter",
     "confirmDeleteMultiple_one": "Are you sure you want to delete {{count}} item?",
     "confirmDeleteMultiple_other": "Are you sure you want to delete {{count}} items?",
+    "emptyMountHint": "Search for the show, download an episode, then click it to mount it on this video.",
     "episodeCount": {
       "downloaded_one": "{{count}} episode downloaded",
       "downloaded_other": "{{count}} episodes downloaded",
@@ -468,6 +473,8 @@
     "goSearch": "Go search",
     "importDanmaku": "Import danmaku (or drag and drop)",
     "libraryEmpty": "The library is empty…",
+    "noMatchesFor": "No matches for \"{{query}}\"",
+    "noMatchesForSources": "No danmaku from the selected sources",
     "or": "or",
     "pageTitle": "Library",
     "selectedCount_one": "{{count}} selected",
@@ -639,12 +646,20 @@
     "restrictInitiatorDomainDesc": "Restrict network-rule scope to this extension.",
     "retentionPolicy": {
       "alert": {
-        "nDanmakuDeleted_one": "{{count}} danmaku deleted",
-        "nDanmakuDeleted_other": "{{count}} danmaku deleted"
+        "nEpisodesDeleted_one": "{{count}} episode deleted",
+        "nEpisodesDeleted_other": "{{count}} episodes deleted",
+        "nothingToPurge": "No episodes are past the {{days}}-day limit"
       },
-      "deleteCommentsAfter": "Delete comments older than",
+      "deleteEpisodesAfter": "Delete episodes not updated in",
       "enabled": "Enable Retention Policy",
-      "enabledDesc": "Automatically purge comments older than the limit below.",
+      "enabledDescEpisodes": "Automatically delete downloaded episodes not updated within the limit below.",
+      "purgeConfirm": {
+        "confirm": "Purge",
+        "content_one": "Delete {{count}} downloaded episode not updated within the {{days}}-day limit, along with their danmaku? Imported episodes are kept. This cannot be undone.",
+        "content_other": "Delete {{count}} downloaded episodes not updated within the {{days}}-day limit, along with their danmaku? Imported episodes are kept. This cannot be undone.",
+        "title": "Purge old episodes"
+      },
+      "purgeDisabled": "Turn on the retention policy to purge old episodes.",
       "purgeNow": "Purge Now",
       "title": "Retention policy",
       "tooltip": {
@@ -944,6 +959,7 @@
     "deleteConfirm_other": "Are you sure you want to delete {{count}} title mappings?",
     "deleteConfirmOne": "Are you sure you want to delete this title mapping?",
     "empty": "No title mappings found.",
+    "emptyHint": "A title mapping links a video page title to a show. One is saved when a video is matched to a show, automatically or when you pick a search result on the page, so later episodes match straight away.",
     "noSeasons": "No options for the selected source",
     "title": "Title Mappings",
     "unmapped": "Unmapped"
