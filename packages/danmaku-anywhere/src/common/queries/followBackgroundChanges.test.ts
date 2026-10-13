@@ -9,8 +9,10 @@ import { seasonQueryKeys, sourceQueryKeys, storageQueryKeys } from './queryKeys'
  * invalidations: a manifest announcement marks the lists, plus pending updates
  * for a catalog change or the per-source queries of the manifests it names,
  * an invalidateQueries event marks the keys it names, and a chrome.storage
- * write marks the queries reading that key in that area. A change that lands
- * during a query's first fetch still leaves the query stale once it settles.
+ * write marks the queries reading that key in that area. Source capability
+ * answers follow a changed manifest and a write to the stored configs or
+ * manifests. A change that lands during a query's first fetch still leaves the
+ * query stale once it settles.
  */
 
 const sender = new BroadcastChannel('danmaku-anywhere:data-change')
@@ -40,6 +42,7 @@ describe('followBackgroundChanges', () => {
     client.setQueryData(sourceQueryKeys.loginStatus('bilibili'), {})
     client.setQueryData(sourceQueryKeys.manifestSpec('bilibili', 'en'), {})
     client.setQueryData(sourceQueryKeys.manifestSource('bilibili'), {})
+    client.setQueryData(sourceQueryKeys.configCapabilities('bilibili'), {})
 
     sender.postMessage({
       type: 'manifestsChanged',
@@ -59,6 +62,9 @@ describe('followBackgroundChanges', () => {
     expect(isInvalidated(sourceQueryKeys.manifestSource('bilibili'))).toBe(
       false
     )
+    expect(isInvalidated(sourceQueryKeys.configCapabilities('bilibili'))).toBe(
+      false
+    )
   })
 
   it('refreshes the list and the queries of the changed manifests only', async () => {
@@ -69,6 +75,8 @@ describe('followBackgroundChanges', () => {
     client.setQueryData(sourceQueryKeys.manifestSource('mine:one'), {})
     client.setQueryData(sourceQueryKeys.loginStatus('bilibili'), {})
     client.setQueryData(seasonQueryKeys.all(), [])
+    client.setQueryData(sourceQueryKeys.configCapabilities('mine-config'), {})
+    client.setQueryData(sourceQueryKeys.urlSource('https://a.example/1'), {})
 
     sender.postMessage({
       type: 'manifestsChanged',
@@ -87,6 +95,43 @@ describe('followBackgroundChanges', () => {
     expect(isInvalidated(sourceQueryKeys.loginStatus('bilibili'))).toBe(false)
     expect(isInvalidated(sourceQueryKeys.pendingUpdates())).toBe(false)
     expect(isInvalidated(seasonQueryKeys.all())).toBe(false)
+    expect(
+      isInvalidated(sourceQueryKeys.configCapabilities('mine-config'))
+    ).toBe(true)
+    expect(
+      isInvalidated(sourceQueryKeys.urlSource('https://a.example/1'))
+    ).toBe(true)
+  })
+
+  it.each([
+    ['sync', 'providerConfig'],
+    ['local', 'manifests'],
+  ] as const)('refreshes source capabilities on a %s write to %s', async (area, key) => {
+    const capabilities = sourceQueryKeys.configCapabilities('bilibili')
+    const urlSource = sourceQueryKeys.urlSource('https://a.example/1')
+    client.setQueryData(capabilities, {})
+    client.setQueryData(urlSource, {})
+
+    await fakeBrowser.storage[area].set({ [key]: {} })
+
+    await vi.waitFor(() => {
+      expect(isInvalidated(capabilities)).toBe(true)
+    })
+    expect(isInvalidated(urlSource)).toBe(true)
+  })
+
+  it('keeps source capabilities on an unrelated storage write', async () => {
+    const capabilities = sourceQueryKeys.configCapabilities('bilibili')
+    const unrelated = storageQueryKeys.external('sync', ['mountConfig'])
+    client.setQueryData(capabilities, {})
+    client.setQueryData(unrelated, {})
+
+    await fakeBrowser.storage.sync.set({ mountConfig: {} })
+
+    await vi.waitFor(() => {
+      expect(isInvalidated(unrelated)).toBe(true)
+    })
+    expect(isInvalidated(capabilities)).toBe(false)
   })
 
   it('leaves a query stale when storage changes during its first fetch', async () => {

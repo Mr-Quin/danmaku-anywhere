@@ -7,7 +7,7 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import {
   LEGACY_MACCMS_CAPABILITIES,
-  NO_CAPABILITIES,
+  MANIFEST_MISSING,
 } from '@/common/providers/sourceCapabilities'
 import { createTestContainer } from '@/tests/createTestContainer'
 import { silentLogger } from '@/tests/silentLogger'
@@ -16,8 +16,10 @@ import { SourceCapabilityService } from './SourceCapabilityService'
 
 /**
  * Capabilities come from the installed manifest through the real provider
- * factory: which configs automatic matching may pick, which source reads a
- * pasted URL, and the capability error a gated operation raises.
+ * factory: which configs search matching and mapping resolution may use,
+ * which source reads a pasted link, and the source error a gated operation
+ * raises. A config whose manifest is not registered is unavailable, and never
+ * takes the other sources down with it.
  */
 
 const pipeline = {
@@ -62,7 +64,10 @@ function makeConfig(
 
 function build(configs: ProviderConfig[], runners: ManifestRunner[]) {
   const byId = new Map(runners.map((runner) => [runner.id, runner]))
-  const getRunner = vi.fn((manifestId: string) => {
+  const findRunner = vi.fn(async (manifestId: string) => {
+    return byId.get(manifestId)
+  })
+  const getRunner = vi.fn(async (manifestId: string) => {
     const runner = byId.get(manifestId)
     if (!runner) {
       throw new Error(`no manifest registered with id: ${manifestId}`)
@@ -78,7 +83,7 @@ function build(configs: ProviderConfig[], runners: ManifestRunner[]) {
     [
       {
         identifier: ManifestRegistry,
-        value: { ready: Promise.resolve(), getRunner },
+        value: { findRunner, getRunner },
       },
       { identifier: ProviderConfigService, value: providerConfigService },
       { identifier: LoggerSymbol, value: silentLogger },
@@ -86,8 +91,11 @@ function build(configs: ProviderConfig[], runners: ManifestRunner[]) {
   ).get(SourceCapabilityService)
 }
 
-describe('SourceCapabilityService.getAutomaticProviders', () => {
-  it('never picks a search-only manifest for automatic matching', async () => {
+const BANGUMI = { host: 'www.bilibili.com', path: '^/bangumi/play/ss\\d+' }
+const BANGUMI_URL = 'https://www.bilibili.com/bangumi/play/ss1'
+
+describe('SourceCapabilityService search matching', () => {
+  it('never picks a search-only manifest', async () => {
     const searchOnly = makeConfig('search-only')
     const full = makeConfig('full')
     const service = build(
@@ -95,17 +103,17 @@ describe('SourceCapabilityService.getAutomaticProviders', () => {
       [makeRunner('search-only', ['search']), makeRunner('full', FULL)]
     )
 
-    expect(await service.getAutomaticProviders()).toEqual([full])
-    expect(await service.getFirstAutomaticProvider()).toEqual(full)
+    expect(await service.getSearchMatchProviders()).toEqual([full])
+    expect(await service.getFirstSearchMatchProvider()).toEqual(full)
   })
 
-  it('returns nothing when every enabled source is search-only', async () => {
+  it('finds nothing when every enabled source is search-only', async () => {
     const service = build(
       [makeConfig('search-only')],
       [makeRunner('search-only', ['search'])]
     )
 
-    expect(await service.getFirstAutomaticProvider()).toBeUndefined()
+    expect(await service.getFirstSearchMatchProvider()).toBeUndefined()
   })
 
   it('skips disabled configs and legacy MacCMS, keeping config order', async () => {
@@ -121,7 +129,76 @@ describe('SourceCapabilityService.getAutomaticProviders', () => {
       [makeRunner('off', FULL), makeRunner('a', FULL), makeRunner('b', FULL)]
     )
 
-    expect(await service.getAutomaticProviders()).toEqual([first, second])
+    expect(await service.getSearchMatchProviders()).toEqual([first, second])
+  })
+})
+
+describe('SourceCapabilityService mapping resolution', () => {
+  it('resolves through a source that has episodes and danmaku but no search', async () => {
+    const noSearch = makeConfig('no-search')
+    const service = build(
+      [noSearch],
+      [makeRunner('no-search', ['episodes', 'danmaku'])]
+    )
+
+    expect(await service.getMappingProviders()).toEqual([noSearch])
+    expect(await service.getSearchMatchProviders()).toEqual([])
+  })
+
+  it('needs both episodes and danmaku', async () => {
+    const service = build(
+      [makeConfig('episodes-only')],
+      [makeRunner('episodes-only', ['search', 'episodes'])]
+    )
+
+    expect(await service.getMappingProviders()).toEqual([])
+  })
+})
+
+describe('SourceCapabilityService with a config whose manifest is missing', () => {
+  const broken = makeConfig('gone', { name: 'Gone' })
+  const full = makeConfig('full')
+  const bili = makeConfig('bili')
+  const runners = () => [
+    makeRunner('full', FULL),
+    makeRunner('bili', ['parseUrl'], [BANGUMI]),
+  ]
+
+  it('answers unavailable with the reason instead of rejecting', async () => {
+    const service = build([broken], runners())
+
+    expect(await service.forProviderConfig(broken.id)).toEqual({
+      status: 'unavailable',
+      reason: MANIFEST_MISSING,
+    })
+  })
+
+  it('still matches through the other sources', async () => {
+    const service = build([broken, full], runners())
+
+    expect(await service.getSearchMatchProviders()).toEqual([full])
+    expect(await service.getMappingProviders()).toEqual([full])
+  })
+
+  it('still finds the source that parses a link', async () => {
+    const service = build([broken, bili], runners())
+
+    expect(await service.findUrlSource(BANGUMI_URL)).toEqual({
+      kind: 'parseable',
+      sourceName: bili.name,
+    })
+  })
+
+  it('refuses an operation on the broken source as unavailable', async () => {
+    const service = build([broken], runners())
+
+    await expect(
+      service.sourceProvider(broken, 'danmaku')
+    ).rejects.toMatchObject({
+      name: 'SourceError',
+      problem: 'sourceUnavailable',
+      sourceName: 'Gone',
+    })
   })
 })
 
@@ -133,14 +210,13 @@ describe('SourceCapabilityService.forProviderConfig', () => {
     )
 
     expect(await service.forProviderConfig('bili-config')).toEqual({
-      sourceRemoved: false,
+      status: 'available',
       capabilities: {
         search: true,
         episodes: true,
         danmaku: true,
         seasonRefresh: true,
         parseUrl: false,
-        automaticMatch: true,
       },
     })
   })
@@ -150,134 +226,133 @@ describe('SourceCapabilityService.forProviderConfig', () => {
 
     expect(
       await service.forProviderConfig(`${LEGACY_MACCMS_ID}-config`)
-    ).toEqual({
-      sourceRemoved: false,
-      capabilities: LEGACY_MACCMS_CAPABILITIES,
-    })
+    ).toEqual({ status: 'available', capabilities: LEGACY_MACCMS_CAPABILITIES })
   })
 
-  it('reports a deleted config as removed with no capabilities', async () => {
+  it('reports a deleted config as removed', async () => {
     const service = build([], [])
 
     expect(await service.forProviderConfig('gone')).toEqual({
-      sourceRemoved: true,
-      capabilities: NO_CAPABILITIES,
+      status: 'removed',
     })
   })
 })
 
-describe('SourceCapabilityService.providerFor', () => {
-  it('refuses episodes for a source without an episodes pipeline', async () => {
-    const config = makeConfig('search-only')
-    const service = build([config], [makeRunner('search-only', ['search'])])
+describe('SourceCapabilityService gates', () => {
+  it.each([
+    ['episodes', ['search'], 'episodesUnsupported'],
+    ['danmaku', ['search', 'episodes'], 'danmakuUnsupported'],
+    ['seasonRefresh', FULL, 'seasonRefreshUnsupported'],
+  ] as const)('refuses %s for a manifest without that pipeline', async (operation, pipelines, problem) => {
+    const config = makeConfig('partial')
+    const service = build([config], [makeRunner('partial', [...pipelines])])
 
-    await expect(service.providerFor(config, 'episodes')).rejects.toMatchObject(
-      {
-        name: 'SourceError',
-        problem: 'episodesUnsupported',
-        sourceName: 'search-only source',
-      }
-    )
-  })
-
-  it('refuses danmaku for a source without a danmaku pipeline', async () => {
-    const config = makeConfig('no-danmaku')
-    const service = build(
-      [config],
-      [makeRunner('no-danmaku', ['search', 'episodes'])]
-    )
-
-    await expect(service.providerFor(config, 'danmaku')).rejects.toMatchObject({
+    await expect(
+      service.sourceProvider(config, operation)
+    ).rejects.toMatchObject({
       name: 'SourceError',
-      problem: 'refetchUnsupported',
+      problem,
+      sourceName: config.name,
     })
   })
 
-  it('hands back the provider when the source can do it', async () => {
+  it('refuses source operations on legacy MacCMS', async () => {
+    const config = makeConfig(LEGACY_MACCMS_ID)
+    const service = build([config], [])
+
+    await expect(
+      service.sourceProvider(config, 'episodes')
+    ).rejects.toMatchObject({
+      problem: 'episodesUnsupported',
+    })
+  })
+
+  it('refuses search for a manifest without a search pipeline', async () => {
+    const config = makeConfig('lookup-only')
+    const service = build(
+      [config],
+      [makeRunner('lookup-only', ['episodes', 'danmaku'])]
+    )
+
+    await expect(service.searchProvider(config)).rejects.toMatchObject({
+      name: 'SourceError',
+      problem: 'searchUnsupported',
+    })
+  })
+
+  it('hands back a source provider when the source can do it', async () => {
     const config = makeConfig('full')
     const service = build([config], [makeRunner('full', FULL)])
 
-    const provider = await service.providerFor(config, 'danmaku')
+    const provider = await service.sourceProvider(config, 'danmaku')
 
-    expect(await provider.getCapabilities()).toMatchObject({ danmaku: true })
-  })
-})
-
-describe('SourceCapabilityService.findUrlParsers', () => {
-  const bangumi = { host: 'www.bilibili.com', path: '^/bangumi/play/ss\\d+' }
-
-  it('finds the installed source whose manifest parses the URL', async () => {
-    const bili = makeConfig('bili')
-    const service = build(
-      [makeConfig('other'), bili],
-      [
-        makeRunner('other', FULL),
-        makeRunner('bili', [...FULL, 'parseUrl'], [bangumi]),
-      ]
-    )
-
-    expect(
-      await service.findUrlParsers('https://www.bilibili.com/bangumi/play/ss1')
-    ).toEqual([bili])
-  })
-
-  it('reads a URL pasted without a scheme', async () => {
-    const bili = makeConfig('bili')
-    const service = build([bili], [makeRunner('bili', ['parseUrl'], [bangumi])])
-
-    expect(
-      await service.findUrlParsers('www.bilibili.com/bangumi/play/ss1')
-    ).toEqual([bili])
-  })
-
-  it('ignores a manifest that matches the URL but has no parseUrl pipeline', async () => {
-    const service = build(
-      [makeConfig('bili')],
-      [makeRunner('bili', FULL, [bangumi])]
-    )
-
-    expect(
-      await service.findUrlParsers('https://www.bilibili.com/bangumi/play/ss1')
-    ).toEqual([])
-  })
-
-  it('finds nothing once the parsing source is uninstalled', async () => {
-    const service = build([], [makeRunner('bili', ['parseUrl'], [bangumi])])
-
-    expect(
-      await service.findUrlParsers('https://www.bilibili.com/bangumi/play/ss1')
-    ).toEqual([])
-  })
-
-  it('finds nothing for text that is not a URL', async () => {
-    const service = build(
-      [makeConfig('bili')],
-      [makeRunner('bili', ['parseUrl'], [bangumi])]
-    )
-
-    expect(await service.findUrlParsers('frieren')).toEqual([])
+    expect(provider.kind).toBe('source')
   })
 })
 
 describe('SourceCapabilityService.findUrlSource', () => {
-  const cover = { host: 'v.qq.com', path: '^/x/cover/' }
-
-  it('names the source that will parse the URL', async () => {
+  it('names the installed source whose manifest parses the link', async () => {
     const service = build(
-      [makeConfig('tencent', { name: 'Tencent Video' })],
-      [makeRunner('tencent', ['parseUrl'], [cover])]
+      [makeConfig('other'), makeConfig('bili', { name: 'Bilibili' })],
+      [
+        makeRunner('other', FULL),
+        makeRunner('bili', [...FULL, 'parseUrl'], [BANGUMI]),
+      ]
+    )
+
+    expect(await service.findUrlSource(BANGUMI_URL)).toEqual({
+      kind: 'parseable',
+      sourceName: 'Bilibili',
+    })
+  })
+
+  it('reads a link pasted without a scheme', async () => {
+    const service = build(
+      [makeConfig('bili')],
+      [makeRunner('bili', ['parseUrl'], [BANGUMI])]
     )
 
     expect(
-      await service.findUrlSource('https://v.qq.com/x/cover/abc/def.html')
-    ).toEqual({ sourceName: 'Tencent Video' })
+      await service.findUrlSource('www.bilibili.com/bangumi/play/ss1')
+    ).toMatchObject({ kind: 'parseable' })
   })
 
-  it('answers null when no installed source parses the URL', async () => {
-    const service = build([], [])
+  it('ignores a manifest that matches the link but has no parseUrl pipeline', async () => {
+    const service = build(
+      [makeConfig('bili')],
+      [makeRunner('bili', FULL, [BANGUMI])]
+    )
+
+    expect(await service.findUrlSource(BANGUMI_URL)).toEqual({
+      kind: 'unclaimed',
+    })
+  })
+
+  it('leaves a link unclaimed once the parsing source is uninstalled', async () => {
+    const service = build([], [makeRunner('bili', ['parseUrl'], [BANGUMI])])
+
+    expect(await service.findUrlSource(BANGUMI_URL)).toEqual({
+      kind: 'unclaimed',
+    })
+  })
+
+  it('leaves a link on a path no manifest claims unclaimed', async () => {
+    const service = build(
+      [makeConfig('bili')],
+      [makeRunner('bili', ['parseUrl'], [BANGUMI])]
+    )
 
     expect(
-      await service.findUrlSource('https://v.qq.com/x/cover/abc/def.html')
-    ).toBeNull()
+      await service.findUrlSource('https://www.bilibili.com/bangumi/media/md1')
+    ).toEqual({ kind: 'unclaimed' })
+  })
+
+  it('treats a plain title as not a link', async () => {
+    const service = build(
+      [makeConfig('bili')],
+      [makeRunner('bili', ['parseUrl'], [BANGUMI])]
+    )
+
+    expect(await service.findUrlSource('frieren')).toEqual({ kind: 'notLink' })
   })
 })

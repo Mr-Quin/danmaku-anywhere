@@ -7,7 +7,7 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
-import type { SourceCapabilities } from '@/common/providers/sourceCapabilities'
+import type { SourceStatus } from '@/common/providers/sourceCapabilities'
 
 export type OmitSeasonId<T> = Omit<T, 'seasonId'>
 
@@ -20,10 +20,22 @@ export interface ParseUrlResult {
   seasonInsert: SeasonInsert
 }
 
-export interface IDanmakuProvider {
-  getCapabilities(): Promise<SourceCapabilities>
+interface ProviderBase {
+  getStatus(): Promise<SourceStatus>
 
   search(params: SeasonSearchParams): Promise<SeasonInsert[] | CustomSeason[]>
+}
+
+export interface SearchOnlyProvider extends ProviderBase {
+  readonly kind: 'searchOnly'
+
+  search(params: SeasonSearchParams): Promise<CustomSeason[]>
+}
+
+export interface SourceProvider extends ProviderBase {
+  readonly kind: 'source'
+
+  search(params: SeasonSearchParams): Promise<SeasonInsert[]>
 
   getSeason(
     seasonRemoteIds: Season['providerIds']
@@ -44,3 +56,5 @@ export interface IDanmakuProvider {
 
   parseUrl(url: string): Promise<ParseUrlResult | null>
 }
+
+export type IDanmakuProvider = SearchOnlyProvider | SourceProvider

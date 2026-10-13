@@ -28,7 +28,7 @@ export class EpisodeResolutionService {
     if (!providerConfig) {
       throw new Error(`Provider config not found for season: ${season.title}`)
     }
-    const service = await this.sourceCapabilities.providerFor(
+    const service = await this.sourceCapabilities.sourceProvider(
       providerConfig,
       'episodes'
     )

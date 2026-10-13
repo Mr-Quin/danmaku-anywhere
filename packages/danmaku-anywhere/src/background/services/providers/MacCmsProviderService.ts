@@ -1,10 +1,6 @@
 import {
-  type CommentEntity,
   type CustomSeason,
-  type EpisodeMeta,
   LEGACY_MACCMS_ID,
-  type SeasonInsert,
-  type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import {
   fetchDanmuIcuComments,
@@ -17,21 +13,12 @@ import type { ProviderConfigService } from '@/common/options/providerConfig/serv
 import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
 import {
   LEGACY_MACCMS_CAPABILITIES,
-  type SourceCapabilities,
+  type SourceStatus,
 } from '@/common/providers/sourceCapabilities'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
-import type {
-  IDanmakuProvider,
-  OmitSeasonId,
-  ParseUrlResult,
-  SeasonSearchParams,
-} from './IDanmakuProvider'
+import type { SearchOnlyProvider, SeasonSearchParams } from './IDanmakuProvider'
 
-function searchOnly(): never {
-  throw new Error('MacCMS sources only support search')
-}
-
-export class MacCmsProviderService implements IDanmakuProvider {
+export class MacCmsProviderService implements SearchOnlyProvider {
   private logger: ILogger
 
   constructor(
@@ -49,32 +36,10 @@ export class MacCmsProviderService implements IDanmakuProvider {
     return this.config.configValues as unknown as MacCmsConfigValues
   }
 
-  async getCapabilities(): Promise<SourceCapabilities> {
-    return LEGACY_MACCMS_CAPABILITIES
-  }
+  readonly kind = 'searchOnly'
 
-  async getSeason(): Promise<SeasonInsert | null> {
-    return searchOnly()
-  }
-
-  async getEpisodes(): Promise<OmitSeasonId<EpisodeMeta>[]> {
-    return searchOnly()
-  }
-
-  async getDanmaku(): Promise<CommentEntity[]> {
-    return searchOnly()
-  }
-
-  async findEpisode(): Promise<WithSeason<EpisodeMeta> | null> {
-    return searchOnly()
-  }
-
-  async canParse(): Promise<boolean> {
-    return false
-  }
-
-  async parseUrl(): Promise<ParseUrlResult | null> {
-    return searchOnly()
+  async getStatus(): Promise<SourceStatus> {
+    return { status: 'available', capabilities: LEGACY_MACCMS_CAPABILITIES }
   }
 
   async search(params: SeasonSearchParams): Promise<CustomSeason[]> {

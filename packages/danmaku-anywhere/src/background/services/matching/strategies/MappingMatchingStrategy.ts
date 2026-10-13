@@ -94,14 +94,10 @@ export class MappingMatchingStrategy implements IMatchingStrategy {
     const mapping = await this.titleMappingService.get(mapKey)
 
     if (mapping) {
-      const autoProviders =
-        await this.sourceCapabilities.getAutomaticProviders()
+      const autoProviders = await this.sourceCapabilities.getMappingProviders()
 
       // go through all automatic providers and try to find one with a mapped season id
       for (const autoProvider of autoProviders) {
-        if (!autoProvider.enabled) {
-          continue
-        }
         this.logger.debug('Checking provider', autoProvider)
         const mappedId = mapping.getSeasonId(autoProvider.id)
         if (mappedId) {

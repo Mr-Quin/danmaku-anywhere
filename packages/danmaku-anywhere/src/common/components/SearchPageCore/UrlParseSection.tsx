@@ -241,3 +241,39 @@ export function UrlParseSection({
     </Box>
   )
 }
+
+interface NoUrlParserNoticeProps {
+  onSearchInstead: () => void
+}
+
+export function NoUrlParserNotice({ onSearchInstead }: NoUrlParserNoticeProps) {
+  const { t } = useTranslation()
+  return (
+    <Box
+      data-testid="parse-no-source"
+      sx={(theme) => ({
+        borderRadius: 1.5,
+        border: `1px solid ${theme.palette.divider}`,
+        backgroundColor: theme.palette.background.paper,
+        padding: 1.5,
+      })}
+    >
+      <Stack spacing={1}>
+        <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+          <Info sx={{ fontSize: 14, color: 'info.main' }} />
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            {t('searchPage.parse.noSource', 'No source can read this link')}
+          </Typography>
+        </Stack>
+        <Button
+          variant="text"
+          size="small"
+          onClick={onSearchInstead}
+          sx={{ alignSelf: 'flex-start' }}
+        >
+          {t('searchPage.parse.searchInstead', 'Search by title instead')}
+        </Button>
+      </Stack>
+    </Box>
+  )
+}

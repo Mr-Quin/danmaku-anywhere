@@ -5,19 +5,18 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { makeEpisode, makeSeason } from '@/tests/factories'
 import {
   capabilitiesFromManifest,
-  NO_CAPABILITIES,
   type SourceCapabilityAnswer,
-  type UrlParseSource,
+  type UrlParseAnswer,
 } from './sourceCapabilities'
 import {
   useCanRefetchDanmaku,
-  useUrlParseSource,
+  useUrlParseAnswer,
 } from './useSourceCapabilities'
 
 /**
  * The UI asks the background what a source can do: refresh is offered only
- * when the episode's source can fetch danmaku again, and URL mode follows
- * whichever installed source the background says parses the link.
+ * when the episode's source can fetch danmaku, and the search box takes the
+ * background's word on whether text is a link and which source reads it.
  */
 
 const rpc = vi.hoisted(() => ({
@@ -37,12 +36,12 @@ function answerCapabilities(answers: Record<string, SourceCapabilityAnswer>) {
   )
 }
 
-function answerUrlSource(source: UrlParseSource | null) {
-  rpc.mediaFindUrlSource.mockImplementation(async () => ({ data: source }))
+function answerUrlSource(answer: UrlParseAnswer) {
+  rpc.mediaFindUrlSource.mockImplementation(async () => ({ data: answer }))
 }
 
 const canFetchDanmaku: SourceCapabilityAnswer = {
-  sourceRemoved: false,
+  status: 'available',
   capabilities: capabilitiesFromManifest({
     search: {},
     episodes: {},
@@ -51,14 +50,11 @@ const canFetchDanmaku: SourceCapabilityAnswer = {
 }
 
 const searchOnly: SourceCapabilityAnswer = {
-  sourceRemoved: false,
+  status: 'available',
   capabilities: capabilitiesFromManifest({ search: {} }),
 }
 
-const removed: SourceCapabilityAnswer = {
-  sourceRemoved: true,
-  capabilities: NO_CAPABILITIES,
-}
+const removed: SourceCapabilityAnswer = { status: 'removed' }
 
 function sourceEpisode(providerConfigId: string): GenericEpisodeLite {
   const { comments: _, ...lite } = makeEpisode()
@@ -100,8 +96,10 @@ function RefreshProbe({ episode }: { episode: GenericEpisodeLite }) {
 }
 
 function UrlProbe({ text }: { text: string }) {
-  const source = useUrlParseSource(text)
-  return <span>{source ? source.sourceName : 'search'}</span>
+  const answer = useUrlParseAnswer(text)
+  return (
+    <span>{answer.kind === 'parseable' ? answer.sourceName : answer.kind}</span>
+  )
 }
 
 describe('useCanRefetchDanmaku', () => {
@@ -143,9 +141,9 @@ describe('useCanRefetchDanmaku', () => {
   })
 })
 
-describe('useUrlParseSource', () => {
+describe('useUrlParseAnswer', () => {
   it('names the installed source the background says parses the link', async () => {
-    answerUrlSource({ sourceName: 'Bilibili' })
+    answerUrlSource({ kind: 'parseable', sourceName: 'Bilibili' })
     render(<UrlProbe text="https://www.bilibili.com/bangumi/play/ss1" />)
 
     await vi.waitFor(() => {
@@ -156,21 +154,20 @@ describe('useUrlParseSource', () => {
     })
   })
 
-  it('stays in search mode when no installed source parses the link', async () => {
-    answerUrlSource(null)
-    render(<UrlProbe text="https://www.bilibili.com/bangumi/play/ss1" />)
+  it('reports a link no installed source parses as unclaimed', async () => {
+    answerUrlSource({ kind: 'unclaimed' })
+    render(<UrlProbe text="http://localhost:8080/play/1" />)
 
     await vi.waitFor(() => {
-      expect(rpc.mediaFindUrlSource).toHaveBeenCalled()
+      expect(element.textContent).toBe('unclaimed')
     })
-    expect(element.textContent).toBe('search')
   })
 
-  it('does not ask about a plain title', async () => {
-    render(<UrlProbe text="frieren" />)
+  it('leaves an empty box as not a link without asking', async () => {
+    render(<UrlProbe text="  " />)
 
     await new Promise((resolve) => setTimeout(resolve, 20))
-    expect(element.textContent).toBe('search')
+    expect(element.textContent).toBe('notLink')
     expect(rpc.mediaFindUrlSource).not.toHaveBeenCalled()
   })
 })

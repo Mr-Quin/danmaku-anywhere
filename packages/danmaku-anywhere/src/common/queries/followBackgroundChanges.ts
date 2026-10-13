@@ -16,6 +16,13 @@ import { sourceQueryKeys, storageQueryKeys } from './queryKeys'
 
 const STORAGE_TYPES: ExtStorageType[] = ['local', 'sync', 'session']
 
+// Source capabilities are read from the stored configs and manifests. Content
+// scripts get no manifest announcement, so the storage write is their signal.
+const SOURCE_STORAGE_KEYS: Partial<Record<ExtStorageType, string>> = {
+  sync: 'providerConfig',
+  local: 'manifests',
+}
+
 type StorageChanges = Record<string, chrome.storage.StorageChange>
 
 // Subscribe before any query reads. A change that lands between a query's
@@ -52,6 +59,9 @@ function keysAffectedBy(change: ManifestChange): QueryKey[] {
   const keys: QueryKey[] = [sourceQueryKeys.manifestLists()]
   if (change.catalogChanged) {
     keys.push(sourceQueryKeys.pendingUpdates())
+  }
+  if (change.manifestIds.length > 0) {
+    keys.push(sourceQueryKeys.capabilities())
   }
   for (const manifestId of change.manifestIds) {
     keys.push(
@@ -114,6 +124,10 @@ function followStorageArea(
   const area = getStorageArea(storageType)
   const listener = (changes: StorageChanges) => {
     const changed = new Set(Object.keys(changes))
+    const sourceKey = SOURCE_STORAGE_KEYS[storageType]
+    if (sourceKey !== undefined && changed.has(sourceKey)) {
+      invalidator.invalidate({ queryKey: sourceQueryKeys.capabilities() })
+    }
     invalidator.invalidate({
       queryKey: storageQueryKeys.area(storageType),
       predicate: (query) => {

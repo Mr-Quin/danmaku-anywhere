@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
+  canMatchBySearch,
+  canResolveMapping,
   capabilitiesFromManifest,
+  capabilitiesOf,
   LEGACY_MACCMS_CAPABILITIES,
   NO_CAPABILITIES,
 } from './sourceCapabilities'
@@ -23,33 +26,51 @@ describe('capabilitiesFromManifest', () => {
       danmaku: true,
       seasonRefresh: true,
       parseUrl: true,
-      automaticMatch: true,
     })
   })
 
-  it('keeps a search-only manifest out of automatic matching', () => {
+  it('grants only search to a search-only manifest', () => {
     expect(capabilitiesFromManifest({ search: pipeline })).toEqual({
       ...NO_CAPABILITIES,
       search: true,
     })
   })
+})
 
+describe('canMatchBySearch', () => {
   it.each([
     'search',
     'episodes',
     'danmaku',
-  ] as const)('needs a %s pipeline for automatic matching', (missing) => {
-    const manifest = {
+  ] as const)('needs a %s pipeline', (missing) => {
+    const capabilities = capabilitiesFromManifest({
       search: pipeline,
       episodes: pipeline,
       danmaku: pipeline,
       [missing]: undefined,
-    }
-    expect(capabilitiesFromManifest(manifest).automaticMatch).toBe(false)
+    })
+    expect(canMatchBySearch(capabilities)).toBe(false)
   })
+})
 
-  it('reads a parseUrl pipeline as URL parsing', () => {
-    expect(capabilitiesFromManifest({ parseUrl: pipeline }).parseUrl).toBe(true)
+describe('canResolveMapping', () => {
+  it('needs episodes and danmaku but not search', () => {
+    const capabilities = capabilitiesFromManifest({
+      episodes: pipeline,
+      danmaku: pipeline,
+    })
+    expect(canResolveMapping(capabilities)).toBe(true)
+    expect(canMatchBySearch(capabilities)).toBe(false)
+  })
+})
+
+describe('capabilitiesOf', () => {
+  it('reads nothing from a removed or unavailable source', () => {
+    expect(capabilitiesOf({ status: 'removed' })).toEqual(NO_CAPABILITIES)
+    expect(
+      capabilitiesOf({ status: 'unavailable', reason: 'missing' })
+    ).toEqual(NO_CAPABILITIES)
+    expect(capabilitiesOf(undefined)).toEqual(NO_CAPABILITIES)
   })
 })
 

@@ -21,9 +21,11 @@ import { useExtensionOptions } from '@/common/options/extensionOptions/useExtens
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { useSearchHistory } from '@/common/options/searchHistory/useSearchHistory'
+import { mayOffer } from '@/common/providers/sourceCapabilities'
 import {
-  urlParseSourceQuery,
-  useUrlParseSource,
+  urlParseQuery,
+  useSourceAnswers,
+  useUrlParseAnswer,
 } from '@/common/providers/useSourceCapabilities'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
@@ -32,7 +34,7 @@ import { SearchInput } from './SearchInput'
 import { SearchMascot } from './SearchMascot'
 import { SeasonResultsList } from './SeasonResultsList'
 import { SourceFilterChips } from './SourceFilterChips'
-import { UrlParseSection } from './UrlParseSection'
+import { NoUrlParserNotice, UrlParseSection } from './UrlParseSection'
 import { useSignInPrompt } from './useSignInPrompt'
 
 type SeasonOrInsert = Season | SeasonInsert | CustomSeason
@@ -73,17 +75,25 @@ export function SearchForm({
   const { configs } = useProviderConfig()
   const { addEntry } = useSearchHistory()
 
-  const enabledProviders = useMemo(
-    () => configs.filter((c) => c.enabled),
+  const enabledIds = useMemo(
+    () => configs.filter((c) => c.enabled).map((c) => c.id),
     [configs]
+  )
+  const sourceAnswers = useSourceAnswers(enabledIds)
+  const enabledProviders = useMemo(
+    () =>
+      configs.filter((c) => {
+        return c.enabled && mayOffer(sourceAnswers.get(c.id), 'search')
+      }),
+    [configs, sourceAnswers]
   )
 
   const [committedSearchTerm, setCommittedSearchTerm] = useState(searchTerm)
   const [parseSubmitToken, setParseSubmitToken] = useState(0)
   const [committedParseUrl, setCommittedParseUrl] = useState('')
 
-  const urlSource = useUrlParseSource(searchTerm)
-  const isUrl = urlSource !== null
+  const urlAnswer = useUrlParseAnswer(searchTerm)
+  const isUrl = urlAnswer.kind !== 'notLink'
 
   const activeProviderId =
     enabledProviders.find((p) => p.id === providerId)?.id ??
@@ -180,12 +190,12 @@ export function SearchForm({
   }
 
   const submit = async (value: string) => {
-    const source = await queryClient
-      .fetchQuery(urlParseSourceQuery(value))
-      .catch(() => null)
-    if (source) {
+    const answer = await queryClient
+      .fetchQuery(urlParseQuery(value))
+      .catch(() => undefined)
+    if (answer?.kind === 'parseable') {
       handleParseSubmit(value)
-    } else {
+    } else if (answer?.kind !== 'unclaimed') {
       handleSearchSubmit(value)
     }
   }
@@ -215,6 +225,11 @@ export function SearchForm({
   }
 
   const renderBody = (): ReactNode => {
+    if (urlAnswer.kind === 'unclaimed') {
+      return (
+        <NoUrlParserNotice onSearchInstead={() => onSearchTermChange('')} />
+      )
+    }
     if (isUrl) {
       return (
         <UrlParseSection
@@ -306,7 +321,12 @@ export function SearchForm({
               value={searchTerm}
               onChange={onSearchTermChange}
               onSubmit={submit}
-              urlSourceName={urlSource?.sourceName}
+              urlMode={isUrl}
+              urlSourceName={
+                urlAnswer.kind === 'parseable'
+                  ? urlAnswer.sourceName
+                  : undefined
+              }
               focusToken={focusToken}
               hasCommittedSearch={!!committedSearchTerm}
             />
@@ -315,7 +335,7 @@ export function SearchForm({
             <Button
               type="submit"
               variant="contained"
-              disabled={!searchTerm.trim()}
+              disabled={urlAnswer.kind !== 'parseable'}
               startIcon={<Download sx={{ fontSize: 14 }} />}
               data-testid="parse-submit"
               sx={{ flexShrink: 0, minHeight: 32, alignSelf: 'stretch' }}

@@ -1,19 +1,28 @@
 import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
-import { keepPreviousData, queryOptions, useQuery } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  type QueryObserverResult,
+  queryOptions,
+  useQueries,
+  useQuery,
+} from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { isSourceEpisode } from '@/common/danmaku/utils'
 import { sourceQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import type {
-  SourceCapabilityAnswer,
-  UrlParseSource,
+import {
+  capabilitiesOf,
+  type SourceCapabilityAnswer,
+  type UrlParseAnswer,
 } from './sourceCapabilities'
 
-// Configs and manifests also change outside this page (sync, the background,
-// another extension page), so an answer is only trusted until the next mount.
+const NOT_A_LINK: UrlParseAnswer = { kind: 'notLink' }
+
+// followBackgroundChanges invalidates these when configs or manifests change.
 export function sourceCapabilitiesQuery(providerConfigId: string) {
   return queryOptions({
     queryKey: sourceQueryKeys.configCapabilities(providerConfigId),
-    staleTime: 0,
+    staleTime: Number.POSITIVE_INFINITY,
     queryFn: async () => {
       const res = await chromeRpcClient.providerGetCapabilities({
         providerConfigId,
@@ -33,6 +42,28 @@ export function useSourceCapabilities(
   return data
 }
 
+function answersOf(results: QueryObserverResult<SourceCapabilityAnswer>[]) {
+  return results.map((result) => result.data)
+}
+
+export function useSourceAnswers(
+  providerConfigIds: string[]
+): Map<string, SourceCapabilityAnswer> {
+  const answers = useQueries({
+    queries: providerConfigIds.map((id) => sourceCapabilitiesQuery(id)),
+    combine: answersOf,
+  })
+  return useMemo(() => {
+    const byId = new Map<string, SourceCapabilityAnswer>()
+    answers.forEach((answer, index) => {
+      if (answer) {
+        byId.set(providerConfigIds[index], answer)
+      }
+    })
+    return byId
+  }, [providerConfigIds, answers])
+}
+
 export function useCanRefetchDanmaku(
   episode: GenericEpisodeLite | undefined
 ): boolean {
@@ -40,24 +71,17 @@ export function useCanRefetchDanmaku(
     episode && isSourceEpisode(episode)
       ? episode.season.providerConfigId
       : undefined
-  const answer = useSourceCapabilities(providerConfigId)
-  return answer?.capabilities.danmaku ?? false
+  return capabilitiesOf(useSourceCapabilities(providerConfigId)).danmaku
 }
 
-// Asking the background on every keystroke of a plain title is wasted work;
-// only text shaped like a host or URL can match a manifest's URL patterns.
-function mightBeUrl(text: string): boolean {
-  return /^\S+\.\S+$/.test(text)
-}
-
-export function urlParseSourceQuery(text: string) {
+export function urlParseQuery(text: string) {
   const url = text.trim()
   return queryOptions({
     queryKey: sourceQueryKeys.urlSource(url),
-    staleTime: 0,
-    queryFn: async (): Promise<UrlParseSource | null> => {
-      if (!mightBeUrl(url)) {
-        return null
+    staleTime: Number.POSITIVE_INFINITY,
+    queryFn: async (): Promise<UrlParseAnswer> => {
+      if (url === '') {
+        return NOT_A_LINK
       }
       const res = await chromeRpcClient.mediaFindUrlSource({ url })
       return res.data
@@ -65,10 +89,10 @@ export function urlParseSourceQuery(text: string) {
   })
 }
 
-export function useUrlParseSource(text: string): UrlParseSource | null {
+export function useUrlParseAnswer(text: string): UrlParseAnswer {
   const { data } = useQuery({
-    ...urlParseSourceQuery(text),
+    ...urlParseQuery(text),
     placeholderData: keepPreviousData,
   })
-  return data ?? null
+  return data ?? NOT_A_LINK
 }
