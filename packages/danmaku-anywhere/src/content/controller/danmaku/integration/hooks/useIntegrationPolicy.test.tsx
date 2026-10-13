@@ -787,6 +787,28 @@ describe('useIntegrationPolicy', () => {
     expect(danmaku.mountedFrameId).toBe(1)
   })
 
+  it('does not report a picked mount whose frame went away before it replied', async () => {
+    start()
+    const mountPicked = deferred<{ data: boolean }>()
+    rpc.mount.mockReturnValueOnce(mountPicked.promise)
+    let picking: Promise<void> | undefined
+    act(() => {
+      picking = user.mountChosen?.([localEpisode('Picked') as never])
+    })
+    await settle()
+
+    act(() => {
+      useStore.getState().frame.removeFrame(0)
+    })
+    mountPicked.resolve({ data: true })
+    await act(async () => {
+      await picking
+    })
+
+    expect(mountedState().isMounted).toBe(false)
+    expect(openToasts()).toEqual([])
+  })
+
   it('gives way to danmaku the user picks while matching is in flight', async () => {
     start()
     const matchA = deferred<unknown>()
