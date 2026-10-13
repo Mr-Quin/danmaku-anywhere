@@ -69,7 +69,6 @@ describe('ProviderService while the manifest registry is loading', () => {
   it('recognizes a pasted URL once the stored manifests have been read', async () => {
     await seedProviders(dandanplay)
     const release = holdStoredManifests()
-    vi.spyOn(ManifestRunner.prototype, 'canParse').mockReturnValue(true)
     vi.spyOn(ManifestRunner.prototype, 'runParseUrl').mockResolvedValue({
       seasonInsert: {
         providerIds: { animeId: 1 },

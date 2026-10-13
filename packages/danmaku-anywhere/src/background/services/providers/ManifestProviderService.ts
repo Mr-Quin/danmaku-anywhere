@@ -126,8 +126,7 @@ export class ManifestProviderService implements IDanmakuProvider {
     }
   }
 
-  private async getRunner(): Promise<ManifestRunner> {
-    await this.registry.ready
+  private getRunner(): Promise<ManifestRunner> {
     return this.registry.getRunner(this.config.manifestId)
   }
 
@@ -249,11 +248,6 @@ export class ManifestProviderService implements IDanmakuProvider {
       seasonId: season.id,
       season,
     }
-  }
-
-  // Synchronous, so the caller must await the registry's ready first.
-  canParse(url: string): boolean {
-    return this.registry.getRunner(this.config.manifestId).canParse(url)
   }
 
   async parseUrl(url: string): Promise<ParseUrlResult | null> {

@@ -24,9 +24,10 @@ import {
  * manifests registered on init and replaced by the catalog copy once it
  * downloads, that neither update() nor getPendingUpdates
  * stamps lastCheckedAt (only recordChecked does), and
- * unregister / hydrate-skip-invalid. A store that fails to read or write
- * rejects the call and leaves the in-memory runners and the stored record as
- * they were.
+ * unregister / hydrate-skip-invalid. Accessors wait for the stored manifests
+ * to load, and a load that fails is retried by the next call. A store that
+ * fails to read or write rejects the call and leaves the in-memory runners and
+ * the stored record as they were.
  */
 
 function makeManifest(
@@ -168,8 +169,9 @@ function nonBundled(ids: string[]): string[] {
   return ids.filter((id) => !BUNDLED_IDS.has(id)).sort()
 }
 
-function registeredIds(registry: ManifestRegistry): string[] {
-  return registry.listManifests().map((manifest) => manifest.id)
+async function registeredIds(registry: ManifestRegistry): Promise<string[]> {
+  const manifests = await registry.listManifests()
+  return manifests.map((manifest) => manifest.id)
 }
 
 describe('ManifestRegistry', () => {
@@ -180,10 +182,10 @@ describe('ManifestRegistry', () => {
       'test:two': { manifest: makeManifest('test:two'), kind: 'user' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
+    await registry.listManifests()
 
     expect(fetchMock).not.toHaveBeenCalled()
-    expect(nonBundled(registeredIds(registry))).toEqual([
+    expect(nonBundled(await registeredIds(registry))).toEqual([
       'test:one',
       'test:two',
     ])
@@ -202,7 +204,7 @@ describe('ManifestRegistry', () => {
     expect(nonBundled(Object.keys(record))).toEqual(['one', 'two'])
     for (const id of ['one', 'two']) {
       expect(record[id].kind).toBe('preinstalled')
-      expect(registry.getRunner(id)).toBeDefined()
+      expect(await registry.getRunner(id)).toBeDefined()
     }
   })
 
@@ -241,7 +243,6 @@ describe('ManifestRegistry', () => {
       [manifestPath('dandanplay')]: makeManifest('dandanplay', 1, '0.6.0'),
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
     const result = await registry.update()
 
     expect(result).toBe('synced')
@@ -261,7 +262,6 @@ describe('ManifestRegistry', () => {
       [manifestPath('other')]: makeManifest('other'),
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
     await registry.update()
 
     const stored = await store.get('user:one')
@@ -278,7 +278,6 @@ describe('ManifestRegistry', () => {
     })
     stubCatalogFetch([catalogEntry('dandanplay', '0.6.0')], {})
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     expect(await registry.getPendingUpdates()).toEqual([])
   })
@@ -294,7 +293,6 @@ describe('ManifestRegistry', () => {
       [manifestPath('dandanplay')]: makeManifest('dandanplay', 1, '0.6.0'),
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
     await registry.applyUpdates(['dandanplay'])
 
     const stored = await store.get('dandanplay')
@@ -310,7 +308,7 @@ describe('ManifestRegistry', () => {
       },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
+    await registry.listManifests()
 
     const stored = await store.get('dandanplay')
     expect(stored?.kind).toBe('user')
@@ -324,9 +322,8 @@ describe('ManifestRegistry', () => {
       'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
-    expect(registry.listManifests()).toEqual(
+    expect(await registry.listManifests()).toEqual(
       expect.arrayContaining([
         {
           id: 'one',
@@ -365,9 +362,8 @@ describe('ManifestRegistry', () => {
       one: { manifest, kind: 'preinstalled' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
-    const [info] = registry.listManifests('zh-CN')
+    const [info] = await registry.listManifests('zh-CN')
     expect(info.name).toBe('来源')
     expect(info.configSchema?.properties?.baseUrl.title).toBe('基础地址')
   })
@@ -382,9 +378,8 @@ describe('ManifestRegistry', () => {
       one: { manifest, kind: 'preinstalled' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
-    expect(registry.listManifests()[0].name).toBe('Source')
+    expect((await registry.listManifests())[0].name).toBe('Source')
   })
 
   it('update does not stamp lastCheckedAt; recordChecked does', async () => {
@@ -410,7 +405,7 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     await registry.update()
 
-    expect(nonBundled(registeredIds(registry))).toEqual(['good'])
+    expect(nonBundled(await registeredIds(registry))).toEqual(['good'])
     expect(fileFetches(fetchMock).some((url) => url.includes('future'))).toBe(
       false
     )
@@ -465,7 +460,7 @@ describe('ManifestRegistry', () => {
     )
 
     expect(indexCalls).toBe(2)
-    expect(nonBundled(registeredIds(registry))).toEqual(['one'])
+    expect(nonBundled(await registeredIds(registry))).toEqual(['one'])
   })
 
   it('update reports a malformed index body as unreachable', async () => {
@@ -490,7 +485,7 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     await registry.update()
 
-    expect(nonBundled(registeredIds(registry))).toEqual(['good'])
+    expect(nonBundled(await registeredIds(registry))).toEqual(['good'])
     expect(nonBundled(Object.keys(await store.getAll()))).toEqual(['good'])
   })
 
@@ -522,7 +517,10 @@ describe('ManifestRegistry', () => {
       [manifestPath('broken')]: makeManifest('broken'),
     })
     await registry.update()
-    expect(nonBundled(registeredIds(registry))).toEqual(['broken', 'good'])
+    expect(nonBundled(await registeredIds(registry))).toEqual([
+      'broken',
+      'good',
+    ])
   })
 
   it('update applies the other files when one times out and logs the timeout readably', async () => {
@@ -600,7 +598,7 @@ describe('ManifestRegistry', () => {
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
+    await registry.listManifests()
     const setMany = vi.spyOn(store, 'setMany')
     await registry.update()
 
@@ -616,7 +614,6 @@ describe('ManifestRegistry', () => {
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
     await registry.update()
 
     expect((await store.get('one'))?.manifest).toMatchObject({
@@ -633,7 +630,6 @@ describe('ManifestRegistry', () => {
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     const pending = await registry.getPendingUpdates()
 
@@ -656,7 +652,6 @@ describe('ManifestRegistry', () => {
       two: { manifest: makeManifest('two', 1, '1.0.0'), kind: 'user' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     expect(await registry.getPendingUpdates()).toEqual([])
   })
@@ -667,7 +662,6 @@ describe('ManifestRegistry', () => {
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     await registry.getPendingUpdates()
 
@@ -680,7 +674,6 @@ describe('ManifestRegistry', () => {
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     await expect(
       settleIndexRetry(() => registry.getPendingUpdates())
@@ -700,7 +693,6 @@ describe('ManifestRegistry', () => {
       two: { manifest: makeManifest('two', 1, '1.0.0'), kind: 'preinstalled' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     await registry.applyUpdates(['one'])
 
@@ -724,7 +716,6 @@ describe('ManifestRegistry', () => {
       mine: { manifest: makeManifest('mine', 1, '1.0.0'), kind: 'user' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     await registry.applyUpdates(['mine', 'fresh'])
 
@@ -746,7 +737,6 @@ describe('ManifestRegistry', () => {
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     await expect(registry.applyUpdates(['one'])).rejects.toThrow(
       /Failed to apply updates/
@@ -763,7 +753,6 @@ describe('ManifestRegistry', () => {
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     await expect(
       settleIndexRetry(() => registry.applyUpdates(['one']))
@@ -778,7 +767,6 @@ describe('ManifestRegistry', () => {
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'user' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
     await registry.update()
 
     const stored = await store.get('one')
@@ -799,10 +787,9 @@ describe('ManifestRegistry', () => {
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
     await registry.update()
 
-    expect(nonBundled(registeredIds(registry))).toEqual(['one', 'two'])
+    expect(nonBundled(await registeredIds(registry))).toEqual(['one', 'two'])
   })
 
   it('getRunner throws for an unknown manifest id', async () => {
@@ -810,9 +797,8 @@ describe('ManifestRegistry', () => {
       'test:one': { manifest: makeManifest('test:one'), kind: 'user' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
-    expect(() => registry.getRunner('missing')).toThrow(
+    await expect(registry.getRunner('missing')).rejects.toThrow(
       /no manifest registered/
     )
   })
@@ -822,12 +808,11 @@ describe('ManifestRegistry', () => {
       'test:one': { manifest: makeManifest('test:one'), kind: 'user' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     await registry.unregister('test:one')
 
     expect(await store.get('test:one')).toBeUndefined()
-    expect(() => registry.getRunner('test:one')).toThrow()
+    await expect(registry.getRunner('test:one')).rejects.toThrow()
   })
 
   it('skips a manifest that fails safeParse without taking the registry down', async () => {
@@ -836,22 +821,20 @@ describe('ManifestRegistry', () => {
       'bad:one': { manifest: makeManifest('bad:one', 999), kind: 'user' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
-    expect(registry.getRunner('good:one')).toBeDefined()
-    expect(() => registry.getRunner('bad:one')).toThrow()
-    expect(nonBundled(registeredIds(registry))).toEqual(['good:one'])
+    expect(await registry.getRunner('good:one')).toBeDefined()
+    await expect(registry.getRunner('bad:one')).rejects.toThrow()
+    expect(nonBundled(await registeredIds(registry))).toEqual(['good:one'])
   })
 
   it('saveUserManifest create stores a user manifest and builds its runner', async () => {
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     await registry.saveUserManifest(makeManifest('mine:one'), 'create')
 
     expect(await store.get('mine:one')).toMatchObject({ kind: 'user' })
-    expect(registry.getRunner('mine:one')).toBeDefined()
+    expect(await registry.getRunner('mine:one')).toBeDefined()
   })
 
   it('saveUserManifest create rejects an id that already exists', async () => {
@@ -862,7 +845,6 @@ describe('ManifestRegistry', () => {
       },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     await expect(
       registry.saveUserManifest(makeManifest('builtin:one'), 'create')
@@ -877,7 +859,6 @@ describe('ManifestRegistry', () => {
       'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     await registry.saveUserManifest(
       makeManifest('mine:one', 1, '2.0.0'),
@@ -895,7 +876,6 @@ describe('ManifestRegistry', () => {
       'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     await expect(
       registry.saveUserManifest(makeManifest('mine:one', 1, '2.0.0'), 'update')
@@ -910,7 +890,6 @@ describe('ManifestRegistry', () => {
       'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     await expect(
       registry.saveUserManifest(makeManifest('mine:two'), 'update', 'mine:one')
@@ -926,7 +905,6 @@ describe('ManifestRegistry', () => {
       },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     await expect(
       registry.saveUserManifest(
@@ -943,7 +921,6 @@ describe('ManifestRegistry', () => {
       'mine:one': { manifest: raw, kind: 'user' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     expect(await registry.getSource('mine:one')).toEqual({
       manifest: raw,
@@ -980,25 +957,40 @@ describe('ManifestRegistry storage failures', () => {
     }
   }
 
-  it('rejects ready when the store cannot be read', async () => {
+  it('rejects accessors while the store cannot be read', async () => {
     const store = new FlakyStore()
     store.failReads = true
     const registry = new ManifestRegistry(silentLogger, store)
 
-    await expect(registry.ready).rejects.toThrow('IO error')
+    await expect(registry.listManifests()).rejects.toThrow('IO error')
+    await expect(registry.getRunner('dandanplay')).rejects.toThrow('IO error')
+  })
+
+  it('loads on the next call once the store can be read again', async () => {
+    const store = new FlakyStore({
+      'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
+    })
+    store.failReads = true
+    const registry = new ManifestRegistry(silentLogger, store)
+    await expect(registry.listManifests()).rejects.toThrow('IO error')
+
+    store.failReads = false
+
+    expect(nonBundled(await registeredIds(registry))).toEqual(['mine:one'])
+    expect(await registry.getRunner('mine:one')).toBeDefined()
   })
 
   it('saveUserManifest rejects on a failed write and registers no runner', async () => {
     const store = new FlakyStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
+    await registry.listManifests()
     store.failWrites = true
 
     await expect(
       registry.saveUserManifest(makeManifest('mine:one'), 'create')
     ).rejects.toThrow('QUOTA_BYTES quota exceeded')
 
-    expect(() => registry.getRunner('mine:one')).toThrow(
+    await expect(registry.getRunner('mine:one')).rejects.toThrow(
       /no manifest registered/
     )
   })
@@ -1008,14 +1000,14 @@ describe('ManifestRegistry storage failures', () => {
       'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
+    await registry.listManifests()
     store.failWrites = true
 
     await expect(registry.unregister('mine:one')).rejects.toThrow(
       'QUOTA_BYTES quota exceeded'
     )
 
-    expect(registry.getRunner('mine:one')).toBeDefined()
+    expect(await registry.getRunner('mine:one')).toBeDefined()
   })
 
   it('update registers no catalog runner when the store write fails', async () => {
@@ -1024,14 +1016,16 @@ describe('ManifestRegistry storage failures', () => {
     })
     const store = new FlakyStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
+    await registry.listManifests()
     store.failWrites = true
 
     await expect(registry.update()).rejects.toThrow(
       'QUOTA_BYTES quota exceeded'
     )
 
-    expect(() => registry.getRunner('one')).toThrow(/no manifest registered/)
+    await expect(registry.getRunner('one')).rejects.toThrow(
+      /no manifest registered/
+    )
   })
 
   it('does not reseed over stored manifests that chrome.storage failed to read', async () => {
@@ -1048,7 +1042,7 @@ describe('ManifestRegistry storage failures', () => {
 
     const registry = new ManifestRegistry(silentLogger, new ManifestStore())
 
-    await expect(registry.ready).rejects.toThrow('IO error')
+    await expect(registry.listManifests()).rejects.toThrow('IO error')
     get.mockRestore()
     expect(await fakeBrowser.storage.local.get('manifests')).toEqual({
       manifests: { 'mine:one': userEntry },
@@ -1057,16 +1051,18 @@ describe('ManifestRegistry storage failures', () => {
 })
 
 describe('ManifestRegistry bundled manifests', () => {
-  it('registers the bundled manifests before ready, with no catalog sync', async () => {
+  it('registers the bundled manifests on load, with no catalog sync', async () => {
     const fetchMock = stubCatalogFetch([], {})
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
+    await registry.listManifests()
 
     expect(fetchMock).not.toHaveBeenCalled()
-    expect(BUNDLED_IDS).toEqual(new Set(registeredIds(registry)))
+    expect(BUNDLED_IDS).toEqual(new Set(await registeredIds(registry)))
     expect(BUNDLED_IDS).toContain('dandanplay')
-    expect(registry.getRunner('dandanplay').manifest.id).toBe('dandanplay')
+    expect((await registry.getRunner('dandanplay')).manifest.id).toBe(
+      'dandanplay'
+    )
     const stored = await store.getAll()
     for (const id of BUNDLED_IDS) {
       expect(stored[id]?.kind).toBe('bundled')
@@ -1083,7 +1079,9 @@ describe('ManifestRegistry bundled manifests', () => {
     const registry = new ManifestRegistry(silentLogger, store)
 
     expect(await registry.update()).toBe('synced')
-    expect(registry.getRunner('dandanplay').manifest.id).toBe('dandanplay')
+    expect((await registry.getRunner('dandanplay')).manifest.id).toBe(
+      'dandanplay'
+    )
     expect((await store.get('dandanplay'))?.kind).toBe('bundled')
     expect((await store.get('bilibili'))?.kind).toBe('preinstalled')
   })
@@ -1103,10 +1101,9 @@ describe('ManifestRegistry bundled manifests', () => {
       },
     })
     const registry = new ManifestRegistry(silentLogger, store)
-    await registry.ready
 
     expect(
-      registry.getRunner('dandanplay').manifest.configSchema?.properties
+      (await registry.getRunner('dandanplay')).manifest.configSchema?.properties
     ).toHaveProperty('token')
   })
 })

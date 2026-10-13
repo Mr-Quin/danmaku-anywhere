@@ -100,7 +100,7 @@ function buildService(doubles: ServiceDoubles = {}) {
     { identifier: DanmakuProviderFactory, value: doubles.factory ?? vi.fn() },
     {
       identifier: ManifestRegistry,
-      value: doubles.registry ?? { ready: Promise.resolve() },
+      value: doubles.registry ?? {},
     },
     { identifier: BookmarkService, value: doubles.bookmarkService ?? {} },
     { identifier: LoggerSymbol, value: doubles.logger ?? silentLogger },
@@ -178,11 +178,11 @@ describe('ProviderService.probeLogin', () => {
     // runLoginProbe<T = unknown> is generic, so a vi.fn double can't satisfy
     // ManifestRunner's real signature without an unsafe cast.
     const getRunner = vi.fn<ManifestRegistry['getRunner']>(
-      () => ({ runLoginProbe }) as unknown as ManifestRunner // lint-specs-allow-cast: generic method signature, see comment above
+      async () => ({ runLoginProbe }) as unknown as ManifestRunner // lint-specs-allow-cast: generic method signature, see comment above
     )
     const service = buildService({
       factory: vi.fn(() => makeProvider()),
-      registry: { ready: Promise.resolve(), getRunner },
+      registry: { getRunner },
     })
 
     await service.probeLogin('dandanplay')
@@ -194,11 +194,11 @@ describe('ProviderService.probeLogin', () => {
 describe('ProviderService.getManifestSpec', () => {
   function buildWithManifest(manifest: Record<string, unknown>) {
     const getRunner = vi.fn<ManifestRegistry['getRunner']>(
-      () => ({ manifest }) as ManifestRunner
+      async () => ({ manifest }) as ManifestRunner
     )
     return buildService({
       factory: vi.fn(() => makeProvider()),
-      registry: { ready: Promise.resolve(), getRunner },
+      registry: { getRunner },
     })
   }
 
@@ -243,12 +243,12 @@ describe('ProviderService.getManifestSpec', () => {
   })
 
   it('rejects when no manifest is registered for the id', async () => {
-    const getRunner = vi.fn<ManifestRegistry['getRunner']>(() => {
+    const getRunner = vi.fn<ManifestRegistry['getRunner']>(async () => {
       throw new Error('no manifest registered with id: missing')
     })
     const service = buildService({
       factory: vi.fn(() => makeProvider()),
-      registry: { ready: Promise.resolve(), getRunner },
+      registry: { getRunner },
     })
 
     await expect(service.getManifestSpec('missing')).rejects.toThrow()
@@ -670,12 +670,13 @@ describe('ProviderService.refreshCatalog', () => {
       async () => opts.pending
     )
     const update = vi.fn<ManifestRegistry['update']>(async () => 'synced')
-    const listManifests = vi.fn<ManifestRegistry['listManifests']>(() => [])
+    const listManifests = vi.fn<ManifestRegistry['listManifests']>(
+      async () => []
+    )
     const getLastCheckedAt = vi.fn<ManifestRegistry['getLastCheckedAt']>(
       async () => 0
     )
     const registry = {
-      ready: Promise.resolve(),
       update,
       getPendingUpdates,
       applyUpdates,
@@ -757,12 +758,13 @@ describe('ProviderService.refreshCatalog', () => {
       async () => []
     )
     const update = vi.fn<ManifestRegistry['update']>(async () => 'unreachable')
-    const listManifests = vi.fn<ManifestRegistry['listManifests']>(() => [])
+    const listManifests = vi.fn<ManifestRegistry['listManifests']>(
+      async () => []
+    )
     const getLastCheckedAt = vi.fn<ManifestRegistry['getLastCheckedAt']>(
       async () => 0
     )
     const registry = {
-      ready: Promise.resolve(),
       update,
       getPendingUpdates,
       applyUpdates: vi.fn(async () => {}),
@@ -791,12 +793,13 @@ describe('ProviderService.refreshCatalog', () => {
     const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
       async () => []
     )
-    const listManifests = vi.fn<ManifestRegistry['listManifests']>(() => [])
+    const listManifests = vi.fn<ManifestRegistry['listManifests']>(
+      async () => []
+    )
     const getLastCheckedAt = vi.fn<ManifestRegistry['getLastCheckedAt']>(
       async () => 0
     )
     const registry = {
-      ready: Promise.resolve(),
       update,
       getPendingUpdates,
       applyUpdates: vi.fn(async () => {}),
@@ -876,7 +879,7 @@ describe('ProviderService.seedDefaultProviders', () => {
       getAll,
     }
 
-    const listManifests = vi.fn(() => opts.manifests ?? DEFAULT_MANIFESTS)
+    const listManifests = vi.fn(async () => opts.manifests ?? DEFAULT_MANIFESTS)
     const recordChecked = vi.fn<ManifestRegistry['recordChecked']>(
       async () => {}
     )
@@ -887,7 +890,6 @@ describe('ProviderService.seedDefaultProviders', () => {
       async () => []
     )
     const registry = {
-      ready: Promise.resolve(),
       update,
       getPendingUpdates,
       recordChecked,
@@ -1231,7 +1233,6 @@ describe('ProviderService.deleteUserManifest', () => {
       opts.kind ? { manifest: {}, kind: opts.kind } : undefined
     )
     const registry = {
-      ready: Promise.resolve(),
       getSource,
       unregister,
     }
