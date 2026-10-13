@@ -62,6 +62,26 @@ const createStandaloneStorageArea = (areaName: string): StorageAreaLike => {
     listeners.forEach((listener) => listener(changes))
   }
 
+  // localStorage reports another tab's writes only through this event, and a
+  // tab that misses them keeps stale readiness and caches.
+  if (typeof window !== 'undefined') {
+    const prefix = `${STORAGE_PREFIX}${areaName}:`
+    window.addEventListener('storage', (event) => {
+      if (
+        event.storageArea !== localStorage ||
+        !event.key?.startsWith(prefix)
+      ) {
+        return
+      }
+      emitChanges({
+        [event.key.slice(prefix.length)]: {
+          oldValue: parseStored(event.oldValue),
+          newValue: parseStored(event.newValue),
+        },
+      })
+    })
+  }
+
   return {
     // biome-ignore lint/suspicious/noExplicitAny: match chrome signature
     async get(keys?: any) {
@@ -156,6 +176,17 @@ const createStandaloneStorageArea = (areaName: string): StorageAreaLike => {
       },
     },
   } satisfies StorageAreaLike
+}
+
+function parseStored(value: string | null): unknown {
+  if (value === null) {
+    return undefined
+  }
+  try {
+    return JSON.parse(value)
+  } catch {
+    return undefined
+  }
 }
 
 export const getStandaloneStorageArea = (type: string): StorageAreaLike => {
