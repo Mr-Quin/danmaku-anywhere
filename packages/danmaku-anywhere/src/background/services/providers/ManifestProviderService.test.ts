@@ -14,7 +14,7 @@ import {
   ManifestProviderService,
 } from './ManifestProviderService'
 import type { ManifestRegistry } from './ManifestRegistry'
-import { ManifestOutputError } from './manifestOutput'
+import { ManifestOutputError } from './manifestErrors'
 
 /**
  * Covers ManifestProviderService's host-side responsibilities: applying
@@ -178,13 +178,31 @@ describe('ManifestProviderService.search output validation', () => {
     )
   })
 
-  it('stores an empty type for a row that has none', async () => {
+  it('leaves out a type the row does not have', async () => {
     const { type: _type, ...untyped } = seasonRow
     const { svc } = makeService({ search: [untyped] })
 
     const [season] = await svc.search({ keyword: 'x' })
 
-    expect(season.type).toBe('')
+    expect(season).not.toHaveProperty('type')
+  })
+
+  it('copies only the season fields the host stores', async () => {
+    const { svc } = makeService({
+      search: [{ ...seasonRow, id: 5, imageUrl: undefined, extra: 'x' }],
+    })
+
+    const [season] = await svc.search({ keyword: 'x' })
+
+    expect(season).toEqual({
+      providerIds: { seasonId: 1 },
+      indexedId: '1',
+      title: 'Season',
+      type: 'tv',
+      manifestId: 'acme',
+      providerConfigId: 'acme-1',
+      schemaVersion: SEASON_SCHEMA_VERSION,
+    })
   })
 })
 
@@ -241,6 +259,13 @@ describe('ManifestProviderService.getSeason', () => {
   it('fails on a season row that breaks the contract', async () => {
     const { svc } = makeService({ season: { ...seasonRow, providerIds: 1 } })
 
+    await expect(svc.getSeason({ seasonId: 1 })).rejects.toMatchObject({
+      name: 'ManifestOutputError',
+      reason: 'invalid',
+      manifestId: 'acme',
+      providerConfigId: 'acme-1',
+      pipeline: 'season',
+    })
     await expect(svc.getSeason({ seasonId: 1 })).rejects.toThrow(
       /^Manifest acme season output is invalid, providerIds: /
     )
@@ -306,6 +331,18 @@ describe('ManifestProviderService.getEpisodes output validation', () => {
         /^Dropped 1 of 2 episodes row\(s\) from manifest acme, first: \[1\] title: /
       )
     )
+  })
+
+  it('copies only the episode fields the host stores', async () => {
+    const { svc } = makeService({
+      episodes: [{ ...episodeRow, id: 5, seasonId: 9, episodeNumber: 3 }],
+    })
+
+    const [episode] = await svc.getEpisodes({ seasonId: 1 })
+
+    expect(episode).not.toHaveProperty('id')
+    expect(episode).not.toHaveProperty('seasonId')
+    expect(episode).toMatchObject({ indexedId: '2', episodeNumber: 3 })
   })
 
   it('fails when every episode is invalid', async () => {

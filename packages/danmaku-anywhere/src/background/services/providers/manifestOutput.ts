@@ -1,16 +1,7 @@
-import type { ILogger } from '@/common/Logger'
-
-export type ManifestPipeline =
-  | 'search'
-  | 'season'
-  | 'episodes'
-  | 'parseUrl'
-  | 'danmaku'
-
-export interface ManifestOutputSource {
-  manifestId: string
-  pipeline: ManifestPipeline
-}
+import {
+  ManifestOutputError,
+  type ManifestOutputSource,
+} from './manifestErrors'
 
 interface OutputIssue {
   path: readonly PropertyKey[]
@@ -26,15 +17,16 @@ export interface OutputSchema<T> {
     | { success: false; error: { issues: readonly OutputIssue[] } }
 }
 
-export class ManifestOutputError extends Error {
-  constructor(
-    readonly manifestId: string,
-    readonly pipeline: ManifestPipeline,
-    detail: string
-  ) {
-    super(`Manifest ${manifestId} ${pipeline} output ${detail}`)
-    this.name = 'ManifestOutputError'
-  }
+export interface DroppedRows {
+  count: number
+  total: number
+  firstIssue: string
+}
+
+export interface ParsedRows<T> {
+  rows: T[]
+  // Absent when every row was valid.
+  dropped?: DroppedRows
 }
 
 function describeIssue(issues: readonly OutputIssue[]): string {
@@ -60,14 +52,12 @@ function describeType(value: unknown): string {
 export function parseOutputRows<T>(
   schema: OutputSchema<T>,
   output: unknown,
-  source: ManifestOutputSource,
-  logger: ILogger
-): T[] {
-  const { manifestId, pipeline } = source
+  source: ManifestOutputSource
+): ParsedRows<T> {
   if (!Array.isArray(output)) {
     throw new ManifestOutputError(
-      manifestId,
-      pipeline,
+      source,
+      'not-array',
       `is not an array, got ${describeType(output)}`
     )
   }
@@ -83,21 +73,18 @@ export function parseOutputRows<T>(
       firstIssue = `[${index}] ${describeIssue(parsed.error.issues)}`
     }
   })
-  const dropped = output.length - rows.length
-  if (dropped === 0) {
-    return rows
+  if (firstIssue === undefined) {
+    return { rows }
   }
+  const count = output.length - rows.length
   if (rows.length === 0) {
     throw new ManifestOutputError(
-      manifestId,
-      pipeline,
-      `has no valid rows (${dropped} invalid), first: ${firstIssue}`
+      source,
+      'no-valid-rows',
+      `has no valid rows (${count} invalid), first: ${firstIssue}`
     )
   }
-  logger.warn(
-    `Dropped ${dropped} of ${output.length} ${pipeline} row(s) from manifest ${manifestId}, first: ${firstIssue}`
-  )
-  return rows
+  return { rows, dropped: { count, total: output.length, firstIssue } }
 }
 
 export function parseOutputValue<T>(
@@ -108,10 +95,17 @@ export function parseOutputValue<T>(
   const parsed = schema.safeParse(output)
   if (!parsed.success) {
     throw new ManifestOutputError(
-      source.manifestId,
-      source.pipeline,
+      source,
+      'invalid',
       `is invalid, ${describeIssue(parsed.error.issues)}`
     )
   }
   return parsed.data
+}
+
+export function describeDroppedRows(
+  source: ManifestOutputSource,
+  dropped: DroppedRows
+): string {
+  return `Dropped ${dropped.count} of ${dropped.total} ${source.pipeline} row(s) from manifest ${source.manifestId}, first: ${dropped.firstIssue}`
 }

@@ -7,6 +7,7 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import { getDisplayStrings } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
+import { z } from 'zod'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
@@ -43,6 +44,7 @@ import {
   type CatalogSyncResult,
   ManifestRegistry,
 } from './ManifestRegistry'
+import { parseOutputValue } from './manifestOutput'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
@@ -282,11 +284,18 @@ export class ProviderService {
     )
   }
 
-  async probeLogin<T = unknown>(manifestId: string): Promise<T | null> {
+  async probeLogin(manifestId: string): Promise<boolean | null> {
     await this.manifestRegistry.ready
-    return this.manifestRegistry
+    const output = await this.manifestRegistry
       .getRunner(manifestId)
-      .runLoginProbe<T>(undefined, MANIFEST_RUN_OPTIONS)
+      .runLoginProbe(undefined, MANIFEST_RUN_OPTIONS)
+    if (output === null) {
+      return null
+    }
+    return parseOutputValue(z.boolean(), output, {
+      manifestId,
+      pipeline: 'loginProbe',
+    })
   }
 
   // Resolves whether a manifest-driven source needs a login/cookie action so
@@ -306,7 +315,7 @@ export class ProviderService {
       return { hasLoginProbe: false, cookieSet, ok: true }
     }
     try {
-      const ok = await this.probeLogin<boolean>(manifestId)
+      const ok = await this.probeLogin(manifestId)
       return { hasLoginProbe: true, cookieSet, ok: ok ?? false }
     } catch (e) {
       this.logger.error('loginProbe failed', manifestId, e)

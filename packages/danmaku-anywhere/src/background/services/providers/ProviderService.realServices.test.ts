@@ -172,3 +172,82 @@ describe('ProviderService.deleteUserManifest over real storage', () => {
     expect(await registry.getSource('mine:one')).toBeUndefined()
   })
 })
+
+describe('ProviderService storing manifest output over real storage', () => {
+  it('keeps the stored season type when a refreshed row has none', async () => {
+    await seedProviders(dandanplay)
+    const container = createUpgradeContainer()
+    const seasons = container.get(SeasonService)
+    const season = await seasons.upsert(
+      makeSeasonInsert({
+        providerConfigId: 'dandanplay',
+        type: 'TV',
+        indexedId: '1',
+        providerIds: { animeId: 1 },
+      })
+    )
+    vi.spyOn(ManifestRunner.prototype, 'hasSeason').mockReturnValue(true)
+    vi.spyOn(ManifestRunner.prototype, 'runSeason').mockResolvedValue({
+      providerIds: { animeId: 1 },
+      indexedId: '1',
+      title: 'Renamed',
+    })
+
+    await container.get(ProviderService).refreshSeason({ id: season.id })
+
+    expect(await seasons.mustGetById(season.id)).toMatchObject({
+      title: 'Renamed',
+      type: 'TV',
+    })
+  })
+
+  it('does not let an id field in an episode row overwrite another episode', async () => {
+    await seedProviders(dandanplay)
+    const container = createUpgradeContainer()
+    const season = await container
+      .get(SeasonService)
+      .upsert(makeSeasonInsert({ providerConfigId: 'dandanplay' }))
+    const danmaku = container.get(DanmakuService)
+    const stored = (indexedId: string, m: string) => ({
+      title: `Episode ${indexedId}`,
+      indexedId,
+      seasonId: season.id,
+      providerIds: { episodeId: indexedId },
+      schemaVersion: 4 as const,
+      lastChecked: 0,
+      comments: [{ p: '0,1,16777215', m }],
+      commentCount: 1,
+    })
+    await danmaku.upsert(stored('a', 'from a'))
+    const other = await danmaku.upsert(stored('b', 'from b'))
+    vi.spyOn(ManifestRunner.prototype, 'runEpisodes').mockResolvedValue([
+      {
+        providerIds: { episodeId: 'a' },
+        indexedId: 'a',
+        title: 'Episode a',
+        id: other.id,
+      },
+    ])
+    vi.spyOn(ManifestRunner.prototype, 'runDanmaku').mockResolvedValue([
+      { p: '0,1,16777215', m: 'new 1' },
+      { p: '1,1,16777215', m: 'new 2' },
+    ])
+    const service = container.get(ProviderService)
+
+    const [meta] = await service.fetchEpisodesBySeason(season.id)
+    await service.getDanmaku({
+      type: 'by-meta',
+      meta,
+      options: { forceUpdate: true },
+    })
+
+    const db = container.get(DanmakuAnywhereDb)
+    expect(await db.episode.get(other.id)).toMatchObject({
+      indexedId: 'b',
+      comments: [{ p: '0,1,16777215', m: 'from b' }],
+    })
+    expect(
+      await db.episode.get({ seasonId: season.id, indexedId: 'a' })
+    ).toMatchObject({ commentCount: 2 })
+  })
+})

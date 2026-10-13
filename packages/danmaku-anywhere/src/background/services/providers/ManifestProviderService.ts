@@ -22,6 +22,7 @@ import {
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { ILogger } from '@/common/Logger'
 import { findEpisodeByNumber } from './common/findEpisodeByNumber'
+import { pickDefined } from './common/pickDefined'
 import type {
   IDanmakuProvider,
   OmitSeasonId,
@@ -29,9 +30,10 @@ import type {
   SeasonSearchParams,
 } from './IDanmakuProvider'
 import type { ManifestRegistry } from './ManifestRegistry'
+import type { ManifestOutputSource, ManifestPipeline } from './manifestErrors'
 import { resolveManifestInputs } from './manifestInputs'
 import {
-  type ManifestPipeline,
+  describeDroppedRows,
   type OutputSchema,
   parseOutputRows,
   parseOutputValue,
@@ -54,6 +56,25 @@ export const DANMAKU_RUN_OPTIONS: RunOptions = {
   continueOnError: true,
 }
 
+// Rows are loose, so only these fields are copied onto stored entities. An
+// unknown field such as `id` would otherwise reach IndexedDB as a key.
+const SEASON_ROW_FIELDS = [
+  'type',
+  'imageUrl',
+  'externalLink',
+  'alternativeTitles',
+  'episodeCount',
+  'year',
+] as const
+
+const EPISODE_ROW_FIELDS = [
+  'episodeNumber',
+  'imageUrl',
+  'externalLink',
+  'alternativeTitle',
+  'params',
+] as const
+
 export class ManifestProviderService implements IDanmakuProvider {
   constructor(
     private readonly config: ManifestProviderConfig,
@@ -61,17 +82,25 @@ export class ManifestProviderService implements IDanmakuProvider {
     private readonly logger: ILogger
   ) {}
 
+  private source(pipeline: ManifestPipeline): ManifestOutputSource {
+    return {
+      manifestId: this.config.manifestId,
+      providerConfigId: this.config.providerConfigId,
+      pipeline,
+    }
+  }
+
   private parseRows<T>(
     pipeline: ManifestPipeline,
     schema: OutputSchema<T>,
     output: unknown
   ): T[] {
-    return parseOutputRows(
-      schema,
-      output,
-      { manifestId: this.config.manifestId, pipeline },
-      this.logger
-    )
+    const source = this.source(pipeline)
+    const { rows, dropped } = parseOutputRows(schema, output, source)
+    if (dropped) {
+      this.logger.warn(describeDroppedRows(source, dropped))
+    }
+    return rows
   }
 
   private parseValue<T>(
@@ -79,17 +108,17 @@ export class ManifestProviderService implements IDanmakuProvider {
     schema: OutputSchema<T>,
     output: unknown
   ): T {
-    return parseOutputValue(schema, output, {
-      manifestId: this.config.manifestId,
-      pipeline,
-    })
+    return parseOutputValue(schema, output, this.source(pipeline))
   }
 
+  // Optional fields the source left out stay absent, so a refresh merged into
+  // a stored season keeps what it already had.
   private toSeasonInsert(row: SearchRow): SeasonInsert {
     return {
-      ...row,
-      type: row.type ?? '',
+      ...pickDefined(row, SEASON_ROW_FIELDS),
+      indexedId: row.indexedId,
       title: stripHtml(row.title),
+      providerIds: row.providerIds,
       manifestId: this.config.manifestId,
       providerConfigId: this.config.providerConfigId,
       schemaVersion: SEASON_SCHEMA_VERSION,
@@ -101,8 +130,10 @@ export class ManifestProviderService implements IDanmakuProvider {
     lastChecked: number
   ): OmitSeasonId<EpisodeMeta> {
     return {
-      ...row,
+      ...pickDefined(row, EPISODE_ROW_FIELDS),
+      indexedId: row.indexedId,
       title: stripHtml(row.title),
+      providerIds: row.providerIds,
       schemaVersion: EPISODE_SCHEMA_VERSION,
       lastChecked,
     }
