@@ -721,6 +721,7 @@
       "specError": "加载弹幕源设置失败。部分字段缺失，此时保存会丢失这些字段。",
       "testRun": {
         "danmakuCount_other": "已获取 {{count}} 条弹幕",
+        "dropped_other": "已跳过 {{count}} 条无效数据，与保存后的弹幕源一致。第一条：{{issue}}",
         "episodes": "剧集（选择一集获取弹幕）",
         "keyword": "搜索关键词",
         "results": "结果（选择一部番剧）",

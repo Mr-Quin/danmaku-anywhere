@@ -1,15 +1,31 @@
-import { ManifestRunner, type RunOptions, zManifest } from '@mr-quin/dango'
+import { zCommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import {
+  loadManifest,
+  ManifestRunner,
+  type RunOptions,
+  zEpisodeRow,
+  zSearchRow,
+} from '@mr-quin/dango'
 import { injectable } from 'inversify'
 import type {
   ManifestTestDanmakuInput,
+  ManifestTestDanmakuResult,
+  ManifestTestDropped,
   ManifestTestEpisodeRow,
   ManifestTestEpisodesInput,
+  ManifestTestRows,
   ManifestTestSearchInput,
   ManifestTestSearchRow,
   ManifestValidationResult,
 } from '@/common/rpcClient/background/types'
 import { extensionFetchLike } from './extensionFetchLike'
+import type { ManifestPipeline } from './manifestErrors'
 import { resolveManifestInputs } from './manifestInputs'
+import {
+  type OutputSchema,
+  type ParsedRows,
+  parseOutputRows,
+} from './manifestOutput'
 
 // An ad-hoc test run executes an unsaved, user-authored manifest: arbitrary
 // JSONata plus credentialed fetch under the extension's host permissions.
@@ -24,76 +40,108 @@ export const TEST_DANMAKU_RUN_OPTIONS: RunOptions = Object.freeze({
   continueOnError: true,
 })
 
+const NEEDS_NEWER_EXTENSION =
+  'This manifest needs a newer version of the extension'
+
+function toTestDropped(
+  dropped: ParsedRows<unknown>['dropped']
+): ManifestTestDropped | undefined {
+  if (dropped === undefined) {
+    return undefined
+  }
+  return { count: dropped.count, firstIssue: dropped.firstIssue }
+}
+
 // Executes a not-yet-saved manifest so the editor can preview it. Stateless:
 // every call rebuilds the runner from the posted manifest and touches no store.
+// Output goes through the same parsing as a saved source, so the preview
+// drops and rejects exactly what the source would.
 @injectable('Singleton')
 export class ManifestSandbox {
   validate(manifest: unknown): ManifestValidationResult {
-    const parsed = zManifest.safeParse(manifest)
-    if (parsed.success) {
+    const loaded = loadManifest(manifest)
+    if (loaded.status === 'ok') {
       return { valid: true }
     }
-    return {
-      valid: false,
-      issues: parsed.error.issues.map((issue) => ({
-        path: issue.path.join('.'),
-        message: issue.message,
-      })),
+    if (loaded.status === 'incompatible') {
+      return {
+        valid: false,
+        issues: [{ path: '', message: NEEDS_NEWER_EXTENSION }],
+      }
     }
+    return { valid: false, issues: loaded.issues }
   }
 
   async search(
     input: ManifestTestSearchInput
-  ): Promise<ManifestTestSearchRow[]> {
+  ): Promise<ManifestTestRows<ManifestTestSearchRow>> {
     const runner = this.buildRunner(input.manifest)
     const inputs = resolveManifestInputs(
       runner.configDefaults(),
       input.configValues,
       { q: input.keyword }
     )
-    return runner.runSearch<ManifestTestSearchRow[]>(inputs, TEST_RUN_OPTIONS)
+    const output = await runner.runSearch(inputs, TEST_RUN_OPTIONS)
+    return this.parseRows(runner, 'search', zSearchRow, output)
   }
 
   async episodes(
     input: ManifestTestEpisodesInput
-  ): Promise<ManifestTestEpisodeRow[]> {
+  ): Promise<ManifestTestRows<ManifestTestEpisodeRow>> {
     const runner = this.buildRunner(input.manifest)
     const inputs = resolveManifestInputs(
       runner.configDefaults(),
       input.configValues,
       input.providerIds
     )
-    return runner.runEpisodes<ManifestTestEpisodeRow[]>(
-      inputs,
-      TEST_RUN_OPTIONS
-    )
+    const output = await runner.runEpisodes(inputs, TEST_RUN_OPTIONS)
+    return this.parseRows(runner, 'episodes', zEpisodeRow, output)
   }
 
   async danmaku(
     input: ManifestTestDanmakuInput
-  ): Promise<{ commentCount: number }> {
+  ): Promise<ManifestTestDanmakuResult> {
     const runner = this.buildRunner(input.manifest)
     const inputs = resolveManifestInputs(
       runner.configDefaults(),
       input.configValues,
       { ...input.params, ...input.providerIds }
     )
-    const comments = await runner.runDanmaku<unknown[]>(
-      inputs,
-      TEST_DANMAKU_RUN_OPTIONS
+    const output = await runner.runDanmaku(inputs, TEST_DANMAKU_RUN_OPTIONS)
+    const { rows, dropped } = this.parseRows(
+      runner,
+      'danmaku',
+      zCommentEntity,
+      output
     )
-    // A user danmaku pipeline can emit a non-array output; don't read .length
-    // off it.
-    return { commentCount: Array.isArray(comments) ? comments.length : 0 }
+    return { commentCount: rows.length, dropped }
+  }
+
+  private parseRows<T>(
+    runner: ManifestRunner,
+    pipeline: ManifestPipeline,
+    schema: OutputSchema<T>,
+    output: unknown
+  ): ManifestTestRows<T> {
+    const { rows, dropped } = parseOutputRows(schema, output, {
+      manifestId: runner.id,
+      pipeline,
+    })
+    return { rows, dropped: toTestDropped(dropped) }
   }
 
   private buildRunner(manifest: unknown): ManifestRunner {
-    const parsed = zManifest.safeParse(manifest)
-    if (!parsed.success) {
+    const loaded = loadManifest(manifest)
+    if (loaded.status === 'incompatible') {
+      throw new Error(NEEDS_NEWER_EXTENSION)
+    }
+    if (loaded.status === 'malformed') {
       throw new Error('Cannot run an invalid manifest')
     }
     try {
-      return new ManifestRunner(parsed.data, { fetcher: extensionFetchLike })
+      return new ManifestRunner(loaded.manifest, {
+        fetcher: extensionFetchLike,
+      })
     } catch (e) {
       const reason = e instanceof Error ? e.message : String(e)
       throw new Error(`Failed to build manifest runner: ${reason}`)

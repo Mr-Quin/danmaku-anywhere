@@ -749,6 +749,8 @@
       "testRun": {
         "danmakuCount_one": "{{count}} comment fetched",
         "danmakuCount_other": "{{count}} comments fetched",
+        "dropped_one": "{{count}} invalid row skipped, as the saved source would. First: {{issue}}",
+        "dropped_other": "{{count}} invalid rows skipped, as the saved source would. First: {{issue}}",
         "episodes": "Episodes (pick one for danmaku)",
         "keyword": "Search keyword",
         "results": "Results (pick a season)",

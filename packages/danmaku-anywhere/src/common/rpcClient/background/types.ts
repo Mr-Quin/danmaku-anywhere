@@ -162,6 +162,22 @@ export interface ManifestTestEpisodeRow {
   params?: Record<string, unknown>
 }
 
+// Rows the saved source would drop, so the editor preview matches it.
+export interface ManifestTestDropped {
+  count: number
+  firstIssue: string
+}
+
+export interface ManifestTestRows<T> {
+  rows: T[]
+  dropped?: ManifestTestDropped
+}
+
+export interface ManifestTestDanmakuResult {
+  commentCount: number
+  dropped?: ManifestTestDropped
+}
+
 export interface ManifestSource {
   manifest: unknown
   kind: 'preinstalled' | 'user' | 'bundled'
@@ -241,15 +257,15 @@ export type BackgroundMethods = {
   >
   providerTestRunSearch: RPCDef<
     ManifestTestSearchInput,
-    ManifestTestSearchRow[]
+    ManifestTestRows<ManifestTestSearchRow>
   >
   providerTestRunEpisodes: RPCDef<
     ManifestTestEpisodesInput,
-    ManifestTestEpisodeRow[]
+    ManifestTestRows<ManifestTestEpisodeRow>
   >
   providerTestRunDanmaku: RPCDef<
     ManifestTestDanmakuInput,
-    { commentCount: number }
+    ManifestTestDanmakuResult
   >
   providerSaveUserManifest: RPCDef<
     { manifest: unknown; mode: 'create' | 'update'; expectedId?: string },
