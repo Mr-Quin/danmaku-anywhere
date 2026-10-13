@@ -657,7 +657,8 @@
     "uploadDebugDataSuccess": "提交成功 {{ id }}"
   },
   "optionsUpgrade": {
-    "failed": "你的设置未能更新到此版本，原有设置已保留。"
+    "failed": "你的设置未能更新到此版本，原有设置已保留。",
+    "openToRetry": "弹幕任何地方未能更新设置，点击打开后重试。"
   },
   "providers": {
     "add": {

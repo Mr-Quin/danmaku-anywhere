@@ -681,7 +681,8 @@
     "uploadDebugDataSuccess": "Submitted {{ id }}"
   },
   "optionsUpgrade": {
-    "failed": "Your settings could not be updated for this version. They have been kept as they were."
+    "failed": "Your settings could not be updated for this version. They have been kept as they were.",
+    "openToRetry": "Danmaku Anywhere could not update its settings. Open it to try again."
   },
   "providers": {
     "add": {
