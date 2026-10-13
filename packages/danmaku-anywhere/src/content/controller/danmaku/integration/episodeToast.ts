@@ -28,10 +28,11 @@ export class EpisodeToast {
 
   constructor(
     private readonly sink: ToastSink,
-    runs: EpisodeRuns,
     private readonly delayMs = PROGRESS_DELAY_MS
-  ) {
-    runs.subscribe((current) => {
+  ) {}
+
+  follow(runs: EpisodeRuns) {
+    return runs.subscribe((current) => {
       this.clearTimer()
       // A new run swaps the visible progress for its own, so only an ending
       // session takes it down.
@@ -59,27 +60,7 @@ export class EpisodeToast {
     }, this.delayMs)
   }
 
-  succeed(run: EpisodeRun, message: string, options?: ResultOptions) {
-    this.finish(run, 'success', message, options)
-  }
-
-  fail(run: EpisodeRun, message: string, options?: ResultOptions) {
-    this.finish(run, 'error', message, options)
-  }
-
-  warn(run: EpisodeRun, message: string, options?: ResultOptions) {
-    this.finish(run, 'warning', message, options)
-  }
-
-  // Closes the toast, for when the outcome is shown somewhere else.
-  dismiss(run: EpisodeRun) {
-    if (!run.isCurrent()) {
-      return
-    }
-    this.close()
-  }
-
-  private finish(
+  report(
     run: EpisodeRun,
     severity: Severity,
     message: string,
@@ -91,6 +72,14 @@ export class EpisodeToast {
     this.clearTimer()
     this.showingProgress = false
     this.sink.show(severity, message, { ...options, id: EPISODE_TOAST_ID })
+  }
+
+  // Closes the toast, for when the outcome is shown somewhere else.
+  dismiss(run: EpisodeRun) {
+    if (!run.isCurrent()) {
+      return
+    }
+    this.close()
   }
 
   private close() {

@@ -5,9 +5,11 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useToast } from '@/common/components/Toast/toastStore'
 import '@/common/localization/i18n'
+import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
 import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { queryClient as sharedQueryClient } from '@/common/queries/queryClient'
+import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { ObserverFactory } from '@/content/controller/danmaku/integration/observers/ObserverFactory'
@@ -80,7 +82,7 @@ vi.mock('./useWarnIncompleteConfig', () => ({
   useWarnIncompleteConfig: () => false,
 }))
 
-vi.mock('./useDescribeSourceError', () => ({
+vi.mock('@/content/controller/common/hooks/useDescribeSourceError', () => ({
   useDescribeSourceError: () => {
     return ({
       error,
@@ -212,8 +214,13 @@ async function waitForProgressDelay() {
   })
 }
 
+const user: {
+  mountChosen?: (episodes: GenericEpisode[]) => Promise<void>
+} = {}
+
 function Integration() {
   useIntegrationPolicy()
+  user.mountChosen = useLoadDanmaku().mountChosen
   return null
 }
 
@@ -262,6 +269,12 @@ function showEpisode(title: string) {
 function reportParsing(parsing: boolean) {
   act(() => {
     currentObserver().emit('parsingChange', parsing)
+  })
+}
+
+function clearMedia() {
+  act(() => {
+    currentObserver().emit('mediaCleared')
   })
 }
 
@@ -571,6 +584,84 @@ describe('useIntegrationPolicy', () => {
       })
     })
 
+    it('stays available after the popup is closed and applies once at a time', async () => {
+      start()
+      rpc.episodeMatch.mockResolvedValueOnce(
+        ambiguous('Show A', 'Show A Movie')
+      )
+      showEpisode('Show A')
+      await settle()
+      const offered = usePopup.getState().selection
+      act(() => {
+        usePopup.getState().toggleOpen(false)
+        usePopup.getState().toggleOpen(true)
+      })
+      expect(usePopup.getState().selection).toBe(offered)
+
+      const matchApplied = deferred<unknown>()
+      rpc.episodeMatch.mockReturnValueOnce(matchApplied.promise)
+      let first: Promise<void> | undefined
+      let second: Promise<void> | undefined
+      act(() => {
+        first = offered?.apply(offered.seasons[0] as Season)
+        second = offered?.apply(offered.seasons[1] as Season)
+      })
+      matchApplied.resolve(matched(localEpisode('Show A')))
+      rpc.episodeFetch.mockResolvedValueOnce(fetched('Show A'))
+      await act(async () => {
+        await Promise.all([first, second])
+      })
+
+      expect(rpc.episodeMatch).toHaveBeenCalledTimes(2)
+      expect(mountedState().titles).toEqual(['Show A'])
+    })
+
+    it('stays up when the picked season has no such episode', async () => {
+      start()
+      rpc.episodeMatch.mockResolvedValueOnce(
+        ambiguous('Show A', 'Show A Movie')
+      )
+      showEpisode('Show A')
+      await settle()
+      const offered = usePopup.getState().selection
+
+      rpc.episodeMatch.mockResolvedValueOnce({
+        data: { status: 'notFound', data: null, cause: 'none' },
+      })
+      await act(async () => {
+        await offered?.apply(offered.seasons[1] as Season)
+      })
+
+      expect(usePopup.getState()).toMatchObject({
+        selection: offered,
+        isOpen: true,
+        tab: PopupTab.Selector,
+      })
+      expect(openToasts()).toEqual([
+        { severity: 'error', message: 'No episode found for Show A Movie' },
+      ])
+    })
+
+    it('gives each offer its own id', async () => {
+      start()
+      rpc.episodeMatch.mockResolvedValueOnce(
+        ambiguous('Show A', 'Show A Movie')
+      )
+      showEpisode('Show A')
+      await settle()
+      const first = usePopup.getState().selection
+
+      rpc.episodeMatch.mockResolvedValueOnce(
+        ambiguous('Show B', 'Show B Movie')
+      )
+      showEpisode('Show B')
+      await settle()
+      const second = usePopup.getState().selection
+
+      expect(second?.id).toBeDefined()
+      expect(second?.id).not.toBe(first?.id)
+    })
+
     it('does not open the selector for an episode the page moved on from', async () => {
       start()
       const matchA = deferred<unknown>()
@@ -590,23 +681,64 @@ describe('useIntegrationPolicy', () => {
     })
   })
 
-  it('keeps an observer error over the episode it interrupted', async () => {
+  it('lets an episode in flight finish after a passing observer error', async () => {
     start()
     const matchA = deferred<unknown>()
     rpc.episodeMatch.mockReturnValueOnce(matchA.promise)
     showEpisode('Show A')
     await waitForProgressDelay()
 
-    reportError('Policy not found')
-    expect(openToasts()).toEqual([
-      { severity: 'error', message: 'Policy not found' },
-    ])
+    reportError('No title')
+    expect(openToasts()).toEqual([{ severity: 'error', message: 'No title' }])
 
     matchA.resolve(matched(localEpisode('Show A')))
     await settle()
-    expect(rpc.mount).not.toHaveBeenCalled()
+    expect(mountedState().titles).toEqual(['Show A'])
+    expect(openToasts()).toEqual([
+      { severity: 'success', message: 'Mounted Show A Episode 1: 3 comments' },
+    ])
+  })
+
+  it('shows an observer error when nothing is in flight', () => {
+    start()
+    reportError('Policy not found')
+
     expect(openToasts()).toEqual([
       { severity: 'error', message: 'Policy not found' },
+    ])
+  })
+
+  it('drops a match in flight when the observer clears its media', async () => {
+    start()
+    const matchA = deferred<unknown>()
+    rpc.episodeMatch.mockReturnValueOnce(matchA.promise)
+    showEpisode('Show A')
+
+    clearMedia()
+    matchA.resolve(matched(localEpisode('Show A')))
+    await settle()
+
+    expect(rpc.mount).not.toHaveBeenCalled()
+    expect(useStore.getState().integration.runInFlight).toBe(false)
+  })
+
+  it('gives way to danmaku the user picks while matching is in flight', async () => {
+    start()
+    const matchA = deferred<unknown>()
+    rpc.episodeMatch.mockReturnValueOnce(matchA.promise)
+    showEpisode('Show A')
+    await waitForProgressDelay()
+
+    await act(async () => {
+      await user.mountChosen?.([localEpisode('Picked') as never])
+    })
+    matchA.resolve(matched(localEpisode('Show A')))
+    await settle()
+
+    expect(rpc.mount).toHaveBeenCalledTimes(1)
+    expect(mountedState().titles).toEqual(['Picked'])
+    expect(openToasts()).toEqual([
+      { severity: 'success', message: 'Mounted Picked: 3 comments' },
     ])
   })
 

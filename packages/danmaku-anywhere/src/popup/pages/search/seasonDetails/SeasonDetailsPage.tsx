@@ -21,7 +21,7 @@ import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
-import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import { useFetchDanmakuWithToast } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
 import { assertMacCmsConfig } from '@/common/options/providerConfig/utils'
 import { describeSourceError } from '@/common/providers/describeSourceError'
@@ -94,7 +94,8 @@ export const SeasonDetailsPage = () => {
               season={season}
               filter={filter}
               renderEpisode={(data) => {
-                const { mutateAsync: load, isPending } = useFetchDanmaku()
+                const { mutateAsync: load, isPending } =
+                  useFetchDanmakuWithToast()
 
                 const handleFetchDanmaku = async (
                   meta: WithSeason<EpisodeMeta>

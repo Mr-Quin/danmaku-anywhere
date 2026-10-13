@@ -23,7 +23,7 @@ export const useMountDanmakuContent = () => {
 
   const queryClient = useQueryClient()
 
-  const { mountDanmaku } = useLoadDanmaku()
+  const { mountChosen } = useLoadDanmaku()
 
   return useMutation({
     mutationFn: async (
@@ -70,7 +70,7 @@ export const useMountDanmakuContent = () => {
     },
     onSuccess: (data) => {
       toggleManualMode(true)
-      void mountDanmaku(data)
+      void mountChosen(data)
     },
     onError: (e) => {
       toast.error(

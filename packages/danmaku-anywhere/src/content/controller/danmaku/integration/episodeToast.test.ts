@@ -30,7 +30,8 @@ describe('EpisodeToast', () => {
     vi.useFakeTimers()
     useToast.setState({ notifications: [] })
     runs = new EpisodeRuns()
-    toast = new EpisodeToast(toastStoreSink, runs, 1500)
+    toast = new EpisodeToast(toastStoreSink, 1500)
+    toast.follow(runs)
   })
 
   afterEach(() => {
@@ -41,7 +42,7 @@ describe('EpisodeToast', () => {
     const run = runs.begin()
     toast.progress(run, 'Finding')
     vi.advanceTimersByTime(1000)
-    toast.succeed(run, 'Mounted')
+    toast.report(run, 'success', 'Mounted')
     vi.advanceTimersByTime(5000)
 
     expect(openMessages()).toEqual(['Mounted'])
@@ -60,7 +61,7 @@ describe('EpisodeToast', () => {
     expect(pending.duration).toBeNull()
     expect(pending.loading).toBe(true)
 
-    toast.fail(run, 'Not found', { actionLabel: 'Search' })
+    toast.report(run, 'error', 'Not found', { actionLabel: 'Search' })
     expect(openToasts()).toEqual([
       { severity: 'error', message: 'Not found', key: progress.key },
     ])
@@ -82,7 +83,7 @@ describe('EpisodeToast', () => {
 
     const run = runs.begin()
     toast.progress(run, 'Finding')
-    toast.succeed(run, 'Mounted')
+    toast.report(run, 'success', 'Mounted')
     runs.end()
     expect(openMessages()).toEqual(['Mounted'])
   })
@@ -101,7 +102,7 @@ describe('EpisodeToast', () => {
     vi.advanceTimersByTime(5000)
     expect(openToasts()).toEqual([])
 
-    toast.fail(second, 'Policy not found')
+    toast.report(second, 'error', 'Policy not found')
     expect(openMessages()).toEqual(['Policy not found'])
   })
 
@@ -116,7 +117,7 @@ describe('EpisodeToast', () => {
 
   it('leaves the run current after showing its result', () => {
     const run = runs.begin()
-    toast.succeed(run, 'Mounted')
+    toast.report(run, 'success', 'Mounted')
     expect(run.isCurrent()).toBe(true)
 
     toast.dismiss(run)
@@ -124,7 +125,11 @@ describe('EpisodeToast', () => {
   })
 
   describe('a run that reports after a newer run started', () => {
-    it.each(['succeed', 'fail', 'warn'] as const)('ignores %s', (method) => {
+    it.each([
+      'success',
+      'error',
+      'warning',
+    ] as const)('ignores a late %s', (severity) => {
       const first = runs.begin()
       toast.progress(first, 'Finding episode 1')
       vi.advanceTimersByTime(1500)
@@ -132,7 +137,7 @@ describe('EpisodeToast', () => {
       toast.progress(runs.begin(), 'Finding episode 2')
       vi.advanceTimersByTime(1500)
 
-      toast[method](first, 'Episode 1 result')
+      toast.report(first, severity, 'Episode 1 result')
 
       expect(openToasts()).toEqual([
         expect.objectContaining({
@@ -147,7 +152,7 @@ describe('EpisodeToast', () => {
       runs.end()
       toast.progress(runs.begin(), 'Finding episode 2')
 
-      toast.succeed(first, 'Mounted episode 1')
+      toast.report(first, 'success', 'Mounted episode 1')
       expect(openToasts()).toEqual([])
 
       vi.advanceTimersByTime(1500)
@@ -165,17 +170,29 @@ describe('EpisodeToast', () => {
       vi.advanceTimersByTime(1500)
       expect(openMessages()).toEqual(['Finding episode 2'])
 
-      toast.succeed(second, 'Mounted episode 2')
+      toast.report(second, 'success', 'Mounted episode 2')
       expect(openMessages()).toEqual(['Mounted episode 2'])
     })
 
     it('does not bring back its result over the newer result', () => {
       const first = runs.begin()
       const second = runs.begin()
-      toast.succeed(second, 'Mounted episode 2')
+      toast.report(second, 'success', 'Mounted episode 2')
 
-      toast.fail(first, 'Failed episode 1')
+      toast.report(first, 'error', 'Failed episode 1')
       expect(openMessages()).toEqual(['Mounted episode 2'])
     })
+  })
+
+  it('stops following the runs once unsubscribed', () => {
+    const unfollowed = new EpisodeToast(toastStoreSink, 1500)
+    const otherRuns = new EpisodeRuns()
+    const stop = unfollowed.follow(otherRuns)
+    unfollowed.progress(otherRuns.begin(), 'Finding')
+    vi.advanceTimersByTime(1500)
+
+    stop()
+    otherRuns.end()
+    expect(openMessages()).toEqual(['Finding'])
   })
 })

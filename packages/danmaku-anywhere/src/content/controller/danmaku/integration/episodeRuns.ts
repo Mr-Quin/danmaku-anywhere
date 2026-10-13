@@ -14,7 +14,7 @@ type RunListener = (current: EpisodeRun | undefined) => void
  */
 export class EpisodeRuns {
   private generation = 0
-  private current: { run: EpisodeRun; controller: AbortController } | undefined
+  private active: { run: EpisodeRun; controller: AbortController } | undefined
   private readonly listeners = new Set<RunListener>()
 
   begin(): EpisodeRun {
@@ -25,13 +25,17 @@ export class EpisodeRuns {
       signal: controller.signal,
       isCurrent: () => !controller.signal.aborted,
     }
-    this.current = { run, controller }
+    this.active = { run, controller }
     this.notify(run)
     return run
   }
 
+  current(): EpisodeRun | undefined {
+    return this.active?.run
+  }
+
   end() {
-    if (!this.current) {
+    if (!this.active) {
       return
     }
     this.abortCurrent()
@@ -46,8 +50,8 @@ export class EpisodeRuns {
   }
 
   private abortCurrent() {
-    this.current?.controller.abort()
-    this.current = undefined
+    this.active?.controller.abort()
+    this.active = undefined
   }
 
   private notify(run: EpisodeRun | undefined) {

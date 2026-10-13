@@ -1,16 +1,20 @@
-import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
 import { useEffect, useRef } from 'react'
+import { Logger } from '@/common/Logger'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useStore } from '@/content/controller/store/store'
 
+/**
+ * When the active frame changes, moves the danmaku the previous frame showed
+ * to the new one. Automatic matching still in flight will mount for the new
+ * frame itself, so nothing is moved then.
+ */
 export const useMigrateDanmaku = () => {
-  const { allFrames, activeFrame } = useStore.use.frame()
-  const { episodes } = useStore.use.danmaku()
+  const { activeFrame } = useStore.use.frame()
 
   const prevActiveFrameId = useRef<number>(activeFrame?.frameId)
 
-  const { mountDanmaku } = useLoadDanmaku()
+  const { mount } = useLoadDanmaku()
   const unmountDanmaku = useUnmountDanmaku({ silent: true })
 
   useEffect(() => {
@@ -18,28 +22,28 @@ export const useMigrateDanmaku = () => {
       prevActiveFrameId.current = undefined
       return
     }
-
-    if (activeFrame.frameId === prevActiveFrameId.current) return
-
-    /**
-     * If the active frame changes, "migrate" danmaku to the new frame if there are comments
-     *
-     * If the previous active frame is mounted, unmount the danmaku,
-     * then mount it to the new active frame
-     */
-    if (
-      prevActiveFrameId.current &&
-      allFrames.get(prevActiveFrameId.current)?.mounted
-    ) {
-      unmountDanmaku.mutate(prevActiveFrameId.current)
+    const previous = prevActiveFrameId.current
+    if (activeFrame.frameId === previous) {
+      return
     }
-
-    if (episodes && episodes.length > 0) {
-      if ('comments' in episodes[0]) {
-        void mountDanmaku(episodes as GenericEpisode[])
-      }
-    }
-
     prevActiveFrameId.current = activeFrame.frameId
+    if (previous === undefined) {
+      return
+    }
+
+    const { danmaku, frame, integration } = useStore.getState()
+    if (frame.allFrames.get(previous)?.mounted) {
+      unmountDanmaku.mutate(previous)
+    }
+    if (integration.runInFlight || danmaku.mountedFrameId !== previous) {
+      return
+    }
+    const { episodes } = danmaku
+    if (!episodes || episodes.length === 0) {
+      return
+    }
+    mount(episodes).catch((error: unknown) => {
+      Logger.debug('Failed to move danmaku to the new frame', error)
+    })
   }, [activeFrame])
 }
