@@ -539,6 +539,10 @@
       "cloudListError": "Failed to load cloud backups.",
       "cloudRevisions": "Revisions",
       "cloudSignInTitle": "Sign in to enable cloud backup",
+      "droppedEntries_one": "{{store}} ({{count}} entry skipped)",
+      "droppedEntries_other": "{{store}} ({{count}} entries skipped)",
+      "droppedEntriesWithReasons_one": "{{store}} ({{count}} entry skipped: {{reasons}})",
+      "droppedEntriesWithReasons_other": "{{store}} ({{count}} entries skipped: {{reasons}})",
       "error": {
         "invalidFormat": "This backup file is damaged or was not made by Danmaku Anywhere.",
         "notJson": "This file is not a Danmaku Anywhere backup.",
@@ -783,7 +787,9 @@
       "notBuiltin": "This source has no built-in instance",
       "notFound": "This source no longer exists. It may have been deleted.",
       "orderMismatch": "The source list changed. Try reordering again.",
-      "refetchUnsupported": "{{name}} cannot fetch danmaku for saved episodes again"
+      "outdated": "Your sources are being updated to this version. Try again in a moment.",
+      "refetchUnsupported": "{{name}} cannot fetch danmaku for saved episodes again",
+      "unknownSource": "This source is not installed, so its settings cannot be changed"
     },
     "filter": {
       "placeholder": "Filter sources"
