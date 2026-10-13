@@ -668,6 +668,7 @@
     "alert": {
       "created": "弹幕源已创建",
       "deleted": "弹幕源已删除",
+      "reinstalled": "弹幕源已重新安装",
       "updated": "弹幕源已更新"
     },
     "attention": {
@@ -721,6 +722,7 @@
       "specError": "加载弹幕源设置失败。部分字段缺失，此时保存会丢失这些字段。",
       "testRun": {
         "danmakuCount_other": "已获取 {{count}} 条弹幕",
+        "dropped_other": "已跳过 {{count}} 条无效数据，与保存后的弹幕源一致。第一条：{{issue}}",
         "episodes": "剧集（选择一集获取弹幕）",
         "keyword": "搜索关键词",
         "results": "结果（选择一部番剧）",
@@ -768,6 +770,12 @@
       "defaultName": "自建弹弹play"
     },
     "name": "弹幕源",
+    "unavailable": {
+      "fallback": "正在使用内置版本。已存储的版本：{{reason}}",
+      "invalid": "无法加载",
+      "needsNewerExtension": "需要更新扩展版本",
+      "reinstall": "重新安装"
+    },
     "updates": {
       "failed": "更新失败",
       "title": "有可用更新",

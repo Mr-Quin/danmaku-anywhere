@@ -117,12 +117,20 @@ export interface ProviderManifestSpec {
   configSchema?: ConfigSchema
 }
 
+export type ManifestUnavailableReason =
+  | 'needs-newer-extension'
+  | 'invalid-manifest'
+
 export interface ProviderManifestInfo {
   id: string
   name: string
   version: string
   configSchema?: ConfigSchema
   kind: 'preinstalled' | 'user' | 'bundled'
+  // Set when the manifest is stored but cannot run in this build.
+  unavailable?: ManifestUnavailableReason
+  // Set when the stored copy cannot run and the bundled copy runs instead.
+  fallback?: ManifestUnavailableReason
 }
 
 export interface ProviderManifestList {
@@ -160,6 +168,22 @@ export interface ManifestTestEpisodeRow {
   title: string
   episodeNumber?: number | string
   params?: Record<string, unknown>
+}
+
+// Rows the saved source would drop, so the editor preview matches it.
+export interface ManifestTestDropped {
+  count: number
+  firstIssue: string
+}
+
+export interface ManifestTestRows<T> {
+  rows: T[]
+  dropped?: ManifestTestDropped
+}
+
+export interface ManifestTestDanmakuResult {
+  commentCount: number
+  dropped?: ManifestTestDropped
 }
 
 export interface ManifestSource {
@@ -241,15 +265,15 @@ export type BackgroundMethods = {
   >
   providerTestRunSearch: RPCDef<
     ManifestTestSearchInput,
-    ManifestTestSearchRow[]
+    ManifestTestRows<ManifestTestSearchRow>
   >
   providerTestRunEpisodes: RPCDef<
     ManifestTestEpisodesInput,
-    ManifestTestEpisodeRow[]
+    ManifestTestRows<ManifestTestEpisodeRow>
   >
   providerTestRunDanmaku: RPCDef<
     ManifestTestDanmakuInput,
-    { commentCount: number }
+    ManifestTestDanmakuResult
   >
   providerSaveUserManifest: RPCDef<
     { manifest: unknown; mode: 'create' | 'update'; expectedId?: string },
@@ -260,6 +284,7 @@ export type BackgroundMethods = {
     ManifestSource | null
   >
   providerDeleteUserManifest: RPCDef<{ manifestId: string }, void>
+  providerReinstallManifest: RPCDef<{ manifestId: string }, void>
   fetchImage: RPCDef<{ src: string }, string | null>
   getActiveTabUrl: RPCDef<{ tabId?: number } | void, string | null>
   getFrameId: RPCDef<void, number>

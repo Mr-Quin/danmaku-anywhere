@@ -118,10 +118,10 @@ test('a bundle-seeded source auto-upgrades to the catalog copy on the next reach
 
   // The proxy recovers: shadow the offline mock with a working one that
   // advertises a newer iQIYI, same as a normal catalog update.
-  const recovered = mockCatalog(
-    ['dandanplay', 'bilibili', 'tencent', 'iqiyi'],
-    { iqiyi: BUMPED }
-  )
+  const recovered = mockCatalog({
+    ids: ['dandanplay', 'bilibili', 'tencent', 'iqiyi'],
+    versions: { iqiyi: BUMPED },
+  })
   await context.route(recovered.pattern, recovered.respond)
 
   await popup.providers.refreshCatalog()

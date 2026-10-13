@@ -16,6 +16,7 @@ import { FormProvider, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type {
+  ManifestTestDropped,
   ManifestTestEpisodeRow,
   ManifestTestSearchRow,
 } from '@/common/rpcClient/background/types'
@@ -31,6 +32,22 @@ interface ManifestTestRunPanelProps {
 
 interface TestRunForm {
   config: Record<string, unknown>
+}
+
+const DroppedNote = ({ dropped }: { dropped?: ManifestTestDropped }) => {
+  const { t } = useTranslation()
+  if (!dropped) {
+    return null
+  }
+  return (
+    <Typography variant="caption" color="warning.main">
+      {t(
+        'providers.editor.testRun.dropped',
+        '{{count}} invalid rows skipped, as the saved source would. First: {{issue}}',
+        { count: dropped.count, issue: dropped.firstIssue }
+      )}
+    </Typography>
+  )
 }
 
 export const ManifestTestRunPanel = ({
@@ -50,6 +67,9 @@ export const ManifestTestRunPanel = ({
   const [results, setResults] = useState<ManifestTestSearchRow[]>([])
   const [episodeRows, setEpisodeRows] = useState<ManifestTestEpisodeRow[]>([])
   const [commentCount, setCommentCount] = useState<number | null>(null)
+  const [searchDropped, setSearchDropped] = useState<ManifestTestDropped>()
+  const [episodesDropped, setEpisodesDropped] = useState<ManifestTestDropped>()
+  const [danmakuDropped, setDanmakuDropped] = useState<ManifestTestDropped>()
 
   const configValues = () => methods.getValues('config')
   const onError = (error: Error) => toast.error(error.message)
@@ -58,23 +78,41 @@ export const ManifestTestRunPanel = ({
     setResults([])
     setEpisodeRows([])
     setCommentCount(null)
+    setSearchDropped(undefined)
+    setEpisodesDropped(undefined)
+    setDanmakuDropped(undefined)
     search.mutate(
       { manifest, keyword, configValues: configValues() },
-      { onSuccess: setResults, onError }
+      {
+        onSuccess: (res) => {
+          setResults(res.rows)
+          setSearchDropped(res.dropped)
+        },
+        onError,
+      }
     )
   }
 
   const handlePickSeason = (row: ManifestTestSearchRow) => {
     setEpisodeRows([])
     setCommentCount(null)
+    setEpisodesDropped(undefined)
+    setDanmakuDropped(undefined)
     episodes.mutate(
       { manifest, configValues: configValues(), providerIds: row.providerIds },
-      { onSuccess: setEpisodeRows, onError }
+      {
+        onSuccess: (res) => {
+          setEpisodeRows(res.rows)
+          setEpisodesDropped(res.dropped)
+        },
+        onError,
+      }
     )
   }
 
   const handlePickEpisode = (row: ManifestTestEpisodeRow) => {
     setCommentCount(null)
+    setDanmakuDropped(undefined)
     danmaku.mutate(
       {
         manifest,
@@ -82,7 +120,13 @@ export const ManifestTestRunPanel = ({
         providerIds: row.providerIds,
         params: row.params,
       },
-      { onSuccess: (res) => setCommentCount(res.commentCount), onError }
+      {
+        onSuccess: (res) => {
+          setCommentCount(res.commentCount)
+          setDanmakuDropped(res.dropped)
+        },
+        onError,
+      }
     )
   }
 
@@ -130,6 +174,7 @@ export const ManifestTestRunPanel = ({
             <Typography variant="caption" color="text.secondary">
               {t('providers.editor.testRun.results', 'Results (pick a season)')}
             </Typography>
+            <DroppedNote dropped={searchDropped} />
             <List dense disablePadding>
               {results.map((row) => (
                 <ListItemButton
@@ -153,6 +198,7 @@ export const ManifestTestRunPanel = ({
                 'Episodes (pick one for danmaku)'
               )}
             </Typography>
+            <DroppedNote dropped={episodesDropped} />
             <List dense disablePadding>
               {episodeRows.map((row) => (
                 <ListItemButton
@@ -175,13 +221,16 @@ export const ManifestTestRunPanel = ({
         ) : null}
 
         {commentCount !== null ? (
-          <Typography variant="body2" color="success.main">
-            {t(
-              'providers.editor.testRun.danmakuCount',
-              '{{count}} comments fetched',
-              { count: commentCount }
-            )}
-          </Typography>
+          <>
+            <Typography variant="body2" color="success.main">
+              {t(
+                'providers.editor.testRun.danmakuCount',
+                '{{count}} comments fetched',
+                { count: commentCount }
+              )}
+            </Typography>
+            <DroppedNote dropped={danmakuDropped} />
+          </>
         ) : null}
       </Stack>
     </FormProvider>

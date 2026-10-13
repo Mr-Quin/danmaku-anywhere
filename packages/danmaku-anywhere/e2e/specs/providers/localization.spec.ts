@@ -34,7 +34,7 @@ test('catalog and config editor render localized manifest strings', async ({
     extensionOptions: { lang: Language.zh },
     customProviders: [localDdp],
     network: [
-      mockCatalog(['dandanplay', 'bilibili', 'tencent', 'iqiyi']),
+      mockCatalog({ ids: ['dandanplay', 'bilibili', 'tencent', 'iqiyi'] }),
       ...mockLoginProbes(),
     ],
   })
