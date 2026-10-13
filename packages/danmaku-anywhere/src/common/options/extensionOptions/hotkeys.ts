@@ -16,6 +16,8 @@ export const ALL_HOTKEYS = [
   'refreshComments',
   'unmountComments',
   'openSearchPanel',
+  'toggleSkipButton',
+  'toggleDanmakuTimeline',
 ] as const
 
 export type AllHotkeys = (typeof ALL_HOTKEYS)[number]
@@ -31,6 +33,13 @@ export const HOTKEY_LABELS = createLocalizationMap<AllHotkeys>({
     i18n.t('optionsPage.hotkeys.unmountComments', 'Unmount comments'),
   openSearchPanel: () =>
     i18n.t('optionsPage.hotkeys.openSearchPanel', 'Open search panel'),
+  toggleSkipButton: () =>
+    i18n.t('optionsPage.hotkeys.toggleSkipButton', 'Show/Hide skip button'),
+  toggleDanmakuTimeline: () =>
+    i18n.t(
+      'optionsPage.hotkeys.toggleDanmakuTimeline',
+      'Show/Hide danmaku density'
+    ),
 })
 
 export type Keymap = Record<AllHotkeys, Hotkey>
@@ -41,6 +50,8 @@ export const defaultKeymap: Keymap = {
   unmountComments: createHotkey('shift+u'),
   togglePip: createHotkey('shift+p'),
   openSearchPanel: createHotkey('alt+k'),
+  toggleSkipButton: createHotkey('shift+s'),
+  toggleDanmakuTimeline: createHotkey('shift+d'),
 } as const
 
 const macModifierSymbols: Record<string, string> = {
