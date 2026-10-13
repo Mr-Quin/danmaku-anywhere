@@ -11,8 +11,8 @@ import {
   type EpisodeOutcome,
   isRefreshable,
 } from '@/content/controller/common/outcomes'
-import { useErrorToastAction } from '@/content/controller/danmaku/integration/hooks/useErrorToastAction'
 import { mountFailedMessage } from './mountError'
+import { useErrorToastAction } from './useErrorToastAction'
 
 export interface OutcomeMessage {
   severity: Severity
