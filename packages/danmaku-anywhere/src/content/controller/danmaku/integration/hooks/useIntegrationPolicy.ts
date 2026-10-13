@@ -19,7 +19,7 @@ import type { MediaInfo } from '@/content/controller/danmaku/integration/models/
 import type { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { ObserverFactory } from '@/content/controller/danmaku/integration/observers/ObserverFactory'
 import { useStore } from '@/content/controller/store/store'
-import { useFindEpisodeDanmaku } from './useFindEpisodeDanmaku'
+import { useEpisodeMatching } from './useEpisodeMatching'
 import { useSyncIntegrationManualMode } from './useSyncIntegrationManualMode'
 import { useWarnIncompleteConfig } from './useWarnIncompleteConfig'
 
@@ -48,14 +48,33 @@ export const useIntegrationPolicy = () => {
   } = useStore.use.integration()
 
   const [runs] = useState(() => new EpisodeRuns())
-  const [episodeToast] = useState(() => new EpisodeToast(toastStoreSink, runs))
-  const findDanmaku = useFindEpisodeDanmaku(episodeToast)
+  const [episodeToast] = useState(() => new EpisodeToast(toastStoreSink))
+  const matchEpisode = useEpisodeMatching(episodeToast)
 
   const integrationPolicy = useActiveIntegration()
   const activeConfig = useActiveConfig()
 
   const isManual = useSyncIntegrationManualMode()
   const isConfigIncomplete = useWarnIncompleteConfig()
+
+  useEffect(() => {
+    const unfollow = episodeToast.follow(runs)
+    const unwatch = runs.subscribe((current) => {
+      if (!current) {
+        useStore.getState().integration.setRunInFlight(false)
+      }
+    })
+    const unpreempt = useStore.subscribe((state, prev) => {
+      if (state.integration.preemptions !== prev.integration.preemptions) {
+        runs.end()
+      }
+    })
+    return () => {
+      unfollow()
+      unwatch()
+      unpreempt()
+    }
+  }, [runs, episodeToast])
 
   useEffect(() => {
     if (isManual || isConfigIncomplete) {
@@ -118,14 +137,20 @@ export const useIntegrationPolicy = () => {
         setMediaInfo(state)
         setErrorMessage()
 
-        void findDanmaku(run, state)
+        void matchEpisode(run, state)
       },
       mediaElementsChange: () => {
         setFoundElements(true)
       },
+      mediaCleared: () => {
+        runs.end()
+      },
       error: (error: Error) => {
         getTrackingService().track('integrationPolicyError', { error })
-        episodeToast.fail(runs.begin(), error.message)
+        // The error does not invalidate work in flight: if the page recovers
+        // to the same media, that run is still the right one.
+        const run = runs.current() ?? runs.begin()
+        episodeToast.report(run, 'error', error.message)
         setErrorMessage(error.message)
       },
     })
