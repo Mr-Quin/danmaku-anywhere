@@ -13,7 +13,6 @@ const VISIBILITY_TOAST_DURATION_MS = 2000
 export const useShowDanmaku = () => {
   const { t } = useTranslation()
   const { toast } = useToast()
-  const { isVisible } = useStore.use.danmaku()
   const { getKeyCombo } = useHotkeyOptions()
 
   const visibilityMessage = (visible: boolean) => {
@@ -35,7 +34,7 @@ export const useShowDanmaku = () => {
 
   return useMutation({
     mutationFn: async () => {
-      const visible = !isVisible
+      const visible = !useStore.getState().danmaku.isVisible
       await sendVisibility(visible)
       return visible
     },

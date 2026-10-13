@@ -13,6 +13,12 @@ function activeFrameId(): number | undefined {
   return useStore.getState().frame.getActiveFrame()?.frameId
 }
 
+// The frame showing the danmaku, which can differ from the active frame
+// until the next mount moves them.
+function mountedOrActiveFrameId(): number | undefined {
+  return useStore.getState().danmaku.mountedFrameId ?? activeFrameId()
+}
+
 /**
  * Mounts the episodes in the active frame's player. A caller that gives up
  * through the signal gets 'cancelled' and never has its episodes recorded; if
@@ -53,18 +59,26 @@ export async function sendMount(
     throw new DanmakuMountError('mountFailed', 'Failed to mount danmaku')
   }
 
+  const { commitMount, isLatestCommand } = useStore.getState().danmaku
   if (signal?.aborted) {
-    if (useStore.getState().danmaku.isLatestCommand(frameId, command)) {
+    if (isLatestCommand(frameId, command)) {
       await sendUnmount(frameId)
     }
     return { status: 'cancelled' }
   }
 
-  useStore.getState().danmaku.commitMount(command, frameId, episodes)
-  return { status: 'mounted' }
+  const commit = commitMount(command, frameId, episodes)
+  if (commit === 'recorded') {
+    return { status: 'mounted' }
+  }
+  // Nothing would track these danmaku, so take them down.
+  if (commit === 'superseded' && isLatestCommand(frameId, command)) {
+    await sendUnmount(frameId)
+  }
+  return { status: 'cancelled' }
 }
 
-export async function sendUnmount(frameId = activeFrameId()) {
+export async function sendUnmount(frameId = mountedOrActiveFrameId()) {
   if (frameId === undefined) {
     throw new Error('Trying to unmount danmaku without an active frame')
   }
@@ -73,22 +87,17 @@ export async function sendUnmount(frameId = activeFrameId()) {
   useStore.getState().danmaku.commitUnmount(command, frameId)
 }
 
-// Records the choice before telling the player, so a mount sent in the
-// meantime already carries it.
+// The store holds what the user asked for, recorded before the player is
+// told, so a mount sent in the meantime or later carries it even if this
+// command never arrives.
 export async function sendVisibility(visible: boolean) {
-  const frameId = activeFrameId()
+  useStore.getState().danmaku.toggleVisible(visible)
+  const frameId = mountedOrActiveFrameId()
   if (frameId === undefined) {
-    throw new Error('No active frame')
+    return
   }
-  const { isVisible: previous, toggleVisible } = useStore.getState().danmaku
-  toggleVisible(visible)
-  try {
-    await playerRpcClient.player['relay:command:show']({
-      frameId,
-      data: visible,
-    })
-  } catch (error) {
-    toggleVisible(previous)
-    throw error
-  }
+  await playerRpcClient.player['relay:command:show']({
+    frameId,
+    data: visible,
+  })
 }

@@ -3,7 +3,7 @@ import type {
   GenericEpisode,
 } from '@danmaku-anywhere/danmaku-converter'
 import { useEventCallback } from '@mui/material'
-import { useMutation } from '@tanstack/react-query'
+import { useIsMutating, useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type {
@@ -18,16 +18,17 @@ import {
   type MountResult,
   sendMount,
 } from '@/content/controller/common/danmakuCommands'
-import { useStore } from '@/content/controller/store/store'
-import { describeMountError } from './mountError'
 import {
   isRefreshable,
   type LoadOutcome,
-  type OutcomeMessage,
-  useDescribeOutcome,
-} from './useDescribeOutcome'
+} from '@/content/controller/common/outcomes'
+import { preemptAutomatic } from '@/content/controller/store/automaticPreemption'
+import { useStore } from '@/content/controller/store/store'
+import { describeMountError } from './mountError'
+import { type OutcomeMessage, useDescribeOutcome } from './useDescribeOutcome'
 
 const REFRESH_TOAST_ID = 'refresh-danmaku'
+const LOAD_MUTATION_KEY = ['danmaku', 'load']
 
 interface LoadDanmakuInput {
   request: DanmakuFetchDto
@@ -102,6 +103,8 @@ export const useLoadDanmaku = () => {
     },
   })
 
+  const isLoading = useIsMutating({ mutationKey: LOAD_MUTATION_KEY }) > 0
+
   const canRefresh =
     !!episodes && episodes.length === 1 && isRefreshable(episodes[0])
 
@@ -115,6 +118,7 @@ export const useLoadDanmaku = () => {
   )
 
   const loadMutation = useMutation({
+    mutationKey: LOAD_MUTATION_KEY,
     mutationFn: async ({
       request,
       signal,
@@ -167,7 +171,7 @@ export const useLoadDanmaku = () => {
   }
 
   const mountChosen = useEventCallback(async (episodes: GenericEpisode[]) => {
-    useStore.getState().integration.preemptAutomatic()
+    preemptAutomatic()
     try {
       await mount(episodes)
     } catch (error) {
@@ -191,7 +195,7 @@ export const useLoadDanmaku = () => {
   })
 
   const load = useEventCallback(async (request: DanmakuFetchDto) => {
-    useStore.getState().integration.preemptAutomatic()
+    preemptAutomatic()
     const outcome = await loadMutation.mutateAsync({ request })
     show(describeOutcome(outcome, { onRefresh: refreshFromToast }))
     return outcome
@@ -249,6 +253,7 @@ export const useLoadDanmaku = () => {
 
   return {
     loadMutation,
+    isLoading,
     load,
     loadGenericMutation,
     refreshComments,

@@ -9,10 +9,9 @@ import { useMigrateDanmaku } from './useMigrateDanmaku'
 
 /**
  * When the active frame changes, the danmaku the previous frame showed move to
- * the new frame without a toast. Nothing moves while automatic matching is in
- * flight, since it mounts for the new frame itself, or when what is mounted no
- * longer came from the previous frame. Mocks the player RPC and asserts the
- * player commands, the controller store and the toast store.
+ * the new frame without a toast. Nothing moves when what is mounted no longer
+ * came from the previous frame. Mocks the player RPC and asserts the player
+ * commands, the controller store and the toast store.
  */
 
 const rpc = vi.hoisted(() => ({
@@ -103,15 +102,6 @@ describe('useMigrateDanmaku', () => {
     expect(mountCallsTo(1)).toHaveLength(1)
     expect(useStore.getState().danmaku.mountedFrameId).toBe(1)
     expect(useToast.getState().notifications).toEqual([])
-  })
-
-  it('leaves the new frame to automatic matching in flight', async () => {
-    useStore.getState().integration.setRunInFlight(true)
-
-    activate(1)
-    await settle()
-
-    expect(mountCallsTo(1)).toHaveLength(0)
   })
 
   it('moves nothing when what is mounted came from another frame', async () => {

@@ -14,7 +14,7 @@ import type {
 import { reparentPopover } from '@/content/common/reparentPopover'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
-import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
+import { sendUnmount } from '@/content/controller/common/danmakuCommands'
 import { FrameRegistry } from '@/content/controller/danmaku/frame/FrameRegistry.service'
 import { selectBestFrame } from '@/content/controller/danmaku/frame/selectBestFrame'
 import { useMigrateDanmaku } from '@/content/controller/danmaku/frame/useMigrateDanmaku'
@@ -39,7 +39,6 @@ export const FrameManager = () => {
 
   const { updateFrame } = useStore.use.frame()
 
-  const unmountDanmaku = useUnmountDanmaku({ silent: true })
   const { preloadNext, canLoadNext } = usePreloadNextEpisode()
 
   useMigrateDanmaku()
@@ -86,15 +85,13 @@ export const FrameManager = () => {
   )
 
   const videoRemovedHandler = useEventCallback((frameId: number) => {
-    const activeFrame = useStore.getState().frame.activeFrame
-    if (activeFrame?.frameId === frameId) {
-      if (activeFrame.mounted) {
-        unmountDanmaku.mutate(frameId)
-      }
+    if (useStore.getState().frame.allFrames.get(frameId)?.mounted) {
+      sendUnmount(frameId).catch((error: unknown) => {
+        logger.debug('Failed to unmount danmaku for a removed video', error)
+      })
     }
     updateFrame(frameId, {
       hasVideo: false,
-      mounted: false,
       videoInfo: undefined,
     })
     reEvaluateActiveFrame()

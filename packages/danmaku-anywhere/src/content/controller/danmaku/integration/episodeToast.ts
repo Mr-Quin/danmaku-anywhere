@@ -31,15 +31,27 @@ export class EpisodeToast {
     private readonly delayMs = PROGRESS_DELAY_MS
   ) {}
 
+  // Stopping drops any progress, since no run will finish it.
   follow(runs: EpisodeRuns) {
-    return runs.subscribe((current) => {
+    const unsubscribe = runs.subscribe((current) => {
       this.clearTimer()
       // A new run swaps the visible progress for its own, so only an ending
       // session takes it down.
-      if (current === undefined && this.showingProgress) {
-        this.close()
+      if (current === undefined) {
+        this.dropProgress()
       }
     })
+    return () => {
+      unsubscribe()
+      this.clearTimer()
+      this.dropProgress()
+    }
+  }
+
+  private dropProgress() {
+    if (this.showingProgress) {
+      this.close()
+    }
   }
 
   // Progress already on screen, for example from the previous episode or from

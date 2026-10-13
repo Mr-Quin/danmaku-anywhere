@@ -10,6 +10,7 @@ import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/
 import type { MountConfig } from '@/common/options/mountConfig/schema'
 import { queryClient as sharedQueryClient } from '@/common/queries/queryClient'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
+import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { ObserverFactory } from '@/content/controller/danmaku/integration/observers/ObserverFactory'
@@ -216,11 +217,13 @@ async function waitForProgressDelay() {
 
 const user: {
   mountChosen?: (episodes: GenericEpisode[]) => Promise<void>
+  unmount?: () => Promise<boolean>
 } = {}
 
 function Integration() {
   useIntegrationPolicy()
   user.mountChosen = useLoadDanmaku().mountChosen
+  user.unmount = useUnmountDanmaku().mutateAsync
   return null
 }
 
@@ -396,6 +399,7 @@ describe('useIntegrationPolicy', () => {
     root = undefined
     mountA.resolve({ data: true })
     await settle()
+    await waitForProgressDelay()
 
     expect(rpc.unmount).toHaveBeenCalledTimes(1)
     expect(mountedState()).toEqual(NOTHING_MOUNTED)
@@ -719,7 +723,68 @@ describe('useIntegrationPolicy', () => {
     await settle()
 
     expect(rpc.mount).not.toHaveBeenCalled()
-    expect(useStore.getState().integration.runInFlight).toBe(false)
+  })
+
+  it('stops matching in flight when the user unmounts', async () => {
+    start()
+    rpc.episodeMatch.mockResolvedValueOnce(matched(localEpisode('Show A')))
+    showEpisode('Show A')
+    await settle()
+    const matchB = deferred<unknown>()
+    rpc.episodeMatch.mockReturnValueOnce(matchB.promise)
+    showEpisode('Show B')
+    await waitForProgressDelay()
+
+    await act(async () => {
+      await user.unmount?.()
+    })
+    matchB.resolve(matched(localEpisode('Show B')))
+    await settle()
+
+    expect(rpc.mount).toHaveBeenCalledTimes(1)
+    expect(mountedState()).toEqual(NOTHING_MOUNTED)
+    expect(openToasts()).toEqual([
+      { severity: 'info', message: 'Danmaku Unmounted' },
+    ])
+  })
+
+  it('unmounts the frame showing the danmaku when the next episode arrives in another frame', async () => {
+    start()
+    act(() => {
+      useStore.getState().frame.addFrame({ frameId: 1, url: 'https://b.test/' })
+      useStore.getState().frame.updateFrame(1, {
+        hasVideo: true,
+        videoChangeCount: 1,
+      })
+    })
+    const mountPicked = deferred<{ data: boolean }>()
+    rpc.mount.mockReturnValueOnce(mountPicked.promise)
+    let picking: Promise<void> | undefined
+    act(() => {
+      picking = user.mountChosen?.([localEpisode('Picked') as never])
+    })
+    await settle()
+    expect(rpc.mount).toHaveBeenCalledWith(
+      expect.objectContaining({ frameId: 0 })
+    )
+    act(() => {
+      useStore.getState().frame.setActiveFrame(1)
+    })
+    mountPicked.resolve({ data: true })
+    await act(async () => {
+      await picking
+    })
+    expect(useStore.getState().danmaku.mountedFrameId).toBe(0)
+
+    rpc.episodeMatch.mockResolvedValueOnce(matched(localEpisode('Show B')))
+    showEpisode('Show B')
+    await settle()
+
+    expect(rpc.unmount).toHaveBeenCalledWith({ frameId: 0 })
+    const { frame, danmaku } = useStore.getState()
+    expect(frame.allFrames.get(0)?.mounted).toBe(false)
+    expect(frame.allFrames.get(1)?.mounted).toBe(true)
+    expect(danmaku.mountedFrameId).toBe(1)
   })
 
   it('gives way to danmaku the user picks while matching is in flight', async () => {

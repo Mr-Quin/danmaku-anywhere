@@ -23,7 +23,7 @@ export const InfoBar = () => {
   const hasEpisodes = episodes && episodes.length > 0
 
   const unmountMutation = useUnmountDanmaku()
-  const { refreshComments, canRefresh, loadMutation } = useLoadDanmaku()
+  const { refreshComments, canRefresh, isLoading } = useLoadDanmaku()
 
   const handleUnmount = () => {
     unmountMutation.mutate()
@@ -81,7 +81,7 @@ export const InfoBar = () => {
               <Tooltip title={t('danmaku.refresh', 'Refresh Danmaku')}>
                 <IconButton
                   onClick={() => refreshComments()}
-                  disabled={!canRefresh || loadMutation.isPending}
+                  disabled={!canRefresh || isLoading}
                   color="primary"
                 >
                   <Sync />

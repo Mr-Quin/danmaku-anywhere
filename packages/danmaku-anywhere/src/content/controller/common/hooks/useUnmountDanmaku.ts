@@ -3,31 +3,25 @@ import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
 import { sendUnmount } from '@/content/controller/common/danmakuCommands'
+import { preemptAutomatic } from '@/content/controller/store/automaticPreemption'
 
-interface UnmountDanmakuOptions {
-  silent?: boolean
-}
-
-export const useUnmountDanmaku = ({
-  silent = false,
-}: UnmountDanmakuOptions = {}) => {
+// For an unmount the user asked for; it also stops automatic matching in
+// flight from mounting again.
+export const useUnmountDanmaku = () => {
   const { toast } = useToast()
   const { t } = useTranslation()
 
   return useMutation({
-    mutationFn: async (frameId: number | void) => {
-      await sendUnmount(frameId ?? undefined)
+    mutationFn: async () => {
+      preemptAutomatic()
+      await sendUnmount()
       return true
     },
     onSuccess: () => {
-      if (!silent) {
-        toast.info(t('danmaku.alert.unmounted', 'Danmaku Unmounted'))
-      }
+      toast.info(t('danmaku.alert.unmounted', 'Danmaku Unmounted'))
     },
     onError: (err) => {
-      if (!silent) {
-        toast.error(err.message)
-      }
+      toast.error(err.message)
     },
   })
 }

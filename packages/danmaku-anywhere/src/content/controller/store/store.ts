@@ -14,6 +14,13 @@ enableMapSet()
 
 export type { VideoInfo }
 
+/**
+ * 'superseded' means the frame has the episodes but a newer command for
+ * another frame holds the record of what is mounted. 'stale' means the reply
+ * no longer applies to the frame at all.
+ */
+export type MountCommit = 'recorded' | 'superseded' | 'stale'
+
 export interface FrameState {
   frameId: number
   // The url of the frame
@@ -67,7 +74,7 @@ interface StoreState {
       command: number,
       frameId: number,
       episodes: GenericEpisode[]
-    ) => boolean
+    ) => MountCommit
     commitUnmount: (command: number, frameId: number) => boolean
 
     /**
@@ -111,13 +118,6 @@ interface StoreState {
     mediaInfo?: MediaInfo
     setMediaInfo: (mediaInfo: MediaInfo) => void
     resetIntegration: () => void
-    // Whether automatic matching is still working on the current episode.
-    runInFlight: boolean
-    setRunInFlight: (inFlight: boolean) => void
-    // Danmaku the user picks win over automatic matching still in flight.
-    // The integration ends its run whenever this count goes up.
-    preemptions: number
-    preemptAutomatic: () => void
   }
 
   /**
@@ -202,26 +202,21 @@ const useStoreBase = create<StoreState>()(
         return command
       },
       isLatestCommand: (frameId, command) => {
-        const frame = get().frame.allFrames.get(frameId)
-        if (!frame) {
-          return false
-        }
-        return (
-          frame.issuedCommand === command && command > frame.committedCommand
-        )
+        return get().frame.allFrames.get(frameId)?.issuedCommand === command
       },
       commitMount: (command, frameId, episodes) => {
         const frame = get().frame.allFrames.get(frameId)
         if (!frame || command <= frame.committedCommand) {
-          return false
+          return 'stale'
         }
+        const recorded = command > get().danmaku.recordCommand
         set((state) => {
           writeFrame(state, {
             ...frame,
             committedCommand: command,
             mounted: true,
           })
-          if (command <= state.danmaku.recordCommand) {
+          if (!recorded) {
             return
           }
           state.danmaku.recordCommand = command
@@ -232,7 +227,7 @@ const useStoreBase = create<StoreState>()(
             return episode.comments
           })
         })
-        return true
+        return recorded ? 'recorded' : 'superseded'
       },
       commitUnmount: (command, frameId) => {
         const frame = get().frame.allFrames.get(frameId)
@@ -324,18 +319,6 @@ const useStoreBase = create<StoreState>()(
           state.integration.foundElements = false
           state.integration.errorMessage = undefined
         }),
-      runInFlight: false,
-      setRunInFlight: (inFlight) => {
-        set((state) => {
-          state.integration.runInFlight = inFlight
-        })
-      },
-      preemptions: 0,
-      preemptAutomatic: () => {
-        set((state) => {
-          state.integration.preemptions += 1
-        })
-      },
     },
 
     hasVideo: () => {
@@ -363,8 +346,10 @@ const useStoreBase = create<StoreState>()(
       },
       addFrame: ({ frameId, url }) => {
         set((state) => {
-          // Replies to commands sent to an earlier frame with this id are stale.
-          const lastCommand = state.danmaku.lastCommand
+          // Takes a number of its own so replies to commands sent to an
+          // earlier frame with this id are stale.
+          const lastCommand = state.danmaku.lastCommand + 1
+          state.danmaku.lastCommand = lastCommand
           state.frame.allFrames.set(frameId, {
             frameId,
             url,

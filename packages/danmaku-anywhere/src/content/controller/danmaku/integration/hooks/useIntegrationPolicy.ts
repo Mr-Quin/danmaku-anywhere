@@ -6,7 +6,7 @@ import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
-import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
+import { sendUnmount } from '@/content/controller/common/danmakuCommands'
 import {
   type EpisodeRun,
   EpisodeRuns,
@@ -18,6 +18,7 @@ import {
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import type { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { ObserverFactory } from '@/content/controller/danmaku/integration/observers/ObserverFactory'
+import { onPreemptAutomatic } from '@/content/controller/store/automaticPreemption'
 import { useStore } from '@/content/controller/store/store'
 import { useEpisodeMatching } from './useEpisodeMatching'
 import { useSyncIntegrationManualMode } from './useSyncIntegrationManualMode'
@@ -37,7 +38,6 @@ export const useIntegrationPolicy = () => {
     }
     return `${af.frameId}:${af.videoChangeCount}`
   })
-  const unmountDanmaku = useUnmountDanmaku({ silent: true })
   const {
     setMediaInfo,
     setErrorMessage,
@@ -59,19 +59,11 @@ export const useIntegrationPolicy = () => {
 
   useEffect(() => {
     const unfollow = episodeToast.follow(runs)
-    const unwatch = runs.subscribe((current) => {
-      if (!current) {
-        useStore.getState().integration.setRunInFlight(false)
-      }
-    })
-    const unpreempt = useStore.subscribe((state, prev) => {
-      if (state.integration.preemptions !== prev.integration.preemptions) {
-        runs.end()
-      }
+    const unpreempt = onPreemptAutomatic(() => {
+      runs.end()
     })
     return () => {
       unfollow()
-      unwatch()
       unpreempt()
     }
   }, [runs, episodeToast])
@@ -131,7 +123,9 @@ export const useIntegrationPolicy = () => {
         })
         const run = runs.begin()
         if (useStore.getState().danmaku.isMounted) {
-          unmountDanmaku.mutate()
+          sendUnmount().catch((error: unknown) => {
+            Logger.debug('Failed to unmount the previous episode', error)
+          })
         }
 
         setMediaInfo(state)

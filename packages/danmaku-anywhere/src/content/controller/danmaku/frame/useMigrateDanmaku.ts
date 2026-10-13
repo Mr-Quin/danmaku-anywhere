@@ -1,13 +1,12 @@
 import { useEffect, useRef } from 'react'
 import { Logger } from '@/common/Logger'
+import { sendUnmount } from '@/content/controller/common/danmakuCommands'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
-import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { useStore } from '@/content/controller/store/store'
 
 /**
  * When the active frame changes, moves the danmaku the previous frame showed
- * to the new one. Automatic matching still in flight will mount for the new
- * frame itself, so nothing is moved then.
+ * to the new one.
  */
 export const useMigrateDanmaku = () => {
   const { activeFrame } = useStore.use.frame()
@@ -15,7 +14,6 @@ export const useMigrateDanmaku = () => {
   const prevActiveFrameId = useRef<number>(activeFrame?.frameId)
 
   const { mount } = useLoadDanmaku()
-  const unmountDanmaku = useUnmountDanmaku({ silent: true })
 
   useEffect(() => {
     if (!activeFrame) {
@@ -31,11 +29,13 @@ export const useMigrateDanmaku = () => {
       return
     }
 
-    const { danmaku, frame, integration } = useStore.getState()
+    const { danmaku, frame } = useStore.getState()
     if (frame.allFrames.get(previous)?.mounted) {
-      unmountDanmaku.mutate(previous)
+      sendUnmount(previous).catch((error: unknown) => {
+        Logger.debug('Failed to unmount danmaku from the previous frame', error)
+      })
     }
-    if (integration.runInFlight || danmaku.mountedFrameId !== previous) {
+    if (danmaku.mountedFrameId !== previous) {
       return
     }
     const { episodes } = danmaku

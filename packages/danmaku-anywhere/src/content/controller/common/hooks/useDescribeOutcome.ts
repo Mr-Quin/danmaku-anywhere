@@ -1,4 +1,3 @@
-import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
 import { useEventCallback } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import type {
@@ -6,27 +5,14 @@ import type {
   ToastOptions,
 } from '@/common/components/Toast/toastStore'
 import { describeKeptStored } from '@/common/danmaku/describeKeptStored'
-import type { KeptStored } from '@/common/danmaku/dto'
-import { episodeToString, isSourceEpisode } from '@/common/danmaku/utils'
+import { episodeToString } from '@/common/danmaku/utils'
+import {
+  type EpisodeOutcome,
+  isRefreshable,
+} from '@/content/controller/common/outcomes'
 import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 import { describeMountError } from './mountError'
 import { useDescribeSourceError } from './useDescribeSourceError'
-
-export type LoadOutcome =
-  // A local file's title often names only the show, so the caller can name
-  // it instead.
-  | { status: 'mounted'; episode: GenericEpisode; name?: string }
-  // The refetch came back with fewer comments, and the stored episode is
-  // already the one mounted.
-  | { status: 'unchanged'; keptStored: KeptStored }
-  | { status: 'cancelled' }
-  | { status: 'fetchFailed'; error: unknown; providerConfigId?: string }
-  | { status: 'mountFailed'; error: unknown }
-
-export type EpisodeOutcome =
-  | LoadOutcome
-  | { status: 'matchFailed'; error: unknown }
-  | { status: 'notFound'; title: string }
 
 export interface OutcomeMessage {
   severity: Severity
@@ -36,12 +22,10 @@ export interface OutcomeMessage {
 
 interface DescribeOptions {
   refreshed?: boolean
+  // Names the mounted episode instead of its own title.
+  name?: string
   // Offered on a mounted episode that its source can refresh.
   onRefresh?: () => void
-}
-
-export function isRefreshable(episode: GenericEpisode) {
-  return isSourceEpisode(episode) && episode.season.manifestId === 'dandanplay'
 }
 
 // Words what happened to a load, match or refresh for the user. Returns
@@ -60,13 +44,13 @@ export function useDescribeOutcome() {
   return useEventCallback(
     (
       outcome: EpisodeOutcome,
-      { refreshed = false, onRefresh }: DescribeOptions = {}
+      { refreshed = false, name: displayName, onRefresh }: DescribeOptions = {}
     ): OutcomeMessage | undefined => {
       switch (outcome.status) {
         case 'cancelled':
           return undefined
         case 'mounted': {
-          const name = outcome.name ?? episodeToString(outcome.episode)
+          const name = displayName ?? episodeToString(outcome.episode)
           const count = outcome.episode.commentCount
           return {
             severity: 'success',

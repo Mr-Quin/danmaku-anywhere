@@ -39,11 +39,9 @@ export function useDanmakuActions(): ContextMenuItemProps[] {
   const unmountMutation = useUnmountDanmaku()
   const showDanmakuMutation = useShowDanmaku()
 
-  const { refreshComments, loadMutation, canRefresh } = useLoadDanmaku()
+  const { refreshComments, isLoading, canRefresh } = useLoadDanmaku()
 
   const { getKeyCombo } = useHotkeyOptions()
-
-  const isLoading = loadMutation.isPending
 
   return [
     {
