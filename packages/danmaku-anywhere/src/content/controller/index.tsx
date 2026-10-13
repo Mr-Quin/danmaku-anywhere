@@ -8,7 +8,7 @@ import { injectFonts } from '@/common/fonts'
 import { Logger } from '@/common/Logger'
 import { queryClient } from '@/common/queries/queryClient'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { Theme } from '@/common/theme/Theme'
+import { SystemTheme, Theme } from '@/common/theme/Theme'
 import { App } from './App'
 import '@/common/localization/i18n'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
@@ -23,6 +23,7 @@ import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId
 import { attachMountMirror } from '@/content/controller/common/devMountMirror'
 import { startPanelStateBroadcaster } from '@/content/controller/danmaku/panelState/PanelStateBroadcaster'
 import { useStore } from '@/content/controller/store/store'
+import { OptionsUpgradeFailedButton } from '@/content/controller/ui/floatingButton/OptionsUpgradeFailedButton'
 
 bootstrapUiLanguage(uiContainer)
 startPanelStateBroadcaster()
@@ -101,7 +102,14 @@ ReactDOM.createRoot(shadowRoot).render(
             type: 'controller',
           }}
         >
-          <OptionsReadinessGate pending={null} failed={null}>
+          <OptionsReadinessGate
+            pending={null}
+            failed={
+              <SystemTheme options={themeOptions}>
+                <OptionsUpgradeFailedButton />
+              </SystemTheme>
+            }
+          >
             <Theme options={themeOptions}>
               <App />
             </Theme>
