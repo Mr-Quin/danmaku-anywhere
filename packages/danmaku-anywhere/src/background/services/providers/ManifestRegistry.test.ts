@@ -66,7 +66,6 @@ function catalogEntry(
 function makeResponse(status: number, body: unknown) {
   return {
     status,
-    ok: status >= 200 && status < 300,
     headers: { forEach: () => {} },
     text: async () => (typeof body === 'string' ? body : JSON.stringify(body)),
   }
@@ -700,7 +699,34 @@ describe('ManifestRegistry', () => {
     await expect(
       settleIndexRetry(() => registry.getPendingUpdates())
     ).rejects.toMatchObject({
-      code: 'source.badResponse',
+      code: 'badResponse',
+      params: { target: { kind: 'catalog' } },
+    })
+  })
+
+  it('codes a body that stops arriving after the timeout as a timeout', async () => {
+    vi.spyOn(AbortSignal, 'timeout').mockImplementation(() => {
+      const controller = new AbortController()
+      controller.abort(new DOMException('signal timed out', 'TimeoutError'))
+      return controller.signal
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        status: 200,
+        headers: { forEach: () => {} },
+        text: async () => {
+          throw new DOMException('aborted', 'AbortError')
+        },
+      }))
+    )
+    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+    await registry.ready
+
+    await expect(
+      settleIndexRetry(() => registry.getPendingUpdates())
+    ).rejects.toMatchObject({
+      code: 'timeout',
       params: { target: { kind: 'catalog' } },
     })
   })

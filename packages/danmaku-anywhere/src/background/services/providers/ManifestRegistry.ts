@@ -9,12 +9,13 @@ import {
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
 import { AppError, type ErrorTarget } from '@/common/errors/AppError'
-import { fetchOrThrow } from '@/common/errors/fetchFailure'
+import { classifyFetchRejection } from '@/common/errors/fetchFailure'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type {
   ManifestUpdate,
   ProviderManifestInfo,
 } from '@/common/rpcClient/background/types'
+import { fetchChecked } from '@/common/utils/fetchOrThrow'
 import { invariant, sleep } from '@/common/utils/utils'
 import { bundledCatalogIndex, bundledManifestRaw } from './bundledCatalog'
 import { extensionFetchLike } from './extensionFetchLike'
@@ -352,22 +353,18 @@ export class ManifestRegistry {
   }
 
   private async fetchIndex(): Promise<Result<CatalogEntry[], AppError>> {
-    let body: unknown
-    try {
-      body = await this.fetchJson(`${this.baseUrl}/manifest`, INDEX_TIMEOUT_MS)
-    } catch (e) {
-      if (e instanceof AppError) {
-        return err(e)
-      }
-      return err(
-        new AppError('source.badResponse', { target: CATALOG }, { cause: e })
-      )
+    const body = await this.fetchJson(
+      `${this.baseUrl}/manifest`,
+      INDEX_TIMEOUT_MS
+    )
+    if (!body.success) {
+      return body
     }
-    const index = zCatalogIndex.safeParse(body)
+    const index = zCatalogIndex.safeParse(body.data)
     if (!index.success) {
       return err(
         new AppError(
-          'source.badResponse',
+          'badResponse',
           { target: CATALOG },
           {
             message: 'catalog index has an unexpected shape',
@@ -397,16 +394,20 @@ export class ManifestRegistry {
     file: string,
     id: string
   ): Promise<CatalogManifest | null> {
-    let raw: unknown
-    try {
-      raw = await this.fetchJson(
-        `${this.baseUrl}/manifest/file?file=${encodeURIComponent(file)}`,
-        FILE_TIMEOUT_MS
+    const fetched = await this.fetchJson(
+      `${this.baseUrl}/manifest/file?file=${encodeURIComponent(file)}`,
+      FILE_TIMEOUT_MS
+    )
+    if (!fetched.success) {
+      this.log.error(
+        'Failed to fetch catalog manifest:',
+        id,
+        file,
+        fetched.error
       )
-    } catch (e) {
-      this.log.error('Failed to fetch catalog manifest:', id, file, e)
       return null
     }
+    const raw = fetched.data
     const parsed = zManifest.safeParse(raw)
     if (!parsed.success) {
       this.log.error(
@@ -429,19 +430,35 @@ export class ManifestRegistry {
     return { raw, parsed: parsed.data }
   }
 
-  private async fetchJson(url: string, timeoutMs: number): Promise<unknown> {
-    const response = await fetchOrThrow(
+  private async fetchJson(
+    url: string,
+    timeoutMs: number
+  ): Promise<Result<unknown, AppError>> {
+    const signal = AbortSignal.timeout(timeoutMs)
+    const response = await fetchChecked(
+      extensionFetchLike,
       url,
-      { signal: AbortSignal.timeout(timeoutMs) },
+      { signal },
       CATALOG
     )
+    if (!response.success) {
+      return response
+    }
+    let text: string
     try {
-      return JSON.parse(await response.text())
+      text = await response.data.text()
     } catch (e) {
-      throw new AppError(
-        'source.badResponse',
-        { target: CATALOG },
-        { message: `catalog response is not JSON: ${url}`, cause: e }
+      return err(classifyFetchRejection(e, signal, CATALOG))
+    }
+    try {
+      return ok(JSON.parse(text))
+    } catch (e) {
+      return err(
+        new AppError(
+          'badResponse',
+          { target: CATALOG },
+          { message: `catalog response is not JSON: ${url}`, cause: e }
+        )
       )
     }
   }

@@ -323,7 +323,7 @@ describe('ManifestProviderService.getDanmaku', () => {
     await expect(
       svc.getDanmaku(makeRequest({ episodeId: 42 }))
     ).rejects.toMatchObject({
-      code: 'source.badResponse',
+      code: 'badResponse',
       params: {
         target: {
           kind: 'source',
@@ -346,7 +346,7 @@ describe('ManifestProviderService.getDanmaku', () => {
     await expect(
       svc.getDanmaku(makeRequest({ episodeId: 42 }))
     ).rejects.toMatchObject({
-      code: 'source.badResponse',
+      code: 'badResponse',
       message: expect.stringMatching(
         /Every comment from manifest dandanplay was malformed/
       ),

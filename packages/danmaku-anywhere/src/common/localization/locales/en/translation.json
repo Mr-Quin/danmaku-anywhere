@@ -67,6 +67,8 @@
     "badResponse": "Couldn't read the data from {{target}}. It may have changed.",
     "catalogApplyFailed": "Couldn't update {{sources}}. Try again later.",
     "catalogEmpty": "The source catalog has no sources this version can use.",
+    "configDuplicate": "An item with the same ID already exists.",
+    "configNotFound": "This item no longer exists. It may have been deleted.",
     "episodesUnsupported": "{{source}} cannot list episodes.",
     "hostNotAllowed": "{{source}} tried to reach a site it is not allowed to use.",
     "http": "Got an error from {{target}} (HTTP {{status}}). Try again later.",

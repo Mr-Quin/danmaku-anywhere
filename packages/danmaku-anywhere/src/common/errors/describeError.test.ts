@@ -19,7 +19,9 @@ vi.mock('@/common/localization/i18n', async () => {
 })
 
 const { i18n } = await import('@/common/localization/i18n')
-const { describeCode, describeError } = await import('./describeError')
+const { describeCode, describeError, describeLocalError } = await import(
+  './describeError'
+)
 
 const BILIBILI = {
   providerConfigId: 'bili-2',
@@ -42,9 +44,11 @@ const PARAMS: { [C in keyof AppErrorParams]: AppErrorParams[C] } = {
   'source.episodesUnsupported': { source: BILIBILI },
   'source.refetchUnsupported': { source: BILIBILI },
   'source.noDanmaku': { title: 'Frieren' },
-  'source.badResponse': { target: SOURCE },
+  badResponse: { target: SOURCE },
   'match.notFound': { title: 'Frieren' },
   'catalog.empty': {},
+  'config.duplicate': {},
+  'config.notFound': {},
   'catalog.applyFailed': {
     sources: [
       { manifestId: 'bilibili', name: 'Bilibili' },
@@ -111,7 +115,7 @@ describe('describeError', () => {
       new AppError('http', { status: 429, target }),
       new AppError('http', { status: 500, target }),
       new AppError('timeout', { target }),
-      new AppError('source.badResponse', { target }),
+      new AppError('badResponse', { target }),
     ])
     const en = await messagesIn('en', errors)
     const zh = await messagesIn('zh', errors)
@@ -233,5 +237,33 @@ describe('describeError', () => {
     for (const error of malformed) {
       expect(describeError(error).message).toBe('Something went wrong.')
     }
+  })
+})
+
+describe('describeLocalError', () => {
+  it('shows the message of a local error', () => {
+    expect(describeLocalError(new Error('Name is required'))).toBe(
+      'Name is required'
+    )
+  })
+
+  it('shows a schema failure as readable issues', async () => {
+    const { z } = await import('zod')
+    const failure = z.object({ name: z.string() }).safeParse({ name: 1 })
+
+    expect(failure.success).toBe(false)
+    expect(describeLocalError(failure.error)).toContain('name')
+  })
+
+  it('translates a coded error instead of showing its log message', async () => {
+    await i18n.changeLanguage('en')
+    const error = new AppError(
+      'rpc.unreachable',
+      {},
+      { message: 'Method x could not be delivered' }
+    )
+
+    expect(describeLocalError(error)).toBe(describeError(error).message)
+    expect(describeLocalError(error)).not.toContain('rpc.unreachable')
   })
 })

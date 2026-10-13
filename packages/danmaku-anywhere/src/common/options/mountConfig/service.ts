@@ -1,5 +1,6 @@
 import { produce } from 'immer'
 import { inject, injectable } from 'inversify'
+import { AppError } from '@/common/errors/AppError'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { IStoreService } from '@/common/options/IStoreService'
 import {
@@ -155,7 +156,13 @@ export class MountConfigService implements IStoreService {
 
     const prevConfig = configs.find((item) => item.id === id)
 
-    if (!prevConfig) throw new Error(`Config not found: "${id}"`)
+    if (!prevConfig) {
+      throw new AppError(
+        'config.notFound',
+        {},
+        { message: `Config not found: "${id}"` }
+      )
+    }
 
     const newConfig = await mountConfigInputSchema.parseAsync({
       ...prevConfig,
@@ -178,7 +185,11 @@ export class MountConfigService implements IStoreService {
     const index = configs.findIndex((item) => item.id === id)
 
     if (index === -1) {
-      throw new Error(`Config not found: "${id}" when changing mode`)
+      throw new AppError(
+        'config.notFound',
+        {},
+        { message: `Config not found: "${id}" when changing mode` }
+      )
     }
 
     const newData = produce(configs, (draft) => {
@@ -197,7 +208,13 @@ export class MountConfigService implements IStoreService {
 
     const index = configs.findIndex((item) => item.id === id)
 
-    if (index === -1) throw new Error(`Config not found: "${id}" when deleting`)
+    if (index === -1) {
+      throw new AppError(
+        'config.notFound',
+        {},
+        { message: `Config not found: "${id}" when deleting` }
+      )
+    }
 
     const newData = produce(configs, (draft) => {
       draft.splice(index, 1)

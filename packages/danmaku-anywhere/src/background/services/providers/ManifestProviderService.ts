@@ -142,7 +142,7 @@ export class ManifestProviderService implements IDanmakuProvider {
 
   private badResponse(message: string): AppError {
     return new AppError(
-      'source.badResponse',
+      'badResponse',
       { target: { kind: 'source', ref: this.config.source } },
       { message }
     )

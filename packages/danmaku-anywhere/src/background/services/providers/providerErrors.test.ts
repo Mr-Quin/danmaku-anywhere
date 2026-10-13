@@ -35,14 +35,10 @@ describe('fromDangoError', () => {
       { source: BILIBILI },
     ],
     [new AbortedError(), 'aborted', {}],
-    [
-      new JsonataTimeoutError('$x'),
-      'source.badResponse',
-      { target: AT_BILIBILI },
-    ],
+    [new JsonataTimeoutError('$x'), 'badResponse', { target: AT_BILIBILI }],
     [
       new Base64DecodeError('undefined'),
-      'source.badResponse',
+      'badResponse',
       { target: AT_BILIBILI },
     ],
   ])('codes %o as %s and keeps it as cause', (engineError, code, params) => {
@@ -91,7 +87,7 @@ describe('fromProviderApiError', () => {
     const error = fromProviderApiError(new ResponseParseException(), AT_MACCMS)
 
     expect(error).toMatchObject({
-      code: 'source.badResponse',
+      code: 'badResponse',
       params: { target: AT_MACCMS },
     })
   })

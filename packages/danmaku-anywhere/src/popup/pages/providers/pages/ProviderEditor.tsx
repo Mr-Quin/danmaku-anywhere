@@ -3,7 +3,7 @@ import { Box } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { describeError } from '@/common/errors/describeError'
+import { describeLocalError } from '@/common/errors/describeError'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
@@ -39,7 +39,7 @@ export const ProviderEditor = ({
             onClose()
           },
           onError: (error) => {
-            toast.error(describeError(error).message)
+            toast.error(describeLocalError(error))
           },
         }
       )
@@ -51,7 +51,7 @@ export const ProviderEditor = ({
         onClose()
       },
       onError: (error) => {
-        toast.error(describeError(error).message)
+        toast.error(describeLocalError(error))
       },
     })
   }

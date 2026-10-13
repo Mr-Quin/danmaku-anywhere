@@ -19,24 +19,3 @@ export function classifyFetchRejection(
   }
   return new AppError('network', { target }, { cause: error })
 }
-
-export async function fetchOrThrow(
-  input: string,
-  init: RequestInit = {},
-  target?: ErrorTarget
-): Promise<Response> {
-  let response: Response
-  try {
-    response = await fetch(input, init)
-  } catch (e) {
-    throw classifyFetchRejection(e, init.signal, target)
-  }
-  if (!response.ok) {
-    throw new AppError(
-      'http',
-      { status: response.status, target },
-      { message: `HTTP ${response.status} for ${input}` }
-    )
-  }
-  return response
-}

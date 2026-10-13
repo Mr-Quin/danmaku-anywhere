@@ -31,7 +31,7 @@ export function fromDangoError(error: unknown, source: SourceRef): unknown {
     error instanceof JsonataTimeoutError ||
     error instanceof Base64DecodeError
   ) {
-    return new AppError('source.badResponse', { target }, { cause: error })
+    return new AppError('badResponse', { target }, { cause: error })
   }
   return error
 }
@@ -52,7 +52,7 @@ export function fromProviderApiError(
     )
   }
   if (error instanceof ResponseParseException) {
-    return new AppError('source.badResponse', { target }, { cause: error })
+    return new AppError('badResponse', { target }, { cause: error })
   }
   return error
 }

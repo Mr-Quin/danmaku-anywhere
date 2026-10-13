@@ -7,7 +7,7 @@ import {
   searchMacCmsVod,
 } from '@danmaku-anywhere/danmaku-provider/maccms'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
-import type { SourceRef } from '@/common/errors/AppError'
+import type { ErrorTarget } from '@/common/errors/AppError'
 import type { ILogger } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderConfigService } from '@/common/options/providerConfig/service'
@@ -42,7 +42,7 @@ export class MacCmsProviderService implements IDanmakuProvider {
       this.configValues.danmakuBaseUrl,
       params.keyword,
       this.logger,
-      toSourceRef(this.config)
+      { kind: 'source', ref: toSourceRef(this.config) }
     )
   }
 
@@ -50,7 +50,7 @@ export class MacCmsProviderService implements IDanmakuProvider {
     baseUrl: string,
     keyword: string,
     logger: ILogger,
-    source?: SourceRef
+    target?: ErrorTarget
   ): Promise<CustomSeason[]> {
     logger.debug('Searching for', {
       baseUrl,
@@ -59,10 +59,7 @@ export class MacCmsProviderService implements IDanmakuProvider {
     const res = await searchMacCmsVod(baseUrl, keyword)
 
     if (!res.success) {
-      throw fromProviderApiError(
-        res.error,
-        source ? { kind: 'source', ref: source } : undefined
-      )
+      throw fromProviderApiError(res.error, target)
     }
 
     return res.data.list.map((item, i) => {

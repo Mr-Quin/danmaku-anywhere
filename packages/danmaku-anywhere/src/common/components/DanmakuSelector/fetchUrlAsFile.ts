@@ -1,8 +1,6 @@
 import { AppError } from '@/common/errors/AppError'
-import {
-  classifyFetchRejection,
-  fetchOrThrow,
-} from '@/common/errors/fetchFailure'
+import { classifyFetchRejection } from '@/common/errors/fetchFailure'
+import { fetchOrThrow } from '@/common/utils/fetchOrThrow'
 
 type ImportUrlProblem =
   | 'importUrl.invalidUrl'
@@ -89,7 +87,7 @@ export async function fetchUrlAsFile(
   const { signal } = options
   const maxBytes = options.maxBytes ?? DEFAULT_MAX_BYTES
 
-  const response = await fetchOrThrow(rawUrl, {
+  const response = await fetchOrThrow(fetch, rawUrl, {
     credentials: 'omit',
     redirect: 'follow',
     cache: 'no-store',

@@ -15,6 +15,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeLocalError } from '@/common/errors/describeError'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type { ManifestValidationIssue } from '@/common/rpcClient/background/types'
@@ -202,7 +203,7 @@ function ManifestEditor({
         expectedId: isNew ? undefined : manifestId,
       },
       {
-        onError: (error) => toast.error(error.message),
+        onError: (error) => toast.error(describeLocalError(error)),
         onSuccess: () => {
           if (!isNew) {
             finish()
@@ -225,7 +226,7 @@ function ManifestEditor({
                   t(
                     'providers.editor.manifest.importFailed',
                     'Manifest saved, but creating its source failed: {{message}}. Import it from the source list.',
-                    { message: error.message }
+                    { message: describeLocalError(error) }
                   )
                 )
                 goBack()

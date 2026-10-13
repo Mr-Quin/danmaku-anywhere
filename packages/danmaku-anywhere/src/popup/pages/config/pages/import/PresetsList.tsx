@@ -17,13 +17,13 @@ import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { describeError } from '@/common/errors/describeError'
-import { fetchOrThrow } from '@/common/errors/fetchFailure'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import {
   type CombinedPolicy,
   CombinedPolicyService,
 } from '@/common/options/combinedPolicy'
 import { configQueryKeys } from '@/common/queries/queryKeys'
+import { fetchOrThrow } from '@/common/utils/fetchOrThrow'
 import { PreFormat } from '@/popup/component/PreFormat'
 
 type MountConfigPreset = { config: CombinedPolicy; hash: string; file: string }
@@ -48,6 +48,7 @@ export const PresetsList = () => {
     queryKey: configQueryKeys.presets(),
     queryFn: async (): Promise<ConfigPresets> => {
       const res = await fetchOrThrow(
+        fetch,
         'https://danmaku-config.weeblify.app/config.json'
       )
       return res.json()

@@ -7,7 +7,7 @@ import { ListItemPrimaryStack } from '@/common/components/ListItemPrimaryStack'
 import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { describeError } from '@/common/errors/describeError'
+import { describeLocalError } from '@/common/errors/describeError'
 import { useExportShareCode } from '@/common/options/combinedPolicy/useExportShareCode'
 import { integrationData } from '@/common/options/mountConfig/integrationData'
 import { isConfigIncomplete } from '@/common/options/mountConfig/isPermissive'
@@ -102,7 +102,7 @@ export const MountConfigList = ({ onEdit, onAdd }: MountConfigListProps) => {
               t(
                 'configs.alert.deleteError',
                 'Failed to delete config: {{message}}',
-                { message: describeError(e).message }
+                { message: describeLocalError(e) }
               )
             )
           },

@@ -15,7 +15,7 @@ const OFFERS_SEARCH: ReadonlySet<AppErrorCode> = new Set<AppErrorCode>([
   'source.episodesUnsupported',
   'source.refetchUnsupported',
   'source.noDanmaku',
-  'source.badResponse',
+  'badResponse',
 ])
 
 // Picking another source from the search page is the way out of a failed

@@ -67,25 +67,32 @@ describe('RPC error round trip', () => {
     })
   })
 
-  it('keeps the cause chain, rehydrating a nested AppError too', async () => {
+  it('keeps the engine error and the platform rejection behind it', async () => {
     const error = await callFail(async () => {
-      const network = new AppError(
-        'network',
-        { target: { kind: 'catalog' } },
-        { cause: new TypeError('Failed to fetch') }
+      const rejection = new TypeError('Failed to fetch')
+      const engineError = Object.assign(
+        new Error('network request failed for https://api.bilibili.com/x', {
+          cause: rejection,
+        }),
+        { name: 'NetworkError', url: 'https://api.bilibili.com/x' }
       )
-      throw new AppError('catalog.empty', {}, { cause: network })
+      throw new AppError(
+        'network',
+        { target: BILIBILI },
+        { cause: engineError }
+      )
     })
 
     expect(error).toBeInstanceOf(AppError)
-    const outer = error as AppError
-    expect(outer.code).toBe('catalog.empty')
-    expect(outer.cause).toBeInstanceOf(AppError)
-    const inner = outer.cause as AppError
-    expect(inner.code).toBe('network')
-    expect(inner.params).toEqual({ target: { kind: 'catalog' } })
-    expect(inner.cause).toBeInstanceOf(Error)
-    expect((inner.cause as Error).message).toBe('Failed to fetch')
+    const appError = error as AppError
+    expect(appError.code).toBe('network')
+    expect(appError.params).toEqual({ target: BILIBILI })
+    const engine = appError.cause as Error
+    expect(engine.name).toBe('NetworkError')
+    expect(engine).toMatchObject({ url: 'https://api.bilibili.com/x' })
+    const platform = engine.cause as Error
+    expect(platform.name).toBe('TypeError')
+    expect(platform.message).toBe('Failed to fetch')
   })
 
   it('does not turn an unclassified error into an AppError', async () => {

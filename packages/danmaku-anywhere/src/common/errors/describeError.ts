@@ -1,3 +1,4 @@
+import { z } from 'zod'
 import { Logger } from '@/common/Logger'
 import { i18n } from '@/common/localization/i18n'
 import { builtinDisplayName } from '@/common/options/providerConfig/builtinNames'
@@ -134,7 +135,7 @@ const MESSAGES: MessageTable = {
       title,
     })
   },
-  'source.badResponse': ({ target }) => {
+  badResponse: ({ target }) => {
     return i18n.t(
       'appError.badResponse',
       "Couldn't read the data from {{target}}. It may have changed.",
@@ -149,19 +150,24 @@ const MESSAGES: MessageTable = {
   },
   'catalog.applyFailed': ({ sources }) => {
     const names = sources.map((source) => {
-      return builtinDisplayName(
-        {
-          id: source.manifestId,
-          manifestId: source.manifestId,
-          name: source.name,
-        },
-        i18n.language
-      )
+      return sourceName({ providerConfigId: source.manifestId, ...source })
     })
     return i18n.t(
       'appError.catalogApplyFailed',
       "Couldn't update {{sources}}. Try again later.",
       { sources: formatList(names) }
+    )
+  },
+  'config.duplicate': () => {
+    return i18n.t(
+      'appError.configDuplicate',
+      'An item with the same ID already exists.'
+    )
+  },
+  'config.notFound': () => {
+    return i18n.t(
+      'appError.configNotFound',
+      'This item no longer exists. It may have been deleted.'
     )
   },
   'backup.notJson': () => {
@@ -250,6 +256,22 @@ export function describeCode<C extends AppErrorCode>(
 ): string {
   const describe: (params: AppErrorParams[C]) => string = MESSAGES[code]
   return describe(params ?? ({} as AppErrorParams[C]))
+}
+
+// For failures raised here whose own text is meant for the user, such as a
+// form's validation. A coded error still gets its translated text.
+export function describeLocalError(error: unknown): string {
+  if (error instanceof z.ZodError) {
+    return z.prettifyError(error)
+  }
+  if (
+    error instanceof AppError ||
+    !(error instanceof Error) ||
+    !error.message
+  ) {
+    return describeError(error).message
+  }
+  return error.message
 }
 
 export function describeError(error: unknown): ErrorDescription {

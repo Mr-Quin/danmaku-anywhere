@@ -34,9 +34,11 @@ const PARAMS = {
   'source.episodesUnsupported': zSource,
   'source.refetchUnsupported': zSource,
   'source.noDanmaku': zTitle,
-  'source.badResponse': zTransport,
+  badResponse: zTransport,
   'match.notFound': zTitle,
   'catalog.empty': zNoParams,
+  'config.duplicate': zNoParams,
+  'config.notFound': zNoParams,
   'catalog.applyFailed': z.object({
     sources: z.array(z.object({ manifestId: z.string(), name: z.string() })),
   }),

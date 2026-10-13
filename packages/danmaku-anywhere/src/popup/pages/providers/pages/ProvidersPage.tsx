@@ -14,7 +14,10 @@ import { TabBody } from '@/common/components/layout/TabBody'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { describeError } from '@/common/errors/describeError'
+import {
+  describeError,
+  describeLocalError,
+} from '@/common/errors/describeError'
 import {
   createCustomDanDanPlayProvider,
   createCustomMacCmsProvider,
@@ -116,7 +119,7 @@ export const ProvidersPage = (): ReactElement => {
         toast.success(t('providers.alert.created', 'Source created'))
       },
       onError: (error) => {
-        toast.error(describeError(error).message)
+        toast.error(describeLocalError(error))
       },
     })
   }
@@ -165,7 +168,7 @@ export const ProvidersPage = (): ReactElement => {
             toast.success(t('providers.alert.deleted', 'Source deleted'))
           },
           onError: (error) => {
-            toast.error(describeError(error).message)
+            toast.error(describeLocalError(error))
           },
         })
       },

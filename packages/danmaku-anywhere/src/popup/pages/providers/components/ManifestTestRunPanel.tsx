@@ -15,6 +15,7 @@ import { useState } from 'react'
 import { FormProvider, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeLocalError } from '@/common/errors/describeError'
 import type {
   ManifestTestEpisodeRow,
   ManifestTestSearchRow,
@@ -52,7 +53,7 @@ export const ManifestTestRunPanel = ({
   const [commentCount, setCommentCount] = useState<number | null>(null)
 
   const configValues = () => methods.getValues('config')
-  const onError = (error: Error) => toast.error(error.message)
+  const onError = (error: Error) => toast.error(describeLocalError(error))
 
   const handleSearch = () => {
     setResults([])
