@@ -8,21 +8,12 @@ import type {
   PlayerRelayEvents,
 } from '@/common/rpcClient/background/types'
 import type { ControllerMethods } from '@/common/rpcClient/controller/types'
-import { IS_STANDALONE_RUNTIME } from '../environment/isStandalone'
+import { loadStandaloneBackend } from '@/common/standalone/loadStandaloneBackend'
 import type { MountConfig } from '../options/mountConfig/schema'
 import type { StandaloneRpcHandlers } from './createStandaloneRpcClient'
 
-// Loaded on first use and only in the standalone build, so extension builds
-// carry neither the in-page writer setup nor the bundled manifests.
-async function standaloneBackend() {
-  if (!IS_STANDALONE_RUNTIME) {
-    throw new Error('Only the standalone build answers background calls')
-  }
-  return import('./standaloneBackend')
-}
-
 async function providerConfigWriter() {
-  return (await standaloneBackend()).providerConfigWriter()
+  return (await loadStandaloneBackend()).providerConfigWriter()
 }
 
 const standaloneBaseUrlConfig: BaseUrlConfig = {
@@ -121,7 +112,7 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     providerGetManifestSpec: () => ({ name: '', hasLoginProbe: false }),
     providerListManifests: () => ({ manifests: [], lastCheckedAt: null }),
     providerListManifestNames: async ({ locale }) => {
-      return (await standaloneBackend()).bundledManifestNames(locale)
+      return (await loadStandaloneBackend()).bundledManifestNames(locale)
     },
     providerGetPendingUpdates: () => [],
     providerApplyUpdates: () => undefined,

@@ -12,9 +12,15 @@ export default defineConfig({
   plugins: [react({})],
   publicDir: path.resolve('public'),
   resolve: {
-    alias: {
-      '@': path.resolve('src'),
-    },
+    alias: [
+      {
+        find: '@/common/standalone/loadStandaloneBackend',
+        replacement: path.resolve(
+          'src/common/standalone/loadStandaloneBackend.standalone.ts'
+        ),
+      },
+      { find: '@', replacement: path.resolve('src') },
+    ],
   },
   server: {
     strictPort: true,
