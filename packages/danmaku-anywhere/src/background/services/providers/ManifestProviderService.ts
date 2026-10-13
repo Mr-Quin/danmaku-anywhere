@@ -24,6 +24,7 @@ import type { ILogger } from '@/common/Logger'
 import { findEpisodeByNumber } from './common/findEpisodeByNumber'
 import { pickDefined } from './common/pickDefined'
 import type {
+  EpisodeList,
   IDanmakuProvider,
   OmitSeasonId,
   ParseUrlResult,
@@ -35,6 +36,7 @@ import { resolveManifestInputs } from './manifestInputs'
 import {
   describeDroppedRows,
   type OutputSchema,
+  type ParsedRows,
   parseOutputRows,
   parseOutputValue,
 } from './manifestOutput'
@@ -94,13 +96,13 @@ export class ManifestProviderService implements IDanmakuProvider {
     pipeline: ManifestPipeline,
     schema: OutputSchema<T>,
     output: unknown
-  ): T[] {
+  ): ParsedRows<T> {
     const source = this.source(pipeline)
-    const { rows, dropped } = parseOutputRows(schema, output, source)
-    if (dropped) {
-      this.logger.warn(describeDroppedRows(source, dropped))
+    const parsed = parseOutputRows(schema, output, source)
+    if (parsed.dropped) {
+      this.logger.warn(describeDroppedRows(source, parsed.dropped))
     }
-    return rows
+    return parsed
   }
 
   private parseValue<T>(
@@ -160,7 +162,7 @@ export class ManifestProviderService implements IDanmakuProvider {
     const runner = await this.getRunner()
     const inputs = this.resolveInputs(runner, { q: params.keyword })
     const output = await runner.runSearch(inputs, MANIFEST_RUN_OPTIONS)
-    return this.parseRows('search', zSearchRow, output).map((row) =>
+    return this.parseRows('search', zSearchRow, output).rows.map((row) =>
       this.toSeasonInsert(row)
     )
   }
@@ -188,7 +190,7 @@ export class ManifestProviderService implements IDanmakuProvider {
 
   async getEpisodes(
     seasonRemoteIds: Season['providerIds']
-  ): Promise<OmitSeasonId<EpisodeMeta>[]> {
+  ): Promise<EpisodeList> {
     this.logger.debug(
       'Get episodes via manifest',
       this.config.manifestId,
@@ -198,9 +200,11 @@ export class ManifestProviderService implements IDanmakuProvider {
     const inputs = this.resolveInputs(runner, seasonRemoteIds)
     const output = await runner.runEpisodes(inputs, MANIFEST_RUN_OPTIONS)
     const now = Date.now()
-    return this.parseRows('episodes', zEpisodeRow, output).map((row) =>
-      this.toEpisodeMeta(row, now)
-    )
+    const { rows, dropped } = this.parseRows('episodes', zEpisodeRow, output)
+    return {
+      episodes: rows.map((row) => this.toEpisodeMeta(row, now)),
+      partial: dropped !== undefined,
+    }
   }
 
   async getDanmaku(request: DanmakuFetchByMeta): Promise<CommentEntity[]> {
@@ -220,14 +224,14 @@ export class ManifestProviderService implements IDanmakuProvider {
     const output = await runner.runDanmaku(inputs, DANMAKU_RUN_OPTIONS)
     // Stricter than dango's zCommentRow: it also rejects comment options the
     // renderer cannot parse.
-    return this.parseRows('danmaku', zCommentEntity, output)
+    return this.parseRows('danmaku', zCommentEntity, output).rows
   }
 
   async findEpisode(
     season: Season,
     episodeNumber: number
   ): Promise<WithSeason<EpisodeMeta> | null> {
-    const episodes = await this.getEpisodes(season.providerIds)
+    const { episodes } = await this.getEpisodes(season.providerIds)
     const episode = findEpisodeByNumber(episodes, episodeNumber)
     if (!episode) {
       return null

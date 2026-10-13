@@ -305,15 +305,16 @@ describe('ManifestProviderService.getEpisodes', () => {
       silentLogger
     )
 
-    const result = await svc.getEpisodes({ seasonId: 123 })
+    const { episodes, partial } = await svc.getEpisodes({ seasonId: 123 })
 
-    expect(result).toHaveLength(1)
-    expect(result[0]).toMatchObject({
+    expect(partial).toBe(false)
+    expect(episodes).toHaveLength(1)
+    expect(episodes[0]).toMatchObject({
       providerIds: { cid: 555 },
       title: 'Episode 1',
       schemaVersion: EPISODE_SCHEMA_VERSION,
     })
-    expect(typeof result[0].lastChecked).toBe('number')
+    expect(typeof episodes[0].lastChecked).toBe('number')
     expect(runner.runEpisodes).toHaveBeenCalledWith({ seasonId: 123 }, RUN_OPTS)
   })
 })
@@ -323,9 +324,10 @@ describe('ManifestProviderService.getEpisodes output validation', () => {
     const { title: _title, ...untitled } = episodeRow
     const { svc, warn } = makeService({ episodes: [episodeRow, untitled] })
 
-    const result = await svc.getEpisodes({ seasonId: 1 })
+    const { episodes, partial } = await svc.getEpisodes({ seasonId: 1 })
 
-    expect(result).toHaveLength(1)
+    expect(episodes).toHaveLength(1)
+    expect(partial).toBe(true)
     expect(warn).toHaveBeenCalledWith(
       expect.stringMatching(
         /^Dropped 1 of 2 episodes row\(s\) from manifest acme, first: \[1\] title: /
@@ -338,7 +340,9 @@ describe('ManifestProviderService.getEpisodes output validation', () => {
       episodes: [{ ...episodeRow, id: 5, seasonId: 9, episodeNumber: 3 }],
     })
 
-    const [episode] = await svc.getEpisodes({ seasonId: 1 })
+    const {
+      episodes: [episode],
+    } = await svc.getEpisodes({ seasonId: 1 })
 
     expect(episode).not.toHaveProperty('id')
     expect(episode).not.toHaveProperty('seasonId')

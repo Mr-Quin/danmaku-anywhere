@@ -69,7 +69,7 @@ function makeProvider(
 ): Pick<IDanmakuProvider, 'search' | 'getEpisodes' | 'getDanmaku'> {
   return {
     search: vi.fn(async () => []),
-    getEpisodes: vi.fn(async () => []),
+    getEpisodes: vi.fn(async () => ({ episodes: [], partial: false })),
     getDanmaku: vi.fn(async () => []),
     ...overrides,
   }
@@ -279,7 +279,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
   describe('fetchEpisodesBySeason', () => {
     it('fetches episodes for a generic catalog source without throwing', async () => {
       const provider = makeProvider({
-        getEpisodes: vi.fn(async () => []),
+        getEpisodes: vi.fn(async () => ({ episodes: [], partial: false })),
       })
       const { service } = build(makeConfig('iqiyi'), provider)
 

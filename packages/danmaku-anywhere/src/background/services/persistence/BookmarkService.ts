@@ -106,10 +106,10 @@ export class BookmarkService {
     if (!bookmark) {
       throw new Error(`Bookmark not found: ${bookmarkId}`)
     }
-    const episodes = await providerService.fetchEpisodesBySeason(
-      bookmark.seasonId
-    )
-    const stubs = mergeEpisodeStubs(bookmark.episodes, episodes.map(toStub))
+    const { episodes, partial } =
+      await providerService.fetchEpisodeListBySeason(bookmark.seasonId)
+    const fresh = episodes.map(toStub)
+    const stubs = partial ? mergeEpisodeStubs(bookmark.episodes, fresh) : fresh
     return this.updateEpisodes(bookmark.id, stubs)
   }
 

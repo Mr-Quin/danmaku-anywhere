@@ -140,6 +140,15 @@ export class ProviderService {
   async fetchEpisodesBySeason(
     seasonId: number
   ): Promise<WithSeason<EpisodeMeta>[]> {
+    const { episodes } = await this.fetchEpisodeListBySeason(seasonId)
+    return episodes
+  }
+
+  // Also says whether the source dropped invalid rows, for callers that would
+  // otherwise read a shorter list as episodes the source no longer has.
+  async fetchEpisodeListBySeason(
+    seasonId: number
+  ): Promise<{ episodes: WithSeason<EpisodeMeta>[]; partial: boolean }> {
     const season = await this.seasonService.mustGetById(seasonId)
 
     const providerConfig = await this.getConfigForSeason(season)
@@ -152,8 +161,11 @@ export class ProviderService {
         providerConfig.name
       )
     }
-    const episodes = await service.getEpisodes(season.providerIds)
-    return episodes.map((episode) => enrichEpisode(episode, season))
+    const { episodes, partial } = await service.getEpisodes(season.providerIds)
+    return {
+      episodes: episodes.map((episode) => enrichEpisode(episode, season)),
+      partial,
+    }
   }
 
   async refreshSeason(filter: SeasonQueryFilter) {

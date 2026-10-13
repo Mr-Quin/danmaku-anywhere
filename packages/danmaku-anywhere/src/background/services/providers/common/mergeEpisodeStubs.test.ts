@@ -4,9 +4,9 @@ import { findNextStub } from './findNextStub'
 import { mergeEpisodeStubs } from './mergeEpisodeStubs'
 
 /**
- * A bookmark refresh keeps what it has: a list at least as long as the stored
- * one replaces it, a shorter one is merged into it by indexedId so the next
- * episode is still found where it was.
+ * Folding a refresh that dropped invalid rows into the stored stubs: stored
+ * stubs stay in order and pick up the refreshed fields by indexedId, new
+ * episodes are appended, and the next episode is still found where it was.
  */
 
 const stub = (indexedId: string, title = `ep ${indexedId}`): EpisodeStub => ({
@@ -16,13 +16,7 @@ const stub = (indexedId: string, title = `ep ${indexedId}`): EpisodeStub => ({
 })
 
 describe('mergeEpisodeStubs', () => {
-  it('replaces the stored list with one at least as long', () => {
-    const fresh = [stub('a'), stub('b'), stub('c')]
-
-    expect(mergeEpisodeStubs([stub('a'), stub('b')], fresh)).toBe(fresh)
-  })
-
-  it('keeps stored stubs a shorter refresh is missing and updates the rest', () => {
+  it('keeps stored stubs the refresh is missing and updates the rest', () => {
     const merged = mergeEpisodeStubs(
       [stub('a'), stub('b'), stub('c')],
       [stub('a', 'renamed'), stub('c')]
@@ -31,13 +25,13 @@ describe('mergeEpisodeStubs', () => {
     expect(merged).toEqual([stub('a', 'renamed'), stub('b'), stub('c')])
   })
 
-  it('appends episodes only the shorter refresh has', () => {
+  it('appends episodes only the refresh has, even when it also lost one', () => {
     const merged = mergeEpisodeStubs(
       [stub('a'), stub('b'), stub('c')],
-      [stub('a'), stub('d')]
+      [stub('a'), stub('c'), stub('d'), stub('e')]
     )
 
-    expect(merged.map((s) => s.indexedId)).toEqual(['a', 'b', 'c', 'd'])
+    expect(merged.map((s) => s.indexedId)).toEqual(['a', 'b', 'c', 'd', 'e'])
   })
 
   it('still finds the next episode after a refresh that lost one', () => {
