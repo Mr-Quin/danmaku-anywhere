@@ -328,10 +328,12 @@ export class PlayerCommandHandler {
   }
 
   private mount(comments: CommentEntity[], visible: boolean) {
-    this.manager.mount(comments)
-    if (!visible) {
+    if (visible) {
+      this.manager.show()
+    } else {
       this.manager.hide()
     }
+    this.manager.mount(comments)
     this.videoSkip.setComments(comments)
     this.density.setComments(comments)
   }
