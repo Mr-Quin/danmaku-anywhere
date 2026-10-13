@@ -69,7 +69,7 @@ function buildBuiltInProviderConfigs(
     {
       id: 'dandanplay',
       manifestId: 'dandanplay',
-      name: 'DanDanPlay',
+      customName: null,
       enabled: dandanplay.enabled ?? false,
       configValues: {
         baseUrl: PROXY_DDP_BASE_URL,
@@ -80,7 +80,7 @@ function buildBuiltInProviderConfigs(
     {
       id: 'bilibili',
       manifestId: 'bilibili',
-      name: 'Bilibili',
+      customName: null,
       enabled: bilibili.enabled ?? false,
       configValues: {
         danmakuFormat: 'xml',
@@ -90,7 +90,7 @@ function buildBuiltInProviderConfigs(
     {
       id: 'tencent',
       manifestId: 'tencent',
-      name: 'Tencent',
+      customName: null,
       enabled: tencent.enabled ?? false,
       configValues: {},
     },

@@ -18,7 +18,7 @@ import { applyProfile } from '../../setup/profile'
 const homeServer: ProviderConfig = {
   id: 'home-ddp',
   manifestId: 'dandanplay',
-  name: 'DanDanPlay',
+  customName: 'DanDanPlay',
   enabled: true,
   configValues: {
     baseUrl: 'https://ddp.home.invalid',
@@ -110,7 +110,7 @@ test('a self-hosted mirror of the proxy URL is not labelled built-in', async ({
       {
         ...homeServer,
         id: 'mirror-ddp',
-        name: 'My DDP Mirror',
+        customName: 'My DDP Mirror',
         configValues: {
           baseUrl: 'https://api.danmaku.test/ddp',
           auth: { enabled: false, headers: [] },
