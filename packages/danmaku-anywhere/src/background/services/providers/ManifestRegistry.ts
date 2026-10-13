@@ -104,6 +104,9 @@ export class ManifestRegistry {
   // in its place.
   private readonly fallback = new Map<string, ManifestUnavailableReason>()
   private readonly warned = new Set<string>()
+  // Mutations run one at a time, so a reinstall cannot interleave with a
+  // catalog sync that reads the store and writes it back.
+  private mutations: Promise<unknown> = Promise.resolve()
   private readonly log: ILogger
   private readonly store: IManifestStore
   private readonly baseUrl = import.meta.env.VITE_PROXY_URL
@@ -117,6 +120,12 @@ export class ManifestRegistry {
     this.log = logger.sub('[ManifestRegistry]')
     this.store = store
     this.ready = this.init()
+  }
+
+  private exclusive<T>(mutation: () => Promise<T>): Promise<T> {
+    const run = this.mutations.then(mutation, mutation)
+    this.mutations = run.catch(() => undefined)
+    return run
   }
 
   getRunner(manifestId: string): ManifestRunner {
@@ -169,25 +178,66 @@ export class ManifestRegistry {
     return this.store.setLastCheckedAt(Date.now())
   }
 
-  async unregister(manifestId: string): Promise<void> {
-    await this.ready
-    await this.store.remove(manifestId)
-    this.runners.delete(manifestId)
-    this.unavailable.delete(manifestId)
-    this.fallback.delete(manifestId)
+  unregister(manifestId: string): Promise<void> {
+    return this.exclusive(async () => {
+      await this.ready
+      await this.store.remove(manifestId)
+      this.runners.delete(manifestId)
+      this.unavailable.delete(manifestId)
+      this.fallback.delete(manifestId)
+    })
   }
 
-  // Drops a non-user stored copy this build cannot run, so the bundled copy,
-  // or the catalog copy on the next sync, takes its place.
-  async reinstall(manifestId: string): Promise<void> {
-    await this.ready
-    const unavailable = this.unavailable.get(manifestId)
-    if (!unavailable || unavailable.kind === 'user') {
-      throw new Error(`Manifest ${manifestId} cannot be reinstalled`)
+  // Replaces a broken non-user stored copy with the bundled copy, or with the
+  // catalog copy when there is no usable bundled one. Throws, leaving the
+  // stored copy as it was, when neither is available.
+  reinstall(manifestId: string): Promise<void> {
+    return this.exclusive(async () => {
+      await this.ready
+      const unavailable = this.unavailable.get(manifestId)
+      if (
+        unavailable === undefined ||
+        unavailable.kind === 'user' ||
+        unavailable.reason !== 'invalid-manifest'
+      ) {
+        throw new Error(`Manifest ${manifestId} cannot be reinstalled`)
+      }
+      const replacement = await this.findReplacement(manifestId)
+      if (replacement === null) {
+        throw new Error(
+          `No working copy of manifest ${manifestId} to reinstall; try again once the catalog is reachable`
+        )
+      }
+      await this.store.set(manifestId, {
+        manifest: replacement.raw,
+        kind: replacement.kind,
+      })
+      this.runners.set(manifestId, {
+        runner: this.buildRunner(replacement.parsed),
+        kind: replacement.kind,
+      })
+      this.unavailable.delete(manifestId)
+    })
+  }
+
+  private async findReplacement(
+    manifestId: string
+  ): Promise<(CatalogManifest & { kind: ManifestKind }) | null> {
+    const raw = bundledManifestRaw(manifestId)
+    const bundled = loadManifest(raw)
+    if (bundled.status === 'ok') {
+      return { raw, parsed: bundled.manifest, kind: 'bundled' }
     }
-    await this.store.remove(manifestId)
-    this.unavailable.delete(manifestId)
-    await this.seedFromBundle(await this.store.getAll())
+    const entries = await this.loadIndex()
+    const entry = entries?.find((candidate) => candidate.id === manifestId)
+    if (entry === undefined) {
+      return null
+    }
+    const fetched = await this.fetchManifest(entry)
+    if (fetched === null) {
+      return null
+    }
+    return { ...fetched, kind: 'preinstalled' }
   }
 
   // A broken stored copy, as opposed to one written for a newer engine, is
@@ -204,26 +254,28 @@ export class ManifestRegistry {
   // changed preinstalled manifest surfaces via getPendingUpdates instead. A
   // bundled entry whose file fails to download stays bundled until the next
   // sync.
-  async update(): Promise<CatalogSyncResult> {
-    await this.ready
-    const entries = await this.loadIndex()
-    if (!entries) {
-      return 'unreachable'
-    }
-    if (entries.length === 0) {
-      return 'empty'
-    }
-    const stored = await this.store.getAll()
-    const missing = entries.filter((entry) => !stored[entry.id])
-    const replaceable = entries.filter((entry) => {
-      const existing = stored[entry.id]
-      if (existing === undefined || existing.kind === 'user') {
-        return false
+  update(): Promise<CatalogSyncResult> {
+    return this.exclusive(async () => {
+      await this.ready
+      const entries = await this.loadIndex()
+      if (!entries) {
+        return 'unreachable'
       }
-      return existing.kind === 'bundled' || this.hasBrokenStoredCopy(entry.id)
+      if (entries.length === 0) {
+        return 'empty'
+      }
+      const stored = await this.store.getAll()
+      const missing = entries.filter((entry) => !stored[entry.id])
+      const replaceable = entries.filter((entry) => {
+        const existing = stored[entry.id]
+        if (existing === undefined || existing.kind === 'user') {
+          return false
+        }
+        return existing.kind === 'bundled' || this.hasBrokenStoredCopy(entry.id)
+      })
+      await this.fetchAndStore([...missing, ...replaceable])
+      return 'synced'
     })
-    await this.fetchAndStore([...missing, ...replaceable])
-    return 'synced'
   }
 
   // Index-only: diff stored versions against the catalog without fetching files
@@ -271,28 +323,30 @@ export class ManifestRegistry {
   // source. Throws on failure (unreachable catalog or a file that did not
   // apply) so a user-driven update surfaces the error instead of silently
   // no-op'ing.
-  async applyUpdates(manifestIds: string[]): Promise<void> {
-    await this.ready
-    const entries = await this.loadIndex()
-    if (!entries) {
-      throw new Error(CATALOG_UNREACHABLE_MESSAGE)
-    }
-    const wanted = new Set(manifestIds)
-    const stored = await this.store.getAll()
-    const targets = entries.filter((entry) => {
-      const existing = stored[entry.id]
-      return (
-        wanted.has(entry.id) &&
-        (existing?.kind === 'preinstalled' || existing?.kind === 'bundled')
-      )
+  applyUpdates(manifestIds: string[]): Promise<void> {
+    return this.exclusive(async () => {
+      await this.ready
+      const entries = await this.loadIndex()
+      if (!entries) {
+        throw new Error(CATALOG_UNREACHABLE_MESSAGE)
+      }
+      const wanted = new Set(manifestIds)
+      const stored = await this.store.getAll()
+      const targets = entries.filter((entry) => {
+        const existing = stored[entry.id]
+        return (
+          wanted.has(entry.id) &&
+          (existing?.kind === 'preinstalled' || existing?.kind === 'bundled')
+        )
+      })
+      const applied = await this.fetchAndStore(targets)
+      if (applied.length < targets.length) {
+        const failed = targets
+          .map((entry) => entry.id)
+          .filter((id) => !applied.includes(id))
+        throw new Error(`Failed to apply updates: ${failed.join(', ')}`)
+      }
     })
-    const applied = await this.fetchAndStore(targets)
-    if (applied.length < targets.length) {
-      const failed = targets
-        .map((entry) => entry.id)
-        .filter((id) => !applied.includes(id))
-      throw new Error(`Failed to apply updates: ${failed.join(', ')}`)
-    }
   }
 
   // Persists a user-authored manifest. The id is the manifest's own id, so the
@@ -300,47 +354,52 @@ export class ManifestRegistry {
   // create rejects any existing id (a user manifest must not shadow a built-in
   // or another user manifest); update only touches an id already owned by the
   // user, so a preinstalled manifest can never be edited in place.
-  async saveUserManifest(
+  saveUserManifest(
     manifest: unknown,
     mode: 'create' | 'update',
     expectedId?: string
   ): Promise<void> {
-    await this.ready
-    const loaded = loadManifest(manifest)
-    if (loaded.status === 'malformed') {
-      throw new ManifestValidationError(
-        'invalid-manifest',
-        `invalid manifest: ${JSON.stringify(loaded.issues)}`
-      )
-    }
-    if (loaded.status === 'incompatible') {
-      throw new ManifestValidationError(
-        'needs-newer-extension',
-        'This manifest needs a newer version of the extension'
-      )
-    }
-    const id = loaded.manifest.id
-    // The id is the manifest's identity; an update must target the id being
-    // edited, or it would orphan the old entry and could overwrite an
-    // unrelated manifest. An omitted expectedId would bypass the check, so it
-    // is required.
-    if (mode === 'update' && (expectedId === undefined || id !== expectedId)) {
-      throw new Error('A manifest id cannot be changed')
-    }
-    const existing = await this.store.get(id)
-    if (mode === 'create' && existing) {
-      throw new Error(`A manifest with id "${id}" already exists`)
-    }
-    if (mode === 'update' && existing?.kind !== 'user') {
-      throw new Error(`No user manifest with id "${id}" to update`)
-    }
-    // Build before persisting: a manifest that passes zManifest can still throw
-    // at runner construction, and a stored-but-unbuildable manifest would break
-    // init() on the next startup.
-    const runner = this.buildRunner(loaded.manifest)
-    await this.store.set(id, { manifest, kind: 'user' })
-    this.runners.set(id, { runner, kind: 'user' })
-    this.unavailable.delete(id)
+    return this.exclusive(async () => {
+      await this.ready
+      const loaded = loadManifest(manifest)
+      if (loaded.status === 'malformed') {
+        throw new ManifestValidationError(
+          'save-invalid',
+          `invalid manifest: ${JSON.stringify(loaded.issues)}`
+        )
+      }
+      if (loaded.status === 'incompatible') {
+        throw new ManifestValidationError(
+          'save-needs-newer-extension',
+          'This manifest needs a newer version of the extension'
+        )
+      }
+      const id = loaded.manifest.id
+      // The id is the manifest's identity; an update must target the id being
+      // edited, or it would orphan the old entry and could overwrite an
+      // unrelated manifest. An omitted expectedId would bypass the check, so it
+      // is required.
+      if (
+        mode === 'update' &&
+        (expectedId === undefined || id !== expectedId)
+      ) {
+        throw new Error('A manifest id cannot be changed')
+      }
+      const existing = await this.store.get(id)
+      if (mode === 'create' && existing) {
+        throw new Error(`A manifest with id "${id}" already exists`)
+      }
+      if (mode === 'update' && existing?.kind !== 'user') {
+        throw new Error(`No user manifest with id "${id}" to update`)
+      }
+      // Build before persisting: a manifest that passes zManifest can still throw
+      // at runner construction, and a stored-but-unbuildable manifest would break
+      // init() on the next startup.
+      const runner = this.buildRunner(loaded.manifest)
+      await this.store.set(id, { manifest, kind: 'user' })
+      this.runners.set(id, { runner, kind: 'user' })
+      this.unavailable.delete(id)
+    })
   }
 
   // Returns the raw manifest JSON (not the parsed runner form) so the editor

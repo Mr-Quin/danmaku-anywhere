@@ -137,13 +137,13 @@ export class ManifestSandbox {
     const loaded = loadManifest(manifest)
     if (loaded.status === 'incompatible') {
       throw new ManifestValidationError(
-        'needs-newer-extension',
+        'save-needs-newer-extension',
         NEEDS_NEWER_EXTENSION
       )
     }
     if (loaded.status === 'malformed') {
       throw new ManifestValidationError(
-        'invalid-manifest',
+        'save-invalid',
         'Cannot run an invalid manifest'
       )
     }

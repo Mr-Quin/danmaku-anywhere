@@ -1398,7 +1398,7 @@ describe('ManifestRegistry stored manifests this build cannot run', () => {
       registry.saveUserManifest(futureManifest('mine:one'), 'create')
     ).rejects.toMatchObject({
       name: 'ManifestValidationError',
-      reason: 'needs-newer-extension',
+      reason: 'save-needs-newer-extension',
     })
   })
 
@@ -1410,7 +1410,7 @@ describe('ManifestRegistry stored manifests this build cannot run', () => {
       registry.saveUserManifest({ id: 'mine:one' }, 'create')
     ).rejects.toMatchObject({
       name: 'ManifestValidationError',
-      reason: 'invalid-manifest',
+      reason: 'save-invalid',
     })
   })
 
@@ -1505,20 +1505,99 @@ describe('ManifestRegistry stored manifests this build cannot run', () => {
     expect(await store.get('dandanplay')).toEqual(stored)
   })
 
-  it('reinstalls an unavailable catalog manifest by dropping the stored copy', async () => {
+  it('refuses to reinstall a catalog manifest written for a newer engine', async () => {
+    const stored: ManifestEntry = {
+      manifest: futureManifest('gone:one'),
+      kind: 'preinstalled',
+    }
+    const store = new InMemoryStore({ 'gone:one': stored })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(registry.reinstall('gone:one')).rejects.toThrow(
+      'cannot be reinstalled'
+    )
+    expect(await store.get('gone:one')).toEqual(stored)
+  })
+
+  it('reinstalls a broken catalog manifest from the catalog', async () => {
     const store = new InMemoryStore({
       'gone:one': {
-        manifest: futureManifest('gone:one'),
+        manifest: { ...makeManifest('gone:one'), hosts: [] },
         kind: 'preinstalled',
       },
+    })
+    const fixed = makeManifest('gone:one')
+    stubCatalogFetch([catalogEntry('gone:one')], {
+      [manifestPath('gone:one')]: fixed,
     })
     const registry = new ManifestRegistry(silentLogger, store)
     await registry.ready
 
     await registry.reinstall('gone:one')
 
-    expect(await store.get('gone:one')).toBeUndefined()
-    expect(findListed(registry, 'gone:one')).toBeUndefined()
+    expect(await store.get('gone:one')).toEqual({
+      manifest: fixed,
+      kind: 'preinstalled',
+    })
+    expect(findListed(registry, 'gone:one')).not.toHaveProperty('unavailable')
+    expect(registry.getRunner('gone:one')).toBeDefined()
+  })
+
+  it('keeps the broken copy and says so when the catalog is unreachable', async () => {
+    const stored: ManifestEntry = {
+      manifest: { ...makeManifest('gone:one'), hosts: [] },
+      kind: 'preinstalled',
+    }
+    const store = new InMemoryStore({ 'gone:one': stored })
+    stubFetch(() => ({ status: 503, body: 'unavailable' }))
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(
+      settleIndexRetry(() => registry.reinstall('gone:one'))
+    ).rejects.toThrow('No working copy of manifest gone:one')
+    expect(await store.get('gone:one')).toEqual(stored)
+    expect(findListed(registry, 'gone:one')).toMatchObject({
+      unavailable: 'invalid-manifest',
+    })
+  })
+
+  it('runs a reinstall only after a catalog sync in progress has finished', async () => {
+    const store = new InMemoryStore({
+      'gone:one': {
+        manifest: { ...makeManifest('gone:one'), hosts: [] },
+        kind: 'preinstalled',
+      },
+    })
+    const release = Promise.withResolvers<void>()
+    let indexFetches = 0
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: unknown) => {
+        const url = String(input)
+        if (url.includes('/manifest/file')) {
+          return makeResponse(200, makeManifest('gone:one'))
+        }
+        indexFetches += 1
+        await release.promise
+        return makeResponse(200, {
+          packageVersion: '0.0.0',
+          manifests: [catalogEntry('gone:one')],
+        })
+      })
+    )
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    const syncing = registry.update()
+    const reinstalling = registry.reinstall('gone:one')
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(indexFetches).toBe(1)
+    release.resolve()
+    await syncing
+    await expect(reinstalling).rejects.toThrow('cannot be reinstalled')
   })
 
   it('refuses to reinstall a user manifest or one that runs', async () => {

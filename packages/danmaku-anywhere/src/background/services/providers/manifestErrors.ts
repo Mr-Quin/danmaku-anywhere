@@ -64,10 +64,12 @@ export class ManifestUnavailableError extends Error {
   }
 }
 
+export type ManifestRejection = 'save-invalid' | 'save-needs-newer-extension'
+
 // A manifest offered for saving or a test run that this build will not take.
 export class ManifestValidationError extends Error {
   constructor(
-    readonly reason: ManifestUnavailableReason,
+    readonly reason: ManifestRejection,
     message: string
   ) {
     super(message)

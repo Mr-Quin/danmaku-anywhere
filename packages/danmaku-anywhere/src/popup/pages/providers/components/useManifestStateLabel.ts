@@ -36,8 +36,11 @@ export function useManifestStateLabel(): (
   }
 }
 
-// A stored built-in or catalog manifest that cannot run can be dropped so the
-// bundled or catalog copy is installed again.
+// A broken stored built-in or catalog manifest can be replaced with the
+// bundled or catalog copy. One written for a newer engine is kept for the
+// build that can run it.
 export function canReinstall(manifest?: ProviderManifestInfo): boolean {
-  return manifest?.unavailable !== undefined && manifest.kind !== 'user'
+  return (
+    manifest?.unavailable === 'invalid-manifest' && manifest.kind !== 'user'
+  )
 }
