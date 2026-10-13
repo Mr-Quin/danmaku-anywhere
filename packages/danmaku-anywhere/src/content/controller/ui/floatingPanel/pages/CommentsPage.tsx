@@ -24,7 +24,7 @@ export const CommentsPage = () => {
           comments={comments}
           onTimeClick={seekToTime}
           isTimeClickable={hasVideo()}
-          onRefresh={refreshComments}
+          onRefresh={() => refreshComments()}
           showRefresh={canRefresh}
           isRefreshing={loadMutation.isPending}
         />

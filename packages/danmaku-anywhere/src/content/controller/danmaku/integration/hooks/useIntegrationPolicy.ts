@@ -8,7 +8,10 @@ import { useActiveConfig } from '@/content/controller/common/context/useActiveCo
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import {
-  type EpisodeOperation,
+  type EpisodeRun,
+  EpisodeRuns,
+} from '@/content/controller/danmaku/integration/episodeRuns'
+import {
   EpisodeToast,
   toastStoreSink,
 } from '@/content/controller/danmaku/integration/episodeToast'
@@ -44,8 +47,9 @@ export const useIntegrationPolicy = () => {
     resetIntegration,
   } = useStore.use.integration()
 
-  const [episodeToast] = useState(() => new EpisodeToast(toastStoreSink))
-  const findDanmaku = useFindEpisodeDanmaku()
+  const [runs] = useState(() => new EpisodeRuns())
+  const [episodeToast] = useState(() => new EpisodeToast(toastStoreSink, runs))
+  const findDanmaku = useFindEpisodeDanmaku(episodeToast)
 
   const integrationPolicy = useActiveIntegration()
   const activeConfig = useActiveConfig()
@@ -85,24 +89,28 @@ export const useIntegrationPolicy = () => {
 
     activate()
 
-    let parsing: EpisodeOperation | undefined
+    let parsingRun: EpisodeRun | undefined
 
     newObserver.on({
-      statusChange: (status: string) => {
-        if (status === 'Extracting video info using AI...') {
-          parsing = episodeToast.start(
+      parsingChange: (parsing: boolean) => {
+        if (parsing) {
+          parsingRun = runs.begin()
+          episodeToast.progress(
+            parsingRun,
             t('integration.alert.usingAI', 'Using AI to parse show information')
           )
           return
         }
-        // Parsing is over. If it found a show, the match already owns the toast.
-        parsing?.cancel()
+        if (parsingRun?.isCurrent()) {
+          runs.end()
+        }
       },
       mediaChange: (state: MediaInfo) => {
         getTrackingService().track('integrationPolicyMediaChange', {
           mediaInfo: state.toJSON(),
           policy: integrationPolicy,
         })
+        const run = runs.begin()
         if (useStore.getState().danmaku.isMounted) {
           unmountDanmaku.mutate()
         }
@@ -110,19 +118,14 @@ export const useIntegrationPolicy = () => {
         setMediaInfo(state)
         setErrorMessage()
 
-        const operation = episodeToast.start(
-          t('integration.alert.finding', 'Finding danmaku for {{name}}…', {
-            name: state.toString(),
-          })
-        )
-        void findDanmaku(state, operation)
+        void findDanmaku(run, state)
       },
       mediaElementsChange: () => {
         setFoundElements(true)
       },
       error: (error: Error) => {
         getTrackingService().track('integrationPolicyError', { error })
-        episodeToast.start().fail(error.message)
+        episodeToast.fail(runs.begin(), error.message)
         setErrorMessage(error.message)
       },
     })
@@ -131,7 +134,7 @@ export const useIntegrationPolicy = () => {
     setObserver(newObserver)
 
     return () => {
-      episodeToast.cancel()
+      runs.end()
       newObserver.destroy()
       setObserver(null)
     }
@@ -141,11 +144,12 @@ export const useIntegrationPolicy = () => {
     if (!observer) {
       return
     }
+    // Whatever the integration was doing belonged to the previous video.
+    runs.end()
     if (activeFrameVideoKey !== undefined) {
       observer.run()
     } else {
       observer.reset()
-      episodeToast.cancel()
       resetIntegration()
     }
   }, [activeFrameVideoKey, observer])

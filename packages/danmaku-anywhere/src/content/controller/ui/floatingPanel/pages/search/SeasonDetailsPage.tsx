@@ -100,17 +100,15 @@ export const SeasonDetailsPage = ({
               season={season}
               filter={filter}
               renderEpisode={(data) => {
-                const { loadMutation } = useLoadDanmaku()
+                const { loadMutation, load } = useLoadDanmaku()
 
                 const handleFetchDanmaku = async (
                   meta: WithSeason<EpisodeMeta>
                 ) => {
-                  await loadMutation.mutateAsync({
-                    request: {
-                      type: 'by-meta',
-                      meta,
-                      options: { forceUpdate: true },
-                    },
+                  await load({
+                    type: 'by-meta',
+                    meta,
+                    options: { forceUpdate: true },
                   })
                 }
 

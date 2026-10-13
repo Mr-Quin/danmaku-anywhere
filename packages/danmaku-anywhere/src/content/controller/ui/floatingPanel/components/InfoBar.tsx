@@ -80,7 +80,7 @@ export const InfoBar = () => {
             {canRefresh && (
               <Tooltip title={t('danmaku.refresh', 'Refresh Danmaku')}>
                 <IconButton
-                  onClick={refreshComments}
+                  onClick={() => refreshComments()}
                   disabled={!canRefresh || loadMutation.isPending}
                   color="primary"
                 >

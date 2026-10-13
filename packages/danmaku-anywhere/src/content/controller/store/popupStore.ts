@@ -19,16 +19,32 @@ export enum PopupTab {
   TitleMapping = 'titleMapping',
 }
 
+/**
+ * Seasons offered for one episode the integration could not match on its own.
+ * The integration that offers it decides what applying a season does, and
+ * withdraws the offer once that episode is no longer on the page.
+ */
+export interface SeasonSelection {
+  id: number
+  label: string
+  seasons: Season[]
+  apply: (season: Season) => Promise<void>
+}
+
 interface PopupStoreState {
   isOpen: boolean
   toggleOpen: (open?: boolean) => void
   lock: boolean
   toggleLock: (lock?: boolean) => void
 
-  open: (params?: { animes?: Season[]; tab?: PopupTab }) => void
+  open: (params?: { tab?: PopupTab }) => void
 
-  animes: Season[]
-  setAnimes: (animes: Season[]) => void
+  selection?: SeasonSelection
+  offerSelection: (selection: SeasonSelection) => void
+  withdrawSelection: (selection: SeasonSelection) => void
+  // Closes the selector after a season was applied, unless the popup has
+  // moved on to another offer or tab since.
+  closeSelection: (selection: SeasonSelection) => void
 
   selectedProviders: DanmakuSourceType[]
   setSelectedProviders: (providers: DanmakuSourceType[]) => void
@@ -60,22 +76,35 @@ const usePopupStoreBase = create<PopupStoreState>((set, get) => ({
   toggleLock: (lock) => {
     set({ lock: lock ?? !get().lock })
   },
-  open: ({ animes, tab } = {}) => {
+  open: ({ tab } = {}) => {
     const state = get()
     if (!state.isOpen) {
       set({ isOpen: true })
-    }
-    if (animes !== undefined && state.animes !== animes) {
-      set({ animes })
     }
     if (tab && state.tab !== tab) {
       set({ tab })
     }
   },
 
-  animes: [],
-  setAnimes: (animes) => {
-    set({ animes })
+  selection: undefined,
+  offerSelection: (selection) => {
+    set({ selection, isOpen: true, tab: PopupTab.Selector })
+  },
+  withdrawSelection: (selection) => {
+    if (get().selection === selection) {
+      set({ selection: undefined })
+    }
+  },
+  closeSelection: (selection) => {
+    const state = get()
+    if (state.selection !== selection) {
+      return
+    }
+    if (state.isOpen && state.tab === PopupTab.Selector) {
+      set({ selection: undefined, isOpen: false, tab: PopupTab.Search })
+      return
+    }
+    set({ selection: undefined })
   },
 
   selectedProviders: danmakuSourceTypeList,
