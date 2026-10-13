@@ -749,7 +749,12 @@
       }
     },
     "error": {
+      "duplicate": "这个内置弹幕源已经安装",
       "episodesUnsupported": "{{name}} 不支持获取剧集列表",
+      "nameRequired": "请为弹幕源命名",
+      "notBuiltin": "这个弹幕源没有内置实例",
+      "notFound": "这个弹幕源已不存在，可能已被删除。",
+      "orderMismatch": "弹幕源列表已变化，请重新排序。",
       "refetchUnsupported": "{{name}} 无法重新获取已保存剧集的弹幕"
     },
     "filter": {
@@ -766,9 +771,6 @@
       "reorder": "排序",
       "reorderDone": "完成",
       "title": "已安装"
-    },
-    "instance": {
-      "defaultName": "自建弹弹play"
     },
     "name": "弹幕源",
     "updates": {

@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { lockedConfigKeys } from '@/common/options/providerConfig/builtin'
+import { configIssueMessage } from '@/common/options/providerConfig/issueText'
 import { useSourceNames } from '@/common/options/providerConfig/useSourceNames'
 import { checkProviderConfig } from '@/common/options/providerConfig/validation'
 import { useManifestSpec } from '../../hooks/useManifestSpec'
@@ -19,7 +20,6 @@ import { FormActions } from './FormActions'
 import { SchemaObjectFields } from './SchemaFields'
 import {
   buildDefaultValues,
-  configIssueMessage,
   getObjectFields,
   issueFieldPath,
   mergeConfigValues,
@@ -70,13 +70,8 @@ function ConfigForm({
       omitKeys(data.config, hiddenKeys)
     )
     const customName = data.name.trim() === '' ? null : data.name.trim()
-    const current =
-      isEdit && provider.id !== undefined
-        ? { ...provider, id: provider.id }
-        : undefined
     const issues = checkProviderConfig({
-      current,
-      next: { ...provider, customName, configValues },
+      config: { ...provider, customName, configValues },
       configSchema,
     })
     const messages: string[] = []

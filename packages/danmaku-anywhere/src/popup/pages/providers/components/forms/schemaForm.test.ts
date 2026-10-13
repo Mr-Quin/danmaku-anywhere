@@ -1,8 +1,8 @@
 import { type ConfigSchema, validateConfig } from '@mr-quin/dango'
 import { describe, expect, it } from 'vitest'
+import { configIssueMessage } from '@/common/options/providerConfig/issueText'
 import {
   buildDefaultValues,
-  configIssueMessage,
   fieldIssueMessage,
   getFieldKind,
   getObjectFields,

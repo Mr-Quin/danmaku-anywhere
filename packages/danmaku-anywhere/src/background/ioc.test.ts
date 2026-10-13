@@ -7,7 +7,6 @@ import { RpcManager } from '@/background/rpc/RpcManager'
 import { MountConfigTabReloader } from '@/background/scripting/MountConfigTabReloader'
 import { ScriptingManager } from '@/background/scripting/ScriptingManager'
 import { LogService } from '@/background/services/Logging/Log.service'
-import { ProviderConfigWriter } from '@/background/services/providers/ProviderConfigWriter'
 import { DanmakuProviderFactory } from '@/background/services/providers/ProviderFactory'
 import { ProviderService } from '@/background/services/providers/ProviderService'
 import { OptionsManager } from '@/background/syncOptions/OptionsManager'
@@ -23,6 +22,7 @@ import { IntegrationPolicyService } from '@/common/options/integrationPolicyStor
 import { NamingRuleService } from '@/common/options/localMatchingRule/service'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 import { OptionsServiceFactory } from '@/common/options/OptionsService/OptionServiceFactory'
+import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { SearchHistoryService } from '@/common/options/searchHistory/service'
 import { UserAuthStore } from '@/common/options/userAuth/service'
 import { createBackgroundContainer } from './ioc'
@@ -64,7 +64,7 @@ describe('createBackgroundContainer', () => {
       DanmakuOptionsService,
       IntegrationPolicyService,
       MountConfigService,
-      ProviderConfigWriter,
+      ProviderConfigService,
       AiProviderConfigService,
       SearchHistoryService,
       NamingRuleService,

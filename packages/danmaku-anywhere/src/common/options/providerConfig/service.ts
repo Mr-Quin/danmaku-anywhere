@@ -1,4 +1,5 @@
 import { inject, injectable } from 'inversify'
+import { z } from 'zod'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { IStoreService } from '@/common/options/IStoreService'
 import {
@@ -7,6 +8,8 @@ import {
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
+import { withoutLockedValues } from './builtin'
+import { normalizeCustomName } from './customName'
 import {
   ensureBuiltinProviders,
   legacyDefaultProviderConfigs,
@@ -16,15 +19,38 @@ import {
   migrateProviderConfigsToFlat,
   migrateToCustomNames,
 } from './migration'
-import type { ProviderConfig } from './schema'
+import { type ProviderConfig, providerConfigSchema } from './schema'
 import { isLegacyMacCms } from './utils'
 
-// Reads and migrations. Every write goes through ProviderConfigWriter in the
-// background, which checks it and serializes it with the store's other writes.
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+// A restored entry gets the same normalization a write would apply: a tidy
+// name and no settings the extension owns on a built-in.
+const restoredConfigSchema = z
+  .preprocess((entry) => {
+    if (!isRecord(entry) || typeof entry.manifestId !== 'string') {
+      return entry
+    }
+    return {
+      ...entry,
+      customName: normalizeCustomName({
+        manifestId: entry.manifestId,
+        customName: entry.customName,
+        configValues: entry.configValues,
+      }),
+    }
+  }, providerConfigSchema)
+  .transform((config) => withoutLockedValues(config))
+
+// Reads and migrations. Every write goes through ProviderConfigWriter, which
+// checks it and serializes it with the store's other writes.
 @injectable('Singleton')
 export class ProviderConfigService implements IStoreService {
   public readonly name = 'providerConfig'
   public readonly options: OptionsService<ProviderConfig[]>
+  public readonly backupItemSchema = restoredConfigSchema
 
   // Stored in sync alongside the configs so a second signed-in device reads the
   // same flag and does not re-seed the shared store.
@@ -106,11 +132,12 @@ export class ProviderConfigService implements IStoreService {
           try {
             return migrateToCustomNames(data)
           } catch (error) {
+            // Keep the configs; a failed step must not cost the user them.
             console.error(
-              '[providerConfig] custom-name migration failed, falling back to defaults:',
+              '[providerConfig] custom-name migration failed, leaving configs unchanged:',
               error
             )
-            return migrateToCustomNames(legacyDefaultProviderConfigs)
+            return data
           }
         },
       })

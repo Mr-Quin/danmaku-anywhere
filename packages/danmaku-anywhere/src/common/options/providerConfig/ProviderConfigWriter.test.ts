@@ -1,32 +1,34 @@
 import 'fake-indexeddb/auto'
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { Dexie } from 'dexie'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { ConfigStateService } from '@/background/services/Backup/ConfigStateService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { DANMAKU_DB_NAME, DanmakuAnywhereDb } from '@/common/db/db'
-import { PROXY_DDP_BASE_URL } from '@/common/options/providerConfig/constant'
-import type {
-  ProviderConfig,
-  ProviderConfigEdit,
-} from '@/common/options/providerConfig/schema'
-import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
 import { makeProviderConfig, makeSeasonInsert } from '@/tests/factories'
+import { effectiveConfigValues } from './builtin'
+import { PROXY_DDP_BASE_URL } from './constant'
+import { getProviderConfigError } from './ProviderConfigError'
 import { ProviderConfigWriter } from './ProviderConfigWriter'
+import type { ProviderConfig, ProviderConfigEdit } from './schema'
+import { ProviderConfigService } from './service'
 
 /**
  * ProviderConfigWriter over real storage and the bundled manifests. Every
- * write is checked against the manifest's configSchema, a built-in's locked
- * settings cannot be edited, deletes take the source's bookmarks with them,
- * and concurrent operations each see the others' results, so a write that
- * arrives after a delete never brings the deleted source back.
+ * write is checked against the manifest's configSchema, settings the
+ * extension owns on a built-in are never stored, deletes take the source's
+ * bookmarks with them, and concurrent operations, restore included, each see
+ * the others' results, so a write that arrives after a delete never brings
+ * the deleted source back.
  */
 
 const builtinDdp = makeProviderConfig({
   id: 'dandanplay',
   manifestId: 'dandanplay',
   customName: null,
-  configValues: { baseUrl: PROXY_DDP_BASE_URL, chConvert: 0 },
+  configValues: { chConvert: 0 },
 })
 
 const selfHosted = makeProviderConfig({
@@ -49,6 +51,19 @@ async function seedProviders(...configs: ProviderConfig[]) {
   })
 }
 
+// Every storage read yields to the timer queue first, so two operations that
+// each read then write would interleave unless the store runs them one after
+// another.
+function slowProviderReads() {
+  const read = ExtStorageService.prototype.read
+  vi.spyOn(ExtStorageService.prototype, 'read').mockImplementation(
+    async function (this: ExtStorageService<unknown>) {
+      await new Promise((resolve) => setTimeout(resolve, 5))
+      return read.call(this)
+    }
+  )
+}
+
 function setup() {
   const container = createUpgradeContainer()
   return {
@@ -56,6 +71,15 @@ function setup() {
     writer: container.get(ProviderConfigWriter),
     readAll: () => container.get(ProviderConfigService).getAll(),
   }
+}
+
+async function errorCode(promise: Promise<unknown>) {
+  try {
+    await promise
+  } catch (error) {
+    return getProviderConfigError(error)?.code
+  }
+  return undefined
 }
 
 beforeEach(async () => {
@@ -82,40 +106,47 @@ describe('ProviderConfigWriter.create', () => {
     expect(await readAll()).toEqual([builtinDdp, created])
   })
 
-  it('rejects settings the manifest does not accept and writes nothing', async () => {
+  it('refuses settings the manifest does not accept with their issues', async () => {
     await seedProviders(builtinDdp)
     const { writer, readAll } = setup()
 
-    await expect(
-      writer.create({
+    const error = await writer
+      .create({
         manifestId: 'dandanplay',
         customName: null,
         enabled: true,
         configValues: { appId: 'only-half', chConvert: 7 },
       })
-    ).rejects.toThrow(/Invalid source settings/)
+      .catch((reason: unknown) => reason)
+
+    expect(getProviderConfigError(error)).toMatchObject({
+      code: 'config.invalid',
+      params: {
+        issues: [{ code: 'requiredAlternatives' }, { code: 'enum' }],
+      },
+    })
     expect(await readAll()).toEqual([builtinDdp])
   })
 
-  it('rejects a source whose manifest is not installed', async () => {
+  it('stores a source whose manifest is not installed without checking it', async () => {
     await seedProviders(builtinDdp)
-    const { writer } = setup()
+    const { writer, readAll } = setup()
 
-    await expect(
-      writer.create({
-        manifestId: 'not-installed',
-        customName: 'Mystery',
-        enabled: true,
-        configValues: {},
-      })
-    ).rejects.toThrow(/not-installed/)
+    const created = await writer.create({
+      manifestId: 'not-installed',
+      customName: 'Mystery',
+      enabled: true,
+      configValues: { anything: 1 },
+    })
+
+    expect(await readAll()).toEqual([builtinDdp, created])
   })
 
   it('requires a name for a source without a manifest', async () => {
     await seedProviders(builtinDdp)
     const { writer } = setup()
 
-    await expect(
+    const code = await errorCode(
       writer.create({
         manifestId: 'legacy:maccms',
         customName: null,
@@ -125,7 +156,9 @@ describe('ProviderConfigWriter.create', () => {
           danmuicuBaseUrl: 'https://vod.example/danmuicu',
         },
       })
-    ).rejects.toThrow(/name is required/)
+    )
+
+    expect(code).toBe('config.nameRequired')
   })
 })
 
@@ -136,50 +169,54 @@ describe('ProviderConfigWriter.addBuiltin', () => {
 
     await writer.addBuiltin('dandanplay')
 
-    expect(await readAll()).toEqual([
+    const stored = await readAll()
+    expect(stored).toEqual([
       selfHosted,
       {
         id: 'dandanplay',
         manifestId: 'dandanplay',
         customName: null,
         enabled: true,
-        configValues: { baseUrl: PROXY_DDP_BASE_URL, chConvert: 0 },
+        configValues: { chConvert: 0 },
       },
     ])
+    expect(effectiveConfigValues(stored[1])).toEqual({
+      chConvert: 0,
+      baseUrl: PROXY_DDP_BASE_URL,
+    })
   })
 
   it('refuses a second copy of a built-in', async () => {
     await seedProviders(builtinDdp)
     const { writer } = setup()
 
-    await expect(writer.addBuiltin('dandanplay')).rejects.toThrow(
-      /already exists/
+    expect(await errorCode(writer.addBuiltin('dandanplay'))).toBe(
+      'config.duplicate'
     )
   })
 })
 
 describe('ProviderConfigWriter.update', () => {
-  it('changes an unlocked setting of a built-in', async () => {
+  it('changes a setting the user owns on a built-in', async () => {
+    await seedProviders(builtinDdp)
+    const { writer, readAll } = setup()
+
+    await writer.update('dandanplay', { configValues: { chConvert: 1 } })
+
+    expect((await readAll())[0].configValues).toEqual({ chConvert: 1 })
+  })
+
+  it('drops a server the edit sets on a built-in and keeps the rest', async () => {
     await seedProviders(builtinDdp)
     const { writer, readAll } = setup()
 
     await writer.update('dandanplay', {
-      configValues: { ...builtinDdp.configValues, chConvert: 1 },
+      configValues: { baseUrl: 'https://elsewhere.example', chConvert: 2 },
     })
 
-    expect((await readAll())[0].configValues.chConvert).toBe(1)
-  })
-
-  it('refuses to point a built-in at another server', async () => {
-    await seedProviders(builtinDdp)
-    const { writer, readAll } = setup()
-
-    await expect(
-      writer.update('dandanplay', {
-        configValues: { baseUrl: 'https://elsewhere.example', chConvert: 0 },
-      })
-    ).rejects.toThrow(/baseUrl cannot be changed/)
-    expect(await readAll()).toEqual([builtinDdp])
+    const [stored] = await readAll()
+    expect(stored.configValues).toEqual({ chConvert: 2 })
+    expect(effectiveConfigValues(stored).baseUrl).toBe(PROXY_DDP_BASE_URL)
   })
 
   it('lets a custom source change its server', async () => {
@@ -219,7 +256,6 @@ describe('ProviderConfigWriter.update', () => {
   it('does not accept a change to the id', async () => {
     await seedProviders(selfHosted)
     const { writer } = setup()
-
     const edit: ProviderConfigEdit & { id: string } = { id: 'other' }
 
     await expect(writer.update('self-hosted', edit)).rejects.toThrow()
@@ -233,18 +269,21 @@ describe('ProviderConfigWriter ordering of concurrent writes', () => {
 
     await writer.delete('self-hosted')
 
-    await expect(
-      writer.update('self-hosted', { customName: 'Edited elsewhere' })
-    ).rejects.toThrow(/not found/)
+    expect(
+      await errorCode(
+        writer.update('self-hosted', { customName: 'Edited elsewhere' })
+      )
+    ).toBe('config.notFound')
     expect((await readAll()).map((config) => config.id)).toEqual([
       'dandanplay',
       'bilibili',
     ])
   })
 
-  it('keeps both results when a delete and an edit of another source race', async () => {
+  it('keeps every result when a delete, an edit and a toggle interleave', async () => {
     await seedProviders(builtinDdp, selfHosted, bilibili)
     const { writer, readAll } = setup()
+    slowProviderReads()
 
     await Promise.all([
       writer.update('bilibili', {
@@ -260,15 +299,59 @@ describe('ProviderConfigWriter ordering of concurrent writes', () => {
     ])
   })
 
-  it('rejects an order that was computed before a source was deleted', async () => {
+  it('never mixes an edit into a restore that replaced the list', async () => {
+    await seedProviders(builtinDdp, selfHosted)
+    const { container, writer, readAll } = setup()
+    const restored = { ...selfHosted, customName: 'From backup' }
+    const editRead = Promise.withResolvers<void>()
+    const release = Promise.withResolvers<void>()
+    const read = ExtStorageService.prototype.read
+    let holding = true
+    vi.spyOn(ExtStorageService.prototype, 'read').mockImplementation(
+      async function (this: ExtStorageService<unknown>) {
+        if (holding) {
+          holding = false
+          editRead.resolve()
+          const data = await read.call(this)
+          await release.promise
+          return data
+        }
+        return read.call(this)
+      }
+    )
+
+    const edit = writer.setEnabled('dandanplay', false)
+    await editRead.promise
+    const restore = container.get(ConfigStateService).restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: { providerConfig: { version: 6, data: [restored] } },
+    })
+    await Promise.race([
+      restore,
+      new Promise((resolve) => setTimeout(resolve, 500)),
+    ])
+    release.resolve()
+    const [restoreResult, editResult] = await Promise.allSettled([
+      restore,
+      edit,
+    ])
+
+    expect(restoreResult.status).toBe('fulfilled')
+    expect(editResult.status).toBe('fulfilled')
+    expect(await readAll()).toEqual([restored])
+  })
+
+  it('refuses an order that was computed before a source was deleted', async () => {
     await seedProviders(builtinDdp, selfHosted, bilibili)
     const { writer, readAll } = setup()
 
     await writer.delete('self-hosted')
 
-    await expect(
-      writer.setOrder(['bilibili', 'self-hosted', 'dandanplay'])
-    ).rejects.toThrow(/every source exactly once/)
+    expect(
+      await errorCode(
+        writer.setOrder(['bilibili', 'self-hosted', 'dandanplay'])
+      )
+    ).toBe('config.orderMismatch')
     expect((await readAll()).map((config) => config.id)).toEqual([
       'dandanplay',
       'bilibili',
@@ -276,28 +359,58 @@ describe('ProviderConfigWriter ordering of concurrent writes', () => {
   })
 })
 
-describe('ProviderConfigWriter.delete', () => {
-  it('removes the bookmarks of the source seasons', async () => {
-    await seedProviders(builtinDdp, selfHosted)
-    const { container, writer } = setup()
-    const db = container.get(DanmakuAnywhereDb)
+describe('ProviderConfigWriter deletes', () => {
+  async function bookmarkSeasonOf(
+    container: ReturnType<typeof setup>['container'],
+    providerConfigId: string,
+    indexedId: string
+  ) {
     const season = await container.get(SeasonService).upsert(
       makeSeasonInsert({
         manifestId: 'dandanplay',
-        providerConfigId: 'self-hosted',
+        providerConfigId,
+        indexedId,
       })
     )
-    await db.bookmark.add({
+    await container.get(DanmakuAnywhereDb).bookmark.add({
       seasonId: season.id,
       episodes: [],
       lastRefreshed: 0,
       version: 1,
       timeUpdated: 0,
     })
+  }
+
+  it('removes the bookmarks of the source seasons', async () => {
+    await seedProviders(builtinDdp, selfHosted)
+    const { container, writer } = setup()
+    await bookmarkSeasonOf(container, 'self-hosted', '1')
 
     await writer.delete('self-hosted')
 
-    expect(await db.bookmark.count()).toBe(0)
+    expect(await container.get(DanmakuAnywhereDb).bookmark.count()).toBe(0)
+  })
+
+  it('removes every config of a manifest and their bookmarks in one step', async () => {
+    const second = { ...selfHosted, id: 'second', customName: 'Second' }
+    await seedProviders(builtinDdp, selfHosted, second, bilibili)
+    const { container, writer, readAll } = setup()
+    await bookmarkSeasonOf(container, 'self-hosted', '1')
+    await bookmarkSeasonOf(container, 'second', '2')
+
+    await writer.deleteByManifest('dandanplay')
+
+    expect(await readAll()).toEqual([bilibili])
+    expect(await container.get(DanmakuAnywhereDb).bookmark.count()).toBe(0)
+  })
+
+  it('treats a manifest with no configs left as done', async () => {
+    await seedProviders(bilibili)
+    const { writer, readAll } = setup()
+
+    await writer.deleteByManifest('mine:gone')
+
+    expect(await readAll()).toEqual([bilibili])
   })
 })
 
@@ -325,22 +438,24 @@ describe('ProviderConfigWriter.seedBuiltins', () => {
   })
 })
 
-describe('ProviderConfigWriter.backupItemSchema', () => {
-  it('accepts a valid config and rejects one its manifest does not accept', async () => {
+describe('ProviderConfigWriter.check for restore', () => {
+  it('keeps a valid config and a config whose manifest is not installed', async () => {
     const { writer } = setup()
 
-    const valid = await writer.backupItemSchema.safeParseAsync(selfHosted)
-    const invalid = await writer.backupItemSchema.safeParseAsync({
+    expect(await writer.check(selfHosted)).toBeUndefined()
+    expect(
+      await writer.check({ ...selfHosted, manifestId: 'not-installed' })
+    ).toBeUndefined()
+  })
+
+  it('refuses a config its known manifest does not accept, saying why', async () => {
+    const { writer } = setup()
+
+    const reason = await writer.check({
       ...selfHosted,
       configValues: { chConvert: 'loud' },
     })
-    const unknown = await writer.backupItemSchema.safeParseAsync({
-      ...selfHosted,
-      manifestId: 'not-installed',
-    })
 
-    expect(valid.success).toBe(true)
-    expect(invalid.success).toBe(false)
-    expect(unknown.success).toBe(false)
+    expect(reason).toMatch(/chConvert/)
   })
 })

@@ -6,7 +6,6 @@ import {
 } from '@danmaku-anywhere/danmaku-converter'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { z } from 'zod'
-import { BUILTIN_SOURCES, findBuiltinSource, isBuiltinConfig } from './builtin'
 import { PROXY_DDP_BASE_URL } from './constant'
 import type { ProviderConfig } from './schema'
 
@@ -21,27 +20,40 @@ const providerConfigV5Schema = z.object({
 
 export type ProviderConfigV5 = z.infer<typeof providerConfigV5Schema>
 
-// The fixed names the built-ins had before the manifest catalog
-const LEGACY_BUILTIN_NAMES: Record<string, string> = {
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay]]: 'DanDanPlay',
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili]]: 'Bilibili',
-  [PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent]]: 'Tencent',
+// The built-ins as releases before the manifest catalog stored them. Kept as
+// literals so these steps do not change when today's built-ins do.
+const builtInDanDanPlayProvider: ProviderConfigV5 = {
+  id: 'dandanplay',
+  manifestId: 'dandanplay',
+  name: 'DanDanPlay',
+  enabled: true,
+  configValues: {
+    baseUrl: PROXY_DDP_BASE_URL,
+    chConvert: DanDanChConvert.None,
+  },
 }
 
-export const legacyDefaultProviderConfigs: ProviderConfigV5[] =
-  BUILTIN_SOURCES.map((source) => ({
-    id: source.manifestId,
-    manifestId: source.manifestId,
-    name: LEGACY_BUILTIN_NAMES[source.manifestId],
-    enabled: true,
-    configValues: { ...source.configValues },
-  }))
+const builtInBilibiliProvider: ProviderConfigV5 = {
+  id: 'bilibili',
+  manifestId: 'bilibili',
+  name: 'Bilibili',
+  enabled: true,
+  configValues: { danmakuFormat: 'xml' },
+}
 
-const [
+const builtInTencentProvider: ProviderConfigV5 = {
+  id: 'tencent',
+  manifestId: 'tencent',
+  name: 'Tencent',
+  enabled: true,
+  configValues: {},
+}
+
+export const legacyDefaultProviderConfigs: ProviderConfigV5[] = [
   builtInDanDanPlayProvider,
   builtInBilibiliProvider,
   builtInTencentProvider,
-] = legacyDefaultProviderConfigs
+]
 
 // Drop undefined-valued keys so manifest configSchema defaults can apply.
 function pruneUndefined(obj: Record<string, unknown>): Record<string, unknown> {
@@ -412,24 +424,100 @@ export function migrateDropDeadProviderFields(
   })
 }
 
+// The ids of the built-ins at version 6, and the settings of each that the
+// extension owns and no longer stores.
+const V6_BUILTIN_IDS = new Set(['dandanplay', 'bilibili', 'tencent'])
+const V6_LOCKED_KEYS: Record<string, readonly string[]> = {
+  dandanplay: ['baseUrl', 'appId', 'appSecret', 'auth'],
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function v6ConfigValues(
+  id: string,
+  isBuiltin: boolean,
+  configValues: unknown
+): Record<string, unknown> {
+  const values = isRecord(configValues) ? configValues : {}
+  if (!isBuiltin) {
+    return values
+  }
+  const locked = new Set(V6_LOCKED_KEYS[id] ?? [])
+  return Object.fromEntries(
+    Object.entries(values).filter(([key]) => !locked.has(key))
+  )
+}
+
+function hostOf(value: unknown): string | undefined {
+  if (typeof value !== 'string') {
+    return undefined
+  }
+  try {
+    return new URL(value).host || undefined
+  } catch {
+    return undefined
+  }
+}
+
+// Legacy MacCMS has no default name, so a blank one becomes its server host.
+function v6CustomName(
+  manifestId: string,
+  name: unknown,
+  configValues: Record<string, unknown>
+): string | null {
+  const trimmed = typeof name === 'string' ? name.trim() : ''
+  if (trimmed !== '') {
+    return trimmed
+  }
+  if (manifestId !== LEGACY_MACCMS_ID) {
+    return null
+  }
+  return hostOf(configValues.danmakuBaseUrl) ?? manifestId
+}
+
 // customName null means the source's default name. No released version let a
 // user rename a built-in, so every built-in takes the default name and every
-// other config keeps the name it has.
+// other config keeps the name it has. A record that already has customName
+// and no name was written at version 6 and only loses settings the extension
+// owns, so a store an older build stamped with an older version survives.
 export function migrateToCustomNames(
   data: ProviderConfigV5[]
 ): ProviderConfig[] {
   if (!Array.isArray(data)) {
     return []
   }
-  return data.flatMap((config) => {
-    if (config === null || typeof config !== 'object') {
+  return data.flatMap((record: unknown) => {
+    if (
+      !isRecord(record) ||
+      typeof record.id !== 'string' ||
+      typeof record.manifestId !== 'string'
+    ) {
       return []
     }
-    const { name, ...rest } = config
+    const { name, customName, ...rest } = record
     const isBuiltin =
-      isBuiltinConfig(config) &&
-      findBuiltinSource(config.manifestId) !== undefined
-    const kept = typeof name === 'string' && name.trim() !== '' ? name : null
-    return [{ ...rest, customName: isBuiltin ? null : kept }]
+      record.id === record.manifestId && V6_BUILTIN_IDS.has(record.id)
+    const configValues = v6ConfigValues(
+      record.id,
+      isBuiltin,
+      record.configValues
+    )
+    const migrated = { ...rest, configValues } as Omit<
+      ProviderConfig,
+      'customName'
+    >
+    if ('customName' in record && !('name' in record)) {
+      return [{ ...migrated, customName: customName as string | null }]
+    }
+    return [
+      {
+        ...migrated,
+        customName: isBuiltin
+          ? null
+          : v6CustomName(record.manifestId, name, configValues),
+      },
+    ]
   })
 }

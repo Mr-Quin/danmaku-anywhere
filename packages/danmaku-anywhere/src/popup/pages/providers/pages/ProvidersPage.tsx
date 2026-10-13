@@ -19,6 +19,7 @@ import {
   createCustomDanDanPlayDraft,
   createCustomMacCmsDraft,
 } from '@/common/options/providerConfig/constant'
+import { describeProviderConfigError } from '@/common/options/providerConfig/issueText'
 import type {
   ProviderConfig,
   ProviderConfigDraft,
@@ -88,11 +89,7 @@ export const ProvidersPage = (): ReactElement => {
   }
 
   const handleAddDanDanPlayProvider = () => {
-    setEditingProvider(
-      createCustomDanDanPlayDraft(
-        t('providers.instance.defaultName', 'Self-hosted DanDanPlay')
-      )
-    )
+    setEditingProvider(createCustomDanDanPlayDraft())
     setMode('add')
   }
 
@@ -119,7 +116,7 @@ export const ProvidersPage = (): ReactElement => {
       toast.success(t('providers.alert.created', 'Source created'))
     },
     onError: (error: Error) => {
-      toast.error(error.message)
+      toast.error(describeProviderConfigError(error) ?? error.message)
     },
   }
 
@@ -159,7 +156,7 @@ export const ProvidersPage = (): ReactElement => {
             toast.success(t('providers.alert.deleted', 'Source deleted'))
           },
           onError: (error) => {
-            toast.error(error.message)
+            toast.error(describeProviderConfigError(error) ?? error.message)
           },
         })
       },

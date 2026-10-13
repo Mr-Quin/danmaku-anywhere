@@ -1,0 +1,248 @@
+import type { ConfigSchema } from '@mr-quin/dango'
+import { inject, injectable } from 'inversify'
+import type { IRestoreEntryCheck } from '@/common/options/RestoreEntryCheck'
+import { getRandomUUID } from '@/common/utils/utils'
+import {
+  BUILTIN_SOURCES,
+  createBuiltinConfig,
+  findBuiltinSource,
+  withoutLockedValues,
+} from './builtin'
+import { ProviderConfigError } from './ProviderConfigError'
+import {
+  ConfigSchemaSourceSymbol,
+  type IConfigSchemaSource,
+  type IProviderConfigCleanup,
+  ProviderConfigCleanupSymbol,
+} from './ports'
+import {
+  type ProviderConfig,
+  type ProviderConfigDraft,
+  type ProviderConfigEdit,
+  providerConfigSchema,
+} from './schema'
+import { ProviderConfigService } from './service'
+import { isLegacyMacCms } from './utils'
+import {
+  checkProviderConfig,
+  configIssues,
+  describeIssue,
+  LEGACY_MACCMS_CONFIG_SCHEMA,
+  type ProviderConfigIssue,
+} from './validation'
+
+const draftSchema = providerConfigSchema.omit({ id: true })
+
+const editSchema = providerConfigSchema
+  .pick({ customName: true, configValues: true })
+  .partial()
+  .strict()
+
+function touchedBy(edit: ProviderConfigEdit, issue: ProviderConfigIssue) {
+  if (issue.kind === 'nameRequired') {
+    return 'customName' in edit
+  }
+  return 'configValues' in edit
+}
+
+function notFound(id: string): ProviderConfigError {
+  return new ProviderConfigError(
+    { code: 'config.notFound', params: { id } },
+    `Source "${id}" not found, it might have been deleted.`
+  )
+}
+
+function throwIfInvalid(issues: ProviderConfigIssue[]): void {
+  if (issues.length === 0) {
+    return
+  }
+  const message = `Invalid source settings: ${issues.map(describeIssue).join('; ')}`
+  const found = configIssues(issues)
+  if (found.length === 0) {
+    throw new ProviderConfigError(
+      { code: 'config.nameRequired', params: {} },
+      message
+    )
+  }
+  throw new ProviderConfigError(
+    { code: 'config.invalid', params: { issues: found } },
+    message
+  )
+}
+
+// The one writer of provider configs. Each operation reads, checks and writes
+// the whole list as one step of the store's write queue, which restore shares,
+// so a write can never be based on a list another write has since replaced.
+@injectable('Singleton')
+export class ProviderConfigWriter implements IRestoreEntryCheck {
+  readonly store = 'providerConfig'
+
+  constructor(
+    @inject(ProviderConfigService)
+    private readonly providerConfigService: ProviderConfigService,
+    @inject(ConfigSchemaSourceSymbol)
+    private readonly configSchemaSource: IConfigSchemaSource,
+    @inject(ProviderConfigCleanupSymbol)
+    private readonly cleanup: IProviderConfigCleanup
+  ) {}
+
+  private get options() {
+    return this.providerConfigService.options
+  }
+
+  async create(input: ProviderConfigDraft): Promise<ProviderConfig> {
+    const draft = draftSchema.parse(input)
+    const config: ProviderConfig = { ...draft, id: getRandomUUID() }
+    throwIfInvalid(await this.issuesFor(config))
+    await this.options.transform((configs) => [...configs, config])
+    return config
+  }
+
+  async addBuiltin(manifestId: string): Promise<ProviderConfig> {
+    const source = findBuiltinSource(manifestId)
+    if (!source) {
+      throw new ProviderConfigError(
+        { code: 'config.notBuiltin', params: { manifestId } },
+        `"${manifestId}" has no built-in source`
+      )
+    }
+    const config = createBuiltinConfig(source)
+    await this.options.transform((configs) => {
+      if (configs.some((item) => item.id === config.id)) {
+        throw new ProviderConfigError(
+          { code: 'config.duplicate', params: { manifestId } },
+          `The built-in "${manifestId}" source already exists`
+        )
+      }
+      return [...configs, config]
+    })
+    return config
+  }
+
+  // Settings the extension owns on a built-in are dropped, not refused.
+  async update(id: string, input: ProviderConfigEdit): Promise<ProviderConfig> {
+    const edit = editSchema.parse(input)
+    let updated: ProviderConfig | undefined
+    await this.options.transform(async (configs) => {
+      const current = configs.find((item) => item.id === id)
+      if (!current) {
+        throw notFound(id)
+      }
+      const next = withoutLockedValues({ ...current, ...edit })
+      const issues = await this.issuesFor(next)
+      throwIfInvalid(issues.filter((issue) => touchedBy(edit, issue)))
+      updated = next
+      return configs.map((item) => (item.id === id ? next : item))
+    })
+    if (!updated) {
+      throw notFound(id)
+    }
+    return updated
+  }
+
+  async setEnabled(id: string, enabled: boolean): Promise<ProviderConfig> {
+    let updated: ProviderConfig | undefined
+    await this.options.transform((configs) => {
+      const current = configs.find((item) => item.id === id)
+      if (!current) {
+        throw notFound(id)
+      }
+      const next = { ...current, enabled }
+      updated = next
+      return configs.map((item) => (item.id === id ? next : item))
+    })
+    if (!updated) {
+      throw notFound(id)
+    }
+    return updated
+  }
+
+  async setOrder(ids: string[]): Promise<void> {
+    await this.options.transform((configs) => {
+      const byId = new Map(configs.map((config) => [config.id, config]))
+      const ordered = ids.flatMap((id) => {
+        const config = byId.get(id)
+        return config ? [config] : []
+      })
+      if (
+        ids.length !== configs.length ||
+        ordered.length !== configs.length ||
+        new Set(ids).size !== configs.length
+      ) {
+        throw new ProviderConfigError(
+          { code: 'config.orderMismatch', params: {} },
+          'The new order must list every source exactly once'
+        )
+      }
+      return ordered
+    })
+  }
+
+  // The cleanup runs inside the write step, so a failed write leaves the
+  // config in place for a retry that cleans up again.
+  async delete(id: string): Promise<void> {
+    await this.options.transform(async (configs) => {
+      if (!configs.some((item) => item.id === id)) {
+        throw notFound(id)
+      }
+      await this.cleanup.beforeDelete(id)
+      return configs.filter((item) => item.id !== id)
+    })
+  }
+
+  async deleteByManifest(manifestId: string): Promise<void> {
+    await this.options.transform(async (configs) => {
+      const removed = configs.filter((item) => item.manifestId === manifestId)
+      if (removed.length === 0) {
+        return configs
+      }
+      for (const config of removed) {
+        await this.cleanup.beforeDelete(config.id)
+      }
+      return configs.filter((item) => item.manifestId !== manifestId)
+    })
+  }
+
+  // Writes the built-ins only into an empty list, returning whether it did.
+  async seedBuiltins(): Promise<boolean> {
+    let seeded = false
+    await this.options.transform((configs) => {
+      if (configs.length > 0) {
+        return configs
+      }
+      seeded = true
+      return BUILTIN_SOURCES.map(createBuiltinConfig)
+    })
+    return seeded
+  }
+
+  // Restore runs entries through the store's backupItemSchema first. A source
+  // whose manifest is not installed stays and shows as unavailable.
+  async check(entry: unknown): Promise<string | undefined> {
+    const parsed = providerConfigSchema.safeParse(entry)
+    if (!parsed.success) {
+      return 'Not a source config'
+    }
+    const issues = await this.issuesFor(parsed.data)
+    return issues.length > 0 ? issues.map(describeIssue).join('; ') : undefined
+  }
+
+  private async issuesFor(
+    config: ProviderConfigDraft & { id?: string }
+  ): Promise<ProviderConfigIssue[]> {
+    return checkProviderConfig({
+      config,
+      configSchema: await this.findConfigSchema(config.manifestId),
+    })
+  }
+
+  private async findConfigSchema(
+    manifestId: string
+  ): Promise<ConfigSchema | undefined> {
+    if (isLegacyMacCms({ manifestId })) {
+      return LEGACY_MACCMS_CONFIG_SCHEMA
+    }
+    const found = await this.configSchemaSource.find(manifestId)
+    return found?.configSchema
+  }
+}

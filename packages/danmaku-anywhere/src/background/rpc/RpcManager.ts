@@ -26,13 +26,13 @@ import { TitleMappingService } from '@/background/services/persistence/TitleMapp
 import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
 import { ManifestRegistry } from '@/background/services/providers/ManifestRegistry'
 import { ManifestSandbox } from '@/background/services/providers/ManifestSandbox'
-import { ProviderConfigWriter } from '@/background/services/providers/ProviderConfigWriter'
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import { AuthClientService } from '@/common/auth/AuthClientService'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { MountConfigService } from '@/common/options/mountConfig/service'
+import { ProviderConfigWriter } from '@/common/options/providerConfig/ProviderConfigWriter'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
 import type { RPCServerHandlers, RRPServerHandler } from '@/common/rpc/server'
@@ -137,6 +137,9 @@ export class RpcManager {
       },
       providerListManifests: async ({ locale } = {}) => {
         return this.providerService.listManifests(locale)
+      },
+      providerListManifestNames: async ({ locale } = {}) => {
+        return this.providerService.listManifestNames(locale)
       },
       providerRefreshCatalog: async ({ locale } = {}) => {
         return this.providerService.refreshCatalog(locale)

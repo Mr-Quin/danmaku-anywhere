@@ -6,7 +6,6 @@ import {
   type IStoreService,
   StoreServiceSymbol,
 } from '@/common/options/IStoreService'
-import { PROXY_DDP_BASE_URL } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
 import {
@@ -129,10 +128,7 @@ describe('restoring the v1.5.0 backup fixture', () => {
     expect(providers[0].configValues.baseUrl).toBe(
       'https://ddp.selfhosted.example'
     )
-    expect(providers[2].configValues).toEqual({
-      baseUrl: PROXY_DDP_BASE_URL,
-      chConvert: 0,
-    })
+    expect(providers[2].configValues).toEqual({ chConvert: 0 })
   })
 
   it('restores the user values of the extension and danmaku options', async () => {

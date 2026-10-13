@@ -777,7 +777,12 @@
       }
     },
     "error": {
+      "duplicate": "This built-in source is already installed",
       "episodesUnsupported": "{{name}} cannot list episodes",
+      "nameRequired": "Give the source a name",
+      "notBuiltin": "This source has no built-in instance",
+      "notFound": "This source no longer exists. It may have been deleted.",
+      "orderMismatch": "The source list changed. Try reordering again.",
       "refetchUnsupported": "{{name}} cannot fetch danmaku for saved episodes again"
     },
     "filter": {
@@ -795,9 +800,6 @@
       "reorder": "Reorder",
       "reorderDone": "Done",
       "title": "Installed"
-    },
-    "instance": {
-      "defaultName": "Self-hosted DanDanPlay"
     },
     "name": "Danmaku sources",
     "updates": {

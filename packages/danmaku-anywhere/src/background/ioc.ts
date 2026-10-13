@@ -14,14 +14,23 @@ import {
   OptionsServiceFactory,
   optionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
+import { ProviderConfigWriter } from '@/common/options/providerConfig/ProviderConfigWriter'
+import {
+  ConfigSchemaSourceSymbol,
+  type IProviderConfigCleanup,
+  ProviderConfigCleanupSymbol,
+} from '@/common/options/providerConfig/ports'
+import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { RestoreEntryCheckSymbol } from '@/common/options/RestoreEntryCheck'
 import { SearchHistoryService } from '@/common/options/searchHistory/service'
 import { UserAuthStore } from '@/common/options/userAuth/service'
 import { Logger } from './backgroundLogger'
+import { BookmarkService } from './services/persistence/BookmarkService'
 import {
   createExtensionFetchLike,
   ManifestFetcherSymbol,
 } from './services/providers/extensionFetchLike'
-import { ProviderConfigWriter } from './services/providers/ProviderConfigWriter'
+import { ManifestConfigSchemaSource } from './services/providers/ManifestConfigSchemaSource'
 import {
   DanmakuProviderFactory,
   danmakuProviderFactory,
@@ -33,7 +42,7 @@ export const backgroundContainerModule = new ContainerModule(({ bind }) => {
   bind(StoreServiceSymbol).toService(DanmakuOptionsService)
   bind(StoreServiceSymbol).toService(IntegrationPolicyService)
   bind(StoreServiceSymbol).toService(MountConfigService)
-  bind(StoreServiceSymbol).toService(ProviderConfigWriter)
+  bind(StoreServiceSymbol).toService(ProviderConfigService)
   bind(StoreServiceSymbol).toService(AiProviderConfigService)
   bind(StoreServiceSymbol).toService(SearchHistoryService)
   bind(StoreServiceSymbol).toService(NamingRuleService)
@@ -41,6 +50,17 @@ export const backgroundContainerModule = new ContainerModule(({ bind }) => {
 
   bind<IDanmakuProviderFactory>(DanmakuProviderFactory).toFactory(
     danmakuProviderFactory
+  )
+
+  bind(RestoreEntryCheckSymbol).toService(ProviderConfigWriter)
+  bind(ConfigSchemaSourceSymbol).toService(ManifestConfigSchemaSource)
+  bind<IProviderConfigCleanup>(ProviderConfigCleanupSymbol).toDynamicValue(
+    (context) => {
+      const bookmarks = context.get(BookmarkService)
+      return {
+        beforeDelete: (id) => bookmarks.deleteByProviderConfig(id),
+      }
+    }
   )
 
   bind<FetchLike>(ManifestFetcherSymbol).toDynamicValue((context) => {

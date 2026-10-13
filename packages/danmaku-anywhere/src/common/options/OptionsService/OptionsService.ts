@@ -168,7 +168,8 @@ export class OptionsService<T extends OptionsSchema> {
 
   // Reads, changes and writes in one queued step, so no other write from this
   // context lands between the read and the write. Returning the data unchanged
-  // skips the write.
+  // skips the write. Data an older build tagged with an older version is left
+  // for the next upgrade to migrate rather than changed under the wrong tag.
   async transform(change: (data: T) => T | Promise<T>): Promise<T> {
     await this.readinessService.waitUntilReady()
 
@@ -176,6 +177,11 @@ export class OptionsService<T extends OptionsSchema> {
       const stored = await this.storageService.read()
       if (!stored) {
         throw new Error('Cannot transform options without existing options')
+      }
+      if (stored.version !== this.latestVersion) {
+        throw new Error(
+          `Cannot change ${this.key} stored at version ${stored.version}, expected ${this.latestVersion}`
+        )
       }
       const next = await change(stored.data)
       if (next !== stored.data) {

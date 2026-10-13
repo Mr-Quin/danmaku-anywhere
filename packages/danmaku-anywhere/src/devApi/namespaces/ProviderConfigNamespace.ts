@@ -1,9 +1,9 @@
 import { inject, injectable } from 'inversify'
-import { ProviderConfigWriter } from '@/background/services/providers/ProviderConfigWriter'
 import {
   BUILTIN_SOURCES,
   createBuiltinConfig,
 } from '@/common/options/providerConfig/builtin'
+import { ProviderConfigWriter } from '@/common/options/providerConfig/ProviderConfigWriter'
 import {
   type ProviderConfig,
   providerConfigSchema,

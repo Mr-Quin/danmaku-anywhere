@@ -10,6 +10,11 @@ import type {
 import type { ControllerMethods } from '@/common/rpcClient/controller/types'
 import type { MountConfig } from '../options/mountConfig/schema'
 import type { StandaloneRpcHandlers } from './createStandaloneRpcClient'
+import { bundledManifestNames, standaloneBackend } from './standaloneBackend'
+
+function providerConfigWriter() {
+  return standaloneBackend().providerConfigWriter()
+}
 
 const standaloneBaseUrlConfig: BaseUrlConfig = {
   baseUrls: ['https://example.com'],
@@ -71,7 +76,7 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     authSignIn: () => ({ state: 'success', user: mockUser }),
     authSignOut: () => ({ state: 'success' }),
     authDeleteAccount: () => ({ state: 'success' }),
-    iconSet: () => ({ state: 'available' }),
+    iconSet: () => undefined,
     seasonSearch: () => [],
     seasonFilter: () => [],
     seasonGetAll: () => [],
@@ -106,6 +111,7 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     providerProbeLogin: () => ({ hasLoginProbe: false, ok: true }),
     providerGetManifestSpec: () => ({ name: '', hasLoginProbe: false }),
     providerListManifests: () => ({ manifests: [], lastCheckedAt: null }),
+    providerListManifestNames: ({ locale }) => bundledManifestNames(locale),
     providerGetPendingUpdates: () => [],
     providerApplyUpdates: () => undefined,
     fetchImage: ({ src }) => src,
@@ -142,7 +148,15 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     openPopupInNewTab: () => undefined,
     getConfigMacCms: () => standaloneBaseUrlConfig,
     getConfigDanmuIcu: () => standaloneBaseUrlConfig,
-    providerConfigDelete: () => undefined,
+    providerConfigCreate: (draft) => providerConfigWriter().create(draft),
+    providerConfigAddBuiltin: ({ manifestId }) =>
+      providerConfigWriter().addBuiltin(manifestId),
+    providerConfigUpdate: ({ id, edit }) =>
+      providerConfigWriter().update(id, edit),
+    providerConfigSetEnabled: ({ id, enabled }) =>
+      providerConfigWriter().setEnabled(id, enabled),
+    providerConfigSetOrder: ({ ids }) => providerConfigWriter().setOrder(ids),
+    providerConfigDelete: (id) => providerConfigWriter().delete(id),
     testAiProvider: () => ({ state: 'success' }),
     backupExport: () => standaloneBackupData,
     backupImport: () => standaloneBackupRestoreResult,

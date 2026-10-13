@@ -18,6 +18,7 @@ import type {
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { toManifestLocale } from '@/common/localization/language'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import { ProviderConfigWriter } from '@/common/options/providerConfig/ProviderConfigWriter'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import {
@@ -41,7 +42,6 @@ import {
   type CatalogSyncResult,
   ManifestRegistry,
 } from './ManifestRegistry'
-import { ProviderConfigWriter } from './ProviderConfigWriter'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
@@ -438,13 +438,19 @@ export class ProviderService {
     await this.providerConfigService.markSeeded()
   }
 
-  private async displayName(config: ProviderConfig): Promise<string> {
+  async listManifestNames(locale?: string): Promise<Record<string, string>> {
     await this.manifestRegistry.ready
+    return Object.fromEntries(
+      this.manifestRegistry
+        .listManifests(locale)
+        .map((manifest) => [manifest.id, manifest.name])
+    )
+  }
+
+  private async displayName(config: ProviderConfig): Promise<string> {
     const { lang } = await this.extensionOptions.get()
     const manifestNames = new Map(
-      this.manifestRegistry
-        .listManifests(toManifestLocale(lang))
-        .map((manifest) => [manifest.id, manifest.name])
+      Object.entries(await this.listManifestNames(toManifestLocale(lang)))
     )
     const configs = await this.providerConfigService.getAll()
     return (

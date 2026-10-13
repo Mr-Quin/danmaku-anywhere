@@ -1,4 +1,4 @@
-import { useSuspenseQuery } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toManifestLocale } from '@/common/localization/language'
@@ -17,19 +17,19 @@ type NamedConfig = Pick<ProviderConfig, 'manifestId' | 'customName'> & {
   id?: string
 }
 
+// Names fall back to manifest ids until the background answers, or when it
+// cannot, so a surface that names sources never waits on or fails with this.
 export function useManifestNames(): ManifestNames {
   const { i18n } = useTranslation()
   const locale = toManifestLocale(i18n.language)
-  const { data } = useSuspenseQuery({
-    queryKey: sourceQueryKeys.manifestList(locale),
-    queryFn: () => chromeRpcClient.providerListManifests({ locale }),
+  const { data } = useQuery({
+    queryKey: sourceQueryKeys.manifestNames(locale),
+    queryFn: async () => {
+      return (await chromeRpcClient.providerListManifestNames({ locale })).data
+    },
     refetchOnWindowFocus: false,
   })
-  return useMemo(() => {
-    return new Map(
-      data.data.manifests.map((manifest) => [manifest.id, manifest.name])
-    )
-  }, [data])
+  return useMemo(() => new Map(Object.entries(data ?? {})), [data])
 }
 
 // Names for the sources as the UI shows them, in the UI language

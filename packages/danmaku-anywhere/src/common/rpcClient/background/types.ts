@@ -237,6 +237,8 @@ export type BackgroundMethods = {
     ProviderManifestSpec
   >
   providerListManifests: RPCDef<{ locale?: string }, ProviderManifestList>
+  // Manifest names keyed by manifest id, resolved into the locale
+  providerListManifestNames: RPCDef<{ locale?: string }, Record<string, string>>
   providerRefreshCatalog: RPCDef<{ locale?: string }, ProviderManifestList>
   providerGetPendingUpdates: RPCDef<void, ManifestUpdate[]>
   providerApplyUpdates: RPCDef<{ manifestIds: string[] }, void>

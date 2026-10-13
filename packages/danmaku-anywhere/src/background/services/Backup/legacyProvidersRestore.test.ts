@@ -1,7 +1,6 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
-import { PROXY_DDP_BASE_URL } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
 import { makeProviderConfig } from '@/tests/factories'
@@ -32,7 +31,7 @@ const derivedProviders: ProviderConfig[] = [
     manifestId: 'dandanplay',
     customName: null,
     enabled: true,
-    configValues: { baseUrl: PROXY_DDP_BASE_URL, chConvert: 0 },
+    configValues: { chConvert: 0 },
   },
   {
     id: 'bilibili',

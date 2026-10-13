@@ -983,6 +983,68 @@ describe('migrateToCustomNames', () => {
     expect(migrated.customName).toBeNull()
   })
 
+  it('drops the settings the extension owns from the built-in DanDanPlay', () => {
+    const [ddp, custom] = migrateToCustomNames([
+      {
+        ...v5('dandanplay', 'dandanplay', 'DanDanPlay'),
+        configValues: { baseUrl: 'https://proxy.example/ddp', chConvert: 1 },
+      },
+      {
+        ...v5('custom-1', 'dandanplay', 'Mine'),
+        configValues: { baseUrl: 'https://mine.example' },
+      },
+    ])
+
+    expect(ddp.configValues).toEqual({ chConvert: 1 })
+    expect(custom.configValues).toEqual({ baseUrl: 'https://mine.example' })
+  })
+
+  it('names a blank legacy MacCMS after its server, or its manifest id', () => {
+    const migrated = migrateToCustomNames([
+      {
+        ...v5('vod-1', 'legacy:maccms', 'x'),
+        name: '  ',
+        configValues: { danmakuBaseUrl: 'https://vod.example:8080/danmaku' },
+      },
+      { ...v5('vod-2', 'legacy:maccms', 'x'), name: '' },
+      { ...v5('vod-3', 'legacy:maccms', 'x'), name: '  VOD  ' },
+    ])
+
+    expect(migrated.map((c) => c.customName)).toEqual([
+      'vod.example:8080',
+      'legacy:maccms',
+      'VOD',
+    ])
+  })
+
+  it('leaves records already at version 6 as they are', () => {
+    const current = [
+      {
+        id: 'custom-1',
+        manifestId: 'dandanplay',
+        customName: 'Mine',
+        enabled: true,
+        configValues: { baseUrl: 'https://mine.example' },
+      },
+      {
+        id: 'bilibili',
+        manifestId: 'bilibili',
+        customName: 'My Bilibili',
+        enabled: false,
+        configValues: { danmakuFormat: 'protobuf' },
+      },
+      {
+        id: 'vod-1',
+        manifestId: 'legacy:maccms',
+        customName: 'VOD',
+        enabled: true,
+        configValues: { danmakuBaseUrl: 'https://vod.example' },
+      },
+    ]
+
+    expect(migrateToCustomNames(current as never)).toEqual(current)
+  })
+
   it('drops entries that are not records', () => {
     const migrated = migrateToCustomNames([
       null as never,

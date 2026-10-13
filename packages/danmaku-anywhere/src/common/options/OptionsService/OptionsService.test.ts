@@ -266,6 +266,16 @@ describe('OptionsService', () => {
       expect(await readRaw()).toEqual({ data: { count: 5 }, version: 2 })
     })
 
+    it('refuses data stored at an older version and writes nothing', async () => {
+      await storeRaw({ data: { count: 5 }, version: 1 })
+      const service = createCounterService(readiness)
+      const change = vi.fn((data: Counter) => ({ count: data.count + 1 }))
+
+      await expect(service.transform(change)).rejects.toThrow(/version 1/)
+      expect(change).not.toHaveBeenCalled()
+      expect(await readRaw()).toEqual({ data: { count: 5 }, version: 1 })
+    })
+
     it('skips the write when the change returns the data it was given', async () => {
       const service = createCounterService(readiness)
       const setSpy = vi.spyOn(fakeBrowser.storage.local, 'set')

@@ -9,7 +9,6 @@ import {
 } from '@danmaku-anywhere/integration-policy'
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { ProviderConfigWriter } from '@/background/services/providers/ProviderConfigWriter'
 import { backupDataSchema } from '@/common/backup/schema'
 import type { ILogger } from '@/common/Logger'
 import { AiProviderConfigService } from '@/common/options/aiProviderConfig/service'
@@ -23,6 +22,7 @@ import { MountConfigService } from '@/common/options/mountConfig/service'
 import type { IOptionsServiceFactory } from '@/common/options/OptionsService/OptionServiceFactory'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import type { OptionsSchema } from '@/common/options/OptionsService/types'
+import { ProviderConfigWriter } from '@/common/options/providerConfig/ProviderConfigWriter'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
 import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
@@ -74,8 +74,9 @@ describe('backup round trip', () => {
       )
     }
 
-    providerConfigService = new ProviderConfigService(logger, factory)
-    providerConfigWriter = createUpgradeContainer().get(ProviderConfigWriter)
+    const container = createUpgradeContainer()
+    providerConfigService = container.get(ProviderConfigService)
+    providerConfigWriter = container.get(ProviderConfigWriter)
     extensionOptionsService = new ExtensionOptionsService(
       logger,
       providerConfigService,
@@ -91,7 +92,7 @@ describe('backup round trip', () => {
       extensionOptionsService,
       danmakuOptionsService,
       mountConfigService,
-      providerConfigWriter,
+      providerConfigService,
       aiProviderConfigService,
       integrationPolicyService,
       namingRuleService,
@@ -99,7 +100,9 @@ describe('backup round trip', () => {
 
     await Promise.all(stores.map((store) => store.options.upgrade()))
 
-    configStateService = new ConfigStateService(stores, logger)
+    configStateService = new ConfigStateService(stores, logger, [
+      providerConfigWriter,
+    ])
   })
 
   function readLegacyBackup(): unknown {
@@ -414,7 +417,7 @@ describe('backup round trip', () => {
       },
     })
 
-    expect(result.details.integrationPolicy).toEqual({
+    expect(result.details.integrationPolicy).toMatchObject({
       success: true,
       droppedEntries: 1,
     })
@@ -423,7 +426,7 @@ describe('backup round trip', () => {
     ).toEqual(['usable'])
   })
 
-  it('drops a restored source its manifest does not accept and keeps the others', async () => {
+  it('drops a restored source its manifest does not accept, saying which and why', async () => {
     const valid = {
       id: 'home',
       manifestId: 'dandanplay',
@@ -431,6 +434,7 @@ describe('backup round trip', () => {
       enabled: true,
       configValues: { baseUrl: 'https://ddp.home.example' },
     }
+    const unavailable = { ...valid, id: 'gone', manifestId: 'not-installed' }
     const result = await configStateService.restoreState({
       meta: { version: 1, timestamp: 1 },
       services: {
@@ -438,7 +442,39 @@ describe('backup round trip', () => {
           data: [
             valid,
             { ...valid, id: 'no-server', configValues: { chConvert: 9 } },
-            { ...valid, id: 'gone', manifestId: 'not-installed' },
+            unavailable,
+          ],
+          version: providerConfigService.options.latestVersion,
+        },
+      },
+    })
+
+    expect(result.details.providerConfig).toMatchObject({
+      success: true,
+      droppedEntries: 1,
+      dropped: [
+        { id: 'no-server', reason: expect.stringMatching(/chConvert/) },
+      ],
+    })
+    expect(await providerConfigService.getAll()).toEqual([valid, unavailable])
+  })
+
+  it('restores a built-in without a server the backup set on it', async () => {
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        providerConfig: {
+          data: [
+            {
+              id: 'dandanplay',
+              manifestId: 'dandanplay',
+              customName: null,
+              enabled: true,
+              configValues: {
+                baseUrl: 'https://dev-proxy.example/ddp',
+                chConvert: 1,
+              },
+            },
           ],
           version: providerConfigService.options.latestVersion,
         },
@@ -447,9 +483,42 @@ describe('backup round trip', () => {
 
     expect(result.details.providerConfig).toEqual({
       success: true,
-      droppedEntries: 2,
+      droppedEntries: 0,
     })
-    expect(await providerConfigService.getAll()).toEqual([valid])
+    expect((await providerConfigService.getAll())[0].configValues).toEqual({
+      chConvert: 1,
+    })
+  })
+
+  it('tidies a blank name on restore instead of dropping the source', async () => {
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        providerConfig: {
+          data: [
+            {
+              id: 'vod-1',
+              manifestId: 'legacy:maccms',
+              customName: '   ',
+              enabled: true,
+              configValues: {
+                danmakuBaseUrl: 'https://vod.example/danmaku',
+                danmuicuBaseUrl: 'https://vod.example/danmuicu',
+              },
+            },
+          ],
+          version: providerConfigService.options.latestVersion,
+        },
+      },
+    })
+
+    expect(result.details.providerConfig).toEqual({
+      success: true,
+      droppedEntries: 0,
+    })
+    expect((await providerConfigService.getAll())[0].customName).toBe(
+      'vod.example'
+    )
   })
 
   it('restores the v1.5.0 backup file shipped as an e2e fixture', async () => {
@@ -581,7 +650,7 @@ describe('backup round trip', () => {
       },
     })
 
-    expect(result.details.aiProviderConfig).toEqual({
+    expect(result.details.aiProviderConfig).toMatchObject({
       success: true,
       droppedEntries: 1,
     })

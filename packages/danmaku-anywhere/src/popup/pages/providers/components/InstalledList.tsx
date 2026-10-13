@@ -16,7 +16,11 @@ import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { isBuiltinConfig } from '@/common/options/providerConfig/builtin'
+import {
+  effectiveConfigValues,
+  isBuiltinConfig,
+} from '@/common/options/providerConfig/builtin'
+import { describeProviderConfigError } from '@/common/options/providerConfig/issueText'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { useSourceNames } from '@/common/options/providerConfig/useSourceNames'
@@ -97,7 +101,7 @@ export const InstalledList = ({
             arrayMove(configs, source, destination).map((c) => c.id),
             {
               onError: (error) => {
-                toast.error(error.message)
+                toast.error(describeProviderConfigError(error) ?? error.message)
               },
             }
           )
@@ -109,7 +113,7 @@ export const InstalledList = ({
         )}
         renderPrimary={(config) => displayName(config)}
         renderSecondary={(config) =>
-          (config.configValues?.baseUrl as string) ??
+          (effectiveConfigValues(config).baseUrl as string) ??
           versionSubtitle(config, manifestById.get(config.manifestId))
         }
       />
@@ -273,7 +277,9 @@ export const InstalledList = ({
                     key={config.id}
                     dense
                     primary={displayName(config)}
-                    secondary={(config.configValues?.baseUrl as string) ?? ''}
+                    secondary={
+                      (effectiveConfigValues(config).baseUrl as string) ?? ''
+                    }
                     mono
                     onClick={() => onEdit(config)}
                     action={
