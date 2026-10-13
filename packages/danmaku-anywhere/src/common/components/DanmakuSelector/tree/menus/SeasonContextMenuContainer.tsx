@@ -10,6 +10,7 @@ import { useBookmarksSuspense } from '@/common/bookmark/queries/useBookmarks'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { isCustomSeason } from '@/common/danmaku/utils'
+import { seasonActions } from '@/common/providers/seasonActions'
 import { useSourceCapabilities } from '@/common/providers/useSourceCapabilities'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'
@@ -119,7 +120,7 @@ export const SeasonContextMenuContainer = ({
       isExporting={exportXml.isPending || exportBackup.isPending}
       onRefresh={() => refreshSeason.mutate(season.id)}
       isRefreshing={refreshSeason.isPending}
-      source={source}
+      actions={seasonActions(source)}
       bookmarked={isBookmarked}
       onBookmarkToggle={handleBookmarkToggle}
       onBookmarkRefresh={handleBookmarkRefresh}

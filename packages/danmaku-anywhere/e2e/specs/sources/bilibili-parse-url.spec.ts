@@ -10,9 +10,9 @@ import { applyProfile } from '../../setup/profile'
  * flips the form into Parse mode and surfaces the parsed result card.
  * Clicking Download Danmaku then runs the regular fetch flow and fires
  * the success toast. Asserts the parse-submit button appears, the
- * parsed season title renders, and the import success toast fires. With the
- * Bilibili source removed, the same link submits as a title search, which
- * here lands on the no-sources message since every other source is off.
+ * parsed season title renders, and the import success toast fires. A link
+ * that no installed source claims, because Bilibili was removed or the path
+ * matches no pattern, shows that no source can read it instead of searching.
  */
 
 test('bilibili url paste: detect URL → parse → download danmaku', async ({
@@ -49,7 +49,7 @@ test('bilibili url paste: detect URL → parse → download danmaku', async ({
   await popup.toast.expectSuccess(/import|导入/i)
 })
 
-test('bilibili url paste: a removed Bilibili source leaves the link as a search', async ({
+test('bilibili url paste: with Bilibili removed, no source reads the link', async ({
   context,
   page,
   extensionId,
@@ -60,15 +60,30 @@ test('bilibili url paste: a removed Bilibili source leaves the link as a search'
   })
   const configs = await da.providerConfig.list()
   await da.providerConfig.set(
-    configs
-      .filter((config) => config.id !== 'bilibili')
-      .map((config) => ({ ...config, enabled: false }))
+    configs.filter((config) => config.id !== 'bilibili')
   )
 
   const popup = await Popup.open(page, extensionId)
 
   await popup.search.submit('https://www.bilibili.com/bangumi/play/ss41410')
-  await expect(page.getByTestId('search-no-providers')).toBeVisible()
-  await expect(popup.search.parseButton).toHaveCount(0)
-  await expect(page.getByTestId('parse-error')).toHaveCount(0)
+  await expect(page.getByTestId('parse-no-source')).toBeVisible()
+  await expect(popup.search.parseButton).toBeDisabled()
+})
+
+test('bilibili url paste: a link on a path no manifest claims is not searched', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, {
+    providers: { bilibili: { enabled: true } },
+  })
+
+  const popup = await Popup.open(page, extensionId)
+
+  await popup.search.submit('https://www.bilibili.com/bangumi/media/md28229051')
+  await expect(page.getByTestId('parse-no-source')).toBeVisible()
+  await expect(popup.search.parseButton).toBeDisabled()
+  await expect(popup.search.resultCountSkeleton).toHaveCount(0)
 })

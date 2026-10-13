@@ -13,9 +13,9 @@ import { DrilldownContextMenu } from '@/common/components/Menu/DrilldownContextM
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { isCustomSeason } from '@/common/danmaku/utils'
 import {
-  NO_CAPABILITIES,
-  type SourceCapabilityAnswer,
-} from '@/common/providers/sourceCapabilities'
+  menuItemState,
+  type SeasonActions,
+} from '@/common/providers/seasonActions'
 
 export interface SeasonContextMenuPureProps {
   season: Season | CustomSeason
@@ -25,7 +25,7 @@ export interface SeasonContextMenuPureProps {
   onRefresh: () => void
   isRefreshing: boolean
   isExporting: boolean
-  source?: SourceCapabilityAnswer
+  actions: SeasonActions
   bookmarked: boolean
   onBookmarkToggle: () => void
   onBookmarkRefresh: () => void
@@ -42,7 +42,7 @@ export const SeasonContextMenuPure = ({
   onRefresh,
   isRefreshing,
   isExporting,
-  source,
+  actions,
   bookmarked,
   onBookmarkToggle,
   onBookmarkRefresh,
@@ -81,29 +81,9 @@ export const SeasonContextMenuPure = ({
   ]
 
   if (!isCustomSeason(season)) {
-    const sourceRemoved = source?.sourceRemoved === true
-    const capabilities = source?.capabilities ?? NO_CAPABILITIES
-
-    // A removed source keeps its actions in view, disabled, so the user sees
-    // why they stopped working.
-    const gate = (capable: boolean) => {
-      if (sourceRemoved) {
-        return {
-          disabled: true,
-          tooltip: t(
-            'anime.sourceRemovedTooltip',
-            'This source has been deleted.'
-          ),
-        }
-      }
-      if (capable) {
-        return {}
-      }
-      return null
-    }
-
-    const refreshGate = gate(capabilities.seasonRefresh)
-    const episodesGate = gate(capabilities.episodes)
+    const refreshGate = menuItemState(actions.refreshMetadata)
+    const followGate = menuItemState(actions.follow)
+    const refreshEpisodesGate = menuItemState(actions.refreshEpisodes)
 
     if (refreshGate) {
       items.unshift({
@@ -126,7 +106,7 @@ export const SeasonContextMenuPure = ({
         onClick: onBookmarkToggle,
         loading: isBookmarkLoading,
       })
-      if (episodesGate) {
+      if (refreshEpisodesGate) {
         items.unshift({
           kind: 'item',
           id: 'bookmarkRefresh',
@@ -134,10 +114,10 @@ export const SeasonContextMenuPure = ({
           icon: <Sync fontSize="small" />,
           onClick: onBookmarkRefresh,
           loading: isBookmarkLoading,
-          ...episodesGate,
+          ...refreshEpisodesGate,
         })
       }
-    } else if (episodesGate) {
+    } else if (followGate) {
       items.unshift({
         kind: 'item',
         id: 'bookmarkAdd',
@@ -145,7 +125,7 @@ export const SeasonContextMenuPure = ({
         icon: <FavoriteBorder fontSize="small" />,
         onClick: onBookmarkToggle,
         loading: isBookmarkLoading,
-        ...episodesGate,
+        ...followGate,
       })
     }
   }

@@ -26,7 +26,6 @@ import {
 import { localizeLegacyBuiltinNames } from '@/common/options/providerConfig/localizeLegacyNames'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import { SourceError } from '@/common/providers/SourceError'
 import type {
@@ -34,6 +33,7 @@ import type {
   ProviderManifestList,
   ProviderManifestSpec,
 } from '@/common/rpcClient/background/types'
+import { withUrlScheme } from '@/common/utils/link'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { OmitSeasonId } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
@@ -43,14 +43,7 @@ import {
   type CatalogSyncResult,
   ManifestRegistry,
 } from './ManifestRegistry'
-import {
-  DanmakuProviderFactory,
-  type IDanmakuProviderFactory,
-} from './ProviderFactory'
-import {
-  SourceCapabilityService,
-  withUrlScheme,
-} from './SourceCapabilityService'
+import { SourceCapabilityService } from './SourceCapabilityService'
 
 function enrichEpisode(
   episode: OmitSeasonId<EpisodeMeta>,
@@ -74,8 +67,6 @@ export class ProviderService {
     @inject(SeasonService) private seasonService: SeasonService,
     @inject(ProviderConfigService)
     private providerConfigService: ProviderConfigService,
-    @inject(DanmakuProviderFactory)
-    private danmakuProviderFactory: IDanmakuProviderFactory,
     @inject(ManifestRegistry)
     private manifestRegistry: ManifestRegistry,
     @inject(BookmarkService)
@@ -100,15 +91,14 @@ export class ProviderService {
       params.providerConfigId
     )
 
-    const service = this.danmakuProviderFactory(providerConfig)
+    const service = await this.sourceCapabilities.searchProvider(providerConfig)
 
-    const seasonInserts = await service.search(params)
-    // TODO: fix this once we fold custom seasons into the season insert
-    if (isLegacyMacCms(providerConfig)) {
-      return seasonInserts as CustomSeason[]
+    // TODO: fold custom seasons into the season insert
+    if (service.kind === 'searchOnly') {
+      return service.search(params)
     }
     // Surface existing ids so bookmark / cache indicators still resolve.
-    const inserts = seasonInserts as SeasonInsert[]
+    const inserts = await service.search(params)
     return Promise.all(
       inserts.map(async (insert) => {
         const existing = await this.seasonService.findExisting(insert)
@@ -148,7 +138,7 @@ export class ProviderService {
 
     const providerConfig = await this.getConfigForSeason(season)
 
-    const service = await this.sourceCapabilities.providerFor(
+    const service = await this.sourceCapabilities.sourceProvider(
       providerConfig,
       'episodes'
     )
@@ -164,11 +154,10 @@ export class ProviderService {
 
     const providerConfig = await this.getConfigForSeason(season)
 
-    const service = this.danmakuProviderFactory(providerConfig)
-    const { seasonRefresh } = await service.getCapabilities()
-    if (!seasonRefresh) {
-      return
-    }
+    const service = await this.sourceCapabilities.sourceProvider(
+      providerConfig,
+      'seasonRefresh'
+    )
     const seasonInsert = await service.getSeason(season.providerIds)
     if (seasonInsert) {
       await this.seasonService.upsert(seasonInsert)
@@ -219,7 +208,10 @@ export class ProviderService {
 
     const config = await this.getConfigForSeason(meta.season)
 
-    const service = await this.sourceCapabilities.providerFor(config, 'danmaku')
+    const service = await this.sourceCapabilities.sourceProvider(
+      config,
+      'danmaku'
+    )
 
     const comments = await service.getDanmaku(resolved)
 
@@ -252,8 +244,8 @@ export class ProviderService {
   async parseUrl(text: string): Promise<WithSeason<EpisodeMeta>> {
     const url = withUrlScheme(text)
     const parsers = await this.sourceCapabilities.findUrlParsers(url)
-    for (const config of parsers) {
-      const result = await this.danmakuProviderFactory(config).parseUrl(url)
+    for (const { provider } of parsers) {
+      const result = await provider.parseUrl(url)
       if (result) {
         const { episodeMeta, seasonInsert } = result
         const season = await this.seasonService.upsert(seasonInsert)

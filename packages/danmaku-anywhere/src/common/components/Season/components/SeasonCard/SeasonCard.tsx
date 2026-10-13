@@ -42,6 +42,7 @@ import { ProviderLogo } from '@/common/components/ProviderLogo'
 import type { HandleSeasonClick } from '@/common/components/Season/types'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { isCustomSeason, seasonProviderType } from '@/common/danmaku/utils'
+import { menuItemState, seasonActions } from '@/common/providers/seasonActions'
 import { useSourceCapabilities } from '@/common/providers/useSourceCapabilities'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'
@@ -149,10 +150,15 @@ export const SeasonCard = ({
 
   const deleteMutation = useDeleteSeason()
   const refreshMutation = useRefreshSeason()
-  const source = useSourceCapabilities(
-    isCustomSeason(season) ? undefined : season.providerConfigId
+  const actions = seasonActions(
+    useSourceCapabilities(
+      isCustomSeason(season) ? undefined : season.providerConfigId
+    )
   )
-  const canRefreshMetadata = source?.capabilities.seasonRefresh ?? false
+  const followGate = isBookmarked
+    ? { disabled: false }
+    : menuItemState(actions.follow)
+  const refreshGate = menuItemState(actions.refreshMetadata)
 
   const renderEpisodeCount = () => {
     if (season.localEpisodeCount) {
@@ -241,24 +247,29 @@ export const SeasonCard = ({
             size: 'small',
           }}
           items={[
-            {
-              id: 'bookmark',
-              label: isBookmarked
-                ? t('bookmark.remove', 'Following')
-                : t('bookmark.add', 'Follow'),
-              icon: isBookmarked ? <FavoriteIcon /> : <FavoriteBorder />,
-              onClick: () => {
-                if (isBookmarked) {
-                  bookmarkDeleteMutation.mutate(season.id)
-                } else {
-                  bookmarkAddMutation.mutate(season.id)
-                }
-              },
-              loading:
-                bookmarkAddMutation.isPending ||
-                bookmarkDeleteMutation.isPending,
-            },
-            ...(canRefreshMetadata
+            ...(followGate
+              ? [
+                  {
+                    id: 'bookmark',
+                    label: isBookmarked
+                      ? t('bookmark.remove', 'Following')
+                      : t('bookmark.add', 'Follow'),
+                    icon: isBookmarked ? <FavoriteIcon /> : <FavoriteBorder />,
+                    onClick: () => {
+                      if (isBookmarked) {
+                        bookmarkDeleteMutation.mutate(season.id)
+                      } else {
+                        bookmarkAddMutation.mutate(season.id)
+                      }
+                    },
+                    loading:
+                      bookmarkAddMutation.isPending ||
+                      bookmarkDeleteMutation.isPending,
+                    ...followGate,
+                  },
+                ]
+              : []),
+            ...(refreshGate
               ? [
                   {
                     id: 'refresh',
@@ -268,6 +279,7 @@ export const SeasonCard = ({
                       refreshMutation.mutate(season.id)
                     },
                     loading: refreshMutation.isPending,
+                    ...refreshGate,
                   },
                 ]
               : []),

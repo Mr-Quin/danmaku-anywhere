@@ -1,4 +1,4 @@
-import { Close, History, Search } from '@mui/icons-material'
+import { Close, History, Link, Search } from '@mui/icons-material'
 import {
   Autocomplete,
   alpha,
@@ -37,6 +37,7 @@ interface SearchInputProps {
   value: string
   onChange: (value: string) => void
   onSubmit: (value: string) => void
+  urlMode?: boolean
   urlSourceName?: string
   focusToken?: number
   hasCommittedSearch?: boolean
@@ -46,6 +47,7 @@ export function SearchInput({
   value,
   onChange,
   onSubmit,
+  urlMode,
   urlSourceName,
   focusToken,
   hasCommittedSearch,
@@ -85,7 +87,6 @@ export function SearchInput({
     }
   }
 
-  const urlMode = urlSourceName !== undefined
   const historyEnabled = !urlMode
 
   const filteredEntries = useMemo(() => {
@@ -225,12 +226,16 @@ export function SearchInput({
               ...params.slotProps.input,
               startAdornment: urlMode ? (
                 <InputAdornment position="start" sx={{ mr: 0.5 }}>
-                  <Chip
-                    label={urlSourceName}
-                    color="secondary"
-                    size="small"
-                    sx={{ height: 18, fontSize: 10 }}
-                  />
+                  {urlSourceName ? (
+                    <Chip
+                      label={urlSourceName}
+                      color="secondary"
+                      size="small"
+                      sx={{ height: 18, fontSize: 10 }}
+                    />
+                  ) : (
+                    <Link sx={{ fontSize: 14, color: 'text.secondary' }} />
+                  )}
                 </InputAdornment>
               ) : (
                 <InputAdornment position="start" sx={{ mr: 0.5 }}>

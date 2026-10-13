@@ -13,6 +13,7 @@ import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
 import { episodeToString, isSourceEpisode } from '@/common/danmaku/utils'
 import { describeSourceError } from '@/common/providers/describeSourceError'
+import { capabilitiesOf, mayOffer } from '@/common/providers/sourceCapabilities'
 import {
   sourceCapabilitiesQuery,
   useCanRefetchDanmaku,
@@ -90,23 +91,34 @@ export const useLoadDanmaku = () => {
   const mountedEpisode = episodes?.length === 1 ? episodes[0] : undefined
   const canRefresh = useCanRefetchDanmaku(mountedEpisode)
 
-  const canRefetch = async (episode: GenericEpisode): Promise<boolean> => {
+  // Reads only what is already cached, so the toast never waits on the
+  // background. A click still checks before it fetches.
+  const mayRefetch = (episode: GenericEpisode): boolean => {
+    if (!isSourceEpisode(episode)) {
+      return false
+    }
+    const { queryKey } = sourceCapabilitiesQuery(
+      episode.season.providerConfigId
+    )
+    return mayOffer(queryClient.getQueryData(queryKey), 'danmaku')
+  }
+
+  const canRefetchNow = async (episode: GenericEpisode): Promise<boolean> => {
     if (!isSourceEpisode(episode)) {
       return false
     }
     const answer = await queryClient
       .fetchQuery(sourceCapabilitiesQuery(episode.season.providerConfigId))
       .catch(() => undefined)
-    return answer?.capabilities.danmaku ?? false
+    return capabilitiesOf(answer).danmaku
   }
 
   const mountDanmaku = useEventCallback((episodes: GenericEpisode[]) => {
     return mountMutation.mutateAsync(episodes, {
       // This is called in addition to the onSuccess of mountMutation
-      onSuccess: async () => {
+      onSuccess: () => {
         if (episodes.length === 1) {
           const episode = episodes[0]
-          const refreshable = await canRefetch(episode)
           toast.success(
             t(
               'danmaku.alert.mounted',
@@ -117,7 +129,7 @@ export const useLoadDanmaku = () => {
               }
             ),
             {
-              actionFn: refreshable ? refreshComments : undefined,
+              actionFn: mayRefetch(episode) ? refreshComments : undefined,
               actionLabel: t('danmaku.refresh', 'Refresh Danmaku'),
             }
           )
@@ -167,7 +179,10 @@ export const useLoadDanmaku = () => {
 
   const refreshComments = useEventCallback(async () => {
     const episode = mountedEpisode
-    if (!canRefresh || !episode || !isSourceEpisode(episode)) {
+    if (!episode || !isSourceEpisode(episode)) {
+      return
+    }
+    if (!(await canRefetchNow(episode))) {
       return
     }
 

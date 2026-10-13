@@ -4,17 +4,23 @@ export interface SourceCapabilities {
   danmaku: boolean
   seasonRefresh: boolean
   parseUrl: boolean
-  automaticMatch: boolean
 }
 
-export interface SourceCapabilityAnswer {
-  sourceRemoved: boolean
-  capabilities: SourceCapabilities
-}
+export type SourceCapability = keyof SourceCapabilities
 
-export interface UrlParseSource {
-  sourceName: string
-}
+// The reason is open text so the registry can say why it skipped a manifest.
+export const MANIFEST_MISSING = 'missing'
+
+export type SourceStatus =
+  | { status: 'available'; capabilities: SourceCapabilities }
+  | { status: 'unavailable'; reason: string }
+
+export type SourceCapabilityAnswer = SourceStatus | { status: 'removed' }
+
+export type UrlParseAnswer =
+  | { kind: 'parseable'; sourceName: string }
+  | { kind: 'unclaimed' }
+  | { kind: 'notLink' }
 
 interface ManifestPipelines {
   search?: unknown
@@ -30,7 +36,6 @@ export const NO_CAPABILITIES: SourceCapabilities = {
   danmaku: false,
   seasonRefresh: false,
   parseUrl: false,
-  automaticMatch: false,
 }
 
 export const LEGACY_MACCMS_CAPABILITIES: SourceCapabilities = {
@@ -41,15 +46,37 @@ export const LEGACY_MACCMS_CAPABILITIES: SourceCapabilities = {
 export function capabilitiesFromManifest(
   manifest: ManifestPipelines
 ): SourceCapabilities {
-  const search = manifest.search !== undefined
-  const episodes = manifest.episodes !== undefined
-  const danmaku = manifest.danmaku !== undefined
   return {
-    search,
-    episodes,
-    danmaku,
+    search: manifest.search !== undefined,
+    episodes: manifest.episodes !== undefined,
+    danmaku: manifest.danmaku !== undefined,
     seasonRefresh: manifest.season !== undefined,
     parseUrl: manifest.parseUrl !== undefined,
-    automaticMatch: search && episodes && danmaku,
   }
+}
+
+export function capabilitiesOf(
+  answer: SourceCapabilityAnswer | undefined
+): SourceCapabilities {
+  if (answer?.status !== 'available') {
+    return NO_CAPABILITIES
+  }
+  return answer.capabilities
+}
+
+// An answer still on its way counts as capable so lists do not flicker while
+// it loads; the background refuses if the source turns out not to be.
+export function mayOffer(
+  answer: SourceCapabilityAnswer | undefined,
+  capability: SourceCapability
+): boolean {
+  return answer === undefined || capabilitiesOf(answer)[capability]
+}
+
+export function canMatchBySearch(capabilities: SourceCapabilities): boolean {
+  return capabilities.search && canResolveMapping(capabilities)
+}
+
+export function canResolveMapping(capabilities: SourceCapabilities): boolean {
+  return capabilities.episodes && capabilities.danmaku
 }

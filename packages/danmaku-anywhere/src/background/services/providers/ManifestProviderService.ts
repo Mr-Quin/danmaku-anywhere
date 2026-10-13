@@ -15,14 +15,15 @@ import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { ILogger } from '@/common/Logger'
 import {
   capabilitiesFromManifest,
-  type SourceCapabilities,
+  MANIFEST_MISSING,
+  type SourceStatus,
 } from '@/common/providers/sourceCapabilities'
 import { findEpisodeByNumber } from './common/findEpisodeByNumber'
 import type {
-  IDanmakuProvider,
   OmitSeasonId,
   ParseUrlResult,
   SeasonSearchParams,
+  SourceProvider,
 } from './IDanmakuProvider'
 import type { ManifestRegistry } from './ManifestRegistry'
 import { resolveManifestInputs } from './manifestInputs'
@@ -113,7 +114,7 @@ export const DANMAKU_RUN_OPTIONS: RunOptions = {
   continueOnError: true,
 }
 
-export class ManifestProviderService implements IDanmakuProvider {
+export class ManifestProviderService implements SourceProvider {
   constructor(
     private readonly config: ManifestProviderConfig,
     private readonly registry: ManifestRegistry,
@@ -145,9 +146,17 @@ export class ManifestProviderService implements IDanmakuProvider {
     )
   }
 
-  async getCapabilities(): Promise<SourceCapabilities> {
-    const runner = await this.getRunner()
-    return capabilitiesFromManifest(runner.manifest)
+  readonly kind = 'source'
+
+  async getStatus(): Promise<SourceStatus> {
+    const runner = await this.registry.findRunner(this.config.manifestId)
+    if (!runner) {
+      return { status: 'unavailable', reason: MANIFEST_MISSING }
+    }
+    return {
+      status: 'available',
+      capabilities: capabilitiesFromManifest(runner.manifest),
+    }
   }
 
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {

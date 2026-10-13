@@ -89,7 +89,9 @@ describe('ProviderService while the manifest registry is loading', () => {
     })
     const service = createUpgradeContainer().get(ProviderService)
 
-    const pending = settle(service.parseUrl('https://example.com/play/1'))
+    const pending = settle(
+      service.parseUrl('https://www.bilibili.com/bangumi/play/ss1')
+    )
     await new Promise((resolve) => setTimeout(resolve, 0))
     release()
 

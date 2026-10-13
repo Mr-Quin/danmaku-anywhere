@@ -58,6 +58,7 @@
     "refreshMetadata": "刷新元数据",
     "sourceRemoved": "弹幕源已删除",
     "sourceRemovedTooltip": "该弹幕源已被删除。",
+    "sourceUnavailableTooltip": "该弹幕源暂时无法使用。",
     "title": "标题"
   },
   "bookmark": {
@@ -746,8 +747,11 @@
       }
     },
     "error": {
+      "danmakuUnsupported": "{{name}} 不支持获取弹幕",
       "episodesUnsupported": "{{name}} 不支持获取剧集列表",
-      "refetchUnsupported": "{{name}} 无法重新获取已保存剧集的弹幕"
+      "searchUnsupported": "{{name}} 不支持搜索",
+      "seasonRefreshUnsupported": "{{name}} 不支持刷新番剧信息",
+      "sourceUnavailable": "{{name}} 暂时无法使用"
     },
     "filter": {
       "placeholder": "筛选弹幕源"

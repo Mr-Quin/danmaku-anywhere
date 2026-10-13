@@ -1,4 +1,4 @@
-import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
@@ -7,10 +7,6 @@ import { isCustomSeason } from '@/common/danmaku/utils'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { serializeError } from '@/common/utils/serializeError'
-import {
-  DanmakuProviderFactory,
-  type IDanmakuProviderFactory,
-} from '../../providers/ProviderFactory'
 import { SourceCapabilityService } from '../../providers/SourceCapabilityService'
 import { EpisodeResolutionService } from '../EpisodeResolutionService'
 import type { IMatchingStrategy } from './IMatchingStrategy'
@@ -24,8 +20,6 @@ export class SearchMatchingStrategy implements IMatchingStrategy {
   constructor(
     @inject(SourceCapabilityService)
     private sourceCapabilities: SourceCapabilityService,
-    @inject(DanmakuProviderFactory)
-    private danmakuProviderFactory: IDanmakuProviderFactory,
     @inject(SeasonService) private seasonService: SeasonService,
     @inject(TitleMappingService)
     private titleMappingService: TitleMappingService,
@@ -40,26 +34,19 @@ export class SearchMatchingStrategy implements IMatchingStrategy {
     const { title, mapKey, episodeNumber } = input
 
     const autoProvider =
-      await this.sourceCapabilities.getFirstAutomaticProvider()
+      await this.sourceCapabilities.getFirstSearchMatchProvider()
 
     if (!autoProvider) {
       return null
     }
 
-    const service = this.danmakuProviderFactory(autoProvider)
+    const service = await this.sourceCapabilities.searchProvider(autoProvider)
+    if (service.kind === 'searchOnly') {
+      return null
+    }
 
     this.logger.debug(`Searching for season: ${title}`)
-    const foundSeasonInserts = (await service.search({
-      keyword: title,
-    })) as SeasonInsert[] // TODO: technically unsafe, fix by folding custom season into season
-
-    if (
-      foundSeasonInserts[0] &&
-      isCustomSeason(foundSeasonInserts[0] as unknown as Season)
-    ) {
-      // should not be reached
-      throw new Error('Custom season found, but not supported')
-    }
+    const foundSeasonInserts = await service.search({ keyword: title })
 
     const foundSeasons = await this.seasonService.bulkUpsert(foundSeasonInserts)
 

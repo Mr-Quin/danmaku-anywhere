@@ -24,6 +24,8 @@ import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import {
   capabilitiesFromManifest,
   LEGACY_MACCMS_CAPABILITIES,
+  type SourceCapabilities,
+  type SourceStatus,
 } from '@/common/providers/sourceCapabilities'
 import {
   createTestContainer,
@@ -31,7 +33,7 @@ import {
 } from '@/tests/createTestContainer'
 import { makeSeason, makeSeasonInsert } from '@/tests/factories'
 import { silentLogger } from '@/tests/silentLogger'
-import type { IDanmakuProvider } from './IDanmakuProvider'
+import type { SourceProvider } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
 import { ManifestRegistry } from './ManifestRegistry'
 import { DanmakuProviderFactory } from './ProviderFactory'
@@ -66,8 +68,8 @@ function makeConfig(manifestId: string): ProviderConfig {
 }
 
 type ProviderDouble = Pick<
-  IDanmakuProvider,
-  'getCapabilities' | 'search' | 'getEpisodes' | 'getDanmaku'
+  SourceProvider,
+  'kind' | 'getStatus' | 'search' | 'getEpisodes' | 'getDanmaku'
 >
 
 const MANIFEST_CAPABILITIES = capabilitiesFromManifest({
@@ -76,13 +78,28 @@ const MANIFEST_CAPABILITIES = capabilitiesFromManifest({
   danmaku: {},
 })
 
+function available(capabilities: SourceCapabilities) {
+  return vi.fn(
+    async (): Promise<SourceStatus> => ({ status: 'available', capabilities })
+  )
+}
+
 function makeProvider(overrides: Partial<ProviderDouble> = {}): ProviderDouble {
   return {
-    getCapabilities: vi.fn(async () => MANIFEST_CAPABILITIES),
+    kind: 'source',
+    getStatus: available(MANIFEST_CAPABILITIES),
     search: vi.fn(async () => []),
     getEpisodes: vi.fn(async () => []),
     getDanmaku: vi.fn(async () => []),
     ...overrides,
+  }
+}
+
+function makeMacCmsProvider(results: unknown[] = []) {
+  return {
+    kind: 'searchOnly' as const,
+    getStatus: available(LEGACY_MACCMS_CAPABILITIES),
+    search: vi.fn(async () => results),
   }
 }
 
@@ -139,7 +156,7 @@ function comments(count: number): CommentEntity[] {
 
 function build(
   config: ProviderConfig,
-  provider: Partial<ProviderDouble>,
+  provider: object,
   opts: {
     findExisting?: unknown
     existingDanmaku?: unknown[]
@@ -288,10 +305,10 @@ describe('ProviderService legacy-maccms decoupling', () => {
     })
 
     it('throws for a legacy MacCMS config, whose provider has no episode fetch', async () => {
-      const { service } = build(makeConfig(LEGACY_MACCMS_ID), {
-        getCapabilities: vi.fn(async () => LEGACY_MACCMS_CAPABILITIES),
-        search: vi.fn(async () => []),
-      })
+      const { service } = build(
+        makeConfig(LEGACY_MACCMS_ID),
+        makeMacCmsProvider()
+      )
 
       await expect(service.fetchEpisodesBySeason(1)).rejects.toMatchObject({
         name: 'SourceError',
@@ -322,7 +339,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
       }
       const existing = { ...insert, id: 99 }
       const provider = makeProvider({
-        search: vi.fn<IDanmakuProvider['search']>(async () => [insert]),
+        search: vi.fn<SourceProvider['search']>(async () => [insert]),
       })
       const { service, seasonService } = build(makeConfig('iqiyi'), provider, {
         findExisting: existing,
@@ -344,9 +361,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
         ...makeSeasonInsert({ indexedId: 'c', title: 'C' }),
         provider: DanmakuSourceType.MacCMS,
       }
-      const provider = makeProvider({
-        search: vi.fn<IDanmakuProvider['search']>(async () => [customSeason]),
-      })
+      const provider = makeMacCmsProvider([customSeason])
       const { service, seasonService } = build(
         makeConfig(LEGACY_MACCMS_ID),
         provider,
@@ -459,16 +474,13 @@ describe('ProviderService legacy-maccms decoupling', () => {
           providerConfigId: maccmsConfig.id,
         },
       } as WithSeason<EpisodeMeta>
-      const { service } = build(maccmsConfig, {
-        getCapabilities: vi.fn(async () => LEGACY_MACCMS_CAPABILITIES),
-        search: vi.fn(async () => []),
-      })
+      const { service } = build(maccmsConfig, makeMacCmsProvider())
 
       await expect(
         service.getDanmaku({ type: 'by-meta', meta: maccmsMeta, options: {} })
       ).rejects.toMatchObject({
         name: 'SourceError',
-        problem: 'refetchUnsupported',
+        problem: 'danmakuUnsupported',
       })
     })
 
@@ -494,9 +506,24 @@ describe('ProviderService capability gates', () => {
   const searchOnly = capabilitiesFromManifest({ search: {} })
   const config = makeConfig('search-only')
 
+  it('refuses to search a manifest without a search pipeline', async () => {
+    const provider = makeProvider({
+      getStatus: available(capabilitiesFromManifest({ episodes: {} })),
+    })
+    const { service } = build(config, provider)
+
+    await expect(
+      service.searchSeason({ providerConfigId: config.id, keyword: 'a' })
+    ).rejects.toMatchObject({
+      name: 'SourceError',
+      problem: 'searchUnsupported',
+    })
+    expect(provider.search).not.toHaveBeenCalled()
+  })
+
   it('refuses episodes for a manifest without an episodes pipeline', async () => {
     const provider = makeProvider({
-      getCapabilities: vi.fn(async () => searchOnly),
+      getStatus: available(searchOnly),
     })
     const { service } = build(config, provider)
 
@@ -510,7 +537,7 @@ describe('ProviderService capability gates', () => {
 
   it('refuses danmaku for a manifest without a danmaku pipeline', async () => {
     const provider = makeProvider({
-      getCapabilities: vi.fn(async () => searchOnly),
+      getStatus: available(searchOnly),
     })
     const { service } = build(config, provider)
     const meta = {
@@ -528,12 +555,12 @@ describe('ProviderService capability gates', () => {
       service.getDanmaku({ type: 'by-meta', meta, options: {} })
     ).rejects.toMatchObject({
       name: 'SourceError',
-      problem: 'refetchUnsupported',
+      problem: 'danmakuUnsupported',
     })
     expect(provider.getDanmaku).not.toHaveBeenCalled()
   })
 
-  it('leaves a season alone when its manifest has no season pipeline', async () => {
+  it('refuses a season refresh when its manifest has no season pipeline', async () => {
     const season = makeSeason({
       manifestId: config.manifestId,
       providerConfigId: config.id,
@@ -544,13 +571,18 @@ describe('ProviderService capability gates', () => {
       seasonService: { filter: vi.fn(async () => [season]), upsert },
       providerConfigService: { getAll: vi.fn(async () => [config]) },
       factory: vi.fn(() => ({
-        getCapabilities: vi.fn(async () => MANIFEST_CAPABILITIES),
+        kind: 'source',
+        getStatus: available(MANIFEST_CAPABILITIES),
         getSeason,
       })),
     })
 
-    await service.refreshSeason({ id: season.id })
-
+    await expect(
+      service.refreshSeason({ id: season.id })
+    ).rejects.toMatchObject({
+      name: 'SourceError',
+      problem: 'seasonRefreshUnsupported',
+    })
     expect(getSeason).not.toHaveBeenCalled()
     expect(upsert).not.toHaveBeenCalled()
   })
@@ -612,7 +644,7 @@ describe('ProviderService.getDanmaku against persisted episodes', () => {
     const first = Promise.withResolvers<CommentEntity[]>()
     const second = Promise.withResolvers<CommentEntity[]>()
     const getDanmaku = vi
-      .fn<NonNullable<IDanmakuProvider['getDanmaku']>>()
+      .fn<SourceProvider['getDanmaku']>()
       .mockReturnValueOnce(first.promise)
       .mockReturnValueOnce(second.promise)
     const getAll = vi.fn<ProviderConfigService['getAll']>(async () => [config])
@@ -1456,6 +1488,8 @@ describe('ProviderService season resolution by config id', () => {
 
   function buildWithDb(configs: ProviderConfig[]) {
     const factory = vi.fn((config: ProviderConfig) => ({
+      kind: 'source',
+      getStatus: available(MANIFEST_CAPABILITIES),
       search: async () => [
         makeSeasonInsert({
           manifestId: config.manifestId,

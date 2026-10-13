@@ -1,8 +1,8 @@
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { seasonActions } from '@/common/providers/seasonActions'
 import {
   capabilitiesFromManifest,
-  NO_CAPABILITIES,
   type SourceCapabilityAnswer,
 } from '@/common/providers/sourceCapabilities'
 import { makeSeason } from '@/tests/factories'
@@ -16,7 +16,7 @@ import { SeasonContextMenuPure } from './SeasonContextMenuPure'
 const pipeline = {}
 
 const withSeasonPipeline: SourceCapabilityAnswer = {
-  sourceRemoved: false,
+  status: 'available',
   capabilities: capabilitiesFromManifest({
     search: pipeline,
     episodes: pipeline,
@@ -26,7 +26,7 @@ const withSeasonPipeline: SourceCapabilityAnswer = {
 }
 
 const withoutSeasonPipeline: SourceCapabilityAnswer = {
-  sourceRemoved: false,
+  status: 'available',
   capabilities: capabilitiesFromManifest({
     search: pipeline,
     episodes: pipeline,
@@ -34,10 +34,7 @@ const withoutSeasonPipeline: SourceCapabilityAnswer = {
   }),
 }
 
-const removed: SourceCapabilityAnswer = {
-  sourceRemoved: true,
-  capabilities: NO_CAPABILITIES,
-}
+const removed: SourceCapabilityAnswer = { status: 'removed' }
 
 let root: Root | undefined
 
@@ -53,7 +50,7 @@ async function renderMenu(source: SourceCapabilityAnswer | undefined) {
   root.render(
     <SeasonContextMenuPure
       season={makeSeason()}
-      source={source}
+      actions={seasonActions(source)}
       bookmarked={false}
       onExport={vi.fn()}
       onExportBackup={vi.fn()}
