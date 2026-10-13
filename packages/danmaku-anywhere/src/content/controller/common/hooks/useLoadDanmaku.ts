@@ -86,6 +86,7 @@ interface MountDanmakuOptions {
 interface LoadDanmakuInput {
   request: DanmakuFetchDto
   silent?: boolean
+  shouldMount?: () => boolean
 }
 
 function isOnlyMounted(episode: Episode): boolean {
@@ -166,8 +167,15 @@ export const useLoadDanmaku = () => {
   )
 
   const loadMutation = useMutation({
-    mutationFn: async ({ request, silent = false }: LoadDanmakuInput) => {
+    mutationFn: async ({
+      request,
+      silent = false,
+      shouldMount,
+    }: LoadDanmakuInput) => {
       const result = await fetchMutation.mutateAsync(request)
+      if (shouldMount && !shouldMount()) {
+        return { ...result, mounted: false, mountError: undefined }
+      }
       if (result.keptStored && isOnlyMounted(result.episode)) {
         return { ...result, mounted: false, mountError: undefined }
       }

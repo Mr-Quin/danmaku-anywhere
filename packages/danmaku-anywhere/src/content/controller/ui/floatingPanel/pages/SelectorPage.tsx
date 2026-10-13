@@ -4,17 +4,19 @@ import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isPersistedSeason } from '@/common/anime/utils'
 import { SeasonGrid } from '@/common/components/Season/SeasonGrid'
+import { useToast } from '@/common/components/Toast/toastStore'
 import { isCustomEpisode, isCustomSeason } from '@/common/danmaku/utils'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
-import { usePopup } from '@/content/controller/store/popupStore'
+import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 
 export const SelectorPage = () => {
   const { t } = useTranslation()
 
   const selectorBoxRef = useRef<HTMLDivElement>(undefined)
-  const { animes, toggleOpen } = usePopup()
+  const toast = useToast.use.toast()
+  const { animes, toggleOpen, open } = usePopup()
   const { mediaInfo } = useStore.use.integration()
 
   const [selectedSeason, setSelectedSeason] = useState<Season>()
@@ -41,32 +43,35 @@ export const SelectorPage = () => {
       seasonId: selectedSeason.id,
     }
 
-    matchEpisode.mutate(episodeMatchPayload, {
-      onSuccess: (result) => {
-        if (
-          result.data.status !== 'success' ||
-          isCustomEpisode(result.data.data) // shouldn't happen here
-        ) {
-          return
-        }
-        loadMutation.mutate(
-          {
-            request: {
-              type: 'by-meta',
-              meta: result.data.data,
-              options: {
-                forceUpdate: false,
-              },
-            },
+    const outcome = await matchEpisode.match(episodeMatchPayload)
+    if (outcome.status === 'failed') {
+      toast.error(outcome.message, outcome.action)
+      return
+    }
+    if (outcome.status === 'ambiguous') {
+      open({ animes: outcome.seasons, tab: PopupTab.Selector })
+      return
+    }
+    // A season picked from the selector always has a source.
+    if (isCustomEpisode(outcome.episode)) {
+      return
+    }
+    loadMutation.mutate(
+      {
+        request: {
+          type: 'by-meta',
+          meta: outcome.episode,
+          options: {
+            forceUpdate: false,
           },
-          {
-            onSettled: () => {
-              toggleOpen()
-            },
-          }
-        )
+        },
       },
-    })
+      {
+        onSettled: () => {
+          toggleOpen()
+        },
+      }
+    )
   }
 
   if (animes.length === 0) {
