@@ -22,6 +22,11 @@ export interface FrameState {
   started: boolean
   // Whether danmaku is mounted in this frame
   mounted: boolean
+  // The last mount or unmount command sent to this frame, and the last one
+  // whose reply has been recorded. `mounted` only follows a reply newer than
+  // the recorded one.
+  issuedCommand: number
+  committedCommand: number
   // Whether a video element is detected in this frame
   hasVideo: boolean
   // Info about the active video element
@@ -47,17 +52,17 @@ interface StoreState {
     filter: string
     setFilter: (filter: string) => void
 
-    mount: (episodes: GenericEpisode[]) => void
-    unmount: () => void
-
     /**
-     * Mount and unmount commands are numbered as they are sent to a player.
-     * Their completions can arrive out of order, so a completion only updates
-     * the store when no command sent after it already has.
+     * Mount and unmount commands are numbered in the order they are sent, and
+     * their replies can arrive out of order. Each frame records its own
+     * replies; what is mounted only follows a reply newer than the one that
+     * last set it, whichever frame that was.
      */
     lastCommand: number
-    committedCommand: number
-    issueCommand: () => number
+    recordCommand: number
+    mountedFrameId?: number
+    issueCommand: (frameId: number) => number
+    isLatestCommand: (frameId: number, command: number) => boolean
     commitMount: (
       command: number,
       frameId: number,
@@ -80,7 +85,6 @@ interface StoreState {
      * Information about the current danmaku. This is an array since multiple episodes can be mounted at once.
      */
     episodes?: GenericEpisode[]
-    setEpisodes: (episodes: GenericEpisode[] | undefined) => void
 
     /**
      * Whether the danmaku is manually set
@@ -107,6 +111,13 @@ interface StoreState {
     mediaInfo?: MediaInfo
     setMediaInfo: (mediaInfo: MediaInfo) => void
     resetIntegration: () => void
+    // Whether automatic matching is still working on the current episode.
+    runInFlight: boolean
+    setRunInFlight: (inFlight: boolean) => void
+    // Danmaku the user picks win over automatic matching still in flight.
+    // The integration ends its run whenever this count goes up.
+    preemptions: number
+    preemptAutomatic: () => void
   }
 
   /**
@@ -143,20 +154,18 @@ interface StoreState {
   }
 }
 
-function setFrameMounted(
-  state: Draft<StoreState>,
-  frameId: number,
-  mounted: boolean
-) {
-  const frame = state.frame.allFrames.get(frameId)
-  if (!frame) {
-    return
-  }
-  const next = { ...frame, mounted }
-  state.frame.allFrames.set(frameId, next)
-  if (state.frame.activeFrame?.frameId === frameId) {
+function writeFrame(state: Draft<StoreState>, next: FrameState) {
+  state.frame.allFrames.set(next.frameId, next)
+  if (state.frame.activeFrame?.frameId === next.frameId) {
     state.frame.activeFrame = next
   }
+}
+
+function clearMounted(state: Draft<StoreState>) {
+  state.danmaku.isMounted = false
+  state.danmaku.mountedFrameId = undefined
+  state.danmaku.episodes = undefined
+  state.danmaku.comments = []
 }
 
 const useStoreBase = create<StoreState>()(
@@ -178,56 +187,72 @@ const useStoreBase = create<StoreState>()(
         })
       },
 
-      mount: (episodes) => {
-        set((state) => {
-          state.danmaku.isMounted = true
-          state.danmaku.episodes = episodes
-          state.danmaku.comments = episodes.flatMap((episode) => {
-            return episode.comments
-          })
-        })
-      },
-      unmount: () => {
-        set((state) => {
-          state.danmaku.isMounted = false
-          state.danmaku.episodes = undefined
-          state.danmaku.comments = []
-        })
-      },
       lastCommand: 0,
-      committedCommand: 0,
-      issueCommand: () => {
+      recordCommand: 0,
+      mountedFrameId: undefined,
+      issueCommand: (frameId) => {
         const command = get().danmaku.lastCommand + 1
         set((state) => {
           state.danmaku.lastCommand = command
+          const frame = state.frame.allFrames.get(frameId)
+          if (frame) {
+            writeFrame(state, { ...frame, issuedCommand: command })
+          }
         })
         return command
       },
+      isLatestCommand: (frameId, command) => {
+        const frame = get().frame.allFrames.get(frameId)
+        if (!frame) {
+          return false
+        }
+        return (
+          frame.issuedCommand === command && command > frame.committedCommand
+        )
+      },
       commitMount: (command, frameId, episodes) => {
-        if (command <= get().danmaku.committedCommand) {
+        const frame = get().frame.allFrames.get(frameId)
+        if (!frame || command <= frame.committedCommand) {
           return false
         }
         set((state) => {
-          state.danmaku.committedCommand = command
+          writeFrame(state, {
+            ...frame,
+            committedCommand: command,
+            mounted: true,
+          })
+          if (command <= state.danmaku.recordCommand) {
+            return
+          }
+          state.danmaku.recordCommand = command
           state.danmaku.isMounted = true
+          state.danmaku.mountedFrameId = frameId
           state.danmaku.episodes = episodes
           state.danmaku.comments = episodes.flatMap((episode) => {
             return episode.comments
           })
-          setFrameMounted(state, frameId, true)
         })
         return true
       },
       commitUnmount: (command, frameId) => {
-        if (command <= get().danmaku.committedCommand) {
+        const frame = get().frame.allFrames.get(frameId)
+        if (!frame || command <= frame.committedCommand) {
           return false
         }
         set((state) => {
-          state.danmaku.committedCommand = command
-          state.danmaku.isMounted = false
-          state.danmaku.episodes = undefined
-          state.danmaku.comments = []
-          setFrameMounted(state, frameId, false)
+          writeFrame(state, {
+            ...frame,
+            committedCommand: command,
+            mounted: false,
+          })
+          if (
+            state.danmaku.mountedFrameId !== frameId ||
+            command <= state.danmaku.recordCommand
+          ) {
+            return
+          }
+          state.danmaku.recordCommand = command
+          clearMounted(state)
         })
         return true
       },
@@ -240,11 +265,6 @@ const useStoreBase = create<StoreState>()(
 
       comments: [],
       episodes: undefined,
-      setEpisodes: (episodes) => {
-        set((state) => {
-          state.danmaku.episodes = episodes
-        })
-      },
 
       isManual: false,
       toggleManualMode: (manual) => {
@@ -304,6 +324,18 @@ const useStoreBase = create<StoreState>()(
           state.integration.foundElements = false
           state.integration.errorMessage = undefined
         }),
+      runInFlight: false,
+      setRunInFlight: (inFlight) => {
+        set((state) => {
+          state.integration.runInFlight = inFlight
+        })
+      },
+      preemptions: 0,
+      preemptAutomatic: () => {
+        set((state) => {
+          state.integration.preemptions += 1
+        })
+      },
     },
 
     hasVideo: () => {
@@ -331,11 +363,15 @@ const useStoreBase = create<StoreState>()(
       },
       addFrame: ({ frameId, url }) => {
         set((state) => {
+          // Replies to commands sent to an earlier frame with this id are stale.
+          const lastCommand = state.danmaku.lastCommand
           state.frame.allFrames.set(frameId, {
             frameId,
             url,
             started: false,
             mounted: false,
+            issuedCommand: lastCommand,
+            committedCommand: lastCommand,
             hasVideo: false,
             videoChangeCount: 0,
             lastPlayTimestamp: 0,
@@ -351,11 +387,10 @@ const useStoreBase = create<StoreState>()(
           )
         }
 
-        if (frame.mounted) {
-          get().danmaku.unmount()
-        }
-
         set((state) => {
+          if (state.danmaku.mountedFrameId === frameId) {
+            clearMounted(state)
+          }
           state.frame.allFrames.delete(frameId)
 
           if (frameId === state.frame.activeFrame?.frameId) {
