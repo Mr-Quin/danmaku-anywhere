@@ -29,7 +29,9 @@ import {
  * to load, and a load that fails is retried by the next call. A store that
  * fails to read or write rejects the call and leaves the in-memory runners and
  * the stored record as they were. Every change that lands is announced on the
- * data-change channel; a call that changes nothing stays quiet.
+ * data-change channel with the manifest ids it touched and whether the
+ * catalog side moved, once per batch; a call that changes nothing stays
+ * quiet.
  */
 
 function makeManifest(
@@ -1115,8 +1117,6 @@ describe('ManifestRegistry bundled manifests', () => {
 })
 
 describe('ManifestRegistry change announcements', () => {
-  const MANIFESTS_CHANGED = { type: 'manifestsChanged' }
-
   function fullySeededStore(extra: ManifestRecord = {}): InMemoryStore {
     const record: ManifestRecord = {}
     for (const { id } of bundledCatalogIndex()) {
@@ -1125,12 +1125,18 @@ describe('ManifestRegistry change announcements', () => {
     return new InMemoryStore({ ...record, ...extra })
   }
 
+  function announced(manifestIds: string[], catalogChanged: boolean) {
+    return { type: 'manifestsChanged', manifestIds, catalogChanged }
+  }
+
   it('announces the bundle seed written on first load', async () => {
     const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
 
     await registry.listManifests()
 
-    expect(publishDataChange).toHaveBeenCalledExactlyOnceWith(MANIFESTS_CHANGED)
+    expect(publishDataChange).toHaveBeenCalledExactlyOnceWith(
+      announced([...BUNDLED_IDS], false)
+    )
   })
 
   it('stays quiet when a load writes nothing', async () => {
@@ -1141,7 +1147,7 @@ describe('ManifestRegistry change announcements', () => {
     expect(publishDataChange).not.toHaveBeenCalled()
   })
 
-  it('announces a catalog sync that stores a manifest', async () => {
+  it('announces the catalog copies a sync stores', async () => {
     stubCatalogFetch([catalogEntry('one')], {
       [manifestPath('one')]: makeManifest('one'),
     })
@@ -1149,7 +1155,9 @@ describe('ManifestRegistry change announcements', () => {
 
     await registry.update()
 
-    expect(publishDataChange).toHaveBeenCalledExactlyOnceWith(MANIFESTS_CHANGED)
+    expect(publishDataChange).toHaveBeenCalledExactlyOnceWith(
+      announced(['one'], true)
+    )
   })
 
   it('stays quiet when a catalog sync has nothing to store', async () => {
@@ -1166,7 +1174,7 @@ describe('ManifestRegistry change announcements', () => {
     expect(publishDataChange).not.toHaveBeenCalled()
   })
 
-  it('announces applied updates', async () => {
+  it('announces applied updates as catalog changes', async () => {
     stubCatalogFetch([catalogEntry('one', '2.0.0')], {
       [manifestPath('one')]: makeManifest('one', 1, '2.0.0'),
     })
@@ -1179,25 +1187,31 @@ describe('ManifestRegistry change announcements', () => {
 
     await registry.applyUpdates(['one'])
 
-    expect(publishDataChange).toHaveBeenCalledExactlyOnceWith(MANIFESTS_CHANGED)
+    expect(publishDataChange).toHaveBeenCalledExactlyOnceWith(
+      announced(['one'], true)
+    )
   })
 
-  it('announces a recorded catalog check', async () => {
+  it('announces a recorded catalog check with no manifest ids', async () => {
     const registry = new ManifestRegistry(silentLogger, fullySeededStore())
 
     await registry.recordChecked()
 
-    expect(publishDataChange).toHaveBeenCalledExactlyOnceWith(MANIFESTS_CHANGED)
+    expect(publishDataChange).toHaveBeenCalledExactlyOnceWith(
+      announced([], true)
+    )
   })
 
-  it('announces a saved and then a removed user manifest', async () => {
+  it('announces a user manifest save and removal by id only', async () => {
     const registry = new ManifestRegistry(silentLogger, fullySeededStore())
 
     await registry.saveUserManifest(makeManifest('mine:one'), 'create')
     await registry.unregister('mine:one')
 
-    expect(publishDataChange).toHaveBeenCalledTimes(2)
-    expect(publishDataChange).toHaveBeenNthCalledWith(2, MANIFESTS_CHANGED)
+    expect(vi.mocked(publishDataChange).mock.calls).toEqual([
+      [announced(['mine:one'], false)],
+      [announced(['mine:one'], false)],
+    ])
   })
 
   it('stays quiet when a save fails to persist', async () => {
@@ -1210,5 +1224,38 @@ describe('ManifestRegistry change announcements', () => {
     ).rejects.toThrow('quota')
 
     expect(publishDataChange).not.toHaveBeenCalled()
+  })
+
+  it('announces everything changed inside a batch once, when it ends', async () => {
+    stubCatalogFetch([catalogEntry('one')], {
+      [manifestPath('one')]: makeManifest('one'),
+    })
+    const registry = new ManifestRegistry(silentLogger, fullySeededStore())
+
+    await registry.batchChanges(async () => {
+      await registry.update()
+      await registry.saveUserManifest(makeManifest('mine:one'), 'create')
+      await registry.recordChecked()
+      expect(publishDataChange).not.toHaveBeenCalled()
+    })
+
+    expect(publishDataChange).toHaveBeenCalledExactlyOnceWith(
+      announced(['one', 'mine:one'], true)
+    )
+  })
+
+  it('still announces what a failed batch changed', async () => {
+    const registry = new ManifestRegistry(silentLogger, fullySeededStore())
+
+    await expect(
+      registry.batchChanges(async () => {
+        await registry.saveUserManifest(makeManifest('mine:one'), 'create')
+        throw new Error('boom')
+      })
+    ).rejects.toThrow('boom')
+
+    expect(publishDataChange).toHaveBeenCalledExactlyOnceWith(
+      announced(['mine:one'], false)
+    )
   })
 })

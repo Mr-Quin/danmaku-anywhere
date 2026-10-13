@@ -6,9 +6,10 @@ import { seasonQueryKeys, sourceQueryKeys, storageQueryKeys } from './queryKeys'
 
 /**
  * followBackgroundChanges turns changes made in other contexts into query
- * invalidations: a manifest change announced on the data-change channel marks
- * every source query stale, an invalidateQueries event marks the keys it names,
- * and a chrome.storage write marks the queries reading that key in that area.
+ * invalidations: a manifest announcement marks the lists, plus pending updates
+ * for a catalog change or the per-source queries of the manifests it names,
+ * an invalidateQueries event marks the keys it names, and a chrome.storage
+ * write marks the queries reading that key in that area.
  */
 
 const sender = new BroadcastChannel('danmaku-anywhere:data-change')
@@ -31,19 +32,59 @@ function isInvalidated(queryKey: readonly unknown[]): boolean | undefined {
 }
 
 describe('followBackgroundChanges', () => {
-  it('invalidates every source query when the manifests change', async () => {
+  it('refreshes the lists and pending updates on a catalog check, and nothing per source', async () => {
+    client.setQueryData(sourceQueryKeys.manifestList('en'), {})
+    client.setQueryData(sourceQueryKeys.manifestList('zh-CN'), {})
+    client.setQueryData(sourceQueryKeys.pendingUpdates(), [])
+    client.setQueryData(sourceQueryKeys.loginStatus('bilibili'), {})
+    client.setQueryData(sourceQueryKeys.manifestSpec('bilibili', 'en'), {})
+    client.setQueryData(sourceQueryKeys.manifestSource('bilibili'), {})
+
+    sender.postMessage({
+      type: 'manifestsChanged',
+      manifestIds: [],
+      catalogChanged: true,
+    })
+
+    await vi.waitFor(() => {
+      expect(isInvalidated(sourceQueryKeys.pendingUpdates())).toBe(true)
+    })
+    expect(isInvalidated(sourceQueryKeys.manifestList('en'))).toBe(true)
+    expect(isInvalidated(sourceQueryKeys.manifestList('zh-CN'))).toBe(true)
+    expect(isInvalidated(sourceQueryKeys.loginStatus('bilibili'))).toBe(false)
+    expect(isInvalidated(sourceQueryKeys.manifestSpec('bilibili', 'en'))).toBe(
+      false
+    )
+    expect(isInvalidated(sourceQueryKeys.manifestSource('bilibili'))).toBe(
+      false
+    )
+  })
+
+  it('refreshes the list and the queries of the changed manifests only', async () => {
     client.setQueryData(sourceQueryKeys.manifestList('en'), {})
     client.setQueryData(sourceQueryKeys.pendingUpdates(), [])
-    client.setQueryData(sourceQueryKeys.manifestSpec('one', 'en'), {})
+    client.setQueryData(sourceQueryKeys.loginStatus('mine:one'), {})
+    client.setQueryData(sourceQueryKeys.manifestSpec('mine:one', 'en'), {})
+    client.setQueryData(sourceQueryKeys.manifestSource('mine:one'), {})
+    client.setQueryData(sourceQueryKeys.loginStatus('bilibili'), {})
     client.setQueryData(seasonQueryKeys.all(), [])
 
-    sender.postMessage({ type: 'manifestsChanged' })
+    sender.postMessage({
+      type: 'manifestsChanged',
+      manifestIds: ['mine:one'],
+      catalogChanged: false,
+    })
 
     await vi.waitFor(() => {
       expect(isInvalidated(sourceQueryKeys.manifestList('en'))).toBe(true)
     })
-    expect(isInvalidated(sourceQueryKeys.pendingUpdates())).toBe(true)
-    expect(isInvalidated(sourceQueryKeys.manifestSpec('one', 'en'))).toBe(true)
+    expect(isInvalidated(sourceQueryKeys.loginStatus('mine:one'))).toBe(true)
+    expect(isInvalidated(sourceQueryKeys.manifestSpec('mine:one', 'en'))).toBe(
+      true
+    )
+    expect(isInvalidated(sourceQueryKeys.manifestSource('mine:one'))).toBe(true)
+    expect(isInvalidated(sourceQueryKeys.loginStatus('bilibili'))).toBe(false)
+    expect(isInvalidated(sourceQueryKeys.pendingUpdates())).toBe(false)
     expect(isInvalidated(seasonQueryKeys.all())).toBe(false)
   })
 
@@ -85,7 +126,6 @@ describe('followBackgroundChanges', () => {
     stopFollowing()
 
     await fakeBrowser.storage.sync.set({ providerConfig: { data: [] } })
-    sender.postMessage({ type: 'manifestsChanged' })
     await new Promise((resolve) => setTimeout(resolve, 50))
 
     expect(isInvalidated(queryKey)).toBe(false)

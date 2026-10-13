@@ -4,12 +4,20 @@ import type { QueryKey } from '@tanstack/react-query'
 // Content scripts run at the host page's origin and are handled by
 // invalidateContentScriptData in the background SW.
 
+export interface ManifestChange {
+  // Manifests whose stored copy was added, replaced or removed.
+  manifestIds: string[]
+  // A catalog copy was stored or the catalog was checked, which moves the
+  // pending updates and the last-checked time.
+  catalogChanged: boolean
+}
+
 export type DataChangeEvent =
   | {
       type: 'invalidateQueries'
       keys: QueryKey[]
     }
-  | { type: 'manifestsChanged' }
+  | ({ type: 'manifestsChanged' } & ManifestChange)
 
 type Handler = (event: DataChangeEvent) => void
 

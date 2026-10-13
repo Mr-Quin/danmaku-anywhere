@@ -8,7 +8,10 @@ import {
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
-import { publishDataChange } from '@/common/messaging/dataChangeChannel'
+import {
+  type ManifestChange,
+  publishDataChange,
+} from '@/common/messaging/dataChangeChannel'
 import type {
   ManifestUpdate,
   ProviderManifestInfo,
@@ -78,6 +81,8 @@ export class ManifestRegistry {
   private readonly store: IManifestStore
   private readonly baseUrl = import.meta.env.VITE_PROXY_URL
   private loading: Promise<void> | null = null
+  private batchDepth = 0
+  private unannounced: ManifestChange | null = null
 
   constructor(
     @inject(LoggerSymbol) logger: ILogger,
@@ -121,14 +126,14 @@ export class ManifestRegistry {
   // Stamp the catalog as freshly synced; the caller decides when it is current.
   async recordChecked(): Promise<void> {
     await this.store.setLastCheckedAt(Date.now())
-    this.announceChange()
+    this.recordChange([], true)
   }
 
   async unregister(manifestId: string): Promise<void> {
     await this.whenLoaded()
     await this.store.remove(manifestId)
     this.runners.delete(manifestId)
-    this.announceChange()
+    this.recordChange([manifestId], false)
   }
 
   // Add-only except for 'bundled' entries, which the catalog copy replaces
@@ -257,7 +262,7 @@ export class ManifestRegistry {
     const runner = this.buildRunner(parsed.data)
     await this.store.set(id, { manifest, kind: 'user' })
     this.runners.set(id, { runner, kind: 'user' })
-    this.announceChange()
+    this.recordChange([id], false)
   }
 
   // Returns the raw stored manifest JSON (not the parsed runner form) so the
@@ -285,10 +290,41 @@ export class ManifestRegistry {
     await this.seedFromBundle(record)
   }
 
+  // Changes made while run is in flight are announced together when it
+  // settles, so a multi-step sync costs readers one refetch.
+  async batchChanges<T>(run: () => Promise<T>): Promise<T> {
+    this.batchDepth += 1
+    try {
+      return await run()
+    } finally {
+      this.batchDepth -= 1
+      if (this.batchDepth === 0) {
+        this.announce()
+      }
+    }
+  }
+
   // Call only once both the store and the runners hold the change. Readers
-  // refetch on this and must not see the old state.
-  private announceChange(): void {
-    publishDataChange({ type: 'manifestsChanged' })
+  // refetch on the announcement and must not see the old state.
+  private recordChange(manifestIds: string[], catalogChanged: boolean): void {
+    const previous = this.unannounced
+    this.unannounced = {
+      manifestIds: [
+        ...new Set([...(previous?.manifestIds ?? []), ...manifestIds]),
+      ],
+      catalogChanged: catalogChanged || (previous?.catalogChanged ?? false),
+    }
+    if (this.batchDepth === 0) {
+      this.announce()
+    }
+  }
+
+  private announce(): void {
+    if (!this.unannounced) {
+      return
+    }
+    publishDataChange({ type: 'manifestsChanged', ...this.unannounced })
+    this.unannounced = null
   }
 
   // Returns the ids actually stored; the caller can compare against what it
@@ -313,7 +349,10 @@ export class ManifestRegistry {
         kind: 'preinstalled',
       })
     }
-    this.announceChange()
+    this.recordChange(
+      fetched.map(({ parsed }) => parsed.id),
+      true
+    )
     return fetched.map(({ parsed }) => parsed.id)
   }
 
@@ -352,7 +391,10 @@ export class ManifestRegistry {
         kind: 'bundled',
       })
     }
-    this.announceChange()
+    this.recordChange(
+      toRegister.map((manifest) => manifest.id),
+      false
+    )
   }
 
   private async loadIndex(): Promise<CatalogEntry[] | null> {

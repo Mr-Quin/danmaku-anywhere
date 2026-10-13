@@ -412,37 +412,39 @@ export class ProviderService {
   // manual via the Updates list. Records the check only on a real sync, so
   // "checked Nm ago" never advances on a bare detection. Returns how the
   // catalog index resolved.
-  async syncCatalog(): Promise<CatalogSyncResult> {
-    const result = await this.manifestRegistry.update()
-    if (result === 'synced') {
-      // update() just reached the index, so a failure here means it died
-      // mid-sync; skip the best-effort auto-apply rather than fail the sync.
-      const pending = await this.manifestRegistry
-        .getPendingUpdates()
-        .catch((e) => {
-          this.logger.warn('Failed to detect pending updates mid-sync:', e)
-          return []
-        })
-      const configs = await this.providerConfigService.getAll()
-      const installed = new Set(configs.map((config) => config.manifestId))
-      const uninstalled = pending
-        .filter((update) => !installed.has(update.manifestId))
-        .map((update) => update.manifestId)
-      if (uninstalled.length > 0) {
-        try {
-          await this.manifestRegistry.applyUpdates(uninstalled)
-        } catch (e) {
-          // Best-effort: a failed background apply retries next sync and must
-          // not block recording the check or the rest of the refresh.
-          this.logger.warn('Failed to auto-apply catalog updates:', e)
+  syncCatalog(): Promise<CatalogSyncResult> {
+    return this.manifestRegistry.batchChanges(async () => {
+      const result = await this.manifestRegistry.update()
+      if (result === 'synced') {
+        // update() just reached the index, so a failure here means it died
+        // mid-sync; skip the best-effort auto-apply rather than fail the sync.
+        const pending = await this.manifestRegistry
+          .getPendingUpdates()
+          .catch((e) => {
+            this.logger.warn('Failed to detect pending updates mid-sync:', e)
+            return []
+          })
+        const configs = await this.providerConfigService.getAll()
+        const installed = new Set(configs.map((config) => config.manifestId))
+        const uninstalled = pending
+          .filter((update) => !installed.has(update.manifestId))
+          .map((update) => update.manifestId)
+        if (uninstalled.length > 0) {
+          try {
+            await this.manifestRegistry.applyUpdates(uninstalled)
+          } catch (e) {
+            // Best-effort: a failed background apply retries next sync and must
+            // not block recording the check or the rest of the refresh.
+            this.logger.warn('Failed to auto-apply catalog updates:', e)
+          }
         }
+        await this.manifestRegistry.recordChecked()
       }
-      await this.manifestRegistry.recordChecked()
-    }
-    // The registry holds the bundled manifests from startup, so an unusable
-    // catalog still seeds working sources instead of an empty list.
-    await this.seedDefaultProviders()
-    return result
+      // The registry holds the bundled manifests from startup, so an unusable
+      // catalog still seeds working sources instead of an empty list.
+      await this.seedDefaultProviders()
+      return result
+    })
   }
 
   // syncCatalog can run concurrently (install, alarm, popup refresh) and the

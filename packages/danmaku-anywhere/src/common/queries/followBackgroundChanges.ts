@@ -1,5 +1,8 @@
 import type { QueryClient, QueryKey } from '@tanstack/react-query'
-import { subscribeDataChange } from '@/common/messaging/dataChangeChannel'
+import {
+  type ManifestChange,
+  subscribeDataChange,
+} from '@/common/messaging/dataChangeChannel'
 import {
   type ExtStorageType,
   getStorageArea,
@@ -17,11 +20,15 @@ export function followBackgroundChanges(client: QueryClient): () => void {
   const unsubscribers = [
     subscribeDataChange((event) => {
       if (event.type === 'invalidateQueries') {
-        invalidateAll(client, event.keys)
+        for (const queryKey of event.keys) {
+          void client.invalidateQueries({ queryKey })
+        }
         return
       }
       if (event.type === 'manifestsChanged') {
-        invalidateAll(client, [sourceQueryKeys.all()])
+        for (const queryKey of keysAffectedBy(event)) {
+          void client.invalidateQueries({ queryKey })
+        }
       }
     }),
     ...STORAGE_TYPES.map((storageType) => {
@@ -35,10 +42,19 @@ export function followBackgroundChanges(client: QueryClient): () => void {
   }
 }
 
-function invalidateAll(client: QueryClient, keys: QueryKey[]): void {
-  for (const queryKey of keys) {
-    void client.invalidateQueries({ queryKey })
+function keysAffectedBy(change: ManifestChange): QueryKey[] {
+  const keys: QueryKey[] = [sourceQueryKeys.manifestLists()]
+  if (change.catalogChanged) {
+    keys.push(sourceQueryKeys.pendingUpdates())
   }
+  for (const manifestId of change.manifestIds) {
+    keys.push(
+      sourceQueryKeys.manifestSpecs(manifestId),
+      sourceQueryKeys.manifestSource(manifestId),
+      sourceQueryKeys.loginStatus(manifestId)
+    )
+  }
+  return keys
 }
 
 function followStorageArea(
