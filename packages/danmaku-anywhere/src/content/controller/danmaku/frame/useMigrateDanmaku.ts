@@ -1,49 +1,37 @@
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { Logger } from '@/common/Logger'
 import { sendUnmount } from '@/content/controller/common/danmakuCommands'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useStore } from '@/content/controller/store/store'
 
 /**
- * When the active frame changes, moves the danmaku the previous frame showed
- * to the new one.
+ * Keeps the danmaku in the active frame: when the frame recorded as showing
+ * them is not the active one, whether because the active frame changed or a
+ * mount replied after it did, they move to the active frame.
  */
 export const useMigrateDanmaku = () => {
-  const { activeFrame } = useStore.use.frame()
-
-  const prevActiveFrameId = useRef<number>(activeFrame?.frameId)
+  const activeFrameId = useStore((state) => state.frame.activeFrame?.frameId)
+  const mountedFrameId = useStore((state) => state.danmaku.mountedFrameId)
 
   const { mount } = useLoadDanmaku()
 
   useEffect(() => {
-    if (!activeFrame) {
-      prevActiveFrameId.current = undefined
+    if (
+      activeFrameId === undefined ||
+      mountedFrameId === undefined ||
+      mountedFrameId === activeFrameId
+    ) {
       return
     }
-    const previous = prevActiveFrameId.current
-    if (activeFrame.frameId === previous) {
-      return
-    }
-    prevActiveFrameId.current = activeFrame.frameId
-    if (previous === undefined) {
-      return
-    }
-
-    const { danmaku, frame } = useStore.getState()
-    if (frame.allFrames.get(previous)?.mounted) {
-      sendUnmount(previous).catch((error: unknown) => {
-        Logger.debug('Failed to unmount danmaku from the previous frame', error)
-      })
-    }
-    if (danmaku.mountedFrameId !== previous) {
-      return
-    }
-    const { episodes } = danmaku
+    const { episodes } = useStore.getState().danmaku
+    sendUnmount(mountedFrameId).catch((error: unknown) => {
+      Logger.debug('Failed to unmount danmaku from the previous frame', error)
+    })
     if (!episodes || episodes.length === 0) {
       return
     }
     mount(episodes).catch((error: unknown) => {
-      Logger.debug('Failed to move danmaku to the new frame', error)
+      Logger.debug('Failed to move danmaku to the active frame', error)
     })
-  }, [activeFrame])
+  }, [activeFrameId, mountedFrameId])
 }

@@ -3,14 +3,17 @@ import { act } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { sendMount } from '@/content/controller/common/danmakuCommands'
+import {
+  sendMount,
+  sendUnmount,
+} from '@/content/controller/common/danmakuCommands'
 import { useStore } from '@/content/controller/store/store'
 import { useMigrateDanmaku } from './useMigrateDanmaku'
 
 /**
- * When the active frame changes, the danmaku the previous frame showed move to
- * the new frame without a toast. Nothing moves when what is mounted no longer
- * came from the previous frame. Mocks the player RPC and asserts the player
+ * Danmaku recorded as mounted in a frame other than the active one move to
+ * the active frame without a toast, whether the active frame changed or a
+ * mount replied after it did. Mocks the player RPC and asserts the player
  * commands, the controller store and the toast store.
  */
 
@@ -32,6 +35,14 @@ vi.mock('@/common/rpcClient/background/client', () => ({
 vi.mock('@/content/controller/common/hooks/useDescribeSourceError', () => ({
   useDescribeSourceError: () => () => ({ message: '' }),
 }))
+
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((res) => {
+    resolve = res
+  })
+  return { promise, resolve }
+}
 
 function episode(title: string) {
   return { id: 1, title, comments: [], commentCount: 0 } as never
@@ -104,12 +115,43 @@ describe('useMigrateDanmaku', () => {
     expect(useToast.getState().notifications).toEqual([])
   })
 
-  it('moves nothing when what is mounted came from another frame', async () => {
-    const { danmaku } = useStore.getState()
-    danmaku.commitMount(danmaku.issueCommand(2), 2, [episode('Show B')])
+  it('moves danmaku whose mount replied after another frame became active', async () => {
+    await act(async () => {
+      await sendUnmount(0)
+    })
+    const mountB = deferred<{ data: boolean }>()
+    rpc.mount.mockReturnValueOnce(mountB.promise)
+    let mounting: Promise<unknown> | undefined
+    act(() => {
+      mounting = sendMount([episode('Show B')])
+    })
+    activate(1)
+    await settle()
+    expect(mountCallsTo(1)).toHaveLength(0)
+
+    mountB.resolve({ data: true })
+    await act(async () => {
+      await mounting
+    })
+    await settle()
+
+    expect(rpc.unmount).toHaveBeenLastCalledWith({ frameId: 0 })
+    expect(mountCallsTo(1)).toHaveLength(1)
+    expect(useStore.getState().danmaku).toMatchObject({
+      mountedFrameId: 1,
+      episodes: [expect.objectContaining({ title: 'Show B' })],
+    })
+  })
+
+  it('does nothing when nothing is mounted', async () => {
+    await act(async () => {
+      await sendUnmount(0)
+    })
+    rpc.mount.mockClear()
+
     activate(1)
     await settle()
 
-    expect(mountCallsTo(1)).toHaveLength(0)
+    expect(rpc.mount).not.toHaveBeenCalled()
   })
 })

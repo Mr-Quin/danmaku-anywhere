@@ -172,11 +172,15 @@ export const useLoadDanmaku = () => {
 
   const mountChosen = useEventCallback(async (episodes: GenericEpisode[]) => {
     preemptAutomatic()
+    let result: MountResult
     try {
-      await mount(episodes)
+      result = await mount(episodes)
     } catch (error) {
       toast.error(describeMountError(error))
       throw error
+    }
+    if (result.status !== 'mounted') {
+      return
     }
     if (episodes.length === 1) {
       show(
