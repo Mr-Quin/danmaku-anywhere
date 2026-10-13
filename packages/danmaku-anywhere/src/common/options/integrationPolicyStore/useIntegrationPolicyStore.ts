@@ -7,7 +7,8 @@ import type {
 } from '@/common/options/integrationPolicyStore/schema'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 import type { Options } from '@/common/options/OptionsService/types'
-import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
+import { integrationPolicyDescriptor } from '@/common/options/optionStores'
+import { useOptionStoreQuery } from '@/common/options/useOptionStoreQuery'
 import { createDownload } from '@/common/utils/utils'
 
 export const useIntegrationPolicyStore = () => {
@@ -15,9 +16,7 @@ export const useIntegrationPolicyStore = () => {
     data,
     update: updateMutation,
     ...rest
-  } = useSuspenseExtStorageQuery<Options<Integration[]>>('xpathPolicy', {
-    storageType: 'local',
-  })
+  } = useOptionStoreQuery<Options<Integration[]>>(integrationPolicyDescriptor)
 
   const mountConfigService = useInjectService(MountConfigService)
 

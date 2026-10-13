@@ -18,9 +18,9 @@ import { PlayerScript } from '@/content/player/PlayerScript.service'
 /**
  * UI IoC wiring must be constructible independently of its default export.
  * Importing the module must not read browser storage before an entrypoint
- * explicitly starts the UI language bootstrap. Every build binds the same
- * option stores as the background, and the upgrader goes over RPC except in
- * the standalone build, which upgrades in the page.
+ * explicitly starts the UI language bootstrap. The extension's UI checks
+ * readiness from the store descriptors and upgrades over RPC; only the
+ * standalone build binds the stores and upgrades them in the page.
  */
 describe('createUiContainer', () => {
   beforeEach(() => {
@@ -70,18 +70,19 @@ describe('createUiContainer', () => {
     expect(testContainer.get(OptionsServiceFactory)).toBeTypeOf('function')
   })
 
-  it('binds the same option stores as the background', async () => {
+  it('binds the option store descriptors but no store to upgrade in the extension', async () => {
     const { createUiContainer } = await import('./uiIoc')
+    const { OPTION_STORES, OptionStoreDescriptors } = await import(
+      '@/common/options/optionStores'
+    )
+    const { OptionsUpgradeService } = await import(
+      '@/common/options/upgrade/OptionsUpgradeService'
+    )
+    const container = createUiContainer()
 
-    const uiStores = createUiContainer()
-      .getAll<IStoreService>(StoreServiceSymbol)
-      .map((store) => store.name)
-    const backgroundStores = createBackgroundContainer()
-      .getAll<IStoreService>(StoreServiceSymbol)
-      .map((store) => store.name)
-
-    expect(uiStores.length).toBeGreaterThan(0)
-    expect(uiStores).toEqual(backgroundStores)
+    expect(container.get(OptionStoreDescriptors)).toBe(OPTION_STORES)
+    expect(container.isBound(StoreServiceSymbol)).toBe(false)
+    expect(() => container.get(OptionsUpgradeService)).toThrow()
   })
 
   it('upgrades over RPC in the extension', async () => {
@@ -112,6 +113,13 @@ describe('createUiContainer', () => {
     expect(moduleOnly.get(OptionsUpgraderSymbol)).toBe(
       moduleOnly.get(OptionsUpgradeService)
     )
+    const stores = moduleOnly
+      .getAll<IStoreService>(StoreServiceSymbol)
+      .map((store) => store.name)
+    const backgroundStores = createBackgroundContainer()
+      .getAll<IStoreService>(StoreServiceSymbol)
+      .map((store) => store.name)
+    expect(stores).toEqual(backgroundStores)
   })
 
   it('applies the stored language before the options are upgraded', async () => {
@@ -145,7 +153,7 @@ describe('createUiContainer', () => {
 
     const firstContainer = createUiContainer()
     const firstGet = vi
-      .spyOn(firstContainer.get(OptionsService), 'get')
+      .spyOn(firstContainer.get(OptionsService).options, 'readUnblocked')
       .mockResolvedValue(defaultExtensionOptions)
 
     bootstrapUiLanguage(firstContainer)
@@ -155,7 +163,7 @@ describe('createUiContainer', () => {
 
     const secondContainer = createUiContainer()
     const secondGet = vi
-      .spyOn(secondContainer.get(OptionsService), 'get')
+      .spyOn(secondContainer.get(OptionsService).options, 'readUnblocked')
       .mockResolvedValue(defaultExtensionOptions)
 
     bootstrapUiLanguage(secondContainer)

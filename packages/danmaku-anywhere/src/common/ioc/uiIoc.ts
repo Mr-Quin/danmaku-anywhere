@@ -18,6 +18,7 @@ import { i18n } from '../localization/i18n'
 import { isLanguage } from '../localization/language'
 import { bindOptionStores } from '../options/bindOptionStores'
 import { ExtensionOptionsService } from '../options/extensionOptions/service'
+import { OPTION_STORES, OptionStoreDescriptors } from '../options/optionStores'
 import {
   type OptionsUpgrader,
   OptionsUpgraderSymbol,
@@ -27,7 +28,7 @@ import { RpcOptionsUpgrader } from '../options/upgrade/RpcOptionsUpgrader'
 
 export const uiContainerModule = new ContainerModule((options) => {
   const { bind } = options
-  bindOptionStores(options)
+  bind(OptionStoreDescriptors).toConstantValue(OPTION_STORES)
 
   bind<IOptionsServiceFactory>(OptionsServiceFactory).toFactory(
     optionsServiceFactory
@@ -43,6 +44,7 @@ export const uiContainerModule = new ContainerModule((options) => {
   // The standalone build has no service worker, so the page upgrades its own
   // stores.
   if (IS_STANDALONE_RUNTIME) {
+    bindOptionStores(options)
     bind<OptionsUpgrader>(OptionsUpgraderSymbol).toService(
       OptionsUpgradeService
     )
@@ -67,24 +69,20 @@ export function bootstrapUiLanguage(container: Container): void {
   }
   bootstrappedContainers.add(container)
 
-  const extensionOptions = container.get(ExtensionOptionsService)
+  const { options } = container.get(ExtensionOptionsService)
+  const applyLanguage = (stored: { lang?: unknown }) => {
+    if (isLanguage(stored.lang)) {
+      void i18n.changeLanguage(stored.lang)
+    }
+  }
 
-  // Read ahead of the upgrade so the screens shown while it runs or after it
-  // fails are in the user's language. The upgraded value below still wins.
-  extensionOptions.options
+  // Read without waiting for the upgrade, so the screens shown while it runs
+  // or after it fails are in the user's language. A stored value without a
+  // valid lang is skipped, and the upgrade's own write arrives as a change.
+  options.onChange(applyLanguage)
+  options
     .readUnblocked()
-    .then((options: { lang?: unknown }) => {
-      if (isLanguage(options.lang)) {
-        void i18n.changeLanguage(options.lang)
-      }
-    })
-    .catch(() => undefined)
-
-  extensionOptions
-    .get()
-    .then((options) => {
-      void i18n.changeLanguage(options.lang)
-    })
+    .then(applyLanguage)
     .catch(() => {
       Logger.error(
         'Failed to get language from extension options, fallback to default language'

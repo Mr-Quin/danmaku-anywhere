@@ -7,6 +7,7 @@ import {
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { providerConfigDescriptor } from '@/common/options/optionStores'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { isServiceWorker } from '@/common/utils/utils'
@@ -25,6 +26,7 @@ import { isLegacyMacCms } from './utils'
 @injectable('Singleton')
 export class ProviderConfigService implements IStoreService {
   public readonly name = 'providerConfig'
+  public readonly descriptor = providerConfigDescriptor
   public readonly options: OptionsService<ProviderConfig[]>
   public readonly backupItemSchema = providerConfigSchema
 
@@ -42,10 +44,11 @@ export class ProviderConfigService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory<ProviderConfig[]>(
-      'providerConfig',
+      providerConfigDescriptor.key,
       // Fresh installs start empty and are seeded after the catalog loads.
       [],
-      this.logger
+      this.logger,
+      providerConfigDescriptor.area
     )
       .version(2, {
         upgrade: (data) => {

@@ -4,7 +4,7 @@ import { z } from 'zod'
 import type { BackupData } from '@/common/backup/dto'
 import type { IStoreService } from '@/common/options/IStoreService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
-import type { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
+import type { ReadinessGate } from '@/common/options/ReadinessService/ReadinessService'
 import { silentLogger } from '@/tests/silentLogger'
 import { ConfigStateService } from './ConfigStateService'
 
@@ -558,10 +558,7 @@ describe('ConfigStateService', () => {
 })
 
 describe('ConfigStateService over chrome.storage', () => {
-  async function createStore(
-    readiness: Pick<ReadinessService, 'waitUntilReady'>,
-    name: string
-  ) {
+  async function createStore(readiness: ReadinessGate, name: string) {
     await fakeBrowser.storage.sync.set({
       [name]: { data: { value: 'stored' }, version: 1 },
     })
@@ -571,7 +568,11 @@ describe('ConfigStateService over chrome.storage', () => {
       { value: 'default' },
       silentLogger
     ).version(1, { upgrade: (data) => data })
-    return { name, options } satisfies IStoreService
+    return {
+      name,
+      descriptor: { key: name, area: 'sync', latestVersion: 1 },
+      options,
+    } satisfies IStoreService
   }
 
   async function readStored(name: string) {

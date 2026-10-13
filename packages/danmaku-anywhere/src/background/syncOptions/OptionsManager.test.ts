@@ -1,5 +1,5 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createBackgroundContainer } from '@/background/ioc'
 import { defaultDanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
@@ -9,9 +9,14 @@ import { OptionsManager } from './OptionsManager'
 /**
  * OptionsManager starts the options upgrade on install, startup and every
  * worker wake, sharing one run between them. A wake over stores that are
- * already current writes nothing. A failed run is reported through readiness
- * and the next event starts a fresh attempt.
+ * already current writes nothing. A failed run is reported through readiness;
+ * startup and wakes retry it only after the retry delay, while an install or
+ * update retries at once.
  */
+
+afterEach(() => {
+  vi.useRealTimers()
+})
 
 describe('OptionsManager', () => {
   it('resumes an interrupted upgrade when the worker wakes without an install or startup event', async () => {
@@ -65,7 +70,9 @@ describe('OptionsManager', () => {
     expect(upgrade).toHaveBeenCalledTimes(1)
   })
 
-  it('reports a failed upgrade and recovers on the next event', async () => {
+  it('reports a failed upgrade and retries on startup once the delay has passed', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(0)
     await fakeBrowser.storage.sync.set({
       danmakuOptions: { data: defaultDanmakuOptions, version: 1 },
     })
@@ -74,6 +81,8 @@ describe('OptionsManager', () => {
     )
     const container = createBackgroundContainer()
     const readiness = container.get(ReadinessService)
+    const danmakuOptions = container.get(DanmakuOptionsService)
+    readiness.subscribe(() => undefined)
 
     container.get(OptionsManager).setup()
     await vi.waitFor(() => {
@@ -81,15 +90,36 @@ describe('OptionsManager', () => {
     })
 
     await fakeBrowser.runtime.onStartup.trigger()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(readiness.getState()).toMatchObject({ status: 'failed' })
 
-    await expect(
-      container.get(DanmakuOptionsService).get()
-    ).resolves.toBeDefined()
+    vi.setSystemTime(10 * 60_000)
+    await fakeBrowser.runtime.onStartup.trigger()
+
+    await expect(danmakuOptions.get()).resolves.toBeDefined()
     expect(readiness.getState()).toEqual({ status: 'ready' })
-    await vi.waitFor(async () => {
-      expect(
-        await fakeBrowser.storage.local.get('optionsUpgradeFailure')
-      ).toEqual({})
+  })
+
+  it('retries a failed upgrade at once when the extension is updated', async () => {
+    await fakeBrowser.storage.sync.set({
+      danmakuOptions: { data: defaultDanmakuOptions, version: 1 },
     })
+    vi.spyOn(fakeBrowser.storage.sync, 'set').mockRejectedValueOnce(
+      new Error('QUOTA_BYTES quota exceeded')
+    )
+    const container = createBackgroundContainer()
+    const readiness = container.get(ReadinessService)
+    readiness.subscribe(() => undefined)
+
+    container.get(OptionsManager).setup()
+    await vi.waitFor(() => {
+      expect(readiness.getState()).toMatchObject({ status: 'failed' })
+    })
+    await fakeBrowser.runtime.onInstalled.trigger({
+      reason: 'update',
+      previousVersion: '1.5.0',
+    })
+
+    await expect(readiness.waitUntilReady()).resolves.toBeUndefined()
   })
 })

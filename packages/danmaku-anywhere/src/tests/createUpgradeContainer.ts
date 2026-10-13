@@ -1,7 +1,10 @@
 import type { Container } from 'inversify'
 import { backgroundContainerModule } from '@/background/ioc'
 import { LoggerSymbol } from '@/common/Logger'
-import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
+import {
+  type ReadinessGate,
+  ReadinessService,
+} from '@/common/options/ReadinessService/ReadinessService'
 import {
   createTestContainer,
   type TestContainerOverride,
@@ -21,7 +24,7 @@ export function createUpgradeContainer({
     { identifier: LoggerSymbol, value: silentLogger },
   ]
   if (ready) {
-    const alwaysReady: Pick<ReadinessService, 'waitUntilReady'> = {
+    const alwaysReady: ReadinessGate = {
       waitUntilReady: () => Promise.resolve(),
     }
     overrides.push({ identifier: ReadinessService, value: alwaysReady })

@@ -1,121 +1,107 @@
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
-import { ExtStorageService } from '@/common/storage/ExtStorageService'
+import { getStorageArea } from '@/common/storage/getStorageArea'
 import { tryCatch } from '@/common/utils/tryCatch'
 import {
-  type IOptionStoresProvider,
-  type IStoreService,
-  OptionStoresProvider,
-} from '../IStoreService'
+  type OptionStoreDescriptor,
+  OptionStoreDescriptors,
+} from '../optionStores'
+import { UPGRADE_RUN_KEY } from '../upgrade/upgradeRun'
+import {
+  type OptionStoresStatus,
+  readOptionStoresStatus,
+} from './optionStoresStatus'
 
 export type ReadinessState =
   | { status: 'pending' }
   | { status: 'ready' }
   | { status: 'failed'; message: string }
 
-interface UpgradeFailure {
-  message: string
+export interface ReadinessGate {
+  waitUntilReady(): Promise<void>
 }
 
 const PENDING: ReadinessState = { status: 'pending' }
 const READY: ReadinessState = { status: 'ready' }
 
+const MAX_RETRY_DELAY_MS = 30_000
+
 /**
- * Whether the option stores can be read in their current shape. The state is
- * derived in every context from what is stored: ready once each store is at
- * its latest version, failed while the last upgrade attempt left a failure
- * record, and pending otherwise. Ready is final for the context.
+ * Whether the option stores can be read in their current shape. Every context
+ * derives it from what is stored: ready once each store is at its latest
+ * version, failed while the last upgrade attempt is recorded as failed, and
+ * pending otherwise. Ready is final for the context.
  */
 @injectable('Singleton')
-export class ReadinessService {
+export class ReadinessService implements ReadinessGate {
   private state: ReadinessState = PENDING
   private readonly listeners = new Set<() => void>()
-  private readonly failure = new ExtStorageService<UpgradeFailure>(
-    'optionsUpgradeFailure',
-    { storageType: 'local' }
-  )
+  private readonly ready = Promise.withResolvers<void>()
   private readonly logger: ILogger
-  private stores: IStoreService[] = []
-  private stopObservingStores: (() => void)[] = []
-  private started = false
+  private observing = false
+  private stopObserving: () => void = () => undefined
   private evaluating = false
   private evaluateAgain = false
+  private failedReads = 0
+  private retryTimer?: ReturnType<typeof setTimeout>
 
   constructor(
     @inject(LoggerSymbol) logger: ILogger,
-    @inject(OptionStoresProvider)
-    private readonly getStores: IOptionStoresProvider
+    @inject(OptionStoreDescriptors)
+    private readonly stores: readonly OptionStoreDescriptor[]
   ) {
     this.logger = logger.sub('[ReadinessService]')
   }
 
   getState(): ReadinessState {
-    this.start()
     return this.state
   }
 
+  // Storage is watched from the first subscriber or waiter until ready.
   subscribe(listener: () => void): () => void {
-    this.start()
+    this.observe()
     this.listeners.add(listener)
     return () => {
       this.listeners.delete(listener)
     }
   }
 
-  // Resolves once the stores are ready. A failed upgrade does not reject:
-  // callers wait for the retry that fixes it, and the UI shows the failure.
+  // The same promise every time, so React can suspend on it. A failed upgrade
+  // does not reject it: callers wait for the retry that fixes it, and the UI
+  // shows the failure.
   waitUntilReady(): Promise<void> {
-    if (this.getState().status === 'ready') {
-      return Promise.resolve()
-    }
-    const { promise, resolve } = Promise.withResolvers<void>()
-    const unsubscribe = this.subscribe(() => {
-      if (this.state.status === 'ready') {
-        unsubscribe()
-        resolve()
-      }
-    })
-    return promise
-  }
-
-  recordFailure(error: Error): Promise<void> {
-    return this.failure.set({ message: error.message })
-  }
-
-  clearFailure(): Promise<void> {
-    return this.failure.delete()
-  }
-
-  private start() {
-    if (this.started) {
-      return
-    }
-    this.started = true
-    // A store can wait on this service from its own constructor. Resolving
-    // the stores in that same call stack would construct that store again.
-    queueMicrotask(() => {
-      this.observe()
-    })
+    this.observe()
+    return this.ready.promise
   }
 
   private observe() {
-    try {
-      this.stores = this.getStores()
-    } catch (error) {
-      this.logger.error('Failed to resolve the option stores', error)
+    if (this.observing || this.state === READY) {
       return
     }
-    // Subscribe before the first read, or a write landing between the two is
-    // never seen.
-    this.stopObservingStores = this.stores.map((store) => {
-      return store.options.onChange(() => {
+    this.observing = true
+
+    const watched = new Set([
+      ...this.stores.map((store) => store.key),
+      UPGRADE_RUN_KEY,
+    ])
+    const onChanged = (
+      changes: Record<string, chrome.storage.StorageChange>
+    ) => {
+      if (Object.keys(changes).some((key) => watched.has(key))) {
         this.scheduleEvaluation()
-      })
-    })
-    this.failure.subscribe(() => {
-      this.scheduleEvaluation()
-    })
-    this.failure.setup()
+      }
+    }
+    const areas = [getStorageArea('sync'), getStorageArea('local')]
+    for (const area of areas) {
+      area.onChanged.addListener(onChanged)
+    }
+    this.stopObserving = () => {
+      for (const area of areas) {
+        area.onChanged.removeListener(onChanged)
+      }
+      clearTimeout(this.retryTimer)
+    }
+
     this.scheduleEvaluation()
   }
 
@@ -131,28 +117,32 @@ export class ReadinessService {
   private async evaluateUntilSettled() {
     do {
       this.evaluateAgain = false
-      const [next, error] = await tryCatch(() => this.evaluate())
+      const [status, error] = await tryCatch(() => {
+        return readOptionStoresStatus(this.stores)
+      })
       if (error) {
         this.logger.error('Failed to read the option stores', error)
+        this.retryLater()
       } else {
-        this.setState(next)
+        this.failedReads = 0
+        this.setState(toState(status))
       }
     } while (this.evaluateAgain && this.state !== READY)
     this.evaluating = false
   }
 
-  private async evaluate(): Promise<ReadinessState> {
-    const current = await Promise.all(
-      this.stores.map((store) => store.options.isCurrent())
+  // A failed read is not followed by any change event, so without this the
+  // context would stay pending.
+  private retryLater() {
+    this.failedReads += 1
+    const delay = Math.min(
+      500 * 2 ** (this.failedReads - 1),
+      MAX_RETRY_DELAY_MS
     )
-    if (current.every(Boolean)) {
-      return READY
-    }
-    const failure = await this.failure.read()
-    if (failure) {
-      return { status: 'failed', message: failure.message }
-    }
-    return PENDING
+    clearTimeout(this.retryTimer)
+    this.retryTimer = setTimeout(() => {
+      this.scheduleEvaluation()
+    }, delay)
   }
 
   private setState(next: ReadinessState) {
@@ -162,19 +152,22 @@ export class ReadinessService {
     this.state = next
     if (next === READY) {
       this.stopObserving()
+      this.ready.resolve()
     }
     for (const listener of [...this.listeners]) {
       listener()
     }
   }
+}
 
-  private stopObserving() {
-    for (const stop of this.stopObservingStores) {
-      stop()
-    }
-    this.stopObservingStores = []
-    this.failure.destroy()
+function toState(status: OptionStoresStatus): ReadinessState {
+  if (status.current) {
+    return READY
   }
+  if (status.run?.status === 'failed') {
+    return { status: 'failed', message: status.run.message }
+  }
+  return PENDING
 }
 
 function isSameState(a: ReadinessState, b: ReadinessState): boolean {

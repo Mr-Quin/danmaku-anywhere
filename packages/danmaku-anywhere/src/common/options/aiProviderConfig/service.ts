@@ -7,6 +7,7 @@ import {
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { aiProviderConfigDescriptor } from '@/common/options/optionStores'
 import { invariant } from '@/common/utils/utils'
 import { BUILT_IN_AI_PROVIDER, BUILT_IN_AI_PROVIDER_ID } from './constant'
 import {
@@ -18,6 +19,7 @@ import {
 @injectable('Singleton')
 export class AiProviderConfigService implements IStoreService {
   public readonly name = 'aiProviderConfig'
+  public readonly descriptor = aiProviderConfigDescriptor
   public readonly options: OptionsService<AiProviderConfig[]>
   public readonly backupItemSchema = zStoredAiProviderConfig
 
@@ -28,9 +30,10 @@ export class AiProviderConfigService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory<AiProviderConfig[]>(
-      'aiProviderConfig',
+      aiProviderConfigDescriptor.key,
       [BUILT_IN_AI_PROVIDER],
-      this.logger
+      this.logger,
+      aiProviderConfigDescriptor.area
     ).version(1, {
       upgrade: (data) => data,
     })

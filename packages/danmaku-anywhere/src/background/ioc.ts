@@ -7,6 +7,10 @@ import {
   OptionsServiceFactory,
   optionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
+import {
+  OPTION_STORES,
+  OptionStoreDescriptors,
+} from '@/common/options/optionStores'
 import { Logger } from './backgroundLogger'
 import {
   DanmakuProviderFactory,
@@ -17,6 +21,7 @@ import {
 export const backgroundContainerModule = new ContainerModule((options) => {
   const { bind } = options
   bindOptionStores(options)
+  bind(OptionStoreDescriptors).toConstantValue(OPTION_STORES)
 
   bind<IDanmakuProviderFactory>(DanmakuProviderFactory).toFactory(
     danmakuProviderFactory

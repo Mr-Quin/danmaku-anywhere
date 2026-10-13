@@ -11,12 +11,14 @@ import {
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { danmakuOptionsDescriptor } from '@/common/options/optionStores'
 import type { PrevOptions } from '../OptionsService/types'
 import { danmakuOptionsSchema } from './schema'
 
 @injectable('Singleton')
 export class DanmakuOptionsService implements IStoreService {
   public readonly name = 'danmakuOptions'
+  public readonly descriptor = danmakuOptionsDescriptor
   public readonly options: OptionsService<DanmakuOptions>
   public readonly backupSchema = danmakuOptionsSchema
 
@@ -27,9 +29,10 @@ export class DanmakuOptionsService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory(
-      'danmakuOptions',
+      danmakuOptionsDescriptor.key,
       defaultDanmakuOptions,
-      this.logger
+      this.logger,
+      danmakuOptionsDescriptor.area
     )
       .version(1, {
         upgrade: (data) => data,
