@@ -14,9 +14,10 @@ import {
  * upgradeStores migrates every store with a snapshot of all stored data taken
  * before any store is written, and saves it before the first write. Given the
  * snapshot of an earlier attempt, a retry hands every step the data from
- * before that attempt. Each captured entry is kept while its store is still
- * at the captured version or already at its latest version; a store changed
- * any other way is captured again on its own. A store that fails does not
+ * before that attempt. A snapshot is only reused by the build that took it.
+ * Each captured entry is kept while its store is still at the captured
+ * version or already at its latest version; a store changed any other way is
+ * captured again on its own. A store that fails does not
  * stop the others, and the call then rejects naming each failed store. A
  * read error while taking the snapshot rejects before anything is written.
  */
@@ -165,7 +166,7 @@ describe('upgradeStores', () => {
     await upgradeStores([createStore('alpha')], silentLogger, snapshots)
 
     expect(savedAtWrite).toEqual([
-      { alpha: { data: { value: 'a' }, version: 1 } },
+      { alpha: { stored: { data: { value: 'a' }, version: 1 }, target: 2 } },
     ])
   })
 
@@ -195,8 +196,8 @@ describe('upgradeStores', () => {
     await storeAt('alpha', 'a', 1)
     const seen: StoreSnapshot[] = []
     const snapshots = memorySnapshots({
-      alpha: { data: { value: 'a' }, version: 1 },
-      beta: { data: { value: 'b' }, version: 1 },
+      alpha: { stored: { data: { value: 'a' }, version: 1 }, target: 2 },
+      beta: { stored: { data: { value: 'b' }, version: 1 }, target: 2 },
     })
 
     await upgradeStores(
@@ -207,7 +208,10 @@ describe('upgradeStores', () => {
 
     expect(seen).toEqual([{ alpha: { value: 'a' } }])
     expect(snapshots.saved).toEqual([
-      { alpha: { data: { value: 'a' }, version: 1 } },
+      {
+        alpha: { stored: { data: { value: 'a' }, version: 1 }, target: 2 },
+        beta: { target: 2 },
+      },
     ])
   })
 
@@ -223,13 +227,35 @@ describe('upgradeStores', () => {
       ],
       silentLogger,
       memorySnapshots({
-        alpha: { data: { value: 'a' }, version: 1 },
-        beta: { data: { value: 'b' }, version: 1 },
+        alpha: { stored: { data: { value: 'a' }, version: 1 }, target: 3 },
+        beta: { stored: { data: { value: 'b' }, version: 1 }, target: 3 },
       })
     )
 
     expect(seen).toEqual([
       { alpha: { value: 'a' }, beta: { value: 'b synced' } },
+    ])
+  })
+
+  it('starts a new snapshot for a later build instead of reusing one', async () => {
+    await storeAt('alpha', 'a upgraded', 2)
+    await storeAt('beta', 'b upgraded', 2)
+    const seen: StoreSnapshot[] = []
+
+    await upgradeStores(
+      [
+        createStore('alpha'),
+        createNextReleaseStore('beta', (s) => seen.push(s)),
+      ],
+      silentLogger,
+      memorySnapshots({
+        alpha: { stored: { data: { value: 'a' }, version: 1 }, target: 2 },
+        beta: { stored: { data: { value: 'b' }, version: 2 }, target: 2 },
+      })
+    )
+
+    expect(seen).toEqual([
+      { alpha: { value: 'a upgraded' }, beta: { value: 'b upgraded' } },
     ])
   })
 
