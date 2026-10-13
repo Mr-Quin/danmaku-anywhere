@@ -1,27 +1,51 @@
 import type { ILogger } from '@/common/Logger'
-import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import type { IStoreService } from './IStoreService'
 import { isStoredAtVersion } from './OptionsService/storedVersion'
 import type { Options, StoreSnapshot } from './OptionsService/types'
 
 // Every store's envelope, version included, as it was before the first
 // upgrade step persisted.
-type PersistedSnapshot = Record<string, Options<unknown>>
+export type UpgradeSnapshot = Record<string, Options<unknown>>
 
-const SNAPSHOT_KEY = 'optionsUpgradeSnapshot'
+export interface UpgradeSnapshotStore {
+  // The snapshot an earlier attempt of the same upgrade saved, if any
+  kept: UpgradeSnapshot | undefined
+  save(snapshot: UpgradeSnapshot): Promise<void>
+}
 
 // Tries every store even after one fails, then rejects naming each store that
 // did not persist. Steps that read other stores get the data from before the
-// first attempt, even on a retry after some stores were already upgraded, so
-// the snapshot is kept in storage until an attempt succeeds.
+// first attempt, even on a retry after some stores were already upgraded. The
+// snapshot is saved before the first write; the caller keeps it until an
+// attempt succeeds.
 export async function upgradeStores(
   services: IStoreService[],
-  logger: ILogger
+  logger: ILogger,
+  snapshots: UpgradeSnapshotStore
 ): Promise<void> {
-  const storage = new ExtStorageService<PersistedSnapshot>(SNAPSHOT_KEY, {
-    storageType: 'local',
+  const current: UpgradeSnapshot = {}
+  for (const service of services) {
+    const stored = await service.options.readStoredUnblocked()
+    if (stored) {
+      current[service.options.key] = stored
+    }
+  }
+  const needsUpgrade = services.some((service) => {
+    const { key, latestVersion } = service.options
+    return !isStoredAtVersion(current[key], latestVersion)
   })
-  const snapshot = await loadSnapshot(services, storage, logger)
+  if (!needsUpgrade) {
+    return
+  }
+
+  const { snapshot, changed } = reconcileSnapshot(
+    snapshots.kept,
+    current,
+    services
+  )
+  if (changed) {
+    await snapshots.save(snapshot)
+  }
   const stores: StoreSnapshot = {}
   for (const [key, stored] of Object.entries(snapshot)) {
     stores[key] = stored.data
@@ -45,63 +69,45 @@ export async function upgradeStores(
       `Failed to upgrade options: ${failed.join(', ')}`
     )
   }
-  // Every store is upgraded at this point. A snapshot left behind is caught
-  // as stale by the next run, so failing here would only hide the success.
-  await storage.delete().catch((error) => {
-    logger.error('Failed to delete the upgrade snapshot', error)
-  })
-}
-
-async function loadSnapshot(
-  services: IStoreService[],
-  storage: ExtStorageService<PersistedSnapshot>,
-  logger: ILogger
-): Promise<PersistedSnapshot> {
-  const taken: PersistedSnapshot = {}
-  let needsUpgrade = false
-  for (const service of services) {
-    const stored = await service.options.readStoredUnblocked()
-    if (stored) {
-      taken[service.options.key] = stored
-    }
-    if (!isStoredAtVersion(stored, service.options.latestVersion)) {
-      needsUpgrade = true
-    }
-  }
-  if (!needsUpgrade) {
-    return taken
-  }
-
-  const kept = await storage.read()
-  if (kept && isFromThisUpgrade(kept, taken, services)) {
-    return kept
-  }
-  if (kept) {
-    logger.debug('Discarding an upgrade snapshot left by an earlier upgrade')
-  }
-  await storage.set(taken)
-  return taken
 }
 
 // A partial run of the same upgrade leaves each store either untouched since
-// the snapshot or at its latest version. Anything else means the snapshot was
-// left by an earlier upgrade, and its data would be older than what is
-// stored now.
-function isFromThisUpgrade(
-  kept: PersistedSnapshot,
-  current: PersistedSnapshot,
+// it was captured or at its latest version, and those captured entries are
+// kept. A store that is neither, deleted by hand or synced from another
+// device at some other version, is captured again from what is stored now.
+function reconcileSnapshot(
+  kept: UpgradeSnapshot | undefined,
+  current: UpgradeSnapshot,
   services: IStoreService[]
-): boolean {
-  return services.every((service) => {
+): { snapshot: UpgradeSnapshot; changed: boolean } {
+  if (!kept) {
+    return { snapshot: current, changed: true }
+  }
+  const snapshot: UpgradeSnapshot = {}
+  let changed = false
+  for (const service of services) {
     const { key, latestVersion } = service.options
     const now = current[key]
-    if (isStoredAtVersion(now, latestVersion)) {
-      return true
-    }
     const captured = kept[key]
-    if (!now || !captured) {
-      return now === captured
+    const stillValid =
+      isStoredAtVersion(now, latestVersion) || isSameVersion(now, captured)
+    const entry = stillValid ? captured : now
+    if (entry !== captured) {
+      changed = true
     }
-    return (now.version ?? 0) === (captured.version ?? 0)
-  })
+    if (entry) {
+      snapshot[key] = entry
+    }
+  }
+  return { snapshot, changed }
+}
+
+function isSameVersion(
+  a: Options<unknown> | undefined,
+  b: Options<unknown> | undefined
+): boolean {
+  if (!a || !b) {
+    return a === b
+  }
+  return (a.version ?? 0) === (b.version ?? 0)
 }

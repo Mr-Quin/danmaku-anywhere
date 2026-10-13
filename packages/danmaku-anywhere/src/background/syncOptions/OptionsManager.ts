@@ -3,11 +3,16 @@ import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { OptionsUpgradeService } from '@/common/options/upgrade/OptionsUpgradeService'
+import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { tryCatch } from '@/common/utils/tryCatch'
 
 @injectable()
 export class OptionsManager {
   private logger: ILogger
+  private readonly releaseNotesPending = new ExtStorageService<boolean>(
+    'releaseNotesPending',
+    { storageType: 'local' }
+  )
 
   constructor(
     @inject(ExtensionOptionsService)
@@ -36,16 +41,16 @@ export class OptionsManager {
     // The worker can be killed mid-upgrade, and the next wake may be a popup or
     // a message rather than an install or startup event.
     this.ensureUpgraded()
+    void this.showPendingReleaseNotes()
   }
 
-  // A new build may fix what made the last attempt fail, so install and
-  // update run the upgrade without waiting out the retry delay.
   private async onInstalled(details: chrome.runtime.InstalledDetails) {
-    this.upgradeService.upgrade().catch(() => undefined)
+    this.upgradeService.upgradeForNewBuild().catch(() => undefined)
 
     if (details.reason === 'update') {
       if (!import.meta.env.DEV) {
-        await this.extensionOptionsService.update({ showReleaseNotes: true })
+        await this.releaseNotesPending.set(true)
+        void this.showPendingReleaseNotes()
       }
       this.logger.info('Danmaku Anywhere Updated')
     } else {
@@ -68,6 +73,22 @@ export class OptionsManager {
           })
         }
       })
+    }
+  }
+
+  // The flag lives in extensionOptions, which cannot be written until the
+  // upgrade succeeds. The request is kept outside it so a worker stopped
+  // before then still shows the release notes after a later wake.
+  private async showPendingReleaseNotes() {
+    const [, error] = await tryCatch(async () => {
+      if (!(await this.releaseNotesPending.read())) {
+        return
+      }
+      await this.extensionOptionsService.update({ showReleaseNotes: true })
+      await this.releaseNotesPending.delete()
+    })
+    if (error) {
+      this.logger.error('Failed to request the release notes', error)
     }
   }
 

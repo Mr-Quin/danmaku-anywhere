@@ -6,7 +6,7 @@ import {
   type OptionStoreDescriptor,
   OptionStoreDescriptors,
 } from '../optionStores'
-import { UPGRADE_RUN_KEY } from '../upgrade/upgradeRun'
+import { settleRun, staleAt, UPGRADE_RUN_KEY } from '../upgrade/upgradeRun'
 import {
   type OptionStoresStatus,
   readOptionStoresStatus,
@@ -44,6 +44,7 @@ export class ReadinessService implements ReadinessGate {
   private evaluateAgain = false
   private failedReads = 0
   private retryTimer?: ReturnType<typeof setTimeout>
+  private staleRunTimer?: ReturnType<typeof setTimeout>
 
   constructor(
     @inject(LoggerSymbol) logger: ILogger,
@@ -100,6 +101,7 @@ export class ReadinessService implements ReadinessGate {
         area.onChanged.removeListener(onChanged)
       }
       clearTimeout(this.retryTimer)
+      clearTimeout(this.staleRunTimer)
     }
 
     this.scheduleEvaluation()
@@ -125,7 +127,8 @@ export class ReadinessService implements ReadinessGate {
         this.retryLater()
       } else {
         this.failedReads = 0
-        this.setState(toState(status))
+        this.setState(toState(status, Date.now()))
+        this.watchForStaleRun(status)
       }
     } while (this.evaluateAgain && this.state !== READY)
     this.evaluating = false
@@ -145,6 +148,22 @@ export class ReadinessService implements ReadinessGate {
     }, delay)
   }
 
+  // A run cut off mid-way leaves no change event behind, so the point where
+  // it counts as failed is checked on a timer.
+  private watchForStaleRun(status: OptionStoresStatus) {
+    clearTimeout(this.staleRunTimer)
+    const deadline = status.run && staleAt(status.run)
+    if (status.current || deadline === undefined) {
+      return
+    }
+    this.staleRunTimer = setTimeout(
+      () => {
+        this.scheduleEvaluation()
+      },
+      Math.max(deadline - Date.now(), 0)
+    )
+  }
+
   private setState(next: ReadinessState) {
     if (this.state === READY || isSameState(this.state, next)) {
       return
@@ -160,12 +179,13 @@ export class ReadinessService implements ReadinessGate {
   }
 }
 
-function toState(status: OptionStoresStatus): ReadinessState {
+function toState(status: OptionStoresStatus, now: number): ReadinessState {
   if (status.current) {
     return READY
   }
-  if (status.run?.status === 'failed') {
-    return { status: 'failed', message: status.run.message }
+  const run = status.run && settleRun(status.run, now)
+  if (run?.status === 'failed') {
+    return { status: 'failed', message: run.message }
   }
   return PENDING
 }

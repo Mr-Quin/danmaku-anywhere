@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createBackgroundContainer } from '@/background/ioc'
 import { defaultDanmakuOptions } from '@/common/options/danmakuOptions/constant'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
+import { OptionsUpgradeService } from '@/common/options/upgrade/OptionsUpgradeService'
 import { OptionsManager } from './OptionsManager'
 
 /**
@@ -11,12 +13,23 @@ import { OptionsManager } from './OptionsManager'
  * worker wake, sharing one run between them. A wake over stores that are
  * already current writes nothing. A failed run is reported through readiness;
  * startup and wakes retry it only after the retry delay, while an install or
- * update retries at once.
+ * update retries at once. An update's release notes are shown once the
+ * upgrade gets through, even in a later worker.
  */
 
 afterEach(() => {
   vi.useRealTimers()
 })
+
+// Drops every listener the worker registered, the way Chrome does when it
+// stops a worker, and keeps what it stored.
+async function stopWorker() {
+  const local = await fakeBrowser.storage.local.get(null)
+  const sync = await fakeBrowser.storage.sync.get(null)
+  fakeBrowser.reset()
+  await fakeBrowser.storage.local.set(local)
+  await fakeBrowser.storage.sync.set(sync)
+}
 
 describe('OptionsManager', () => {
   it('resumes an interrupted upgrade when the worker wakes without an install or startup event', async () => {
@@ -121,5 +134,39 @@ describe('OptionsManager', () => {
     })
 
     await expect(readiness.waitUntilReady()).resolves.toBeUndefined()
+  })
+
+  it('shows the release notes of an update once a later worker gets the upgrade through', async () => {
+    vi.stubEnv('DEV', false)
+    await fakeBrowser.storage.sync.set({
+      danmakuOptions: { data: defaultDanmakuOptions, version: 1 },
+    })
+    vi.spyOn(fakeBrowser.storage.sync, 'set').mockRejectedValueOnce(
+      new Error('QUOTA_BYTES quota exceeded')
+    )
+    const first = createBackgroundContainer()
+    const firstReadiness = first.get(ReadinessService)
+    firstReadiness.subscribe(() => undefined)
+    first.get(OptionsManager).setup()
+    await fakeBrowser.runtime.onInstalled.trigger({
+      reason: 'update',
+      previousVersion: '1.5.0',
+    })
+    await vi.waitFor(() => {
+      expect(firstReadiness.getState()).toMatchObject({ status: 'failed' })
+    })
+
+    await stopWorker()
+    await stopWorker()
+    const second = createBackgroundContainer()
+    second.get(OptionsManager).setup()
+    await second.get(OptionsUpgradeService).upgrade()
+
+    await vi.waitFor(async () => {
+      expect(await second.get(ExtensionOptionsService).get()).toMatchObject({
+        showReleaseNotes: true,
+      })
+    })
+    vi.unstubAllEnvs()
   })
 })
