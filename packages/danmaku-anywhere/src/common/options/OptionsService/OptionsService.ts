@@ -30,7 +30,7 @@ export class OptionsService<T extends OptionsSchema> {
   private isProcessingQueue = false
 
   constructor(
-    private readinessService: ReadinessService,
+    private readinessService: Pick<ReadinessService, 'waitUntilReady'>,
     readonly key: string,
     private defaultOptions: T,
     logger: ILogger,
@@ -81,6 +81,12 @@ export class OptionsService<T extends OptionsSchema> {
     }
 
     this.logger.debug(`Found options with version '${stored.version}'`)
+
+    // Readiness counts a store at its latest version as done, so rewriting it
+    // here could overwrite a change the UI makes once every store is current.
+    if (this.isAtLatestVersion(stored)) {
+      return
+    }
 
     const deferred: DeferredWrite[] = []
     let upgraded: Options<T>
@@ -166,11 +172,27 @@ export class OptionsService<T extends OptionsSchema> {
     })
   }
 
-  onChange(listener: (data: T) => void) {
-    this.storageService.subscribe((options) => {
-      if (!options) return
+  // A store whose version is above the latest was written by a newer build.
+  // There is nothing this build can migrate it to, so it counts as current.
+  async isCurrent(): Promise<boolean> {
+    const stored = await this.storageService.read()
+    if (!stored) {
+      return false
+    }
+    return this.isAtLatestVersion(stored)
+  }
+
+  onChange(listener: (data: T) => void): () => void {
+    const onStored = (options: Options<T> | undefined) => {
+      if (!options) {
+        return
+      }
       listener(options.data)
-    })
+    }
+    this.storageService.subscribe(onStored)
+    return () => {
+      this.storageService.unsubscribe(onStored)
+    }
   }
 
   destroy() {
@@ -259,6 +281,11 @@ export class OptionsService<T extends OptionsSchema> {
     }
 
     this.isProcessingQueue = false
+  }
+
+  private isAtLatestVersion(stored: Options<T>): boolean {
+    // unversioned options predate versioning, so they count as version 0
+    return (stored.version ?? 0) >= this.latestVersion
   }
 
   private getLatestVersion() {

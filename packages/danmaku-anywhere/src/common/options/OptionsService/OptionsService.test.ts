@@ -1,16 +1,16 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { EXTENSION_VERSION } from '@/common/constants'
-import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
+import type { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
 import { silentLogger } from '@/tests/silentLogger'
 import { OptionsService } from './OptionsService'
 
 /**
  * OptionsService over fake chrome.storage. Covers upgrade(): a read error or a
- * write error rejects and leaves the stored value alone, while a migration that
- * throws still resets the store to defaults. Also covers readStoredUnblocked
- * telling an absent store from a stored empty list, and set/update rejecting
- * when the write fails.
+ * write error rejects and leaves the stored value alone, a migration that
+ * throws still resets the store to defaults, and a store already at its latest
+ * version is not written. Also covers isCurrent, readStoredUnblocked telling an
+ * absent store from a stored empty list, onChange unsubscribing, and set/update
+ * rejecting when the write fails.
  */
 
 interface Counter {
@@ -19,17 +19,14 @@ interface Counter {
 
 const KEY = 'testOptions'
 
-async function readyReadiness() {
-  await fakeBrowser.storage.local.set({
-    lastVersion: { lastVersion: EXTENSION_VERSION },
-  })
-  const readiness = new ReadinessService(silentLogger)
-  await readiness.waitUntilReady()
-  return readiness
+type Readiness = Pick<ReadinessService, 'waitUntilReady'>
+
+const readiness: Readiness = {
+  waitUntilReady: () => Promise.resolve(),
 }
 
 function createCounterService(
-  readiness: ReadinessService,
+  readiness: Readiness,
   upgradeToV2: (data: Counter) => Counter = (data) => ({
     count: data.count + 1,
   })
@@ -55,12 +52,6 @@ async function readRaw() {
 }
 
 describe('OptionsService', () => {
-  let readiness: ReadinessService
-
-  beforeEach(async () => {
-    readiness = await readyReadiness()
-  })
-
   describe('upgrade', () => {
     it('writes defaults at the latest version when nothing is stored', async () => {
       const service = createCounterService(readiness)
@@ -77,6 +68,29 @@ describe('OptionsService', () => {
       await service.upgrade()
 
       expect(await readRaw()).toEqual({ data: { count: 6 }, version: 2 })
+    })
+
+    it('leaves a store already at the latest version unwritten', async () => {
+      await storeRaw({ data: { count: 5 }, version: 2 })
+      const service = createCounterService(readiness)
+      const set = vi.spyOn(fakeBrowser.storage.local, 'set')
+
+      await service.upgrade()
+
+      expect(set).not.toHaveBeenCalled()
+      expect(await readRaw()).toEqual({ data: { count: 5 }, version: 2 })
+    })
+
+    it('leaves a store written by a newer version unwritten', async () => {
+      await storeRaw({ data: { count: 5, extra: true }, version: 3 })
+      const service = createCounterService(readiness)
+
+      await service.upgrade()
+
+      expect(await readRaw()).toEqual({
+        data: { count: 5, extra: true },
+        version: 3,
+      })
     })
 
     it('rejects on a read error and writes nothing', async () => {
@@ -131,6 +145,71 @@ describe('OptionsService', () => {
       await expect(service.upgrade()).rejects.toThrow(
         'QUOTA_BYTES quota exceeded'
       )
+    })
+  })
+
+  describe('isCurrent', () => {
+    it('is false when nothing is stored', async () => {
+      const service = createCounterService(readiness)
+
+      await expect(service.isCurrent()).resolves.toBe(false)
+    })
+
+    it('is false below the latest version', async () => {
+      await storeRaw({ data: { count: 5 }, version: 1 })
+      const service = createCounterService(readiness)
+
+      await expect(service.isCurrent()).resolves.toBe(false)
+    })
+
+    it('is false for a value stored before versioning', async () => {
+      await storeRaw({ data: { count: 5 } })
+      const service = createCounterService(readiness)
+
+      await expect(service.isCurrent()).resolves.toBe(false)
+    })
+
+    it('is true at the latest version', async () => {
+      await storeRaw({ data: { count: 5 }, version: 2 })
+      const service = createCounterService(readiness)
+
+      await expect(service.isCurrent()).resolves.toBe(true)
+    })
+
+    it('is true above the latest version', async () => {
+      await storeRaw({ data: { count: 5 }, version: 3 })
+      const service = createCounterService(readiness)
+
+      await expect(service.isCurrent()).resolves.toBe(true)
+    })
+
+    it('becomes true once upgrade has run', async () => {
+      await storeRaw({ data: { count: 5 }, version: 1 })
+      const service = createCounterService(readiness)
+
+      await service.upgrade()
+
+      await expect(service.isCurrent()).resolves.toBe(true)
+    })
+  })
+
+  describe('onChange', () => {
+    it('stops notifying once unsubscribed', async () => {
+      const service = createCounterService(readiness)
+      const seen: number[] = []
+      const unsubscribe = service.onChange((data) => {
+        seen.push(data.count)
+      })
+
+      await service.setUnblocked({ count: 1 })
+      await vi.waitFor(() => {
+        expect(seen).toContain(1)
+      })
+      unsubscribe()
+      await service.setUnblocked({ count: 2 })
+      await new Promise((resolve) => setTimeout(resolve, 0))
+
+      expect(seen).not.toContain(2)
     })
   })
 
