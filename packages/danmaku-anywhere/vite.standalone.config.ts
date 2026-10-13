@@ -41,6 +41,16 @@ export default defineConfig({
       input: {
         index: 'index.html',
       },
+      output: {
+        // The lazily loaded standalone backend shares modules with the page,
+        // which pulled reflect-metadata into a shared chunk. Pinned to its own
+        // chunk it loads first, as in the extension build.
+        manualChunks: (id) => {
+          if (id.includes('node_modules/reflect-metadata')) {
+            return 'vendor'
+          }
+        },
+      },
     },
     outDir: './build-standalone',
     // the minimum to support top-level await
