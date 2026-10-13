@@ -8,6 +8,7 @@ import {
 } from '@mui/material'
 import { useEffect } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 export interface RecordEditorProps {
   value?: Record<string, string>
@@ -45,6 +46,7 @@ export const RecordEditor = ({
   addButtonLabel = 'Add',
   valueType = 'string',
 }: RecordEditorProps) => {
+  const { t } = useTranslation()
   const { control, subscribe } = useForm<FormValues>({
     defaultValues: {
       entries: toEntries(value, valueType),
@@ -121,7 +123,9 @@ export const RecordEditor = ({
                 required
               />
             )}
-            rules={{ required: 'Key is required' }}
+            rules={{
+              required: t('form.required', 'This field is required'),
+            }}
           />
 
           <Controller
@@ -147,7 +151,10 @@ export const RecordEditor = ({
                   JSON.parse(value || 'null')
                   return true
                 } catch {
-                  return 'Invalid JSON'
+                  return t(
+                    'providers.editor.manifest.invalidJson',
+                    'Invalid JSON'
+                  )
                 }
               },
             }}

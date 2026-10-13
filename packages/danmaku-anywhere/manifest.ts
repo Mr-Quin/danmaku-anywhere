@@ -36,7 +36,7 @@ export const manifest = defineManifest({
   version: appVersion,
   action: {
     default_popup: 'pages/popup.html',
-    default_title: 'Danmaku anywhere',
+    default_title: '__MSG_extName__',
     default_icon: { 32: 'grey_32.png' },
   },
   background: {

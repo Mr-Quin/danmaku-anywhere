@@ -36,7 +36,7 @@ export const EmptyDanmakuTree = ({
             mb: 2,
           }}
         >
-          {t('mountPage.libraryEmpty', 'The Library is empty...')}
+          {t('mountPage.libraryEmpty', 'The library is empty…')}
         </Typography>
         <Button
           onClick={onGoSearch}

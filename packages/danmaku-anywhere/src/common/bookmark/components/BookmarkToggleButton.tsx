@@ -53,7 +53,7 @@ export const BookmarkToggleButton = ({
     <Tooltip
       title={t(
         'bookmark.tooltip',
-        'Save to your library to see all episodes anytime, including ones you have not downloaded yet.'
+        'Follow to see all episodes in your library anytime, including ones you have not downloaded yet.'
       )}
       placement="bottom-end"
     >

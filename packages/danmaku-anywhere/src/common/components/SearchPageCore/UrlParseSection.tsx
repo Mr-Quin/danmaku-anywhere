@@ -17,6 +17,7 @@ import {
   localizedDanmakuSourceType,
 } from '@/common/danmaku/enums'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import { describeSourceError } from '@/common/providers/describeSourceError'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
@@ -106,12 +107,12 @@ export function UrlParseSection({
           }
           onImportSuccess?.(episode)
         },
-        onError: () => {
+        onError: (error) => {
           toast.error(
             t(
               'danmaku.alert.fetchError',
               'Failed to fetch danmaku: {{message}}',
-              { message: query.data?.title ?? '' }
+              { message: describeSourceError(error) }
             )
           )
         },
@@ -141,7 +142,7 @@ export function UrlParseSection({
           'searchPage.parse.networkError',
           "Couldn't reach the site. Check your connection and try again."
         )
-      : query.error.message
+      : describeSourceError(query.error)
     return (
       <Box
         data-testid="parse-error"

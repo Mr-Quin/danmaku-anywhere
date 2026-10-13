@@ -61,7 +61,7 @@ export const MountConfigBasicStep = ({
         <Alert severity="warning">
           {t(
             'configPage.editor.tooPermissive',
-            'The match patterns are too permissive, AI automation will not be available.'
+            'Match patterns are too broad, so AI matching is turned off.'
           )}
         </Alert>
       </Collapse>
@@ -101,7 +101,7 @@ export const MountConfigBasicStep = ({
             size="small"
             {...register(`patterns.${index}.value`, {
               validate: validateOrigin,
-              required: 'Pattern is required',
+              required: t('form.required', 'This field is required'),
             })}
             fullWidth
             required

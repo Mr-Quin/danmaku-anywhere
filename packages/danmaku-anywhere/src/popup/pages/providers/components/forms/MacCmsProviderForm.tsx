@@ -120,7 +120,7 @@ export const MacCmsProviderForm = ({
                 inputRef={ref}
                 label={t(
                   'optionsPage.danmakuSource.macCms.baseUrl',
-                  'Mac CMS API Base URL'
+                  'VOD API base URL'
                 )}
                 size="small"
                 error={!!errors.danmakuBaseUrl}

@@ -12,9 +12,11 @@ import type { DanmakuFetchDto, MacCMSFetchData } from '@/common/danmaku/dto'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
 import { episodeToString, isSourceEpisode } from '@/common/danmaku/utils'
+import { describeSourceError } from '@/common/providers/describeSourceError'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { concatArr } from '@/common/utils/utils'
 import { useStore } from '@/content/controller/store/store'
+import { DanmakuMountError, describeMountError } from './mountError'
 
 const useMountDanmaku = () => {
   const { toast } = useToast()
@@ -26,7 +28,10 @@ const useMountDanmaku = () => {
     mutationFn: async (episodes: GenericEpisode[]) => {
       const activeFrame = getActiveFrame()
       if (!activeFrame) {
-        throw new Error('No active frame to mount danmaku')
+        throw new DanmakuMountError(
+          'noActiveFrame',
+          'No active frame to mount danmaku'
+        )
       }
 
       const comments: CommentEntity[] = []
@@ -41,7 +46,7 @@ const useMountDanmaku = () => {
       })
 
       if (!res.data) {
-        throw new Error('Failed to mount danmaku')
+        throw new DanmakuMountError('mountFailed', 'Failed to mount danmaku')
       }
 
       return activeFrame.frameId
@@ -51,7 +56,7 @@ const useMountDanmaku = () => {
       updateFrame(mountedFrameId, { mounted: true })
     },
     onError: (err) => {
-      toast.error(err.message)
+      toast.error(describeMountError(err))
     },
   })
 }
@@ -132,7 +137,7 @@ export const useLoadDanmaku = () => {
           mountDanmaku([episode])
         },
         onError: (err) => {
-          toast.error(err.message)
+          toast.error(describeSourceError(err))
         },
       })
     },

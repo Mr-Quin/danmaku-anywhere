@@ -32,6 +32,8 @@ import {
 } from './components/settings/SettingsGroup'
 
 const Footer = () => {
+  const { t } = useTranslation()
+
   return (
     <Box
       sx={{
@@ -46,7 +48,7 @@ const Footer = () => {
       }}
     >
       <Typography variant="caption" sx={{ color: 'text.secondary', flex: 1 }}>
-        Danmaku Anywhere{' '}
+        {t('common.danmakuAnywhere', 'Danmaku Anywhere')}{' '}
         <Box component="b" sx={{ color: 'text.primary' }}>
           v{EXTENSION_VERSION}
         </Box>
@@ -176,7 +178,7 @@ export const Options = () => {
               <SettingsRow
                 icon={<BugReport fontSize="small" />}
                 iconTone="error"
-                title={t('optionsPage.help.reportBug', 'Report a Bug')}
+                title={t('optionsPage.help.reportBug', 'Report a bug')}
                 external
                 href={`${BUG_FORM}?ID=${data.id}&Version=${EXTENSION_VERSION}`}
                 target="_blank"

@@ -152,11 +152,14 @@ const advancedSettings: AdvancedSettingConfig[] = [
   {
     id: 'toggle.analytics',
     label: () =>
-      i18n.t('optionsPage.enableAnalytics', 'Enable anonymous analytics'),
+      i18n.t(
+        'optionsPage.enableAnalytics',
+        'Share usage data with Microsoft Clarity'
+      ),
     description: () =>
       i18n.t(
         'optionsPage.enableAnalyticsDesc',
-        'Share anonymous usage stats to guide development.'
+        'Records how you use the extension, including on pages where its in-page controls run, and sends it to Microsoft Clarity. Turn this off to stop sending it.'
       ),
     category: 'advanced',
     group: 'privacy',
@@ -169,7 +172,7 @@ const advancedSettings: AdvancedSettingConfig[] = [
     label: () =>
       i18n.t(
         'optionsPage.restrictInitiatorDomain',
-        'Limit DNR initiator domains to this extension'
+        'Only modify requests made by this extension'
       ),
     description: () =>
       i18n.t(
@@ -199,7 +202,10 @@ const advancedSettings: AdvancedSettingConfig[] = [
   {
     id: 'toggle.autoBookmark',
     label: () =>
-      i18n.t('optionsPage.autoBookmark', 'Auto bookmark shows when preloading'),
+      i18n.t(
+        'optionsPage.autoBookmark',
+        'Follow automatically when preloading the next episode'
+      ),
     category: 'advanced',
     group: 'behavior',
     type: 'toggle',

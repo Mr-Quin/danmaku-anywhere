@@ -412,7 +412,7 @@ export const DanmakuStylesForm = ({
                 label={t('stylePage.offset', 'Time Offset')}
                 tooltip={t(
                   'stylePage.tooltip.offsetScrubber',
-                  'Drag horizontally or use scroll wheel to adjust. Double-click to manual entry. Positive values make danmaku appear later, negative values earlier.'
+                  'Drag horizontally or use the scroll wheel to adjust, or double-click to type a value. Positive values make danmaku appear later, negative values make danmaku appear earlier.'
                 )}
                 value={field.value}
                 onChange={(newValue) => field.onChange(newValue)}
@@ -501,7 +501,7 @@ export const DanmakuStylesForm = ({
                 label={t('stylePage.trackHeight', 'Track Height')}
                 tooltip={t(
                   'stylePage.tooltip.trackHeight',
-                  'Higher values makes danmaku farther apart'
+                  'Higher values make danmaku farther apart'
                 )}
                 value={field.value}
                 onChange={(_e, newValue) => field.onChange(newValue as number)}
@@ -519,7 +519,7 @@ export const DanmakuStylesForm = ({
             control={control}
             render={({ field }) => (
               <LabeledSlider
-                label={t('stylePage.maxOnScreen', 'Maximum Limit')}
+                label={t('stylePage.maxOnScreen', 'Max on screen')}
                 tooltip={t(
                   'stylePage.tooltip.maxOnScreen',
                   'The maximum number of danmaku that can be displayed on the screen at the same time.'

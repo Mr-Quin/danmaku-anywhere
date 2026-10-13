@@ -14,7 +14,7 @@ export function localizedBackupStoreName(name: string): string {
     case 'mountConfig':
       return i18n.t('configPage.name', 'Configs')
     case 'providerConfig':
-      return i18n.t('tabs.providers', 'Providers')
+      return i18n.t('tabs.providers', 'Sources')
     case 'aiProviderConfig':
       return i18n.t('tabs.aiProviders', 'AI Providers')
     case 'integrationPolicy':
