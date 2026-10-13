@@ -11,6 +11,7 @@ import { NothingHere } from '@/common/components/NothingHere'
 import { useCustomEpisodeSuspense } from '@/common/danmaku/queries/useCustomEpisodes'
 import { useEpisodesSuspense } from '@/common/danmaku/queries/useEpisodes'
 import { isSourceEpisode } from '@/common/danmaku/utils'
+import { useCanRefetchDanmaku } from '@/common/providers/useSourceCapabilities'
 import { useRefreshDanmaku } from '@/popup/hooks/useRefreshDanmaku'
 import { FullPageSpinner } from '../../FullPageSpinner'
 
@@ -25,6 +26,7 @@ const CommentsLoader = ({
   episodeLite: GenericEpisodeLite
 }) => {
   const { refreshDanmaku, ...mutation } = useRefreshDanmaku()
+  const refetchable = useCanRefetchDanmaku(episodeLite)
 
   let episode: GenericEpisode | undefined
 
@@ -38,7 +40,7 @@ const CommentsLoader = ({
     episode = data[0]
   }
 
-  const canRefresh = episode !== undefined && !isCustom
+  const canRefresh = episode !== undefined && !isCustom && refetchable
 
   const handleRefresh = () => {
     if (!canRefresh) {

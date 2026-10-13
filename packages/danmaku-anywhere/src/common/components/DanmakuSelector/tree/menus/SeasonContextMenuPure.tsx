@@ -12,6 +12,10 @@ import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig
 import { DrilldownContextMenu } from '@/common/components/Menu/DrilldownContextMenu'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { isCustomSeason } from '@/common/danmaku/utils'
+import {
+  NO_CAPABILITIES,
+  type SourceCapabilityAnswer,
+} from '@/common/providers/sourceCapabilities'
 
 export interface SeasonContextMenuPureProps {
   season: Season | CustomSeason
@@ -21,7 +25,7 @@ export interface SeasonContextMenuPureProps {
   onRefresh: () => void
   isRefreshing: boolean
   isExporting: boolean
-  orphaned?: boolean
+  source?: SourceCapabilityAnswer
   bookmarked: boolean
   onBookmarkToggle: () => void
   onBookmarkRefresh: () => void
@@ -38,7 +42,7 @@ export const SeasonContextMenuPure = ({
   onRefresh,
   isRefreshing,
   isExporting,
-  orphaned,
+  source,
   bookmarked,
   onBookmarkToggle,
   onBookmarkRefresh,
@@ -77,43 +81,63 @@ export const SeasonContextMenuPure = ({
   ]
 
   if (!isCustomSeason(season)) {
-    const sourceRemovedTooltip = orphaned
-      ? t('anime.sourceRemovedTooltip', 'This source has been deleted.')
-      : undefined
+    const sourceRemoved = source?.sourceRemoved === true
+    const capabilities = source?.capabilities ?? NO_CAPABILITIES
 
-    items.unshift({
-      kind: 'item',
-      id: 'refresh',
-      label: t('anime.refreshMetadata', 'Refresh Metadata'),
-      icon: <Sync />,
-      onClick: onRefresh,
-      loading: isRefreshing,
-      disabled: orphaned,
-      tooltip: sourceRemovedTooltip,
-    })
+    // A removed source keeps its actions in view, disabled, so the user sees
+    // why they stopped working.
+    const gate = (capable: boolean) => {
+      if (sourceRemoved) {
+        return {
+          disabled: true,
+          tooltip: t(
+            'anime.sourceRemovedTooltip',
+            'This source has been deleted.'
+          ),
+        }
+      }
+      if (capable) {
+        return {}
+      }
+      return null
+    }
+
+    const refreshGate = gate(capabilities.seasonRefresh)
+    const episodesGate = gate(capabilities.episodes)
+
+    if (refreshGate) {
+      items.unshift({
+        kind: 'item',
+        id: 'refresh',
+        label: t('anime.refreshMetadata', 'Refresh Metadata'),
+        icon: <Sync />,
+        onClick: onRefresh,
+        loading: isRefreshing,
+        ...refreshGate,
+      })
+    }
 
     if (bookmarked) {
-      items.unshift(
-        {
+      items.unshift({
+        kind: 'item',
+        id: 'bookmarkRemove',
+        label: t('bookmark.unfollow', 'Unfollow'),
+        icon: <Favorite fontSize="small" />,
+        onClick: onBookmarkToggle,
+        loading: isBookmarkLoading,
+      })
+      if (episodesGate) {
+        items.unshift({
           kind: 'item',
           id: 'bookmarkRefresh',
           label: t('bookmark.refreshEpisodes', 'Refresh Episodes'),
           icon: <Sync fontSize="small" />,
           onClick: onBookmarkRefresh,
           loading: isBookmarkLoading,
-          disabled: orphaned,
-          tooltip: sourceRemovedTooltip,
-        },
-        {
-          kind: 'item',
-          id: 'bookmarkRemove',
-          label: t('bookmark.unfollow', 'Unfollow'),
-          icon: <Favorite fontSize="small" />,
-          onClick: onBookmarkToggle,
-          loading: isBookmarkLoading,
-        }
-      )
-    } else {
+          ...episodesGate,
+        })
+      }
+    } else if (episodesGate) {
       items.unshift({
         kind: 'item',
         id: 'bookmarkAdd',
@@ -121,8 +145,7 @@ export const SeasonContextMenuPure = ({
         icon: <FavoriteBorder fontSize="small" />,
         onClick: onBookmarkToggle,
         loading: isBookmarkLoading,
-        disabled: orphaned,
-        tooltip: sourceRemovedTooltip,
+        ...episodesGate,
       })
     }
   }

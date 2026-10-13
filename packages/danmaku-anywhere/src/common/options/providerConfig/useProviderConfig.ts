@@ -3,7 +3,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useInjectService } from '@/common/hooks/useInjectService'
-import { bookmarkQueryKeys, storageQueryKeys } from '@/common/queries/queryKeys'
+import {
+  bookmarkQueryKeys,
+  sourceQueryKeys,
+  storageQueryKeys,
+} from '@/common/queries/queryKeys'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import { withLocalizedBuiltinNames } from './builtinNames'
 import type { ProviderConfig, ProviderConfigOptions } from './schema'
@@ -49,7 +53,7 @@ export const useProviderConfig = () => {
 export const useEditProviderConfig = () => {
   const queryClient = useQueryClient()
   const queryKey = storageQueryKeys.external('sync', ['providerConfig'])
-  const meta = { invalidates: [queryKey] }
+  const meta = { invalidates: [queryKey, sourceQueryKeys.capabilities()] }
 
   const providerConfigService = useInjectService(ProviderConfigService)
 
@@ -73,7 +77,13 @@ export const useEditProviderConfig = () => {
     mutationFn: providerConfigService.delete.bind(providerConfigService),
     // Deleting a config also deletes its bookmarks in the background, so the
     // bookmark cache must refetch or the tree keeps showing dead stubs.
-    meta: { invalidates: [queryKey, bookmarkQueryKeys.all()] },
+    meta: {
+      invalidates: [
+        queryKey,
+        bookmarkQueryKeys.all(),
+        sourceQueryKeys.capabilities(),
+      ],
+    },
   })
 
   const toggleMutation = useMutation({

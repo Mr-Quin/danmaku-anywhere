@@ -21,6 +21,10 @@ import { useExtensionOptions } from '@/common/options/extensionOptions/useExtens
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { useSearchHistory } from '@/common/options/searchHistory/useSearchHistory'
+import {
+  urlParseSourceQuery,
+  useUrlParseSource,
+} from '@/common/providers/useSourceCapabilities'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { toSimplified } from '@/common/utils/utils'
@@ -28,7 +32,7 @@ import { SearchInput } from './SearchInput'
 import { SearchMascot } from './SearchMascot'
 import { SeasonResultsList } from './SeasonResultsList'
 import { SourceFilterChips } from './SourceFilterChips'
-import { isParseableUrl, UrlParseSection } from './UrlParseSection'
+import { UrlParseSection } from './UrlParseSection'
 import { useSignInPrompt } from './useSignInPrompt'
 
 type SeasonOrInsert = Season | SeasonInsert | CustomSeason
@@ -78,7 +82,8 @@ export function SearchForm({
   const [parseSubmitToken, setParseSubmitToken] = useState(0)
   const [committedParseUrl, setCommittedParseUrl] = useState('')
 
-  const isUrl = isParseableUrl(searchTerm)
+  const urlSource = useUrlParseSource(searchTerm)
+  const isUrl = urlSource !== null
 
   const activeProviderId =
     enabledProviders.find((p) => p.id === providerId)?.id ??
@@ -174,21 +179,20 @@ export function SearchForm({
     setParseSubmitToken((token) => token + 1)
   }
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    if (isUrl) {
-      handleParseSubmit()
-    } else {
-      handleSearchSubmit()
-    }
-  }
-
-  const handleInputSubmit = (value: string) => {
-    if (isParseableUrl(value)) {
+  const submit = async (value: string) => {
+    const source = await queryClient
+      .fetchQuery(urlParseSourceQuery(value))
+      .catch(() => null)
+    if (source) {
       handleParseSubmit(value)
     } else {
       handleSearchSubmit(value)
     }
+  }
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    void submit(searchTerm)
   }
 
   const renderResultCount = (): ReactNode => {
@@ -301,8 +305,8 @@ export function SearchForm({
             <SearchInput
               value={searchTerm}
               onChange={onSearchTermChange}
-              onSubmit={handleInputSubmit}
-              urlMode={isUrl}
+              onSubmit={submit}
+              urlSourceName={urlSource?.sourceName}
               focusToken={focusToken}
               hasCommittedSearch={!!committedSearchTerm}
             />
