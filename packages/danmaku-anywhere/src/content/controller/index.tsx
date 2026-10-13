@@ -16,6 +16,7 @@ import { createPortal } from 'react-dom'
 import { IS_DA_PROD } from '@/common/constants'
 import { EnvironmentContext } from '@/common/environment/context'
 import { bootstrapUiLanguage, uiContainer } from '@/common/ioc/uiIoc'
+import { OptionsReadinessGate } from '@/common/options/ReadinessService/OptionsReadinessGate'
 import { tryCatchSync } from '@/common/utils/tryCatch'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
@@ -100,9 +101,11 @@ ReactDOM.createRoot(shadowRoot).render(
             type: 'controller',
           }}
         >
-          <Theme options={themeOptions}>
-            <App />
-          </Theme>
+          <OptionsReadinessGate pending={null} failed={null}>
+            <Theme options={themeOptions}>
+              <App />
+            </Theme>
+          </OptionsReadinessGate>
         </EnvironmentContext>
         {import.meta.env.MODE === 'development' &&
           createPortal(

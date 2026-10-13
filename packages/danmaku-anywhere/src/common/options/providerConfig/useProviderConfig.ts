@@ -16,7 +16,6 @@ export const useProviderConfig = () => {
     ...rest
   } = useSuspenseExtStorageQuery<ProviderConfigOptions>('providerConfig', {
     storageType: 'sync',
-    isOptionStore: true,
   })
 
   const { i18n } = useTranslation()

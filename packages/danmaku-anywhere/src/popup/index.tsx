@@ -15,6 +15,7 @@ import {
   requestOptionsUpgrade,
   uiContainer,
 } from '@/common/ioc/uiIoc'
+import { PopupReadinessGate } from './component/PopupReadinessGate'
 
 const bootstrap = () => {
   bootstrapUiLanguage(uiContainer)
@@ -31,10 +32,12 @@ const bootstrap = () => {
             type: 'popup',
           }}
         >
-          <Theme>
-            <App />
-            <ReactQueryDevtools />
-          </Theme>
+          <PopupReadinessGate>
+            <Theme>
+              <App />
+              <ReactQueryDevtools />
+            </Theme>
+          </PopupReadinessGate>
         </EnvironmentContext>
       </QueryClientProvider>
     </React.StrictMode>

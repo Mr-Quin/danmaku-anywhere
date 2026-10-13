@@ -19,7 +19,6 @@ export const useMountConfig = () => {
     ...rest
   } = useSuspenseExtStorageQuery<MountConfigOptions>('mountConfig', {
     storageType: 'sync',
-    isOptionStore: true,
   })
 
   const methods = useMemo(() => {

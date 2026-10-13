@@ -17,7 +17,6 @@ export const useIntegrationPolicyStore = () => {
     ...rest
   } = useSuspenseExtStorageQuery<Options<Integration[]>>('xpathPolicy', {
     storageType: 'local',
-    isOptionStore: true,
   })
 
   const mountConfigService = useInjectService(MountConfigService)

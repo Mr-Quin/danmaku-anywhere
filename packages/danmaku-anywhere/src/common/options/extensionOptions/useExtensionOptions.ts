@@ -9,7 +9,6 @@ export const useExtensionOptions = () => {
     'extensionOptions',
     {
       storageType: 'sync',
-      isOptionStore: true,
     }
   )
 
