@@ -3,7 +3,6 @@ import { inject, injectable } from 'inversify'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
 import type { MatchEpisodeInput, MatchEpisodeResult } from '@/common/anime/dto'
-import { errorMessage } from '@/common/errors/errorMessage'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
@@ -53,22 +52,17 @@ export class MappingMatchingStrategy implements IMatchingStrategy {
       }
     }
 
-    try {
-      const data = await this.episodeResolver.resolveEpisode(
-        season,
-        episodeNumber
-      )
-      return {
-        status: 'success',
-        data,
-        metadata: { strategy: 'mapping', providerConfig },
-      }
-    } catch (e) {
-      return {
-        status: 'notFound',
-        data: null,
-        cause: errorMessage(e),
-      }
+    const resolved = await this.episodeResolver.resolveEpisode(
+      season,
+      episodeNumber
+    )
+    if (!resolved.success) {
+      return { status: 'notFound', data: null, cause: resolved.error }
+    }
+    return {
+      status: 'success',
+      data: resolved.data,
+      metadata: { strategy: 'mapping', providerConfig },
     }
   }
 

@@ -4,7 +4,6 @@ import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
 import type { MatchEpisodeInput, MatchEpisodeResult } from '@/common/anime/dto'
 import { isCustomSeason } from '@/common/danmaku/utils'
-import { errorMessage } from '@/common/errors/errorMessage'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
@@ -83,22 +82,17 @@ export class SearchMatchingStrategy implements IMatchingStrategy {
         }
       }
 
-      try {
-        const data = await this.episodeResolver.resolveEpisode(
-          firstSeason,
-          episodeNumber
-        )
-        return {
-          status: 'success',
-          data,
-          metadata: { strategy: 'search', providerConfig: autoProvider },
-        }
-      } catch (e) {
-        return {
-          status: 'notFound',
-          data: null,
-          cause: errorMessage(e),
-        }
+      const resolved = await this.episodeResolver.resolveEpisode(
+        firstSeason,
+        episodeNumber
+      )
+      if (!resolved.success) {
+        return { status: 'notFound', data: null, cause: resolved.error }
+      }
+      return {
+        status: 'success',
+        data: resolved.data,
+        metadata: { strategy: 'search', providerConfig: autoProvider },
       }
     }
 
