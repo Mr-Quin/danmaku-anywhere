@@ -6,8 +6,6 @@ interface OptionsReadinessGateProps extends PropsWithChildren {
   failed: ReactNode
 }
 
-// Option hooks read storage directly and do not wait for the upgrade, so
-// anything that uses them has to render inside this gate.
 export function OptionsReadinessGate({
   children,
   pending,

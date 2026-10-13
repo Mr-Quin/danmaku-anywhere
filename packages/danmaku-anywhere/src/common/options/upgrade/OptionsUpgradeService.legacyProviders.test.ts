@@ -241,6 +241,7 @@ describe('startup upgrade of a profile that predates providerConfig', () => {
 
     it('rejects and leaves readiness failed', async () => {
       const { readiness, upgrade } = await failFirstUpgrade()
+      readiness.subscribe(() => undefined)
 
       await expect(upgrade).rejects.toThrow(/extensionOptions/)
 

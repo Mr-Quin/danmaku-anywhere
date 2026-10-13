@@ -3,18 +3,18 @@ import { fakeBrowser } from '@webext-core/fake-browser'
 import { Suspense } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, expect, it, vi } from 'vitest'
-import { uiContainer } from '@/common/ioc/uiIoc'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { OptionsUpgradeService } from '@/common/options/upgrade/OptionsUpgradeService'
+import { UPGRADE_RUN_KEY } from '@/common/options/upgrade/upgradeRun'
+import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
 import { OptionsReadinessGate } from './OptionsReadinessGate'
-import { ReadinessService } from './ReadinessService'
 
 /**
- * OptionsReadinessGate keeps option hooks from rendering until every store is
- * upgraded. A popup opened while the provider store is behind shows the
- * pending element instead of the pre-upgrade store, the failed element once an
- * upgrade attempt records a failure, and the configs once a retry succeeds.
+ * OptionsReadinessGate shows the upgrade's state in place of the UI. A popup
+ * opened while the provider store is behind shows the pending element instead
+ * of the pre-upgrade store, the failed element once the service worker
+ * records a failed run, and the configs once a retry there succeeds.
  */
 
 function config(name: string): ProviderConfig {
@@ -61,14 +61,21 @@ it('shows pending, then the failure, then the upgraded configs after a retry', a
   await new Promise((resolve) => setTimeout(resolve, 50))
   expect(element.textContent).toBe('pending')
 
-  await uiContainer
-    .get(ReadinessService)
-    .recordFailure(new Error('QUOTA_BYTES quota exceeded'))
+  await fakeBrowser.storage.local.set({
+    [UPGRADE_RUN_KEY]: {
+      status: 'failed',
+      attempts: 1,
+      failedAt: 0,
+      message: 'QUOTA_BYTES quota exceeded',
+    },
+  })
   await vi.waitFor(() => {
     expect(element.textContent).toBe('failed')
   })
 
-  await uiContainer.get(OptionsUpgradeService).upgrade()
+  await createUpgradeContainer({ ready: false })
+    .get(OptionsUpgradeService)
+    .upgrade()
 
   await vi.waitFor(() => {
     expect(element.textContent).toBe('stored config')

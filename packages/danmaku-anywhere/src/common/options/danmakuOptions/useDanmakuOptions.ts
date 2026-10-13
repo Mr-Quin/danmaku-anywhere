@@ -2,14 +2,12 @@ import type {
   DanmakuOptions,
   DanmakuOptionsOptions,
 } from '@/common/options/danmakuOptions/constant'
-import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
+import { danmakuOptionsDescriptor } from '@/common/options/optionStores'
+import { useOptionStoreQuery } from '@/common/options/useOptionStoreQuery'
 
 export const useDanmakuOptions = () => {
-  const store = useSuspenseExtStorageQuery<DanmakuOptionsOptions>(
-    'danmakuOptions',
-    {
-      storageType: 'sync',
-    }
+  const store = useOptionStoreQuery<DanmakuOptionsOptions>(
+    danmakuOptionsDescriptor
   )
 
   const partialUpdate = async (config: DanmakuOptions) => {

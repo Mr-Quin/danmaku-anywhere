@@ -3,10 +3,9 @@ import { AiProviderConfigService } from './aiProviderConfig/service'
 import { DanmakuOptionsService } from './danmakuOptions/service'
 import { ExtensionOptionsService } from './extensionOptions/service'
 import {
-  type IOptionStoresProvider,
   type IStoreService,
-  OptionStoresProvider,
   StoreServiceSymbol,
+  UpgradableOptionStores,
 } from './IStoreService'
 import { IntegrationPolicyService } from './integrationPolicyStore/service'
 import { NamingRuleService } from './localMatchingRule/service'
@@ -15,8 +14,7 @@ import { ProviderConfigService } from './providerConfig/service'
 import { SearchHistoryService } from './searchHistory/service'
 import { UserAuthStore } from './userAuth/service'
 
-// Every context binds the same stores, so readiness means the same thing in
-// the service worker, the popup and a content script.
+// The order is the order the upgrade runs the stores in.
 export function bindOptionStores({ bind }: ContainerModuleLoadOptions): void {
   bind(StoreServiceSymbol).toService(ExtensionOptionsService)
   bind(StoreServiceSymbol).toService(DanmakuOptionsService)
@@ -28,7 +26,10 @@ export function bindOptionStores({ bind }: ContainerModuleLoadOptions): void {
   bind(StoreServiceSymbol).toService(NamingRuleService)
   bind(StoreServiceSymbol).toService(UserAuthStore)
 
-  bind<IOptionStoresProvider>(OptionStoresProvider).toFactory((context) => {
-    return () => context.getAll<IStoreService>(StoreServiceSymbol)
+  // A single binding, unlike the multi-binding above, fails to resolve where
+  // it is missing, so the upgrade service cannot be built in a content script
+  // or the extension popup.
+  bind(UpgradableOptionStores).toDynamicValue((context) => {
+    return context.getAll<IStoreService>(StoreServiceSymbol)
   })
 }

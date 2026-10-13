@@ -38,8 +38,10 @@ export class OptionsManager {
     this.ensureUpgraded()
   }
 
+  // A new build may fix what made the last attempt fail, so install and
+  // update run the upgrade without waiting out the retry delay.
   private async onInstalled(details: chrome.runtime.InstalledDetails) {
-    this.ensureUpgraded()
+    this.upgradeService.upgrade().catch(() => undefined)
 
     if (details.reason === 'update') {
       if (!import.meta.env.DEV) {

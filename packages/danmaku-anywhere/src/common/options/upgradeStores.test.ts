@@ -8,9 +8,11 @@ import { upgradeStores } from './upgradeStores'
 
 /**
  * upgradeStores migrates every store with a snapshot of all stored data taken
- * before any store is written. A store that fails does not stop the others,
- * and the call then rejects naming each failed store. A read error while
- * taking the snapshot rejects before anything is written.
+ * before any store is written. The snapshot is kept in storage.local until an
+ * attempt succeeds, so a retry after a partial upgrade still hands every step
+ * the data from before the first attempt. A store that fails does not stop
+ * the others, and the call then rejects naming each failed store. A read
+ * error while taking the snapshot rejects before anything is written.
  */
 
 interface Value {
@@ -32,7 +34,11 @@ function createStore(key: string, onMigrate?: (stores: StoreSnapshot) => void) {
         return { value: `${data.value} upgraded` }
       },
     })
-  return { name: key, options } satisfies IStoreService
+  return {
+    name: key,
+    descriptor: { key, area: 'local', latestVersion: 2 },
+    options,
+  } satisfies IStoreService
 }
 
 function storeV1(key: string, value: string) {
@@ -44,6 +50,18 @@ function storeV1(key: string, value: string) {
 async function readRaw(key: string) {
   const stored = await fakeBrowser.storage.local.get(key)
   return stored[key]
+}
+
+function failWritesTo(key: string) {
+  const set = fakeBrowser.storage.local.set.bind(fakeBrowser.storage.local)
+  return vi
+    .spyOn(fakeBrowser.storage.local, 'set')
+    .mockImplementation(async (items) => {
+      if (key in items) {
+        throw new Error('QUOTA_BYTES quota exceeded')
+      }
+      return set(items)
+    })
 }
 
 describe('upgradeStores', () => {
@@ -81,15 +99,7 @@ describe('upgradeStores', () => {
   it('upgrades the other stores and names the one that failed', async () => {
     await storeV1('alpha', 'a')
     await storeV1('beta', 'b')
-    const set = fakeBrowser.storage.local.set.bind(fakeBrowser.storage.local)
-    vi.spyOn(fakeBrowser.storage.local, 'set').mockImplementation(
-      async (items) => {
-        if ('alpha' in items) {
-          throw new Error('QUOTA_BYTES quota exceeded')
-        }
-        return set(items)
-      }
-    )
+    failWritesTo('alpha')
 
     await expect(
       upgradeStores([createStore('alpha'), createStore('beta')], silentLogger)
@@ -100,6 +110,49 @@ describe('upgradeStores', () => {
       data: { value: 'b upgraded' },
       version: 2,
     })
+  })
+
+  it('hands a retry the data from before the first attempt', async () => {
+    await storeV1('alpha', 'a')
+    await storeV1('beta', 'b')
+    const seen: StoreSnapshot[] = []
+    const stores = [
+      createStore('alpha'),
+      createStore('beta', (snapshot) => seen.push(snapshot)),
+    ]
+    const failing = failWritesTo('beta')
+    await expect(upgradeStores(stores, silentLogger)).rejects.toThrow(/beta/)
+    expect(await readRaw('alpha')).toMatchObject({ version: 2 })
+    failing.mockRestore()
+
+    await upgradeStores(stores, silentLogger)
+
+    expect(seen.at(-1)).toEqual({ alpha: { value: 'a' }, beta: { value: 'b' } })
+    expect(await readRaw('optionsUpgradeSnapshot')).toBeUndefined()
+  })
+
+  it('keeps the snapshot with store versions until an attempt succeeds', async () => {
+    await storeV1('alpha', 'a')
+    failWritesTo('alpha')
+
+    await expect(
+      upgradeStores([createStore('alpha')], silentLogger)
+    ).rejects.toThrow()
+
+    expect(await readRaw('optionsUpgradeSnapshot')).toEqual({
+      alpha: { data: { value: 'a' }, version: 1 },
+    })
+  })
+
+  it('writes no snapshot when every store is already current', async () => {
+    await fakeBrowser.storage.local.set({
+      alpha: { data: { value: 'a' }, version: 2 },
+    })
+    const set = vi.spyOn(fakeBrowser.storage.local, 'set')
+
+    await upgradeStores([createStore('alpha')], silentLogger)
+
+    expect(set).not.toHaveBeenCalled()
   })
 
   it('rejects before writing when a store cannot be read', async () => {

@@ -1,8 +1,9 @@
 import type { ILogger } from '@/common/Logger'
 import type { ExtStorageType } from '@/common/storage/getStorageArea'
 import { ExtStorageService } from '../../storage/ExtStorageService'
-import type { ReadinessService } from '../ReadinessService/ReadinessService'
+import type { ReadinessGate } from '../ReadinessService/ReadinessService'
 import { migrateOptions } from './migrationOptions'
+import { isStoredAtVersion } from './storedVersion'
 import type {
   DeferredWrite,
   Options,
@@ -30,7 +31,7 @@ export class OptionsService<T extends OptionsSchema> {
   private isProcessingQueue = false
 
   constructor(
-    private readinessService: Pick<ReadinessService, 'waitUntilReady'>,
+    private readinessService: ReadinessGate,
     readonly key: string,
     private defaultOptions: T,
     logger: ILogger,
@@ -84,7 +85,7 @@ export class OptionsService<T extends OptionsSchema> {
 
     // Readiness counts a store at its latest version as done, so rewriting it
     // here could overwrite a change the UI makes once every store is current.
-    if (this.isAtLatestVersion(stored)) {
+    if (isStoredAtVersion(stored, this.latestVersion)) {
       return
     }
 
@@ -172,27 +173,11 @@ export class OptionsService<T extends OptionsSchema> {
     })
   }
 
-  // A store whose version is above the latest was written by a newer build.
-  // There is nothing this build can migrate it to, so it counts as current.
-  async isCurrent(): Promise<boolean> {
-    const stored = await this.storageService.read()
-    if (!stored) {
-      return false
-    }
-    return this.isAtLatestVersion(stored)
-  }
-
-  onChange(listener: (data: T) => void): () => void {
-    const onStored = (options: Options<T> | undefined) => {
-      if (!options) {
-        return
-      }
+  onChange(listener: (data: T) => void) {
+    this.storageService.subscribe((options) => {
+      if (!options) return
       listener(options.data)
-    }
-    this.storageService.subscribe(onStored)
-    return () => {
-      this.storageService.unsubscribe(onStored)
-    }
+    })
   }
 
   destroy() {
@@ -281,11 +266,6 @@ export class OptionsService<T extends OptionsSchema> {
     }
 
     this.isProcessingQueue = false
-  }
-
-  private isAtLatestVersion(stored: Options<T>): boolean {
-    // unversioned options predate versioning, so they count as version 0
-    return (stored.version ?? 0) >= this.latestVersion
   }
 
   private getLatestVersion() {

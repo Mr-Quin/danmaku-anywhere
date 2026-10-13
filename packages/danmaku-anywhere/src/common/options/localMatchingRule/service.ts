@@ -6,6 +6,7 @@ import {
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { namingRuleDescriptor } from '@/common/options/optionStores'
 import { defaultNamingRuleOptions } from './constant'
 import {
   type NamingRule,
@@ -16,6 +17,7 @@ import {
 @injectable('Singleton')
 export class NamingRuleService implements IStoreService {
   public readonly name = 'localMatchingRule'
+  public readonly descriptor = namingRuleDescriptor
   public readonly options: OptionsService<NamingRuleOptions>
   public readonly backupSchema = namingRuleOptionsSchema
 
@@ -26,10 +28,10 @@ export class NamingRuleService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory(
-      'localMatchingRule',
+      namingRuleDescriptor.key,
       defaultNamingRuleOptions,
       this.logger,
-      'local'
+      namingRuleDescriptor.area
     ).version(1, {
       upgrade: () => defaultNamingRuleOptions,
     })

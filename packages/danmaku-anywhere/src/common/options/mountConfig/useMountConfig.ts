@@ -8,8 +8,9 @@ import type {
   MountConfigOptions,
 } from '@/common/options/mountConfig/schema'
 import { MountConfigService } from '@/common/options/mountConfig/service'
+import { mountConfigDescriptor } from '@/common/options/optionStores'
+import { useOptionStoreQuery } from '@/common/options/useOptionStoreQuery'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
-import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import { matchUrl } from '@/common/utils/matchUrl'
 
 export const useMountConfig = () => {
@@ -17,9 +18,7 @@ export const useMountConfig = () => {
     data: options,
     update,
     ...rest
-  } = useSuspenseExtStorageQuery<MountConfigOptions>('mountConfig', {
-    storageType: 'sync',
-  })
+  } = useOptionStoreQuery<MountConfigOptions>(mountConfigDescriptor)
 
   const methods = useMemo(() => {
     const matchByUrl = (url: string) => {

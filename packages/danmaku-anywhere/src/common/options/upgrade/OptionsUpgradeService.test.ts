@@ -1,29 +1,33 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { Container } from 'inversify'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { LoggerSymbol } from '@/common/Logger'
 import {
-  type IOptionStoresProvider,
   type IStoreService,
-  OptionStoresProvider,
   StoreServiceSymbol,
+  UpgradableOptionStores,
 } from '@/common/options/IStoreService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { OptionStoreDescriptors } from '@/common/options/optionStores'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
 import { silentLogger } from '@/tests/silentLogger'
 import { OptionsUpgradeService } from './OptionsUpgradeService'
+import { UPGRADE_RUN_KEY, type UpgradeRun } from './upgradeRun'
 
 /**
  * OptionsUpgradeService runs the upgrade of every option store. Concurrent
- * requests share one run. A failed run leaves a failure record that readiness
- * reports, and the next request starts a fresh run, which clears the record
- * when it succeeds. ensureUpgraded skips the run once readiness is ready;
- * upgrade always runs.
+ * requests share one run. A run is recorded as running while it is in flight,
+ * as failed with its attempt count when it fails, and the record is removed
+ * when it succeeds. ensureUpgraded checks storage, not this context's
+ * readiness: it skips current stores and a failed run whose retry delay has
+ * not passed. upgrade always runs.
  */
 
 interface Counter {
   count: number
 }
+
+const MINUTE = 60_000
 
 function setup(keys: string[]) {
   const migrations: Record<string, number> = {}
@@ -31,7 +35,12 @@ function setup(keys: string[]) {
   container.bind(LoggerSymbol).toConstantValue(silentLogger)
   container.bind(ReadinessService).toSelf()
   container.bind(OptionsUpgradeService).toSelf()
-  for (const key of keys) {
+  const descriptors = keys.map((key) => {
+    return { key, area: 'local', latestVersion: 2 } as const
+  })
+  container.bind(OptionStoreDescriptors).toConstantValue(descriptors)
+  for (const descriptor of descriptors) {
+    const { key } = descriptor
     migrations[key] = 0
     const options = new OptionsService<Counter>(
       { waitUntilReady: () => Promise.resolve() },
@@ -49,13 +58,11 @@ function setup(keys: string[]) {
       })
     container
       .bind<IStoreService>(StoreServiceSymbol)
-      .toConstantValue({ name: key, options })
+      .toConstantValue({ name: key, descriptor, options })
   }
-  container
-    .bind<IOptionStoresProvider>(OptionStoresProvider)
-    .toFactory((context) => {
-      return () => context.getAll<IStoreService>(StoreServiceSymbol)
-    })
+  container.bind(UpgradableOptionStores).toDynamicValue((context) => {
+    return context.getAll<IStoreService>(StoreServiceSymbol)
+  })
   return {
     upgrader: container.get(OptionsUpgradeService),
     readiness: container.get(ReadinessService),
@@ -86,10 +93,17 @@ function failWritesTo(key: string) {
     })
 }
 
+afterEach(() => {
+  vi.useRealTimers()
+})
+
 describe('OptionsUpgradeService', () => {
   it('upgrades every store and makes readiness ready', async () => {
     await storeV1('alpha', 1)
     await storeV1('beta', 5)
+    await fakeBrowser.storage.local.set({
+      lastVersion: { lastVersion: '1.5.0' },
+    })
     const { upgrader, readiness } = setup(['alpha', 'beta'])
 
     await upgrader.ensureUpgraded()
@@ -97,6 +111,8 @@ describe('OptionsUpgradeService', () => {
     await expect(readiness.waitUntilReady()).resolves.toBeUndefined()
     expect(await readRaw('alpha')).toEqual({ data: { count: 2 }, version: 2 })
     expect(await readRaw('beta')).toEqual({ data: { count: 6 }, version: 2 })
+    expect(await readRaw(UPGRADE_RUN_KEY)).toBeUndefined()
+    expect(await readRaw('lastVersion')).toBeUndefined()
   })
 
   it('shares one run between requests made while it is in flight', async () => {
@@ -104,42 +120,81 @@ describe('OptionsUpgradeService', () => {
     const { upgrader, migrations } = setup(['alpha'])
 
     await Promise.all([
-      upgrader.ensureUpgraded(),
       upgrader.upgrade(),
       upgrader.ensureUpgraded(),
+      upgrader.upgrade(),
     ])
 
     expect(migrations.alpha).toBe(1)
   })
 
-  it('reports a failed run through readiness and keeps the store as it was', async () => {
+  it('records the run as running while it is in flight', async () => {
+    await storeV1('alpha', 1)
+    const { upgrader } = setup(['alpha'])
+    let runAtWrite: unknown
+    const set = fakeBrowser.storage.local.set.bind(fakeBrowser.storage.local)
+    vi.spyOn(fakeBrowser.storage.local, 'set').mockImplementation(
+      async (items) => {
+        if ('alpha' in items) {
+          runAtWrite = await readRaw(UPGRADE_RUN_KEY)
+        }
+        return set(items)
+      }
+    )
+
+    await upgrader.upgrade()
+
+    expect(runAtWrite).toEqual({ status: 'running', attempts: 0 })
+  })
+
+  it('records a failed run that readiness reports, keeping the store as it was', async () => {
     await storeV1('alpha', 1)
     await storeV1('beta', 5)
     failWritesTo('beta')
     const { upgrader, readiness } = setup(['alpha', 'beta'])
 
-    await expect(upgrader.ensureUpgraded()).rejects.toThrow(/beta/)
+    await expect(upgrader.upgrade()).rejects.toThrow(/beta/)
 
+    expect(await readRaw(UPGRADE_RUN_KEY)).toMatchObject({
+      status: 'failed',
+      attempts: 1,
+      message: 'Failed to upgrade options: beta',
+    })
+    readiness.subscribe(() => undefined)
     await vi.waitFor(() => {
       expect(readiness.getState()).toMatchObject({ status: 'failed' })
     })
     expect(await readRaw('beta')).toEqual({ data: { count: 5 }, version: 1 })
   })
 
-  it('runs again on the next request after a failure and clears the record', async () => {
+  it('counts attempts across failed runs and clears the record on success', async () => {
     await storeV1('alpha', 1)
     const failing = failWritesTo('alpha')
-    const { upgrader, readiness } = setup(['alpha'])
-    await expect(upgrader.ensureUpgraded()).rejects.toThrow()
+    const { upgrader } = setup(['alpha'])
+    await expect(upgrader.upgrade()).rejects.toThrow()
+    await expect(upgrader.upgrade()).rejects.toThrow()
+    expect(await readRaw(UPGRADE_RUN_KEY)).toMatchObject({ attempts: 2 })
     failing.mockRestore()
 
     await upgrader.upgrade()
 
-    await expect(readiness.waitUntilReady()).resolves.toBeUndefined()
-    expect(await readRaw('optionsUpgradeFailure')).toBeUndefined()
+    expect(await readRaw(UPGRADE_RUN_KEY)).toBeUndefined()
+    expect(await readRaw('alpha')).toEqual({ data: { count: 2 }, version: 2 })
   })
 
-  it('skips the run on ensureUpgraded once readiness is ready', async () => {
+  it('does nothing on ensureUpgraded when every store is current', async () => {
+    await fakeBrowser.storage.local.set({
+      alpha: { data: { count: 1 }, version: 2 },
+    })
+    const { upgrader } = setup(['alpha'])
+    const set = vi.spyOn(fakeBrowser.storage.local, 'set')
+
+    await upgrader.ensureUpgraded()
+
+    expect(set).not.toHaveBeenCalled()
+  })
+
+  it('upgrades on ensureUpgraded a store that went missing after readiness was ready', async () => {
     await fakeBrowser.storage.local.set({
       alpha: { data: { count: 1 }, version: 2 },
     })
@@ -149,19 +204,42 @@ describe('OptionsUpgradeService', () => {
 
     await upgrader.ensureUpgraded()
 
-    expect(await readRaw('alpha')).toBeUndefined()
+    expect(await readRaw('alpha')).toEqual({ data: { count: 0 }, version: 2 })
   })
 
-  it('runs on upgrade even once readiness is ready', async () => {
-    await fakeBrowser.storage.local.set({
-      alpha: { data: { count: 1 }, version: 2 },
-    })
-    const { upgrader, readiness } = setup(['alpha'])
-    await readiness.waitUntilReady()
-    await fakeBrowser.storage.local.remove('alpha')
+  it('waits out the retry delay after a failure on ensureUpgraded', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(0)
+    await storeV1('alpha', 1)
+    const failing = failWritesTo('alpha')
+    const { upgrader, migrations } = setup(['alpha'])
+    await expect(upgrader.ensureUpgraded()).rejects.toThrow()
+    failing.mockRestore()
+
+    const { failedAt } = (await readRaw(UPGRADE_RUN_KEY)) as Extract<
+      UpgradeRun,
+      { status: 'failed' }
+    >
+
+    vi.setSystemTime(failedAt + MINUTE - 1)
+    await upgrader.ensureUpgraded()
+    expect(migrations.alpha).toBe(1)
+
+    vi.setSystemTime(failedAt + MINUTE)
+    await upgrader.ensureUpgraded()
+    expect(migrations.alpha).toBe(2)
+    expect(await readRaw('alpha')).toEqual({ data: { count: 2 }, version: 2 })
+  })
+
+  it('runs on upgrade even inside the retry delay', async () => {
+    await storeV1('alpha', 1)
+    const failing = failWritesTo('alpha')
+    const { upgrader } = setup(['alpha'])
+    await expect(upgrader.upgrade()).rejects.toThrow()
+    failing.mockRestore()
 
     await upgrader.upgrade()
 
-    expect(await readRaw('alpha')).toEqual({ data: { count: 0 }, version: 2 })
+    expect(await readRaw('alpha')).toEqual({ data: { count: 2 }, version: 2 })
   })
 })
