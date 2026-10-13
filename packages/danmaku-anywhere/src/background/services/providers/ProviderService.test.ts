@@ -6,6 +6,7 @@ import {
   LEGACY_MACCMS_ID,
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
+import { err, ok } from '@danmaku-anywhere/result'
 import type { ManifestRunner } from '@mr-quin/dango'
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { Dexie } from 'dexie'
@@ -16,6 +17,7 @@ import { DanmakuService } from '@/background/services/persistence/DanmakuService
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { EXTENSION_VERSION } from '@/common/constants'
 import { DANMAKU_DB_NAME, DanmakuAnywhereDb } from '@/common/db/db'
+import { AppError } from '@/common/errors/AppError'
 import { LoggerSymbol } from '@/common/Logger'
 import { Language } from '@/common/localization/language'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
@@ -32,6 +34,8 @@ import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
 import { ManifestRegistry } from './ManifestRegistry'
 import { DanmakuProviderFactory } from './ProviderFactory'
 import { ProviderService } from './ProviderService'
+
+const UNREACHABLE = new AppError('network', { target: { kind: 'catalog' } })
 
 /**
  * ProviderService keys legacy custom-danmaku behavior off the config's
@@ -671,7 +675,7 @@ describe('ProviderService.refreshCatalog', () => {
     const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
       async () => opts.pending
     )
-    const update = vi.fn<ManifestRegistry['update']>(async () => 'synced')
+    const update = vi.fn<ManifestRegistry['update']>(async () => ok('synced'))
     const listManifests = vi.fn<ManifestRegistry['listManifests']>(() => [])
     const getLastCheckedAt = vi.fn<ManifestRegistry['getLastCheckedAt']>(
       async () => 0
@@ -758,7 +762,9 @@ describe('ProviderService.refreshCatalog', () => {
     const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
       async () => []
     )
-    const update = vi.fn<ManifestRegistry['update']>(async () => 'unreachable')
+    const update = vi.fn<ManifestRegistry['update']>(async () =>
+      err(UNREACHABLE)
+    )
     const listManifests = vi.fn<ManifestRegistry['listManifests']>(() => [])
     const getLastCheckedAt = vi.fn<ManifestRegistry['getLastCheckedAt']>(
       async () => 0
@@ -780,16 +786,14 @@ describe('ProviderService.refreshCatalog', () => {
       registry,
     })
 
-    await expect(service.refreshCatalog()).rejects.toMatchObject({
-      code: 'catalog.unreachable',
-    })
+    await expect(service.refreshCatalog()).rejects.toBe(UNREACHABLE)
 
     expect(getPendingUpdates).not.toHaveBeenCalled()
     expect(recordChecked).not.toHaveBeenCalled()
   })
 
   it('throws a fetch-free error when the catalog answers with nothing usable', async () => {
-    const update = vi.fn<ManifestRegistry['update']>(async () => 'empty')
+    const update = vi.fn<ManifestRegistry['update']>(async () => ok('empty'))
     const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
       async () => []
     )
@@ -882,9 +886,10 @@ describe('ProviderService.seedDefaultProviders', () => {
     const recordChecked = vi.fn<ManifestRegistry['recordChecked']>(
       async () => {}
     )
-    const update = vi.fn<ManifestRegistry['update']>(
-      async () => opts.catalog ?? 'synced'
-    )
+    const update = vi.fn<ManifestRegistry['update']>(async () => {
+      const catalog = opts.catalog ?? 'synced'
+      return catalog === 'unreachable' ? err(UNREACHABLE) : ok(catalog)
+    })
     const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
       async () => []
     )
@@ -1047,7 +1052,7 @@ describe('ProviderService.seedDefaultProviders', () => {
       catalog: 'unreachable',
     })
 
-    await expect(service.syncCatalog()).resolves.toBe('unreachable')
+    await expect(service.syncCatalog()).resolves.toEqual(err(UNREACHABLE))
 
     expect(set).toHaveBeenCalledTimes(1)
     expect(set.mock.calls[0][0].map((c) => c.manifestId)).toEqual([

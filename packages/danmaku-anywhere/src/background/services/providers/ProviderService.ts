@@ -5,6 +5,7 @@ import type {
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
+import type { Result } from '@danmaku-anywhere/result'
 import { getDisplayStrings } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
@@ -16,7 +17,7 @@ import type {
   DanmakuFetchRequest,
   DanmakuFetchResult,
 } from '@/common/danmaku/dto'
-import { AppError, type SourceRef } from '@/common/errors/AppError'
+import { AppError } from '@/common/errors/AppError'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { toManifestLocale } from '@/common/localization/language'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
@@ -27,7 +28,10 @@ import {
 import { localizeLegacyBuiltinNames } from '@/common/options/providerConfig/localizeLegacyNames'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
+import {
+  isLegacyMacCms,
+  toSourceRef,
+} from '@/common/options/providerConfig/utils'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import type {
   ProviderLoginStatus,
@@ -37,19 +41,11 @@ import type {
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { OmitSeasonId } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
-import { type CatalogSyncResult, ManifestRegistry } from './ManifestRegistry'
+import { type CatalogSync, ManifestRegistry } from './ManifestRegistry'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from './ProviderFactory'
-
-function toSourceRef(config: ProviderConfig): SourceRef {
-  return {
-    providerConfigId: config.id,
-    manifestId: config.manifestId,
-    name: config.name,
-  }
-}
 
 function enrichEpisode(
   episode: OmitSeasonId<EpisodeMeta>,
@@ -422,10 +418,10 @@ export class ProviderService {
   // build can run is not a network problem.
   async refreshCatalog(locale?: string): Promise<ProviderManifestList> {
     const result = await this.syncCatalog()
-    if (result === 'unreachable') {
-      throw new AppError('catalog.unreachable')
+    if (!result.success) {
+      throw result.error
     }
-    if (result === 'empty') {
+    if (result.data === 'empty') {
       throw new AppError('catalog.empty')
     }
     return this.listManifests(locale)
@@ -436,9 +432,9 @@ export class ProviderService {
   // manual via the Updates list. Records the check only on a real sync, so
   // "checked Nm ago" never advances on a bare detection. Returns how the
   // catalog index resolved.
-  async syncCatalog(): Promise<CatalogSyncResult> {
+  async syncCatalog(): Promise<Result<CatalogSync, AppError>> {
     const result = await this.manifestRegistry.update()
-    if (result === 'synced') {
+    if (result.success && result.data === 'synced') {
       // update() just reached the index, so a failure here means it died
       // mid-sync; skip the best-effort auto-apply rather than fail the sync.
       const pending = await this.manifestRegistry

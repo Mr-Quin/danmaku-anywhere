@@ -68,7 +68,7 @@ export class BackupService {
   async getCloudBackups(): Promise<CloudBackupItem[]> {
     const result = await listCloudBackups(this.getAuth())
     if (!result.success) {
-      throw fromProviderApiError(result.error)
+      throw fromProviderApiError(result.error, { kind: 'cloud' })
     }
     return result.data
   }
@@ -81,7 +81,7 @@ export class BackupService {
       this.getAuth()
     )
     if (!result.success) {
-      throw fromProviderApiError(result.error)
+      throw fromProviderApiError(result.error, { kind: 'cloud' })
     }
     return result.data
   }
@@ -89,7 +89,7 @@ export class BackupService {
   async downloadCloudBackup(id: string): Promise<unknown> {
     const result = await downloadCloudBackupApi(id, this.getAuth())
     if (!result.success) {
-      throw fromProviderApiError(result.error)
+      throw fromProviderApiError(result.error, { kind: 'cloud' })
     }
     return result.data
   }

@@ -95,9 +95,7 @@ function parseComments(rows: unknown[]): DanmakuParseResult {
 }
 
 export interface ManifestProviderConfig {
-  manifestId: string
-  providerConfigId: string
-  sourceName: string
+  source: SourceRef
   configValues?: Record<string, unknown>
 }
 
@@ -123,37 +121,29 @@ export class ManifestProviderService implements IDanmakuProvider {
     return {
       ...row,
       title: stripHtml(row.title),
-      manifestId: this.config.manifestId,
-      providerConfigId: this.config.providerConfigId,
+      manifestId: this.config.source.manifestId,
+      providerConfigId: this.config.source.providerConfigId,
       schemaVersion: SEASON_SCHEMA_VERSION,
     }
   }
 
   private async getRunner(): Promise<ManifestRunner> {
     await this.registry.ready
-    return this.registry.getRunner(this.config.manifestId)
-  }
-
-  private get source(): SourceRef {
-    return {
-      providerConfigId: this.config.providerConfigId,
-      manifestId: this.config.manifestId,
-      name: this.config.sourceName,
-    }
+    return this.registry.getRunner(this.config.source.manifestId)
   }
 
   private async run<T>(pipeline: () => Promise<T>): Promise<T> {
     try {
       return await pipeline()
     } catch (e) {
-      throw fromDangoError(e, this.source)
+      throw fromDangoError(e, this.config.source)
     }
   }
 
   private badResponse(message: string): AppError {
     return new AppError(
       'source.badResponse',
-      { source: this.source },
+      { target: { kind: 'source', ref: this.config.source } },
       { message }
     )
   }
@@ -170,7 +160,11 @@ export class ManifestProviderService implements IDanmakuProvider {
   }
 
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
-    this.logger.debug('Search via manifest', this.config.manifestId, params)
+    this.logger.debug(
+      'Search via manifest',
+      this.config.source.manifestId,
+      params
+    )
     const runner = await this.getRunner()
     const inputs = this.resolveInputs(runner, { q: params.keyword })
     const rows = await this.run(() =>
@@ -184,7 +178,7 @@ export class ManifestProviderService implements IDanmakuProvider {
   ): Promise<SeasonInsert | null> {
     this.logger.debug(
       'Get season via manifest',
-      this.config.manifestId,
+      this.config.source.manifestId,
       seasonRemoteIds
     )
     const runner = await this.getRunner()
@@ -206,7 +200,7 @@ export class ManifestProviderService implements IDanmakuProvider {
   ): Promise<OmitSeasonId<EpisodeMeta>[]> {
     this.logger.debug(
       'Get episodes via manifest',
-      this.config.manifestId,
+      this.config.source.manifestId,
       seasonRemoteIds
     )
     const runner = await this.getRunner()
@@ -227,7 +221,7 @@ export class ManifestProviderService implements IDanmakuProvider {
     const { meta } = request
     this.logger.debug(
       'Get danmaku via manifest',
-      this.config.manifestId,
+      this.config.source.manifestId,
       meta.providerIds
     )
     const runner = await this.getRunner()
@@ -242,20 +236,20 @@ export class ManifestProviderService implements IDanmakuProvider {
     )
     if (!Array.isArray(output)) {
       throw this.badResponse(
-        `Danmaku output from manifest ${this.config.manifestId} is not an array, got ${describeType(output)}`
+        `Danmaku output from manifest ${this.config.source.manifestId} is not an array, got ${describeType(output)}`
       )
     }
     const { comments, dropped, firstIssue } = parseComments(output)
     if (dropped > 0) {
       this.logger.warn(
-        `Dropped ${dropped} malformed comment(s) from manifest ${this.config.manifestId}, first: ${firstIssue}`
+        `Dropped ${dropped} malformed comment(s) from manifest ${this.config.source.manifestId}, first: ${firstIssue}`
       )
     }
     // Rows in but nothing usable out means the pipeline itself is wrong, not
     // an episode that happens to have no danmaku.
     if (comments.length === 0 && output.length > 0) {
       throw this.badResponse(
-        `Every comment from manifest ${this.config.manifestId} was malformed, first: ${firstIssue}`
+        `Every comment from manifest ${this.config.source.manifestId} was malformed, first: ${firstIssue}`
       )
     }
     return comments
@@ -279,11 +273,15 @@ export class ManifestProviderService implements IDanmakuProvider {
 
   // Synchronous, so the caller must await the registry's ready first.
   canParse(url: string): boolean {
-    return this.registry.getRunner(this.config.manifestId).canParse(url)
+    return this.registry.getRunner(this.config.source.manifestId).canParse(url)
   }
 
   async parseUrl(url: string): Promise<ParseUrlResult | null> {
-    this.logger.debug('Parse URL via manifest', this.config.manifestId, url)
+    this.logger.debug(
+      'Parse URL via manifest',
+      this.config.source.manifestId,
+      url
+    )
     const runner = await this.getRunner()
     const result = await this.run(() =>
       runner.runParseUrl<ManifestParseUrlOutput>(

@@ -6,14 +6,12 @@ import type {
 } from '@/common/components/Toast/toastStore'
 import { describeKeptStored } from '@/common/danmaku/describeKeptStored'
 import { episodeToString } from '@/common/danmaku/utils'
-import { AppError } from '@/common/errors/AppError'
-import { describeError } from '@/common/errors/describeError'
+import { describeCode, describeError } from '@/common/errors/describeError'
 import {
   type EpisodeOutcome,
   isRefreshable,
 } from '@/content/controller/common/outcomes'
 import { useErrorToastAction } from '@/content/controller/danmaku/integration/hooks/useErrorToastAction'
-import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 import { mountFailedMessage } from './mountError'
 
 export interface OutcomeMessage {
@@ -34,14 +32,7 @@ interface DescribeOptions {
 // nothing for an outcome that has nothing to say.
 export function useDescribeOutcome() {
   const { t } = useTranslation()
-  const toToastAction = useErrorToastAction()
-
-  const searchAction = () => {
-    return {
-      actionFn: () => usePopup.getState().open({ tab: PopupTab.Search }),
-      actionLabel: t('integration.alert.openSearch', 'Open search page'),
-    }
-  }
+  const toastAction = useErrorToastAction()
 
   return useEventCallback(
     (
@@ -87,7 +78,7 @@ export function useDescribeOutcome() {
             message: mountFailedMessage(outcome.error),
           }
         case 'fetchFailed': {
-          const { message, action } = describeError(outcome.error)
+          const { message } = describeError(outcome.error)
           return {
             severity: 'error',
             message: t(
@@ -95,11 +86,11 @@ export function useDescribeOutcome() {
               'Failed to fetch danmaku: {{message}}',
               { message }
             ),
-            action: toToastAction(action),
+            action: toastAction.forError(outcome.error),
           }
         }
         case 'matchFailed': {
-          const { message, action } = describeError(outcome.error)
+          const { message } = describeError(outcome.error)
           return {
             severity: 'error',
             message: t(
@@ -107,16 +98,14 @@ export function useDescribeOutcome() {
               'Failed to match episode: {{message}}',
               { message }
             ),
-            action: toToastAction(action),
+            action: toastAction.forError(outcome.error),
           }
         }
         case 'notFound':
           return {
             severity: 'error',
-            message: describeError(
-              new AppError('match.notFound', { title: outcome.title })
-            ).message,
-            action: searchAction(),
+            message: describeCode('match.notFound', { title: outcome.title }),
+            action: toastAction.openSearch(),
           }
       }
     }

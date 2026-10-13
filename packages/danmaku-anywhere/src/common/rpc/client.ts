@@ -1,6 +1,5 @@
 import { AppError } from '@/common/errors/AppError'
 import { chromeSender, tabSender } from '@/common/rpc/sender'
-import { tryCatch } from '@/common/utils/tryCatch'
 import { deserializeError } from '../utils/serializeError'
 import type {
   AnyRPCDef,
@@ -58,25 +57,69 @@ const createPayload = <TInput>(
 // biome-ignore lint/suspicious/noExplicitAny: see above
 const emptyResponse = { data: undefined, context: {} } as RPCClientResponse<any>
 
-function unreachable(message: string, cause?: unknown): AppError {
-  return new AppError('rpc.unreachable', {}, { message, cause })
+type Delivery<T> =
+  | { delivered: true; response: RPCResponse<T> | undefined }
+  | { delivered: false; error: unknown }
+
+async function deliver<T>(
+  send: () => Promise<RPCResponse<T>>
+): Promise<Delivery<T>> {
+  try {
+    return { delivered: true, response: await send() }
+  } catch (error) {
+    return { delivered: false, error }
+  }
 }
 
-const handleRpcResponse = <TRecords extends RPCRecord>(
-  result: RPCResponse<TRecords[string]['output']> | null,
+// Points the error's stack at the code that made the call instead of the
+// continuation that settled it.
+function atCallSite<E extends Error>(error: E, callSite: Error): E {
+  const frames = callSite.stack?.split('\n').slice(1).join('\n')
+  if (frames) {
+    error.stack = `${error.name}: ${error.message}\n${frames}`
+  }
+  return error
+}
+
+function isCloneFailure(error: unknown): boolean {
+  return error instanceof DOMException && error.name === 'DataCloneError'
+}
+
+function deliveryFailure(method: string, error: unknown): Error {
+  if (isCloneFailure(error)) {
+    return error as DOMException
+  }
+  console.warn(`[RPC] "${method}" could not be delivered:`, error)
+  return new AppError(
+    'rpc.unreachable',
+    {},
+    { message: `Method ${method} could not be delivered`, cause: error }
+  )
+}
+
+function handleRpcResponse<T>(
+  delivery: Delivery<T>,
   method: string,
-  err: Error | null,
+  callSite: Error,
   options?: RpcOptions
-): RPCClientResponse<TRecords[string]> => {
-  if (err) {
-    if (options?.optional) return emptyResponse
-    throw unreachable(`Method ${method} could not be delivered`, err)
+): RPCClientResponse<AnyRPCDef> {
+  if (!delivery.delivered) {
+    if (options?.optional) {
+      return emptyResponse
+    }
+    throw atCallSite(deliveryFailure(method, delivery.error), callSite)
   }
 
+  const result = delivery.response
   if (!result) {
-    if (options?.optional) return emptyResponse
-    throw unreachable(
-      `Method ${method} returned undefined. This likely means the method is not handled by the server.`
+    if (options?.optional) {
+      return emptyResponse
+    }
+    throw atCallSite(
+      new Error(
+        `Method ${method} returned undefined. This likely means the method is not handled by the server.`
+      ),
+      callSite
     )
   }
 
@@ -85,20 +128,26 @@ const handleRpcResponse = <TRecords extends RPCRecord>(
       console.warn(`[RPC] Optional call "${method}" errored:`, result.error)
       return emptyResponse
     }
-    throw result.detail
-      ? deserializeError(result.detail)
-      : new Error(result.error)
+    if (result.detail) {
+      throw deserializeError(result.detail)
+    }
+    throw atCallSite(new Error(result.error), callSite)
   }
 
   if (result.state === 'ignored') {
-    if (options?.optional) return emptyResponse
-    throw unreachable(`Method ${method} is explicitly ignored by the server.`)
+    if (options?.optional) {
+      return emptyResponse
+    }
+    throw atCallSite(
+      new Error(`Method ${method} is explicitly ignored by the server.`),
+      callSite
+    )
   }
 
   return {
     data: result.output,
     context: result.context,
-  } satisfies RPCClientResponse<TRecords[string]>
+  }
 }
 
 export const createChromeRpcClient = <
@@ -110,11 +159,11 @@ export const createChromeRpcClient = <
     {
       get(_, method: string) {
         return async (input: TInput, options?: RpcOptions) => {
-          const [result, err] = await tryCatch(() =>
+          const callSite = new Error(`RPC ${method}`)
+          const delivery = await deliver(() =>
             chromeSender(createPayload(method, input, options))
           )
-
-          return handleRpcResponse(result, method, err, options)
+          return handleRpcResponse(delivery, method, callSite, options)
         }
       },
     }
@@ -134,15 +183,15 @@ export const createContentRpcClient = <
           options?: RpcOptions,
           tabInfo: TabOptions = {}
         ) => {
-          const [result, err] = await tryCatch(() =>
+          const callSite = new Error(`RPC ${method}`)
+          const delivery = await deliver(() =>
             tabSender(
               createPayload(method, input, options),
               tabInfo.tabInfo,
               tabInfo.getTab
             )
           )
-
-          return handleRpcResponse(result, method, err, options)
+          return handleRpcResponse(delivery, method, callSite, options)
         }
       },
     }

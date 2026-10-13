@@ -26,7 +26,7 @@ const DDP_BANGUMI_URL = /\/ddp\/api\/v2\/bangumi\//
 const DDP_COMMENT_URL = /\/ddp\/api\/v2\/comment\//
 
 const SOURCE_FAILED =
-  /(DanDanPlay|弹弹play) (returned an error \(HTTP 500\)|返回错误（HTTP 500）)/
+  /Got an error from DanDanPlay \(HTTP 500\)|弹弹play返回错误（HTTP 500）/
 const OPEN_SEARCH = /^(Open search page|打开搜索页面)$/
 
 function singleSearchResult() {

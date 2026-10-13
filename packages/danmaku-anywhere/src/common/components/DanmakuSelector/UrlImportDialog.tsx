@@ -10,8 +10,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialogStore } from '@/common/components/Dialog/dialogStore'
-import { AppError } from '@/common/errors/AppError'
-import { describeError } from '@/common/errors/describeError'
+import { describeCode, describeError } from '@/common/errors/describeError'
 import { validateImportUrl } from './fetchUrlAsFile'
 
 type UrlImportDialogProps = {
@@ -53,9 +52,17 @@ export function UrlImportDialog({
   const validation = validateImportUrl(url)
   const canSubmit = url.length > 0 && validation.ok && !mutation.isPending
 
-  const validationError =
-    url.length > 0 && !validation.ok ? new AppError(validation.reason) : null
-  const displayedError = error ?? validationError
+  const errorText = describeDisplayedError()
+
+  function describeDisplayedError(): string | null {
+    if (error !== null) {
+      return describeError(error).message
+    }
+    if (url.length > 0 && !validation.ok) {
+      return describeCode(validation.reason)
+    }
+    return null
+  }
 
   const handleSubmit = () => {
     if (!canSubmit) {
@@ -103,15 +110,14 @@ export function UrlImportDialog({
               handleSubmit()
             }
           }}
-          error={displayedError !== null}
+          error={errorText !== null}
           helperText={
             <span data-testid="url-import-helper">
-              {displayedError !== null
-                ? describeError(displayedError).message
-                : t(
-                    'importPage.urlDialog.urlHelper',
-                    'Direct link to a .json, .xml, .bin, or .zip file'
-                  )}
+              {errorText ??
+                t(
+                  'importPage.urlDialog.urlHelper',
+                  'Direct link to a .json, .xml, .bin, or .zip file'
+                )}
             </span>
           }
           disabled={mutation.isPending}

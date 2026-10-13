@@ -8,7 +8,11 @@ import {
   HostNotAllowedError,
   JsonataTimeoutError,
 } from '@mr-quin/dango'
-import { AppError, type SourceRef } from '@/common/errors/AppError'
+import {
+  AppError,
+  type ErrorTarget,
+  type SourceRef,
+} from '@/common/errors/AppError'
 
 // Errors a manifest run throws, coded for the user. Anything else is a bug in
 // the engine or the manifest and stays as it is for the log.
@@ -16,17 +20,18 @@ export function fromDangoError(error: unknown, source: SourceRef): unknown {
   if (error instanceof AppError) {
     return error
   }
+  const target: ErrorTarget = { kind: 'source', ref: source }
   if (error instanceof HostNotAllowedError) {
     return new AppError('hostNotAllowed', { source }, { cause: error })
   }
   if (error instanceof AbortedError) {
     return new AppError('aborted', {}, { cause: error })
   }
-  if (error instanceof JsonataTimeoutError) {
-    return new AppError('timeout', { source }, { cause: error })
-  }
-  if (error instanceof Base64DecodeError) {
-    return new AppError('source.badResponse', { source }, { cause: error })
+  if (
+    error instanceof JsonataTimeoutError ||
+    error instanceof Base64DecodeError
+  ) {
+    return new AppError('source.badResponse', { target }, { cause: error })
   }
   return error
 }
@@ -34,20 +39,20 @@ export function fromDangoError(error: unknown, source: SourceRef): unknown {
 // danmaku-provider reports a failed fetch() as an HttpException with status 0.
 export function fromProviderApiError(
   error: unknown,
-  source?: SourceRef
+  target?: ErrorTarget
 ): unknown {
   if (error instanceof HttpException) {
     if (error.status === undefined || error.status === 0) {
-      return new AppError('network', { source }, { cause: error })
+      return new AppError('network', { target }, { cause: error })
     }
     return new AppError(
       'http',
-      { status: error.status, source },
+      { status: error.status, target },
       { cause: error }
     )
   }
   if (error instanceof ResponseParseException) {
-    return new AppError('source.badResponse', { source }, { cause: error })
+    return new AppError('source.badResponse', { target }, { cause: error })
   }
   return error
 }

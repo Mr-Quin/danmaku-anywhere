@@ -17,11 +17,15 @@ const BILIBILI = {
   manifestId: 'bilibili',
   name: 'Bilibili',
 }
-const MACCMS = {
-  providerConfigId: 'maccms-1',
-  manifestId: 'legacy:maccms',
-  name: 'MacCMS',
-}
+const AT_BILIBILI = { kind: 'source', ref: BILIBILI } as const
+const AT_MACCMS = {
+  kind: 'source',
+  ref: {
+    providerConfigId: 'maccms-1',
+    manifestId: 'legacy:maccms',
+    name: 'MacCMS',
+  },
+} as const
 
 describe('fromDangoError', () => {
   it.each([
@@ -31,11 +35,15 @@ describe('fromDangoError', () => {
       { source: BILIBILI },
     ],
     [new AbortedError(), 'aborted', {}],
-    [new JsonataTimeoutError('$x'), 'timeout', { source: BILIBILI }],
+    [
+      new JsonataTimeoutError('$x'),
+      'source.badResponse',
+      { target: AT_BILIBILI },
+    ],
     [
       new Base64DecodeError('undefined'),
       'source.badResponse',
-      { source: BILIBILI },
+      { target: AT_BILIBILI },
     ],
   ])('codes %o as %s and keeps it as cause', (engineError, code, params) => {
     const error = fromDangoError(engineError, BILIBILI)
@@ -62,11 +70,11 @@ describe('fromProviderApiError', () => {
   it('codes a status 0 HttpException as network', () => {
     const failure = new HttpException('Failed to fetch', 0, 'Network Error')
 
-    const error = fromProviderApiError(failure, MACCMS)
+    const error = fromProviderApiError(failure, AT_MACCMS)
 
     expect(error).toMatchObject({
       code: 'network',
-      params: { source: MACCMS },
+      params: { target: AT_MACCMS },
     })
     expect((error as AppError).cause).toBe(failure)
   })
@@ -80,11 +88,11 @@ describe('fromProviderApiError', () => {
   })
 
   it('codes a ResponseParseException as a bad response', () => {
-    const error = fromProviderApiError(new ResponseParseException(), MACCMS)
+    const error = fromProviderApiError(new ResponseParseException(), AT_MACCMS)
 
     expect(error).toMatchObject({
       code: 'source.badResponse',
-      params: { source: MACCMS },
+      params: { target: AT_MACCMS },
     })
   })
 

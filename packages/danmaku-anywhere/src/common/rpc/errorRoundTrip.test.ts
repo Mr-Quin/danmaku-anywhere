@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { AppError } from '@/common/errors/AppError'
 import { silentLogger } from '@/tests/silentLogger'
-import { createChromeRpcClient } from './client'
+import { createChromeRpcClient, createContentRpcClient } from './client'
 import { createRpcServer } from './server'
 import type { RPCDef, RPCPayload } from './types'
 
@@ -49,30 +49,21 @@ async function callFail(handler: () => Promise<string>): Promise<unknown> {
   )
 }
 
+const BILIBILI = {
+  kind: 'source',
+  ref: { providerConfigId: 'bili-2', manifestId: 'bilibili', name: 'Bilibili' },
+} as const
+
 describe('RPC error round trip', () => {
   it('rehydrates an AppError with its code and params', async () => {
     const error = await callFail(async () => {
-      throw new AppError('http', {
-        status: 503,
-        source: {
-          providerConfigId: 'bili-2',
-          manifestId: 'bilibili',
-          name: 'Bilibili',
-        },
-      })
+      throw new AppError('http', { status: 503, target: BILIBILI })
     })
 
     expect(error).toBeInstanceOf(AppError)
     expect(error).toMatchObject({
       code: 'http',
-      params: {
-        status: 503,
-        source: {
-          providerConfigId: 'bili-2',
-          manifestId: 'bilibili',
-          name: 'Bilibili',
-        },
-      },
+      params: { status: 503, target: BILIBILI },
     })
   })
 
@@ -80,31 +71,19 @@ describe('RPC error round trip', () => {
     const error = await callFail(async () => {
       const network = new AppError(
         'network',
-        {
-          source: {
-            providerConfigId: 'tencent',
-            manifestId: 'tencent',
-            name: 'Tencent',
-          },
-        },
+        { target: { kind: 'catalog' } },
         { cause: new TypeError('Failed to fetch') }
       )
-      throw new AppError('catalog.unreachable', {}, { cause: network })
+      throw new AppError('catalog.empty', {}, { cause: network })
     })
 
     expect(error).toBeInstanceOf(AppError)
     const outer = error as AppError
-    expect(outer.code).toBe('catalog.unreachable')
+    expect(outer.code).toBe('catalog.empty')
     expect(outer.cause).toBeInstanceOf(AppError)
     const inner = outer.cause as AppError
     expect(inner.code).toBe('network')
-    expect(inner.params).toEqual({
-      source: {
-        providerConfigId: 'tencent',
-        manifestId: 'tencent',
-        name: 'Tencent',
-      },
-    })
+    expect(inner.params).toEqual({ target: { kind: 'catalog' } })
     expect(inner.cause).toBeInstanceOf(Error)
     expect((inner.cause as Error).message).toBe('Failed to fetch')
   })
@@ -126,7 +105,34 @@ describe('RPC error round trip', () => {
     expect(error).not.toBeInstanceOf(AppError)
   })
 
-  it('codes a delivery failure as rpc.unreachable and keeps the cause', async () => {
+  it.each([
+    ['missing params', { code: 'source.episodesUnsupported', params: {} }],
+    [
+      'params of the wrong type',
+      { code: 'catalog.applyFailed', params: { sources: 'bilibili' } },
+    ],
+    ['an unknown code', { code: 'unknown', params: {} }],
+    [
+      'a partial source',
+      { code: 'hostNotAllowed', params: { source: { name: 'Bilibili' } } },
+    ],
+  ])('keeps an error with %s unclassified', async (_, parts) => {
+    const error = await callFail(async () => {
+      throw Object.assign(new Error('forged'), parts)
+    })
+
+    expect(error).not.toBeInstanceOf(AppError)
+    expect((error as Error).message).toBe('forged')
+  })
+})
+
+describe('RPC delivery failures', () => {
+  function silenceWarnings() {
+    return vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+  }
+
+  it('codes a rejected sendMessage as rpc.unreachable and logs the cause', async () => {
+    const warn = silenceWarnings()
     const delivery = new Error('Could not establish connection')
     vi.spyOn(chrome.runtime, 'sendMessage').mockRejectedValue(delivery)
 
@@ -137,15 +143,81 @@ describe('RPC error round trip', () => {
     expect(error).toBeInstanceOf(AppError)
     expect((error as AppError).code).toBe('rpc.unreachable')
     expect((error as AppError).cause).toBe(delivery)
+    expect(warn).toHaveBeenCalledWith(expect.any(String), delivery)
   })
 
-  it('codes a missing response as rpc.unreachable', async () => {
-    vi.spyOn(chrome.runtime, 'sendMessage').mockResolvedValue(undefined)
+  it('points the stack at the call site', async () => {
+    silenceWarnings()
+    vi.spyOn(chrome.runtime, 'sendMessage').mockRejectedValue(new Error('x'))
+
+    async function callFromHere() {
+      return createChromeRpcClient<Records>()
+        .fail()
+        .catch((e: unknown) => e)
+    }
+    const error = await callFromHere()
+
+    expect((error as Error).stack).toContain('callFromHere')
+  })
+
+  it('codes a missing tab as rpc.unreachable', async () => {
+    silenceWarnings()
+    vi.spyOn(chrome.tabs, 'query').mockResolvedValue([] as never)
+
+    const error = await createContentRpcClient<Records>()
+      .fail(undefined, undefined, { tabInfo: { active: true } })
+      .catch((e: unknown) => e)
+
+    expect((error as AppError).code).toBe('rpc.unreachable')
+  })
+
+  it('codes a rejected tabs.sendMessage as rpc.unreachable', async () => {
+    silenceWarnings()
+    const delivery = new Error('Receiving end does not exist.')
+    vi.spyOn(chrome.tabs, 'query').mockResolvedValue([{ id: 7 }] as never)
+    vi.spyOn(chrome.tabs, 'sendMessage').mockRejectedValue(delivery)
+
+    const error = await createContentRpcClient<Records>()
+      .fail(undefined, undefined, { tabInfo: { active: true } })
+      .catch((e: unknown) => e)
+
+    expect((error as AppError).code).toBe('rpc.unreachable')
+    expect((error as AppError).cause).toBe(delivery)
+  })
+
+  it('leaves a payload that cannot be cloned unclassified', async () => {
+    const clone = new DOMException('could not be cloned', 'DataCloneError')
+    vi.spyOn(chrome.runtime, 'sendMessage').mockRejectedValue(clone)
 
     const error = await createChromeRpcClient<Records>()
       .fail()
       .catch((e: unknown) => e)
 
-    expect((error as AppError).code).toBe('rpc.unreachable')
+    expect(error).not.toBeInstanceOf(AppError)
+  })
+
+  it('leaves a missing response unclassified', async () => {
+    vi.spyOn(chrome.runtime, 'sendMessage').mockResolvedValue(
+      undefined as never
+    )
+
+    const error = await createChromeRpcClient<Records>()
+      .fail()
+      .catch((e: unknown) => e)
+
+    expect(error).not.toBeInstanceOf(AppError)
+    expect((error as Error).message).toContain('returned undefined')
+  })
+
+  it('leaves an ignored call unclassified', async () => {
+    vi.spyOn(chrome.runtime, 'sendMessage').mockResolvedValue({
+      state: 'ignored',
+    } as never)
+
+    const error = await createChromeRpcClient<Records>()
+      .fail()
+      .catch((e: unknown) => e)
+
+    expect(error).not.toBeInstanceOf(AppError)
   })
 })

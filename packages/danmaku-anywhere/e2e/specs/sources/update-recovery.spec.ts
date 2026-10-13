@@ -17,8 +17,7 @@ import { applyProfile } from '../../setup/profile'
  */
 
 const BUMPED = '9.9.9'
-const CATALOG_UNREACHABLE =
-  /Couldn't reach the source catalog|无法连接弹幕源目录/
+const CATALOG_FAILED = /the source catalog \(HTTP 503\)|弹幕源目录返回错误/
 
 test.use({
   // The outage paths under test log from the SW before the popup surfaces
@@ -70,7 +69,7 @@ test('a failed update marks the row and Retry applies it once the outage clears'
   await expect(popup.providers.updatingButton()).toBeVisible()
   releaseFile()
 
-  await popup.toast.expectError(/Couldn't update bilibili|无法更新 bilibili/)
+  await popup.toast.expectError(/Couldn't update Bilibili|无法更新 B站/)
   await expect(popup.providers.updateFailedLabel()).toBeVisible()
   await expect(popup.providers.retryButton()).toBeVisible()
 
@@ -114,7 +113,7 @@ test('a failed update keeps its row when the whole catalog is unreachable', asyn
   outage = true
   await popup.providers.update()
 
-  await popup.toast.expectError(CATALOG_UNREACHABLE, {
+  await popup.toast.expectError(CATALOG_FAILED, {
     timeout: 10_000,
   })
   await expect(popup.providers.updateFailedLabel()).toBeVisible()
@@ -145,7 +144,7 @@ test('a catalog refresh against an unreachable index surfaces an error toast', a
 
   await popup.providers.refreshCatalog()
 
-  await popup.toast.expectError(CATALOG_UNREACHABLE, {
+  await popup.toast.expectError(CATALOG_FAILED, {
     timeout: 10_000,
   })
   await expect(popup.providers.checkedNeverLabel()).toBeVisible()

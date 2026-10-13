@@ -11,7 +11,10 @@ import type { SourceRef } from '@/common/errors/AppError'
 import type { ILogger } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderConfigService } from '@/common/options/providerConfig/service'
-import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
+import {
+  isLegacyMacCms,
+  toSourceRef,
+} from '@/common/options/providerConfig/utils'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { IDanmakuProvider, SeasonSearchParams } from './IDanmakuProvider'
 import { fromProviderApiError } from './providerErrors'
@@ -39,11 +42,7 @@ export class MacCmsProviderService implements IDanmakuProvider {
       this.configValues.danmakuBaseUrl,
       params.keyword,
       this.logger,
-      {
-        providerConfigId: this.config.id,
-        manifestId: this.config.manifestId,
-        name: this.config.name,
-      }
+      toSourceRef(this.config)
     )
   }
 
@@ -60,7 +59,10 @@ export class MacCmsProviderService implements IDanmakuProvider {
     const res = await searchMacCmsVod(baseUrl, keyword)
 
     if (!res.success) {
-      throw fromProviderApiError(res.error, source)
+      throw fromProviderApiError(
+        res.error,
+        source ? { kind: 'source', ref: source } : undefined
+      )
     }
 
     return res.data.list.map((item, i) => {
@@ -115,9 +117,8 @@ export class MacCmsProviderService implements IDanmakuProvider {
 
     if (!commentsResult.success) {
       throw fromProviderApiError(commentsResult.error, {
-        providerConfigId: config.id,
-        manifestId: config.manifestId,
-        name: config.name,
+        kind: 'source',
+        ref: toSourceRef(config),
       })
     }
 

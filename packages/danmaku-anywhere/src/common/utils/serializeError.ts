@@ -1,9 +1,4 @@
-import {
-  AppError,
-  type AppErrorCode,
-  type AppErrorParams,
-  isAppErrorCode,
-} from '@/common/errors/AppError'
+import { type AppError, appErrorFromParts } from '@/common/errors/AppError'
 
 export type ErrorJson =
   | {
@@ -81,22 +76,14 @@ export function serializeErrorJson(err: Error): ErrorJson {
   }
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value)
-}
-
 function deserializeAppError(
   json: Extract<ErrorJson, { type: 'error' }>
 ): AppError | undefined {
-  const { code, params } = json
-  if (!isAppErrorCode(code) || !isRecord(params)) {
-    return undefined
-  }
-  const error = new AppError(code, params as AppErrorParams[AppErrorCode], {
+  const error = appErrorFromParts(json.code, json.params, {
     message: json.message,
     cause: json.cause ? deserializeError(json.cause) : undefined,
   })
-  if (json.stack) {
+  if (error && json.stack) {
     error.stack = json.stack
   }
   return error

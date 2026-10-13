@@ -62,9 +62,11 @@ describe('ManifestProviderService.search', () => {
     })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'bilibili',
-        providerConfigId: 'bilibili',
-        sourceName: 'Test Source',
+        source: {
+          manifestId: 'bilibili',
+          providerConfigId: 'bilibili',
+          name: 'Test Source',
+        },
       },
       makeRegistry(runner),
       silentLogger
@@ -87,9 +89,11 @@ describe('ManifestProviderService.search', () => {
     const runner = makeRunner({ search: [] })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'dandanplay',
-        providerConfigId: 'custom-ddp-1',
-        sourceName: 'Test Source',
+        source: {
+          manifestId: 'dandanplay',
+          providerConfigId: 'custom-ddp-1',
+          name: 'Test Source',
+        },
         configValues: {
           baseUrl: 'https://compat.example',
           authHeaders: [],
@@ -117,9 +121,11 @@ describe('ManifestProviderService.getSeason', () => {
     const runner = makeRunner({})
     const svc = new ManifestProviderService(
       {
-        manifestId: 'tencent',
-        providerConfigId: 'tencent',
-        sourceName: 'Test Source',
+        source: {
+          manifestId: 'tencent',
+          providerConfigId: 'tencent',
+          name: 'Test Source',
+        },
       },
       makeRegistry(runner),
       silentLogger
@@ -140,9 +146,11 @@ describe('ManifestProviderService.getSeason', () => {
     })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'bilibili',
-        providerConfigId: 'bilibili',
-        sourceName: 'Test Source',
+        source: {
+          manifestId: 'bilibili',
+          providerConfigId: 'bilibili',
+          name: 'Test Source',
+        },
       },
       makeRegistry(runner),
       silentLogger
@@ -162,9 +170,11 @@ describe('ManifestProviderService.getSeason', () => {
     const runner = makeRunner({ season: null })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'bilibili',
-        providerConfigId: 'bilibili',
-        sourceName: 'Test Source',
+        source: {
+          manifestId: 'bilibili',
+          providerConfigId: 'bilibili',
+          name: 'Test Source',
+        },
       },
       makeRegistry(runner),
       silentLogger
@@ -186,9 +196,11 @@ describe('ManifestProviderService.getEpisodes', () => {
     })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'bilibili',
-        providerConfigId: 'bilibili',
-        sourceName: 'Test Source',
+        source: {
+          manifestId: 'bilibili',
+          providerConfigId: 'bilibili',
+          name: 'Test Source',
+        },
       },
       makeRegistry(runner),
       silentLogger
@@ -233,9 +245,11 @@ describe('ManifestProviderService.getDanmaku', () => {
     const logger = { ...silentLogger, warn } satisfies ILogger
     const svc = new ManifestProviderService(
       {
-        manifestId: 'dandanplay',
-        providerConfigId: 'dandanplay',
-        sourceName: 'Test Source',
+        source: {
+          manifestId: 'dandanplay',
+          providerConfigId: 'dandanplay',
+          name: 'Test Source',
+        },
       },
       makeRegistry(makeRunner({ danmaku })),
       logger
@@ -248,9 +262,11 @@ describe('ManifestProviderService.getDanmaku', () => {
     const runner = makeRunner({ danmaku: raw })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'dandanplay',
-        providerConfigId: 'dandanplay',
-        sourceName: 'Test Source',
+        source: {
+          manifestId: 'dandanplay',
+          providerConfigId: 'dandanplay',
+          name: 'Test Source',
+        },
       },
       makeRegistry(runner),
       silentLogger
@@ -309,14 +325,18 @@ describe('ManifestProviderService.getDanmaku', () => {
     ).rejects.toMatchObject({
       code: 'source.badResponse',
       params: {
-        source: {
-          providerConfigId: 'dandanplay',
-          manifestId: 'dandanplay',
-          name: 'Test Source',
+        target: {
+          kind: 'source',
+          ref: {
+            providerConfigId: 'dandanplay',
+            manifestId: 'dandanplay',
+            name: 'Test Source',
+          },
         },
       },
-      message:
-        'Danmaku output from manifest dandanplay is not an array, got object',
+      message: expect.stringContaining(
+        'Danmaku output from manifest dandanplay is not an array, got object'
+      ),
     })
   })
 
@@ -358,9 +378,11 @@ describe('ManifestProviderService.parseUrl', () => {
     })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'dandanplay',
-        providerConfigId: 'custom-ddp-1',
-        sourceName: 'Test Source',
+        source: {
+          manifestId: 'dandanplay',
+          providerConfigId: 'custom-ddp-1',
+          name: 'Test Source',
+        },
         configValues: { baseUrl: 'https://my-server/api' },
       },
       makeRegistry(runner),
@@ -387,9 +409,11 @@ describe('ManifestProviderService run failures', () => {
     vi.mocked(runner.runSearch).mockRejectedValue(error)
     return new ManifestProviderService(
       {
-        manifestId: 'bilibili',
-        providerConfigId: 'bilibili',
-        sourceName: 'Bilibili',
+        source: {
+          manifestId: 'bilibili',
+          providerConfigId: 'bilibili',
+          name: 'Bilibili',
+        },
       },
       makeRegistry(runner),
       silentLogger

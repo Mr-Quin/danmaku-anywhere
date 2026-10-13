@@ -5,17 +5,14 @@ import {
   AppError,
   type AppErrorCode,
   type AppErrorParams,
+  type AppErrorParamsArg,
+  type ErrorTarget,
   type SourceRef,
 } from './AppError'
-
-export interface ErrorAction {
-  kind: 'openSearch'
-  label: string
-}
+import { errorMessage } from './errorMessage'
 
 export interface ErrorDescription {
   message: string
-  action?: ErrorAction
 }
 
 type MessageTable = {
@@ -33,87 +30,64 @@ function sourceName(source: SourceRef): string {
   )
 }
 
-function describeHttp(status: number, source?: SourceRef): string {
+function targetName(target: ErrorTarget | undefined): string {
+  if (target === undefined) {
+    return i18n.t('appError.target.server', 'the server')
+  }
+  switch (target.kind) {
+    case 'source':
+      return sourceName(target.ref)
+    case 'catalog':
+      return i18n.t('appError.target.catalog', 'the source catalog')
+    case 'cloud':
+      return i18n.t('appError.target.cloud', 'the cloud backup service')
+  }
+}
+
+function describeHttp(status: number, target: string): string {
   if (status === 401 || status === 403) {
-    if (source === undefined) {
-      return i18n.t(
-        'appError.httpAuth',
-        'The server refused the request (HTTP {{status}}). You may need to sign in.',
-        { status }
-      )
-    }
     return i18n.t(
-      'appError.httpAuthSource',
-      '{{source}} refused the request (HTTP {{status}}). You may need to sign in.',
-      { source: sourceName(source), status }
+      'appError.httpAuth',
+      'The request to {{target}} was refused (HTTP {{status}}). You may need to sign in.',
+      { target, status }
     )
   }
   if (status === 429) {
-    if (source === undefined) {
-      return i18n.t(
-        'appError.httpRateLimited',
-        'Too many requests right now. Wait a moment and try again.'
-      )
-    }
     return i18n.t(
-      'appError.httpRateLimitedSource',
-      '{{source}} is limiting requests right now. Wait a moment and try again.',
-      { source: sourceName(source) }
-    )
-  }
-  if (source === undefined) {
-    return i18n.t(
-      'appError.http',
-      'The server returned an error (HTTP {{status}}). Try again later.',
-      { status }
+      'appError.httpRateLimited',
+      'Too many requests to {{target}}. Wait a moment and try again.',
+      { target }
     )
   }
   return i18n.t(
-    'appError.httpSource',
-    '{{source}} returned an error (HTTP {{status}}). Try again later.',
-    { source: sourceName(source), status }
+    'appError.http',
+    'Got an error from {{target}} (HTTP {{status}}). Try again later.',
+    { target, status }
   )
 }
 
 const MESSAGES: MessageTable = {
-  network: ({ source }) => {
-    if (source === undefined) {
-      return i18n.t(
-        'appError.network',
-        "Couldn't connect. Check your connection and try again."
-      )
-    }
+  network: ({ target }) => {
     return i18n.t(
-      'appError.networkSource',
-      "Couldn't reach {{source}}. Check your connection and try again.",
-      { source: sourceName(source) }
+      'appError.network',
+      "Couldn't reach {{target}}. Check your connection and try again.",
+      { target: targetName(target) }
     )
   },
-  http: ({ status, source }) => {
-    return describeHttp(status, source)
+  http: ({ status, target }) => {
+    return describeHttp(status, targetName(target))
   },
-  timeout: ({ source }) => {
-    if (source === undefined) {
-      return i18n.t('appError.timeout', 'The request took too long.')
-    }
-    return i18n.t(
-      'appError.timeoutSource',
-      '{{source}} took too long to respond.',
-      { source: sourceName(source) }
-    )
+  timeout: ({ target }) => {
+    return i18n.t('appError.timeout', 'Timed out waiting for {{target}}.', {
+      target: targetName(target),
+    })
   },
   aborted: () => {
     return i18n.t('appError.aborted', 'The request was cancelled.')
   },
   hostNotAllowed: ({ source }) => {
-    if (source === undefined) {
-      return i18n.t(
-        'appError.hostNotAllowed',
-        'The source tried to reach a site it is not allowed to use.'
-      )
-    }
     return i18n.t(
-      'appError.hostNotAllowedSource',
+      'appError.hostNotAllowed',
       '{{source}} tried to reach a site it is not allowed to use.',
       { source: sourceName(source) }
     )
@@ -160,23 +134,11 @@ const MESSAGES: MessageTable = {
       title,
     })
   },
-  'source.badResponse': ({ source }) => {
-    if (source === undefined) {
-      return i18n.t(
-        'appError.badResponse',
-        "The source sent data that couldn't be read. It may have changed."
-      )
-    }
+  'source.badResponse': ({ target }) => {
     return i18n.t(
-      'appError.badResponseSource',
-      "{{source}} sent data that couldn't be read. It may have changed.",
-      { source: sourceName(source) }
-    )
-  },
-  'catalog.unreachable': () => {
-    return i18n.t(
-      'appError.catalogUnreachable',
-      "Couldn't reach the source catalog. Check your connection and try again."
+      'appError.badResponse',
+      "Couldn't read the data from {{target}}. It may have changed.",
+      { target: targetName(target) }
     )
   },
   'catalog.empty': () => {
@@ -185,11 +147,21 @@ const MESSAGES: MessageTable = {
       'The source catalog has no sources this version can use.'
     )
   },
-  'catalog.applyFailed': ({ manifestIds }) => {
+  'catalog.applyFailed': ({ sources }) => {
+    const names = sources.map((source) => {
+      return builtinDisplayName(
+        {
+          id: source.manifestId,
+          manifestId: source.manifestId,
+          name: source.name,
+        },
+        i18n.language
+      )
+    })
     return i18n.t(
       'appError.catalogApplyFailed',
       "Couldn't update {{sources}}. Try again later.",
-      { sources: formatList(manifestIds) }
+      { sources: formatList(names) }
     )
   },
   'backup.notJson': () => {
@@ -241,24 +213,7 @@ const MESSAGES: MessageTable = {
       { limit }
     )
   },
-  unknown: () => {
-    return i18n.t('appError.unknown', 'Something went wrong.')
-  },
 }
-
-const OFFERS_SEARCH: ReadonlySet<AppErrorCode> = new Set<AppErrorCode>([
-  'network',
-  'http',
-  'timeout',
-  'hostNotAllowed',
-  'source.removed',
-  'source.episodesUnsupported',
-  'source.refetchUnsupported',
-  'source.noDanmaku',
-  'match.notFound',
-  'source.badResponse',
-  'unknown',
-])
 
 function formatList(items: string[]): string {
   return new Intl.ListFormat(i18n.language, { type: 'conjunction' }).format(
@@ -266,38 +221,48 @@ function formatList(items: string[]): string {
   )
 }
 
-function render<C extends AppErrorCode>(error: AppError<C>): string {
-  const describe: (params: AppErrorParams[C]) => string = MESSAGES[error.code]
-  return describe(error.params)
+function unknownMessage(): string {
+  return i18n.t('appError.unknown', 'Something went wrong.')
 }
 
-const reported = new WeakSet<object>()
+const reportedObjects = new WeakSet<object>()
+const reportedValues = new Set<string>()
 
-function reportUnclassified(error: unknown) {
+function report(note: string, error: unknown) {
   if (typeof error === 'object' && error !== null) {
-    if (reported.has(error)) {
+    if (reportedObjects.has(error)) {
       return
     }
-    reported.add(error)
+    reportedObjects.add(error)
+  } else {
+    const key = `${typeof error}:${String(error)}`
+    if (reportedValues.has(key)) {
+      return
+    }
+    reportedValues.add(key)
   }
-  Logger.warn('Showing a generic message for an unclassified error:', error)
+  Logger.warn(note, error)
+}
+
+export function describeCode<C extends AppErrorCode>(
+  code: C,
+  ...[params]: AppErrorParamsArg<C>
+): string {
+  const describe: (params: AppErrorParams[C]) => string = MESSAGES[code]
+  return describe(params ?? ({} as AppErrorParams[C]))
 }
 
 export function describeError(error: unknown): ErrorDescription {
-  const appError = error instanceof AppError ? error : undefined
-  if (appError === undefined) {
-    reportUnclassified(error)
+  if (!(error instanceof AppError)) {
+    report('Showing a generic message for an unclassified error:', error)
+    return { message: unknownMessage() }
   }
-  const code: AppErrorCode = appError?.code ?? 'unknown'
-  const message = appError ? render(appError) : MESSAGES.unknown({})
-  if (!OFFERS_SEARCH.has(code)) {
-    return { message }
-  }
-  return {
-    message,
-    action: {
-      kind: 'openSearch',
-      label: i18n.t('integration.alert.openSearch', 'Open search page'),
-    },
+  try {
+    const code: AppErrorCode = error.code
+    const describe = MESSAGES[code] as (params: unknown) => string
+    return { message: describe(error.params) }
+  } catch (e) {
+    report(`Could not describe an error (${errorMessage(e)}):`, error)
+    return { message: unknownMessage() }
   }
 }

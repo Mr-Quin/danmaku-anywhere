@@ -1,5 +1,8 @@
 import { AppError } from '@/common/errors/AppError'
-import { classifyFetchRejection } from '@/common/errors/fetchFailure'
+import {
+  classifyFetchRejection,
+  fetchOrThrow,
+} from '@/common/errors/fetchFailure'
 
 type ImportUrlProblem =
   | 'importUrl.invalidUrl'
@@ -86,21 +89,12 @@ export async function fetchUrlAsFile(
   const { signal } = options
   const maxBytes = options.maxBytes ?? DEFAULT_MAX_BYTES
 
-  let response: Response
-  try {
-    response = await fetch(rawUrl, {
-      credentials: 'omit',
-      redirect: 'follow',
-      cache: 'no-store',
-      signal,
-    })
-  } catch (err) {
-    throw classifyFetchRejection(err, signal)
-  }
-
-  if (!response.ok) {
-    throw new AppError('http', { status: response.status })
-  }
+  const response = await fetchOrThrow(rawUrl, {
+    credentials: 'omit',
+    redirect: 'follow',
+    cache: 'no-store',
+    signal,
+  })
 
   const chunks = await readBodyWithCap(response, maxBytes, signal)
 
