@@ -9,7 +9,7 @@ import {
 } from '@/common/options/providerConfig/ports'
 import { bundledConfigSchema } from './bundledManifests'
 
-export { bundledManifestNames } from './bundledManifests'
+export { bundledManifestNames, bundledManifestSpec } from './bundledManifests'
 
 // The standalone page's stand-in for the background, loaded on its first
 // call. It has no bookmarks to clean up and only the bundled manifests to

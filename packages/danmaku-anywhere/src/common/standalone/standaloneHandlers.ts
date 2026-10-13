@@ -109,7 +109,12 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     danmakuCountPurgeable: () => 0,
     danmakuPurgeCache: () => 0,
     providerProbeLogin: () => ({ hasLoginProbe: false, ok: true }),
-    providerGetManifestSpec: () => ({ name: '', hasLoginProbe: false }),
+    providerGetManifestSpec: async ({ manifestId, locale }) => {
+      return (await loadStandaloneBackend()).bundledManifestSpec(
+        manifestId,
+        locale
+      )
+    },
     providerListManifests: () => ({ manifests: [], lastCheckedAt: null }),
     providerListManifestNames: async ({ locale }) => {
       return (await loadStandaloneBackend()).bundledManifestNames(locale)
