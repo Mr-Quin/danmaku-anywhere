@@ -143,9 +143,13 @@ export class XPathIntegrationObserver extends MediaObserver {
     this.updateMediaInfo(extractionResult.mediaInfo)
   }
 
-  private async setupXpath() {
+  private async setupXpath(signal: AbortSignal) {
     this.logger.debug('Discovering elements using XPath')
     const elements = await this.discoverElementsXpath()
+    if (signal.aborted) {
+      this.logger.debug('Discovery finished after a reset, ignoring it')
+      return
+    }
     this.emit('mediaElementsChange', elements)
     this.logger.debug('Elements discovered, setting up observers')
 
@@ -178,7 +182,7 @@ export class XPathIntegrationObserver extends MediaObserver {
   run() {
     this.logger.debug('Running observer')
     this.reset()
-    void this.setupXpath()
+    void this.setupXpath(this.startRun())
   }
 
   override destroy() {
@@ -188,6 +192,7 @@ export class XPathIntegrationObserver extends MediaObserver {
 
   reset() {
     this.logger.debug('Resetting observer')
+    this.stopRun()
     clearInterval(this.interval)
     this.observerMap.forEach((observer) => observer.disconnect())
     this.observerMap.clear()

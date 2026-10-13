@@ -75,32 +75,28 @@ export class AiIntegrationObserver extends MediaObserver {
   public override readonly name = 'AiIntegrationObserver'
 
   private logger = Logger.sub('[AiIntegrationObserver]')
-  private abortControllerQueue: AbortController[] = []
 
   constructor(private readonly config: MountConfig | null) {
     super()
   }
 
-  private async setupAi() {
-    const abortController = new AbortController()
-    this.abortControllerQueue.push(abortController)
-
+  private async setupAi(signal: AbortSignal) {
     this.updateStatus('Waiting for page load...')
     // Some pages take a while to load the title, so wait a bit before checking
     await sleep(2000)
 
-    if (abortController.signal.aborted) {
+    if (signal.aborted) {
       this.logger.debug('Aborted AI handling')
       return
     }
 
     const pageMeta = getPageMeta()
+    this.logger.debug('Extracting title from', {
+      pageMeta,
+    })
+    this.updateStatus('Extracting video info using AI...')
+    this.emit('parsingChange', true)
     try {
-      this.logger.debug('Extracting title from', {
-        pageMeta,
-      })
-      this.updateStatus('Extracting video info using AI...')
-
       const { data } = await queryClient.fetchQuery({
         queryKey: genAIQueryKeys.extractTitle(pageMeta),
         queryFn: () =>
@@ -110,7 +106,7 @@ export class AiIntegrationObserver extends MediaObserver {
           }),
       })
 
-      if (abortController.signal.aborted) {
+      if (signal.aborted) {
         this.logger.debug('Aborted AI handling')
         return
       }
@@ -131,11 +127,19 @@ export class AiIntegrationObserver extends MediaObserver {
       this.updateMediaInfo(mediaInfo)
       this.updateStatus('Video info found: ' + mediaInfo.toString())
     } catch (err) {
+      if (signal.aborted) {
+        this.logger.debug('Aborted AI handling after an error:', err)
+        return
+      }
       if (err instanceof Error) {
         this.emit('error', err)
       }
       this.updateStatus('Error extracting info')
       this.logger.debug('Error while extracting title:', err)
+    } finally {
+      if (!signal.aborted) {
+        this.emit('parsingChange', false)
+      }
     }
   }
 
@@ -146,7 +150,7 @@ export class AiIntegrationObserver extends MediaObserver {
   run() {
     this.logger.debug('Running observer')
     this.reset()
-    this.setupAi()
+    void this.setupAi(this.startRun())
   }
 
   override destroy() {
@@ -156,8 +160,7 @@ export class AiIntegrationObserver extends MediaObserver {
 
   reset() {
     this.logger.debug('Resetting observer')
-    this.abortControllerQueue.forEach((controller) => controller.abort())
-    this.abortControllerQueue = []
+    this.stopRun()
     this.status = ''
     this.mediaInfo = undefined
   }
