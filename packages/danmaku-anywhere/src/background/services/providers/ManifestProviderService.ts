@@ -12,6 +12,7 @@ import {
 import type { ManifestRunner, RunOptions } from '@mr-quin/dango'
 import type { z } from 'zod'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
+import { AppError, type SourceRef } from '@/common/errors/AppError'
 import type { ILogger } from '@/common/Logger'
 import { findEpisodeByNumber } from './common/findEpisodeByNumber'
 import type {
@@ -22,6 +23,7 @@ import type {
 } from './IDanmakuProvider'
 import type { ManifestRegistry } from './ManifestRegistry'
 import { resolveManifestInputs } from './manifestInputs'
+import { fromDangoError } from './providerErrors'
 
 // Manifest output shapes: the canonical fields a search/episodes/danmaku
 // pipeline must emit. The host adds `manifestId` / `providerConfigId` /
@@ -95,6 +97,7 @@ function parseComments(rows: unknown[]): DanmakuParseResult {
 export interface ManifestProviderConfig {
   manifestId: string
   providerConfigId: string
+  sourceName: string
   configValues?: Record<string, unknown>
 }
 
@@ -131,6 +134,30 @@ export class ManifestProviderService implements IDanmakuProvider {
     return this.registry.getRunner(this.config.manifestId)
   }
 
+  private get source(): SourceRef {
+    return {
+      providerConfigId: this.config.providerConfigId,
+      manifestId: this.config.manifestId,
+      name: this.config.sourceName,
+    }
+  }
+
+  private async run<T>(pipeline: () => Promise<T>): Promise<T> {
+    try {
+      return await pipeline()
+    } catch (e) {
+      throw fromDangoError(e, this.source)
+    }
+  }
+
+  private badResponse(message: string): AppError {
+    return new AppError(
+      'source.badResponse',
+      { source: this.source },
+      { message }
+    )
+  }
+
   private resolveInputs(
     runner: ManifestRunner,
     inputs: Record<string, unknown>
@@ -146,9 +173,8 @@ export class ManifestProviderService implements IDanmakuProvider {
     this.logger.debug('Search via manifest', this.config.manifestId, params)
     const runner = await this.getRunner()
     const inputs = this.resolveInputs(runner, { q: params.keyword })
-    const rows = await runner.runSearch<ManifestSearchRow[]>(
-      inputs,
-      MANIFEST_RUN_OPTIONS
+    const rows = await this.run(() =>
+      runner.runSearch<ManifestSearchRow[]>(inputs, MANIFEST_RUN_OPTIONS)
     )
     return rows.map((row) => this.stampSeason(row))
   }
@@ -166,9 +192,8 @@ export class ManifestProviderService implements IDanmakuProvider {
       return null
     }
     const inputs = this.resolveInputs(runner, seasonRemoteIds)
-    const row = await runner.runSeason<ManifestSearchRow | null>(
-      inputs,
-      MANIFEST_RUN_OPTIONS
+    const row = await this.run(() =>
+      runner.runSeason<ManifestSearchRow | null>(inputs, MANIFEST_RUN_OPTIONS)
     )
     if (row === null) {
       return null
@@ -186,9 +211,8 @@ export class ManifestProviderService implements IDanmakuProvider {
     )
     const runner = await this.getRunner()
     const inputs = this.resolveInputs(runner, seasonRemoteIds)
-    const rows = await runner.runEpisodes<ManifestEpisodeRow[]>(
-      inputs,
-      MANIFEST_RUN_OPTIONS
+    const rows = await this.run(() =>
+      runner.runEpisodes<ManifestEpisodeRow[]>(inputs, MANIFEST_RUN_OPTIONS)
     )
     const now = Date.now()
     return rows.map((row) => ({
@@ -213,9 +237,11 @@ export class ManifestProviderService implements IDanmakuProvider {
       ...meta.params,
       ...meta.providerIds,
     })
-    const output = await runner.runDanmaku<unknown>(inputs, DANMAKU_RUN_OPTIONS)
+    const output = await this.run(() =>
+      runner.runDanmaku<unknown>(inputs, DANMAKU_RUN_OPTIONS)
+    )
     if (!Array.isArray(output)) {
-      throw new Error(
+      throw this.badResponse(
         `Danmaku output from manifest ${this.config.manifestId} is not an array, got ${describeType(output)}`
       )
     }
@@ -228,7 +254,7 @@ export class ManifestProviderService implements IDanmakuProvider {
     // Rows in but nothing usable out means the pipeline itself is wrong, not
     // an episode that happens to have no danmaku.
     if (comments.length === 0 && output.length > 0) {
-      throw new Error(
+      throw this.badResponse(
         `Every comment from manifest ${this.config.manifestId} was malformed, first: ${firstIssue}`
       )
     }
@@ -259,16 +285,22 @@ export class ManifestProviderService implements IDanmakuProvider {
   async parseUrl(url: string): Promise<ParseUrlResult | null> {
     this.logger.debug('Parse URL via manifest', this.config.manifestId, url)
     const runner = await this.getRunner()
-    const result = await runner.runParseUrl<ManifestParseUrlOutput>(
-      url,
-      undefined,
-      MANIFEST_RUN_OPTIONS
+    const result = await this.run(() =>
+      runner.runParseUrl<ManifestParseUrlOutput>(
+        url,
+        undefined,
+        MANIFEST_RUN_OPTIONS
+      )
     )
     if (result === null) {
       return null
     }
     if (result.episodeMeta === undefined) {
-      throw new Error(`Could not resolve episode for url: ${url}`)
+      throw new AppError(
+        'source.urlEpisodeNotFound',
+        {},
+        { message: `Could not resolve episode for url: ${url}` }
+      )
     }
     const now = Date.now()
     return {

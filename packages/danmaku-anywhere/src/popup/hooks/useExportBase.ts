@@ -11,6 +11,7 @@ import type {
   EpisodeQueryFilter,
 } from '@/common/danmaku/dto'
 import { seasonSourceKey } from '@/common/danmaku/seasonLabel'
+import { describeError } from '@/common/errors/describeError'
 import {
   customEpisodeQueryKeys,
   episodeQueryKeys,
@@ -102,7 +103,7 @@ export const useExportWithFormat = (formatter: ExportFormatter) => {
       toast.success(formatter.successMessage())
     },
     onError: (e) => {
-      toast.error(formatter.errorMessage(e.message))
+      toast.error(formatter.errorMessage(describeError(e).message))
     },
   })
 

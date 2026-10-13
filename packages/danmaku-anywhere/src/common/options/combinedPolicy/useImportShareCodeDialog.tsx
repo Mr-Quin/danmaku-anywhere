@@ -3,9 +3,10 @@ import { useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { AppError } from '@/common/errors/AppError'
+import { describeError } from '@/common/errors/describeError'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import { CombinedPolicyService } from '@/common/options/combinedPolicy/index'
-import { serializeError } from '@/common/utils/serializeError'
 
 export const useImportShareCodeDialog = (
   options: { type: 'config' } | { type: 'integration'; configId: string } = {
@@ -43,7 +44,7 @@ export const useImportShareCodeDialog = (
         const code = codeRef.current
         try {
           if (!code) {
-            throw new Error('No code')
+            throw new AppError('shareCode.invalid', {}, { message: 'No code' })
           }
           if (options.type === 'integration') {
             await combinedPolicyService.importShareCodeToConfig(
@@ -58,7 +59,7 @@ export const useImportShareCodeDialog = (
         } catch (e) {
           toast.error(
             t('configPage.import.error', 'Import failed: {{message}}', {
-              message: serializeError(e).message,
+              message: describeError(e).message,
             })
           )
         }

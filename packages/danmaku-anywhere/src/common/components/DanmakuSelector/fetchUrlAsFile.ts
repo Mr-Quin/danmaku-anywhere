@@ -1,26 +1,10 @@
-export type ImportFromUrlErrorCode =
-  | 'invalidUrl'
-  | 'invalidScheme'
-  | 'unsupportedExtension'
-  | 'fetchFailed'
-  | 'httpError'
-  | 'sizeLimitExceeded'
-  | 'aborted'
+import { AppError } from '@/common/errors/AppError'
+import { classifyFetchRejection } from '@/common/errors/fetchFailure'
 
-export class ImportFromUrlError extends Error {
-  readonly code: ImportFromUrlErrorCode
-  readonly params: Record<string, string | number>
-
-  constructor(
-    code: ImportFromUrlErrorCode,
-    params: Record<string, string | number> = {}
-  ) {
-    super(code)
-    this.name = 'ImportFromUrlError'
-    this.code = code
-    this.params = params
-  }
-}
+type ImportUrlProblem =
+  | 'importUrl.invalidUrl'
+  | 'importUrl.invalidScheme'
+  | 'importUrl.unsupportedExtension'
 
 const SUPPORTED_EXTENSIONS = ['.json', '.xml', '.bin', '.zip'] as const
 type SupportedExtension = (typeof SUPPORTED_EXTENSIONS)[number]
@@ -31,10 +15,7 @@ export type ValidateImportUrlResult =
   | { ok: true; filename: string; extension: SupportedExtension }
   | {
       ok: false
-      reason: Extract<
-        ImportFromUrlErrorCode,
-        'invalidUrl' | 'invalidScheme' | 'unsupportedExtension'
-      >
+      reason: ImportUrlProblem
     }
 
 export function validateImportUrl(rawUrl: string): ValidateImportUrlResult {
@@ -42,18 +23,18 @@ export function validateImportUrl(rawUrl: string): ValidateImportUrlResult {
   try {
     parsed = new URL(rawUrl)
   } catch {
-    return { ok: false, reason: 'invalidUrl' }
+    return { ok: false, reason: 'importUrl.invalidUrl' }
   }
 
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    return { ok: false, reason: 'invalidScheme' }
+    return { ok: false, reason: 'importUrl.invalidScheme' }
   }
 
   let decodedPath: string
   try {
     decodedPath = decodeURIComponent(parsed.pathname)
   } catch {
-    return { ok: false, reason: 'invalidUrl' }
+    return { ok: false, reason: 'importUrl.invalidUrl' }
   }
 
   const lastSlash = decodedPath.lastIndexOf('/')
@@ -61,7 +42,7 @@ export function validateImportUrl(rawUrl: string): ValidateImportUrlResult {
     lastSlash === -1 ? decodedPath : decodedPath.slice(lastSlash + 1)
 
   if (basename === '' || basename === '.') {
-    return { ok: false, reason: 'unsupportedExtension' }
+    return { ok: false, reason: 'importUrl.unsupportedExtension' }
   }
 
   const lowerBasename = basename.toLowerCase()
@@ -69,7 +50,7 @@ export function validateImportUrl(rawUrl: string): ValidateImportUrlResult {
     lowerBasename.endsWith(ext)
   )
   if (!extension) {
-    return { ok: false, reason: 'unsupportedExtension' }
+    return { ok: false, reason: 'importUrl.unsupportedExtension' }
   }
 
   return { ok: true, filename: basename, extension }
@@ -99,7 +80,7 @@ export async function fetchUrlAsFile(
 ): Promise<File> {
   const validation = validateImportUrl(rawUrl)
   if (!validation.ok) {
-    throw new ImportFromUrlError(validation.reason)
+    throw new AppError(validation.reason)
   }
 
   const { signal } = options
@@ -114,17 +95,11 @@ export async function fetchUrlAsFile(
       signal,
     })
   } catch (err) {
-    if (
-      signal?.aborted ||
-      (err instanceof Error && err.name === 'AbortError')
-    ) {
-      throw new ImportFromUrlError('aborted')
-    }
-    throw new ImportFromUrlError('fetchFailed')
+    throw classifyFetchRejection(err, signal)
   }
 
   if (!response.ok) {
-    throw new ImportFromUrlError('httpError', { status: response.status })
+    throw new AppError('http', { status: response.status })
   }
 
   const chunks = await readBodyWithCap(response, maxBytes, signal)
@@ -144,9 +119,7 @@ async function readBodyWithCap(
   if (!response.body) {
     const buffer = await response.arrayBuffer()
     if (buffer.byteLength > maxBytes) {
-      throw new ImportFromUrlError('sizeLimitExceeded', {
-        limit: formatBytes(maxBytes),
-      })
+      throw new AppError('importUrl.tooLarge', { limit: formatBytes(maxBytes) })
     }
     return [new Uint8Array(buffer)]
   }
@@ -165,7 +138,7 @@ async function readBodyWithCap(
         total += value.byteLength
         if (total > maxBytes) {
           await reader.cancel()
-          throw new ImportFromUrlError('sizeLimitExceeded', {
+          throw new AppError('importUrl.tooLarge', {
             limit: formatBytes(maxBytes),
           })
         }
@@ -173,16 +146,10 @@ async function readBodyWithCap(
       }
     }
   } catch (err) {
-    if (err instanceof ImportFromUrlError) {
+    if (err instanceof AppError) {
       throw err
     }
-    if (
-      signal?.aborted ||
-      (err instanceof Error && err.name === 'AbortError')
-    ) {
-      throw new ImportFromUrlError('aborted')
-    }
-    throw new ImportFromUrlError('fetchFailed')
+    throw classifyFetchRejection(err, signal)
   }
 
   return chunks

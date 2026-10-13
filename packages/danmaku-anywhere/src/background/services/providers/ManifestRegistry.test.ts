@@ -684,7 +684,28 @@ describe('ManifestRegistry', () => {
 
     await expect(
       settleIndexRetry(() => registry.getPendingUpdates())
-    ).rejects.toThrow(/Failed to fetch the manifest catalog/)
+    ).rejects.toMatchObject({
+      code: 'catalog.unreachable',
+      cause: { code: 'http', params: { status: 503 } },
+    })
+  })
+
+  it('codes an index fetch that never got a response as a network failure', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new TypeError('Failed to fetch')
+      })
+    )
+    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+    await registry.ready
+
+    await expect(
+      settleIndexRetry(() => registry.getPendingUpdates())
+    ).rejects.toMatchObject({
+      code: 'catalog.unreachable',
+      cause: { code: 'network' },
+    })
   })
 
   it('applyUpdates replaces only the named ids and rebuilds their runners', async () => {
@@ -748,9 +769,10 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     await registry.ready
 
-    await expect(registry.applyUpdates(['one'])).rejects.toThrow(
-      /Failed to apply updates/
-    )
+    await expect(registry.applyUpdates(['one'])).rejects.toMatchObject({
+      code: 'catalog.applyFailed',
+      params: { manifestIds: ['one'] },
+    })
 
     expect((await store.get('one'))?.manifest).toMatchObject({
       version: '1.0.0',
@@ -767,7 +789,7 @@ describe('ManifestRegistry', () => {
 
     await expect(
       settleIndexRetry(() => registry.applyUpdates(['one']))
-    ).rejects.toThrow(/Failed to fetch the manifest catalog/)
+    ).rejects.toMatchObject({ code: 'catalog.unreachable' })
   })
 
   it('update leaves a user import untouched even when the catalog lists the same id', async () => {

@@ -7,12 +7,14 @@ import {
   searchMacCmsVod,
 } from '@danmaku-anywhere/danmaku-provider/maccms'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
+import type { SourceRef } from '@/common/errors/AppError'
 import type { ILogger } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { IDanmakuProvider, SeasonSearchParams } from './IDanmakuProvider'
+import { fromProviderApiError } from './providerErrors'
 
 export class MacCmsProviderService implements IDanmakuProvider {
   private logger: ILogger
@@ -36,14 +38,20 @@ export class MacCmsProviderService implements IDanmakuProvider {
     return MacCmsProviderService.search(
       this.configValues.danmakuBaseUrl,
       params.keyword,
-      this.logger
+      this.logger,
+      {
+        providerConfigId: this.config.id,
+        manifestId: this.config.manifestId,
+        name: this.config.name,
+      }
     )
   }
 
   static async search(
     baseUrl: string,
     keyword: string,
-    logger: ILogger
+    logger: ILogger,
+    source?: SourceRef
   ): Promise<CustomSeason[]> {
     logger.debug('Searching for', {
       baseUrl,
@@ -52,7 +60,7 @@ export class MacCmsProviderService implements IDanmakuProvider {
     const res = await searchMacCmsVod(baseUrl, keyword)
 
     if (!res.success) {
-      throw res.error
+      throw fromProviderApiError(res.error, source)
     }
 
     return res.data.list.map((item, i) => {
@@ -106,7 +114,11 @@ export class MacCmsProviderService implements IDanmakuProvider {
     )
 
     if (!commentsResult.success) {
-      throw commentsResult.error
+      throw fromProviderApiError(commentsResult.error, {
+        providerConfigId: config.id,
+        manifestId: config.manifestId,
+        name: config.name,
+      })
     }
 
     const comments = commentsResult.data

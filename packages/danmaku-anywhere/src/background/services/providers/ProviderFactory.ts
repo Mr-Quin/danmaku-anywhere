@@ -26,6 +26,7 @@ function createDanmakuProvider(
     {
       manifestId: config.manifestId,
       providerConfigId: config.id,
+      sourceName: config.name,
       configValues: config.configValues,
     },
     registry,

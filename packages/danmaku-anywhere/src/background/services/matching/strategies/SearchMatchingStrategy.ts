@@ -4,10 +4,10 @@ import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
 import type { MatchEpisodeInput, MatchEpisodeResult } from '@/common/anime/dto'
 import { isCustomSeason } from '@/common/danmaku/utils'
+import { errorMessage } from '@/common/errors/errorMessage'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
-import { serializeError } from '@/common/utils/serializeError'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
@@ -97,7 +97,7 @@ export class SearchMatchingStrategy implements IMatchingStrategy {
         return {
           status: 'notFound',
           data: null,
-          cause: serializeError(e).message,
+          cause: errorMessage(e),
         }
       }
     }

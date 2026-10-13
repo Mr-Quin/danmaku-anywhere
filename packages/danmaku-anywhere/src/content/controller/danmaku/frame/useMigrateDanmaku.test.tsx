@@ -32,10 +32,6 @@ vi.mock('@/common/rpcClient/background/client', () => ({
   },
 }))
 
-vi.mock('@/content/controller/common/hooks/useDescribeSourceError', () => ({
-  useDescribeSourceError: () => () => ({ message: '' }),
-}))
-
 function deferred<T>() {
   let resolve!: (value: T) => void
   const promise = new Promise<T>((res) => {

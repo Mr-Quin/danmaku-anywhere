@@ -1,4 +1,5 @@
 import { extractMedia } from '@danmaku-anywhere/web-scraper'
+import { errorMessage } from '@/common/errors/errorMessage'
 import { portNames } from '@/common/ports/portNames'
 
 export function setupExtractMedia() {
@@ -62,7 +63,7 @@ export function setupExtractMedia() {
         port.postMessage({
           action: 'extractMedia',
           success: false,
-          err: err instanceof Error ? err.message : 'Unknown error',
+          err: errorMessage(err),
           isLast: true,
         })
         if (!disconnected) {

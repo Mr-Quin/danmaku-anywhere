@@ -2,6 +2,7 @@ import { Box, Button, Stack, Typography } from '@mui/material'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeError } from '@/common/errors/describeError'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { installedUpdates } from '../catalog'
 import { useApplyUpdates, usePendingUpdates } from '../hooks/usePendingUpdates'
@@ -44,7 +45,7 @@ export const UpdatesSection = ({
       },
       onError: (error) => {
         setFailedIds((prev) => new Set([...prev, ...manifestIds]))
-        toast.error(error.message)
+        toast.error(describeError(error).message)
       },
     })
   }

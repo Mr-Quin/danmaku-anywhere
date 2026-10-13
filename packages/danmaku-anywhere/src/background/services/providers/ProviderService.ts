@@ -16,6 +16,7 @@ import type {
   DanmakuFetchRequest,
   DanmakuFetchResult,
 } from '@/common/danmaku/dto'
+import { AppError, type SourceRef } from '@/common/errors/AppError'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { toManifestLocale } from '@/common/localization/language'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
@@ -28,7 +29,6 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
-import { SourceError } from '@/common/providers/SourceError'
 import type {
   ProviderLoginStatus,
   ProviderManifestList,
@@ -37,16 +37,19 @@ import type {
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { OmitSeasonId } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
-import {
-  CATALOG_EMPTY_MESSAGE,
-  CATALOG_UNREACHABLE_MESSAGE,
-  type CatalogSyncResult,
-  ManifestRegistry,
-} from './ManifestRegistry'
+import { type CatalogSyncResult, ManifestRegistry } from './ManifestRegistry'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from './ProviderFactory'
+
+function toSourceRef(config: ProviderConfig): SourceRef {
+  return {
+    providerConfigId: config.id,
+    manifestId: config.manifestId,
+    name: config.name,
+  }
+}
 
 function enrichEpisode(
   episode: OmitSeasonId<EpisodeMeta>,
@@ -127,9 +130,13 @@ export class ProviderService {
       await this.providerConfigService.getAll()
     )
     if (!config) {
-      throw new SourceError(
-        'sourceRemoved',
-        'This source has been removed, so new danmaku cannot be fetched.'
+      throw new AppError(
+        'source.removed',
+        {},
+        {
+          message:
+            'This source has been removed, so new danmaku cannot be fetched.',
+        }
       )
     }
     return config
@@ -144,10 +151,10 @@ export class ProviderService {
 
     const service = this.danmakuProviderFactory(providerConfig)
     if (!service.getEpisodes) {
-      throw new SourceError(
-        'episodesUnsupported',
-        `${providerConfig.name} does not support fetching episodes`,
-        providerConfig.name
+      throw new AppError(
+        'source.episodesUnsupported',
+        { source: toSourceRef(providerConfig) },
+        { message: `${providerConfig.name} does not support fetching episodes` }
       )
     }
     const episodes = await service.getEpisodes(season.providerIds)
@@ -218,17 +225,21 @@ export class ProviderService {
 
     const service = this.danmakuProviderFactory(config)
     if (!service.getDanmaku) {
-      throw new SourceError(
-        'refetchUnsupported',
-        `${config.name} episodes cannot be refetched`,
-        config.name
+      throw new AppError(
+        'source.refetchUnsupported',
+        { source: toSourceRef(config) },
+        { message: `${config.name} episodes cannot be refetched` }
       )
     }
 
     const comments = await service.getDanmaku(resolved)
 
     if (options.automatic && comments.length === 0) {
-      throw new Error(`No danmaku found for ${meta.title}`)
+      throw new AppError(
+        'source.noDanmaku',
+        { title: meta.title },
+        { message: `No danmaku found for ${meta.title}` }
+      )
     }
 
     const { season, ...rest } = meta
@@ -276,9 +287,10 @@ export class ProviderService {
       }
     }
 
-    throw new SourceError(
-      'noUrlParser',
-      'No provider found capable of parsing URL'
+    throw new AppError(
+      'source.noUrlParser',
+      {},
+      { message: 'No provider found capable of parsing URL' }
     )
   }
 
@@ -411,10 +423,10 @@ export class ProviderService {
   async refreshCatalog(locale?: string): Promise<ProviderManifestList> {
     const result = await this.syncCatalog()
     if (result === 'unreachable') {
-      throw new Error(CATALOG_UNREACHABLE_MESSAGE)
+      throw new AppError('catalog.unreachable')
     }
     if (result === 'empty') {
-      throw new Error(CATALOG_EMPTY_MESSAGE)
+      throw new AppError('catalog.empty')
     }
     return this.listManifests(locale)
   }

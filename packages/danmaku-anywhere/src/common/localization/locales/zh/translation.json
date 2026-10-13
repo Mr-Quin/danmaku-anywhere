@@ -351,14 +351,6 @@
     "pickFolder": "选择文件夹",
     "skipped_other": "跳过{{count}}个文件",
     "urlDialog": {
-      "errors": {
-        "fetchFailed": "请求 URL 失败",
-        "httpError": "服务器返回 {{status}}",
-        "invalidScheme": "仅支持 http 和 https URL",
-        "invalidUrl": "URL 格式不正确",
-        "sizeLimitExceeded": "文件大小超过 {{limit}} 限制",
-        "unsupportedExtension": "URL 必须指向 .json、.xml、.bin 或 .zip 文件"
-      },
       "submit": "下载并导入",
       "title": "从 URL 导入",
       "urlHelper": "指向 .json、.xml、.bin 或 .zip 文件的直链",
@@ -398,11 +390,8 @@
       "aiDisabledTooPermissive": "AI已禁用：匹配模式过于宽松",
       "finding": "正在为 {{name}} 查找弹幕…",
       "matchError": "匹配剧集失败：{{message}}",
-      "noEpisodeFound": "未找到匹配的剧集：{{title}}",
       "noIntegration": "未设置自动化配置",
       "openSearch": "打开搜索页面",
-      "sourceUnreachable": "无法连接到 {{source}}",
-      "sourceUnreachableUnnamed": "无法连接到弹幕源",
       "usingAI": "正在使用AI解析"
     },
     "autoMode": "自动模式",
@@ -557,17 +546,11 @@
       "cloudListError": "加载云备份失败。",
       "cloudRevisions": "历史版本",
       "cloudSignInTitle": "登录以启用云备份",
-      "error": {
-        "invalidFormat": "此备份文件已损坏，或不是由弹幕任何地方创建的。",
-        "notJson": "此文件不是弹幕任何地方的备份文件。",
-        "unsupportedVersion": "当前版本的弹幕任何地方无法读取此备份格式。"
-      },
       "export": "导出",
       "exportRowDesc": "将设置保存为 JSON 文件",
       "exportToFile": "保存到文件",
       "goToSignIn": "前往登录",
       "import": "导入",
-      "importError": "导入失败",
       "importFromFile": "从文件恢复",
       "importRowDesc": "从 JSON 文件恢复设置",
       "latestRevision": "最新",
@@ -776,10 +759,6 @@
         "url": "不是有效的 URL"
       }
     },
-    "error": {
-      "episodesUnsupported": "{{name}} 不支持获取剧集列表",
-      "refetchUnsupported": "{{name}} 无法重新获取已保存剧集的弹幕"
-    },
     "filter": {
       "placeholder": "筛选弹幕源"
     },
@@ -816,7 +795,6 @@
     "episodesHint": "点击剧集下载弹幕。已下载的剧集会显示在弹幕库中。",
     "epsCount_other": "{{count}} 集",
     "error": {
-      "network": "无法连接{{name}}，请检查网络后重试。",
       "noProviders": "没有启用的弹幕源，请在「弹幕源」页启用。",
       "noResultFound": "没有找到结果，请尝试其他关键词"
     },
@@ -832,8 +810,6 @@
       },
       "failed": "无法解析此链接",
       "import": "获取弹幕",
-      "networkError": "无法连接该网站，请检查网络后重试。",
-      "noSource": "没有弹幕源能解析此链接",
       "parse": "解析",
       "parsed": "已解析",
       "searchInstead": "改为按标题搜索",

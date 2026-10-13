@@ -16,6 +16,9 @@ import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { AppError } from '@/common/errors/AppError'
+import { describeError } from '@/common/errors/describeError'
+import { classifyFetchRejection } from '@/common/errors/fetchFailure'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import {
   type CombinedPolicy,
@@ -45,7 +48,15 @@ export const PresetsList = () => {
   } = useQuery({
     queryKey: configQueryKeys.presets(),
     queryFn: async (): Promise<ConfigPresets> => {
-      const res = await fetch('https://danmaku-config.weeblify.app/config.json')
+      let res: Response
+      try {
+        res = await fetch('https://danmaku-config.weeblify.app/config.json')
+      } catch (e) {
+        throw classifyFetchRejection(e)
+      }
+      if (!res.ok) {
+        throw new AppError('http', { status: res.status })
+      }
       return res.json()
     },
     select: (data) => {
@@ -90,7 +101,7 @@ export const PresetsList = () => {
   }
 
   if (isError) {
-    return <ErrorMessage message={error.message} />
+    return <ErrorMessage message={describeError(error).message} />
   }
 
   if (!presets || presets.length === 0) {

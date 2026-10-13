@@ -3,12 +3,12 @@ import { inject, injectable } from 'inversify'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'
 import type { MatchEpisodeInput, MatchEpisodeResult } from '@/common/anime/dto'
+import { errorMessage } from '@/common/errors/errorMessage'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
-import { serializeError } from '@/common/utils/serializeError'
 import { EpisodeResolutionService } from '../EpisodeResolutionService'
 import type { IMatchingStrategy } from './IMatchingStrategy'
 
@@ -67,7 +67,7 @@ export class MappingMatchingStrategy implements IMatchingStrategy {
       return {
         status: 'notFound',
         data: null,
-        cause: serializeError(e).message,
+        cause: errorMessage(e),
       }
     }
   }

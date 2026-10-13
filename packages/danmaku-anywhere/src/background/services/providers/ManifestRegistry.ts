@@ -7,6 +7,8 @@ import {
 } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
+import { AppError } from '@/common/errors/AppError'
+import { classifyFetchRejection } from '@/common/errors/fetchFailure'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type {
   ManifestUpdate,
@@ -36,15 +38,6 @@ const zCatalogIndex = z.object({
 
 type CatalogEntry = z.infer<typeof zCatalogEntry>
 type CatalogManifest = { raw: unknown; parsed: Manifest }
-
-// Shared by every catalog-gated path; tests and the popup toast match on it.
-export const CATALOG_UNREACHABLE_MESSAGE =
-  'Failed to fetch the manifest catalog'
-
-// A catalog that answered but offers nothing this build can run is not a
-// network failure, so it must not be reported as one.
-export const CATALOG_EMPTY_MESSAGE =
-  'The manifest catalog has no sources this version can use'
 
 export type CatalogSyncResult = 'synced' | 'unreachable' | 'empty'
 
@@ -133,8 +126,10 @@ export class ManifestRegistry {
   // stays bundled until the next sync.
   async update(): Promise<CatalogSyncResult> {
     await this.ready
-    const entries = await this.loadIndex()
-    if (!entries) {
+    let entries: CatalogEntry[]
+    try {
+      entries = await this.loadIndex()
+    } catch {
       return 'unreachable'
     }
     if (entries.length === 0) {
@@ -156,9 +151,6 @@ export class ManifestRegistry {
   async getPendingUpdates(): Promise<ManifestUpdate[]> {
     await this.ready
     const entries = await this.loadIndex()
-    if (!entries) {
-      throw new Error(CATALOG_UNREACHABLE_MESSAGE)
-    }
     const stored = await this.store.getAll()
     const updates: ManifestUpdate[] = []
     for (const entry of entries) {
@@ -194,9 +186,6 @@ export class ManifestRegistry {
   async applyUpdates(manifestIds: string[]): Promise<void> {
     await this.ready
     const entries = await this.loadIndex()
-    if (!entries) {
-      throw new Error(CATALOG_UNREACHABLE_MESSAGE)
-    }
     const wanted = new Set(manifestIds)
     const stored = await this.store.getAll()
     const targets = entries.filter((entry) => {
@@ -211,7 +200,11 @@ export class ManifestRegistry {
       const failed = targets
         .map((entry) => entry.id)
         .filter((id) => !applied.includes(id))
-      throw new Error(`Failed to apply updates: ${failed.join(', ')}`)
+      throw new AppError(
+        'catalog.applyFailed',
+        { manifestIds: failed },
+        { message: `Failed to apply updates: ${failed.join(', ')}` }
+      )
     }
   }
 
@@ -334,7 +327,7 @@ export class ManifestRegistry {
     }
   }
 
-  private async loadIndex(): Promise<CatalogEntry[] | null> {
+  private async loadIndex(): Promise<CatalogEntry[]> {
     try {
       return await this.fetchIndex()
     } catch (e) {
@@ -345,7 +338,7 @@ export class ManifestRegistry {
       return await this.fetchIndex()
     } catch (e) {
       this.log.error('Failed to fetch manifest catalog:', e)
-      return null
+      throw new AppError('catalog.unreachable', {}, { cause: e })
     }
   }
 
@@ -405,11 +398,19 @@ export class ManifestRegistry {
   }
 
   private async fetchJson(url: string, timeoutMs: number): Promise<unknown> {
-    const res = await extensionFetchLike(url, {
-      signal: AbortSignal.timeout(timeoutMs),
-    })
+    const signal = AbortSignal.timeout(timeoutMs)
+    let res: Awaited<ReturnType<typeof extensionFetchLike>>
+    try {
+      res = await extensionFetchLike(url, { signal })
+    } catch (e) {
+      throw classifyFetchRejection(e, signal)
+    }
     if (res.status !== 200) {
-      throw new Error(`catalog fetch failed (${res.status}): ${url}`)
+      throw new AppError(
+        'http',
+        { status: res.status },
+        { message: `catalog fetch failed (${res.status}): ${url}` }
+      )
     }
     return JSON.parse(await res.text())
   }

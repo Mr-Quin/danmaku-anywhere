@@ -277,9 +277,10 @@ describe('ProviderService legacy-maccms decoupling', () => {
       })
 
       await expect(service.fetchEpisodesBySeason(1)).rejects.toMatchObject({
-        name: 'SourceError',
-        problem: 'episodesUnsupported',
-        sourceName: LEGACY_MACCMS_ID,
+        code: 'source.episodesUnsupported',
+        params: {
+          source: expect.objectContaining({ name: LEGACY_MACCMS_ID }),
+        },
       })
     })
 
@@ -290,8 +291,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
       })
 
       await expect(service.fetchEpisodesBySeason(1)).rejects.toMatchObject({
-        name: 'SourceError',
-        problem: 'sourceRemoved',
+        code: 'source.removed',
       })
       expect(provider.getEpisodes).not.toHaveBeenCalled()
     })
@@ -411,7 +411,10 @@ describe('ProviderService legacy-maccms decoupling', () => {
           meta,
           options: { automatic: true },
         })
-      ).rejects.toThrow('No danmaku found')
+      ).rejects.toMatchObject({
+        code: 'source.noDanmaku',
+        params: { title: meta.title },
+      })
       expect(danmakuService.upsertUnlessFewer).not.toHaveBeenCalled()
     })
 
@@ -449,8 +452,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
       await expect(
         service.getDanmaku({ type: 'by-meta', meta: maccmsMeta, options: {} })
       ).rejects.toMatchObject({
-        name: 'SourceError',
-        problem: 'refetchUnsupported',
+        code: 'source.refetchUnsupported',
       })
     })
 
@@ -466,7 +468,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
           meta,
           options: { forceUpdate: true },
         })
-      ).rejects.toMatchObject({ name: 'SourceError', problem: 'sourceRemoved' })
+      ).rejects.toMatchObject({ code: 'source.removed' })
       expect(provider.getDanmaku).not.toHaveBeenCalled()
     })
   })
@@ -478,7 +480,7 @@ describe('ProviderService.parseUrl', () => {
 
     await expect(
       service.parseUrl('https://example.com/video/1')
-    ).rejects.toMatchObject({ name: 'SourceError', problem: 'noUrlParser' })
+    ).rejects.toMatchObject({ code: 'source.noUrlParser' })
   })
 })
 
@@ -778,9 +780,9 @@ describe('ProviderService.refreshCatalog', () => {
       registry,
     })
 
-    await expect(service.refreshCatalog()).rejects.toThrow(
-      /Failed to fetch the manifest catalog/
-    )
+    await expect(service.refreshCatalog()).rejects.toMatchObject({
+      code: 'catalog.unreachable',
+    })
 
     expect(getPendingUpdates).not.toHaveBeenCalled()
     expect(recordChecked).not.toHaveBeenCalled()
@@ -812,9 +814,9 @@ describe('ProviderService.refreshCatalog', () => {
       registry,
     })
 
-    await expect(service.refreshCatalog()).rejects.toThrow(
-      /no sources this version can use/
-    )
+    await expect(service.refreshCatalog()).rejects.toMatchObject({
+      code: 'catalog.empty',
+    })
   })
 })
 
@@ -1383,6 +1385,6 @@ describe('ProviderService season resolution by config id', () => {
 
     await expect(
       service.fetchEpisodesBySeason(orphan.id)
-    ).rejects.toMatchObject({ name: 'SourceError', problem: 'sourceRemoved' })
+    ).rejects.toMatchObject({ code: 'source.removed' })
   })
 })

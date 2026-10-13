@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 
 import { episodeToString } from '@/common/danmaku/utils'
+import { describeError } from '@/common/errors/describeError'
 import { Logger } from '@/common/Logger'
 import { tabQueryKeys } from '@/common/queries/queryKeys'
 import { controllerRpcClient } from '@/common/rpcClient/controller/client'
@@ -43,7 +44,7 @@ export const useMountDanmakuPopup = () => {
     onError: (e) => {
       toast.error(
         t('danmaku.alert.mountError', 'Failed to mount danmaku: {{message}}', {
-          message: (e as Error).message,
+          message: describeError(e).message,
         })
       )
       Logger.debug(e)
