@@ -21,7 +21,6 @@ import {
 } from './migration'
 import type { ProviderConfig } from './schema'
 import { providerConfigSchema } from './schema'
-import { isLegacyMacCms } from './utils'
 import { LATEST_PROVIDER_CONFIG_VERSION } from './version'
 
 @injectable('Singleton')
@@ -149,28 +148,6 @@ export class ProviderConfigService implements IStoreService {
 
   async getAll() {
     return this.options.get()
-  }
-
-  /**
-   * Returns the first automatic provider that is enabled
-   */
-  async getFirstAutomaticProvider(): Promise<ProviderConfig | undefined> {
-    const automaticProviders = await this.getAutomaticProviders()
-    return automaticProviders.find((item) => item.enabled)
-  }
-
-  async getAutomaticProviders(): Promise<ProviderConfig[]> {
-    const configs = await this.options.get()
-
-    return configs.filter(
-      (item) => item.enabled && this.supportsAutomaticMode(item)
-    )
-  }
-
-  supportsAutomaticMode(config: ProviderConfig): boolean {
-    // Manifest-driven sources support automatic mode implicitly. Legacy MacCMS
-    // has no manifest and is search-only, so it stays opt-out.
-    return !isLegacyMacCms(config)
   }
 
   async update<T extends ProviderConfig>(

@@ -5,13 +5,13 @@ import { TitleMappingService } from '@/background/services/persistence/TitleMapp
 import type { MatchEpisodeInput, MatchEpisodeResult } from '@/common/anime/dto'
 import { isCustomSeason } from '@/common/danmaku/utils'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
-import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { serializeError } from '@/common/utils/serializeError'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from '../../providers/ProviderFactory'
+import { SourceCapabilityService } from '../../providers/SourceCapabilityService'
 import { EpisodeResolutionService } from '../EpisodeResolutionService'
 import type { IMatchingStrategy } from './IMatchingStrategy'
 
@@ -22,8 +22,8 @@ export class SearchMatchingStrategy implements IMatchingStrategy {
   private logger: ILogger
 
   constructor(
-    @inject(ProviderConfigService)
-    private providerConfigService: ProviderConfigService,
+    @inject(SourceCapabilityService)
+    private sourceCapabilities: SourceCapabilityService,
     @inject(DanmakuProviderFactory)
     private danmakuProviderFactory: IDanmakuProviderFactory,
     @inject(SeasonService) private seasonService: SeasonService,
@@ -40,7 +40,7 @@ export class SearchMatchingStrategy implements IMatchingStrategy {
     const { title, mapKey, episodeNumber } = input
 
     const autoProvider =
-      await this.providerConfigService.getFirstAutomaticProvider()
+      await this.sourceCapabilities.getFirstAutomaticProvider()
 
     if (!autoProvider) {
       return null

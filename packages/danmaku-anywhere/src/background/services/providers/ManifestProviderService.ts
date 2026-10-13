@@ -13,6 +13,10 @@ import type { ManifestRunner, RunOptions } from '@mr-quin/dango'
 import type { z } from 'zod'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { ILogger } from '@/common/Logger'
+import {
+  capabilitiesFromManifest,
+  type SourceCapabilities,
+} from '@/common/providers/sourceCapabilities'
 import { findEpisodeByNumber } from './common/findEpisodeByNumber'
 import type {
   IDanmakuProvider,
@@ -141,6 +145,11 @@ export class ManifestProviderService implements IDanmakuProvider {
     )
   }
 
+  async getCapabilities(): Promise<SourceCapabilities> {
+    const runner = await this.getRunner()
+    return capabilitiesFromManifest(runner.manifest)
+  }
+
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
     this.logger.debug('Search via manifest', this.config.manifestId, params)
     const runner = await this.getRunner()
@@ -161,9 +170,6 @@ export class ManifestProviderService implements IDanmakuProvider {
       seasonRemoteIds
     )
     const runner = await this.getRunner()
-    if (!runner.hasSeason()) {
-      return null
-    }
     const inputs = this.resolveInputs(runner, seasonRemoteIds)
     const row = await runner.runSeason<ManifestSearchRow | null>(
       inputs,
@@ -248,6 +254,11 @@ export class ManifestProviderService implements IDanmakuProvider {
       seasonId: season.id,
       season,
     }
+  }
+
+  async canParse(url: string): Promise<boolean> {
+    const runner = await this.getRunner()
+    return runner.canParse(url)
   }
 
   async parseUrl(url: string): Promise<ParseUrlResult | null> {
