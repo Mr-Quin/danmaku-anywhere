@@ -1,10 +1,6 @@
 import type { UseSuspenseQueryOptions } from '@tanstack/react-query'
-import {
-  useMutation,
-  useQueryClient,
-  useSuspenseQuery,
-} from '@tanstack/react-query'
-import { useEffect, useMemo } from 'react'
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
@@ -40,25 +36,12 @@ export const useSuspenseExtStorageQuery = <T>(
   const effectKey = ['ext-storage', storageType, ...toArray(key)]
   const queryKey = storageQueryKeys.external(storageType, toArray(key))
 
-  const queryClient = useQueryClient()
   const readinessService = useInjectService(ReadinessService)
 
   const storageService = useMemo(
     () => new ExtStorageService<T>(key, { storageType }),
     [...effectKey]
   )
-
-  useEffect(() => {
-    storageService.subscribe(() => {
-      void queryClient.invalidateQueries({ queryKey })
-    })
-    storageService.setup()
-
-    return () => {
-      void queryClient.invalidateQueries({ queryKey })
-      storageService.destroy()
-    }
-  }, [storageService, queryClient])
 
   const query = useSuspenseQuery({
     queryKey,

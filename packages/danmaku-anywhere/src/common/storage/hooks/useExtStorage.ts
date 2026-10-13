@@ -1,6 +1,6 @@
 import type { UseQueryOptions } from '@tanstack/react-query'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo } from 'react'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMemo } from 'react'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { toArray } from '@/common/utils/utils'
 import type { ExtStorageServiceOptions } from '../ExtStorageService'
@@ -17,24 +17,10 @@ export const useExtStorage = <T>(
   const effectKey = ['ext-storage', storageType, ...toArray(key)]
   const queryKey = storageQueryKeys.external(storageType, toArray(key))
 
-  const queryClient = useQueryClient()
-
   const storageService = useMemo(
     () => new ExtStorageService<T>(key, { storageType }),
     [...effectKey]
   )
-
-  useEffect(() => {
-    storageService.subscribe(() => {
-      void queryClient.invalidateQueries({ queryKey })
-    })
-    storageService.setup()
-
-    return () => {
-      void queryClient.invalidateQueries({ queryKey })
-      storageService.destroy()
-    }
-  }, [storageService, queryClient])
 
   const query = useQuery({
     queryKey,

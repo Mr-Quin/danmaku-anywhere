@@ -9,6 +9,8 @@ import type {
 } from '@/common/danmaku/dto'
 
 export const storageQueryKeys = {
+  area: (storageType: string) =>
+    [{ scope: 'storage', kind: 'external', storageType }] as const,
   external: (storageType: string, key: string | null | (string | null)[]) => {
     return [
       {

@@ -1,7 +1,6 @@
 import type { QueryKey } from '@tanstack/react-query'
 import { MutationCache, QueryClient } from '@tanstack/react-query'
-import { subscribeDataChange } from '@/common/messaging/dataChangeChannel'
-import { sourceQueryKeys } from '@/common/queries/queryKeys'
+import { followBackgroundChanges } from './followBackgroundChanges'
 
 interface MutationMeta {
   /** Query keys to invalidate on success (and on error when invalidateOnError is true) */
@@ -21,16 +20,6 @@ function invalidateKeys(keys: QueryKey[]) {
     void queryClient.invalidateQueries({ queryKey })
   }
 }
-
-subscribeDataChange((event) => {
-  if (event.type === 'invalidateQueries') {
-    invalidateKeys(event.keys)
-    return
-  }
-  if (event.type === 'manifestsChanged') {
-    invalidateKeys([sourceQueryKeys.all()])
-  }
-})
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,3 +43,5 @@ export const queryClient = new QueryClient({
     },
   }),
 })
+
+followBackgroundChanges(queryClient)
