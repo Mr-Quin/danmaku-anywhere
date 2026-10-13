@@ -2,7 +2,7 @@ import type {
   CommentEntity,
   GenericEpisode,
 } from '@danmaku-anywhere/danmaku-converter'
-import { enableMapSet } from 'immer'
+import { type Draft, enableMapSet } from 'immer'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
@@ -49,6 +49,21 @@ interface StoreState {
 
     mount: (episodes: GenericEpisode[]) => void
     unmount: () => void
+
+    /**
+     * Mount and unmount commands are numbered as they are sent to a player.
+     * Their completions can arrive out of order, so a completion only updates
+     * the store when no command sent after it already has.
+     */
+    lastCommand: number
+    committedCommand: number
+    issueCommand: () => number
+    commitMount: (
+      command: number,
+      frameId: number,
+      episodes: GenericEpisode[]
+    ) => boolean
+    commitUnmount: (command: number, frameId: number) => boolean
 
     /**
      * Whether danmaku should be visible
@@ -128,6 +143,22 @@ interface StoreState {
   }
 }
 
+function setFrameMounted(
+  state: Draft<StoreState>,
+  frameId: number,
+  mounted: boolean
+) {
+  const frame = state.frame.allFrames.get(frameId)
+  if (!frame) {
+    return
+  }
+  const next = { ...frame, mounted }
+  state.frame.allFrames.set(frameId, next)
+  if (state.frame.activeFrame?.frameId === frameId) {
+    state.frame.activeFrame = next
+  }
+}
+
 const useStoreBase = create<StoreState>()(
   immer((set, get) => ({
     isDisconnected: false,
@@ -162,6 +193,43 @@ const useStoreBase = create<StoreState>()(
           state.danmaku.episodes = undefined
           state.danmaku.comments = []
         })
+      },
+      lastCommand: 0,
+      committedCommand: 0,
+      issueCommand: () => {
+        const command = get().danmaku.lastCommand + 1
+        set((state) => {
+          state.danmaku.lastCommand = command
+        })
+        return command
+      },
+      commitMount: (command, frameId, episodes) => {
+        if (command <= get().danmaku.committedCommand) {
+          return false
+        }
+        set((state) => {
+          state.danmaku.committedCommand = command
+          state.danmaku.isMounted = true
+          state.danmaku.episodes = episodes
+          state.danmaku.comments = episodes.flatMap((episode) => {
+            return episode.comments
+          })
+          setFrameMounted(state, frameId, true)
+        })
+        return true
+      },
+      commitUnmount: (command, frameId) => {
+        if (command <= get().danmaku.committedCommand) {
+          return false
+        }
+        set((state) => {
+          state.danmaku.committedCommand = command
+          state.danmaku.isMounted = false
+          state.danmaku.episodes = undefined
+          state.danmaku.comments = []
+          setFrameMounted(state, frameId, false)
+        })
+        return true
       },
       isVisible: true,
       toggleVisible: (visible) => {

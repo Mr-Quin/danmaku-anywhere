@@ -2,8 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { playerRpcClient } from '@/common/rpcClient/background/client'
-import { useStore } from '@/content/controller/store/store'
+import { sendUnmount } from '@/content/controller/common/danmakuCommands'
 
 interface UnmountDanmakuOptions {
   silent?: boolean
@@ -15,32 +14,20 @@ export const useUnmountDanmaku = ({
   const { toast } = useToast()
   const { t } = useTranslation()
 
-  const { activeFrame, updateFrame } = useStore.use.frame()
-
-  const { unmount } = useStore.use.danmaku()
-
   return useMutation({
     mutationFn: async (frameId: number | void) => {
-      const frame = frameId ?? activeFrame?.frameId
-
-      if (frame === undefined)
-        throw new Error('Trying to unmount danmaku without an active frame')
-
-      await playerRpcClient.player['relay:command:unmount']({
-        frameId: frame,
-      })
-
+      await sendUnmount(frameId ?? undefined)
       return true
     },
-    onSuccess: (_, frameId) => {
-      if (frameId) updateFrame(frameId, { mounted: false })
-      unmount()
+    onSuccess: () => {
       if (!silent) {
         toast.info(t('danmaku.alert.unmounted', 'Danmaku Unmounted'))
       }
     },
     onError: (err) => {
-      toast.error(err.message)
+      if (!silent) {
+        toast.error(err.message)
+      }
     },
   })
 }

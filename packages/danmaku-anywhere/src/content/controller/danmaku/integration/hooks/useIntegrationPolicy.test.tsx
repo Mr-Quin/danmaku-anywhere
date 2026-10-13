@@ -1,34 +1,41 @@
+import type { Season } from '@danmaku-anywhere/danmaku-converter'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act } from 'react'
+import { act, StrictMode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useToast } from '@/common/components/Toast/toastStore'
 import '@/common/localization/i18n'
+import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
+import type { MountConfig } from '@/common/options/mountConfig/schema'
+import { queryClient as sharedQueryClient } from '@/common/queries/queryClient'
 import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { ObserverFactory } from '@/content/controller/danmaku/integration/observers/ObserverFactory'
-import { usePopup } from '@/content/controller/store/popupStore'
+import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { useIntegrationPolicy } from './useIntegrationPolicy'
 
 /**
- * Automatic matching runs one operation per episode the observer reports. When
- * the observer is replaced, the video goes away, or a newer episode arrives,
- * work still in flight for the earlier episode must not mount, open the
- * selector or touch the episode toast. Drives the hook with a fake observer and
- * controllable episode match, fetch and mount calls, and asserts the toast and
- * popup stores.
+ * Automatic matching runs once per episode the observer reports. When the
+ * observer is replaced, the video is replaced or goes away, a newer episode
+ * arrives, or the integration unmounts, work still in flight for the earlier
+ * episode must not mount, stay mounted in the player, change the store, open
+ * or continue the selector, or touch the episode toast. Drives the hook with a
+ * fake observer (or the real AI observer) and controllable match, fetch, mount
+ * and unmount calls, and asserts the toast, popup and controller stores and the
+ * player commands sent.
  */
 
 vi.unmock('@/common/localization/i18n')
 
 const page = vi.hoisted(() => ({
-  config: { mode: 'xpath' } as object,
+  config: { mode: 'xpath' } as { mode: string },
 }))
 
 const rpc = vi.hoisted(() => ({
   episodeMatch: vi.fn(),
   episodeFetch: vi.fn(),
+  extractTitle: vi.fn(),
   mount: vi.fn(),
   unmount: vi.fn(),
 }))
@@ -37,13 +44,14 @@ vi.mock('@/common/rpcClient/background/client', () => ({
   chromeRpcClient: {
     episodeMatch: rpc.episodeMatch,
     episodeFetch: rpc.episodeFetch,
+    extractTitle: rpc.extractTitle,
     remoteLog: () => Promise.resolve(),
   },
   playerRpcClient: {
     player: {
       'relay:command:mount': rpc.mount,
       'relay:command:unmount': rpc.unmount,
-      'relay:command:show': vi.fn(),
+      'relay:command:show': () => Promise.resolve({ data: undefined }),
     },
   },
 }))
@@ -134,19 +142,19 @@ function sourceEpisode(title: string) {
   }
 }
 
-function fetched(title: string) {
-  return { data: { episode: sourceEpisode(title) } }
+function fetched(title: string, keptStored?: object) {
+  return { data: { episode: sourceEpisode(title), keptStored } }
 }
 
 function matched(episode: object) {
   return { data: { status: 'success', data: episode, metadata: {} } }
 }
 
-function ambiguous() {
+function ambiguous(...titles: string[]) {
   return {
     data: {
       status: 'disambiguation',
-      data: [{ id: 9, title: 'Show A Movie' }],
+      data: titles.map((title, index) => ({ id: 9 + index, title })),
       metadata: {},
     },
   }
@@ -161,6 +169,28 @@ function openToasts() {
     .getState()
     .notifications.filter((n) => n.open)
     .map((n) => ({ severity: n.severity, message: n.message }))
+}
+
+function progressFor(title: string) {
+  return {
+    severity: 'info',
+    message: `Finding danmaku for ${title} Episode 1…`,
+  }
+}
+
+function mountedState() {
+  const { danmaku, frame } = useStore.getState()
+  return {
+    isMounted: danmaku.isMounted,
+    titles: danmaku.episodes?.map((e) => e.title),
+    frameMounted: frame.allFrames.get(0)?.mounted,
+  }
+}
+
+const NOTHING_MOUNTED = {
+  isMounted: false,
+  titles: undefined,
+  frameMounted: false,
 }
 
 function setVideo(hasVideo: boolean, videoChangeCount: number) {
@@ -182,48 +212,62 @@ async function waitForProgressDelay() {
   })
 }
 
-function IntegrationPolicy() {
+function Integration() {
   useIntegrationPolicy()
   return null
 }
 
+const createObserver = ObserverFactory.create.bind(ObserverFactory)
 const initialStore = useStore.getState()
 const initialPopup = usePopup.getState()
 
 let root: Root | undefined
 let queryClient: QueryClient
 let observers: FakeObserver[]
+let strict = false
 
 function render() {
+  const tree = (
+    <QueryClientProvider client={queryClient}>
+      <Integration />
+    </QueryClientProvider>
+  )
   act(() => {
-    root?.render(
-      <QueryClientProvider client={queryClient}>
-        <IntegrationPolicy />
-      </QueryClientProvider>
-    )
+    root?.render(strict ? <StrictMode>{tree}</StrictMode> : tree)
   })
 }
 
-function replaceObserver() {
-  page.config = { mode: 'xpath' }
+function start({ mode = 'xpath', strictMode = false } = {}) {
+  page.config = { mode }
+  strict = strictMode
+  root = createRoot(document.createElement('div'))
   render()
 }
 
-function showEpisode(observer: FakeObserver, title: string) {
+function replaceObserver() {
+  page.config = { ...page.config }
+  render()
+}
+
+function currentObserver() {
+  return observers[observers.length - 1]
+}
+
+function showEpisode(title: string) {
   act(() => {
-    observer.emit('mediaChange', media(title))
+    currentObserver().emit('mediaChange', media(title))
   })
 }
 
-function reportStatus(observer: FakeObserver, status: string) {
+function reportParsing(parsing: boolean) {
   act(() => {
-    observer.emit('statusChange', status)
+    currentObserver().emit('parsingChange', parsing)
   })
 }
 
-function reportError(observer: FakeObserver, message: string) {
+function reportError(message: string) {
   act(() => {
-    observer.emit('error', new Error(message))
+    currentObserver().emit('error', new Error(message))
   })
 }
 
@@ -233,6 +277,7 @@ beforeEach(() => {
   useStore.setState(initialStore, true)
   usePopup.setState(initialPopup, true)
   useToast.setState({ notifications: [] })
+  sharedQueryClient.clear()
   useStore.getState().frame.addFrame({ frameId: 0, url: 'https://a.test/' })
   useStore.getState().frame.setActiveFrame(0)
   useStore.getState().frame.updateFrame(0, {
@@ -242,20 +287,23 @@ beforeEach(() => {
 
   rpc.episodeMatch.mockReset()
   rpc.episodeFetch.mockReset()
+  rpc.extractTitle.mockReset()
   rpc.mount.mockReset().mockResolvedValue({ data: true })
   rpc.unmount.mockReset().mockResolvedValue({ data: true })
 
   observers = []
-  vi.spyOn(ObserverFactory, 'create').mockImplementation(() => {
-    const observer = new FakeObserver()
-    observers.push(observer)
-    return observer
-  })
+  vi.spyOn(ObserverFactory, 'create').mockImplementation(
+    (config: MountConfig, policy: IntegrationPolicy | null) => {
+      if (config.mode === 'ai') {
+        return createObserver(config, policy)
+      }
+      const observer = new FakeObserver()
+      observers.push(observer)
+      return observer
+    }
+  )
 
-  page.config = { mode: 'xpath' }
   queryClient = new QueryClient()
-  root = createRoot(document.createElement('div'))
-  render()
 })
 
 afterEach(() => {
@@ -267,32 +315,113 @@ afterEach(() => {
 })
 
 describe('useIntegrationPolicy', () => {
-  it('drops a local mount that finishes after the observer is replaced', async () => {
+  it('mounts the matched episode and reports it', async () => {
+    start()
+    rpc.episodeMatch.mockResolvedValueOnce(matched(sourceEpisode('Show A')))
+    rpc.episodeFetch.mockResolvedValueOnce(fetched('Show A'))
+
+    showEpisode('Show A')
+    await settle()
+
+    expect(mountedState()).toEqual({
+      isMounted: true,
+      titles: ['Episode 1'],
+      frameMounted: true,
+    })
+    expect(openToasts()).toEqual([
+      {
+        severity: 'success',
+        message: 'Mounted Show A - Episode 1: 5 comments',
+      },
+    ])
+  })
+
+  it('takes back a local mount that finishes after the observer is replaced', async () => {
+    start()
     const mountA = deferred<{ data: boolean }>()
     rpc.mount.mockReturnValueOnce(mountA.promise)
     rpc.episodeMatch.mockResolvedValueOnce(matched(localEpisode('Show A')))
-    showEpisode(observers[0], 'Show A')
+    showEpisode('Show A')
     await settle()
     expect(rpc.mount).toHaveBeenCalledTimes(1)
 
     replaceObserver()
-    expect(observers).toHaveLength(2)
     const matchB = deferred<unknown>()
     rpc.episodeMatch.mockReturnValueOnce(matchB.promise)
-    showEpisode(observers[1], 'Show B')
+    showEpisode('Show B')
     await waitForProgressDelay()
-    const progressB = {
-      severity: 'info',
-      message: 'Finding danmaku for Show B Episode 1…',
-    }
-    expect(openToasts()).toEqual([progressB])
 
     mountA.resolve({ data: true })
     await settle()
-    expect(openToasts()).toEqual([progressB])
+    expect(rpc.unmount).toHaveBeenCalledTimes(1)
+    expect(mountedState()).toEqual(NOTHING_MOUNTED)
+    expect(openToasts()).toEqual([progressFor('Show B')])
 
     matchB.resolve(matched(localEpisode('Show B')))
     await settle()
+    expect(mountedState()).toEqual({
+      isMounted: true,
+      titles: ['Show B'],
+      frameMounted: true,
+    })
+    expect(openToasts()).toEqual([
+      { severity: 'success', message: 'Mounted Show B Episode 1: 3 comments' },
+    ])
+  })
+
+  it('takes back a mount that finishes after the integration unmounts', async () => {
+    start()
+    const mountA = deferred<{ data: boolean }>()
+    rpc.mount.mockReturnValueOnce(mountA.promise)
+    rpc.episodeMatch.mockResolvedValueOnce(matched(localEpisode('Show A')))
+    showEpisode('Show A')
+    await settle()
+
+    act(() => {
+      root?.unmount()
+    })
+    root = undefined
+    mountA.resolve({ data: true })
+    await settle()
+
+    expect(rpc.unmount).toHaveBeenCalledTimes(1)
+    expect(mountedState()).toEqual(NOTHING_MOUNTED)
+    expect(openToasts()).toEqual([])
+  })
+
+  it('drops a match that finishes after the video is replaced', async () => {
+    start()
+    const matchA = deferred<unknown>()
+    rpc.episodeMatch.mockReturnValueOnce(matchA.promise)
+    showEpisode('Show A')
+
+    setVideo(true, 2)
+    matchA.resolve(matched(localEpisode('Show A')))
+    await settle()
+
+    expect(rpc.mount).not.toHaveBeenCalled()
+    expect(mountedState()).toEqual(NOTHING_MOUNTED)
+    await waitForProgressDelay()
+    expect(openToasts()).toEqual([])
+  })
+
+  it('drops late work the same way under StrictMode', async () => {
+    start({ strictMode: true })
+    const matchA = deferred<unknown>()
+    rpc.episodeMatch.mockReturnValueOnce(matchA.promise)
+    showEpisode('Show A')
+
+    setVideo(true, 2)
+    matchA.resolve(matched(localEpisode('Show A')))
+    await settle()
+    expect(rpc.mount).not.toHaveBeenCalled()
+
+    rpc.episodeMatch.mockResolvedValueOnce(matched(localEpisode('Show B')))
+    showEpisode('Show B')
+    await settle()
+
+    expect(rpc.mount).toHaveBeenCalledTimes(1)
+    expect(mountedState().titles).toEqual(['Show B'])
     expect(openToasts()).toEqual([
       { severity: 'success', message: 'Mounted Show B Episode 1: 3 comments' },
     ])
@@ -303,12 +432,18 @@ describe('useIntegrationPolicy', () => {
       'resolves',
       (fetch: Deferred<unknown>) => fetch.resolve(fetched('Show A')),
     ],
+    [
+      'resolves with fewer comments than stored',
+      (fetch: Deferred<unknown>) =>
+        fetch.resolve(fetched('Show A', { fetchedCount: 1, storedCount: 5 })),
+    ],
     ['fails', (fetch: Deferred<unknown>) => fetch.reject(new Error('timeout'))],
   ])('ignores a fetch that %s after the video went away', async (_, finish) => {
+    start()
     const fetchA = deferred<unknown>()
     rpc.episodeFetch.mockReturnValueOnce(fetchA.promise)
     rpc.episodeMatch.mockResolvedValueOnce(matched(sourceEpisode('Show A')))
-    showEpisode(observers[0], 'Show A')
+    showEpisode('Show A')
     await settle()
     expect(rpc.episodeFetch).toHaveBeenCalledTimes(1)
 
@@ -316,40 +451,153 @@ describe('useIntegrationPolicy', () => {
     setVideo(true, 2)
     const matchB = deferred<unknown>()
     rpc.episodeMatch.mockReturnValueOnce(matchB.promise)
-    showEpisode(observers[0], 'Show B')
+    showEpisode('Show B')
     await waitForProgressDelay()
 
     finish(fetchA)
     await settle()
     expect(rpc.mount).not.toHaveBeenCalled()
-    expect(openToasts()).toEqual([
-      { severity: 'info', message: 'Finding danmaku for Show B Episode 1…' },
-    ])
+    expect(mountedState()).toEqual(NOTHING_MOUNTED)
+    expect(openToasts()).toEqual([progressFor('Show B')])
   })
 
-  it('does not open the selector for an episode the page moved on from', async () => {
-    const matchA = deferred<unknown>()
-    rpc.episodeMatch.mockReturnValueOnce(matchA.promise)
-    showEpisode(observers[0], 'Show A')
-    rpc.episodeMatch.mockReturnValueOnce(deferred<unknown>().promise)
-    showEpisode(observers[0], 'Show B')
-    await waitForProgressDelay()
-
-    matchA.resolve(ambiguous())
+  it('keeps the newer mount when the unmount before it finishes late', async () => {
+    start()
+    rpc.episodeMatch.mockResolvedValueOnce(matched(localEpisode('Show A')))
+    showEpisode('Show A')
     await settle()
-    expect(usePopup.getState().isOpen).toBe(false)
-    expect(openToasts()).toEqual([
-      { severity: 'info', message: 'Finding danmaku for Show B Episode 1…' },
-    ])
+    expect(mountedState().titles).toEqual(['Show A'])
+
+    const unmountA = deferred<{ data: boolean }>()
+    rpc.unmount.mockReturnValueOnce(unmountA.promise)
+    rpc.episodeMatch.mockResolvedValueOnce(matched(localEpisode('Show B')))
+    showEpisode('Show B')
+    await settle()
+    unmountA.resolve({ data: true })
+    await settle()
+
+    expect(mountedState()).toEqual({
+      isMounted: true,
+      titles: ['Show B'],
+      frameMounted: true,
+    })
+  })
+
+  describe('season selection', () => {
+    it('applies a season picked for the current episode and closes itself', async () => {
+      start()
+      rpc.episodeMatch.mockResolvedValueOnce(
+        ambiguous('Show A', 'Show A Movie')
+      )
+      showEpisode('Show A')
+      await settle()
+
+      const { selection, isOpen, tab } = usePopup.getState()
+      expect({ isOpen, tab, label: selection?.label }).toEqual({
+        isOpen: true,
+        tab: PopupTab.Selector,
+        label: 'Show A Episode 1',
+      })
+
+      rpc.episodeMatch.mockResolvedValueOnce(matched(sourceEpisode('Show A')))
+      rpc.episodeFetch.mockResolvedValueOnce(fetched('Show A'))
+      await act(async () => {
+        await selection?.apply(selection.seasons[0])
+      })
+
+      expect(rpc.episodeMatch).toHaveBeenLastCalledWith(
+        expect.objectContaining({ title: 'Show A', seasonId: 9 })
+      )
+      expect(mountedState().titles).toEqual(['Episode 1'])
+      expect(usePopup.getState()).toMatchObject({
+        isOpen: false,
+        selection: undefined,
+      })
+    })
+
+    it('withdraws the offer and ignores its apply once the page moves on', async () => {
+      start()
+      rpc.episodeMatch.mockResolvedValueOnce(
+        ambiguous('Show A', 'Show A Movie')
+      )
+      showEpisode('Show A')
+      await settle()
+      const offered = usePopup.getState().selection
+      expect(offered).toBeDefined()
+
+      const matchB = deferred<unknown>()
+      rpc.episodeMatch.mockReturnValueOnce(matchB.promise)
+      showEpisode('Show B')
+      await waitForProgressDelay()
+      expect(usePopup.getState().selection).toBeUndefined()
+
+      await act(async () => {
+        await offered?.apply(offered.seasons[0] as Season)
+      })
+      expect(rpc.episodeMatch).toHaveBeenCalledTimes(2)
+      expect(rpc.episodeFetch).not.toHaveBeenCalled()
+      expect(openToasts()).toEqual([progressFor('Show B')])
+    })
+
+    it('drops an apply whose match finishes after the page moved on', async () => {
+      start()
+      rpc.episodeMatch.mockResolvedValueOnce(
+        ambiguous('Show A', 'Show A Movie')
+      )
+      showEpisode('Show A')
+      await settle()
+      const offered = usePopup.getState().selection
+      expect(offered).toBeDefined()
+      act(() => {
+        usePopup.getState().setTab(PopupTab.Search)
+      })
+
+      const matchApplied = deferred<unknown>()
+      rpc.episodeMatch.mockReturnValueOnce(matchApplied.promise)
+      let applying: Promise<void> | undefined
+      act(() => {
+        applying = offered?.apply(offered.seasons[0] as Season)
+      })
+      setVideo(true, 2)
+      matchApplied.resolve(matched(sourceEpisode('Show A')))
+      await act(async () => {
+        await applying
+      })
+
+      expect(rpc.episodeFetch).not.toHaveBeenCalled()
+      expect(usePopup.getState()).toMatchObject({
+        isOpen: true,
+        tab: PopupTab.Search,
+      })
+    })
+
+    it('does not open the selector for an episode the page moved on from', async () => {
+      start()
+      const matchA = deferred<unknown>()
+      rpc.episodeMatch.mockReturnValueOnce(matchA.promise)
+      showEpisode('Show A')
+      rpc.episodeMatch.mockReturnValueOnce(deferred<unknown>().promise)
+      showEpisode('Show B')
+      await waitForProgressDelay()
+
+      matchA.resolve(ambiguous('Show A Movie'))
+      await settle()
+      expect(usePopup.getState()).toMatchObject({
+        isOpen: false,
+        selection: undefined,
+      })
+      expect(openToasts()).toEqual([progressFor('Show B')])
+    })
   })
 
   it('keeps an observer error over the episode it interrupted', async () => {
+    start()
     const matchA = deferred<unknown>()
     rpc.episodeMatch.mockReturnValueOnce(matchA.promise)
-    showEpisode(observers[0], 'Show A')
+    showEpisode('Show A')
     await waitForProgressDelay()
 
-    reportError(observers[0], 'Policy not found')
+    reportError('Policy not found')
     expect(openToasts()).toEqual([
       { severity: 'error', message: 'Policy not found' },
     ])
@@ -362,14 +610,45 @@ describe('useIntegrationPolicy', () => {
     ])
   })
 
-  it('clears AI parsing progress when no show is found', async () => {
-    reportStatus(observers[0], 'Extracting video info using AI...')
+  it('clears AI parsing progress when parsing ends without a show', async () => {
+    start()
+    reportParsing(true)
     await waitForProgressDelay()
     expect(openToasts()).toEqual([
       { severity: 'info', message: 'Using AI to parse show information' },
     ])
 
-    reportStatus(observers[0], 'No show detected')
+    reportParsing(false)
     expect(openToasts()).toEqual([])
+  })
+
+  it('shows nothing for an AI parse that fails after the video is replaced', async () => {
+    const parseA = deferred<unknown>()
+    rpc.extractTitle.mockReturnValueOnce(parseA.promise)
+    start({ mode: 'ai' })
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2000)
+    })
+    expect(rpc.extractTitle).toHaveBeenCalledTimes(1)
+
+    setVideo(true, 2)
+    parseA.reject(new Error('quota exceeded'))
+    await settle()
+
+    expect(openToasts()).toEqual([])
+    expect(useStore.getState().integration.errorMessage).toBeUndefined()
+
+    rpc.extractTitle.mockResolvedValueOnce({
+      data: { isShow: true, title: 'Show B', episode: 1 },
+    })
+    rpc.episodeMatch.mockResolvedValueOnce(matched(localEpisode('Show B')))
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(2000)
+    })
+    await settle()
+    expect(mountedState().titles).toEqual(['Show B'])
+    expect(openToasts()).toEqual([
+      { severity: 'success', message: 'Mounted Show B Episode 1: 3 comments' },
+    ])
   })
 })

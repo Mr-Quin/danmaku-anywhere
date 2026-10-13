@@ -1,14 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { EpisodeRuns } from './episodeRuns'
 import { EpisodeToast, toastStoreSink } from './episodeToast'
 
 /**
- * EpisodeToast holds back the progress toast until matching has taken longer
- * than the delay, so a fast match only shows its result. Every message uses one
- * toast id, so the result replaces the progress in place, and a new episode or
- * a navigation never leaves stale progress up. Each start() returns an
- * operation, and only the newest operation that is still running can change
- * the toast. Asserts the toast store.
+ * EpisodeToast shows what the current episode run is doing. Progress only
+ * shows once a run has worked for longer than the delay, so a fast match shows
+ * nothing but its result, and every message uses one toast id so the result
+ * replaces the progress in place. Only the current run can change the toast,
+ * and showing a result does not end the run. Asserts the toast store.
  */
 
 function openToasts() {
@@ -23,12 +23,14 @@ function openMessages() {
 }
 
 describe('EpisodeToast', () => {
+  let runs: EpisodeRuns
   let toast: EpisodeToast
 
   beforeEach(() => {
     vi.useFakeTimers()
     useToast.setState({ notifications: [] })
-    toast = new EpisodeToast(toastStoreSink, 1500)
+    runs = new EpisodeRuns()
+    toast = new EpisodeToast(toastStoreSink, runs, 1500)
   })
 
   afterEach(() => {
@@ -36,16 +38,18 @@ describe('EpisodeToast', () => {
   })
 
   it('shows only the result for a fast match', () => {
-    const operation = toast.start('Finding')
+    const run = runs.begin()
+    toast.progress(run, 'Finding')
     vi.advanceTimersByTime(1000)
-    operation.succeed('Mounted')
+    toast.succeed(run, 'Mounted')
     vi.advanceTimersByTime(5000)
 
     expect(openMessages()).toEqual(['Mounted'])
   })
 
   it('shows progress after the delay and replaces it with the result', () => {
-    const operation = toast.start('Finding')
+    const run = runs.begin()
+    toast.progress(run, 'Finding')
     vi.advanceTimersByTime(1499)
     expect(openToasts()).toEqual([])
 
@@ -56,86 +60,79 @@ describe('EpisodeToast', () => {
     expect(pending.duration).toBeNull()
     expect(pending.loading).toBe(true)
 
-    operation.fail('Not found', { actionLabel: 'Search' })
+    toast.fail(run, 'Not found', { actionLabel: 'Search' })
     expect(openToasts()).toEqual([
       { severity: 'error', message: 'Not found', key: progress.key },
     ])
   })
 
-  it('swaps visible progress straight away when the next episode starts', () => {
-    toast.start('Finding episode 1')
+  it('swaps visible progress straight away when the next run starts', () => {
+    toast.progress(runs.begin(), 'Finding episode 1')
     vi.advanceTimersByTime(1500)
-    toast.start('Finding episode 2')
+    toast.progress(runs.begin(), 'Finding episode 2')
 
     expect(openMessages()).toEqual(['Finding episode 2'])
   })
 
-  it('drops progress on cancel but keeps a finished result', () => {
-    toast.start('Finding')
+  it('drops progress when the session ends but keeps a finished result', () => {
+    toast.progress(runs.begin(), 'Finding')
     vi.advanceTimersByTime(1500)
-    toast.cancel()
+    runs.end()
     expect(openToasts()).toEqual([])
 
-    const operation = toast.start('Finding')
-    operation.succeed('Mounted')
-    toast.cancel()
-    operation.cancel()
+    const run = runs.begin()
+    toast.progress(run, 'Finding')
+    toast.succeed(run, 'Mounted')
+    runs.end()
     expect(openMessages()).toEqual(['Mounted'])
   })
 
-  it('never shows progress that was cancelled before the delay', () => {
-    toast.start('Finding').cancel()
+  it('never shows progress whose run ended before the delay', () => {
+    toast.progress(runs.begin(), 'Finding')
+    runs.end()
     vi.advanceTimersByTime(5000)
 
     expect(openToasts()).toEqual([])
   })
 
-  it('closes the toast when the outcome is shown elsewhere', () => {
-    const operation = toast.start('Finding')
-    vi.advanceTimersByTime(1500)
-    operation.dismiss()
-
-    expect(openToasts()).toEqual([])
-  })
-
-  it('shows a result straight away for an operation without progress', () => {
-    toast.start('Finding')
-    vi.advanceTimersByTime(1500)
-    toast.start().fail('Policy not found')
+  it('never shows the pending progress of a replaced run', () => {
+    toast.progress(runs.begin(), 'Finding episode 1')
+    const second = runs.begin()
     vi.advanceTimersByTime(5000)
+    expect(openToasts()).toEqual([])
 
+    toast.fail(second, 'Policy not found')
     expect(openMessages()).toEqual(['Policy not found'])
   })
 
-  it('reports an operation as current until it finishes or is replaced', () => {
-    const first = toast.start('Finding episode 1')
-    expect(first.isCurrent()).toBe(true)
+  it('closes the toast when the outcome is shown elsewhere', () => {
+    const run = runs.begin()
+    toast.progress(run, 'Finding')
+    vi.advanceTimersByTime(1500)
+    toast.dismiss(run)
 
-    const second = toast.start('Finding episode 2')
-    expect(first.isCurrent()).toBe(false)
-    expect(second.isCurrent()).toBe(true)
-
-    second.succeed('Mounted')
-    expect(second.isCurrent()).toBe(false)
-
-    const third = toast.start('Finding episode 3')
-    toast.cancel()
-    expect(third.isCurrent()).toBe(false)
+    expect(openToasts()).toEqual([])
   })
 
-  describe('an operation that finishes after a newer one started', () => {
-    it.each([
-      ['succeed', 'Mounted episode 1'],
-      ['fail', 'Failed episode 1'],
-      ['warn', 'Warned episode 1'],
-    ] as const)('ignores %s after a cancel', (method, message) => {
-      const first = toast.start('Finding episode 1')
+  it('leaves the run current after showing its result', () => {
+    const run = runs.begin()
+    toast.succeed(run, 'Mounted')
+    expect(run.isCurrent()).toBe(true)
+
+    toast.dismiss(run)
+    expect(run.isCurrent()).toBe(true)
+  })
+
+  describe('a run that reports after a newer run started', () => {
+    it.each(['succeed', 'fail', 'warn'] as const)('ignores %s', (method) => {
+      const first = runs.begin()
+      toast.progress(first, 'Finding episode 1')
       vi.advanceTimersByTime(1500)
-      toast.cancel()
-      toast.start('Finding episode 2')
+      runs.end()
+      toast.progress(runs.begin(), 'Finding episode 2')
       vi.advanceTimersByTime(1500)
 
-      first[method](message)
+      toast[method](first, 'Episode 1 result')
 
       expect(openToasts()).toEqual([
         expect.objectContaining({
@@ -146,36 +143,38 @@ describe('EpisodeToast', () => {
     })
 
     it('leaves the newer progress pending while it waits for the delay', () => {
-      const first = toast.start('Finding episode 1')
-      toast.cancel()
-      toast.start('Finding episode 2')
+      const first = runs.begin()
+      runs.end()
+      toast.progress(runs.begin(), 'Finding episode 2')
 
-      first.succeed('Mounted episode 1')
+      toast.succeed(first, 'Mounted episode 1')
       expect(openToasts()).toEqual([])
 
       vi.advanceTimersByTime(1500)
       expect(openMessages()).toEqual(['Finding episode 2'])
     })
 
-    it('cannot dismiss or cancel the newer progress', () => {
-      const first = toast.start('Finding episode 1')
-      const second = toast.start('Finding episode 2')
+    it('cannot dismiss the newer progress or post its own', () => {
+      const first = runs.begin()
+      const second = runs.begin()
+      toast.progress(second, 'Finding episode 2')
       vi.advanceTimersByTime(1500)
 
-      first.dismiss()
-      first.cancel()
+      toast.dismiss(first)
+      toast.progress(first, 'Finding episode 1')
+      vi.advanceTimersByTime(1500)
       expect(openMessages()).toEqual(['Finding episode 2'])
 
-      second.succeed('Mounted episode 2')
+      toast.succeed(second, 'Mounted episode 2')
       expect(openMessages()).toEqual(['Mounted episode 2'])
     })
 
     it('does not bring back its result over the newer result', () => {
-      const first = toast.start('Finding episode 1')
-      const second = toast.start('Finding episode 2')
-      second.succeed('Mounted episode 2')
+      const first = runs.begin()
+      const second = runs.begin()
+      toast.succeed(second, 'Mounted episode 2')
 
-      first.fail('Failed episode 1')
+      toast.fail(first, 'Failed episode 1')
       expect(openMessages()).toEqual(['Mounted episode 2'])
     })
   })

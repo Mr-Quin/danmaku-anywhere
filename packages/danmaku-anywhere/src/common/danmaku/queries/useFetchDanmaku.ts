@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { DanmakuFetchDto } from '@/common/danmaku/dto'
+import type { DanmakuFetchDto, KeptStored } from '@/common/danmaku/dto'
+import { i18n } from '@/common/localization/i18n'
 import { describeSourceError } from '@/common/providers/describeSourceError'
 import {
   bookmarkQueryKeys,
@@ -10,6 +10,22 @@ import {
 } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
+
+export function describeKeptStored(keptStored: KeptStored) {
+  return i18n.t(
+    'danmaku.alert.refetchKeptStored',
+    'Fetched {{fetched}} comments, fewer than the {{stored}} already saved. Kept the saved danmaku.',
+    {
+      count: keptStored.fetchedCount,
+      fetched: keptStored.fetchedCount,
+      stored: keptStored.storedCount,
+    }
+  )
+}
+
+interface FetchDanmakuOptions {
+  silent?: boolean
+}
 
 /**
  * Fetches danmaku from cache or server
@@ -20,8 +36,9 @@ import { getTrackingService } from '@/common/telemetry/getTrackingService'
  *
  * This is a mutation because it updates the cache
  */
-export const useFetchDanmaku = () => {
-  const { t } = useTranslation()
+export const useFetchDanmaku = ({
+  silent = false,
+}: FetchDanmakuOptions = {}) => {
   const toast = useToast.use.toast()
 
   const mutation = useMutation({
@@ -38,24 +55,13 @@ export const useFetchDanmaku = () => {
       ],
     },
     onSuccess: ({ keptStored }) => {
-      if (!keptStored) {
+      if (silent || !keptStored) {
         return
       }
-      toast.warn(
-        t(
-          'danmaku.alert.refetchKeptStored',
-          'Fetched {{fetched}} comments, fewer than the {{stored}} already saved. Kept the saved danmaku.',
-          {
-            count: keptStored.fetchedCount,
-            fetched: keptStored.fetchedCount,
-            stored: keptStored.storedCount,
-          }
-        )
-      )
+      toast.warn(describeKeptStored(keptStored))
     },
-    onError: async (error, variables) => {
-      // Automatic fetches are reported by the integration that started them.
-      if (variables.options?.automatic) {
+    onError: (error) => {
+      if (silent) {
         return
       }
       toast.error(describeSourceError(error))

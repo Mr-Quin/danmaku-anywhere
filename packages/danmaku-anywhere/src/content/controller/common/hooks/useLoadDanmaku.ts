@@ -1,5 +1,4 @@
 import type {
-  CommentEntity,
   Episode,
   GenericEpisode,
   WithSeason,
@@ -8,85 +7,53 @@ import { useEventCallback } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { DanmakuFetchDto, MacCMSFetchData } from '@/common/danmaku/dto'
-import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import type {
+  DanmakuFetchDto,
+  DanmakuFetchResult,
+  KeptStored,
+  MacCMSFetchData,
+} from '@/common/danmaku/dto'
+import {
+  describeKeptStored,
+  useFetchDanmaku,
+} from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
 import { episodeToString, isSourceEpisode } from '@/common/danmaku/utils'
-import { playerRpcClient } from '@/common/rpcClient/background/client'
-import { concatArr } from '@/common/utils/utils'
+import { describeSourceError } from '@/common/providers/describeSourceError'
+import {
+  type MountResult,
+  sendMount,
+} from '@/content/controller/common/danmakuCommands'
 import { useStore } from '@/content/controller/store/store'
-import { DanmakuMountError, describeMountError } from './mountError'
-
-interface MountInput {
-  episodes: GenericEpisode[]
-  // The caller reports the result itself, failure included
-  silent: boolean
-}
-
-const useMountDanmaku = () => {
-  const { toast } = useToast()
-
-  const { getActiveFrame, updateFrame } = useStore.use.frame()
-  const { mount } = useStore.use.danmaku()
-
-  return useMutation({
-    mutationFn: async ({ episodes }: MountInput) => {
-      const activeFrame = getActiveFrame()
-      if (!activeFrame) {
-        throw new DanmakuMountError(
-          'noActiveFrame',
-          'No active frame to mount danmaku'
-        )
-      }
-
-      const comments: CommentEntity[] = []
-
-      episodes.forEach((episode) => {
-        concatArr(comments, episode.comments)
-      })
-
-      const res = await playerRpcClient.player['relay:command:mount']({
-        frameId: activeFrame.frameId,
-        data: comments,
-      })
-
-      if (!res.data) {
-        throw new DanmakuMountError('mountFailed', 'Failed to mount danmaku')
-      }
-
-      // A fresh mount renders visible, so carry over a hide the user asked for.
-      if (!useStore.getState().danmaku.isVisible) {
-        await playerRpcClient.player['relay:command:show']({
-          frameId: activeFrame.frameId,
-          data: false,
-        })
-      }
-
-      return activeFrame.frameId
-    },
-    onSuccess: (mountedFrameId, { episodes }) => {
-      mount(episodes)
-      updateFrame(mountedFrameId, { mounted: true })
-    },
-    onError: (err, { silent }) => {
-      if (silent) {
-        return
-      }
-      toast.error(describeMountError(err))
-    },
-  })
-}
+import { describeMountError } from './mountError'
 
 const REFRESH_TOAST_ID = 'refresh-danmaku'
 
 interface MountDanmakuOptions {
   silent?: boolean
+  signal?: AbortSignal
 }
 
 interface LoadDanmakuInput {
   request: DanmakuFetchDto
-  silent?: boolean
-  shouldMount?: () => boolean
+  signal?: AbortSignal
+}
+
+export type LoadOutcome =
+  | { status: 'mounted'; episode: WithSeason<Episode>; keptStored?: KeptStored }
+  // The refetch came back with fewer comments, and the stored episode is
+  // already the one mounted.
+  | {
+      status: 'unchanged'
+      episode: WithSeason<Episode>
+      keptStored: KeptStored
+    }
+  | { status: 'cancelled' }
+  | { status: 'fetchFailed'; error: unknown }
+  | { status: 'mountFailed'; episode: WithSeason<Episode>; error: unknown }
+
+interface RefreshOptions {
+  signal?: AbortSignal
 }
 
 function isOnlyMounted(episode: Episode): boolean {
@@ -98,7 +65,32 @@ function isOnlyMounted(episode: Episode): boolean {
   return isSourceEpisode(mounted) && mounted.id === episode.id
 }
 
-// Wrapper around useFetchDanmaku and useMountDanmaku
+function isRefreshable(episode: GenericEpisode) {
+  return isSourceEpisode(episode) && episode.season.manifestId === 'dandanplay'
+}
+
+// Aborts when the caller's signal does or when the mounted episodes change.
+function followMountedEpisodes(signal: AbortSignal | undefined) {
+  const controller = new AbortController()
+  const abort = () => {
+    controller.abort()
+  }
+  signal?.addEventListener('abort', abort, { once: true })
+  const unsubscribe = useStore.subscribe((state, prev) => {
+    if (state.danmaku.episodes !== prev.danmaku.episodes) {
+      abort()
+    }
+  })
+  return {
+    signal: controller.signal,
+    stop: () => {
+      signal?.removeEventListener('abort', abort)
+      unsubscribe()
+    },
+  }
+}
+
+// Wrapper around useFetchDanmaku and the player mount command
 export const useLoadDanmaku = () => {
   const { t } = useTranslation()
 
@@ -106,20 +98,28 @@ export const useLoadDanmaku = () => {
 
   const { episodes } = useStore.use.danmaku()
 
-  const fetchMutation = useFetchDanmaku()
+  const fetchMutation = useFetchDanmaku({ silent: true })
   const fetchGenericMutation = useFetchGenericDanmaku()
-  const mountMutation = useMountDanmaku()
+  const mountMutation = useMutation({
+    mutationFn: ({
+      episodes,
+      signal,
+    }: {
+      episodes: GenericEpisode[]
+      signal?: AbortSignal
+    }) => {
+      return sendMount(episodes, signal)
+    },
+  })
 
   const canRefresh =
-    !!episodes &&
-    episodes.length === 1 &&
-    isSourceEpisode(episodes[0]) &&
-    episodes[0].season.manifestId === 'dandanplay'
+    !!episodes && episodes.length === 1 && isRefreshable(episodes[0])
 
   const describeMounted = useEventCallback(
-    (episode: GenericEpisode, name?: string) => {
-      const refreshable =
-        isSourceEpisode(episode) && episode.season.manifestId === 'dandanplay'
+    (
+      episode: GenericEpisode,
+      { name, signal }: { name?: string; signal?: AbortSignal } = {}
+    ) => {
       return {
         message: t(
           'danmaku.alert.mounted',
@@ -129,64 +129,104 @@ export const useLoadDanmaku = () => {
             count: episode.commentCount,
           }
         ),
-        actionFn: refreshable ? refreshComments : undefined,
+        actionFn: isRefreshable(episode)
+          ? () => {
+              void refreshComments({ signal })
+            }
+          : undefined,
         actionLabel: t('danmaku.refresh', 'Refresh Danmaku'),
       }
     }
   )
 
   const mountDanmaku = useEventCallback(
-    (episodes: GenericEpisode[], options: MountDanmakuOptions = {}) => {
-      const silent = options.silent ?? false
-      return mountMutation.mutateAsync(
-        { episodes, silent },
-        {
-          // This is called in addition to the onSuccess of mountMutation
-          onSuccess: () => {
-            if (silent) {
-              return
-            }
-            if (episodes.length === 1) {
-              const { message, ...action } = describeMounted(episodes[0])
-              toast.success(message, action)
-            } else {
-              toast.success(
-                t(
-                  'danmaku.alert.mountedMultiple',
-                  'Mounted {{count}} selected danmaku',
-                  {
-                    count: episodes.length,
-                  }
-                )
-              )
-            }
-          },
+    async (
+      episodes: GenericEpisode[],
+      { silent = false, signal }: MountDanmakuOptions = {}
+    ): Promise<MountResult> => {
+      let result: MountResult
+      try {
+        result = await mountMutation.mutateAsync({ episodes, signal })
+      } catch (error) {
+        if (!silent) {
+          toast.error(describeMountError(error))
         }
-      )
+        throw error
+      }
+      if (silent || result.status !== 'mounted') {
+        return result
+      }
+      if (episodes.length === 1) {
+        const { message, ...action } = describeMounted(episodes[0])
+        toast.success(message, action)
+      } else {
+        toast.success(
+          t(
+            'danmaku.alert.mountedMultiple',
+            'Mounted {{count}} selected danmaku',
+            {
+              count: episodes.length,
+            }
+          )
+        )
+      }
+      return result
     }
   )
 
   const loadMutation = useMutation({
     mutationFn: async ({
       request,
-      silent = false,
-      shouldMount,
-    }: LoadDanmakuInput) => {
-      const result = await fetchMutation.mutateAsync(request)
-      if (shouldMount && !shouldMount()) {
-        return { ...result, mounted: false, mountError: undefined }
-      }
-      if (result.keptStored && isOnlyMounted(result.episode)) {
-        return { ...result, mounted: false, mountError: undefined }
-      }
-      let mountError: unknown
+      signal,
+    }: LoadDanmakuInput): Promise<LoadOutcome> => {
+      let fetched: DanmakuFetchResult
       try {
-        await mountDanmaku([result.episode], { silent })
+        fetched = await fetchMutation.mutateAsync(request)
       } catch (error) {
-        mountError = error
+        return { status: 'fetchFailed', error }
       }
-      return { ...result, mounted: mountError === undefined, mountError }
+      const { episode, keptStored } = fetched
+      if (signal?.aborted) {
+        return { status: 'cancelled' }
+      }
+      if (keptStored && isOnlyMounted(episode)) {
+        return { status: 'unchanged', episode, keptStored }
+      }
+      try {
+        const mounted = await mountDanmaku([episode], { silent: true, signal })
+        if (mounted.status === 'cancelled') {
+          return { status: 'cancelled' }
+        }
+      } catch (error) {
+        return { status: 'mountFailed', episode, error }
+      }
+      return { status: 'mounted', episode, keptStored }
     },
+  })
+
+  // Loads and mounts what the user picked, reporting the outcome as toasts.
+  const load = useEventCallback(async (request: DanmakuFetchDto) => {
+    const outcome = await loadMutation.mutateAsync({ request })
+    switch (outcome.status) {
+      case 'fetchFailed':
+        toast.error(describeSourceError(outcome.error))
+        break
+      case 'mountFailed':
+        toast.error(describeMountError(outcome.error))
+        break
+      case 'unchanged':
+        toast.warn(describeKeptStored(outcome.keptStored))
+        break
+      case 'mounted': {
+        if (outcome.keptStored) {
+          toast.warn(describeKeptStored(outcome.keptStored))
+        }
+        const { message, ...action } = describeMounted(outcome.episode)
+        toast.success(message, action)
+        break
+      }
+    }
+    return outcome
   })
 
   const loadGenericMutation = useMutation({
@@ -199,57 +239,75 @@ export const useLoadDanmaku = () => {
     },
   })
 
-  const refreshComments = useEventCallback(async () => {
-    if (!canRefresh) return
-    const episode = episodes[0]
-    if (
-      !isSourceEpisode(episode) ||
-      episode.season.manifestId !== 'dandanplay'
-    ) {
-      return
-    }
+  // Refetches the one mounted episode. It gives up when the caller's signal
+  // aborts or something else changes what is mounted first.
+  const refreshComments = useEventCallback(
+    async ({ signal }: RefreshOptions = {}) => {
+      if (!canRefresh || signal?.aborted) {
+        return
+      }
+      const episode = episodes[0]
+      if (!isSourceEpisode(episode) || !isRefreshable(episode)) {
+        return
+      }
 
-    toast.info(t('danmaku.alert.refreshingDanmaku', 'Refreshing danmaku'), {
-      id: REFRESH_TOAST_ID,
-      duration: null,
-      loading: true,
-    })
-    try {
-      const {
-        episode: refreshed,
-        keptStored,
-        mountError,
-      } = await loadMutation.mutateAsync({
-        request: {
-          type: 'by-meta',
-          meta: episode as WithSeason<Episode>,
-          options: { forceUpdate: true },
-        },
-        silent: true,
+      toast.info(t('danmaku.alert.refreshingDanmaku', 'Refreshing danmaku'), {
+        id: REFRESH_TOAST_ID,
+        duration: null,
+        loading: true,
       })
-      if (mountError !== undefined) {
-        toast.error(describeMountError(mountError), { id: REFRESH_TOAST_ID })
-        return
+      const refresh = followMountedEpisodes(signal)
+      try {
+        const outcome = await loadMutation.mutateAsync({
+          request: {
+            type: 'by-meta',
+            meta: episode,
+            options: { forceUpdate: true },
+          },
+          signal: refresh.signal,
+        })
+        switch (outcome.status) {
+          case 'cancelled':
+            toast.dismiss(REFRESH_TOAST_ID)
+            break
+          case 'fetchFailed':
+            toast.error(describeSourceError(outcome.error), {
+              id: REFRESH_TOAST_ID,
+            })
+            break
+          case 'mountFailed':
+            toast.error(describeMountError(outcome.error), {
+              id: REFRESH_TOAST_ID,
+            })
+            break
+          case 'unchanged':
+            toast.warn(describeKeptStored(outcome.keptStored), {
+              id: REFRESH_TOAST_ID,
+            })
+            break
+          case 'mounted':
+            toast.success(
+              t(
+                'danmaku.alert.refreshed',
+                'Refreshed {{name}}: {{count}} comments',
+                {
+                  name: episodeToString(outcome.episode),
+                  count: outcome.episode.commentCount,
+                }
+              ),
+              { id: REFRESH_TOAST_ID }
+            )
+            break
+        }
+      } finally {
+        refresh.stop()
       }
-      // useFetchDanmaku reports a kept-stored refetch and a fetch failure itself.
-      if (keptStored) {
-        toast.dismiss(REFRESH_TOAST_ID)
-        return
-      }
-      toast.success(
-        t('danmaku.alert.refreshed', 'Refreshed {{name}}: {{count}} comments', {
-          name: episodeToString(refreshed),
-          count: refreshed.commentCount,
-        }),
-        { id: REFRESH_TOAST_ID }
-      )
-    } catch {
-      toast.dismiss(REFRESH_TOAST_ID)
     }
-  })
+  )
 
   return {
     loadMutation,
+    load,
     loadGenericMutation,
     refreshComments,
     canRefresh,
