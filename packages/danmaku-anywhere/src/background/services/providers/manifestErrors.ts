@@ -15,7 +15,10 @@ export interface ManifestOutputSource {
   pipeline: ManifestPipeline
 }
 
-export type ManifestOutputFailure = 'not-array' | 'no-valid-rows' | 'invalid'
+export type ManifestOutputFailure =
+  | 'not-array'
+  | 'no-valid-rows'
+  | 'invalid-output'
 
 export class ManifestOutputError extends Error {
   readonly manifestId: string
@@ -46,7 +49,7 @@ function describeLookupFailure(
       return `no manifest registered with id: ${manifestId}`
     case 'needs-newer-extension':
       return `Manifest ${manifestId} needs a newer version of the extension`
-    case 'invalid':
+    case 'invalid-manifest':
       return `Manifest ${manifestId} is stored but cannot be loaded`
   }
 }
@@ -58,5 +61,16 @@ export class ManifestUnavailableError extends Error {
   ) {
     super(describeLookupFailure(manifestId, reason))
     this.name = 'ManifestUnavailableError'
+  }
+}
+
+// A manifest offered for saving or a test run that this build will not take.
+export class ManifestValidationError extends Error {
+  constructor(
+    readonly reason: ManifestUnavailableReason,
+    message: string
+  ) {
+    super(message)
+    this.name = 'ManifestValidationError'
   }
 }

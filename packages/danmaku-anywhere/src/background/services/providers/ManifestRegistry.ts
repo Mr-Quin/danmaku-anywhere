@@ -24,7 +24,10 @@ import {
   type ManifestRecord,
   ManifestStore,
 } from './ManifestStore'
-import { ManifestUnavailableError } from './manifestErrors'
+import {
+  ManifestUnavailableError,
+  ManifestValidationError,
+} from './manifestErrors'
 
 const zCatalogEntry = z.object({
   id: z.string(),
@@ -97,9 +100,9 @@ interface UnavailableManifest {
 export class ManifestRegistry {
   private readonly runners = new Map<string, RegisteredManifest>()
   private readonly unavailable = new Map<string, UnavailableManifest>()
-  // Catalog versions whose file turned out to need a newer engine than its
-  // index entry said, so they are not offered again as updates.
-  private readonly rejectedCatalogVersions = new Map<string, string>()
+  // Non-user ids whose stored copy cannot run, with the bundled copy running
+  // in its place.
+  private readonly fallback = new Map<string, ManifestUnavailableReason>()
   private readonly warned = new Set<string>()
   private readonly log: ILogger
   private readonly store: IManifestStore
@@ -134,13 +137,18 @@ export class ManifestRegistry {
     const available = [...this.runners.values()].map(({ runner, kind }) => {
       const { manifest } = runner
       const display = getDisplayStrings(manifest, locale)
-      return {
+      const info: ProviderManifestInfo = {
         id: manifest.id,
         name: display.name,
         version: manifest.version,
         configSchema: display.configSchema,
         kind,
       }
+      const fallback = this.fallback.get(manifest.id)
+      if (fallback !== undefined) {
+        info.fallback = fallback
+      }
+      return info
     })
     const unavailable = [...this.unavailable].map(([id, entry]) => ({
       id,
@@ -166,12 +174,36 @@ export class ManifestRegistry {
     await this.store.remove(manifestId)
     this.runners.delete(manifestId)
     this.unavailable.delete(manifestId)
+    this.fallback.delete(manifestId)
   }
 
-  // Add-only except for 'bundled' entries, which the catalog copy replaces
-  // with no manual apply. A changed preinstalled manifest surfaces via
-  // getPendingUpdates instead. A bundled entry whose file fails to download
-  // stays bundled until the next sync.
+  // Drops a non-user stored copy this build cannot run, so the bundled copy,
+  // or the catalog copy on the next sync, takes its place.
+  async reinstall(manifestId: string): Promise<void> {
+    await this.ready
+    const unavailable = this.unavailable.get(manifestId)
+    if (!unavailable || unavailable.kind === 'user') {
+      throw new Error(`Manifest ${manifestId} cannot be reinstalled`)
+    }
+    await this.store.remove(manifestId)
+    this.unavailable.delete(manifestId)
+    await this.seedFromBundle(await this.store.getAll())
+  }
+
+  // A broken stored copy, as opposed to one written for a newer engine, is
+  // worth replacing whenever the catalog has a copy this build can run.
+  private hasBrokenStoredCopy(manifestId: string): boolean {
+    return (
+      this.fallback.get(manifestId) === 'invalid-manifest' ||
+      this.unavailable.get(manifestId)?.reason === 'invalid-manifest'
+    )
+  }
+
+  // Add-only except for 'bundled' entries and non-user entries whose stored
+  // copy is broken, which the catalog copy replaces with no manual apply. A
+  // changed preinstalled manifest surfaces via getPendingUpdates instead. A
+  // bundled entry whose file fails to download stays bundled until the next
+  // sync.
   async update(): Promise<CatalogSyncResult> {
     await this.ready
     const entries = await this.loadIndex()
@@ -183,10 +215,14 @@ export class ManifestRegistry {
     }
     const stored = await this.store.getAll()
     const missing = entries.filter((entry) => !stored[entry.id])
-    const bundledStale = entries.filter(
-      (entry) => stored[entry.id]?.kind === 'bundled'
-    )
-    await this.fetchAndStore([...missing, ...bundledStale])
+    const replaceable = entries.filter((entry) => {
+      const existing = stored[entry.id]
+      if (existing === undefined || existing.kind === 'user') {
+        return false
+      }
+      return existing.kind === 'bundled' || this.hasBrokenStoredCopy(entry.id)
+    })
+    await this.fetchAndStore([...missing, ...replaceable])
     return 'synced'
   }
 
@@ -204,20 +240,20 @@ export class ManifestRegistry {
     const updates: ManifestUpdate[] = []
     for (const entry of entries) {
       const existing = stored[entry.id]
-      // 'user' is never replaced by the catalog. 'bundled' auto-upgrades in
-      // update() as soon as the index is reachable, so it must not also
-      // surface here as a manual "update available".
+      // 'user' is never replaced by the catalog. 'bundled' and broken copies
+      // are replaced in update() as soon as the index is reachable, so they
+      // must not also surface here as a manual "update available".
       if (
         !existing ||
         existing.kind === 'user' ||
-        existing.kind === 'bundled'
+        existing.kind === 'bundled' ||
+        this.hasBrokenStoredCopy(entry.id)
       ) {
         continue
       }
-      if (this.rejectedCatalogVersions.get(entry.id) === entry.version) {
-        continue
-      }
-      const fromVersion = rawString(existing.manifest, 'version')
+      const fromVersion =
+        this.runners.get(entry.id)?.runner.manifest.version ??
+        rawString(existing.manifest, 'version')
       if (fromVersion !== undefined && fromVersion !== entry.version) {
         updates.push({
           manifestId: entry.id,
@@ -272,12 +308,15 @@ export class ManifestRegistry {
     await this.ready
     const loaded = loadManifest(manifest)
     if (loaded.status === 'malformed') {
-      throw new Error(`invalid manifest: ${JSON.stringify(loaded.issues)}`)
+      throw new ManifestValidationError(
+        'invalid-manifest',
+        `invalid manifest: ${JSON.stringify(loaded.issues)}`
+      )
     }
     if (loaded.status === 'incompatible') {
-      throw new ManifestUnavailableError(
-        rawString(manifest, 'id') ?? '',
-        'needs-newer-extension'
+      throw new ManifestValidationError(
+        'needs-newer-extension',
+        'This manifest needs a newer version of the extension'
       )
     }
     const id = loaded.manifest.id
@@ -304,10 +343,15 @@ export class ManifestRegistry {
     this.unavailable.delete(id)
   }
 
-  // Returns the raw stored manifest JSON (not the parsed runner form) so the
-  // editor can show or duplicate exactly what was imported.
-  getSource(manifestId: string): Promise<ManifestEntry | undefined> {
-    return this.store.get(manifestId)
+  // Returns the raw manifest JSON (not the parsed runner form) so the editor
+  // can show or duplicate exactly what was imported. While the bundled copy
+  // stands in for a stored one, that is the copy shown.
+  async getSource(manifestId: string): Promise<ManifestEntry | undefined> {
+    const stored = await this.store.get(manifestId)
+    if (stored === undefined || !this.fallback.has(manifestId)) {
+      return stored
+    }
+    return { manifest: bundledManifestRaw(manifestId), kind: stored.kind }
   }
 
   // The bundle fills in whatever the store lacks, so the built-in sources exist
@@ -341,6 +385,7 @@ export class ManifestRegistry {
         kind: 'preinstalled',
       })
       this.unavailable.delete(parsed.id)
+      this.fallback.delete(parsed.id)
     }
     return fetched.map(({ parsed }) => parsed.id)
   }
@@ -460,7 +505,6 @@ export class ManifestRegistry {
     }
     const loaded = loadManifest(raw)
     if (loaded.status === 'incompatible') {
-      this.rejectedCatalogVersions.set(id, entry.version)
       this.warnOnce(
         `engine:${id}@${entry.version}`,
         'Skipping catalog manifest that needs a newer engine:',
@@ -519,12 +563,16 @@ export class ManifestRegistry {
     } else {
       this.log.error('Failed to load manifest:', id, loaded.issues)
     }
+    const reason: ManifestUnavailableReason =
+      loaded.status === 'incompatible'
+        ? 'needs-newer-extension'
+        : 'invalid-manifest'
     if (entry.kind !== 'user' && this.loadBundledFallback(id, entry.kind)) {
+      this.fallback.set(id, reason)
       return
     }
     this.unavailable.set(id, {
-      reason:
-        loaded.status === 'incompatible' ? 'needs-newer-extension' : 'invalid',
+      reason,
       kind: entry.kind,
       name: rawString(entry.manifest, 'name') ?? id,
       version: rawString(entry.manifest, 'version') ?? '',

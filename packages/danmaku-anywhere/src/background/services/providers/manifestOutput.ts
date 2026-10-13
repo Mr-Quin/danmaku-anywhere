@@ -96,7 +96,7 @@ export function parseOutputValue<T>(
   if (!parsed.success) {
     throw new ManifestOutputError(
       source,
-      'invalid',
+      'invalid-output',
       `is invalid, ${describeIssue(parsed.error.issues)}`
     )
   }

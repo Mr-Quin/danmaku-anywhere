@@ -261,7 +261,7 @@ describe('ManifestProviderService.getSeason', () => {
 
     await expect(svc.getSeason({ seasonId: 1 })).rejects.toMatchObject({
       name: 'ManifestOutputError',
-      reason: 'invalid',
+      reason: 'invalid-output',
       manifestId: 'acme',
       providerConfigId: 'acme-1',
       pipeline: 'season',

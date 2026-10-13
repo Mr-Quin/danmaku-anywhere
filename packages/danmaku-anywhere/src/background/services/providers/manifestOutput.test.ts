@@ -112,7 +112,7 @@ describe('parseOutputValue', () => {
 
     expect(error).toBeInstanceOf(ManifestOutputError)
     expect(error).toMatchObject({
-      reason: 'invalid',
+      reason: 'invalid-output',
       providerConfigId: undefined,
       message:
         'Manifest acme season output is invalid, providerIds: Invalid input: expected record, received string',

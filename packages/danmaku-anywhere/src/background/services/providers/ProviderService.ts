@@ -343,6 +343,18 @@ export class ProviderService {
     await this.manifestRegistry.unregister(manifestId)
   }
 
+  // Replaces a stored built-in or catalog manifest this build cannot run with
+  // the bundled copy, or with the catalog copy when there is no bundled one.
+  // Configs stay; they point at the manifest id, not the copy.
+  async reinstallManifest(manifestId: string): Promise<void> {
+    await this.manifestRegistry.reinstall(manifestId)
+    try {
+      await this.syncCatalog()
+    } catch (e) {
+      this.logger.warn('Catalog sync after reinstall failed:', e)
+    }
+  }
+
   // Lists every registered manifest plus the last catalog-check timestamp so
   // the popup can render the catalog section (registered manifests the user
   // has no config for) without bundling the manifest set itself.

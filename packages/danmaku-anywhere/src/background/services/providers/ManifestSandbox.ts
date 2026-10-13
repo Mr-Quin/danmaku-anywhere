@@ -19,7 +19,10 @@ import type {
   ManifestValidationResult,
 } from '@/common/rpcClient/background/types'
 import { extensionFetchLike } from './extensionFetchLike'
-import type { ManifestPipeline } from './manifestErrors'
+import {
+  type ManifestPipeline,
+  ManifestValidationError,
+} from './manifestErrors'
 import { resolveManifestInputs } from './manifestInputs'
 import {
   type OutputSchema,
@@ -133,10 +136,16 @@ export class ManifestSandbox {
   private buildRunner(manifest: unknown): ManifestRunner {
     const loaded = loadManifest(manifest)
     if (loaded.status === 'incompatible') {
-      throw new Error(NEEDS_NEWER_EXTENSION)
+      throw new ManifestValidationError(
+        'needs-newer-extension',
+        NEEDS_NEWER_EXTENSION
+      )
     }
     if (loaded.status === 'malformed') {
-      throw new Error('Cannot run an invalid manifest')
+      throw new ManifestValidationError(
+        'invalid-manifest',
+        'Cannot run an invalid manifest'
+      )
     }
     try {
       return new ManifestRunner(loaded.manifest, {

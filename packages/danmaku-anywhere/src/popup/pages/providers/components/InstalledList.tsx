@@ -1,6 +1,7 @@
 import { arrayMove } from '@dnd-kit/sortable'
 import {
   Add,
+  Autorenew,
   Code,
   Delete,
   ExpandLess,
@@ -23,7 +24,7 @@ import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { groupInstalled, supportsInstances } from '../catalog'
 import { ManifestKindChip } from './ManifestKindChip'
 import { ProviderRow, sourceCardSx } from './ProviderRow'
-import { useUnavailableLabel } from './useUnavailableLabel'
+import { canReinstall, useManifestStateLabel } from './useManifestStateLabel'
 
 interface InstalledListProps {
   configs: ProviderConfig[]
@@ -36,6 +37,7 @@ interface InstalledListProps {
   onAddDefaultInstance: (manifestId: string) => void
   onViewSource: (manifestId: string) => void
   onDeleteManifest: (manifestId: string) => void
+  onReinstallManifest: (manifestId: string) => void
 }
 
 export function versionSubtitle(
@@ -62,21 +64,33 @@ export const InstalledList = ({
   onAddDefaultInstance,
   onViewSource,
   onDeleteManifest,
+  onReinstallManifest,
 }: InstalledListProps) => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
   const { toggle, reorderAll } = useEditProviderConfig()
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
-  const unavailableLabel = useUnavailableLabel()
+  const stateLabel = useManifestStateLabel()
+
+  const withState = (text: string, manifest?: ProviderManifestInfo) => {
+    const state = manifest ? stateLabel(manifest) : undefined
+    if (state === undefined) {
+      return text
+    }
+    return `${text} · ${state}`
+  }
 
   const subtitle = (config: ProviderConfig) => {
     const manifest = manifestById.get(config.manifestId)
-    const version = versionSubtitle(config, manifest)
-    if (manifest?.unavailable === undefined) {
-      return version
-    }
-    return `${version} · ${unavailableLabel(manifest.unavailable)}`
+    return withState(versionSubtitle(config, manifest), manifest)
   }
+
+  const reinstallItem = (manifestId: string): DAMenuItemConfig => ({
+    id: 'reinstall',
+    label: t('providers.unavailable.reinstall', 'Reinstall'),
+    onClick: () => onReinstallManifest(manifestId),
+    icon: <Autorenew />,
+  })
 
   const displayName = (config: ProviderConfig) =>
     supportsInstances(config.manifestId) && isBuiltinConfig(config)
@@ -136,6 +150,9 @@ export const InstalledList = ({
         icon: <Code />,
       })
     }
+    if (manifestLevel && canReinstall(manifestById.get(config.manifestId))) {
+      items.push(reinstallItem(config.manifestId))
+    }
     const deletesManifest =
       manifestLevel && manifestById.get(config.manifestId)?.kind === 'user'
     items.push({
@@ -171,11 +188,7 @@ export const InstalledList = ({
     if (!manifest) {
       return count
     }
-    const version = `${count} · v${manifest.version}`
-    if (manifest.unavailable === undefined) {
-      return version
-    }
-    return `${version} · ${unavailableLabel(manifest.unavailable)}`
+    return withState(`${count} · v${manifest.version}`, manifest)
   }
 
   const toggleCollapsed = (id: string) => {
@@ -228,14 +241,19 @@ export const InstalledList = ({
           }
         )
         const isOpen = !collapsed.has(unit.id)
-        const menuItems: DAMenuItemConfig[] = [
-          {
+        const runs = manifest?.unavailable === undefined
+        const menuItems: DAMenuItemConfig[] = []
+        if (runs) {
+          menuItems.push({
             id: 'add-instance',
             label: t('providers.installed.addInstance', 'Add instance'),
             onClick: () => onAddInstance(unit.manifestId),
             icon: <Add />,
-          },
-        ]
+          })
+        }
+        if (canReinstall(manifest)) {
+          menuItems.push(reinstallItem(unit.manifestId))
+        }
         if (manifestById.has(unit.manifestId)) {
           menuItems.push({
             id: 'view-source',
@@ -244,7 +262,7 @@ export const InstalledList = ({
             icon: <Code />,
           })
         }
-        if (!unit.configs.some(isBuiltinConfig)) {
+        if (runs && !unit.configs.some(isBuiltinConfig)) {
           menuItems.push({
             id: 'add-default',
             label: t(

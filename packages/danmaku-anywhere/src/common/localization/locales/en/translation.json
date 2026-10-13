@@ -692,6 +692,7 @@
     "alert": {
       "created": "Source created",
       "deleted": "Source deleted",
+      "reinstalled": "Source reinstalled",
       "updated": "Source updated"
     },
     "attention": {
@@ -800,8 +801,10 @@
     },
     "name": "Danmaku sources",
     "unavailable": {
+      "fallback": "Running the built-in copy. Stored copy: {{reason}}",
       "invalid": "Cannot be loaded",
-      "needsNewerExtension": "Needs a newer version of the extension"
+      "needsNewerExtension": "Needs a newer version of the extension",
+      "reinstall": "Reinstall"
     },
     "updates": {
       "failed": "Update failed",

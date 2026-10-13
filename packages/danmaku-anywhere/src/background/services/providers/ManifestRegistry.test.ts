@@ -11,7 +11,10 @@ import {
   type ManifestRecord,
   ManifestStore,
 } from './ManifestStore'
-import { ManifestUnavailableError } from './manifestErrors'
+import {
+  ManifestUnavailableError,
+  ManifestValidationError,
+} from './manifestErrors'
 
 /**
  * ManifestRegistry hydrates runners from storage on init (no network) and
@@ -1259,7 +1262,7 @@ describe('ManifestRegistry engine compatibility', () => {
         manifestNeedingNewerEngine('mine:one', '1.0.0'),
         'create'
       )
-    ).rejects.toThrow(ManifestUnavailableError)
+    ).rejects.toThrow(ManifestValidationError)
 
     expect(await store.get('mine:one')).toBeUndefined()
   })
@@ -1383,7 +1386,7 @@ describe('ManifestRegistry stored manifests this build cannot run', () => {
     await registry.ready
 
     expect(findListed(registry, 'mine:one')).toMatchObject({
-      unavailable: 'invalid',
+      unavailable: 'invalid-manifest',
     })
   })
 
@@ -1393,14 +1396,150 @@ describe('ManifestRegistry stored manifests this build cannot run', () => {
 
     await expect(
       registry.saveUserManifest(futureManifest('mine:one'), 'create')
-    ).rejects.toThrow(
-      new ManifestUnavailableError('mine:one', 'needs-newer-extension')
+    ).rejects.toMatchObject({
+      name: 'ManifestValidationError',
+      reason: 'needs-newer-extension',
+    })
+  })
+
+  it('saveUserManifest rejects a broken manifest as invalid', async () => {
+    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+    await registry.ready
+
+    await expect(
+      registry.saveUserManifest({ id: 'mine:one' }, 'create')
+    ).rejects.toMatchObject({
+      name: 'ManifestValidationError',
+      reason: 'invalid-manifest',
+    })
+  })
+
+  it('says which copy runs and shows that copy everywhere', async () => {
+    const stored: ManifestEntry = {
+      manifest: futureManifest('dandanplay', '9.0.0'),
+      kind: 'preinstalled',
+    }
+    stubCatalogFetch([catalogEntry('dandanplay', '9.5.0')], {})
+    const registry = new ManifestRegistry(
+      silentLogger,
+      new InMemoryStore({ dandanplay: stored })
+    )
+    await registry.ready
+
+    expect(findListed(registry, 'dandanplay')).toMatchObject({
+      version: bundledVersion('dandanplay'),
+      fallback: 'needs-newer-extension',
+    })
+    expect(await registry.getSource('dandanplay')).toEqual({
+      manifest: bundledManifestRaw('dandanplay'),
+      kind: 'preinstalled',
+    })
+    expect(await registry.getPendingUpdates()).toEqual([
+      {
+        manifestId: 'dandanplay',
+        fromVersion: bundledVersion('dandanplay'),
+        toVersion: '9.5.0',
+      },
+    ])
+  })
+
+  it('replaces a broken stored copy with the catalog copy on the next sync, even at the same version', async () => {
+    const broken = { ...makeManifest('dandanplay', 1, '9.0.0'), hosts: [] }
+    const store = new InMemoryStore({
+      dandanplay: { manifest: broken, kind: 'preinstalled' },
+    })
+    const fixed = makeManifest('dandanplay', 1, '9.0.0')
+    stubCatalogFetch([catalogEntry('dandanplay', '9.0.0')], {
+      [manifestPath('dandanplay')]: fixed,
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+    expect(findListed(registry, 'dandanplay')).toMatchObject({
+      fallback: 'invalid-manifest',
+    })
+
+    await registry.update()
+
+    expect(await store.get('dandanplay')).toEqual({
+      manifest: fixed,
+      kind: 'preinstalled',
+    })
+    expect(findListed(registry, 'dandanplay')).not.toHaveProperty('fallback')
+    expect(registry.getRunner('dandanplay').manifest.version).toBe('9.0.0')
+  })
+
+  it('heals a broken catalog-only manifest on the next sync', async () => {
+    const store = new InMemoryStore({
+      'gone:one': {
+        manifest: { ...makeManifest('gone:one'), hosts: [] },
+        kind: 'preinstalled',
+      },
+    })
+    stubCatalogFetch([catalogEntry('gone:one')], {
+      [manifestPath('gone:one')]: makeManifest('gone:one'),
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.update()
+
+    expect(findListed(registry, 'gone:one')).not.toHaveProperty('unavailable')
+    expect(registry.getRunner('gone:one')).toBeDefined()
+  })
+
+  it('keeps a stored copy written for a newer engine through a sync', async () => {
+    const stored: ManifestEntry = {
+      manifest: futureManifest('dandanplay', '9.0.0'),
+      kind: 'preinstalled',
+    }
+    const store = new InMemoryStore({ dandanplay: stored })
+    const fetchMock = stubCatalogFetch([catalogEntry('dandanplay', '9.0.0')], {
+      [manifestPath('dandanplay')]: makeManifest('dandanplay', 1, '9.0.0'),
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.update()
+
+    expect(fileFetches(fetchMock)).toEqual([])
+    expect(await store.get('dandanplay')).toEqual(stored)
+  })
+
+  it('reinstalls an unavailable catalog manifest by dropping the stored copy', async () => {
+    const store = new InMemoryStore({
+      'gone:one': {
+        manifest: futureManifest('gone:one'),
+        kind: 'preinstalled',
+      },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.reinstall('gone:one')
+
+    expect(await store.get('gone:one')).toBeUndefined()
+    expect(findListed(registry, 'gone:one')).toBeUndefined()
+  })
+
+  it('refuses to reinstall a user manifest or one that runs', async () => {
+    const store = new InMemoryStore({
+      'mine:one': { manifest: futureManifest('mine:one'), kind: 'user' },
+      'ok:one': { manifest: makeManifest('ok:one'), kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(registry.reinstall('mine:one')).rejects.toThrow(
+      'cannot be reinstalled'
+    )
+    await expect(registry.reinstall('ok:one')).rejects.toThrow(
+      'cannot be reinstalled'
     )
   })
 })
 
 describe('ManifestRegistry catalog entries', () => {
-  it('stops offering an update whose file turned out to need a newer engine', async () => {
+  it('fails to apply an update whose file needs a newer engine, without an error log', async () => {
     const installed = makeManifest('one', 1, '1.0.0')
     stubCatalogFetch([catalogEntry('one', '2.0.0')], {
       [manifestPath('one')]: {
@@ -1420,7 +1559,6 @@ describe('ManifestRegistry catalog entries', () => {
       'Failed to apply updates: one'
     )
 
-    expect(await registry.getPendingUpdates()).toEqual([])
     expect(error).not.toHaveBeenCalled()
     expect((await store.get('one'))?.manifest).toEqual(installed)
   })

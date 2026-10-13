@@ -16,13 +16,14 @@ import { useManifestList, useRefreshCatalog } from '../hooks/useManifestList'
 import { ManifestKindChip } from './ManifestKindChip'
 import { ProviderRow, sourceCardSx } from './ProviderRow'
 import { SectionHeader } from './SectionHeader'
-import { useUnavailableLabel } from './useUnavailableLabel'
+import { canReinstall, useManifestStateLabel } from './useManifestStateLabel'
 
 interface CatalogSectionProps {
   filter: string
   installedManifestIds: Set<string>
   onImport: (manifest: ProviderManifestInfo) => void
   onDeleteManifest: (manifestId: string) => void
+  onReinstallManifest: (manifestId: string) => void
   isImporting: boolean
 }
 
@@ -54,22 +55,24 @@ export const CatalogSection = ({
   installedManifestIds,
   onImport,
   onDeleteManifest,
+  onReinstallManifest,
   isImporting,
 }: CatalogSectionProps) => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
   const { data, isLoading, isError, isFetching, refetch } = useManifestList()
   const refresh = useRefreshCatalog()
-  const unavailableLabel = useUnavailableLabel()
+  const stateLabel = useManifestStateLabel()
 
   const catalogSubtitle = (manifest: ProviderManifestInfo) => {
     const version = t('providers.catalog.version', 'v{{version}}', {
       version: manifest.version,
     })
-    if (manifest.unavailable === undefined) {
+    const state = stateLabel(manifest)
+    if (state === undefined) {
       return version
     }
-    return `${version} · ${unavailableLabel(manifest.unavailable)}`
+    return `${version} · ${state}`
   }
 
   const checkedLabel = useCheckedAgoLabel(data?.lastCheckedAt ?? null)
@@ -130,14 +133,26 @@ export const CatalogSection = ({
               secondary={catalogSubtitle(manifest)}
               action={
                 <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    onClick={() => onImport(manifest)}
-                    disabled={isImporting || manifest.unavailable !== undefined}
-                  >
-                    {t('providers.catalog.import', 'Import')}
-                  </Button>
+                  {canReinstall(manifest) ? (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => onReinstallManifest(manifest.id)}
+                    >
+                      {t('providers.unavailable.reinstall', 'Reinstall')}
+                    </Button>
+                  ) : (
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={() => onImport(manifest)}
+                      disabled={
+                        isImporting || manifest.unavailable !== undefined
+                      }
+                    >
+                      {t('providers.catalog.import', 'Import')}
+                    </Button>
+                  )}
                   {manifest.kind === 'user' ? (
                     <Tooltip title={t('common.delete', 'Delete')}>
                       <IconButton

@@ -117,7 +117,9 @@ export interface ProviderManifestSpec {
   configSchema?: ConfigSchema
 }
 
-export type ManifestUnavailableReason = 'needs-newer-extension' | 'invalid'
+export type ManifestUnavailableReason =
+  | 'needs-newer-extension'
+  | 'invalid-manifest'
 
 export interface ProviderManifestInfo {
   id: string
@@ -127,6 +129,8 @@ export interface ProviderManifestInfo {
   kind: 'preinstalled' | 'user' | 'bundled'
   // Set when the manifest is stored but cannot run in this build.
   unavailable?: ManifestUnavailableReason
+  // Set when the stored copy cannot run and the bundled copy runs instead.
+  fallback?: ManifestUnavailableReason
 }
 
 export interface ProviderManifestList {
@@ -280,6 +284,7 @@ export type BackgroundMethods = {
     ManifestSource | null
   >
   providerDeleteUserManifest: RPCDef<{ manifestId: string }, void>
+  providerReinstallManifest: RPCDef<{ manifestId: string }, void>
   fetchImage: RPCDef<{ src: string }, string | null>
   getActiveTabUrl: RPCDef<{ tabId?: number } | void, string | null>
   getFrameId: RPCDef<void, number>

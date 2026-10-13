@@ -668,6 +668,7 @@
     "alert": {
       "created": "弹幕源已创建",
       "deleted": "弹幕源已删除",
+      "reinstalled": "弹幕源已重新安装",
       "updated": "弹幕源已更新"
     },
     "attention": {
@@ -770,8 +771,10 @@
     },
     "name": "弹幕源",
     "unavailable": {
+      "fallback": "正在使用内置版本。已存储的版本：{{reason}}",
       "invalid": "无法加载",
-      "needsNewerExtension": "需要更新扩展版本"
+      "needsNewerExtension": "需要更新扩展版本",
+      "reinstall": "重新安装"
     },
     "updates": {
       "failed": "更新失败",
