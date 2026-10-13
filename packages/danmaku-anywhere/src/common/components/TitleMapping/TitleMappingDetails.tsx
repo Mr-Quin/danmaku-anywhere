@@ -13,6 +13,7 @@ import { useGetAllSeasonsSuspense } from '@/common/anime/queries/useGetAllSeason
 import type { NamingRule } from '@/common/options/localMatchingRule/schema'
 import { useNamingRules } from '@/common/options/localMatchingRule/useLocalMatchingRule'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import { useSourceNames } from '@/common/options/providerConfig/useSourceNames'
 import { useSeasonMapMutations } from '@/common/seasonMap/queries/useAllSeasonMap'
 import type { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { compareLocale } from '@/common/utils/collator'
@@ -35,6 +36,7 @@ type TitleMappingDetailsProps = {
 export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
   const { t } = useTranslation()
   const { configs } = useProviderConfig()
+  const { nameOf } = useSourceNames()
   const mutations = useSeasonMapMutations()
   const { rules: namingRules } = useNamingRules()
 
@@ -95,7 +97,7 @@ export const TitleMappingDetails = ({ map }: TitleMappingDetailsProps) => {
 
           return (
             <Fragment key={config.id}>
-              <Typography variant="body2">{config.name}</Typography>
+              <Typography variant="body2">{nameOf(config)}</Typography>
 
               <Autocomplete<Season>
                 options={options}

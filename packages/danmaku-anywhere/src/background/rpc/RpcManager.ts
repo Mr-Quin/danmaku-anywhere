@@ -26,6 +26,7 @@ import { TitleMappingService } from '@/background/services/persistence/TitleMapp
 import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
 import { ManifestRegistry } from '@/background/services/providers/ManifestRegistry'
 import { ManifestSandbox } from '@/background/services/providers/ManifestSandbox'
+import { ProviderConfigWriter } from '@/background/services/providers/ProviderConfigWriter'
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import { AuthClientService } from '@/common/auth/AuthClientService'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
@@ -69,6 +70,8 @@ export class RpcManager {
     private mountConfigService: MountConfigService,
     @inject(ProviderConfigService)
     private providerConfigService: ProviderConfigService,
+    @inject(ProviderConfigWriter)
+    private providerConfigWriter: ProviderConfigWriter,
     @inject(EpisodeMatchingService)
     private episodeMatchingService: EpisodeMatchingService,
     @inject(LogService) private logService: LogService,
@@ -381,10 +384,23 @@ export class RpcManager {
         }
         return res.data
       },
+      providerConfigCreate: async (draft) => {
+        return this.providerConfigWriter.create(draft)
+      },
+      providerConfigAddBuiltin: async ({ manifestId }) => {
+        return this.providerConfigWriter.addBuiltin(manifestId)
+      },
+      providerConfigUpdate: async ({ id, edit }) => {
+        return this.providerConfigWriter.update(id, edit)
+      },
+      providerConfigSetEnabled: async ({ id, enabled }) => {
+        return this.providerConfigWriter.setEnabled(id, enabled)
+      },
+      providerConfigSetOrder: async ({ ids }) => {
+        return this.providerConfigWriter.setOrder(ids)
+      },
       providerConfigDelete: async (id, sender) => {
-        await this.bookmarkService.deleteByProviderConfig(id)
-        await this.providerConfigService.deleteFromStorage(id)
-
+        await this.providerConfigWriter.delete(id)
         void invalidateContentScriptData(sender.tab?.id)
       },
       providerDeleteUserManifest: async ({ manifestId }, sender) => {

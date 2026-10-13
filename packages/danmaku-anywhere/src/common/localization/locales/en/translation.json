@@ -745,6 +745,7 @@
         "viewTitle": "Manifest source"
       },
       "name": "Name",
+      "nameDefaultHint": "Leave empty to use the default name",
       "specError": "Failed to load source settings. Some fields are missing, saving now would drop them.",
       "testRun": {
         "danmakuCount_one": "{{count}} comment fetched",
@@ -762,7 +763,9 @@
         "edit": "Edit Source: {{name}}"
       },
       "validation": {
+        "enum": "Pick one of the options",
         "integer": "Must be a whole number",
+        "invalid": "Not a valid value",
         "maximum": "Must be at most {{max}}",
         "maxLength": "Must be at most {{max}} characters",
         "minimum": "Must be at least {{min}}",

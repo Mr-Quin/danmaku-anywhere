@@ -718,6 +718,7 @@
         "viewTitle": "清单源码"
       },
       "name": "名称",
+      "nameDefaultHint": "留空则使用默认名称",
       "specError": "加载弹幕源设置失败。部分字段缺失，此时保存会丢失这些字段。",
       "testRun": {
         "danmakuCount_other": "已获取 {{count}} 条弹幕",
@@ -734,7 +735,9 @@
         "edit": "编辑弹幕源：{{name}}"
       },
       "validation": {
+        "enum": "请从选项中选择",
         "integer": "必须是整数",
+        "invalid": "值无效",
         "maximum": "不能大于 {{max}}",
         "maxLength": "不能超过 {{max}} 个字符",
         "minimum": "不能小于 {{min}}",

@@ -7,7 +7,6 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import { getDisplayStrings } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
-import { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import type { SeasonQueryFilter, SeasonSearchRequest } from '@/common/anime/dto'
@@ -19,13 +18,12 @@ import type {
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { toManifestLocale } from '@/common/localization/language'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
-import {
-  AUTO_IMPORT_PROVIDERS,
-  autoImportToProviderConfig,
-} from '@/common/options/providerConfig/constant'
-import { localizeLegacyBuiltinNames } from '@/common/options/providerConfig/localizeLegacyNames'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import {
+  sourceDisplayNames,
+  sourceName,
+} from '@/common/options/providerConfig/sourceName'
 import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import { SourceError } from '@/common/providers/SourceError'
@@ -43,6 +41,7 @@ import {
   type CatalogSyncResult,
   ManifestRegistry,
 } from './ManifestRegistry'
+import { ProviderConfigWriter } from './ProviderConfigWriter'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
@@ -62,7 +61,6 @@ function enrichEpisode(
 @injectable('Singleton')
 export class ProviderService {
   private readonly logger: ILogger
-  private seeding: Promise<void> | null = null
 
   constructor(
     @inject(DanmakuService)
@@ -70,12 +68,12 @@ export class ProviderService {
     @inject(SeasonService) private seasonService: SeasonService,
     @inject(ProviderConfigService)
     private providerConfigService: ProviderConfigService,
+    @inject(ProviderConfigWriter)
+    private providerConfigWriter: ProviderConfigWriter,
     @inject(DanmakuProviderFactory)
     private danmakuProviderFactory: IDanmakuProviderFactory,
     @inject(ManifestRegistry)
     private manifestRegistry: ManifestRegistry,
-    @inject(BookmarkService)
-    private bookmarkService: BookmarkService,
     @inject(LoggerSymbol) logger: ILogger,
     @inject(ExtensionOptionsService)
     private extensionOptions: ExtensionOptionsService
@@ -144,10 +142,11 @@ export class ProviderService {
 
     const service = this.danmakuProviderFactory(providerConfig)
     if (!service.getEpisodes) {
+      const name = await this.displayName(providerConfig)
       throw new SourceError(
         'episodesUnsupported',
-        `${providerConfig.name} does not support fetching episodes`,
-        providerConfig.name
+        `${name} does not support fetching episodes`,
+        name
       )
     }
     const episodes = await service.getEpisodes(season.providerIds)
@@ -218,10 +217,11 @@ export class ProviderService {
 
     const service = this.danmakuProviderFactory(config)
     if (!service.getDanmaku) {
+      const name = await this.displayName(config)
       throw new SourceError(
         'refetchUnsupported',
-        `${config.name} episodes cannot be refetched`,
-        config.name
+        `${name} episodes cannot be refetched`,
+        name
       )
     }
 
@@ -324,13 +324,7 @@ export class ProviderService {
     if (source?.kind !== 'user') {
       throw new Error('Only user manifests can be deleted')
     }
-    const configs = await this.providerConfigService.getAll()
-    for (const config of configs) {
-      if (config.manifestId === manifestId) {
-        await this.bookmarkService.deleteByProviderConfig(config.id)
-        await this.providerConfigService.deleteFromStorage(config.id)
-      }
-    }
+    await this.providerConfigWriter.deleteByManifest(manifestId)
     await this.manifestRegistry.unregister(manifestId)
   }
 
@@ -357,51 +351,25 @@ export class ProviderService {
   }
 
   private async onInstalled(reason: string): Promise<void> {
-    const lockedExistingInstall =
-      reason === 'update' && (await this.lockSeedForExistingInstall())
-    // The seed flag is already locked, so a sync failure here must not skip
-    // the one chance to rename.
-    try {
-      await this.syncCatalog()
-    } finally {
-      if (lockedExistingInstall) {
-        await this.localizeLegacyBuiltinNames()
-      }
+    if (reason === 'update') {
+      await this.lockSeedForExistingInstall()
     }
+    await this.syncCatalog()
   }
 
   // Lock the flag for an existing install so its configs are never re-seeded,
   // even if the user has deleted them all. An unset flag with no configs is a
   // different user: their first-run seed never happened, so leave them
-  // unlocked for the sync that follows to heal. Returns whether it locked.
-  private async lockSeedForExistingInstall(): Promise<boolean> {
+  // unlocked for the sync that follows to heal.
+  private async lockSeedForExistingInstall(): Promise<void> {
     if (await this.providerConfigService.hasSeeded()) {
-      return false
+      return
     }
     const configs = await this.providerConfigService.getAll()
     if (configs.length === 0) {
-      return false
+      return
     }
     await this.providerConfigService.markSeeded()
-    return true
-  }
-
-  // Only for configs that came from pre-manifest storage (the update that
-  // locked the seed flag, or a restored pre-manifest backup), so a name the
-  // user sets later is never touched.
-  async localizeLegacyBuiltinNames(): Promise<void> {
-    await this.manifestRegistry.ready
-    const { lang } = await this.extensionOptions.get()
-    const names = new Map(
-      this.manifestRegistry
-        .listManifests(toManifestLocale(lang))
-        .map((m) => [m.id, m.name])
-    )
-    const configs = await this.providerConfigService.getAll()
-    const localized = localizeLegacyBuiltinNames(configs, names)
-    if (localized !== configs) {
-      await this.providerConfigService.options.set(localized)
-    }
   }
 
   // Throws on a catalog that produced no usable list so a user-driven refresh
@@ -457,49 +425,32 @@ export class ProviderService {
     return result
   }
 
-  // syncCatalog can run concurrently (install, alarm, popup refresh) and the
-  // seeded flag is read asynchronously, so two in-flight seeds can both pass
-  // the check. Sharing the run keeps the write single.
-  seedDefaultProviders(): Promise<void> {
-    this.seeding ??= this.runSeedDefaultProviders().finally(() => {
-      this.seeding = null
-    })
-    return this.seeding
-  }
-
-  // Seed the preloaded configs once, after the registry is populated so each
-  // name comes from its manifest. Skips entirely until every preloaded manifest
-  // is present so a transient partial fetch never seeds a subset and then locks.
-  private async runSeedDefaultProviders(): Promise<void> {
+  // Seed the built-ins once. The flag and the configs share
+  // chrome.storage.sync, so on a signed-in profile the flag can still read as
+  // unset while the user's real configs are arriving. Any config at all means
+  // this is not a blank slate, and seeding over it would push the defaults out
+  // to every other device.
+  async seedDefaultProviders(): Promise<void> {
     if (await this.providerConfigService.hasSeeded()) {
       return
     }
-    // The flag and the configs share chrome.storage.sync, so on a signed-in
-    // profile the flag can still read as unset while the user's real configs
-    // are arriving. Any config at all means this is not a blank slate, and
-    // seeding over it would push the defaults out to every other device.
-    const existing = await this.providerConfigService.getAll()
-    if (existing.length > 0) {
-      await this.providerConfigService.markSeeded()
-      return
-    }
+    await this.providerConfigWriter.seedBuiltins()
+    await this.providerConfigService.markSeeded()
+  }
+
+  private async displayName(config: ProviderConfig): Promise<string> {
     await this.manifestRegistry.ready
     const { lang } = await this.extensionOptions.get()
-    const names = new Map(
+    const manifestNames = new Map(
       this.manifestRegistry
         .listManifests(toManifestLocale(lang))
-        .map((m) => [m.id, m.name])
+        .map((manifest) => [manifest.id, manifest.name])
     )
-    const configs: ProviderConfig[] = []
-    for (const entry of AUTO_IMPORT_PROVIDERS) {
-      const name = names.get(entry.manifestId)
-      if (name === undefined) {
-        return
-      }
-      configs.push(autoImportToProviderConfig(entry, name))
-    }
-    await this.providerConfigService.options.set(configs)
-    await this.providerConfigService.markSeeded()
+    const configs = await this.providerConfigService.getAll()
+    return (
+      sourceDisplayNames(configs, manifestNames).get(config.id) ??
+      sourceName(config, manifestNames)
+    )
   }
 
   // Surfaces the host-relevant subset of a manifest so the popup can render

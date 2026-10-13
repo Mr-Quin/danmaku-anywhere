@@ -1,8 +1,12 @@
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import type {
+  ProviderConfigDraft,
+  ProviderConfigEdit,
+} from '@/common/options/providerConfig/schema'
 
 export interface ProviderFormProps {
-  provider: ProviderConfig
-  onSubmit: (data: ProviderConfig) => void | Promise<void>
+  // A stored config when editing, a draft without an id when adding
+  provider: ProviderConfigDraft & { id?: string }
+  onSubmit: (edit: Required<ProviderConfigEdit>) => void | Promise<void>
   onReset?: () => void
   isEdit: boolean
 }

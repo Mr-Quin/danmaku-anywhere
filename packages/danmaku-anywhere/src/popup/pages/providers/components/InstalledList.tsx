@@ -16,9 +16,10 @@ import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { isBuiltinConfig } from '@/common/options/providerConfig/displayName'
+import { isBuiltinConfig } from '@/common/options/providerConfig/builtin'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import { useSourceNames } from '@/common/options/providerConfig/useSourceNames'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { groupInstalled, supportsInstances } from '../catalog'
 import { ManifestKindChip } from './ManifestKindChip'
@@ -64,13 +65,15 @@ export const InstalledList = ({
 }: InstalledListProps) => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
-  const { toggle, reorderAll } = useEditProviderConfig()
+  const { setEnabled, setOrder } = useEditProviderConfig()
+  const { nameOf } = useSourceNames()
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
 
+  // Marks the built-in among the user's own instances of the same source
   const displayName = (config: ProviderConfig) =>
     supportsInstances(config.manifestId) && isBuiltinConfig(config)
-      ? `${config.name} (${t('providers.installed.builtIn', 'Built-in')})`
-      : config.name
+      ? `${nameOf(config)} (${t('providers.installed.builtIn', 'Built-in')})`
+      : nameOf(config)
 
   if (configs.length === 0) {
     return (
@@ -90,7 +93,7 @@ export const InstalledList = ({
       <DraggableList
         items={configs}
         onReorder={(source, destination) => {
-          reorderAll.mutate(
+          setOrder.mutate(
             arrayMove(configs, source, destination).map((c) => c.id),
             {
               onError: (error) => {
@@ -101,7 +104,7 @@ export const InstalledList = ({
         }}
         renderLeading={(config) => (
           <Box sx={{ mr: 1.5, display: 'flex' }}>
-            <HashAvatar seed={config.manifestId} label={config.name} />
+            <HashAvatar seed={config.manifestId} label={nameOf(config)} />
           </Box>
         )}
         renderPrimary={(config) => displayName(config)}
@@ -152,8 +155,10 @@ export const InstalledList = ({
     <Switch
       size="small"
       checked={config.enabled}
-      disabled={toggle.isPending}
-      onChange={() => toggle.mutate({ id: config.id })}
+      disabled={setEnabled.isPending}
+      onChange={() =>
+        setEnabled.mutate({ id: config.id, enabled: !config.enabled })
+      }
     />
   )
 

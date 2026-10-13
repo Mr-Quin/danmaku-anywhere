@@ -10,7 +10,8 @@ import { ProviderConfigService } from './service'
  * Seeds chrome.storage.sync with the providerConfig the v1.5.0 build wrote
  * (the e2e backup fixture, version 1) and runs the real ProviderConfigService
  * upgrade chain to the current version. Asserts the stored list: order, bare
- * ids, manifest ids, user values, and that no legacy keys survive.
+ * ids, manifest ids, user values, built-ins on their default names, custom
+ * sources keeping theirs, and that no legacy keys survive.
  */
 
 const SELF_HOSTED_ID = 'd9d068cc-d7a5-4277-990b-73b28f7637f8'
@@ -60,15 +61,23 @@ describe('providerConfig upgrade from the v1.5.0 fixture', () => {
     stored = await upgradeFrom(1, readFixtureRecords())
   })
 
-  it('ends at version 5', () => {
-    expect(stored.version).toBe(5)
+  it('ends at version 6', () => {
+    expect(stored.version).toBe(6)
   })
 
   it('keeps the six records in the order v1.5.0 stored them', () => {
-    expect(stored.data.map((c) => c.name)).toEqual(
-      readFixtureRecords().map((r) => r.name)
-    )
     expect(stored.data).toHaveLength(6)
+  })
+
+  it('gives the built-ins the default name and keeps the custom names', () => {
+    expect(stored.data.map((c) => [c.id, c.customName])).toEqual([
+      [SELF_HOSTED_ID, 'DanDanPlay'],
+      ['bilibili', null],
+      ['dandanplay', null],
+      [MACCMS_ID, 'VOD'],
+      ['tencent', null],
+      [SECOND_COMPAT_ID, 'Danmu API'],
+    ])
   })
 
   it('strips the builtin: prefix from built-in ids and leaves uuids alone', () => {
@@ -123,7 +132,7 @@ describe('providerConfig upgrade from the v1.5.0 fixture', () => {
     const tencent = stored.data.find((c) => c.id === 'tencent')
 
     expect(tencent).toMatchObject({
-      name: 'Tencent',
+      customName: null,
       enabled: false,
       configValues: {},
     })
@@ -157,7 +166,7 @@ describe('providerConfig upgrade from the v1.5.0 fixture', () => {
     const maccms = stored.data.find((c) => c.id === MACCMS_ID)
 
     expect(maccms).toMatchObject({
-      name: 'VOD',
+      customName: 'VOD',
       manifestId: 'legacy:maccms',
     })
     expect(maccms?.configValues).toEqual({
@@ -171,14 +180,14 @@ describe('providerConfig upgrade from the v1.5.0 fixture', () => {
     stored.data.forEach((config) => {
       expect(Object.keys(config).sort()).toEqual([
         'configValues',
+        'customName',
         'enabled',
         'id',
         'manifestId',
-        'name',
       ])
     })
     const text = JSON.stringify(stored.data)
-    for (const legacyKey of ['type', 'impl', 'isBuiltIn', 'options']) {
+    for (const legacyKey of ['type', 'impl', 'isBuiltIn', 'options', 'name']) {
       expect(text).not.toContain(`"${legacyKey}"`)
     }
   })
@@ -192,7 +201,7 @@ describe('providerConfig upgrade from the v1.5.0 fixture', () => {
       {
         id: SELF_HOSTED_ID,
         manifestId: 'dandanplay',
-        name: selfHosted.name,
+        customName: selfHosted.name as string,
         enabled: true,
         configValues: {
           baseUrl: 'https://ddp.selfhosted.example',
@@ -202,35 +211,35 @@ describe('providerConfig upgrade from the v1.5.0 fixture', () => {
       {
         id: 'bilibili',
         manifestId: 'bilibili',
-        name: 'Bilibili',
+        customName: null,
         enabled: true,
         configValues: { danmakuFormat: 'xml' },
       },
       {
         id: 'dandanplay',
         manifestId: 'dandanplay',
-        name: 'DanDanPlay',
+        customName: null,
         enabled: true,
         configValues: { baseUrl: PROXY_DDP_BASE_URL, chConvert: 0 },
       },
       {
         id: MACCMS_ID,
         manifestId: 'legacy:maccms',
-        name: maccms.name,
+        customName: maccms.name as string,
         enabled: true,
         configValues: maccms.options,
       },
       {
         id: 'tencent',
         manifestId: 'tencent',
-        name: 'Tencent',
+        customName: null,
         enabled: false,
         configValues: {},
       },
       {
         id: SECOND_COMPAT_ID,
         manifestId: 'dandanplay',
-        name: second.name,
+        customName: second.name as string,
         enabled: true,
         configValues: second.options,
       },
@@ -257,7 +266,7 @@ describe('providerConfig upgrade edge cases', () => {
       ...records.slice(3),
     ])
 
-    expect(stored.version).toBe(5)
+    expect(stored.version).toBe(6)
     expect(stored.data).toHaveLength(6)
     expect(stored.data).toEqual(clean.data)
   })
@@ -278,19 +287,19 @@ describe('providerConfig upgrade edge cases', () => {
     ])
   })
 
-  it('leaves a store that is already at version 5 unchanged, including a trailing /api', async () => {
+  it('leaves a store that is already at version 6 unchanged, including a trailing /api', async () => {
     const current: ProviderConfig[] = [
       {
         id: 'dandanplay',
         manifestId: 'dandanplay',
-        name: 'DanDanPlay',
+        customName: 'My DanDanPlay',
         enabled: false,
         configValues: { baseUrl: PROXY_DDP_BASE_URL, chConvert: 2 },
       },
       {
         id: 'custom-1',
         manifestId: 'dandanplay',
-        name: 'Mine',
+        customName: null,
         enabled: true,
         configValues: {
           baseUrl: 'https://mine.example/api',
@@ -299,9 +308,50 @@ describe('providerConfig upgrade edge cases', () => {
       },
     ]
 
-    const stored = await upgradeFrom(5, current)
+    const stored = await upgradeFrom(6, current)
 
-    expect(stored).toEqual({ version: 5, data: current })
+    expect(stored).toEqual({ version: 6, data: current })
+  })
+
+  it('moves a version 5 store to custom names whatever the built-in was called', async () => {
+    const stored = await upgradeFrom(5, [
+      {
+        id: 'dandanplay',
+        manifestId: 'dandanplay',
+        name: '弹弹play',
+        enabled: true,
+        configValues: { baseUrl: PROXY_DDP_BASE_URL },
+      },
+      {
+        id: 'bilibili',
+        manifestId: 'bilibili',
+        name: 'Bilibili',
+        enabled: true,
+        configValues: {},
+      },
+      {
+        id: 'custom-1',
+        manifestId: 'dandanplay',
+        name: 'DanDanPlay',
+        enabled: true,
+        configValues: { baseUrl: 'https://mine.example' },
+      },
+      {
+        id: 'legacy:maccms',
+        manifestId: 'legacy:maccms',
+        name: 'VOD',
+        enabled: true,
+        configValues: {},
+      },
+    ])
+
+    expect(stored.version).toBe(6)
+    expect(stored.data.map((c) => [c.id, c.customName])).toEqual([
+      ['dandanplay', null],
+      ['bilibili', null],
+      ['custom-1', 'DanDanPlay'],
+      ['legacy:maccms', 'VOD'],
+    ])
   })
 
   it('keeps a non-default chConvert the user picked on the built-in DanDanPlay', async () => {

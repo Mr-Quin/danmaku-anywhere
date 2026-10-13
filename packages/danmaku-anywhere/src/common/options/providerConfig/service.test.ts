@@ -20,7 +20,7 @@ function makeConfig(manifestId: string): ProviderConfig {
   return {
     id: manifestId,
     manifestId,
-    name: 'test',
+    customName: 'test',
     enabled: true,
     configValues: {},
   }

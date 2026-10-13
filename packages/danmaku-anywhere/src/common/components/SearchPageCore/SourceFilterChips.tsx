@@ -10,8 +10,8 @@ import {
 import { useTranslation } from 'react-i18next'
 import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
-import { providerDisplayNames } from '@/common/options/providerConfig/displayName'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { useSourceNames } from '@/common/options/providerConfig/useSourceNames'
 import { computeChipOverflow } from './computeChipOverflow'
 
 const GAP = 6
@@ -66,13 +66,6 @@ const CountText = styled('span', {
   opacity: active ? 0.85 : 0.65,
 }))
 
-function providerLabel(
-  provider: ProviderConfig,
-  displayNames: Map<string, string>
-): string {
-  return displayNames.get(provider.id) ?? provider.name
-}
-
 function chipBody(
   label: string,
   active: boolean,
@@ -116,10 +109,7 @@ export function SourceFilterChips({
   const [widths, setWidths] = useState<Record<string, number>>({})
   const [overflowWidth, setOverflowWidth] = useState(0)
 
-  const displayNames = useMemo(
-    () => providerDisplayNames(providers),
-    [providers]
-  )
+  const { nameOf } = useSourceNames()
 
   useLayoutEffect(() => {
     const el = containerRef.current
@@ -145,7 +135,7 @@ export function SourceFilterChips({
   const measureSignature = providers
     .map(
       (p) =>
-        `${p.id}:${providerLabel(p, displayNames)}:${states[p.id]?.isPending}:${states[p.id]?.count}`
+        `${p.id}:${nameOf(p)}:${states[p.id]?.isPending}:${states[p.id]?.count}`
     )
     .join('|')
 
@@ -186,10 +176,10 @@ export function SourceFilterChips({
       kind: 'item',
       id: provider.id,
       icon: null,
-      label: providerLabel(provider, displayNames),
+      label: nameOf(provider),
       onClick: () => onChange(provider.id),
     }))
-  }, [overflow, onChange, displayNames])
+  }, [overflow, onChange, nameOf])
 
   return (
     <Box
@@ -214,11 +204,7 @@ export function SourceFilterChips({
             aria-pressed={active}
             data-testid={`source-chip-${providerTypeFromManifestId(provider.manifestId)}`}
           >
-            {chipBody(
-              providerLabel(provider, displayNames),
-              active,
-              states[provider.id]
-            )}
+            {chipBody(nameOf(provider), active, states[provider.id])}
           </Chip>
         )
       })}
@@ -266,11 +252,7 @@ export function SourceFilterChips({
               tabIndex={-1}
               data-measure-id={provider.id}
             >
-              {chipBody(
-                providerLabel(provider, displayNames),
-                active,
-                states[provider.id]
-              )}
+              {chipBody(nameOf(provider), active, states[provider.id])}
             </Chip>
           )
         })}

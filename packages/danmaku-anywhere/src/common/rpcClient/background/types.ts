@@ -67,6 +67,11 @@ import type {
   MountConfig,
   MountConfigAiConfig,
 } from '@/common/options/mountConfig/schema'
+import type {
+  ProviderConfig,
+  ProviderConfigDraft,
+  ProviderConfigEdit,
+} from '@/common/options/providerConfig/schema'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
 import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.types'
 import type { RPCDef } from '../../rpc/types'
@@ -290,6 +295,17 @@ export type BackgroundMethods = {
   openPopupInNewTab: RPCDef<{ path: string; tabId?: number }, void>
   getConfigMacCms: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   getConfigDanmuIcu: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
+  providerConfigCreate: RPCDef<ProviderConfigDraft, ProviderConfig>
+  providerConfigAddBuiltin: RPCDef<{ manifestId: string }, ProviderConfig>
+  providerConfigUpdate: RPCDef<
+    { id: string; edit: ProviderConfigEdit },
+    ProviderConfig
+  >
+  providerConfigSetEnabled: RPCDef<
+    { id: string; enabled: boolean },
+    ProviderConfig
+  >
+  providerConfigSetOrder: RPCDef<{ ids: string[] }, void>
   providerConfigDelete: RPCDef<string, void>
   testAiProvider: RPCDef<AiProviderConfigInput, TestAiProviderResponse>
   backupExport: RPCDef<void, BackupData>

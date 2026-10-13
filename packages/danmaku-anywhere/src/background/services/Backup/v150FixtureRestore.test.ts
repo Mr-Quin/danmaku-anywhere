@@ -105,7 +105,7 @@ describe('restoring the v1.5.0 backup fixture', () => {
     }
   })
 
-  it('restores the provider list with bare ids, manifests and the stripped base url', async () => {
+  it('restores the provider list with bare ids, manifests, default built-in names and the stripped base url', async () => {
     const { container } = await restoreFile()
     const providers = (await readStores(container))
       .providerConfig as ProviderConfig[]
@@ -117,6 +117,14 @@ describe('restoring the v1.5.0 backup fixture', () => {
       ['21999133-1b22-4e15-a48b-a8c6677cd902', 'legacy:maccms', true],
       ['tencent', 'tencent', false],
       ['e15d5979-e823-4ce8-a2ab-513dc358dae1', 'dandanplay', true],
+    ])
+    expect(providers.map((c) => c.customName)).toEqual([
+      'DanDanPlay',
+      null,
+      null,
+      'VOD',
+      null,
+      'Danmu API',
     ])
     expect(providers[0].configValues.baseUrl).toBe(
       'https://ddp.selfhosted.example'

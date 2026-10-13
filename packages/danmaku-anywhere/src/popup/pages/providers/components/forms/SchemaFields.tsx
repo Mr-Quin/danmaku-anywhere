@@ -16,11 +16,11 @@ import { Controller, useFieldArray, useFormContext } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import {
   buildDefaultValues,
+  fieldIssueMessage,
   getFieldKind,
   getObjectFields,
   getSelectOptions,
   toNumberOrUndefined,
-  validateScalar,
 } from './schemaForm'
 
 interface SchemaFieldProps {
@@ -79,7 +79,7 @@ function ScalarField({ name, schema, required, readOnly }: SchemaFieldProps) {
         required: required
           ? t('providers.editor.validation.required', 'This field is required')
           : false,
-        validate: (value) => validateScalar(schema, value) ?? true,
+        validate: (value) => fieldIssueMessage(schema, value) ?? true,
       }}
       render={({ field: { ref, onChange, value, ...field }, fieldState }) => (
         <TextField

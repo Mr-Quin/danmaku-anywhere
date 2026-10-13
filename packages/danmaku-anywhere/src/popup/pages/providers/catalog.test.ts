@@ -29,9 +29,8 @@ describe('createConfigFromManifest', () => {
   it('references the manifest', () => {
     const config = createConfigFromManifest(manifest)
     expect(config.manifestId).toBe('iqiyi')
-    expect(config.name).toBe('iQIYI')
+    expect(config.customName).toBeNull()
     expect(config.enabled).toBe(true)
-    expect(config.id).toBeTruthy()
   })
 
   it('defaults configValues from the configSchema', () => {
@@ -95,7 +94,7 @@ function cfg(id: string, manifestId: string): ProviderConfig {
   return {
     id,
     manifestId,
-    name: id,
+    customName: id,
     enabled: true,
     configValues: {},
   }

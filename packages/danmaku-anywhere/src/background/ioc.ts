@@ -13,10 +13,10 @@ import {
   OptionsServiceFactory,
   optionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
-import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { SearchHistoryService } from '@/common/options/searchHistory/service'
 import { UserAuthStore } from '@/common/options/userAuth/service'
 import { Logger } from './backgroundLogger'
+import { ProviderConfigWriter } from './services/providers/ProviderConfigWriter'
 import {
   DanmakuProviderFactory,
   danmakuProviderFactory,
@@ -28,7 +28,7 @@ export const backgroundContainerModule = new ContainerModule(({ bind }) => {
   bind(StoreServiceSymbol).toService(DanmakuOptionsService)
   bind(StoreServiceSymbol).toService(IntegrationPolicyService)
   bind(StoreServiceSymbol).toService(MountConfigService)
-  bind(StoreServiceSymbol).toService(ProviderConfigService)
+  bind(StoreServiceSymbol).toService(ProviderConfigWriter)
   bind(StoreServiceSymbol).toService(AiProviderConfigService)
   bind(StoreServiceSymbol).toService(SearchHistoryService)
   bind(StoreServiceSymbol).toService(NamingRuleService)

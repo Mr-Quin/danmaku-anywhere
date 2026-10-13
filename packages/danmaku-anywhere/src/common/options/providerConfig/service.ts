@@ -1,4 +1,3 @@
-import { produce } from 'immer'
 import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { IStoreService } from '@/common/options/IStoreService'
@@ -7,26 +6,25 @@ import {
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
-import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
-import { isServiceWorker } from '@/common/utils/utils'
 import {
-  defaultProviderConfigs,
   ensureBuiltinProviders,
+  legacyDefaultProviderConfigs,
   migrateBuiltinPrefixedProviderIds,
   migrateDanDanPlayApiBaseUrl,
   migrateDropDeadProviderFields,
   migrateProviderConfigsToFlat,
+  migrateToCustomNames,
 } from './migration'
 import type { ProviderConfig } from './schema'
-import { providerConfigSchema } from './schema'
 import { isLegacyMacCms } from './utils'
 
+// Reads and migrations. Every write goes through ProviderConfigWriter in the
+// background, which checks it and serializes it with the store's other writes.
 @injectable('Singleton')
 export class ProviderConfigService implements IStoreService {
   public readonly name = 'providerConfig'
   public readonly options: OptionsService<ProviderConfig[]>
-  public readonly backupItemSchema = providerConfigSchema
 
   // Stored in sync alongside the configs so a second signed-in device reads the
   // same flag and does not re-seed the shared store.
@@ -56,7 +54,7 @@ export class ProviderConfigService implements IStoreService {
               '[providerConfig] migration failed, falling back to defaults:',
               error
             )
-            return [...defaultProviderConfigs]
+            return [...legacyDefaultProviderConfigs]
           }
         },
       })
@@ -69,7 +67,7 @@ export class ProviderConfigService implements IStoreService {
               '[providerConfig] builtin-prefix migration failed, falling back to defaults:',
               error
             )
-            return [...defaultProviderConfigs]
+            return [...legacyDefaultProviderConfigs]
           }
         },
       })
@@ -103,6 +101,19 @@ export class ProviderConfigService implements IStoreService {
           }
         },
       })
+      .version(6, {
+        upgrade: (data) => {
+          try {
+            return migrateToCustomNames(data)
+          } catch (error) {
+            console.error(
+              '[providerConfig] custom-name migration failed, falling back to defaults:',
+              error
+            )
+            return migrateToCustomNames(legacyDefaultProviderConfigs)
+          }
+        },
+      })
   }
 
   async hasSeeded(): Promise<boolean> {
@@ -111,21 +122,6 @@ export class ProviderConfigService implements IStoreService {
 
   async markSeeded(): Promise<void> {
     await this.seededFlag.set(true)
-  }
-
-  async create(input: unknown) {
-    const config = await providerConfigSchema.parseAsync(input)
-
-    const configs = await this.options.get()
-
-    const existingConfig = configs.find((item) => item.id === config.id)
-    if (existingConfig) {
-      throw new Error(`Provider with ID "${config.id}" already exists`)
-    }
-
-    await this.options.set([...configs, config])
-
-    return config
   }
 
   async get(id: string): Promise<ProviderConfig | undefined> {
@@ -167,97 +163,5 @@ export class ProviderConfigService implements IStoreService {
     // Manifest-driven sources support automatic mode implicitly. Legacy MacCMS
     // has no manifest and is search-only, so it stays opt-out.
     return !isLegacyMacCms(config)
-  }
-
-  async update<T extends ProviderConfig>(
-    id: string,
-    config: Partial<T>
-  ): Promise<T> {
-    const configs = await this.options.get()
-    const prevConfig = configs.find((item) => item.id === id)
-
-    if (!prevConfig) {
-      throw new Error(`Provider with ID "${id}" not found.`)
-    }
-
-    const nextConfig = { ...prevConfig, ...config } as T
-
-    if (config.id && config.id !== id) {
-      throw new Error('Provider ID cannot be changed.')
-    }
-
-    const newConfigs = produce(configs, (draft) => {
-      const index = draft.findIndex((item) => item.id === id)
-      draft[index] = nextConfig
-    })
-
-    await this.options.set(newConfigs)
-
-    return nextConfig
-  }
-
-  async delete(id: string) {
-    await chromeRpcClient.providerConfigDelete(id)
-  }
-
-  async deleteFromStorage(id: string) {
-    if (!isServiceWorker()) {
-      throw new Error('Must called from background script.')
-    }
-
-    const configs = await this.options.get()
-    const config = configs.find((item) => item.id === id)
-
-    if (!config) {
-      throw new Error(`Provider not found: "${id}" when deleting`)
-    }
-
-    const newData = produce(configs, (draft) => {
-      const index = draft.findIndex((item) => item.id === id)
-      draft.splice(index, 1)
-    })
-
-    await this.options.set(newData)
-  }
-
-  async toggle(id: string, enabled?: boolean) {
-    const config = await this.get(id)
-
-    if (!config) {
-      throw new Error(`Provider not found: "${id}"`)
-    }
-
-    return this.update(id, {
-      enabled: enabled ?? !config.enabled,
-    })
-  }
-
-  async reorder(sourceIndex: number, destinationIndex: number) {
-    const configs = await this.options.get()
-
-    const newData = produce(configs, (draft) => {
-      const [removed] = draft.splice(sourceIndex, 1)
-      draft.splice(destinationIndex, 0, removed)
-    })
-
-    await this.options.set(newData)
-  }
-
-  // Persist an explicit ordering. Used when the displayed list groups configs
-  // (instances), so a single drag moves a block that index math can't express.
-  async setOrder(orderedIds: string[]) {
-    const configs = await this.options.get()
-    const byId = new Map(configs.map((config) => [config.id, config]))
-    const ordered = orderedIds
-      .map((id) => byId.get(id))
-      .filter((config): config is ProviderConfig => config !== undefined)
-    if (
-      orderedIds.length !== configs.length ||
-      ordered.length !== configs.length ||
-      new Set(orderedIds).size !== configs.length
-    ) {
-      throw new Error('setOrder must list every provider config exactly once')
-    }
-    await this.options.set(ordered)
   }
 }

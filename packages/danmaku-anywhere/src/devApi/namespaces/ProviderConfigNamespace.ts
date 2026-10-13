@@ -1,6 +1,13 @@
 import { inject, injectable } from 'inversify'
-import { defaultProviderConfigs } from '@/common/options/providerConfig/migration'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { ProviderConfigWriter } from '@/background/services/providers/ProviderConfigWriter'
+import {
+  BUILTIN_SOURCES,
+  createBuiltinConfig,
+} from '@/common/options/providerConfig/builtin'
+import {
+  type ProviderConfig,
+  providerConfigSchema,
+} from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { type AnyMethodDef, type DevNamespace, defineMethod } from '../registry'
 
@@ -22,7 +29,9 @@ export class ProviderConfigNamespace implements DevNamespace {
 
   constructor(
     @inject(ProviderConfigService)
-    private readonly service: ProviderConfigService
+    private readonly service: ProviderConfigService,
+    @inject(ProviderConfigWriter)
+    private readonly writer: ProviderConfigWriter
   ) {
     this.methods = [
       defineMethod({
@@ -43,8 +52,7 @@ export class ProviderConfigNamespace implements DevNamespace {
         description: 'Replace all provider configs in storage',
         kind: 'write',
         args: [{ name: 'configs', type: 'ProviderConfig[]' }],
-        handler: (configs: ProviderConfig[]) =>
-          this.service.options.set(configs),
+        handler: (configs: ProviderConfig[]) => this.replaceStored(configs),
       }),
       defineMethod({
         name: 'toggle',
@@ -54,14 +62,17 @@ export class ProviderConfigNamespace implements DevNamespace {
           { name: 'id', type: 'string' },
           { name: 'enabled', type: 'boolean', optional: true },
         ],
-        handler: (id: string, enabled?: boolean) =>
-          this.service.toggle(id, enabled),
+        handler: async (id: string, enabled?: boolean) => {
+          const config = await this.service.mustGet(id)
+          return this.writer.setEnabled(id, enabled ?? !config.enabled)
+        },
       }),
       defineMethod({
         name: 'reset',
         description: 'Reset provider configs to defaults',
         kind: 'write',
-        handler: () => this.service.options.set([...defaultProviderConfigs]),
+        handler: () =>
+          this.replaceStored(BUILTIN_SOURCES.map(createBuiltinConfig)),
       }),
       defineMethod({
         name: 'hasSeeded',
@@ -76,5 +87,14 @@ export class ProviderConfigNamespace implements DevNamespace {
         handler: () => this.service.markSeeded(),
       }),
     ]
+  }
+
+  // Seeds the store as it is, past the writer's checks, because specs need the
+  // states real profiles reach without them: configs synced from a device that
+  // has a manifest this one lacks, or saved before these checks existed. The
+  // write still takes its turn in the store's queue.
+  private async replaceStored(configs: unknown[]): Promise<void> {
+    const parsed = configs.map((config) => providerConfigSchema.parse(config))
+    await this.service.options.transform(() => parsed)
   }
 }

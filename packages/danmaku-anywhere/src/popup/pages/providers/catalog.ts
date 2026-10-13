@@ -1,21 +1,22 @@
 import { PROVIDER_TO_BUILTIN_ID } from '@danmaku-anywhere/danmaku-converter'
 import type { ConfigSchema } from '@mr-quin/dango'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import type {
+  ProviderConfig,
+  ProviderConfigDraft,
+} from '@/common/options/providerConfig/schema'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
-import { getRandomUUID } from '@/common/utils/utils'
 import {
   buildDefaultValues,
   getObjectFields,
 } from './components/forms/schemaForm'
 
 export function createConfigFromManifest(
-  manifest: Pick<ProviderManifestInfo, 'id' | 'name' | 'configSchema'>
-): ProviderConfig {
+  manifest: Pick<ProviderManifestInfo, 'id' | 'configSchema'>
+): ProviderConfigDraft {
   return {
-    id: getRandomUUID(),
     manifestId: manifest.id,
-    name: manifest.name,
+    customName: null,
     enabled: true,
     configValues: buildDefaultValues(manifest.configSchema, {}),
   }

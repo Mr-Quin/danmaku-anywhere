@@ -73,7 +73,7 @@ function customDdp(opts: {
   return {
     id: 'custom-1',
     manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-    name: 'Custom DDP',
+    customName: 'Custom DDP',
     enabled: true,
     configValues: opts,
   }
@@ -85,7 +85,7 @@ describe('ProviderFactory dispatch', () => {
     const service = factory({
       id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
       manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-      name: 'DanDanPlay',
+      customName: 'DanDanPlay',
       enabled: true,
       configValues: {},
     })
@@ -99,7 +99,7 @@ describe('ProviderFactory dispatch', () => {
     const service = factory({
       id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
       manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
-      name: 'Bilibili',
+      customName: 'Bilibili',
       enabled: true,
       configValues: { danmakuFormat: 'protobuf' },
     })
@@ -119,7 +119,7 @@ describe('ProviderFactory dispatch', () => {
     const service = factory({
       id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
       manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
-      name: 'Tencent',
+      customName: 'Tencent',
       enabled: true,
       configValues: {},
     })
@@ -153,7 +153,7 @@ describe('ProviderFactory dispatch', () => {
     const service = factory({
       id: LEGACY_MACCMS_ID,
       manifestId: LEGACY_MACCMS_ID,
-      name: 'MacCMS',
+      customName: 'MacCMS',
       enabled: true,
       configValues: {},
     })
@@ -166,7 +166,7 @@ describe('ProviderFactory dispatch', () => {
     const service = factory({
       id: 'iqiyi-1',
       manifestId: 'iqiyi',
-      name: 'iQIYI',
+      customName: 'iQIYI',
       enabled: true,
       configValues: { region: 'cn' },
     })

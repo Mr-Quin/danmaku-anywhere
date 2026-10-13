@@ -10,7 +10,6 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { configQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { FormActions } from './FormActions'
@@ -46,7 +45,7 @@ export const MacCmsProviderForm = ({
     formState: { errors, isSubmitting, isDirty },
   } = useForm<FormValues>({
     defaultValues: {
-      name: provider.name,
+      name: provider.customName ?? '',
       danmakuBaseUrl: values.danmakuBaseUrl ?? '',
       danmuicuBaseUrl: values.danmuicuBaseUrl ?? '',
       stripColor: values.stripColor ?? false,
@@ -66,16 +65,14 @@ export const MacCmsProviderForm = ({
   })
 
   const handleFormSubmit = handleSubmit(async (data) => {
-    const next: ProviderConfig = {
-      ...provider,
-      name: data.name,
+    await onSubmit({
+      customName: data.name.trim(),
       configValues: {
         danmakuBaseUrl: data.danmakuBaseUrl,
         danmuicuBaseUrl: data.danmuicuBaseUrl,
         stripColor: data.stripColor,
       },
-    }
-    await onSubmit(next)
+    })
   })
 
   const handleReset = () => {
@@ -98,7 +95,10 @@ export const MacCmsProviderForm = ({
         size="small"
         error={!!errors.name}
         helperText={errors.name?.message}
-        {...register('name', { required: true })}
+        {...register('name', {
+          required: true,
+          validate: (value) => value.trim() !== '',
+        })}
         fullWidth
         required
       />

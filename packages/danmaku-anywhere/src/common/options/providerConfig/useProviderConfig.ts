@@ -1,31 +1,28 @@
-import { arrayMove } from '@dnd-kit/sortable'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useInjectService } from '@/common/hooks/useInjectService'
 import { bookmarkQueryKeys, storageQueryKeys } from '@/common/queries/queryKeys'
+import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
-import { withLocalizedBuiltinNames } from './builtinNames'
-import type { ProviderConfig, ProviderConfigOptions } from './schema'
-import { ProviderConfigService } from './service'
+import type {
+  ProviderConfig,
+  ProviderConfigDraft,
+  ProviderConfigEdit,
+  ProviderConfigOptions,
+} from './schema'
 
+// Read-only: the store's writes go through useEditProviderConfig.
 export const useProviderConfig = () => {
-  const {
-    data: options,
-    update,
-    ...rest
-  } = useSuspenseExtStorageQuery<ProviderConfigOptions>('providerConfig', {
-    storageType: 'sync',
-    isOptionStore: true,
-  })
-
-  const { i18n } = useTranslation()
-  const configs: ProviderConfig[] = useMemo(
-    () => withLocalizedBuiltinNames(options.data, i18n.language),
-    [options.data, i18n.language]
+  const { data: options } = useSuspenseExtStorageQuery<ProviderConfigOptions>(
+    'providerConfig',
+    {
+      storageType: 'sync',
+      isOptionStore: true,
+    }
   )
 
-  const methods = useMemo(() => {
+  const configs = options.data
+
+  return useMemo(() => {
     const enabledProviders = configs.filter((config) => config.enabled)
 
     const getProviderById = (id: string) => {
@@ -33,17 +30,11 @@ export const useProviderConfig = () => {
     }
 
     return {
+      configs,
       enabledProviders,
       getProviderById,
     }
   }, [configs])
-
-  return {
-    ...rest,
-    update,
-    configs,
-    ...methods,
-  }
 }
 
 export const useEditProviderConfig = () => {
@@ -51,84 +42,55 @@ export const useEditProviderConfig = () => {
   const queryKey = storageQueryKeys.external('sync', ['providerConfig'])
   const meta = { invalidates: [queryKey] }
 
-  const providerConfigService = useInjectService(ProviderConfigService)
-
   const createMutation = useMutation({
-    mutationFn: providerConfigService.create.bind(providerConfigService),
+    mutationFn: async (draft: ProviderConfigDraft) => {
+      return (await chromeRpcClient.providerConfigCreate(draft)).data
+    },
+    meta,
+  })
+
+  const addBuiltinMutation = useMutation({
+    mutationFn: async (manifestId: string) => {
+      const res = await chromeRpcClient.providerConfigAddBuiltin({ manifestId })
+      return res.data
+    },
     meta,
   })
 
   const updateMutation = useMutation({
-    mutationFn: ({
-      id,
-      config,
-    }: {
-      id: string
-      config: Partial<ProviderConfig>
-    }) => providerConfigService.update(id, config),
+    mutationFn: async (input: { id: string; edit: ProviderConfigEdit }) => {
+      return (await chromeRpcClient.providerConfigUpdate(input)).data
+    },
     meta,
   })
 
   const deleteMutation = useMutation({
-    mutationFn: providerConfigService.delete.bind(providerConfigService),
+    mutationFn: async (id: string) => {
+      await chromeRpcClient.providerConfigDelete(id)
+    },
     // Deleting a config also deletes its bookmarks in the background, so the
     // bookmark cache must refetch or the tree keeps showing dead stubs.
     meta: { invalidates: [queryKey, bookmarkQueryKeys.all()] },
   })
 
-  const toggleMutation = useMutation({
-    mutationFn: ({ id, enabled }: { id: string; enabled?: boolean }) =>
-      providerConfigService.toggle(id, enabled),
+  const setEnabledMutation = useMutation({
+    mutationFn: async (input: { id: string; enabled: boolean }) => {
+      return (await chromeRpcClient.providerConfigSetEnabled(input)).data
+    },
     meta,
   })
 
-  const reorderMutation = useMutation({
-    mutationFn: (input: { sourceIndex: number; destinationIndex: number }) => {
-      return providerConfigService.reorder(
-        input.sourceIndex,
-        input.destinationIndex
-      )
+  const setOrderMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      await chromeRpcClient.providerConfigSetOrder({ ids })
     },
-    onMutate: async (variables) => {
-      await queryClient.cancelQueries({ queryKey })
-
-      const previousData =
-        queryClient.getQueryData<ProviderConfigOptions>(queryKey)
-
-      if (previousData) {
-        const newData = {
-          ...previousData,
-          data: arrayMove(
-            previousData.data,
-            variables.sourceIndex,
-            variables.destinationIndex
-          ),
-        }
-        queryClient.setQueryData(queryKey, newData)
-      }
-
-      return { previousData }
-    },
-    onError: (_, __, context) => {
-      if (context?.previousData) {
-        queryClient.setQueryData(queryKey, context.previousData)
-      }
-    },
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey })
-    },
-  })
-
-  const reorderAllMutation = useMutation({
-    mutationFn: (orderedIds: string[]) =>
-      providerConfigService.setOrder(orderedIds),
-    onMutate: async (orderedIds) => {
+    onMutate: async (ids) => {
       await queryClient.cancelQueries({ queryKey })
       const previousData =
         queryClient.getQueryData<ProviderConfigOptions>(queryKey)
       if (previousData) {
         const byId = new Map(previousData.data.map((c) => [c.id, c]))
-        const reordered = orderedIds
+        const reordered = ids
           .map((id) => byId.get(id))
           .filter((c): c is ProviderConfig => c !== undefined)
         queryClient.setQueryData(queryKey, { ...previousData, data: reordered })
@@ -147,10 +109,10 @@ export const useEditProviderConfig = () => {
 
   return {
     create: createMutation,
+    addBuiltin: addBuiltinMutation,
     update: updateMutation,
     remove: deleteMutation,
-    toggle: toggleMutation,
-    reorder: reorderMutation,
-    reorderAll: reorderAllMutation,
+    setEnabled: setEnabledMutation,
+    setOrder: setOrderMutation,
   }
 }

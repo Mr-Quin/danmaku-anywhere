@@ -9,6 +9,7 @@ import {
 } from '@danmaku-anywhere/integration-policy'
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ProviderConfigWriter } from '@/background/services/providers/ProviderConfigWriter'
 import { backupDataSchema } from '@/common/backup/schema'
 import type { ILogger } from '@/common/Logger'
 import { AiProviderConfigService } from '@/common/options/aiProviderConfig/service'
@@ -24,6 +25,7 @@ import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import type { OptionsSchema } from '@/common/options/OptionsService/types'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
+import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
 import { silentLogger } from '@/tests/silentLogger'
 import { ConfigStateService } from './ConfigStateService'
 
@@ -39,6 +41,7 @@ describe('backup round trip', () => {
   let stores: IStoreService[]
   let mountConfigService: MountConfigService
   let providerConfigService: ProviderConfigService
+  let providerConfigWriter: ProviderConfigWriter
   let aiProviderConfigService: AiProviderConfigService
   let integrationPolicyService: IntegrationPolicyService
   let namingRuleService: NamingRuleService
@@ -72,6 +75,7 @@ describe('backup round trip', () => {
     }
 
     providerConfigService = new ProviderConfigService(logger, factory)
+    providerConfigWriter = createUpgradeContainer().get(ProviderConfigWriter)
     extensionOptionsService = new ExtensionOptionsService(
       logger,
       providerConfigService,
@@ -87,7 +91,7 @@ describe('backup round trip', () => {
       extensionOptionsService,
       danmakuOptionsService,
       mountConfigService,
-      providerConfigService,
+      providerConfigWriter,
       aiProviderConfigService,
       integrationPolicyService,
       namingRuleService,
@@ -119,12 +123,11 @@ describe('backup round trip', () => {
       enabled: true,
       mode: 'manual',
     })
-    await providerConfigService.create({
-      id: 'provider-1',
+    await providerConfigWriter.create({
       manifestId: 'dandanplay',
-      name: 'DanDanPlay',
+      customName: 'DanDanPlay',
       enabled: true,
-      configValues: { apiBaseUrl: 'https://api.example.com' },
+      configValues: { baseUrl: 'https://api.example.com' },
     })
     await aiProviderConfigService.create({
       id: 'ai-1',
@@ -418,6 +421,35 @@ describe('backup round trip', () => {
     expect(
       (await integrationPolicyService.getAll()).map((i) => i.name)
     ).toEqual(['usable'])
+  })
+
+  it('drops a restored source its manifest does not accept and keeps the others', async () => {
+    const valid = {
+      id: 'home',
+      manifestId: 'dandanplay',
+      customName: 'Home',
+      enabled: true,
+      configValues: { baseUrl: 'https://ddp.home.example' },
+    }
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        providerConfig: {
+          data: [
+            valid,
+            { ...valid, id: 'no-server', configValues: { chConvert: 9 } },
+            { ...valid, id: 'gone', manifestId: 'not-installed' },
+          ],
+          version: providerConfigService.options.latestVersion,
+        },
+      },
+    })
+
+    expect(result.details.providerConfig).toEqual({
+      success: true,
+      droppedEntries: 2,
+    })
+    expect(await providerConfigService.getAll()).toEqual([valid])
   })
 
   it('restores the v1.5.0 backup file shipped as an e2e fixture', async () => {

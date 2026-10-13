@@ -9,6 +9,8 @@ import {
   migrateDanmakuSourcesToProviders,
   migrateDropDeadProviderFields,
   migrateProviderConfigsToFlat,
+  migrateToCustomNames,
+  type ProviderConfigV5,
 } from './migration'
 
 /**
@@ -23,6 +25,8 @@ import {
  *   from stored `id`/`manifestId` and de-duplicates the resulting list.
  * - `migrateDropDeadProviderFields`: drops the retired `impl`/`isBuiltIn`
  *   fields, leaving corrupt records untouched.
+ * - `migrateToCustomNames`: replaces `name` with `customName`, null for every
+ *   built-in whatever it was called, the stored name for everything else.
  */
 
 describe('migrateDanmakuSourcesToProviders', () => {
@@ -919,5 +923,73 @@ describe('migrateDropDeadProviderFields', () => {
   it('passes a non-array store through without throwing', () => {
     const corrupt = null as never
     expect(migrateDropDeadProviderFields(corrupt)).toBe(corrupt)
+  })
+})
+
+describe('migrateToCustomNames', () => {
+  function v5(id: string, manifestId: string, name: string): ProviderConfigV5 {
+    return { id, manifestId, name, enabled: true, configValues: {} }
+  }
+
+  it('gives every built-in the default name, in any language', () => {
+    const migrated = migrateToCustomNames([
+      v5('dandanplay', 'dandanplay', 'DanDanPlay'),
+      v5('bilibili', 'bilibili', 'B站'),
+      v5('tencent', 'tencent', 'Tencent'),
+    ])
+
+    expect(migrated.map((c) => c.customName)).toEqual([null, null, null])
+  })
+
+  it('keeps the name of every other config, even one named like a built-in', () => {
+    const migrated = migrateToCustomNames([
+      v5('custom-1', 'dandanplay', 'DanDanPlay'),
+      v5('legacy:maccms', 'legacy:maccms', 'VOD'),
+      v5('custom-2', 'iqiyi', '爱奇艺'),
+    ])
+
+    expect(migrated.map((c) => c.customName)).toEqual([
+      'DanDanPlay',
+      'VOD',
+      '爱奇艺',
+    ])
+  })
+
+  it('drops the name key and keeps everything else', () => {
+    const [migrated] = migrateToCustomNames([
+      {
+        id: 'custom-1',
+        manifestId: 'dandanplay',
+        name: 'Home',
+        enabled: false,
+        configValues: { baseUrl: 'https://home.example' },
+      },
+    ])
+
+    expect(migrated).toEqual({
+      id: 'custom-1',
+      manifestId: 'dandanplay',
+      customName: 'Home',
+      enabled: false,
+      configValues: { baseUrl: 'https://home.example' },
+    })
+  })
+
+  it('falls back to the default name for a config without a usable name', () => {
+    const [migrated] = migrateToCustomNames([
+      { ...v5('custom-1', 'iqiyi', 'x'), name: '  ' },
+    ])
+
+    expect(migrated.customName).toBeNull()
+  })
+
+  it('drops entries that are not records', () => {
+    const migrated = migrateToCustomNames([
+      null as never,
+      v5('custom-1', 'iqiyi', 'Mine'),
+      'junk' as never,
+    ])
+
+    expect(migrated.map((c) => c.id)).toEqual(['custom-1'])
   })
 })
