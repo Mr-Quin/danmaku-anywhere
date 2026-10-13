@@ -22,7 +22,7 @@ test('catalog: refresh surfaces an uninstalled source and import installs it', a
 }) => {
   await applyProfile(context, da, {
     providers: {},
-    network: [mockCatalog(CATALOG_WITH_IQIYI), ...mockLoginProbes()],
+    network: [mockCatalog({ ids: CATALOG_WITH_IQIYI }), ...mockLoginProbes()],
   })
 
   const popup = await Popup.open(page, extensionId, '/providers')

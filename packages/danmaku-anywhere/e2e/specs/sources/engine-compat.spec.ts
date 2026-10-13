@@ -35,11 +35,11 @@ test('a catalog update that needs a newer engine leaves the installed version in
       { area: 'local', key: 'manifests', value: manifestStoreSeed({}, ids) },
     ],
     network: [
-      mockCatalog(
+      mockCatalog({
         ids,
-        { bilibili: BUMPED, iqiyi: BUMPED },
-        { bilibili: FUTURE_ENGINE, iqiyi: FUTURE_ENGINE }
-      ),
+        versions: { bilibili: BUMPED, iqiyi: BUMPED },
+        minEngineVersions: { bilibili: FUTURE_ENGINE, iqiyi: FUTURE_ENGINE },
+      }),
     ],
   })
 

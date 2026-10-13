@@ -64,19 +64,25 @@ export function manifestStoreSeed(
   )
 }
 
-// Defaults to the built-in three. Pass extra ids to seed catalog-only sources
-// (registered but unconfigured) so a spec can exercise the import flow.
-// versionOverrides bumps a manifest's version in both the index and its file,
-// so a store seeded at the real version sees an available update.
-// minEngineVersions does the same for the engine a manifest requires.
-export function mockCatalog(
-  ids: readonly string[] = CATALOG_IDS,
-  versionOverrides: Record<string, string> = {},
-  minEngineVersions: Record<string, string> = {}
-): NetworkMock {
+export interface MockCatalogOptions {
+  // Defaults to the built-in three. Extra ids seed catalog-only sources
+  // (registered but unconfigured) so a spec can exercise the import flow.
+  ids?: readonly string[]
+  // Bumps a manifest's version in both the index and its file, so a store
+  // seeded at the real version sees an available update.
+  versions?: Record<string, string>
+  // Sets the engine a manifest requires, in both the index and its file.
+  minEngineVersions?: Record<string, string>
+}
+
+export function mockCatalog({
+  ids = CATALOG_IDS,
+  versions = {},
+  minEngineVersions = {},
+}: MockCatalogOptions = {}): NetworkMock {
   const manifests = ids.map((id) => {
     const manifest = { ...loadManifest(id) }
-    const version = versionOverrides[id]
+    const version = versions[id]
     if (version) {
       manifest.version = version
     }

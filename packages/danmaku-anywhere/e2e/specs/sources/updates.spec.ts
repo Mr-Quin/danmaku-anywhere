@@ -31,7 +31,7 @@ test('updates: a stale installed source surfaces and applying it clears the row'
     rawStorage: [
       { area: 'local', key: 'manifests', value: manifestStoreSeed() },
     ],
-    network: [mockCatalog(undefined, { bilibili: BUMPED })],
+    network: [mockCatalog({ versions: { bilibili: BUMPED } })],
   })
 
   const popup = await Popup.open(page, extensionId, '/providers')
@@ -61,7 +61,7 @@ test('updates: an uninstalled catalog source updates in place on refresh, not as
     rawStorage: [
       { area: 'local', key: 'manifests', value: manifestStoreSeed({}, ids) },
     ],
-    network: [mockCatalog(ids, { iqiyi: BUMPED })],
+    network: [mockCatalog({ ids, versions: { iqiyi: BUMPED } })],
   })
 
   const popup = await Popup.open(page, extensionId, '/providers')
