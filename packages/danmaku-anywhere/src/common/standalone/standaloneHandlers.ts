@@ -9,6 +9,7 @@ import type {
 } from '@/common/rpcClient/background/types'
 import type { ControllerMethods } from '@/common/rpcClient/controller/types'
 import type { MountConfig } from '../options/mountConfig/schema'
+import { NO_CAPABILITIES } from '../providers/sourceCapabilities'
 import type { StandaloneRpcHandlers } from './createStandaloneRpcClient'
 
 const standaloneBaseUrlConfig: BaseUrlConfig = {
@@ -101,9 +102,14 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     }),
     mediaParseUrl: () =>
       null as unknown as BackgroundMethods['mediaParseUrl']['output'],
+    mediaFindUrlSource: () => null,
     danmakuCountPurgeable: () => 0,
     danmakuPurgeCache: () => 0,
     providerProbeLogin: () => ({ hasLoginProbe: false, ok: true }),
+    providerGetCapabilities: () => ({
+      sourceRemoved: false,
+      capabilities: NO_CAPABILITIES,
+    }),
     providerGetManifestSpec: () => ({ name: '', hasLoginProbe: false }),
     providerGetPendingUpdates: () => [],
     providerApplyUpdates: () => undefined,

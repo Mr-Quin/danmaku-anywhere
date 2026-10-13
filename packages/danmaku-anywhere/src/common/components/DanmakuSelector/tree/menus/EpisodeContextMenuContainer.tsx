@@ -5,6 +5,7 @@ import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { isSourceEpisode } from '@/common/danmaku/utils'
+import { useCanRefetchDanmaku } from '@/common/providers/useSourceCapabilities'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
 import { useExportXml } from '@/popup/hooks/useExportXml'
 import { useDanmakuTreeContext } from '../DanmakuTreeContext'
@@ -13,13 +14,11 @@ import { EpisodeContextMenuPure } from './EpisodeContextMenuPure'
 interface EpisodeContextMenuContainerProps {
   episode: GenericEpisodeLite
   itemId: string
-  orphaned?: boolean
 }
 
 export const EpisodeContextMenuContainer = ({
   episode,
   itemId,
-  orphaned,
 }: EpisodeContextMenuContainerProps): ReactElement => {
   const { t } = useTranslation()
   const { mutateAsync: load, isPending } = useFetchDanmaku()
@@ -27,6 +26,7 @@ export const EpisodeContextMenuContainer = ({
   const exportBackup = useExportDanmaku()
   const deleteDanmakuMutation = useDeleteEpisode()
   const dialog = useDialog()
+  const canRefresh = useCanRefetchDanmaku(episode)
 
   const { setViewingDanmaku, contextMenu, setContextMenu } =
     useDanmakuTreeContext()
@@ -99,7 +99,7 @@ export const EpisodeContextMenuContainer = ({
 
   return (
     <EpisodeContextMenuPure
-      canRefresh={isSourceEpisode(episode) && !orphaned}
+      canRefresh={canRefresh}
       isRefreshing={isPending}
       onViewDanmaku={() => setViewingDanmaku(episode)}
       onRefresh={handleFetchDanmaku}

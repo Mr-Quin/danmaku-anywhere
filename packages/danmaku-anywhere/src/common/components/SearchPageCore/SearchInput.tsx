@@ -1,4 +1,4 @@
-import { Close, History, Link, Search } from '@mui/icons-material'
+import { Close, History, Search } from '@mui/icons-material'
 import {
   Autocomplete,
   alpha,
@@ -25,7 +25,6 @@ import { useSearchHistory } from '@/common/options/searchHistory/useSearchHistor
 import { MONOSPACE_FONT_FAMILY } from '@/common/theme/sakura'
 import { getOS, matchWithPinyin } from '@/common/utils/utils'
 import { withStopPropagation } from '@/common/utils/withStopPropagation'
-import { getUrlProviderLabel } from './UrlParseSection'
 
 declare module '@mui/material/Autocomplete' {
   interface AutocompletePaperSlotPropsOverrides {
@@ -38,7 +37,7 @@ interface SearchInputProps {
   value: string
   onChange: (value: string) => void
   onSubmit: (value: string) => void
-  urlMode?: boolean
+  urlSourceName?: string
   focusToken?: number
   hasCommittedSearch?: boolean
 }
@@ -47,7 +46,7 @@ export function SearchInput({
   value,
   onChange,
   onSubmit,
-  urlMode,
+  urlSourceName,
   focusToken,
   hasCommittedSearch,
 }: SearchInputProps) {
@@ -86,7 +85,7 @@ export function SearchInput({
     }
   }
 
-  const providerLabel = urlMode ? getUrlProviderLabel(value) : undefined
+  const urlMode = urlSourceName !== undefined
   const historyEnabled = !urlMode
 
   const filteredEntries = useMemo(() => {
@@ -226,16 +225,12 @@ export function SearchInput({
               ...params.slotProps.input,
               startAdornment: urlMode ? (
                 <InputAdornment position="start" sx={{ mr: 0.5 }}>
-                  {providerLabel ? (
-                    <Chip
-                      label={providerLabel}
-                      color="secondary"
-                      size="small"
-                      sx={{ height: 18, fontSize: 10 }}
-                    />
-                  ) : (
-                    <Link sx={{ fontSize: 14, color: 'text.secondary' }} />
-                  )}
+                  <Chip
+                    label={urlSourceName}
+                    color="secondary"
+                    size="small"
+                    sx={{ height: 18, fontSize: 10 }}
+                  />
                 </InputAdornment>
               ) : (
                 <InputAdornment position="start" sx={{ mr: 0.5 }}>
