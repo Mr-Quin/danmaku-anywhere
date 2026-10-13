@@ -1,3 +1,4 @@
+import { AppError } from '@/common/errors/AppError'
 import { chromeSender, tabSender } from '@/common/rpc/sender'
 import { tryCatch } from '@/common/utils/tryCatch'
 import { deserializeError } from '../utils/serializeError'
@@ -8,7 +9,6 @@ import type {
   RPCResponse,
   RpcOptions,
 } from './types'
-import { RpcException } from './types'
 
 export type ClientMessageSender<TInput, TOutput> = (
   payload: RPCPayload<TInput>
@@ -58,6 +58,10 @@ const createPayload = <TInput>(
 // biome-ignore lint/suspicious/noExplicitAny: see above
 const emptyResponse = { data: undefined, context: {} } as RPCClientResponse<any>
 
+function unreachable(message: string, cause?: unknown): AppError {
+  return new AppError('rpc.unreachable', {}, { message, cause })
+}
+
 const handleRpcResponse = <TRecords extends RPCRecord>(
   result: RPCResponse<TRecords[string]['output']> | null,
   method: string,
@@ -66,12 +70,12 @@ const handleRpcResponse = <TRecords extends RPCRecord>(
 ): RPCClientResponse<TRecords[string]> => {
   if (err) {
     if (options?.optional) return emptyResponse
-    throw new RpcException(err.message, { cause: err })
+    throw unreachable(`Method ${method} could not be delivered`, err)
   }
 
   if (!result) {
     if (options?.optional) return emptyResponse
-    throw new RpcException(
+    throw unreachable(
       `Method ${method} returned undefined. This likely means the method is not handled by the server.`
     )
   }
@@ -81,16 +85,14 @@ const handleRpcResponse = <TRecords extends RPCRecord>(
       console.warn(`[RPC] Optional call "${method}" errored:`, result.error)
       return emptyResponse
     }
-    throw new RpcException(result.error, {
-      cause: result.detail ? deserializeError(result.detail) : undefined,
-    })
+    throw result.detail
+      ? deserializeError(result.detail)
+      : new Error(result.error)
   }
 
   if (result.state === 'ignored') {
     if (options?.optional) return emptyResponse
-    throw new RpcException(
-      `Method ${method} is explicitly ignored by the server.`
-    )
+    throw unreachable(`Method ${method} is explicitly ignored by the server.`)
   }
 
   return {

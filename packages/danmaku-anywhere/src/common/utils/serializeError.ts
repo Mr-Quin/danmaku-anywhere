@@ -1,3 +1,10 @@
+import {
+  AppError,
+  type AppErrorCode,
+  type AppErrorParams,
+  isAppErrorCode,
+} from '@/common/errors/AppError'
+
 export type ErrorJson =
   | {
       type: 'error'
@@ -20,8 +27,17 @@ export type ErrorJson =
       message: string
     }
 
+// DOMException is not an Error subclass in every realm (jsdom, for one), so
+// instanceof Error alone misses abort and timeout errors from fetch.
+export function isErrorLike(value: unknown): value is Error {
+  if (value instanceof Error) {
+    return true
+  }
+  return typeof DOMException !== 'undefined' && value instanceof DOMException
+}
+
 export function serializeError(error: unknown): ErrorJson {
-  if (error instanceof Error) {
+  if (isErrorLike(error)) {
     return serializeErrorJson(error)
   }
   if (typeof error === 'string') {
@@ -65,8 +81,33 @@ export function serializeErrorJson(err: Error): ErrorJson {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function deserializeAppError(
+  json: Extract<ErrorJson, { type: 'error' }>
+): AppError | undefined {
+  const { code, params } = json
+  if (!isAppErrorCode(code) || !isRecord(params)) {
+    return undefined
+  }
+  const error = new AppError(code, params as AppErrorParams[AppErrorCode], {
+    message: json.message,
+    cause: json.cause ? deserializeError(json.cause) : undefined,
+  })
+  if (json.stack) {
+    error.stack = json.stack
+  }
+  return error
+}
+
 export function deserializeError(json: ErrorJson): Error {
   if (json.type === 'error') {
+    const appError = deserializeAppError(json)
+    if (appError) {
+      return appError
+    }
     const errorJson = json
     const error = new Error(errorJson.message)
 
