@@ -517,7 +517,7 @@ describe('backup round trip', () => {
       droppedEntries: 0,
     })
     expect((await providerConfigService.getAll())[0].customName).toBe(
-      'vod.example'
+      'vod.example/danmaku'
     )
   })
 

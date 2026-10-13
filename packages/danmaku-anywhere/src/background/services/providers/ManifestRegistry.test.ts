@@ -1,8 +1,8 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createLogger, type LogEntry } from '@/common/Logger'
+import { bundledCatalogIndex } from '@/common/providers/bundledCatalog'
 import { silentLogger } from '@/tests/silentLogger'
-import { bundledCatalogIndex } from './bundledCatalog'
 import { createExtensionFetchLike } from './extensionFetchLike'
 import { ManifestRegistry } from './ManifestRegistry'
 import {

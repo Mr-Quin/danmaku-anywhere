@@ -22,17 +22,7 @@ import { StoreServiceSymbol } from '../options/IStoreService'
 import { IntegrationPolicyService } from '../options/integrationPolicyStore/service'
 import { NamingRuleService } from '../options/localMatchingRule/service'
 import { MountConfigService } from '../options/mountConfig/service'
-import { ProviderConfigWriter } from '../options/providerConfig/ProviderConfigWriter'
-import {
-  ConfigSchemaSourceSymbol,
-  type IProviderConfigCleanup,
-  ProviderConfigCleanupSymbol,
-} from '../options/providerConfig/ports'
 import { ProviderConfigService } from '../options/providerConfig/service'
-import {
-  BundledConfigSchemaSource,
-  installStandaloneBackend,
-} from '../standalone/standaloneBackend'
 
 export const uiContainerModule = new ContainerModule(({ bind }) => {
   bind<IOptionsServiceFactory>(OptionsServiceFactory).toFactory(
@@ -58,23 +48,11 @@ export const uiContainerModule = new ContainerModule(({ bind }) => {
   bind(StoreServiceSymbol).toService(ProviderConfigService)
   bind(StoreServiceSymbol).toService(AiProviderConfigService)
   bind(StoreServiceSymbol).toService(NamingRuleService)
-
-  // Standalone answers background RPCs in the page, with no bookmarks to clean
-  // up and only the bundled manifests to check configs against.
-  bind(ConfigSchemaSourceSymbol).toService(BundledConfigSchemaSource)
-  bind<IProviderConfigCleanup>(ProviderConfigCleanupSymbol).toConstantValue({
-    beforeDelete: () => Promise.resolve(),
-  })
 })
 
 export function createUiContainer(): Container {
   const container = new Container({ autobind: true, defaultScope: 'Singleton' })
   container.load(uiContainerModule)
-  if (IS_STANDALONE_RUNTIME) {
-    installStandaloneBackend({
-      providerConfigWriter: () => container.get(ProviderConfigWriter),
-    })
-  }
   return container
 }
 

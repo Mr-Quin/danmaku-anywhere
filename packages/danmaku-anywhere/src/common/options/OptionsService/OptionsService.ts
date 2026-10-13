@@ -3,6 +3,7 @@ import type { ExtStorageType } from '@/common/storage/getStorageArea'
 import { ExtStorageService } from '../../storage/ExtStorageService'
 import type { ReadinessService } from '../ReadinessService/ReadinessService'
 import { migrateOptions } from './migrationOptions'
+import { OptionsOutdatedError } from './OptionsOutdatedError'
 import type {
   DeferredWrite,
   Options,
@@ -179,8 +180,10 @@ export class OptionsService<T extends OptionsSchema> {
         throw new Error('Cannot transform options without existing options')
       }
       if (stored.version !== this.latestVersion) {
-        throw new Error(
-          `Cannot change ${this.key} stored at version ${stored.version}, expected ${this.latestVersion}`
+        throw new OptionsOutdatedError(
+          this.key,
+          stored.version,
+          this.latestVersion
         )
       }
       const next = await change(stored.data)

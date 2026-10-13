@@ -52,6 +52,13 @@ function notFound(id: string): ProviderConfigError {
   )
 }
 
+function unknownSource(manifestId: string): ProviderConfigError {
+  return new ProviderConfigError(
+    { code: 'config.unknownSource', params: { manifestId } },
+    `No source "${manifestId}" is installed`
+  )
+}
+
 function throwIfInvalid(issues: ProviderConfigIssue[]): void {
   if (issues.length === 0) {
     return
@@ -93,7 +100,11 @@ export class ProviderConfigWriter implements IRestoreEntryCheck {
   async create(input: ProviderConfigDraft): Promise<ProviderConfig> {
     const draft = draftSchema.parse(input)
     const config: ProviderConfig = { ...draft, id: getRandomUUID() }
-    throwIfInvalid(await this.issuesFor(config))
+    const known = await this.findConfigSchema(config.manifestId)
+    if (!known) {
+      throw unknownSource(config.manifestId)
+    }
+    throwIfInvalid(checkProviderConfig({ config, ...known }))
     await this.options.transform((configs) => [...configs, config])
     return config
   }
@@ -119,7 +130,9 @@ export class ProviderConfigWriter implements IRestoreEntryCheck {
     return config
   }
 
-  // Settings the extension owns on a built-in are dropped, not refused.
+  // Settings the extension owns on a built-in are dropped, not refused. A
+  // source whose manifest is not installed can still be renamed, but its
+  // settings cannot be checked, so they stay as they are.
   async update(id: string, input: ProviderConfigEdit): Promise<ProviderConfig> {
     const edit = editSchema.parse(input)
     let updated: ProviderConfig | undefined
@@ -128,8 +141,15 @@ export class ProviderConfigWriter implements IRestoreEntryCheck {
       if (!current) {
         throw notFound(id)
       }
+      const known = await this.findConfigSchema(current.manifestId)
+      if (!known && 'configValues' in edit) {
+        throw unknownSource(current.manifestId)
+      }
       const next = withoutLockedValues({ ...current, ...edit })
-      const issues = await this.issuesFor(next)
+      const issues = checkProviderConfig({
+        config: next,
+        configSchema: known?.configSchema,
+      })
       throwIfInvalid(issues.filter((issue) => touchedBy(edit, issue)))
       updated = next
       return configs.map((item) => (item.id === id ? next : item))
@@ -223,26 +243,21 @@ export class ProviderConfigWriter implements IRestoreEntryCheck {
     if (!parsed.success) {
       return 'Not a source config'
     }
-    const issues = await this.issuesFor(parsed.data)
+    const known = await this.findConfigSchema(parsed.data.manifestId)
+    const issues = checkProviderConfig({
+      config: parsed.data,
+      configSchema: known?.configSchema,
+    })
     return issues.length > 0 ? issues.map(describeIssue).join('; ') : undefined
   }
 
-  private async issuesFor(
-    config: ProviderConfigDraft & { id?: string }
-  ): Promise<ProviderConfigIssue[]> {
-    return checkProviderConfig({
-      config,
-      configSchema: await this.findConfigSchema(config.manifestId),
-    })
-  }
-
+  // Undefined when the manifest is not installed
   private async findConfigSchema(
     manifestId: string
-  ): Promise<ConfigSchema | undefined> {
+  ): Promise<{ configSchema: ConfigSchema | undefined } | undefined> {
     if (isLegacyMacCms({ manifestId })) {
-      return LEGACY_MACCMS_CONFIG_SCHEMA
+      return { configSchema: LEGACY_MACCMS_CONFIG_SCHEMA }
     }
-    const found = await this.configSchemaSource.find(manifestId)
-    return found?.configSchema
+    return this.configSchemaSource.find(manifestId)
   }
 }

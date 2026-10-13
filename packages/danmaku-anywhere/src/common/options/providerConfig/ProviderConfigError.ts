@@ -6,6 +6,7 @@ export interface ProviderConfigErrorParams {
   'config.notFound': { id: string }
   'config.duplicate': { manifestId: string }
   'config.notBuiltin': { manifestId: string }
+  'config.unknownSource': { manifestId: string }
   'config.orderMismatch': Record<string, never>
 }
 
@@ -26,6 +27,7 @@ const CODES: readonly ProviderConfigErrorCode[] = [
   'config.notFound',
   'config.duplicate',
   'config.notBuiltin',
+  'config.unknownSource',
   'config.orderMismatch',
 ]
 

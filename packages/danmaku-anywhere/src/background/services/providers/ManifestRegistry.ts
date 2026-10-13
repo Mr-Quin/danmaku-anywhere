@@ -9,12 +9,15 @@ import {
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import {
+  bundledCatalogIndex,
+  bundledManifestRaw,
+} from '@/common/providers/bundledCatalog'
 import type {
   ManifestUpdate,
   ProviderManifestInfo,
 } from '@/common/rpcClient/background/types'
 import { invariant, sleep } from '@/common/utils/utils'
-import { bundledCatalogIndex, bundledManifestRaw } from './bundledCatalog'
 import { ManifestFetcherSymbol } from './extensionFetchLike'
 import {
   type IManifestStore,

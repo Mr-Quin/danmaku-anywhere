@@ -15,6 +15,7 @@ import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 import { MacCmsProviderForm } from '../components/forms/MacCmsProviderForm'
 import { ProviderConfigForm } from '../components/forms/ProviderConfigForm'
+import { useManifestSpec } from '../hooks/useManifestSpec'
 
 interface ProviderEditorProps {
   mode: 'add' | 'edit'
@@ -31,6 +32,11 @@ export const ProviderEditor = ({
   const { t } = useTranslation()
   const { update, create } = useEditProviderConfig()
   const { nameOf } = useSourceNames()
+  // Legacy MacCMS has no manifest to ask for
+  const { data: spec } = useManifestSpec(provider.manifestId, {
+    enabled: !isLegacyMacCms(provider),
+  })
+  const configSchema = spec?.configSchema
   const toast = useToast.use.toast()
 
   const isEdit = mode === 'edit'
@@ -45,7 +51,9 @@ export const ProviderEditor = ({
             onClose()
           },
           onError: (error) => {
-            toast.error(describeProviderConfigError(error) ?? error.message)
+            toast.error(
+              describeProviderConfigError(error, configSchema) ?? error.message
+            )
           },
         }
       )
@@ -59,7 +67,9 @@ export const ProviderEditor = ({
           onClose()
         },
         onError: (error) => {
-          toast.error(describeProviderConfigError(error) ?? error.message)
+          toast.error(
+            describeProviderConfigError(error, configSchema) ?? error.message
+          )
         },
       }
     )

@@ -1,5 +1,6 @@
 import { isBuiltinConfig } from './builtin'
 import type { ProviderConfig } from './schema'
+import { serverLabel } from './serverLabel'
 
 // Manifest names keyed by manifest id, in the language the names are shown in
 export type ManifestNames = ReadonlyMap<string, string>
@@ -22,19 +23,6 @@ export function sourceName(
   return config.customName ?? defaultSourceName(config, manifestNames)
 }
 
-function serverLabel(config: ProviderConfig): string | undefined {
-  const { baseUrl } = config.configValues
-  if (typeof baseUrl !== 'string') {
-    return undefined
-  }
-  try {
-    const url = new URL(baseUrl)
-    return `${url.host}${url.pathname.replace(/\/$/, '')}`
-  } catch {
-    return undefined
-  }
-}
-
 // Display name per config id. Configs that end up with the same name are told
 // apart by their server, since a self-hosted DanDanPlay usually keeps the
 // default name.
@@ -53,7 +41,7 @@ export function sourceDisplayNames(
   for (const config of configs) {
     const name = baseNames.get(config.id) ?? config.manifestId
     const shared = (nameCounts.get(name) ?? 0) > 1
-    const server = serverLabel(config)
+    const server = serverLabel(config.configValues.baseUrl)
     if (shared && !isBuiltinConfig(config) && server !== undefined) {
       names.set(config.id, `${name} (${server})`)
     } else {

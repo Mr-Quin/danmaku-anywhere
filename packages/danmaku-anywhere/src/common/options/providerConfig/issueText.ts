@@ -1,5 +1,6 @@
 import type { ConfigIssue, ConfigSchema } from '@mr-quin/dango'
 import { i18n } from '@/common/localization/i18n'
+import { isOptionsOutdatedError } from '@/common/options/OptionsService/OptionsOutdatedError'
 import { getProviderConfigError } from './ProviderConfigError'
 
 function schemaAt(
@@ -106,9 +107,37 @@ export function configIssueMessage(
   }
 }
 
+// The issue's place in the form, by field titles where the schema has them
+export function issueFieldLabel(
+  issue: ConfigIssue,
+  root: ConfigSchema | undefined
+): string {
+  const labels: string[] = []
+  let node = root
+  for (const key of issue.path) {
+    if (typeof key === 'number') {
+      labels.push(`#${key + 1}`)
+      node = node?.items
+      continue
+    }
+    labels.push(fieldTitle(node, key))
+    node = node?.properties?.[key]
+  }
+  return labels.join(' › ')
+}
+
+// Undefined when the error did not come from a source write. `configSchema`
+// names the fields an invalid-settings error points at.
 export function describeProviderConfigError(
-  error: unknown
+  error: unknown,
+  configSchema?: ConfigSchema
 ): string | undefined {
+  if (isOptionsOutdatedError(error)) {
+    return i18n.t(
+      'providers.error.outdated',
+      'Your sources are being updated to this version. Try again in a moment.'
+    )
+  }
   const detail = getProviderConfigError(error)
   if (!detail) {
     return undefined
@@ -116,11 +145,15 @@ export function describeProviderConfigError(
   switch (detail.code) {
     case 'config.invalid': {
       const [issue] = detail.params.issues
-      const path = issue?.path.join('.') ?? ''
-      const message = issue
-        ? configIssueMessage(issue, undefined)
-        : i18n.t('providers.editor.validation.invalid', 'Not a valid value')
-      return path === '' ? message : `${path}: ${message}`
+      if (!issue) {
+        return i18n.t(
+          'providers.editor.validation.invalid',
+          'Not a valid value'
+        )
+      }
+      const label = issueFieldLabel(issue, configSchema)
+      const message = configIssueMessage(issue, configSchema)
+      return label === '' ? message : `${label}: ${message}`
     }
     case 'config.nameRequired':
       return i18n.t('providers.error.nameRequired', 'Give the source a name')
@@ -138,6 +171,11 @@ export function describeProviderConfigError(
       return i18n.t(
         'providers.error.notBuiltin',
         'This source has no built-in instance'
+      )
+    case 'config.unknownSource':
+      return i18n.t(
+        'providers.error.unknownSource',
+        'This source is not installed, so its settings cannot be changed'
       )
     case 'config.orderMismatch':
       return i18n.t(

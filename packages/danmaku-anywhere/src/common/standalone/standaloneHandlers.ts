@@ -8,12 +8,21 @@ import type {
   PlayerRelayEvents,
 } from '@/common/rpcClient/background/types'
 import type { ControllerMethods } from '@/common/rpcClient/controller/types'
+import { IS_STANDALONE_RUNTIME } from '../environment/isStandalone'
 import type { MountConfig } from '../options/mountConfig/schema'
 import type { StandaloneRpcHandlers } from './createStandaloneRpcClient'
-import { bundledManifestNames, standaloneBackend } from './standaloneBackend'
 
-function providerConfigWriter() {
-  return standaloneBackend().providerConfigWriter()
+// Loaded on first use and only in the standalone build, so extension builds
+// carry neither the in-page writer setup nor the bundled manifests.
+async function standaloneBackend() {
+  if (!IS_STANDALONE_RUNTIME) {
+    throw new Error('Only the standalone build answers background calls')
+  }
+  return import('./standaloneBackend')
+}
+
+async function providerConfigWriter() {
+  return (await standaloneBackend()).providerConfigWriter()
 }
 
 const standaloneBaseUrlConfig: BaseUrlConfig = {
@@ -111,7 +120,9 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     providerProbeLogin: () => ({ hasLoginProbe: false, ok: true }),
     providerGetManifestSpec: () => ({ name: '', hasLoginProbe: false }),
     providerListManifests: () => ({ manifests: [], lastCheckedAt: null }),
-    providerListManifestNames: ({ locale }) => bundledManifestNames(locale),
+    providerListManifestNames: async ({ locale }) => {
+      return (await standaloneBackend()).bundledManifestNames(locale)
+    },
     providerGetPendingUpdates: () => [],
     providerApplyUpdates: () => undefined,
     fetchImage: ({ src }) => src,
@@ -148,15 +159,24 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     openPopupInNewTab: () => undefined,
     getConfigMacCms: () => standaloneBaseUrlConfig,
     getConfigDanmuIcu: () => standaloneBaseUrlConfig,
-    providerConfigCreate: (draft) => providerConfigWriter().create(draft),
-    providerConfigAddBuiltin: ({ manifestId }) =>
-      providerConfigWriter().addBuiltin(manifestId),
-    providerConfigUpdate: ({ id, edit }) =>
-      providerConfigWriter().update(id, edit),
-    providerConfigSetEnabled: ({ id, enabled }) =>
-      providerConfigWriter().setEnabled(id, enabled),
-    providerConfigSetOrder: ({ ids }) => providerConfigWriter().setOrder(ids),
-    providerConfigDelete: (id) => providerConfigWriter().delete(id),
+    providerConfigCreate: async (draft) => {
+      return (await providerConfigWriter()).create(draft)
+    },
+    providerConfigAddBuiltin: async ({ manifestId }) => {
+      return (await providerConfigWriter()).addBuiltin(manifestId)
+    },
+    providerConfigUpdate: async ({ id, edit }) => {
+      return (await providerConfigWriter()).update(id, edit)
+    },
+    providerConfigSetEnabled: async ({ id, enabled }) => {
+      return (await providerConfigWriter()).setEnabled(id, enabled)
+    },
+    providerConfigSetOrder: async ({ ids }) => {
+      return (await providerConfigWriter()).setOrder(ids)
+    },
+    providerConfigDelete: async (id) => {
+      return (await providerConfigWriter()).delete(id)
+    },
     testAiProvider: () => ({ state: 'success' }),
     backupExport: () => standaloneBackupData,
     backupImport: () => standaloneBackupRestoreResult,

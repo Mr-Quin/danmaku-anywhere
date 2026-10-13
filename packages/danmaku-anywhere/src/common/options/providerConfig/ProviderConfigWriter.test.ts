@@ -128,18 +128,21 @@ describe('ProviderConfigWriter.create', () => {
     expect(await readAll()).toEqual([builtinDdp])
   })
 
-  it('stores a source whose manifest is not installed without checking it', async () => {
+  it('refuses a source whose manifest is not installed', async () => {
     await seedProviders(builtinDdp)
     const { writer, readAll } = setup()
 
-    const created = await writer.create({
-      manifestId: 'not-installed',
-      customName: 'Mystery',
-      enabled: true,
-      configValues: { anything: 1 },
-    })
+    const code = await errorCode(
+      writer.create({
+        manifestId: 'not-installed',
+        customName: 'Mystery',
+        enabled: true,
+        configValues: { anything: 1 },
+      })
+    )
 
-    expect(await readAll()).toEqual([builtinDdp, created])
+    expect(code).toBe('config.unknownSource')
+    expect(await readAll()).toEqual([builtinDdp])
   })
 
   it('requires a name for a source without a manifest', async () => {
@@ -251,6 +254,26 @@ describe('ProviderConfigWriter.update', () => {
     await writer.update('self-hosted', { customName: 'Still here' })
 
     expect((await readAll())[0].customName).toBe('Still here')
+  })
+
+  it('renames a source whose manifest is not installed but keeps its settings', async () => {
+    const unavailable = {
+      ...selfHosted,
+      manifestId: 'mine:gone',
+      configValues: { anything: 1 },
+    }
+    await seedProviders(unavailable)
+    const { writer, readAll } = setup()
+
+    await writer.update('self-hosted', { customName: 'Still mine' })
+    const code = await errorCode(
+      writer.update('self-hosted', { configValues: { anything: 2 } })
+    )
+
+    expect(code).toBe('config.unknownSource')
+    expect(await readAll()).toEqual([
+      { ...unavailable, customName: 'Still mine' },
+    ])
   })
 
   it('does not accept a change to the id', async () => {

@@ -2,7 +2,7 @@ import { type ConfigSchema, getDisplayStrings, zManifest } from '@mr-quin/dango'
 import {
   bundledCatalogIndex,
   bundledManifestRaw,
-} from '@/background/services/providers/bundledCatalog'
+} from '@/common/providers/bundledCatalog'
 
 function bundledManifest(id: string) {
   const parsed = zManifest.safeParse(bundledManifestRaw(id))
