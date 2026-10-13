@@ -1,7 +1,6 @@
 import { Logger } from '@/common/Logger'
 import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
 
-import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import type { MediaElements } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { extractMediaInfo } from '@/content/controller/danmaku/integration/xPathPolicyOps/extractMediaInfo'
@@ -66,7 +65,6 @@ const createRemovalMutationObserver = (element: Node, onRemove: () => void) => {
 export class XPathIntegrationObserver extends MediaObserver {
   public override readonly name: string = 'XPathIntegrationObserver'
 
-  private interval?: NodeJS.Timeout
   private logger = Logger.sub('[XPathIntegrationObserver]')
   private observerMap = new Map<string, MutationObserver>()
 
@@ -75,53 +73,36 @@ export class XPathIntegrationObserver extends MediaObserver {
     this.logger.debug('Creating observer')
   }
 
-  private async discoverElementsXpath() {
-    if (this.interval) {
-      clearInterval(this.interval)
-    }
-
-    const { resolve, promise, reject } = Promise.withResolvers<MediaElements>()
-
-    this.updateStatus('Looking for video elements...')
-    /**
-     * Is there a way to detect when an element is added by xpath?
-     * As a suboptimal solution, check every second to see if the title element is present
-     */
-    this.interval = setInterval(() => {
-      // if the interval is cleared, reject the promise
-      if (this.interval === undefined) {
-        reject('Interval cleared')
+  // There is no event for an element matching an XPath appearing, so poll
+  // once a second until the title element is present.
+  private discoverElements(
+    policy: IntegrationPolicy,
+    signal: AbortSignal
+  ): Promise<MediaElements | undefined> {
+    return new Promise((resolve) => {
+      const finish = (elements?: MediaElements) => {
+        clearInterval(interval)
+        signal.removeEventListener('abort', onAbort)
+        resolve(elements)
       }
-
-      try {
-        if (!this.policy) {
-          reject('Policy not found')
-          return
-        }
-        const matchedNodes = matchNodesByXPathPolicy(this.policy)
-        if (matchedNodes) {
-          clearInterval(this.interval)
-          resolve(matchedNodes)
-        }
-      } catch (err) {
-        if (err instanceof Error) {
-          this.emit('error', err)
-        }
-        this.logger.debug('Error while discovering title:', err)
+      const onAbort = () => {
+        finish(undefined)
       }
-    }, 1000)
-
-    return promise
-  }
-
-  protected override updateMediaInfo(mediaInfo: MediaInfo) {
-    // Only update if the media info has changed
-    if (this.mediaInfo?.equals(mediaInfo)) {
-      return
-    }
-    this.logger.debug('Media info changed:', mediaInfo)
-    super.updateMediaInfo(mediaInfo)
-    this.updateStatus('Video info found: ' + mediaInfo.toString())
+      const interval = setInterval(() => {
+        try {
+          const matchedNodes = matchNodesByXPathPolicy(policy)
+          if (matchedNodes) {
+            finish(matchedNodes)
+          }
+        } catch (err) {
+          if (err instanceof Error) {
+            this.emit('error', err)
+          }
+          this.logger.debug('Error while discovering title:', err)
+        }
+      }, 1000)
+      signal.addEventListener('abort', onAbort, { once: true })
+    })
   }
 
   private parseMediaElements(elements: MediaElements) {
@@ -132,6 +113,9 @@ export class XPathIntegrationObserver extends MediaObserver {
     const extractionResult = extractMediaInfo(elements, this.policy)
 
     if (!extractionResult.success) {
+      // Forget the last media so the same media is reported again once the
+      // page recovers.
+      this.mediaInfo = undefined
       this.emit('error', new Error(extractionResult.error))
       this.logger.debug(
         'Error while getting media info:',
@@ -144,9 +128,13 @@ export class XPathIntegrationObserver extends MediaObserver {
   }
 
   private async setupXpath(signal: AbortSignal) {
+    if (!this.policy) {
+      this.emit('error', new Error('Policy not found'))
+      return
+    }
     this.logger.debug('Discovering elements using XPath')
-    const elements = await this.discoverElementsXpath()
-    if (signal.aborted) {
+    const elements = await this.discoverElements(this.policy, signal)
+    if (!elements || signal.aborted) {
       this.logger.debug('Discovery finished after a reset, ignoring it')
       return
     }
@@ -193,10 +181,7 @@ export class XPathIntegrationObserver extends MediaObserver {
   reset() {
     this.logger.debug('Resetting observer')
     this.stopRun()
-    clearInterval(this.interval)
     this.observerMap.forEach((observer) => observer.disconnect())
     this.observerMap.clear()
-    this.status = ''
-    this.mediaInfo = undefined
   }
 }

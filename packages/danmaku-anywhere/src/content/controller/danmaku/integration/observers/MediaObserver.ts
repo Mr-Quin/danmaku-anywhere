@@ -13,7 +13,8 @@ interface IntegrationHandlers {
   episodeChange: (episode: number) => void
   mediaChange: (state: MediaInfo) => void
   mediaElementsChange: (elements: MediaElements) => void
-  statusChange: (status: string) => void
+  // The observer dropped the media it reported and is starting over.
+  mediaCleared: () => void
   parsingChange: (parsing: boolean) => void
   error: (err: Error) => void
 }
@@ -28,7 +29,6 @@ export abstract class MediaObserver {
   private subscriptions: Map<IntegrationEventKey, Set<Fn>>
   private runController?: AbortController
   protected mediaInfo?: MediaInfo
-  protected status = ''
 
   protected constructor() {
     this.subscriptions = new Map()
@@ -49,8 +49,13 @@ export abstract class MediaObserver {
   }
 
   protected stopRun() {
-    this.runController?.abort()
+    if (!this.runController) {
+      return
+    }
+    this.runController.abort()
     this.runController = undefined
+    this.mediaInfo = undefined
+    this.emit('mediaCleared')
   }
 
   protected updateMediaInfo(mediaInfo: MediaInfo) {
@@ -59,14 +64,6 @@ export abstract class MediaObserver {
     }
     this.mediaInfo = mediaInfo
     this.emit('mediaChange', mediaInfo)
-  }
-
-  protected updateStatus(status: string) {
-    if (this.status === status) {
-      return
-    }
-    this.status = status
-    this.emit('statusChange', status)
   }
 
   on(handlers: Partial<IntegrationHandlers>) {
