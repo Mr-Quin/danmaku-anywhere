@@ -1,4 +1,5 @@
 import 'reflect-metadata'
+import type { FetchLike } from '@mr-quin/dango'
 import { Container, ContainerModule } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { AiProviderConfigService } from '@/common/options/aiProviderConfig/service'
@@ -16,6 +17,10 @@ import {
 import { SearchHistoryService } from '@/common/options/searchHistory/service'
 import { UserAuthStore } from '@/common/options/userAuth/service'
 import { Logger } from './backgroundLogger'
+import {
+  createExtensionFetchLike,
+  ManifestFetcherSymbol,
+} from './services/providers/extensionFetchLike'
 import { ProviderConfigWriter } from './services/providers/ProviderConfigWriter'
 import {
   DanmakuProviderFactory,
@@ -37,6 +42,14 @@ export const backgroundContainerModule = new ContainerModule(({ bind }) => {
   bind<IDanmakuProviderFactory>(DanmakuProviderFactory).toFactory(
     danmakuProviderFactory
   )
+
+  bind<FetchLike>(ManifestFetcherSymbol).toDynamicValue((context) => {
+    const extensionOptions = context.get(ExtensionOptionsService)
+    return createExtensionFetchLike(async () => {
+      const { restrictInitiatorDomain } = await extensionOptions.get()
+      return restrictInitiatorDomain !== false
+    })
+  })
 
   bind<IOptionsServiceFactory>(OptionsServiceFactory).toFactory(
     optionsServiceFactory

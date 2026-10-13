@@ -1,5 +1,10 @@
-import { ManifestRunner, type RunOptions, zManifest } from '@mr-quin/dango'
-import { injectable } from 'inversify'
+import {
+  type FetchLike,
+  ManifestRunner,
+  type RunOptions,
+  zManifest,
+} from '@mr-quin/dango'
+import { inject, injectable } from 'inversify'
 import type {
   ManifestTestDanmakuInput,
   ManifestTestEpisodeRow,
@@ -8,7 +13,7 @@ import type {
   ManifestTestSearchRow,
   ManifestValidationResult,
 } from '@/common/rpcClient/background/types'
-import { extensionFetchLike } from './extensionFetchLike'
+import { ManifestFetcherSymbol } from './extensionFetchLike'
 import { resolveManifestInputs } from './manifestInputs'
 
 // An ad-hoc test run executes an unsaved, user-authored manifest: arbitrary
@@ -28,6 +33,10 @@ export const TEST_DANMAKU_RUN_OPTIONS: RunOptions = Object.freeze({
 // every call rebuilds the runner from the posted manifest and touches no store.
 @injectable('Singleton')
 export class ManifestSandbox {
+  constructor(
+    @inject(ManifestFetcherSymbol) private readonly fetcher: FetchLike
+  ) {}
+
   validate(manifest: unknown): ManifestValidationResult {
     const parsed = zManifest.safeParse(manifest)
     if (parsed.success) {
@@ -93,7 +102,7 @@ export class ManifestSandbox {
       throw new Error('Cannot run an invalid manifest')
     }
     try {
-      return new ManifestRunner(parsed.data, { fetcher: extensionFetchLike })
+      return new ManifestRunner(parsed.data, { fetcher: this.fetcher })
     } catch (e) {
       const reason = e instanceof Error ? e.message : String(e)
       throw new Error(`Failed to build manifest runner: ${reason}`)

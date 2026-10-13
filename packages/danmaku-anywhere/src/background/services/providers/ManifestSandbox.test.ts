@@ -1,10 +1,13 @@
 import { ManifestRunner } from '@mr-quin/dango'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createExtensionFetchLike } from './extensionFetchLike'
 import {
   ManifestSandbox,
   TEST_DANMAKU_RUN_OPTIONS,
   TEST_RUN_OPTIONS,
 } from './ManifestSandbox'
+
+const testFetcher = createExtensionFetchLike(async () => true)
 
 /**
  * ManifestSandbox previews an unsaved manifest. Covers validation surfacing,
@@ -30,13 +33,13 @@ afterEach(() => {
 
 describe('ManifestSandbox.validate', () => {
   it('accepts a well-formed manifest', () => {
-    expect(new ManifestSandbox().validate(makeManifest())).toEqual({
+    expect(new ManifestSandbox(testFetcher).validate(makeManifest())).toEqual({
       valid: true,
     })
   })
 
   it('reports issues with a path and message for an invalid manifest', () => {
-    const result = new ManifestSandbox().validate({ id: 'x' })
+    const result = new ManifestSandbox(testFetcher).validate({ id: 'x' })
     expect(result.valid).toBe(false)
     if (!result.valid) {
       expect(result.issues.length).toBeGreaterThan(0)
@@ -54,7 +57,7 @@ describe('ManifestSandbox test runs', () => {
       baseUrl: 'default',
     })
 
-    await new ManifestSandbox().search({
+    await new ManifestSandbox(testFetcher).search({
       manifest: makeManifest(),
       keyword: 'frieren',
       configValues: { baseUrl: 'override' },
@@ -76,7 +79,7 @@ describe('ManifestSandbox test runs', () => {
       extra: 'kept',
     })
 
-    await new ManifestSandbox().episodes({
+    await new ManifestSandbox(testFetcher).episodes({
       manifest: makeManifest(),
       configValues: { baseUrl: 'override', dropped: undefined },
       providerIds: { seasonId: 7 },
@@ -94,7 +97,7 @@ describe('ManifestSandbox test runs', () => {
       .mockResolvedValue([{}, {}, {}])
     vi.spyOn(ManifestRunner.prototype, 'configDefaults').mockReturnValue({})
 
-    const result = await new ManifestSandbox().danmaku({
+    const result = await new ManifestSandbox(testFetcher).danmaku({
       manifest: makeManifest(),
       providerIds: { cid: 9 },
       params: { chConvert: 1, cid: 'stale' },
@@ -113,7 +116,10 @@ describe('ManifestSandbox test runs', () => {
     const runSearch = vi.spyOn(ManifestRunner.prototype, 'runSearch')
 
     await expect(
-      new ManifestSandbox().search({ manifest: { id: 'x' }, keyword: 'y' })
+      new ManifestSandbox(testFetcher).search({
+        manifest: { id: 'x' },
+        keyword: 'y',
+      })
     ).rejects.toThrow(/invalid/i)
     expect(runSearch).not.toHaveBeenCalled()
   })
