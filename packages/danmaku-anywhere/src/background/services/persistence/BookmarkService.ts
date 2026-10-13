@@ -6,6 +6,7 @@ import type {
 } from '@danmaku-anywhere/danmaku-converter'
 import { inject, injectable } from 'inversify'
 import { findNextStub } from '@/background/services/providers/common/findNextStub'
+import { mergeEpisodeStubs } from '@/background/services/providers/common/mergeEpisodeStubs'
 import type { ProviderService } from '@/background/services/providers/ProviderService'
 import { BOOKMARK_REFRESH_TTL_MS } from '@/common/bookmark/constants'
 import { DanmakuAnywhereDb } from '@/common/db/db'
@@ -108,7 +109,7 @@ export class BookmarkService {
     const episodes = await providerService.fetchEpisodesBySeason(
       bookmark.seasonId
     )
-    const stubs = episodes.map(toStub)
+    const stubs = mergeEpisodeStubs(bookmark.episodes, episodes.map(toStub))
     return this.updateEpisodes(bookmark.id, stubs)
   }
 
