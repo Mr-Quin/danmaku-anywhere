@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { z } from 'zod'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeError } from '@/common/errors/describeError'
 import { useSignUpMutation } from '@/common/hooks/user/useAuthMutations'
 
 const signUpSchema = z
@@ -58,7 +59,7 @@ export const SignUpForm = () => {
           }
         },
         onError: (error) => {
-          toast.error(error.message)
+          toast.error(describeError(error).message)
         },
       }
     )

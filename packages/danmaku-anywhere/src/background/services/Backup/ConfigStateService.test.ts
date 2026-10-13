@@ -174,7 +174,7 @@ describe('ConfigStateService', () => {
         'Invalid backup format'
       )
       await expect(service.restoreState({} as any)).rejects.toMatchObject({
-        problem: 'invalidFormat',
+        code: 'backup.invalidFormat',
       })
     })
 
@@ -223,7 +223,7 @@ describe('ConfigStateService', () => {
             meta: { version, timestamp: 12345 },
             services: {},
           })
-        ).rejects.toMatchObject({ problem: 'unsupportedVersion' })
+        ).rejects.toMatchObject({ code: 'backup.unsupportedVersion' })
 
         expect(mockDanmakuOptionsService.options.set).not.toHaveBeenCalled()
         expect(mockDanmakuOptionsService.options.migrate).not.toHaveBeenCalled()

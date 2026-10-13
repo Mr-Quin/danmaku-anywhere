@@ -1,4 +1,5 @@
 import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
+import type { SourceRef } from '@/common/errors/AppError'
 import type { ProviderConfig } from './schema'
 
 export function isLegacyMacCms(config: { manifestId: string }): boolean {
@@ -14,15 +15,10 @@ export function assertMacCmsConfig(config: ProviderConfig): void {
   }
 }
 
-// Without a config id the request went to the source automatic matching uses,
-// which is the first enabled one that supports it.
-export function findSourceName(
-  configs: ProviderConfig[],
-  providerConfigId?: string
-): string | undefined {
-  if (providerConfigId !== undefined) {
-    return configs.find((config) => config.id === providerConfigId)?.name
+export function toSourceRef(config: ProviderConfig): SourceRef {
+  return {
+    providerConfigId: config.id,
+    manifestId: config.manifestId,
+    name: config.name,
   }
-  return configs.find((config) => config.enabled && !isLegacyMacCms(config))
-    ?.name
 }

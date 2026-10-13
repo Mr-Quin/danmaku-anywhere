@@ -1,5 +1,5 @@
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { serializeErrorJson } from './utils/serializeError'
+import { isErrorLike, serializeErrorJson } from './utils/serializeError'
 
 const prefix = '[Danmaku]'
 
@@ -18,15 +18,6 @@ export interface LogEntry {
   prefix: string
   timestamp: number
   context: string
-}
-
-// DOMException is not an Error subclass in every realm (jsdom, for one), so
-// instanceof Error alone misses abort and timeout errors from fetch.
-function isErrorLike(value: unknown): value is Error {
-  if (value instanceof Error) {
-    return true
-  }
-  return typeof DOMException !== 'undefined' && value instanceof DOMException
 }
 
 function describeError(err: Error): string {

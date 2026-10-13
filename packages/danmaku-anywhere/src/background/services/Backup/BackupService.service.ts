@@ -7,12 +7,13 @@ import { inject, injectable } from 'inversify'
 import { ConfigStateService } from '@/background/services/Backup/ConfigStateService'
 import type { IBackupSink } from '@/background/services/Backup/sinks/BackupSink.interface'
 import { ProviderService } from '@/background/services/providers/ProviderService'
-import { BackupFileError } from '@/common/backup/BackupFileError'
+import { fromProviderApiError } from '@/background/services/providers/providerErrors'
 import type {
   BackupData,
   BackupRestoreResult,
   CloudBackupItem,
 } from '@/common/backup/dto'
+import { AppError } from '@/common/errors/AppError'
 import { UserAuthStore } from '@/common/options/userAuth/service'
 
 @injectable('Singleton')
@@ -36,9 +37,10 @@ export class BackupService {
       try {
         backupData = JSON.parse(backup)
       } catch {
-        throw new BackupFileError(
-          'notJson',
-          'Failed to parse backup data as JSON'
+        throw new AppError(
+          'backup.notJson',
+          {},
+          { message: 'Failed to parse backup data as JSON' }
         )
       }
     }
@@ -66,7 +68,7 @@ export class BackupService {
   async getCloudBackups(): Promise<CloudBackupItem[]> {
     const result = await listCloudBackups(this.getAuth())
     if (!result.success) {
-      throw result.error
+      throw fromProviderApiError(result.error, { kind: 'cloud' })
     }
     return result.data
   }
@@ -79,7 +81,7 @@ export class BackupService {
       this.getAuth()
     )
     if (!result.success) {
-      throw result.error
+      throw fromProviderApiError(result.error, { kind: 'cloud' })
     }
     return result.data
   }
@@ -87,7 +89,7 @@ export class BackupService {
   async downloadCloudBackup(id: string): Promise<unknown> {
     const result = await downloadCloudBackupApi(id, this.getAuth())
     if (!result.success) {
-      throw result.error
+      throw fromProviderApiError(result.error, { kind: 'cloud' })
     }
     return result.data
   }

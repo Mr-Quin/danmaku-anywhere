@@ -1,4 +1,3 @@
-import { getBackupFileProblem } from '@/common/backup/BackupFileError'
 import type { BackupRestoreResult } from '@/common/backup/dto'
 import { i18n } from '@/common/localization/i18n'
 
@@ -38,28 +37,4 @@ export function describeRestoreProblems(result: BackupRestoreResult): string {
   return new Intl.ListFormat(i18n.language, { type: 'conjunction' }).format(
     names
   )
-}
-
-export function describeBackupImportError(error: unknown): string {
-  switch (getBackupFileProblem(error)) {
-    case 'notJson':
-      return i18n.t(
-        'optionsPage.backup.error.notJson',
-        'This file is not a Danmaku Anywhere backup.'
-      )
-    case 'invalidFormat':
-      return i18n.t(
-        'optionsPage.backup.error.invalidFormat',
-        'This backup file is damaged or was not made by Danmaku Anywhere.'
-      )
-    case 'unsupportedVersion':
-      return i18n.t(
-        'optionsPage.backup.error.unsupportedVersion',
-        'This version of Danmaku Anywhere cannot read this backup format.'
-      )
-    default: {
-      const message = error instanceof Error ? error.message : String(error)
-      return `${i18n.t('optionsPage.backup.importError', 'Import failed')}: ${message}`
-    }
-  }
 }

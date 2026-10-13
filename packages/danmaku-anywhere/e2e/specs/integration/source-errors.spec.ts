@@ -10,10 +10,11 @@ import { applyProfile } from '../../setup/profile'
 
 /**
  * A danmaku source that fails during automatic matching produces one error
- * toast that names the source instead of echoing the HTTP error and request
- * URL. It offers the search page and stays up long enough to act on. Covers a
- * failed search and a failed comment fetch after a successful match. Asserts
- * toast text, action, count and that it outlives the default duration.
+ * toast that names the source and the HTTP status instead of echoing the raw
+ * error and request URL. It offers the search page and stays up long enough
+ * to act on. Covers a failed search and a failed comment fetch after a
+ * successful match. Asserts toast text, action, count and that it outlives the
+ * default duration.
  */
 
 const ORIGIN = 'https://da-test.invalid'
@@ -24,8 +25,8 @@ const DDP_SEARCH_URL = /\/ddp\/api\/v2\/search\/anime/
 const DDP_BANGUMI_URL = /\/ddp\/api\/v2\/bangumi\//
 const DDP_COMMENT_URL = /\/ddp\/api\/v2\/comment\//
 
-const UNREACHABLE =
-  /^(Couldn't reach DanDanPlay|无法连接到 (DanDanPlay|弹弹play))/
+const SOURCE_FAILED =
+  /Got an error from DanDanPlay \(HTTP 500\)|弹弹play返回错误（HTTP 500）/
 const OPEN_SEARCH = /^(Open search page|打开搜索页面)$/
 
 function singleSearchResult() {
@@ -34,7 +35,9 @@ function singleSearchResult() {
 }
 
 test.use({
-  expectedConsoleErrors: [/\[RpcManager\] Error in RPC handler.*HTTP 500/],
+  expectedConsoleErrors: [
+    /\[RpcManager\] Error in RPC handler.*message: http:/,
+  ],
 })
 
 test('a failed search shows one error naming the source', async ({
@@ -62,7 +65,7 @@ test('a failed search shows one error naming the source', async ({
   await integrationPage.open(NATIVE_URL, 'native-video.html')
 
   const toast = new Toast(page)
-  await toast.expectError(UNREACHABLE, { timeout: 15_000 })
+  await toast.expectError(SOURCE_FAILED, { timeout: 15_000 })
   const error = toast.bySeverity('error')
   expect(await error.count()).toBe(1)
   await expect(error).not.toContainText('proxy.test.invalid')
@@ -106,7 +109,7 @@ test('a failed comment fetch shows one error naming the source', async ({
   await integrationPage.open(NATIVE_URL, 'native-video.html')
 
   const toast = new Toast(page)
-  await toast.expectError(UNREACHABLE, { timeout: 15_000 })
+  await toast.expectError(SOURCE_FAILED, { timeout: 15_000 })
   // A duplicate report would arrive just after the first, so let it render
   // before counting.
   await page.waitForTimeout(1_000)

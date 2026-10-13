@@ -8,7 +8,6 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
-import { serializeError } from '@/common/utils/serializeError'
 import { EpisodeResolutionService } from '../EpisodeResolutionService'
 import type { IMatchingStrategy } from './IMatchingStrategy'
 
@@ -53,22 +52,17 @@ export class MappingMatchingStrategy implements IMatchingStrategy {
       }
     }
 
-    try {
-      const data = await this.episodeResolver.resolveEpisode(
-        season,
-        episodeNumber
-      )
-      return {
-        status: 'success',
-        data,
-        metadata: { strategy: 'mapping', providerConfig },
-      }
-    } catch (e) {
-      return {
-        status: 'notFound',
-        data: null,
-        cause: serializeError(e).message,
-      }
+    const resolved = await this.episodeResolver.resolveEpisode(
+      season,
+      episodeNumber
+    )
+    if (!resolved.success) {
+      return { status: 'notFound', data: null, cause: resolved.error }
+    }
+    return {
+      status: 'success',
+      data: resolved.data,
+      metadata: { strategy: 'mapping', providerConfig },
     }
   }
 

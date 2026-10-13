@@ -7,7 +7,6 @@ import { isCustomSeason } from '@/common/danmaku/utils'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
-import { serializeError } from '@/common/utils/serializeError'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
@@ -83,22 +82,17 @@ export class SearchMatchingStrategy implements IMatchingStrategy {
         }
       }
 
-      try {
-        const data = await this.episodeResolver.resolveEpisode(
-          firstSeason,
-          episodeNumber
-        )
-        return {
-          status: 'success',
-          data,
-          metadata: { strategy: 'search', providerConfig: autoProvider },
-        }
-      } catch (e) {
-        return {
-          status: 'notFound',
-          data: null,
-          cause: serializeError(e).message,
-        }
+      const resolved = await this.episodeResolver.resolveEpisode(
+        firstSeason,
+        episodeNumber
+      )
+      if (!resolved.success) {
+        return { status: 'notFound', data: null, cause: resolved.error }
+      }
+      return {
+        status: 'success',
+        data: resolved.data,
+        metadata: { strategy: 'search', providerConfig: autoProvider },
       }
     }
 

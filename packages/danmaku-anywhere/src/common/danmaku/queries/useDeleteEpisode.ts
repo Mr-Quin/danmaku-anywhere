@@ -6,6 +6,7 @@ import type {
   CustomEpisodeQueryFilter,
   EpisodeQueryFilter,
 } from '@/common/danmaku/dto'
+import { describeError } from '@/common/errors/describeError'
 import {
   customEpisodeQueryKeys,
   episodeQueryKeys,
@@ -45,7 +46,7 @@ export const useDeleteEpisode = () => {
           'danmaku.alert.deleteError',
           'Failed to delete danmaku: {{message}}',
           {
-            message: e.message,
+            message: describeError(e).message,
           }
         )
       )

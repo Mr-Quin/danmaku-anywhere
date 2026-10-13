@@ -2,6 +2,7 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { useMutation } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeLocalError } from '@/common/errors/describeError'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
@@ -53,7 +54,7 @@ export const useEditAiProviderConfig = () => {
     mutationFn: service.create.bind(service),
     meta,
     onError: (e) => {
-      toast.error(e.message)
+      toast.error(describeLocalError(e))
     },
   })
 
@@ -67,7 +68,7 @@ export const useEditAiProviderConfig = () => {
     }) => service.update(id, config),
     meta,
     onError: (e) => {
-      toast.error(e.message)
+      toast.error(describeLocalError(e))
     },
   })
 
@@ -75,7 +76,7 @@ export const useEditAiProviderConfig = () => {
     mutationFn: service.delete.bind(service),
     meta,
     onError: (e) => {
-      toast.error(e.message)
+      toast.error(describeLocalError(e))
     },
   })
 
@@ -91,7 +92,7 @@ export const useEditAiProviderConfig = () => {
     },
     meta,
     onError: (e) => {
-      toast.error(e.message)
+      toast.error(describeLocalError(e))
     },
   })
 
@@ -109,7 +110,7 @@ export const useEditAiProviderConfig = () => {
     },
     meta,
     onError: (e) => {
-      toast.error(e.message)
+      toast.error(describeLocalError(e))
     },
   })
 

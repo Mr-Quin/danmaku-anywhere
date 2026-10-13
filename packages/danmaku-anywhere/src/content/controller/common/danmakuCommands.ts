@@ -2,9 +2,9 @@ import type {
   CommentEntity,
   GenericEpisode,
 } from '@danmaku-anywhere/danmaku-converter'
+import { AppError } from '@/common/errors/AppError'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { concatArr } from '@/common/utils/utils'
-import { DanmakuMountError } from '@/content/controller/common/hooks/mountError'
 import { useStore } from '@/content/controller/store/store'
 
 export type MountResult = { status: 'mounted' } | { status: 'cancelled' }
@@ -38,9 +38,10 @@ export async function sendMount(
   }
   const frameId = activeFrameId()
   if (frameId === undefined) {
-    throw new DanmakuMountError(
-      'noActiveFrame',
-      'No active frame to mount danmaku'
+    throw new AppError(
+      'mount.noActiveFrame',
+      {},
+      { message: 'No active frame to mount danmaku' }
     )
   }
 
@@ -56,7 +57,11 @@ export async function sendMount(
     data: { comments, visible: isVisible },
   })
   if (!res.data) {
-    throw new DanmakuMountError('mountFailed', 'Failed to mount danmaku')
+    throw new AppError(
+      'mount.failed',
+      {},
+      { message: 'Failed to mount danmaku' }
+    )
   }
 
   const { commitMount, isLatestCommand } = useStore.getState().danmaku

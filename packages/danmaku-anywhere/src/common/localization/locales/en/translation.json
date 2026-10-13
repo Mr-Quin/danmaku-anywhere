@@ -59,6 +59,44 @@
     "sourceRemovedTooltip": "This source has been deleted.",
     "title": "Title"
   },
+  "appError": {
+    "aborted": "The request was cancelled.",
+    "backupInvalidFormat": "This backup file is damaged or was not made by Danmaku Anywhere.",
+    "backupNotJson": "This file is not a Danmaku Anywhere backup.",
+    "backupUnsupportedVersion": "This version of Danmaku Anywhere cannot read this backup format.",
+    "badResponse": "Couldn't read the data from {{target}}. It may have changed.",
+    "catalogApplyFailed": "Couldn't update {{sources}}. Try again later.",
+    "catalogEmpty": "The source catalog has no sources this version can use.",
+    "configDuplicate": "An item with the same ID already exists.",
+    "configNotFound": "This item no longer exists. It may have been deleted.",
+    "episodesUnsupported": "{{source}} cannot list episodes.",
+    "hostNotAllowed": "{{source}} tried to reach a site it is not allowed to use.",
+    "http": "Got an error from {{target}} (HTTP {{status}}). Try again later.",
+    "httpAuth": "The request to {{target}} was refused (HTTP {{status}}). You may need to sign in.",
+    "httpRateLimited": "Too many requests to {{target}}. Wait a moment and try again.",
+    "importUrlExtension": "URL must point to a .json, .xml, .bin, or .zip file.",
+    "importUrlInvalid": "Not a valid URL.",
+    "importUrlScheme": "Only http and https URLs are supported.",
+    "importUrlTooLarge": "File is larger than the {{limit}} limit.",
+    "matchNotFound": "No episode found for {{title}}",
+    "mountFailed": "The video player did not respond.",
+    "mountNoActiveFrame": "Video is not detected.",
+    "network": "Couldn't reach {{target}}. Check your connection and try again.",
+    "noDanmaku": "No danmaku found for {{title}}.",
+    "noUrlParser": "No source can read this link.",
+    "refetchUnsupported": "{{source}} cannot fetch danmaku for saved episodes again.",
+    "rpcUnreachable": "Lost connection to the extension. Reload the page and try again.",
+    "shareCodeInvalid": "This share code is not valid.",
+    "sourceRemoved": "This source has been deleted.",
+    "target": {
+      "catalog": "the source catalog",
+      "cloud": "the cloud backup service",
+      "server": "the server"
+    },
+    "timeout": "Timed out waiting for {{target}}.",
+    "unknown": "Something went wrong.",
+    "urlEpisodeNotFound": "The link was recognized, but its episode could not be found."
+  },
   "bookmark": {
     "add": "Follow",
     "refreshEpisodes": "Refresh Episodes",
@@ -324,14 +362,6 @@
     "skipped_one": "Skipped {{count}} file",
     "skipped_other": "Skipped {{count}} files",
     "urlDialog": {
-      "errors": {
-        "fetchFailed": "Failed to fetch the URL.",
-        "httpError": "Server returned {{status}}.",
-        "invalidScheme": "Only http and https URLs are supported.",
-        "invalidUrl": "Not a valid URL.",
-        "sizeLimitExceeded": "File is larger than the {{limit}} limit.",
-        "unsupportedExtension": "URL must point to a .json, .xml, .bin, or .zip file."
-      },
       "submit": "Fetch & Import",
       "title": "Import from URL",
       "urlHelper": "Direct link to a .json, .xml, .bin, or .zip file",
@@ -373,11 +403,8 @@
       "aiDisabledTooPermissive": "AI is disabled because the match pattern is too permissive",
       "finding": "Finding danmaku for {{name}}…",
       "matchError": "Failed to match episode: {{message}}",
-      "noEpisodeFound": "No episode found for {{title}}",
       "noIntegration": "Integration policy not configured",
       "openSearch": "Open search page",
-      "sourceUnreachable": "Couldn't reach {{source}}",
-      "sourceUnreachableUnnamed": "Couldn't reach the danmaku source",
       "usingAI": "Using AI to parse show information"
     },
     "autoMode": "Auto Mode",
@@ -538,17 +565,11 @@
       "cloudListError": "Failed to load cloud backups.",
       "cloudRevisions": "Revisions",
       "cloudSignInTitle": "Sign in to enable cloud backup",
-      "error": {
-        "invalidFormat": "This backup file is damaged or was not made by Danmaku Anywhere.",
-        "notJson": "This file is not a Danmaku Anywhere backup.",
-        "unsupportedVersion": "This version of Danmaku Anywhere cannot read this backup format."
-      },
       "export": "Export",
       "exportRowDesc": "Save settings to a JSON file",
       "exportToFile": "Save to File",
       "goToSignIn": "Go to Sign In",
       "import": "Import",
-      "importError": "Import failed",
       "importFromFile": "Restore from File",
       "importRowDesc": "Restore settings from a JSON file",
       "latestRevision": "Latest",
@@ -764,10 +785,6 @@
         "url": "Not a valid URL"
       }
     },
-    "error": {
-      "episodesUnsupported": "{{name}} cannot list episodes",
-      "refetchUnsupported": "{{name}} cannot fetch danmaku for saved episodes again"
-    },
     "filter": {
       "placeholder": "Filter sources"
     },
@@ -806,7 +823,6 @@
     "epsCount_one": "{{count}} ep",
     "epsCount_other": "{{count}} eps",
     "error": {
-      "network": "Couldn't reach {{name}}. Check your connection and try again.",
       "noProviders": "No danmaku sources enabled. Enable one on the Sources page.",
       "noResultFound": "No results found, try a different search term"
     },
@@ -822,8 +838,6 @@
       },
       "failed": "Couldn't parse this URL",
       "import": "Download Danmaku",
-      "networkError": "Couldn't reach the site. Check your connection and try again.",
-      "noSource": "No source can read this link",
       "parse": "Parse",
       "parsed": "Parsed",
       "searchInstead": "Search by title instead",
