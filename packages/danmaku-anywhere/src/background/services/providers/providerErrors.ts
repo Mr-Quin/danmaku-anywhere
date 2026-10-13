@@ -6,7 +6,9 @@ import {
   AbortedError,
   Base64DecodeError,
   HostNotAllowedError,
+  HttpStatusError,
   JsonataTimeoutError,
+  NetworkError,
 } from '@mr-quin/dango'
 import {
   AppError,
@@ -21,6 +23,16 @@ export function fromDangoError(error: unknown, source: SourceRef): unknown {
     return error
   }
   const target: ErrorTarget = { kind: 'source', ref: source }
+  if (error instanceof NetworkError) {
+    return new AppError('network', { target }, { cause: error })
+  }
+  if (error instanceof HttpStatusError) {
+    return new AppError(
+      'http',
+      { status: error.status, target },
+      { cause: error }
+    )
+  }
   if (error instanceof HostNotAllowedError) {
     return new AppError('hostNotAllowed', { source }, { cause: error })
   }

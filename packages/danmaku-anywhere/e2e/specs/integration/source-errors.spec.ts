@@ -35,7 +35,9 @@ function singleSearchResult() {
 }
 
 test.use({
-  expectedConsoleErrors: [/\[RpcManager\] Error in RPC handler.*HTTP 500/],
+  expectedConsoleErrors: [
+    /\[RpcManager\] Error in RPC handler.*message: http:/,
+  ],
 })
 
 test('a failed search shows one error naming the source', async ({

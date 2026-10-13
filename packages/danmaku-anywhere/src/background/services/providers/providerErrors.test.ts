@@ -6,7 +6,9 @@ import {
   AbortedError,
   Base64DecodeError,
   HostNotAllowedError,
+  HttpStatusError,
   JsonataTimeoutError,
+  NetworkError,
 } from '@mr-quin/dango'
 import { describe, expect, it } from 'vitest'
 import { AppError } from '@/common/errors/AppError'
@@ -29,6 +31,18 @@ const AT_MACCMS = {
 
 describe('fromDangoError', () => {
   it.each([
+    [
+      new NetworkError('https://api.bilibili.com/x', {
+        cause: new TypeError('Failed to fetch'),
+      }),
+      'network',
+      { target: AT_BILIBILI },
+    ],
+    [
+      new HttpStatusError(429, 'https://api.bilibili.com/x'),
+      'http',
+      { status: 429, target: AT_BILIBILI },
+    ],
     [
       new HostNotAllowedError('private-host-blocked', 'http://127.0.0.1/'),
       'hostNotAllowed',
