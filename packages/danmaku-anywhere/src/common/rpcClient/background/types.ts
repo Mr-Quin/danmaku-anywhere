@@ -117,12 +117,16 @@ export interface ProviderManifestSpec {
   configSchema?: ConfigSchema
 }
 
+export type ManifestUnavailableReason = 'needs-newer-extension' | 'invalid'
+
 export interface ProviderManifestInfo {
   id: string
   name: string
   version: string
   configSchema?: ConfigSchema
   kind: 'preinstalled' | 'user' | 'bundled'
+  // Set when the manifest is stored but cannot run in this build.
+  unavailable?: ManifestUnavailableReason
 }
 
 export interface ProviderManifestList {

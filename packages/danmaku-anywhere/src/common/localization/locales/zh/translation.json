@@ -769,6 +769,10 @@
       "defaultName": "自建弹弹play"
     },
     "name": "弹幕源",
+    "unavailable": {
+      "invalid": "无法加载",
+      "needsNewerExtension": "需要更新扩展版本"
+    },
     "updates": {
       "failed": "更新失败",
       "title": "有可用更新",

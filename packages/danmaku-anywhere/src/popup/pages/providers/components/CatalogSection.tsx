@@ -16,6 +16,7 @@ import { useManifestList, useRefreshCatalog } from '../hooks/useManifestList'
 import { ManifestKindChip } from './ManifestKindChip'
 import { ProviderRow, sourceCardSx } from './ProviderRow'
 import { SectionHeader } from './SectionHeader'
+import { useUnavailableLabel } from './useUnavailableLabel'
 
 interface CatalogSectionProps {
   filter: string
@@ -59,6 +60,17 @@ export const CatalogSection = ({
   const toast = useToast.use.toast()
   const { data, isLoading, isError, isFetching, refetch } = useManifestList()
   const refresh = useRefreshCatalog()
+  const unavailableLabel = useUnavailableLabel()
+
+  const catalogSubtitle = (manifest: ProviderManifestInfo) => {
+    const version = t('providers.catalog.version', 'v{{version}}', {
+      version: manifest.version,
+    })
+    if (manifest.unavailable === undefined) {
+      return version
+    }
+    return `${version} · ${unavailableLabel(manifest.unavailable)}`
+  }
 
   const checkedLabel = useCheckedAgoLabel(data?.lastCheckedAt ?? null)
 
@@ -115,16 +127,14 @@ export const CatalogSection = ({
               avatarSeed={manifest.id}
               primary={manifest.name}
               titleChip={<ManifestKindChip kind={manifest.kind} />}
-              secondary={t('providers.catalog.version', 'v{{version}}', {
-                version: manifest.version,
-              })}
+              secondary={catalogSubtitle(manifest)}
               action={
                 <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>
                   <Button
                     size="small"
                     variant="outlined"
                     onClick={() => onImport(manifest)}
-                    disabled={isImporting}
+                    disabled={isImporting || manifest.unavailable !== undefined}
                   >
                     {t('providers.catalog.import', 'Import')}
                   </Button>

@@ -23,6 +23,7 @@ import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { groupInstalled, supportsInstances } from '../catalog'
 import { ManifestKindChip } from './ManifestKindChip'
 import { ProviderRow, sourceCardSx } from './ProviderRow'
+import { useUnavailableLabel } from './useUnavailableLabel'
 
 interface InstalledListProps {
   configs: ProviderConfig[]
@@ -66,6 +67,16 @@ export const InstalledList = ({
   const toast = useToast.use.toast()
   const { toggle, reorderAll } = useEditProviderConfig()
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const unavailableLabel = useUnavailableLabel()
+
+  const subtitle = (config: ProviderConfig) => {
+    const manifest = manifestById.get(config.manifestId)
+    const version = versionSubtitle(config, manifest)
+    if (manifest?.unavailable === undefined) {
+      return version
+    }
+    return `${version} · ${unavailableLabel(manifest.unavailable)}`
+  }
 
   const displayName = (config: ProviderConfig) =>
     supportsInstances(config.manifestId) && isBuiltinConfig(config)
@@ -106,8 +117,7 @@ export const InstalledList = ({
         )}
         renderPrimary={(config) => displayName(config)}
         renderSecondary={(config) =>
-          (config.configValues?.baseUrl as string) ??
-          versionSubtitle(config, manifestById.get(config.manifestId))
+          (config.configValues?.baseUrl as string) ?? subtitle(config)
         }
       />
     )
@@ -157,6 +167,17 @@ export const InstalledList = ({
     />
   )
 
+  const groupSubtitle = (count: string, manifest?: ProviderManifestInfo) => {
+    if (!manifest) {
+      return count
+    }
+    const version = `${count} · v${manifest.version}`
+    if (manifest.unavailable === undefined) {
+      return version
+    }
+    return `${version} · ${unavailableLabel(manifest.unavailable)}`
+  }
+
   const toggleCollapsed = (id: string) => {
     setCollapsed((prev) => {
       const next = new Set(prev)
@@ -184,10 +205,7 @@ export const InstalledList = ({
                     kind={manifestById.get(config.manifestId)?.kind}
                   />
                 }
-                secondary={versionSubtitle(
-                  config,
-                  manifestById.get(config.manifestId)
-                )}
+                secondary={subtitle(config)}
                 onClick={() => onEdit(config)}
                 action={
                   <>
@@ -243,7 +261,7 @@ export const InstalledList = ({
               avatarSeed={unit.manifestId}
               primary={name}
               titleChip={<ManifestKindChip kind={manifest?.kind} />}
-              secondary={manifest ? `${count} · v${manifest.version}` : count}
+              secondary={groupSubtitle(count, manifest)}
               onClick={() => toggleCollapsed(unit.id)}
               action={
                 <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>

@@ -1,3 +1,5 @@
+import type { ManifestUnavailableReason } from '@/common/rpcClient/background/types'
+
 export type ManifestPipeline =
   | 'search'
   | 'season'
@@ -30,5 +32,31 @@ export class ManifestOutputError extends Error {
     this.manifestId = source.manifestId
     this.providerConfigId = source.providerConfigId
     this.pipeline = source.pipeline
+  }
+}
+
+export type ManifestLookupFailure = 'not-registered' | ManifestUnavailableReason
+
+function describeLookupFailure(
+  manifestId: string,
+  reason: ManifestLookupFailure
+): string {
+  switch (reason) {
+    case 'not-registered':
+      return `no manifest registered with id: ${manifestId}`
+    case 'needs-newer-extension':
+      return `Manifest ${manifestId} needs a newer version of the extension`
+    case 'invalid':
+      return `Manifest ${manifestId} is stored but cannot be loaded`
+  }
+}
+
+export class ManifestUnavailableError extends Error {
+  constructor(
+    readonly manifestId: string,
+    readonly reason: ManifestLookupFailure
+  ) {
+    super(describeLookupFailure(manifestId, reason))
+    this.name = 'ManifestUnavailableError'
   }
 }
