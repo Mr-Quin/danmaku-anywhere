@@ -3,8 +3,7 @@ import type { IStoreService } from './IStoreService'
 import type { StoreSnapshot } from './OptionsService/types'
 
 // Tries every store even after one fails, then rejects naming each store that
-// did not persist. Callers record the version marker only when this resolves,
-// so a partial upgrade is retried from the start.
+// did not persist.
 export async function upgradeStores(
   services: IStoreService[],
   logger: ILogger
