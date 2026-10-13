@@ -1,3 +1,4 @@
+import { ENGINE_VERSION } from '@mr-quin/dango'
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createLogger, type LogEntry } from '@/common/Logger'
@@ -47,6 +48,7 @@ function makeManifest(
 interface CatalogEntry {
   id: string
   apiVersion: number
+  minEngineVersion?: string
   version: string
   file: string
 }
@@ -1108,5 +1110,153 @@ describe('ManifestRegistry bundled manifests', () => {
     expect(
       registry.getRunner('dandanplay').manifest.configSchema?.properties
     ).toHaveProperty('token')
+  })
+})
+
+describe('ManifestRegistry engine compatibility', () => {
+  const [engineMajor] = ENGINE_VERSION.split('.')
+  const newerEngine = `${Number(engineMajor) + 1}.0.0`
+
+  function needsNewerEngine(entry: CatalogEntry): CatalogEntry {
+    return { ...entry, minEngineVersion: newerEngine }
+  }
+
+  function manifestNeedingNewerEngine(
+    id: string,
+    version: string
+  ): Record<string, unknown> {
+    return { ...makeManifest(id, 1, version), minEngineVersion: newerEngine }
+  }
+
+  it('update keeps the bundled copy when the catalog copy needs a newer engine', async () => {
+    const store = new InMemoryStore({
+      dandanplay: {
+        manifest: makeManifest('dandanplay', 1, '0.5.0'),
+        kind: 'bundled',
+      },
+    })
+    const fetchMock = stubCatalogFetch(
+      [needsNewerEngine(catalogEntry('dandanplay', '0.6.0'))],
+      {
+        [manifestPath('dandanplay')]: manifestNeedingNewerEngine(
+          'dandanplay',
+          '0.6.0'
+        ),
+      }
+    )
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(await registry.update()).toBe('empty')
+
+    expect(fileFetches(fetchMock)).toEqual([])
+    expect(await store.get('dandanplay')).toEqual({
+      manifest: makeManifest('dandanplay', 1, '0.5.0'),
+      kind: 'bundled',
+    })
+    expect(registry.getRunner('dandanplay').manifest.version).toBe('0.5.0')
+  })
+
+  it('update does not install a new source that needs a newer engine', async () => {
+    const fetchMock = stubCatalogFetch(
+      [catalogEntry('good'), needsNewerEngine(catalogEntry('future'))],
+      {
+        [manifestPath('good')]: makeManifest('good'),
+        [manifestPath('future')]: manifestNeedingNewerEngine('future', '1.0.0'),
+      }
+    )
+    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+
+    await registry.update()
+
+    expect(nonBundled(registeredIds(registry))).toEqual(['good'])
+    expect(fileFetches(fetchMock).some((url) => url.includes('future'))).toBe(
+      false
+    )
+  })
+
+  it('update warns with the entry and the engine it needs', async () => {
+    stubCatalogFetch([needsNewerEngine(catalogEntry('future'))], {})
+    const warn = vi.spyOn(silentLogger, 'warn')
+    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+
+    await registry.update()
+
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]).toContain('future')
+    expect(warn.mock.calls[0]).toContain(newerEngine)
+  })
+
+  it('a preinstalled update that needs a newer engine is neither offered nor applied', async () => {
+    const installed = makeManifest('one', 1, '1.0.0')
+    const fetchMock = stubCatalogFetch(
+      [needsNewerEngine(catalogEntry('one', '2.0.0'))],
+      { [manifestPath('one')]: manifestNeedingNewerEngine('one', '2.0.0') }
+    )
+    const store = new InMemoryStore({
+      one: { manifest: installed, kind: 'preinstalled' },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(await registry.getPendingUpdates()).toEqual([])
+    await registry.applyUpdates(['one'])
+
+    expect(fileFetches(fetchMock)).toEqual([])
+    expect(await store.get('one')).toEqual({
+      manifest: installed,
+      kind: 'preinstalled',
+    })
+    expect(registry.getRunner('one').manifest.version).toBe('1.0.0')
+  })
+
+  it('keeps the installed copy when the file needs a newer engine than its index entry says', async () => {
+    const store = new InMemoryStore({
+      dandanplay: {
+        manifest: makeManifest('dandanplay', 1, '0.5.0'),
+        kind: 'bundled',
+      },
+    })
+    stubCatalogFetch([catalogEntry('dandanplay', '0.6.0')], {
+      [manifestPath('dandanplay')]: manifestNeedingNewerEngine(
+        'dandanplay',
+        '0.6.0'
+      ),
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await registry.update()
+
+    expect(await store.get('dandanplay')).toMatchObject({ kind: 'bundled' })
+    expect(registry.getRunner('dandanplay').manifest.version).toBe('0.5.0')
+  })
+
+  it('loads a stored manifest whose engine requirement this engine meets', async () => {
+    const store = new InMemoryStore({
+      'mine:one': {
+        manifest: { ...makeManifest('mine:one'), minEngineVersion: '0.0.1' },
+        kind: 'user',
+      },
+    })
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    expect(registry.getRunner('mine:one')).toBeDefined()
+  })
+
+  it('saveUserManifest rejects a manifest that needs a newer engine', async () => {
+    const store = new InMemoryStore()
+    const registry = new ManifestRegistry(silentLogger, store)
+    await registry.ready
+
+    await expect(
+      registry.saveUserManifest(
+        manifestNeedingNewerEngine('mine:one', '1.0.0'),
+        'create'
+      )
+    ).rejects.toThrow(`requires engine ${newerEngine} or newer`)
+
+    expect(await store.get('mine:one')).toBeUndefined()
   })
 })

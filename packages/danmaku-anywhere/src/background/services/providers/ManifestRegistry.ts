@@ -1,8 +1,8 @@
 import {
+  checkManifestCompatibility,
   getDisplayStrings,
   type Manifest,
   ManifestRunner,
-  SUPPORTED_API_VERSIONS,
   zManifest,
 } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
@@ -26,6 +26,7 @@ import {
 const zCatalogEntry = z.object({
   id: z.string(),
   apiVersion: z.number(),
+  minEngineVersion: z.string().optional(),
   version: z.string(),
   file: z.string(),
 })
@@ -354,14 +355,23 @@ export class ManifestRegistry {
       await this.fetchJson(`${this.baseUrl}/manifest`, INDEX_TIMEOUT_MS)
     )
     return index.manifests.filter((entry) => {
-      if (SUPPORTED_API_VERSIONS.has(entry.apiVersion)) {
+      const compatibility = checkManifestCompatibility(entry)
+      if (compatibility.compatible) {
         return true
       }
-      this.log.warn(
-        'Dropping catalog manifest with unsupported apiVersion:',
-        entry.id,
-        entry.apiVersion
-      )
+      if (compatibility.reason === 'api-version') {
+        this.log.warn(
+          'Dropping catalog manifest with unsupported apiVersion:',
+          entry.id,
+          compatibility.apiVersion
+        )
+      } else {
+        this.log.warn(
+          'Dropping catalog manifest that needs a newer engine:',
+          entry.id,
+          compatibility.minEngineVersion
+        )
+      }
       return false
     })
   }
