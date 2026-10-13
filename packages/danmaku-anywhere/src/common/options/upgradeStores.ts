@@ -4,7 +4,8 @@ import type { IStoreService } from './IStoreService'
 import { isStoredAtVersion } from './OptionsService/storedVersion'
 import type { Options, StoreSnapshot } from './OptionsService/types'
 
-// Every store's envelope as it was before the first upgrade step persisted.
+// Every store's envelope, version included, as it was before the first
+// upgrade step persisted.
 type PersistedSnapshot = Record<string, Options<unknown>>
 
 const SNAPSHOT_KEY = 'optionsUpgradeSnapshot'
@@ -20,7 +21,7 @@ export async function upgradeStores(
   const storage = new ExtStorageService<PersistedSnapshot>(SNAPSHOT_KEY, {
     storageType: 'local',
   })
-  const snapshot = await loadSnapshot(services, storage)
+  const snapshot = await loadSnapshot(services, storage, logger)
   const stores: StoreSnapshot = {}
   for (const [key, stored] of Object.entries(snapshot)) {
     stores[key] = stored.data
@@ -44,12 +45,17 @@ export async function upgradeStores(
       `Failed to upgrade options: ${failed.join(', ')}`
     )
   }
-  await storage.delete()
+  // Every store is upgraded at this point. A snapshot left behind is caught
+  // as stale by the next run, so failing here would only hide the success.
+  await storage.delete().catch((error) => {
+    logger.error('Failed to delete the upgrade snapshot', error)
+  })
 }
 
 async function loadSnapshot(
   services: IStoreService[],
-  storage: ExtStorageService<PersistedSnapshot>
+  storage: ExtStorageService<PersistedSnapshot>,
+  logger: ILogger
 ): Promise<PersistedSnapshot> {
   const taken: PersistedSnapshot = {}
   let needsUpgrade = false
@@ -67,9 +73,35 @@ async function loadSnapshot(
   }
 
   const kept = await storage.read()
-  if (kept) {
+  if (kept && isFromThisUpgrade(kept, taken, services)) {
     return kept
+  }
+  if (kept) {
+    logger.debug('Discarding an upgrade snapshot left by an earlier upgrade')
   }
   await storage.set(taken)
   return taken
+}
+
+// A partial run of the same upgrade leaves each store either untouched since
+// the snapshot or at its latest version. Anything else means the snapshot was
+// left by an earlier upgrade, and its data would be older than what is
+// stored now.
+function isFromThisUpgrade(
+  kept: PersistedSnapshot,
+  current: PersistedSnapshot,
+  services: IStoreService[]
+): boolean {
+  return services.every((service) => {
+    const { key, latestVersion } = service.options
+    const now = current[key]
+    if (isStoredAtVersion(now, latestVersion)) {
+      return true
+    }
+    const captured = kept[key]
+    if (!now || !captured) {
+      return now === captured
+    }
+    return (now.version ?? 0) === (captured.version ?? 0)
+  })
 }
