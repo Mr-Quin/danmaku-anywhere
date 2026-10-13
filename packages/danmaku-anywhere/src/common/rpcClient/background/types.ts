@@ -358,7 +358,7 @@ export interface PipelineEntry {
 // Here the frameId is used to identify the DESTINATION frame
 export type PlayerRelayCommands = {
   'relay:command:mount': RPCDef<
-    InputWithFrameId<CommentEntity[]>,
+    InputWithFrameId<{ comments: CommentEntity[]; visible: boolean }>,
     boolean,
     FrameContext
   >

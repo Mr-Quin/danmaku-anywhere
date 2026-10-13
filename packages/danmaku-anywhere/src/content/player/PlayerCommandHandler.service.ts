@@ -271,8 +271,8 @@ export class PlayerCommandHandler {
           // Already started — idempotent
           this.manager.start(query)
         },
-        'relay:command:mount': async ({ data: comments }) => {
-          this.mount(comments)
+        'relay:command:mount': async ({ data: { comments, visible } }) => {
+          this.mount(comments, visible)
           return true
         },
         'relay:command:unmount': async () => {
@@ -327,8 +327,11 @@ export class PlayerCommandHandler {
     server.listen(chrome.runtime.onMessage)
   }
 
-  private mount(comments: CommentEntity[]) {
+  private mount(comments: CommentEntity[], visible: boolean) {
     this.manager.mount(comments)
+    if (!visible) {
+      this.manager.hide()
+    }
     this.videoSkip.setComments(comments)
     this.density.setComments(comments)
   }
