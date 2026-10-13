@@ -16,6 +16,8 @@ import {
 
 type SeverityKey = 'success' | 'warning' | 'info' | 'error'
 
+export type FieldAccentKey = 'title' | 'season' | 'episode' | 'episodeTitle'
+
 declare module '@mui/material/styles' {
   interface Palette {
     paperAlt: string
@@ -25,6 +27,7 @@ declare module '@mui/material/styles' {
     actionActive: string
     tooltipBg: string
     tooltipFg: string
+    fieldAccent: Record<FieldAccentKey, string>
   }
   interface PaletteOptions {
     paperAlt?: string
@@ -34,7 +37,15 @@ declare module '@mui/material/styles' {
     actionActive?: string
     tooltipBg?: string
     tooltipFg?: string
+    fieldAccent?: Record<FieldAccentKey, string>
   }
+}
+
+const FIELD_ACCENT: Record<FieldAccentKey, string> = {
+  title: '#E86A8E',
+  season: '#B39CF5',
+  episode: '#5AA7E8',
+  episodeTitle: '#E9A23B',
 }
 
 declare module '@mui/material/Button' {
@@ -131,6 +142,7 @@ function toPaletteOptions(
     actionActive: t.actionActive,
     tooltipBg: t.tooltipBg,
     tooltipFg: t.tooltipFg,
+    fieldAccent: FIELD_ACCENT,
   }
 }
 
