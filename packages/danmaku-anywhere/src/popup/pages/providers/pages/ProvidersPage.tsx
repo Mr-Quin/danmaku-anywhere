@@ -116,7 +116,7 @@ export const ProvidersPage = (): ReactElement => {
         toast.success(t('providers.alert.created', 'Source created'))
       },
       onError: (error) => {
-        toast.error(error.message)
+        toast.error(describeError(error).message)
       },
     })
   }
@@ -165,7 +165,7 @@ export const ProvidersPage = (): ReactElement => {
             toast.success(t('providers.alert.deleted', 'Source deleted'))
           },
           onError: (error) => {
-            toast.error(error.message)
+            toast.error(describeError(error).message)
           },
         })
       },

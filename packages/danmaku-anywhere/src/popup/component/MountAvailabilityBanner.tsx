@@ -7,6 +7,7 @@ import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeError } from '@/common/errors/describeError'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import { useEditMountConfig } from '@/common/options/mountConfig/useMountConfig'
 import type { MountAvailability } from '@/popup/hooks/useMountAvailability'
@@ -140,7 +141,7 @@ export const MountAvailabilityBanner = (): ReactElement => {
       { id: configId, config: { enabled: true } },
       {
         onError: (error) => {
-          toast.error(error.message)
+          toast.error(describeError(error).message)
         },
       }
     )
