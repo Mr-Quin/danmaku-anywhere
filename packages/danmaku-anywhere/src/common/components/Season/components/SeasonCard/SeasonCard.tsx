@@ -155,9 +155,9 @@ export const SeasonCard = ({
       isCustomSeason(season) ? undefined : season.providerConfigId
     )
   )
-  const followGate = isBookmarked
-    ? { disabled: false }
-    : menuItemState(actions.follow)
+  const followGate = menuItemState(
+    isBookmarked ? actions.unfollow : actions.follow
+  )
   const refreshGate = menuItemState(actions.refreshMetadata)
 
   const renderEpisodeCount = () => {

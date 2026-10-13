@@ -6,7 +6,7 @@ import {
   useQueries,
   useQuery,
 } from '@tanstack/react-query'
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { isSourceEpisode } from '@/common/danmaku/utils'
 import { sourceQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -17,6 +17,8 @@ import {
 } from './sourceCapabilities'
 
 const NOT_A_LINK: UrlParseAnswer = { kind: 'notLink' }
+
+const URL_CHECK_DELAY_MS = 150
 
 // followBackgroundChanges invalidates these when configs or manifests change.
 export function sourceCapabilitiesQuery(providerConfigId: string) {
@@ -43,25 +45,30 @@ export function useSourceCapabilities(
 }
 
 function answersOf(results: QueryObserverResult<SourceCapabilityAnswer>[]) {
-  return results.map((result) => result.data)
+  return {
+    answers: results.map((result) => result.data),
+    settled: results.every((result) => !result.isPending),
+  }
 }
 
-export function useSourceAnswers(
-  providerConfigIds: string[]
-): Map<string, SourceCapabilityAnswer> {
-  const answers = useQueries({
+export function useSourceAnswers(providerConfigIds: string[]): {
+  answers: Map<string, SourceCapabilityAnswer>
+  settled: boolean
+} {
+  const { answers, settled } = useQueries({
     queries: providerConfigIds.map((id) => sourceCapabilitiesQuery(id)),
     combine: answersOf,
   })
-  return useMemo(() => {
-    const byId = new Map<string, SourceCapabilityAnswer>()
+  const byId = useMemo(() => {
+    const map = new Map<string, SourceCapabilityAnswer>()
     answers.forEach((answer, index) => {
       if (answer) {
-        byId.set(providerConfigIds[index], answer)
+        map.set(providerConfigIds[index], answer)
       }
     })
-    return byId
+    return map
   }, [providerConfigIds, answers])
+  return { answers: byId, settled }
 }
 
 export function useCanRefetchDanmaku(
@@ -80,7 +87,7 @@ export function urlParseQuery(text: string) {
     queryKey: sourceQueryKeys.urlSource(url),
     staleTime: Number.POSITIVE_INFINITY,
     queryFn: async (): Promise<UrlParseAnswer> => {
-      if (url === '') {
+      if (url === '' || /\s/.test(url)) {
         return NOT_A_LINK
       }
       const res = await chromeRpcClient.mediaFindUrlSource({ url })
@@ -89,9 +96,23 @@ export function urlParseQuery(text: string) {
   })
 }
 
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debounced, setDebounced] = useState(value)
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebounced(value)
+    }, delayMs)
+    return () => {
+      clearTimeout(timeout)
+    }
+  }, [value, delayMs])
+  return debounced
+}
+
 export function useUrlParseAnswer(text: string): UrlParseAnswer {
+  const settledText = useDebouncedValue(text.trim(), URL_CHECK_DELAY_MS)
   const { data } = useQuery({
-    ...urlParseQuery(text),
+    ...urlParseQuery(settledText),
     placeholderData: keepPreviousData,
   })
   return data ?? NOT_A_LINK

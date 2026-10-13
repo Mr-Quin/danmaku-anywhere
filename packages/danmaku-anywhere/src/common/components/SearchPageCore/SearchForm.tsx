@@ -79,7 +79,8 @@ export function SearchForm({
     () => configs.filter((c) => c.enabled).map((c) => c.id),
     [configs]
   )
-  const sourceAnswers = useSourceAnswers(enabledIds)
+  const { answers: sourceAnswers, settled: answersSettled } =
+    useSourceAnswers(enabledIds)
   const enabledProviders = useMemo(
     () =>
       configs.filter((c) => {
@@ -107,7 +108,10 @@ export function SearchForm({
       }),
       queryFn: () => searchSeasonForProvider(provider.id, committedSearchTerm),
       enabled:
-        !!committedSearchTerm && !isUrl && provider.id === activeProviderId,
+        !!committedSearchTerm &&
+        !isUrl &&
+        answersSettled &&
+        provider.id === activeProviderId,
       staleTime: Number.POSITIVE_INFINITY,
       gcTime: 30 * 60 * 1000,
       retry: false,

@@ -163,10 +163,13 @@ describe('useUrlParseAnswer', () => {
     })
   })
 
-  it('leaves an empty box as not a link without asking', async () => {
-    render(<UrlProbe text="  " />)
+  it.each([
+    '  ',
+    'sousou no frieren',
+  ])('leaves %j as not a link without asking', async (text) => {
+    render(<UrlProbe text={text} />)
 
-    await new Promise((resolve) => setTimeout(resolve, 20))
+    await new Promise((resolve) => setTimeout(resolve, 300))
     expect(element.textContent).toBe('notLink')
     expect(rpc.mediaFindUrlSource).not.toHaveBeenCalled()
   })

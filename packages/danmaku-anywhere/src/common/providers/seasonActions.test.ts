@@ -4,8 +4,9 @@ import { capabilitiesFromManifest } from './sourceCapabilities'
 
 /**
  * seasonActions is the one answer the season menu and the season card read:
- * each action follows the source capability it needs, and a removed or
- * unavailable source keeps its actions visible but disabled.
+ * each action follows the source capability it needs, a removed or
+ * unavailable source keeps its actions visible but disabled, and unfollowing
+ * is always allowed.
  */
 
 const pipeline = {}
@@ -24,6 +25,7 @@ describe('seasonActions', () => {
     expect(actions).toEqual({
       refreshMetadata: { state: 'hidden' },
       follow: { state: 'enabled' },
+      unfollow: { state: 'enabled' },
       refreshEpisodes: { state: 'enabled' },
     })
   })
@@ -41,6 +43,7 @@ describe('seasonActions', () => {
     expect(seasonActions({ status: 'removed' })).toEqual({
       refreshMetadata: { state: 'disabled', because: 'sourceRemoved' },
       follow: { state: 'disabled', because: 'sourceRemoved' },
+      unfollow: { state: 'enabled' },
       refreshEpisodes: { state: 'disabled', because: 'sourceRemoved' },
     })
   })

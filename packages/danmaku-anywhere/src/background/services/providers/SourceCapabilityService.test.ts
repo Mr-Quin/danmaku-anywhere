@@ -347,6 +347,33 @@ describe('SourceCapabilityService.findUrlSource', () => {
     ).toEqual({ kind: 'unclaimed' })
   })
 
+  it('leaves an unclaimed link pasted without a scheme unclaimed', async () => {
+    const service = build(
+      [makeConfig('bili')],
+      [makeRunner('bili', ['parseUrl'], [BANGUMI])]
+    )
+
+    expect(
+      await service.findUrlSource('www.bilibili.com/bangumi/media/md1')
+    ).toEqual({ kind: 'unclaimed' })
+  })
+
+  it('skips a source whose URL check throws and still finds the next', async () => {
+    const flaky = makeRunner('flaky', ['parseUrl'], [BANGUMI])
+    vi.spyOn(flaky, 'canParse').mockImplementation(() => {
+      throw new Error('runner went away')
+    })
+    const service = build(
+      [makeConfig('flaky'), makeConfig('bili', { name: 'Bilibili' })],
+      [flaky, makeRunner('bili', ['parseUrl'], [BANGUMI])]
+    )
+
+    expect(await service.findUrlSource(BANGUMI_URL)).toEqual({
+      kind: 'parseable',
+      sourceName: 'Bilibili',
+    })
+  })
+
   it('treats a plain title as not a link', async () => {
     const service = build(
       [makeConfig('bili')],
@@ -354,5 +381,6 @@ describe('SourceCapabilityService.findUrlSource', () => {
     )
 
     expect(await service.findUrlSource('frieren')).toEqual({ kind: 'notLink' })
+    expect(await service.findUrlSource('Dr.STONE')).toEqual({ kind: 'notLink' })
   })
 })

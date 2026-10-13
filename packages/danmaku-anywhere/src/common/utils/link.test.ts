@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isHttpLink, withUrlScheme } from './link'
+import { isLink, withUrlScheme } from './link'
 
 describe('withUrlScheme', () => {
   it('adds https to a link pasted without a scheme', () => {
@@ -15,19 +15,24 @@ describe('withUrlScheme', () => {
   })
 })
 
-describe('isHttpLink', () => {
+describe('isLink', () => {
   it.each([
     'https://v.qq.com/x/cover/abc.html',
     'http://localhost:8080/play/1',
+    'www.bilibili.com/bangumi/media/md1',
+    'v.qq.com/x/cover/abc.html',
   ])('accepts %s', (text) => {
-    expect(isHttpLink(text)).toBe(true)
+    expect(isLink(text)).toBe(true)
   })
 
   it.each([
+    '',
     'frieren',
-    'www.bilibili.com/bangumi',
+    'Dr.STONE',
+    'sousou no frieren.mkv',
+    'localhost/play/1',
     'ftp://example.com/file',
   ])('rejects %s', (text) => {
-    expect(isHttpLink(text)).toBe(false)
+    expect(isLink(text)).toBe(false)
   })
 })

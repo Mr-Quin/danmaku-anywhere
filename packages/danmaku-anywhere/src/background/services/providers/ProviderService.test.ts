@@ -589,6 +589,32 @@ describe('ProviderService capability gates', () => {
 })
 
 describe('ProviderService.parseUrl', () => {
+  it('falls through to the next source that can parse links', async () => {
+    const first = makeConfig('first')
+    const second = makeConfig('second')
+    const parses = available(capabilitiesFromManifest({ parseUrl: {} }))
+    const season = makeSeason()
+    const missed = vi.fn(async () => null)
+    const parsed = vi.fn(async () => ({
+      seasonInsert: makeSeasonInsert(),
+      episodeMeta: { title: 'E', indexedId: 'ep', providerIds: {} },
+    }))
+    const providers = new Map([
+      [first.id, { kind: 'source', getStatus: parses, parseUrl: missed }],
+      [second.id, { kind: 'source', getStatus: parses, parseUrl: parsed }],
+    ])
+    const service = buildService({
+      providerConfigService: { getAll: vi.fn(async () => [first, second]) },
+      seasonService: { upsert: vi.fn(async () => season) },
+      factory: vi.fn((config: ProviderConfig) => providers.get(config.id)),
+    })
+
+    const result = await service.parseUrl('x.example/play/1')
+
+    expect(result).toMatchObject({ indexedId: 'ep', season })
+    expect(missed).toHaveBeenCalledWith('https://x.example/play/1')
+  })
+
   it('throws a no-parser source error when no source can parse the URL', async () => {
     const { service } = build(makeConfig('iqiyi'), makeProvider())
 

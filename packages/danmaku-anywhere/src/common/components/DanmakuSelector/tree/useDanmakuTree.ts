@@ -25,7 +25,6 @@ import {
 import { providerDisplayNames } from '@/common/options/providerConfig/displayName'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
-import { useSourceAnswers } from '@/common/providers/useSourceCapabilities'
 import { compareLocale } from '@/common/utils/collator'
 import { matchWithPinyin } from '@/common/utils/utils'
 
@@ -155,10 +154,6 @@ export const useDanmakuTree = (
   const { data: seasons } = useGetAllSeasonsSuspense({ includeEmpty: true })
   const { data: bookmarks } = useBookmarksSuspense()
   const { getProviderById, configs } = useProviderConfig()
-  const providerConfigIds = useMemo(() => {
-    return [...new Set(seasons.map((season) => season.providerConfigId))]
-  }, [seasons])
-  const sourceAnswers = useSourceAnswers(providerConfigIds)
 
   const { t } = useTranslation()
 
@@ -264,8 +259,7 @@ export const useDanmakuTree = (
       }
 
       const resolvedConfig = resolveSeasonConfig(season, configs)
-      const orphaned =
-        sourceAnswers.get(season.providerConfigId)?.status === 'removed'
+      const orphaned = resolvedConfig === undefined
       const provider = resolvedConfig ?? getProviderById(season.manifestId)
 
       const children = groupEpisodes.map((ep) =>
@@ -306,8 +300,7 @@ export const useDanmakuTree = (
       }
 
       const resolvedConfig = resolveSeasonConfig(season, configs)
-      const orphaned =
-        sourceAnswers.get(season.providerConfigId)?.status === 'removed'
+      const orphaned = resolvedConfig === undefined
 
       if (!typeFilter.includes(providerTypeFromManifestId(season.manifestId))) {
         continue
@@ -398,7 +391,6 @@ export const useDanmakuTree = (
     t,
     getProviderById,
     configs,
-    sourceAnswers,
   ])
 
   return {
