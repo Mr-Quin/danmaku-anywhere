@@ -7,6 +7,7 @@ import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
+import { describeMountError } from '@/content/controller/common/hooks/mountError'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
 import { episodeToast } from '@/content/controller/danmaku/integration/episodeToast'
@@ -132,7 +133,7 @@ export const useIntegrationPolicy = () => {
                   const { message, ...action } = describeMounted(matched, name)
                   episodeToast.succeed(message, action)
                 },
-                () => episodeToast.dismiss()
+                (error: unknown) => episodeToast.fail(describeMountError(error))
               )
               return
             }
@@ -149,7 +150,11 @@ export const useIntegrationPolicy = () => {
                 silent: true,
               },
               {
-                onSuccess: ({ episode, mounted }) => {
+                onSuccess: ({ episode, mounted, mountError }) => {
+                  if (mountError !== undefined) {
+                    episodeToast.fail(describeMountError(mountError))
+                    return
+                  }
                   if (!mounted) {
                     episodeToast.dismiss()
                     return
@@ -160,13 +165,12 @@ export const useIntegrationPolicy = () => {
                 onError: (error) => {
                   const { message, ...action } = describeSourceError({
                     error,
-                    fallbackMessage: t(
-                      'danmaku.alert.fetchError',
-                      'Failed to fetch danmaku: {{message}}',
-                      {
-                        message: error.message,
-                      }
-                    ),
+                    describeFailure: (reason) =>
+                      t(
+                        'danmaku.alert.fetchError',
+                        'Failed to fetch danmaku: {{message}}',
+                        { message: reason }
+                      ),
                     providerConfigId: matched.season.providerConfigId,
                   })
                   episodeToast.fail(message, action)

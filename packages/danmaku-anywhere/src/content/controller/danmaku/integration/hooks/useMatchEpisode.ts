@@ -20,13 +20,12 @@ export const useMatchEpisode = () => {
     onError: (e) => {
       const { message, ...action } = describeSourceError({
         error: e,
-        fallbackMessage: t(
-          'integration.alert.matchError',
-          'Failed to match episode: {{message}}',
-          {
-            message: e.message,
-          }
-        ),
+        describeFailure: (reason) =>
+          t(
+            'integration.alert.matchError',
+            'Failed to match episode: {{message}}',
+            { message: reason }
+          ),
       })
       episodeToast.fail(message, action)
     },

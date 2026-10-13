@@ -17,6 +17,12 @@ import { concatArr } from '@/common/utils/utils'
 import { useStore } from '@/content/controller/store/store'
 import { DanmakuMountError, describeMountError } from './mountError'
 
+interface MountInput {
+  episodes: GenericEpisode[]
+  // The caller reports the result itself, failure included
+  silent: boolean
+}
+
 const useMountDanmaku = () => {
   const { toast } = useToast()
 
@@ -24,7 +30,7 @@ const useMountDanmaku = () => {
   const { mount } = useStore.use.danmaku()
 
   return useMutation({
-    mutationFn: async (episodes: GenericEpisode[]) => {
+    mutationFn: async ({ episodes }: MountInput) => {
       const activeFrame = getActiveFrame()
       if (!activeFrame) {
         throw new DanmakuMountError(
@@ -58,11 +64,14 @@ const useMountDanmaku = () => {
 
       return activeFrame.frameId
     },
-    onSuccess: (mountedFrameId, danmaku) => {
-      mount(danmaku)
+    onSuccess: (mountedFrameId, { episodes }) => {
+      mount(episodes)
       updateFrame(mountedFrameId, { mounted: true })
     },
-    onError: (err) => {
+    onError: (err, { silent }) => {
+      if (silent) {
+        return
+      }
       toast.error(describeMountError(err))
     },
   })
@@ -71,7 +80,6 @@ const useMountDanmaku = () => {
 const REFRESH_TOAST_ID = 'refresh-danmaku'
 
 interface MountDanmakuOptions {
-  // The caller reports the result itself
   silent?: boolean
 }
 
@@ -128,28 +136,32 @@ export const useLoadDanmaku = () => {
 
   const mountDanmaku = useEventCallback(
     (episodes: GenericEpisode[], options: MountDanmakuOptions = {}) => {
-      return mountMutation.mutateAsync(episodes, {
-        // This is called in addition to the onSuccess of mountMutation
-        onSuccess: () => {
-          if (options.silent) {
-            return
-          }
-          if (episodes.length === 1) {
-            const { message, ...action } = describeMounted(episodes[0])
-            toast.success(message, action)
-          } else {
-            toast.success(
-              t(
-                'danmaku.alert.mountedMultiple',
-                'Mounted {{count}} selected danmaku',
-                {
-                  count: episodes.length,
-                }
+      const silent = options.silent ?? false
+      return mountMutation.mutateAsync(
+        { episodes, silent },
+        {
+          // This is called in addition to the onSuccess of mountMutation
+          onSuccess: () => {
+            if (silent) {
+              return
+            }
+            if (episodes.length === 1) {
+              const { message, ...action } = describeMounted(episodes[0])
+              toast.success(message, action)
+            } else {
+              toast.success(
+                t(
+                  'danmaku.alert.mountedMultiple',
+                  'Mounted {{count}} selected danmaku',
+                  {
+                    count: episodes.length,
+                  }
+                )
               )
-            )
-          }
-        },
-      })
+            }
+          },
+        }
+      )
     }
   )
 
@@ -157,14 +169,15 @@ export const useLoadDanmaku = () => {
     mutationFn: async ({ request, silent = false }: LoadDanmakuInput) => {
       const result = await fetchMutation.mutateAsync(request)
       if (result.keptStored && isOnlyMounted(result.episode)) {
-        return { ...result, mounted: false }
+        return { ...result, mounted: false, mountError: undefined }
       }
-      // A mount failure is already reported by the mount mutation.
-      const mounted = await mountDanmaku([result.episode], { silent }).then(
-        () => true,
-        () => false
-      )
-      return { ...result, mounted }
+      let mountError: unknown
+      try {
+        await mountDanmaku([result.episode], { silent })
+      } catch (error) {
+        mountError = error
+      }
+      return { ...result, mounted: mountError === undefined, mountError }
     },
   })
 
@@ -194,17 +207,23 @@ export const useLoadDanmaku = () => {
       loading: true,
     })
     try {
-      const { episode: refreshed, keptStored } = await loadMutation.mutateAsync(
-        {
-          request: {
-            type: 'by-meta',
-            meta: episode as WithSeason<Episode>,
-            options: { forceUpdate: true },
-          },
-          silent: true,
-        }
-      )
-      // useFetchDanmaku reports a kept-stored refetch and any failure itself.
+      const {
+        episode: refreshed,
+        keptStored,
+        mountError,
+      } = await loadMutation.mutateAsync({
+        request: {
+          type: 'by-meta',
+          meta: episode as WithSeason<Episode>,
+          options: { forceUpdate: true },
+        },
+        silent: true,
+      })
+      if (mountError !== undefined) {
+        toast.error(describeMountError(mountError), { id: REFRESH_TOAST_ID })
+        return
+      }
+      // useFetchDanmaku reports a kept-stored refetch and a fetch failure itself.
       if (keptStored) {
         toast.dismiss(REFRESH_TOAST_ID)
         return
