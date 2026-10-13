@@ -14,8 +14,8 @@ import { useProviderConfig } from './useProviderConfig'
  * has recorded the running version. A popup opened while lastVersion is still
  * behind shows the suspense fallback instead of the pre-upgrade store, and
  * renders the upgraded configs once the version is written. Configs the
- * background writes after that first read, before the page has mounted, still
- * reach the page.
+ * background writes during or after that first read, before the page has
+ * mounted, still reach the page.
  */
 
 function config(name: string): ProviderConfig {
@@ -124,6 +124,33 @@ it('shows configs written after the first read but before the page mounts', asyn
     providerConfig: { data: [config('written later')], version: 5 },
   })
   mount.resolve()
+
+  await vi.waitFor(() => {
+    expect(element.textContent).toBe('written later')
+  })
+})
+
+it('shows configs written while the first read was resolving', async () => {
+  await fakeBrowser.storage.local.set({
+    lastVersion: { lastVersion: EXTENSION_VERSION },
+  })
+  await fakeBrowser.storage.sync.set({
+    providerConfig: { data: [config('first read')], version: 5 },
+  })
+  const get = fakeBrowser.storage.sync.get.bind(fakeBrowser.storage.sync)
+  vi.spyOn(fakeBrowser.storage.sync, 'get').mockImplementationOnce(
+    async (keys) => {
+      const result = await get(keys)
+      await fakeBrowser.storage.sync.set({
+        providerConfig: { data: [config('written later')], version: 5 },
+      })
+      return result
+    }
+  )
+  const client = new QueryClient()
+  stopFollowing = followBackgroundChanges(client)
+
+  const element = renderConfigNames(client, Promise.resolve())
 
   await vi.waitFor(() => {
     expect(element.textContent).toBe('written later')

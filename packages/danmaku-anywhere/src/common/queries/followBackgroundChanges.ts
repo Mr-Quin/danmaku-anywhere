@@ -1,4 +1,8 @@
-import type { QueryClient, QueryKey } from '@tanstack/react-query'
+import type {
+  InvalidateQueryFilters,
+  QueryClient,
+  QueryKey,
+} from '@tanstack/react-query'
 import {
   type ManifestChange,
   subscribeDataChange,
@@ -17,22 +21,24 @@ type StorageChanges = Record<string, chrome.storage.StorageChange>
 // Subscribe before any query reads. A change that lands between a query's
 // first read and a later subscription is otherwise never seen.
 export function followBackgroundChanges(client: QueryClient): () => void {
+  const invalidator = createInvalidator(client)
   const unsubscribers = [
+    invalidator.stop,
     subscribeDataChange((event) => {
       if (event.type === 'invalidateQueries') {
         for (const queryKey of event.keys) {
-          void client.invalidateQueries({ queryKey })
+          invalidator.invalidate({ queryKey })
         }
         return
       }
       if (event.type === 'manifestsChanged') {
         for (const queryKey of keysAffectedBy(event)) {
-          void client.invalidateQueries({ queryKey })
+          invalidator.invalidate({ queryKey })
         }
       }
     }),
     ...STORAGE_TYPES.map((storageType) => {
-      return followStorageArea(client, storageType)
+      return followStorageArea(invalidator, storageType)
     }),
   ]
   return () => {
@@ -57,14 +63,58 @@ function keysAffectedBy(change: ManifestChange): QueryKey[] {
   return keys
 }
 
+interface Invalidator {
+  invalidate: (filters: InvalidateQueryFilters) => void
+  stop: () => void
+}
+
+// invalidateQueries cannot restart a query's first fetch, and that fetch
+// clears the stale mark when it lands with what it read before the change.
+// Such queries are marked again once their fetch settles.
+function createInvalidator(client: QueryClient): Invalidator {
+  const cache = client.getQueryCache()
+  const staleOnSettle = new Set<string>()
+  const stop = cache.subscribe((event) => {
+    if (event.type === 'removed') {
+      staleOnSettle.delete(event.query.queryHash)
+      return
+    }
+    if (event.type !== 'updated') {
+      return
+    }
+    if (event.action.type !== 'success' && event.action.type !== 'error') {
+      return
+    }
+    if (!staleOnSettle.delete(event.query.queryHash)) {
+      return
+    }
+    void client.invalidateQueries({
+      queryKey: event.query.queryKey,
+      exact: true,
+    })
+  })
+  return {
+    invalidate: (filters) => {
+      for (const query of cache.findAll(filters)) {
+        const restartable = query.isActive() && query.state.data !== undefined
+        if (query.state.fetchStatus === 'fetching' && !restartable) {
+          staleOnSettle.add(query.queryHash)
+        }
+      }
+      void client.invalidateQueries(filters)
+    },
+    stop,
+  }
+}
+
 function followStorageArea(
-  client: QueryClient,
+  invalidator: Invalidator,
   storageType: ExtStorageType
 ): () => void {
   const area = getStorageArea(storageType)
   const listener = (changes: StorageChanges) => {
     const changed = new Set(Object.keys(changes))
-    void client.invalidateQueries({
+    invalidator.invalidate({
       queryKey: storageQueryKeys.area(storageType),
       predicate: (query) => {
         return readsAnyOf(query.queryKey, changed)

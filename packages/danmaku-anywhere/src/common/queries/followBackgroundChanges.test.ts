@@ -9,7 +9,8 @@ import { seasonQueryKeys, sourceQueryKeys, storageQueryKeys } from './queryKeys'
  * invalidations: a manifest announcement marks the lists, plus pending updates
  * for a catalog change or the per-source queries of the manifests it names,
  * an invalidateQueries event marks the keys it names, and a chrome.storage
- * write marks the queries reading that key in that area.
+ * write marks the queries reading that key in that area. A change that lands
+ * during a query's first fetch still leaves the query stale once it settles.
  */
 
 const sender = new BroadcastChannel('danmaku-anywhere:data-change')
@@ -86,6 +87,45 @@ describe('followBackgroundChanges', () => {
     expect(isInvalidated(sourceQueryKeys.loginStatus('bilibili'))).toBe(false)
     expect(isInvalidated(sourceQueryKeys.pendingUpdates())).toBe(false)
     expect(isInvalidated(seasonQueryKeys.all())).toBe(false)
+  })
+
+  it('leaves a query stale when storage changes during its first fetch', async () => {
+    const queryKey = storageQueryKeys.external('sync', ['providerConfig'])
+    const read = Promise.withResolvers<string>()
+    const firstFetch = client.prefetchQuery({
+      queryKey,
+      queryFn: () => read.promise,
+    })
+
+    await fakeBrowser.storage.sync.set({ providerConfig: { data: [] } })
+    read.resolve('read before the write')
+    await firstFetch
+
+    await vi.waitFor(() => {
+      expect(isInvalidated(queryKey)).toBe(true)
+    })
+  })
+
+  it('leaves a query stale when its manifest changes during its first fetch', async () => {
+    const queryKey = sourceQueryKeys.manifestSource('mine:one')
+    const read = Promise.withResolvers<string>()
+    const firstFetch = client.prefetchQuery({
+      queryKey,
+      queryFn: () => read.promise,
+    })
+
+    sender.postMessage({
+      type: 'manifestsChanged',
+      manifestIds: ['mine:one'],
+      catalogChanged: false,
+    })
+    await new Promise((resolve) => setTimeout(resolve, 50))
+    read.resolve('read before the save')
+    await firstFetch
+
+    await vi.waitFor(() => {
+      expect(isInvalidated(queryKey)).toBe(true)
+    })
   })
 
   it('invalidates the keys named by an invalidateQueries event', async () => {
