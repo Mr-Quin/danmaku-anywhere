@@ -1,13 +1,15 @@
 import type { QueryKey } from '@tanstack/react-query'
 
-// Typed message bus between same-origin extension pages. Content scripts run
-// at the host page's origin and are handled by invalidateContentScriptData
-// in the background SW.
+// Typed message bus between the background and same-origin extension pages.
+// Content scripts run at the host page's origin and are handled by
+// invalidateContentScriptData in the background SW.
 
-export type DataChangeEvent = {
-  type: 'invalidateQueries'
-  keys: QueryKey[]
-}
+export type DataChangeEvent =
+  | {
+      type: 'invalidateQueries'
+      keys: QueryKey[]
+    }
+  | { type: 'manifestsChanged' }
 
 type Handler = (event: DataChangeEvent) => void
 

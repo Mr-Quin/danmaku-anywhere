@@ -1,8 +1,9 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createLogger, type LogEntry } from '@/common/Logger'
+import { publishDataChange } from '@/common/messaging/dataChangeChannel'
 import { silentLogger } from '@/tests/silentLogger'
-import { bundledCatalogIndex } from './bundledCatalog'
+import { bundledCatalogIndex, bundledManifestRaw } from './bundledCatalog'
 import { ManifestRegistry } from './ManifestRegistry'
 import {
   type IManifestStore,
@@ -27,7 +28,8 @@ import {
  * unregister / hydrate-skip-invalid. Accessors wait for the stored manifests
  * to load, and a load that fails is retried by the next call. A store that
  * fails to read or write rejects the call and leaves the in-memory runners and
- * the stored record as they were.
+ * the stored record as they were. Every change that lands is announced on the
+ * data-change channel; a call that changes nothing stays quiet.
  */
 
 function makeManifest(
@@ -109,6 +111,10 @@ function stubCatalogFetch(
     }
   })
 }
+
+vi.mock('@/common/messaging/dataChangeChannel', () => ({
+  publishDataChange: vi.fn(),
+}))
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -1105,5 +1111,104 @@ describe('ManifestRegistry bundled manifests', () => {
     expect(
       (await registry.getRunner('dandanplay')).manifest.configSchema?.properties
     ).toHaveProperty('token')
+  })
+})
+
+describe('ManifestRegistry change announcements', () => {
+  const MANIFESTS_CHANGED = { type: 'manifestsChanged' }
+
+  function fullySeededStore(extra: ManifestRecord = {}): InMemoryStore {
+    const record: ManifestRecord = {}
+    for (const { id } of bundledCatalogIndex()) {
+      record[id] = { manifest: bundledManifestRaw(id), kind: 'bundled' }
+    }
+    return new InMemoryStore({ ...record, ...extra })
+  }
+
+  it('announces the bundle seed written on first load', async () => {
+    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+
+    await registry.listManifests()
+
+    expect(publishDataChange).toHaveBeenCalledExactlyOnceWith(MANIFESTS_CHANGED)
+  })
+
+  it('stays quiet when a load writes nothing', async () => {
+    const registry = new ManifestRegistry(silentLogger, fullySeededStore())
+
+    await registry.listManifests()
+
+    expect(publishDataChange).not.toHaveBeenCalled()
+  })
+
+  it('announces a catalog sync that stores a manifest', async () => {
+    stubCatalogFetch([catalogEntry('one')], {
+      [manifestPath('one')]: makeManifest('one'),
+    })
+    const registry = new ManifestRegistry(silentLogger, fullySeededStore())
+
+    await registry.update()
+
+    expect(publishDataChange).toHaveBeenCalledExactlyOnceWith(MANIFESTS_CHANGED)
+  })
+
+  it('stays quiet when a catalog sync has nothing to store', async () => {
+    stubCatalogFetch([catalogEntry('one')], {})
+    const registry = new ManifestRegistry(
+      silentLogger,
+      fullySeededStore({
+        one: { manifest: makeManifest('one'), kind: 'preinstalled' },
+      })
+    )
+
+    expect(await registry.update()).toBe('synced')
+
+    expect(publishDataChange).not.toHaveBeenCalled()
+  })
+
+  it('announces applied updates', async () => {
+    stubCatalogFetch([catalogEntry('one', '2.0.0')], {
+      [manifestPath('one')]: makeManifest('one', 1, '2.0.0'),
+    })
+    const registry = new ManifestRegistry(
+      silentLogger,
+      fullySeededStore({
+        one: { manifest: makeManifest('one'), kind: 'preinstalled' },
+      })
+    )
+
+    await registry.applyUpdates(['one'])
+
+    expect(publishDataChange).toHaveBeenCalledExactlyOnceWith(MANIFESTS_CHANGED)
+  })
+
+  it('announces a recorded catalog check', async () => {
+    const registry = new ManifestRegistry(silentLogger, fullySeededStore())
+
+    await registry.recordChecked()
+
+    expect(publishDataChange).toHaveBeenCalledExactlyOnceWith(MANIFESTS_CHANGED)
+  })
+
+  it('announces a saved and then a removed user manifest', async () => {
+    const registry = new ManifestRegistry(silentLogger, fullySeededStore())
+
+    await registry.saveUserManifest(makeManifest('mine:one'), 'create')
+    await registry.unregister('mine:one')
+
+    expect(publishDataChange).toHaveBeenCalledTimes(2)
+    expect(publishDataChange).toHaveBeenNthCalledWith(2, MANIFESTS_CHANGED)
+  })
+
+  it('stays quiet when a save fails to persist', async () => {
+    const store = fullySeededStore()
+    vi.spyOn(store, 'setMany').mockRejectedValue(new Error('quota'))
+    const registry = new ManifestRegistry(silentLogger, store)
+
+    await expect(
+      registry.saveUserManifest(makeManifest('mine:one'), 'create')
+    ).rejects.toThrow('quota')
+
+    expect(publishDataChange).not.toHaveBeenCalled()
   })
 })

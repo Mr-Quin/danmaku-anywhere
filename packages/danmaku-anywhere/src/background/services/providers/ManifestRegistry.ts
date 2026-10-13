@@ -8,6 +8,7 @@ import {
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import { publishDataChange } from '@/common/messaging/dataChangeChannel'
 import type {
   ManifestUpdate,
   ProviderManifestInfo,
@@ -118,14 +119,16 @@ export class ManifestRegistry {
   }
 
   // Stamp the catalog as freshly synced; the caller decides when it is current.
-  recordChecked(): Promise<void> {
-    return this.store.setLastCheckedAt(Date.now())
+  async recordChecked(): Promise<void> {
+    await this.store.setLastCheckedAt(Date.now())
+    this.announceChange()
   }
 
   async unregister(manifestId: string): Promise<void> {
     await this.whenLoaded()
     await this.store.remove(manifestId)
     this.runners.delete(manifestId)
+    this.announceChange()
   }
 
   // Add-only except for 'bundled' entries, which the catalog copy replaces
@@ -254,6 +257,7 @@ export class ManifestRegistry {
     const runner = this.buildRunner(parsed.data)
     await this.store.set(id, { manifest, kind: 'user' })
     this.runners.set(id, { runner, kind: 'user' })
+    this.announceChange()
   }
 
   // Returns the raw stored manifest JSON (not the parsed runner form) so the
@@ -281,6 +285,12 @@ export class ManifestRegistry {
     await this.seedFromBundle(record)
   }
 
+  // Call only once both the store and the runners hold the change. Readers
+  // refetch on this and must not see the old state.
+  private announceChange(): void {
+    publishDataChange({ type: 'manifestsChanged' })
+  }
+
   // Returns the ids actually stored; the caller can compare against what it
   // asked for to tell a partial failure from a complete one.
   private async fetchAndStore(entries: CatalogEntry[]): Promise<string[]> {
@@ -303,6 +313,7 @@ export class ManifestRegistry {
         kind: 'preinstalled',
       })
     }
+    this.announceChange()
     return fetched.map(({ parsed }) => parsed.id)
   }
 
@@ -341,6 +352,7 @@ export class ManifestRegistry {
         kind: 'bundled',
       })
     }
+    this.announceChange()
   }
 
   private async loadIndex(): Promise<CatalogEntry[] | null> {

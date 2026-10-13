@@ -1,5 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { sourceQueryKeys, storageQueryKeys } from '@/common/queries/queryKeys'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { sourceQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type {
   ManifestTestDanmakuInput,
@@ -21,42 +21,19 @@ export const useManifestSource = (manifestId?: string) => {
 }
 
 export const useSaveUserManifest = () => {
-  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (input: {
       manifest: unknown
       mode: 'create' | 'update'
       expectedId?: string
     }) => chromeRpcClient.providerSaveUserManifest(input),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: sourceQueryKeys.manifestList(),
-      })
-      // Stale sources would seed the next edit with pre-save JSON, so a
-      // re-save could silently revert this one.
-      void queryClient.invalidateQueries({
-        queryKey: sourceQueryKeys.manifestSource(),
-      })
-    },
   })
 }
 
 export const useDeleteUserManifest = () => {
-  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (manifestId: string) =>
       chromeRpcClient.providerDeleteUserManifest({ manifestId }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: sourceQueryKeys.manifestList(),
-      })
-      void queryClient.invalidateQueries({
-        queryKey: sourceQueryKeys.manifestSource(),
-      })
-      void queryClient.invalidateQueries({
-        queryKey: storageQueryKeys.external('sync', ['providerConfig']),
-      })
-    },
   })
 }
 
