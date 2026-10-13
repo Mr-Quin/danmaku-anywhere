@@ -680,6 +680,9 @@
     "uploadDebugDataDesc": "Upload diagnostics and copy a reference ID.",
     "uploadDebugDataSuccess": "Submitted {{ id }}"
   },
+  "optionsUpgrade": {
+    "failed": "Your settings could not be updated for this version. They have been kept as they were."
+  },
   "providers": {
     "add": {
       "dandanplay": "DanDanPlay-compatible server",

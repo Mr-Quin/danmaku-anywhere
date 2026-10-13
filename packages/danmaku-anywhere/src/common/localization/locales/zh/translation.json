@@ -656,6 +656,9 @@
     "uploadDebugDataDesc": "上传诊断数据并复制参考 ID。",
     "uploadDebugDataSuccess": "提交成功 {{ id }}"
   },
+  "optionsUpgrade": {
+    "failed": "你的设置未能更新到此版本，原有设置已保留。"
+  },
   "providers": {
     "add": {
       "dandanplay": "弹弹play 兼容服务器",

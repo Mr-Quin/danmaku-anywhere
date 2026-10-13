@@ -114,6 +114,26 @@ describe('createUiContainer', () => {
     )
   })
 
+  it('applies the stored language before the options are upgraded', async () => {
+    await fakeBrowser.storage.sync.set({
+      extensionOptions: { data: { lang: 'en' }, version: 1 },
+    })
+    const { i18n } = await import('@/common/localization/i18n')
+    const changeLanguage = vi.fn()
+    Object.assign(i18n, { changeLanguage })
+    const { bootstrapUiLanguage, createUiContainer } = await import('./uiIoc')
+    const container = createUiContainer()
+
+    bootstrapUiLanguage(container)
+
+    await vi.waitFor(() => {
+      expect(changeLanguage).toHaveBeenCalledWith('en')
+    })
+    expect(container.get(ReadinessService).getState()).toEqual({
+      status: 'pending',
+    })
+  })
+
   it('bootstraps the UI language once per container', async () => {
     const { defaultExtensionOptions } = await import(
       '@/common/options/extensionOptions/constant'
