@@ -1,0 +1,1 @@
+export const LATEST_NAMING_RULE_VERSION = 1

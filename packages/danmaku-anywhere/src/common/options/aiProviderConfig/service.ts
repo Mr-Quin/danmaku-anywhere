@@ -15,6 +15,7 @@ import {
   zAiProviderConfig,
   zStoredAiProviderConfig,
 } from './schema'
+import { LATEST_AI_PROVIDER_CONFIG_VERSION } from './version'
 
 @injectable('Singleton')
 export class AiProviderConfigService implements IStoreService {
@@ -34,7 +35,7 @@ export class AiProviderConfigService implements IStoreService {
       [BUILT_IN_AI_PROVIDER],
       this.logger,
       aiProviderConfigDescriptor.area
-    ).version(1, {
+    ).version(LATEST_AI_PROVIDER_CONFIG_VERSION, {
       upgrade: (data) => data,
     })
   }

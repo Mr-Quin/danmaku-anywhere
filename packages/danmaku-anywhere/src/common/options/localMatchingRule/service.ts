@@ -13,6 +13,7 @@ import {
   type NamingRuleOptions,
   namingRuleOptionsSchema,
 } from './schema'
+import { LATEST_NAMING_RULE_VERSION } from './version'
 
 @injectable('Singleton')
 export class NamingRuleService implements IStoreService {
@@ -32,7 +33,7 @@ export class NamingRuleService implements IStoreService {
       defaultNamingRuleOptions,
       this.logger,
       namingRuleDescriptor.area
-    ).version(1, {
+    ).version(LATEST_NAMING_RULE_VERSION, {
       upgrade: () => defaultNamingRuleOptions,
     })
   }

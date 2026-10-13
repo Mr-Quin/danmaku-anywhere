@@ -1,0 +1,1 @@
+export const LATEST_PROVIDER_CONFIG_VERSION = 5

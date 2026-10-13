@@ -14,6 +14,7 @@ import type { OptionsService } from '@/common/options/OptionsService/OptionsServ
 import { danmakuOptionsDescriptor } from '@/common/options/optionStores'
 import type { PrevOptions } from '../OptionsService/types'
 import { danmakuOptionsSchema } from './schema'
+import { LATEST_DANMAKU_OPTIONS_VERSION } from './version'
 
 @injectable('Singleton')
 export class DanmakuOptionsService implements IStoreService {
@@ -137,7 +138,7 @@ export class DanmakuOptionsService implements IStoreService {
           })
         },
       })
-      .version(10, {
+      .version(LATEST_DANMAKU_OPTIONS_VERSION, {
         upgrade: (data) => {
           return produce<PrevOptions>(data, (draft) => {
             draft.occlusion = false

@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { bootstrapUiLanguage, createUiContainer } from '@/common/ioc/uiIoc'
 import { i18n } from '@/common/localization/i18n'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
+import { OPTION_STORES } from '@/common/options/optionStores'
 
 /**
  * The player script runs in every frame of every page. With every option
@@ -12,27 +13,11 @@ import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
  * readiness leaves no storage listener behind.
  */
 
-const CURRENT_STORES = {
-  sync: {
-    extensionOptions: 27,
-    danmakuOptions: 10,
-    mountConfig: 6,
-    providerConfig: 5,
-    aiProviderConfig: 1,
-  },
-  local: {
-    xpathPolicy: 4,
-    searchHistory: 1,
-    localMatchingRule: 1,
-    userAuth: 1,
-  },
-}
-
 async function seedCurrentStores() {
-  for (const area of ['sync', 'local'] as const) {
-    for (const [key, version] of Object.entries(CURRENT_STORES[area])) {
-      await fakeBrowser.storage[area].set({ [key]: { data: {}, version } })
-    }
+  for (const store of OPTION_STORES) {
+    await fakeBrowser.storage[store.area].set({
+      [store.key]: { data: {}, version: store.latestVersion },
+    })
   }
 }
 
