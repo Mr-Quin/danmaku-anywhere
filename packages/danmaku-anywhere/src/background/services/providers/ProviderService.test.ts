@@ -22,6 +22,10 @@ import { ExtensionOptionsService } from '@/common/options/extensionOptions/servi
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import {
+  capabilitiesFromManifest,
+  LEGACY_MACCMS_CAPABILITIES,
+} from '@/common/providers/sourceCapabilities'
+import {
   createTestContainer,
   type TestContainerOverride,
 } from '@/tests/createTestContainer'
@@ -61,12 +65,20 @@ function makeConfig(manifestId: string): ProviderConfig {
   }
 }
 
-function makeProvider(
-  overrides: Partial<
-    Pick<IDanmakuProvider, 'search' | 'getEpisodes' | 'getDanmaku'>
-  > = {}
-): Pick<IDanmakuProvider, 'search' | 'getEpisodes' | 'getDanmaku'> {
+type ProviderDouble = Pick<
+  IDanmakuProvider,
+  'getCapabilities' | 'search' | 'getEpisodes' | 'getDanmaku'
+>
+
+const MANIFEST_CAPABILITIES = capabilitiesFromManifest({
+  search: {},
+  episodes: {},
+  danmaku: {},
+})
+
+function makeProvider(overrides: Partial<ProviderDouble> = {}): ProviderDouble {
   return {
+    getCapabilities: vi.fn(async () => MANIFEST_CAPABILITIES),
     search: vi.fn(async () => []),
     getEpisodes: vi.fn(async () => []),
     getDanmaku: vi.fn(async () => []),
@@ -127,7 +139,7 @@ function comments(count: number): CommentEntity[] {
 
 function build(
   config: ProviderConfig,
-  provider: Pick<IDanmakuProvider, 'search' | 'getEpisodes' | 'getDanmaku'>,
+  provider: Partial<ProviderDouble>,
   opts: {
     findExisting?: unknown
     existingDanmaku?: unknown[]
@@ -277,6 +289,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
 
     it('throws for a legacy MacCMS config, whose provider has no episode fetch', async () => {
       const { service } = build(makeConfig(LEGACY_MACCMS_ID), {
+        getCapabilities: vi.fn(async () => LEGACY_MACCMS_CAPABILITIES),
         search: vi.fn(async () => []),
       })
 
@@ -447,6 +460,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
         },
       } as WithSeason<EpisodeMeta>
       const { service } = build(maccmsConfig, {
+        getCapabilities: vi.fn(async () => LEGACY_MACCMS_CAPABILITIES),
         search: vi.fn(async () => []),
       })
 
@@ -473,6 +487,72 @@ describe('ProviderService legacy-maccms decoupling', () => {
       ).rejects.toMatchObject({ name: 'SourceError', problem: 'sourceRemoved' })
       expect(provider.getDanmaku).not.toHaveBeenCalled()
     })
+  })
+})
+
+describe('ProviderService capability gates', () => {
+  const searchOnly = capabilitiesFromManifest({ search: {} })
+  const config = makeConfig('search-only')
+
+  it('refuses episodes for a manifest without an episodes pipeline', async () => {
+    const provider = makeProvider({
+      getCapabilities: vi.fn(async () => searchOnly),
+    })
+    const { service } = build(config, provider)
+
+    await expect(service.fetchEpisodesBySeason(1)).rejects.toMatchObject({
+      name: 'SourceError',
+      problem: 'episodesUnsupported',
+      sourceName: config.name,
+    })
+    expect(provider.getEpisodes).not.toHaveBeenCalled()
+  })
+
+  it('refuses danmaku for a manifest without a danmaku pipeline', async () => {
+    const provider = makeProvider({
+      getCapabilities: vi.fn(async () => searchOnly),
+    })
+    const { service } = build(config, provider)
+    const meta = {
+      indexedId: 'ep1',
+      seasonId: 1,
+      providerIds: {},
+      season: {
+        id: 1,
+        manifestId: config.manifestId,
+        providerConfigId: config.id,
+      },
+    } as WithSeason<EpisodeMeta>
+
+    await expect(
+      service.getDanmaku({ type: 'by-meta', meta, options: {} })
+    ).rejects.toMatchObject({
+      name: 'SourceError',
+      problem: 'refetchUnsupported',
+    })
+    expect(provider.getDanmaku).not.toHaveBeenCalled()
+  })
+
+  it('leaves a season alone when its manifest has no season pipeline', async () => {
+    const season = makeSeason({
+      manifestId: config.manifestId,
+      providerConfigId: config.id,
+    })
+    const getSeason = vi.fn(async () => null)
+    const upsert = vi.fn()
+    const service = buildService({
+      seasonService: { filter: vi.fn(async () => [season]), upsert },
+      providerConfigService: { getAll: vi.fn(async () => [config]) },
+      factory: vi.fn(() => ({
+        getCapabilities: vi.fn(async () => MANIFEST_CAPABILITIES),
+        getSeason,
+      })),
+    })
+
+    await service.refreshSeason({ id: season.id })
+
+    expect(getSeason).not.toHaveBeenCalled()
+    expect(upsert).not.toHaveBeenCalled()
   })
 })
 

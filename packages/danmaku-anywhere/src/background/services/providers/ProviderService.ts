@@ -47,6 +47,10 @@ import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from './ProviderFactory'
+import {
+  SourceCapabilityService,
+  withUrlScheme,
+} from './SourceCapabilityService'
 
 function enrichEpisode(
   episode: OmitSeasonId<EpisodeMeta>,
@@ -78,7 +82,9 @@ export class ProviderService {
     private bookmarkService: BookmarkService,
     @inject(LoggerSymbol) logger: ILogger,
     @inject(ExtensionOptionsService)
-    private extensionOptions: ExtensionOptionsService
+    private extensionOptions: ExtensionOptionsService,
+    @inject(SourceCapabilityService)
+    private sourceCapabilities: SourceCapabilityService
   ) {
     invariant(
       isServiceWorker(),
@@ -142,14 +148,10 @@ export class ProviderService {
 
     const providerConfig = await this.getConfigForSeason(season)
 
-    const service = this.danmakuProviderFactory(providerConfig)
-    if (!service.getEpisodes) {
-      throw new SourceError(
-        'episodesUnsupported',
-        `${providerConfig.name} does not support fetching episodes`,
-        providerConfig.name
-      )
-    }
+    const service = await this.sourceCapabilities.providerFor(
+      providerConfig,
+      'episodes'
+    )
     const episodes = await service.getEpisodes(season.providerIds)
     return episodes.map((episode) => enrichEpisode(episode, season))
   }
@@ -163,7 +165,8 @@ export class ProviderService {
     const providerConfig = await this.getConfigForSeason(season)
 
     const service = this.danmakuProviderFactory(providerConfig)
-    if (!service.getSeason) {
+    const { seasonRefresh } = await service.getCapabilities()
+    if (!seasonRefresh) {
       return
     }
     const seasonInsert = await service.getSeason(season.providerIds)
@@ -216,14 +219,7 @@ export class ProviderService {
 
     const config = await this.getConfigForSeason(meta.season)
 
-    const service = this.danmakuProviderFactory(config)
-    if (!service.getDanmaku) {
-      throw new SourceError(
-        'refetchUnsupported',
-        `${config.name} episodes cannot be refetched`,
-        config.name
-      )
-    }
+    const service = await this.sourceCapabilities.providerFor(config, 'danmaku')
 
     const comments = await service.getDanmaku(resolved)
 
@@ -253,18 +249,11 @@ export class ProviderService {
     return { episode: { ...episode, season } }
   }
 
-  async parseUrl(url: string): Promise<WithSeason<EpisodeMeta>> {
-    // URL parsing is independent of provider enablement: the popup feeds
-    // any pasted URL regardless of which sources the user has toggled on.
-    // Disabling Bilibili would otherwise make a recognized bilibili.com
-    // URL fail with "No provider found".
-    const configs = await this.providerConfigService.getAll()
-    for (const config of configs) {
-      const service = this.danmakuProviderFactory(config)
-      if (!service.parseUrl) {
-        continue
-      }
-      const result = await service.parseUrl(url)
+  async parseUrl(text: string): Promise<WithSeason<EpisodeMeta>> {
+    const url = withUrlScheme(text)
+    const parsers = await this.sourceCapabilities.findUrlParsers(url)
+    for (const config of parsers) {
+      const result = await this.danmakuProviderFactory(config).parseUrl(url)
       if (result) {
         const { episodeMeta, seasonInsert } = result
         const season = await this.seasonService.upsert(seasonInsert)
