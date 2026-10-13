@@ -184,15 +184,15 @@ describe('EpisodeToast', () => {
     })
   })
 
-  it('stops following the runs once unsubscribed', () => {
+  it('drops pending progress once it stops following the runs', () => {
     const unfollowed = new EpisodeToast(toastStoreSink, 1500)
     const otherRuns = new EpisodeRuns()
     const stop = unfollowed.follow(otherRuns)
-    unfollowed.progress(otherRuns.begin(), 'Finding')
-    vi.advanceTimersByTime(1500)
+    const run = otherRuns.begin()
+    unfollowed.progress(run, 'Finding')
 
     stop()
-    otherRuns.end()
-    expect(openMessages()).toEqual(['Finding'])
+    vi.advanceTimersByTime(1500)
+    expect(openToasts()).toEqual([])
   })
 })

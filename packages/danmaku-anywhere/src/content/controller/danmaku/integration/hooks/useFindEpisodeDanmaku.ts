@@ -1,8 +1,8 @@
 import type { Season } from '@danmaku-anywhere/danmaku-converter'
 import { useEventCallback } from '@mui/material'
 import { isCustomEpisode } from '@/common/danmaku/utils'
-import type { EpisodeOutcome } from '@/content/controller/common/hooks/useDescribeOutcome'
-import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
+import type { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
+import type { EpisodeOutcome } from '@/content/controller/common/outcomes'
 import type { EpisodeRun } from '@/content/controller/danmaku/integration/episodeRuns'
 import { matchEpisode } from '@/content/controller/danmaku/integration/matchEpisode'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
@@ -17,9 +17,9 @@ export type FindOutcome =
  * player, so an episode the page has moved on from comes back as 'cancelled'
  * without anything mounted.
  */
-export function useFindEpisodeDanmaku() {
-  const { loadMutation, mount } = useLoadDanmaku()
+type Loader = Pick<ReturnType<typeof useLoadDanmaku>, 'loadMutation' | 'mount'>
 
+export function useFindEpisodeDanmaku({ loadMutation, mount }: Loader) {
   return useEventCallback(
     async (
       run: EpisodeRun,
@@ -71,7 +71,7 @@ export function useFindEpisodeDanmaku() {
       } catch (error) {
         return { status: 'mountFailed', error }
       }
-      return { status: 'mounted', episode, name: media.toString() }
+      return { status: 'mounted', episode }
     }
   )
 }
