@@ -81,7 +81,6 @@ export class AiIntegrationObserver extends MediaObserver {
   }
 
   private async setupAi(signal: AbortSignal) {
-    this.updateStatus('Waiting for page load...')
     // Some pages take a while to load the title, so wait a bit before checking
     await sleep(2000)
 
@@ -94,7 +93,6 @@ export class AiIntegrationObserver extends MediaObserver {
     this.logger.debug('Extracting title from', {
       pageMeta,
     })
-    this.updateStatus('Extracting video info using AI...')
     this.emit('parsingChange', true)
     try {
       const { data } = await queryClient.fetchQuery({
@@ -116,7 +114,6 @@ export class AiIntegrationObserver extends MediaObserver {
       })
 
       if (!data.isShow) {
-        this.updateStatus('No show detected')
         return
       }
 
@@ -125,7 +122,6 @@ export class AiIntegrationObserver extends MediaObserver {
         episode: data.episode,
       })
       this.updateMediaInfo(mediaInfo)
-      this.updateStatus('Video info found: ' + mediaInfo.toString())
     } catch (err) {
       if (signal.aborted) {
         this.logger.debug('Aborted AI handling after an error:', err)
@@ -134,7 +130,6 @@ export class AiIntegrationObserver extends MediaObserver {
       if (err instanceof Error) {
         this.emit('error', err)
       }
-      this.updateStatus('Error extracting info')
       this.logger.debug('Error while extracting title:', err)
     } finally {
       if (!signal.aborted) {
@@ -161,7 +156,5 @@ export class AiIntegrationObserver extends MediaObserver {
   reset() {
     this.logger.debug('Resetting observer')
     this.stopRun()
-    this.status = ''
-    this.mediaInfo = undefined
   }
 }
