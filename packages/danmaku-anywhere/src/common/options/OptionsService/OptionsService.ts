@@ -166,6 +166,25 @@ export class OptionsService<T extends OptionsSchema> {
     })
   }
 
+  // Reads, changes and writes in one queued step, so no other write from this
+  // context lands between the read and the write. Returning the data unchanged
+  // skips the write.
+  async transform(change: (data: T) => T | Promise<T>): Promise<T> {
+    await this.readinessService.waitUntilReady()
+
+    return this.queueOperation(async () => {
+      const stored = await this.storageService.read()
+      if (!stored) {
+        throw new Error('Cannot transform options without existing options')
+      }
+      const next = await change(stored.data)
+      if (next !== stored.data) {
+        await this.storageService.set({ data: next, version: stored.version })
+      }
+      return next
+    })
+  }
+
   onChange(listener: (data: T) => void) {
     this.storageService.subscribe((options) => {
       if (!options) return
