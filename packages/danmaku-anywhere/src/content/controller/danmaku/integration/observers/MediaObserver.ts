@@ -14,6 +14,7 @@ interface IntegrationHandlers {
   mediaChange: (state: MediaInfo) => void
   mediaElementsChange: (elements: MediaElements) => void
   statusChange: (status: string) => void
+  parsingChange: (parsing: boolean) => void
   error: (err: Error) => void
 }
 
@@ -25,6 +26,7 @@ export abstract class MediaObserver {
   public readonly name: string = 'MediaObserver'
 
   private subscriptions: Map<IntegrationEventKey, Set<Fn>>
+  private runController?: AbortController
   protected mediaInfo?: MediaInfo
   protected status = ''
 
@@ -37,6 +39,19 @@ export abstract class MediaObserver {
 
   abstract run(): void
   abstract reset(): void
+
+  // Work started for a run checks the signal after every await, so nothing
+  // from before a reset reaches the subscribers.
+  protected startRun(): AbortSignal {
+    this.stopRun()
+    this.runController = new AbortController()
+    return this.runController.signal
+  }
+
+  protected stopRun() {
+    this.runController?.abort()
+    this.runController = undefined
+  }
 
   protected updateMediaInfo(mediaInfo: MediaInfo) {
     if (this.mediaInfo?.equals(mediaInfo)) {
