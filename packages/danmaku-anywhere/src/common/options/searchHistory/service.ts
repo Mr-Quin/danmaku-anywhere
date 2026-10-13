@@ -9,6 +9,7 @@ import type { OptionsService } from '@/common/options/OptionsService/OptionsServ
 import { searchHistoryDescriptor } from '@/common/options/optionStores'
 import { defaultSearchHistory, MAX_SEARCH_HISTORY_ENTRIES } from './constant'
 import type { SearchHistoryData } from './schema'
+import { LATEST_SEARCH_HISTORY_VERSION } from './version'
 
 export function addHistoryEntry(
   entries: string[],
@@ -44,7 +45,7 @@ export class SearchHistoryService implements IStoreService {
       defaultSearchHistory,
       this.logger,
       searchHistoryDescriptor.area
-    ).version(1, {
+    ).version(LATEST_SEARCH_HISTORY_VERSION, {
       upgrade: (data) => data,
     })
   }

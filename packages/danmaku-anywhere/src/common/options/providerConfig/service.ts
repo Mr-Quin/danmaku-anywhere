@@ -22,6 +22,7 @@ import {
 import type { ProviderConfig } from './schema'
 import { providerConfigSchema } from './schema'
 import { isLegacyMacCms } from './utils'
+import { LATEST_PROVIDER_CONFIG_VERSION } from './version'
 
 @injectable('Singleton')
 export class ProviderConfigService implements IStoreService {
@@ -91,7 +92,7 @@ export class ProviderConfigService implements IStoreService {
           }
         },
       })
-      .version(5, {
+      .version(LATEST_PROVIDER_CONFIG_VERSION, {
         upgrade: (data) => {
           try {
             return migrateDropDeadProviderFields(data)

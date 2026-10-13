@@ -19,6 +19,7 @@ import { extensionOptionsDescriptor } from '@/common/options/optionStores'
 import { migrateDanmakuSourcesToProviders } from '@/common/options/providerConfig/migration'
 import { ColorMode } from '@/common/theme/enums'
 import { ProviderConfigService } from '../providerConfig/service'
+import { LATEST_EXTENSION_OPTIONS_VERSION } from './version'
 
 @injectable('Singleton')
 export class ExtensionOptionsService implements IStoreService {
@@ -282,7 +283,7 @@ export class ExtensionOptionsService implements IStoreService {
             draft.autoBookmark = false
           }),
       })
-      .version(27, {
+      .version(LATEST_EXTENSION_OPTIONS_VERSION, {
         upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             draft.infoPanel = {}

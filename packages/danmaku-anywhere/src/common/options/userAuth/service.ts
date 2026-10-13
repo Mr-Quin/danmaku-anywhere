@@ -8,6 +8,7 @@ import {
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { userAuthDescriptor } from '@/common/options/optionStores'
 import { defaultUserAuthState, type UserAuthState } from './schema'
+import { LATEST_USER_AUTH_VERSION } from './version'
 
 @injectable('Singleton')
 export class UserAuthStore implements IStoreService {
@@ -27,7 +28,7 @@ export class UserAuthStore implements IStoreService {
       defaultUserAuthState,
       this.logger,
       userAuthDescriptor.area
-    ).version(1, {
+    ).version(LATEST_USER_AUTH_VERSION, {
       upgrade: (data) => data,
     })
 
