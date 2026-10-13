@@ -1,16 +1,16 @@
 import { useEventCallback } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
-import {
-  findSourceName,
-  isUnreachableError,
-} from '@/content/controller/danmaku/integration/sourceError'
+import { findSourceName } from '@/common/options/providerConfig/utils'
+import { describeSourceError } from '@/common/providers/describeSourceError'
+import { isUnreachableError } from '@/common/providers/SourceError'
 import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 
 interface SourceErrorInput {
   error: unknown
-  // Shown when the source was reached but the request still failed.
-  fallbackMessage: string
+  // Wraps the translated reason when the source was reached but the request
+  // still failed.
+  describeFailure: (reason: string) => string
   providerConfigId?: string
 }
 
@@ -20,14 +20,17 @@ export function useDescribeSourceError() {
   const { configs } = useProviderConfig()
 
   return useEventCallback(
-    ({ error, fallbackMessage, providerConfigId }: SourceErrorInput) => {
+    ({ error, describeFailure, providerConfigId }: SourceErrorInput) => {
       const searchAction = {
         actionFn: () => open({ tab: PopupTab.Search }),
         actionLabel: t('integration.alert.openSearch', 'Open search page'),
       }
 
       if (!isUnreachableError(error)) {
-        return { message: fallbackMessage, ...searchAction }
+        return {
+          message: describeFailure(describeSourceError(error)),
+          ...searchAction,
+        }
       }
 
       const source = findSourceName(configs, providerConfigId)
