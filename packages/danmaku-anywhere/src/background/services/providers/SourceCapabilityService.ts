@@ -2,6 +2,7 @@ import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import { SourceError, type SourceProblem } from '@/common/providers/SourceError'
 import {
   canMatchBySearch,
@@ -12,7 +13,7 @@ import {
   type SourceStatus,
   type UrlParseAnswer,
 } from '@/common/providers/sourceCapabilities'
-import { isHttpLink, withUrlScheme } from '@/common/utils/link'
+import { isLink, withUrlScheme } from '@/common/utils/link'
 import type { IDanmakuProvider, SourceProvider } from './IDanmakuProvider'
 import {
   DanmakuProviderFactory,
@@ -73,7 +74,10 @@ export class SourceCapabilityService {
   async forProviderConfig(
     providerConfigId: string
   ): Promise<SourceCapabilityAnswer> {
-    const config = await this.providerConfigService.get(providerConfigId)
+    const config = resolveSeasonConfig(
+      { providerConfigId },
+      await this.providerConfigService.getAll()
+    )
     if (!config) {
       return { status: 'removed' }
     }
@@ -113,7 +117,7 @@ export class SourceCapabilityService {
 
   // Ignores enablement: a pasted URL is parsed by whichever installed source
   // recognizes it, even one switched off for search.
-  async findUrlParsers(url: string): Promise<UrlParser[]> {
+  async getUrlParsers(): Promise<UrlParser[]> {
     const configs = await this.providerConfigService.getAll()
     const parsers: UrlParser[] = []
     for (const config of configs) {
@@ -122,7 +126,7 @@ export class SourceCapabilityService {
         continue
       }
       const capabilities = await this.capabilitiesOrNone(config, provider)
-      if (capabilities?.parseUrl && (await provider.canParse(url))) {
+      if (capabilities?.parseUrl) {
         parsers.push({ config, provider })
       }
     }
@@ -130,14 +134,29 @@ export class SourceCapabilityService {
   }
 
   async findUrlSource(text: string): Promise<UrlParseAnswer> {
-    const [parser] = await this.findUrlParsers(withUrlScheme(text))
-    if (parser) {
-      return { kind: 'parseable', sourceName: parser.config.name }
+    if (!isLink(text)) {
+      return { kind: 'notLink' }
     }
-    if (isHttpLink(text)) {
-      return { kind: 'unclaimed' }
+    const url = withUrlScheme(text)
+    for (const { config, provider } of await this.getUrlParsers()) {
+      if (await this.matchesUrl(config, provider, url)) {
+        return { kind: 'parseable', sourceName: config.name }
+      }
     }
-    return { kind: 'notLink' }
+    return { kind: 'unclaimed' }
+  }
+
+  private async matchesUrl(
+    config: ProviderConfig,
+    provider: SourceProvider,
+    url: string
+  ): Promise<boolean> {
+    try {
+      return await provider.canParse(url)
+    } catch (e) {
+      this.logger.error(`Skipping source ${config.name}:`, e)
+      return false
+    }
   }
 
   private async require(

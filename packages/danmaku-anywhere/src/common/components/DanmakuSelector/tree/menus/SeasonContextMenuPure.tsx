@@ -83,6 +83,7 @@ export const SeasonContextMenuPure = ({
   if (!isCustomSeason(season)) {
     const refreshGate = menuItemState(actions.refreshMetadata)
     const followGate = menuItemState(actions.follow)
+    const unfollowGate = menuItemState(actions.unfollow)
     const refreshEpisodesGate = menuItemState(actions.refreshEpisodes)
 
     if (refreshGate) {
@@ -98,14 +99,17 @@ export const SeasonContextMenuPure = ({
     }
 
     if (bookmarked) {
-      items.unshift({
-        kind: 'item',
-        id: 'bookmarkRemove',
-        label: t('bookmark.unfollow', 'Unfollow'),
-        icon: <Favorite fontSize="small" />,
-        onClick: onBookmarkToggle,
-        loading: isBookmarkLoading,
-      })
+      if (unfollowGate) {
+        items.unshift({
+          kind: 'item',
+          id: 'bookmarkRemove',
+          label: t('bookmark.unfollow', 'Unfollow'),
+          icon: <Favorite fontSize="small" />,
+          onClick: onBookmarkToggle,
+          loading: isBookmarkLoading,
+          ...unfollowGate,
+        })
+      }
       if (refreshEpisodesGate) {
         items.unshift({
           kind: 'item',

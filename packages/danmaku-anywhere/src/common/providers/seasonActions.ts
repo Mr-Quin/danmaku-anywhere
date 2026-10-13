@@ -12,6 +12,7 @@ export type ActionAvailability =
 export interface SeasonActions {
   refreshMetadata: ActionAvailability
   follow: ActionAvailability
+  unfollow: ActionAvailability
   refreshEpisodes: ActionAvailability
 }
 
@@ -42,6 +43,8 @@ export function seasonActions(
   return {
     refreshMetadata: availability(answer, 'seasonRefresh'),
     follow: availability(answer, 'episodes'),
+    // Unfollowing only touches local data, so it never depends on the source.
+    unfollow: { state: 'enabled' },
     refreshEpisodes: availability(answer, 'episodes'),
   }
 }

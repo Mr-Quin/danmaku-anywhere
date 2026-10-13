@@ -243,7 +243,7 @@ export class ProviderService {
 
   async parseUrl(text: string): Promise<WithSeason<EpisodeMeta>> {
     const url = withUrlScheme(text)
-    const parsers = await this.sourceCapabilities.findUrlParsers(url)
+    const parsers = await this.sourceCapabilities.getUrlParsers()
     for (const { provider } of parsers) {
       const result = await provider.parseUrl(url)
       if (result) {

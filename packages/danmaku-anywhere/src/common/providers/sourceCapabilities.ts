@@ -64,8 +64,10 @@ export function capabilitiesOf(
   return answer.capabilities
 }
 
-// An answer still on its way counts as capable so lists do not flicker while
-// it loads; the background refuses if the source turns out not to be.
+// For lists that should not flicker while answers load, such as the search
+// chips: a pending answer counts as capable. Menus instead hide an action
+// until its answer arrives (seasonActions), and anything that would run the
+// operation waits for the answer or lets the background refuse.
 export function mayOffer(
   answer: SourceCapabilityAnswer | undefined,
   capability: SourceCapability

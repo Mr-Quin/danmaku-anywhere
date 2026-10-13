@@ -13,7 +13,7 @@ import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
 import { episodeToString, isSourceEpisode } from '@/common/danmaku/utils'
 import { describeSourceError } from '@/common/providers/describeSourceError'
-import { capabilitiesOf, mayOffer } from '@/common/providers/sourceCapabilities'
+import { mayOffer } from '@/common/providers/sourceCapabilities'
 import {
   sourceCapabilitiesQuery,
   useCanRefetchDanmaku,
@@ -92,7 +92,8 @@ export const useLoadDanmaku = () => {
   const canRefresh = useCanRefetchDanmaku(mountedEpisode)
 
   // Reads only what is already cached, so the toast never waits on the
-  // background. A click still checks before it fetches.
+  // background. A refresh the source cannot do is refused by the background,
+  // and loadMutation shows that error.
   const mayRefetch = (episode: GenericEpisode): boolean => {
     if (!isSourceEpisode(episode)) {
       return false
@@ -101,16 +102,6 @@ export const useLoadDanmaku = () => {
       episode.season.providerConfigId
     )
     return mayOffer(queryClient.getQueryData(queryKey), 'danmaku')
-  }
-
-  const canRefetchNow = async (episode: GenericEpisode): Promise<boolean> => {
-    if (!isSourceEpisode(episode)) {
-      return false
-    }
-    const answer = await queryClient
-      .fetchQuery(sourceCapabilitiesQuery(episode.season.providerConfigId))
-      .catch(() => undefined)
-    return capabilitiesOf(answer).danmaku
   }
 
   const mountDanmaku = useEventCallback((episodes: GenericEpisode[]) => {
@@ -180,9 +171,6 @@ export const useLoadDanmaku = () => {
   const refreshComments = useEventCallback(async () => {
     const episode = mountedEpisode
     if (!episode || !isSourceEpisode(episode)) {
-      return
-    }
-    if (!(await canRefetchNow(episode))) {
       return
     }
 
