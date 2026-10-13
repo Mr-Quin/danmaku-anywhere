@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { sourceQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type {
@@ -20,13 +20,45 @@ export const useManifestSource = (manifestId?: string) => {
   })
 }
 
+type ManifestSourceResponse = Awaited<
+  ReturnType<typeof chromeRpcClient.providerGetManifestSource>
+>
+
+function manifestIdOf(manifest: unknown): string | undefined {
+  if (typeof manifest !== 'object' || manifest === null) {
+    return undefined
+  }
+  if (!('id' in manifest) || typeof manifest.id !== 'string') {
+    return undefined
+  }
+  return manifest.id
+}
+
+// The background announces the save too, but that can arrive after the
+// editor has reopened from the cache, which would seed it with pre-save JSON.
 export const useSaveUserManifest = () => {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (input: {
       manifest: unknown
       mode: 'create' | 'update'
       expectedId?: string
     }) => chromeRpcClient.providerSaveUserManifest(input),
+    onSuccess: (_, { manifest }) => {
+      const manifestId = manifestIdOf(manifest)
+      if (manifestId === undefined) {
+        return
+      }
+      queryClient.setQueryData<ManifestSourceResponse>(
+        sourceQueryKeys.manifestSource(manifestId),
+        (cached) => {
+          if (!cached) {
+            return cached
+          }
+          return { ...cached, data: { manifest, kind: 'user' } }
+        }
+      )
+    },
   })
 }
 
