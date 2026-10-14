@@ -459,6 +459,39 @@ describe('backup round trip', () => {
     expect(await providerConfigService.getAll()).toEqual([valid, unavailable])
   })
 
+  it('restores the first of two sources sharing an id and reports the other', async () => {
+    const first = {
+      id: 'shared-id',
+      manifestId: 'dandanplay',
+      customName: 'First',
+      enabled: true,
+      configValues: { baseUrl: 'https://first.example' },
+    }
+    const second = {
+      ...first,
+      customName: 'Second',
+      configValues: { baseUrl: 'https://second.example' },
+    }
+
+    const result = await configStateService.restoreState({
+      meta: { version: 1, timestamp: 1 },
+      services: {
+        providerConfig: {
+          data: [first, second],
+          version: providerConfigService.options.latestVersion,
+        },
+      },
+    })
+
+    expect(result.details.providerConfig).toMatchObject({
+      success: true,
+      droppedEntries: 1,
+      dropped: [{ id: 'shared-id', reason: expect.stringMatching(/first/) }],
+    })
+    expect(result.success).toBe(false)
+    expect(await providerConfigService.getAll()).toEqual([first])
+  })
+
   it('restores a built-in without a server the backup set on it', async () => {
     const result = await configStateService.restoreState({
       meta: { version: 1, timestamp: 1 },

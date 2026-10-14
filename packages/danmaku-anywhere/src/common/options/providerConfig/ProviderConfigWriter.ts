@@ -1,6 +1,6 @@
 import type { ConfigSchema } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
-import type { IRestoreEntryCheck } from '@/common/options/RestoreEntryCheck'
+import type { IRestoreListCheck } from '@/common/options/RestoreListCheck'
 import { getRandomUUID } from '@/common/utils/utils'
 import {
   BUILTIN_SOURCES,
@@ -81,7 +81,7 @@ function throwIfInvalid(issues: ProviderConfigIssue[]): void {
 // the whole list as one step of the store's write queue, which restore shares,
 // so a write can never be based on a list another write has since replaced.
 @injectable('Singleton')
-export class ProviderConfigWriter implements IRestoreEntryCheck {
+export class ProviderConfigWriter implements IRestoreListCheck {
   readonly store = 'providerConfig'
 
   constructor(
@@ -237,18 +237,44 @@ export class ProviderConfigWriter implements IRestoreEntryCheck {
   }
 
   // Restore runs entries through the store's backupItemSchema first. A source
-  // whose manifest is not installed stays and shows as unavailable.
-  async check(entry: unknown): Promise<string | undefined> {
+  // whose manifest is not installed stays and shows as unavailable. Ids key
+  // seasons and every write, so of several sources with one id the first that
+  // is otherwise valid is restored and the others are refused.
+  async check(entries: unknown[]): Promise<(string | undefined)[]> {
+    const seen = new Set<string>()
+    const reasons: (string | undefined)[] = []
+    for (const entry of entries) {
+      const result = await this.checkEntry(entry)
+      if (!result.ok) {
+        reasons.push(result.reason)
+      } else if (seen.has(result.id)) {
+        reasons.push(
+          `Another source in the backup has the id "${result.id}"; the first one was restored`
+        )
+      } else {
+        seen.add(result.id)
+        reasons.push(undefined)
+      }
+    }
+    return reasons
+  }
+
+  private async checkEntry(
+    entry: unknown
+  ): Promise<{ ok: true; id: string } | { ok: false; reason: string }> {
     const parsed = providerConfigSchema.safeParse(entry)
     if (!parsed.success) {
-      return 'Not a source config'
+      return { ok: false, reason: 'Not a source config' }
     }
     const known = await this.findConfigSchema(parsed.data.manifestId)
     const issues = checkProviderConfig({
       config: parsed.data,
       configSchema: known?.configSchema,
     })
-    return issues.length > 0 ? issues.map(describeIssue).join('; ') : undefined
+    if (issues.length > 0) {
+      return { ok: false, reason: issues.map(describeIssue).join('; ') }
+    }
+    return { ok: true, id: parsed.data.id }
   }
 
   // Undefined when the manifest is not installed

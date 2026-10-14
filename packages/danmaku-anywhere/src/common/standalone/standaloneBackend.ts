@@ -8,6 +8,10 @@ import {
   ProviderConfigCleanupSymbol,
 } from '@/common/options/providerConfig/ports'
 import { bundledConfigSchema } from './bundledManifests'
+import {
+  lockedProviderConfigWriter,
+  type ProviderConfigWrites,
+} from './lockedProviderConfigWriter'
 
 export { bundledManifestNames, bundledManifestSpec } from './bundledManifests'
 
@@ -29,6 +33,9 @@ const cleanup: IProviderConfigCleanup = {
 uiContainer.bind(ConfigSchemaSourceSymbol).toConstantValue(configSchemaSource)
 uiContainer.bind(ProviderConfigCleanupSymbol).toConstantValue(cleanup)
 
-export function providerConfigWriter(): ProviderConfigWriter {
-  return uiContainer.get(ProviderConfigWriter)
+export function providerConfigWriter(): ProviderConfigWrites {
+  return lockedProviderConfigWriter(
+    uiContainer.get(ProviderConfigWriter),
+    (name, run) => navigator.locks.request(name, () => run())
+  )
 }

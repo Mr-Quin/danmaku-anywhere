@@ -21,9 +21,9 @@ import type {
   StoreSnapshot,
 } from '@/common/options/OptionsService/types'
 import {
-  type IRestoreEntryCheck,
-  RestoreEntryCheckSymbol,
-} from '@/common/options/RestoreEntryCheck'
+  type IRestoreListCheck,
+  RestoreListCheckSymbol,
+} from '@/common/options/RestoreListCheck'
 
 type ServiceBackup = ParsedBackupData['services'][string]
 
@@ -59,9 +59,9 @@ export class ConfigStateService {
     @multiInject(StoreServiceSymbol)
     private services: IStoreService[],
     @inject(LoggerSymbol) logger: ILogger,
-    @multiInject(RestoreEntryCheckSymbol)
+    @multiInject(RestoreListCheckSymbol)
     @optional()
-    private entryChecks: IRestoreEntryCheck[] = []
+    private listChecks: IRestoreListCheck[] = []
   ) {
     this.logger = logger.sub('[ConfigStateService]')
   }
@@ -295,18 +295,33 @@ export class ConfigStateService {
       return { ok: false, error: 'Expected a list of entries' }
     }
 
-    const checks = this.entryChecks.filter((check) => {
-      return check.store === service.name
-    })
-    const kept: unknown[] = []
+    const passed: unknown[] = []
     const dropped: DroppedEntry[] = []
     for (const entry of migrated) {
-      const result = await this.checkEntry(itemSchema, checks, entry)
-      if (result.ok) {
-        kept.push(result.data)
+      const parsed = await itemSchema.safeParseAsync(entry)
+      if (parsed.success) {
+        passed.push(parsed.data)
       } else {
-        dropped.push({ id: entryId(entry), reason: result.error })
+        dropped.push({
+          id: entryId(entry),
+          reason: prettifyError(parsed.error),
+        })
       }
+    }
+
+    let kept = passed
+    for (const check of this.listChecks) {
+      if (check.store !== service.name) {
+        continue
+      }
+      const reasons = await check.check(kept)
+      kept.forEach((entry, index) => {
+        const reason = reasons[index]
+        if (reason !== undefined) {
+          dropped.push({ id: entryId(entry), reason })
+        }
+      })
+      kept = kept.filter((_, index) => reasons[index] === undefined)
     }
 
     // Writing an empty list would wipe the store, so a payload where nothing
@@ -324,23 +339,5 @@ export class ConfigStateService {
       dropped.push({ reason: 'Could not be migrated' })
     }
     return { ok: true, data: kept, dropped }
-  }
-
-  private async checkEntry(
-    itemSchema: ZodType,
-    checks: IRestoreEntryCheck[],
-    entry: unknown
-  ): Promise<{ ok: true; data: unknown } | { ok: false; error: string }> {
-    const parsed = await itemSchema.safeParseAsync(entry)
-    if (!parsed.success) {
-      return { ok: false, error: prettifyError(parsed.error) }
-    }
-    for (const check of checks) {
-      const reason = await check.check(parsed.data)
-      if (reason !== undefined) {
-        return { ok: false, error: reason }
-      }
-    }
-    return { ok: true, data: parsed.data }
   }
 }

@@ -21,7 +21,7 @@ import {
   ProviderConfigCleanupSymbol,
 } from '@/common/options/providerConfig/ports'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import { RestoreEntryCheckSymbol } from '@/common/options/RestoreEntryCheck'
+import { RestoreListCheckSymbol } from '@/common/options/RestoreListCheck'
 import { SearchHistoryService } from '@/common/options/searchHistory/service'
 import { UserAuthStore } from '@/common/options/userAuth/service'
 import { Logger } from './backgroundLogger'
@@ -52,7 +52,7 @@ export const backgroundContainerModule = new ContainerModule(({ bind }) => {
     danmakuProviderFactory
   )
 
-  bind(RestoreEntryCheckSymbol).toService(ProviderConfigWriter)
+  bind(RestoreListCheckSymbol).toService(ProviderConfigWriter)
   bind(ConfigSchemaSourceSymbol).toService(ManifestConfigSchemaSource)
   bind<IProviderConfigCleanup>(ProviderConfigCleanupSymbol).toDynamicValue(
     (context) => {

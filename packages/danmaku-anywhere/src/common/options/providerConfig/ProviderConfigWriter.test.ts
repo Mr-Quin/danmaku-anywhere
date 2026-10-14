@@ -465,20 +465,41 @@ describe('ProviderConfigWriter.check for restore', () => {
   it('keeps a valid config and a config whose manifest is not installed', async () => {
     const { writer } = setup()
 
-    expect(await writer.check(selfHosted)).toBeUndefined()
     expect(
-      await writer.check({ ...selfHosted, manifestId: 'not-installed' })
-    ).toBeUndefined()
+      await writer.check([
+        selfHosted,
+        { ...bilibili, id: 'gone', manifestId: 'not-installed' },
+      ])
+    ).toEqual([undefined, undefined])
   })
 
   it('refuses a config its known manifest does not accept, saying why', async () => {
     const { writer } = setup()
 
-    const reason = await writer.check({
-      ...selfHosted,
-      configValues: { chConvert: 'loud' },
-    })
+    const [reason] = await writer.check([
+      { ...selfHosted, configValues: { chConvert: 'loud' } },
+    ])
 
     expect(reason).toMatch(/chConvert/)
+  })
+
+  it('keeps the first valid source of an id and refuses the rest', async () => {
+    const { writer } = setup()
+    const first = { ...selfHosted, id: 'shared-id', customName: 'First' }
+    const second = {
+      ...first,
+      customName: 'Second',
+      configValues: { baseUrl: 'https://other.example' },
+    }
+    const invalidFirst = { ...first, configValues: { chConvert: 'loud' } }
+
+    expect(await writer.check([first, second])).toEqual([
+      undefined,
+      expect.stringMatching(/shared-id/),
+    ])
+    expect(await writer.check([invalidFirst, second])).toEqual([
+      expect.stringMatching(/chConvert/),
+      undefined,
+    ])
   })
 })
