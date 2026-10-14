@@ -9,6 +9,12 @@ import { useStore } from '@/content/controller/store/store'
 
 export type MountResult = { status: 'mounted' } | { status: 'cancelled' }
 
+const CONTROLLER_SESSION = Date.now()
+
+function orderOf(command: number) {
+  return { session: CONTROLLER_SESSION, command }
+}
+
 function activeFrameId(): number | undefined {
   return useStore.getState().frame.getActiveFrame()?.frameId
 }
@@ -23,11 +29,8 @@ function mountedOrActiveFrameId(): number | undefined {
  * Mounts the episodes in the active frame's player. A caller that gives up
  * through the signal gets 'cancelled' and never has its episodes recorded; if
  * the player already took them and nothing newer has been sent to that frame,
- * they are unmounted again.
- *
- * Commands to one frame are assumed to reach its player in the order they are
- * sent. The background relay awaits a tabs.query before each sendMessage, so
- * this holds in practice but nothing enforces it.
+ * they are unmounted again. Each command carries its number, so the player
+ * also applies them in the order they were sent.
  */
 export async function sendMount(
   episodes: GenericEpisode[],
@@ -53,7 +56,7 @@ export async function sendMount(
   const command = issueCommand(frameId)
   const res = await playerRpcClient.player['relay:command:mount']({
     frameId,
-    data: { comments, visible: isVisible },
+    data: { comments, visible: isVisible, order: orderOf(command) },
   })
   if (!res.data) {
     throw new DanmakuMountError('mountFailed', 'Failed to mount danmaku')
@@ -83,7 +86,10 @@ export async function sendUnmount(frameId = mountedOrActiveFrameId()) {
     throw new Error('Trying to unmount danmaku without an active frame')
   }
   const command = useStore.getState().danmaku.issueCommand(frameId)
-  await playerRpcClient.player['relay:command:unmount']({ frameId })
+  await playerRpcClient.player['relay:command:unmount']({
+    frameId,
+    data: { order: orderOf(command) },
+  })
   useStore.getState().danmaku.commitUnmount(command, frameId)
 }
 
@@ -91,13 +97,14 @@ export async function sendUnmount(frameId = mountedOrActiveFrameId()) {
 // told, so a mount sent in the meantime or later carries it even if this
 // command never arrives.
 export async function sendVisibility(visible: boolean) {
-  useStore.getState().danmaku.toggleVisible(visible)
+  const { toggleVisible, takeCommandNumber } = useStore.getState().danmaku
+  toggleVisible(visible)
   const frameId = mountedOrActiveFrameId()
   if (frameId === undefined) {
     return
   }
   await playerRpcClient.player['relay:command:show']({
     frameId,
-    data: visible,
+    data: { visible, order: orderOf(takeCommandNumber()) },
   })
 }

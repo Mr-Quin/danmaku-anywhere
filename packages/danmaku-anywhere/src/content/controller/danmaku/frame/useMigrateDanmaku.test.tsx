@@ -109,7 +109,9 @@ describe('useMigrateDanmaku', () => {
     activate(1)
     await settle()
 
-    expect(rpc.unmount).toHaveBeenCalledWith({ frameId: 0 })
+    expect(rpc.unmount).toHaveBeenCalledWith(
+      expect.objectContaining({ frameId: 0 })
+    )
     expect(mountCallsTo(1)).toHaveLength(1)
     expect(useStore.getState().danmaku.mountedFrameId).toBe(1)
     expect(useToast.getState().notifications).toEqual([])
@@ -135,7 +137,9 @@ describe('useMigrateDanmaku', () => {
     })
     await settle()
 
-    expect(rpc.unmount).toHaveBeenLastCalledWith({ frameId: 0 })
+    expect(rpc.unmount).toHaveBeenLastCalledWith(
+      expect.objectContaining({ frameId: 0 })
+    )
     expect(mountCallsTo(1)).toHaveLength(1)
     expect(useStore.getState().danmaku).toMatchObject({
       mountedFrameId: 1,
