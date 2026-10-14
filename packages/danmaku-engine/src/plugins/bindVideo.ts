@@ -92,41 +92,32 @@ export const bindVideo =
       bumpCursor = binarySearchBumps(ctx.bumpEvents, video.currentTime - offset)
     }
 
-    // After a seek on a paused video, danmu must run the pushes it was handed
-    // before it is frozen again: it drops a push whose deferred frames have not
-    // run when freeze flips, and on a busy machine that takes far longer than a
-    // frame. Pushes made while the seek settles are counted until the danmaku
-    // created for each one starts moving or is destroyed.
+    // After a seek on a paused video, danmu must put the seek's danmaku on
+    // screen before it is frozen again: it drops a danmaku whose deferred
+    // frames have not run when freeze flips, and on a busy machine that takes
+    // far longer than a frame. Scrolling pushes wait in danmu's stash for its
+    // next render tick, so the settle waits for that tick, then for every
+    // danmaku danmu created to start moving or leave the screen. Pushes still
+    // in the stash survive a freeze, so they are not waited for.
     let settlingSeek = false
-    let pendingPushes = 0
+    let awaitingRender = false
+    let inFlight = 0
     const seekDanmaku = new WeakSet<object>()
     let settleFrame: ReturnType<typeof requestAnimationFrame> | undefined
     let settleCap: ReturnType<typeof setTimeout> | undefined
 
-    const countPush = (pushed: boolean) => {
-      if (pushed && settlingSeek) {
-        pendingPushes++
-      }
-    }
-
     const unshift: typeof manager.unshift = (data, options) => {
       const pushed = manager.unshift(data, options)
-      countPush(pushed)
-      return pushed
-    }
-
-    const pushFlexible: typeof manager.pushFlexibleDanmaku = (
-      data,
-      options
-    ) => {
-      const pushed = manager.pushFlexibleDanmaku(data, options)
-      countPush(pushed)
+      if (pushed && settlingSeek) {
+        awaitingRender = true
+      }
       return pushed
     }
 
     const stopSettling = () => {
       settlingSeek = false
-      pendingPushes = 0
+      awaitingRender = false
+      inFlight = 0
       if (settleFrame !== undefined) {
         cancelAnimationFrame(settleFrame)
         settleFrame = undefined
@@ -137,33 +128,51 @@ export const bindVideo =
       }
     }
 
+    const pauseDanmaku = () => {
+      manager.freeze()
+      manager.stopPlaying()
+    }
+
     const finishSettling = () => {
       stopSettling()
-      if (video.paused && !manager.isFreeze()) {
-        manager.freeze()
+      if (video.paused) {
+        pauseDanmaku()
       }
     }
 
-    // Freezes on the frame after the last push starts moving, once danmu has
-    // applied its transition.
+    // Checks again on the next frame, once danmu has created the danmaku of a
+    // render tick and applied the transition of those that started moving.
     const settleWhenDone = () => {
-      if (!settlingSeek || pendingPushes > 0 || settleFrame !== undefined) {
+      if (
+        !settlingSeek ||
+        awaitingRender ||
+        inFlight > 0 ||
+        settleFrame !== undefined
+      ) {
         return
       }
       settleFrame = requestAnimationFrame(() => {
         settleFrame = undefined
-        if (settlingSeek && pendingPushes === 0) {
+        if (settlingSeek && !awaitingRender && inFlight === 0) {
           finishSettling()
         }
       })
     }
 
-    const markPushDone = (danmaku: object) => {
+    const trackCreated = (danmaku: object) => {
+      if (!settlingSeek || seekDanmaku.has(danmaku)) {
+        return
+      }
+      seekDanmaku.add(danmaku)
+      inFlight++
+    }
+
+    const trackDone = (danmaku: object) => {
       if (!settlingSeek || !seekDanmaku.has(danmaku)) {
         return
       }
       seekDanmaku.delete(danmaku)
-      pendingPushes = Math.max(0, pendingPushes - 1)
+      inFlight = Math.max(0, inFlight - 1)
       settleWhenDone()
     }
 
@@ -187,7 +196,7 @@ export const bindVideo =
           const fixedCommentMode = config.specialComments[comment.mode]
           if (fixedCommentMode === 'normal') {
             if (config.allowOverlap || !isFull(comment.mode)) {
-              pushFlexible(comment, {
+              manager.pushFlexibleDanmaku(comment, {
                 duration: DURATION_MS,
                 direction: 'none',
                 ...getDanmakuOptions(comment.mode),
@@ -233,7 +242,7 @@ export const bindVideo =
         mode: 'top',
         collapse: annotation,
       }
-      pushFlexible(headComment, {
+      manager.pushFlexibleDanmaku(headComment, {
         duration: durationMs,
         direction: 'none',
         ...getPillOptions(),
@@ -331,11 +340,11 @@ export const bindVideo =
     }
 
     // A transient `waiting` while a seek settles would freeze danmu before
-    // the seek's pushes render.
+    // the seek's danmaku render; the settle pauses danmu itself if the video
+    // is paused by then.
     const handlePause = () => {
       if (settlingSeek) return
-      manager.freeze()
-      manager.stopPlaying()
+      pauseDanmaku()
     }
 
     const handlePlay = () => {
@@ -368,16 +377,23 @@ export const bindVideo =
         document.removeEventListener('visibilitychange', handleVisibilityChange)
         stopSettling()
       },
-      $createNode(danmaku) {
-        if (settlingSeek) {
-          seekDanmaku.add(danmaku)
+      render(type) {
+        if (type === 'facile' && settlingSeek && awaitingRender) {
+          awaitingRender = false
+          settleWhenDone()
         }
       },
+      $createNode(danmaku) {
+        trackCreated(danmaku)
+      },
       $beforeMove(danmaku) {
-        markPushDone(danmaku)
+        trackDone(danmaku)
+      },
+      $removeNode(danmaku) {
+        trackDone(danmaku)
       },
       $destroyed(danmaku) {
-        markPushDone(danmaku)
+        trackDone(danmaku)
       },
       updateOptions() {
         if (getConfig().offset !== offset) {
