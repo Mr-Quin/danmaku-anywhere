@@ -130,6 +130,38 @@ describe('ReadinessService', () => {
     expect((await settledState(readiness)).status).toBe('failed')
   })
 
+  it('stops reading once a cut-off run has been reported as failed', async () => {
+    await storeAt(alpha, 1)
+    await recordRun({ status: 'running', attempts: 1, startedAt: 0 })
+    const readiness = createReadiness([alpha])
+    expect((await settledState(readiness)).status).toBe('failed')
+    const localGet = vi.spyOn(fakeBrowser.storage.local, 'get')
+
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
+    expect(localGet).not.toHaveBeenCalled()
+  })
+
+  it('reports a running run as failed once it goes stale, then stops reading', async () => {
+    await storeAt(alpha, 1)
+    const fiveMinutes = 5 * 60_000
+    await recordRun({
+      status: 'running',
+      attempts: 1,
+      startedAt: Date.now() - fiveMinutes + 100,
+    })
+    const readiness = createReadiness([alpha])
+    expect((await settledState(readiness)).status).toBe('pending')
+
+    await vi.waitFor(() => {
+      expect(readiness.getState().status).toBe('failed')
+    })
+    const localGet = vi.spyOn(fakeBrowser.storage.local, 'get')
+    await new Promise((resolve) => setTimeout(resolve, 50))
+
+    expect(localGet).not.toHaveBeenCalled()
+  })
+
   it('picks up a failure recorded by another context', async () => {
     await storeAt(alpha, 1)
     const readiness = createReadiness([alpha])
