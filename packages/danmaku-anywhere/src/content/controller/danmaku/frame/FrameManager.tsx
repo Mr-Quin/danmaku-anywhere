@@ -14,7 +14,10 @@ import type {
 import { reparentPopover } from '@/content/common/reparentPopover'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
-import { sendUnmount } from '@/content/controller/common/danmakuCommands'
+import {
+  CONTROLLER_SESSION,
+  sendUnmount,
+} from '@/content/controller/common/danmakuCommands'
 import { FrameRegistry } from '@/content/controller/danmaku/frame/FrameRegistry.service'
 import { selectBestFrame } from '@/content/controller/danmaku/frame/selectBestFrame'
 import { useMigrateDanmaku } from '@/content/controller/danmaku/frame/useMigrateDanmaku'
@@ -137,7 +140,7 @@ export const FrameManager = () => {
           })
 
           await playerRpcClient.player['relay:command:start']({
-            data: config.mediaQuery,
+            data: { query: config.mediaQuery, session: CONTROLLER_SESSION },
             frameId,
           })
           updateFrame(frameId, { started: true })
@@ -192,7 +195,7 @@ export const FrameManager = () => {
   useEffect(() => {
     // Players that loaded before the controller re-send playerReady on this.
     void playerRpcClient.player['relay:command:controllerReady'](
-      { frameId: 0 },
+      { frameId: 0, data: { session: CONTROLLER_SESSION } },
       { optional: true }
     )
   }, [])

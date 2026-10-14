@@ -13,59 +13,64 @@ interface DanmakuPlayer {
 }
 
 /**
- * Applies mount, unmount and visibility commands in the order the controller
- * sent them, whatever order they arrive in. What is mounted and whether it is
- * visible are ordered separately, so a mount that arrives late still brings
- * its comments without undoing a newer hide.
+ * Applies mount, unmount and visibility commands from the adopted controller
+ * session in the order that controller sent them, whatever order they arrive
+ * in. What is mounted and whether it is visible are ordered separately, so a
+ * mount that arrives late still brings its comments without undoing a newer
+ * hide. Mount and unmount return whether they were applied.
  */
 export class OrderedPlayerCommands {
-  private session = 0
+  private session: string | undefined
   private lastContent = 0
   private lastVisibility = 0
 
   constructor(private readonly player: DanmakuPlayer) {}
 
-  mount({ comments, visible, order }: PlayerMountCommand) {
-    if (!this.inSession(order)) {
+  // Called on each handshake from a controller. Only a different controller
+  // starts the order over.
+  adopt(session: string) {
+    if (session === this.session) {
       return
+    }
+    this.session = session
+    this.lastContent = 0
+    this.lastVisibility = 0
+  }
+
+  mount({ comments, visible, order }: PlayerMountCommand): boolean {
+    if (!this.isAdopted(order)) {
+      return false
     }
     if (order.command > this.lastVisibility) {
       this.lastVisibility = order.command
       this.player.setVisible(visible)
     }
-    if (order.command > this.lastContent) {
-      this.lastContent = order.command
-      this.player.mount(comments)
+    if (order.command <= this.lastContent) {
+      return false
     }
+    this.lastContent = order.command
+    this.player.mount(comments)
+    return true
   }
 
-  unmount({ order }: PlayerUnmountCommand) {
-    if (!this.inSession(order) || order.command <= this.lastContent) {
-      return
+  unmount({ order }: PlayerUnmountCommand): boolean {
+    if (!this.isAdopted(order) || order.command <= this.lastContent) {
+      return false
     }
     this.lastContent = order.command
     this.player.unmount()
+    return true
   }
 
   show({ visible, order }: PlayerVisibilityCommand) {
-    if (!this.inSession(order) || order.command <= this.lastVisibility) {
+    if (!this.isAdopted(order) || order.command <= this.lastVisibility) {
       return
     }
     this.lastVisibility = order.command
     this.player.setVisible(visible)
   }
 
-  // A controller that started later begins its own order; anything from an
-  // earlier controller is dropped.
-  private inSession({ session }: PlayerCommandOrder) {
-    if (session < this.session) {
-      return false
-    }
-    if (session > this.session) {
-      this.session = session
-      this.lastContent = 0
-      this.lastVisibility = 0
-    }
-    return true
+  private isAdopted({ session }: PlayerCommandOrder) {
+    return this.session !== undefined && session === this.session
   }
 }

@@ -222,10 +222,10 @@ describe('sendUnmount', () => {
     await sendMount([episode('A')])
     const unmount = deferred<{ data: boolean }>()
     rpc.unmount.mockReturnValueOnce(unmount.promise)
-    rpc.mount.mockResolvedValueOnce({ data: false })
+    rpc.mount.mockRejectedValueOnce(new Error('frame gone'))
 
     const pending = sendUnmount()
-    await expect(sendMount([episode('B')])).rejects.toThrow()
+    await expect(sendMount([episode('B')])).rejects.toThrow('frame gone')
     unmount.resolve({ data: true })
     await pending
 
@@ -311,9 +311,9 @@ describe('sendVisibility', () => {
   })
 
   it('keeps the choice when the player cannot be told, for the next mount to apply', async () => {
-    rpc.show.mockRejectedValueOnce(new Error('frame gone'))
+    rpc.show.mockRejectedValue(new Error('frame gone'))
 
-    await expect(sendVisibility(false)).rejects.toThrow('frame gone')
+    await sendVisibility(false)
     await sendMount([episode('A')])
 
     expect(useStore.getState().danmaku.isVisible).toBe(false)
@@ -327,16 +327,46 @@ describe('sendVisibility', () => {
     })
   })
 
-  it('goes to the frame holding the danmaku, not just the active one', async () => {
+  it('reaches a frame whose mount is still on its way', async () => {
     await sendMount([episode('A')])
     activate(1)
+    const mountB = deferred<{ data: boolean }>()
+    rpc.mount.mockReturnValueOnce(mountB.promise)
+    const pendingB = sendMount([episode('B')])
 
     await sendVisibility(false)
+    mountB.resolve({ data: true })
+    await pendingB
 
-    expect(rpc.show).toHaveBeenCalledWith({
+    expect(rpc.show.mock.calls.map(([input]) => input.frameId).sort()).toEqual([
+      0, 1,
+    ])
+    const [first, second] = rpc.show.mock.calls.map(([input]) => input.data)
+    expect(first).toEqual(second)
+  })
+})
+
+describe('a command the player dropped', () => {
+  it('reports a mount cancelled and records nothing', async () => {
+    rpc.mount.mockResolvedValueOnce({ data: false })
+
+    expect(await sendMount([episode('A')])).toEqual({ status: 'cancelled' })
+    expect(mountedState()).toEqual(NOTHING_MOUNTED)
+    expect(frameMounted(0)).toBe(false)
+  })
+
+  it('leaves the record alone for an unmount', async () => {
+    await sendMount([episode('A')])
+    rpc.unmount.mockResolvedValueOnce({ data: false })
+
+    await sendUnmount()
+
+    expect(mountedState()).toEqual({
+      isMounted: true,
+      titles: ['A'],
       frameId: 0,
-      data: { visible: false, order: expect.any(Object) },
     })
+    expect(frameMounted(0)).toBe(true)
   })
 })
 
