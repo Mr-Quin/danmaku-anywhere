@@ -357,11 +357,11 @@ export interface PipelineEntry {
 
 /**
  * Where a mount, unmount or visibility command falls in the order the
- * controller sent them. `session` is when that controller started, so a
- * reloaded controller's commands order after the old one's.
+ * controller sent them. `session` identifies that controller; a player only
+ * applies commands from the session it took from the controller's handshake.
  */
 export interface PlayerCommandOrder {
-  session: number
+  session: string
   command: number
 }
 
@@ -393,7 +393,11 @@ export type PlayerRelayCommands = {
     boolean,
     FrameContext
   >
-  'relay:command:start': RPCDef<InputWithFrameId<string>, void, FrameContext>
+  'relay:command:start': RPCDef<
+    InputWithFrameId<{ query: string; session: string }>,
+    void,
+    FrameContext
+  >
   'relay:command:seek': RPCDef<InputWithFrameId<number>, void, FrameContext>
   'relay:command:enterPip': RPCDef<InputWithFrameId<void>, void, FrameContext>
   'relay:command:show': RPCDef<
@@ -402,7 +406,7 @@ export type PlayerRelayCommands = {
     FrameContext
   >
   'relay:command:controllerReady': RPCDef<
-    InputWithFrameId<void>,
+    InputWithFrameId<{ session: string }>,
     void,
     FrameContext
   >

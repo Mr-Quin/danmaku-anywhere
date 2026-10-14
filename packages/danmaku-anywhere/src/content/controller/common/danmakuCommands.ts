@@ -9,7 +9,9 @@ import { useStore } from '@/content/controller/store/store'
 
 export type MountResult = { status: 'mounted' } | { status: 'cancelled' }
 
-const CONTROLLER_SESSION = Date.now()
+// Players take this from the start and controllerReady handshakes and only
+// apply commands carrying it.
+export const CONTROLLER_SESSION = crypto.randomUUID()
 
 function orderOf(command: number) {
   return { session: CONTROLLER_SESSION, command }
@@ -58,8 +60,10 @@ export async function sendMount(
     frameId,
     data: { comments, visible: isVisible, order: orderOf(command) },
   })
+  // The player dropped it: it came from another controller session or a
+  // newer mount or unmount already reached the player.
   if (!res.data) {
-    throw new DanmakuMountError('mountFailed', 'Failed to mount danmaku')
+    return { status: 'cancelled' }
   }
 
   const { commitMount, isLatestCommand } = useStore.getState().danmaku
@@ -86,25 +90,29 @@ export async function sendUnmount(frameId = mountedOrActiveFrameId()) {
     throw new Error('Trying to unmount danmaku without an active frame')
   }
   const command = useStore.getState().danmaku.issueCommand(frameId)
-  await playerRpcClient.player['relay:command:unmount']({
+  const res = await playerRpcClient.player['relay:command:unmount']({
     frameId,
     data: { order: orderOf(command) },
   })
-  useStore.getState().danmaku.commitUnmount(command, frameId)
+  if (res.data) {
+    useStore.getState().danmaku.commitUnmount(command, frameId)
+  }
 }
 
-// The store holds what the user asked for, recorded before the player is
+// The store holds what the user asked for, recorded before the players are
 // told, so a mount sent in the meantime or later carries it even if this
-// command never arrives.
+// command never arrives. Every frame is told, since a mount can still be on
+// its way to a frame other than the one recorded as showing danmaku.
 export async function sendVisibility(visible: boolean) {
-  const { toggleVisible, takeCommandNumber } = useStore.getState().danmaku
-  toggleVisible(visible)
-  const frameId = mountedOrActiveFrameId()
-  if (frameId === undefined) {
-    return
-  }
-  await playerRpcClient.player['relay:command:show']({
-    frameId,
-    data: { visible, order: orderOf(takeCommandNumber()) },
-  })
+  const { danmaku, frame } = useStore.getState()
+  danmaku.toggleVisible(visible)
+  const order = orderOf(danmaku.takeCommandNumber())
+  await Promise.allSettled(
+    [...frame.allFrames.keys()].map((frameId) => {
+      return playerRpcClient.player['relay:command:show']({
+        frameId,
+        data: { visible, order },
+      })
+    })
+  )
 }

@@ -31,6 +31,7 @@ import { reparentPopover } from '../common/reparentPopover'
 interface StartContext {
   frameId: number
   query: string
+  session: string
   sendPlayerReady: () => void
 }
 
@@ -69,6 +70,7 @@ export class PlayerCommandHandler {
   async start(ctx: StartContext) {
     this.frameId = ctx.frameId
     this.sendPlayerReady = ctx.sendPlayerReady
+    this.ordered.adopt(ctx.session)
 
     await this.setupDom()
     this.wireLifecycleEvents()
@@ -268,17 +270,16 @@ export class PlayerCommandHandler {
   private createRpcServer() {
     const server = createRpcServer<PlayerRelayCommands>(
       {
-        'relay:command:start': async ({ data: query }) => {
+        'relay:command:start': async ({ data: { query, session } }) => {
           // Already started — idempotent
+          this.ordered.adopt(session)
           this.manager.start(query)
         },
         'relay:command:mount': async ({ data }) => {
-          this.ordered.mount(data)
-          return true
+          return this.ordered.mount(data)
         },
         'relay:command:unmount': async ({ data }) => {
-          this.ordered.unmount(data)
-          return true
+          return this.ordered.unmount(data)
         },
         'relay:command:seek': async ({ data: time }) => {
           this.manager.seek(time)
@@ -286,7 +287,8 @@ export class PlayerCommandHandler {
         'relay:command:show': async ({ data }) => {
           this.ordered.show(data)
         },
-        'relay:command:controllerReady': async () => {
+        'relay:command:controllerReady': async ({ data: { session } }) => {
+          this.ordered.adopt(session)
           this.logger.debug('Controller ready, re-sending playerReady')
           this.sendPlayerReady()
         },
