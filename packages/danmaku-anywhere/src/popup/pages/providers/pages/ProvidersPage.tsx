@@ -14,16 +14,21 @@ import { TabBody } from '@/common/components/layout/TabBody'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { findBuiltinSource } from '@/common/options/providerConfig/builtin'
 import {
-  createCustomDanDanPlayProvider,
-  createCustomMacCmsProvider,
-  createDefaultProviderConfig,
+  createCustomDanDanPlayDraft,
+  createCustomMacCmsDraft,
 } from '@/common/options/providerConfig/constant'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { describeProviderConfigError } from '@/common/options/providerConfig/issueText'
+import type {
+  ProviderConfig,
+  ProviderConfigDraft,
+} from '@/common/options/providerConfig/schema'
 import {
   useEditProviderConfig,
   useProviderConfig,
 } from '@/common/options/providerConfig/useProviderConfig'
+import { useSourceNames } from '@/common/options/providerConfig/useSourceNames'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import {
   createConfigFromManifest,
@@ -47,16 +52,17 @@ export const ProvidersPage = (): ReactElement => {
   const toast = useToast.use.toast()
   const dialog = useDialog()
   const { configs } = useProviderConfig()
-  const { create, remove } = useEditProviderConfig()
+  const { nameOf } = useSourceNames()
+  const { create, addBuiltin, remove } = useEditProviderConfig()
   const deleteManifest = useDeleteUserManifest()
   const { data: manifestData } = useManifestList()
   const [mode, setMode] = useState<'add' | 'edit' | null>(null)
   const [filter, setFilter] = useState('')
   const [reorderMode, setReorderMode] = useState(false)
 
-  const [editingProvider, setEditingProvider] = useState<ProviderConfig | null>(
-    null
-  )
+  const [editingProvider, setEditingProvider] = useState<
+    (ProviderConfigDraft & { id?: string }) | null
+  >(null)
 
   const manifestById = useMemo(
     () => new Map((manifestData?.manifests ?? []).map((m) => [m.id, m])),
@@ -69,7 +75,7 @@ export const ProvidersPage = (): ReactElement => {
   const matchesConfig = (config: ProviderConfig) =>
     matchesQuery(
       filter,
-      config.name,
+      nameOf(config),
       config.manifestId,
       manifestById.get(config.manifestId)?.name ?? ''
     )
@@ -83,16 +89,12 @@ export const ProvidersPage = (): ReactElement => {
   }
 
   const handleAddDanDanPlayProvider = () => {
-    setEditingProvider(
-      createCustomDanDanPlayProvider({
-        name: t('providers.instance.defaultName', 'Self-hosted DanDanPlay'),
-      })
-    )
+    setEditingProvider(createCustomDanDanPlayDraft())
     setMode('add')
   }
 
   const handleAddMacCmsProvider = () => {
-    setEditingProvider(createCustomMacCmsProvider())
+    setEditingProvider(createCustomMacCmsDraft())
     setMode('add')
   }
 
@@ -109,41 +111,31 @@ export const ProvidersPage = (): ReactElement => {
     navigate('editor', { state: { manifestId } })
   }
 
-  const createConfig = (config: ProviderConfig) => {
-    create.mutate(config, {
-      onSuccess: () => {
-        toast.success(t('providers.alert.created', 'Source created'))
-      },
-      onError: (error) => {
-        toast.error(error.message)
-      },
-    })
+  const mutationCallbacks = {
+    onSuccess: () => {
+      toast.success(t('providers.alert.created', 'Source created'))
+    },
+    onError: (error: Error) => {
+      toast.error(describeProviderConfigError(error) ?? error.message)
+    },
   }
 
   const handleImport = (manifest: ProviderManifestInfo) => {
-    const seeded = createDefaultProviderConfig(manifest.id, manifest.name)
-    if (seeded) {
-      createConfig(seeded)
+    if (findBuiltinSource(manifest.id)) {
+      addBuiltin.mutate(manifest.id, mutationCallbacks)
       return
     }
-    const config = createConfigFromManifest(manifest)
+    const draft = createConfigFromManifest(manifest)
     if (manifestNeedsConfigForm(manifest.configSchema)) {
-      setEditingProvider(config)
+      setEditingProvider(draft)
       setMode('add')
       return
     }
-    createConfig(config)
+    create.mutate(draft, mutationCallbacks)
   }
 
   const handleAddDefaultInstance = (manifestId: string) => {
-    const manifest = manifestById.get(manifestId)
-    if (!manifest) {
-      return
-    }
-    const seeded = createDefaultProviderConfig(manifestId, manifest.name)
-    if (seeded) {
-      createConfig(seeded)
-    }
+    addBuiltin.mutate(manifestId, mutationCallbacks)
   }
 
   const handleDelete = (provider: ProviderConfig) => {
@@ -152,7 +144,7 @@ export const ProvidersPage = (): ReactElement => {
       content: t(
         'providers.delete.confirm',
         'Delete "{{name}}"? Seasons you follow from it are unfollowed, and its saved seasons can no longer be refreshed. Adding the source again does not bring the follows back.',
-        { name: provider.name }
+        { name: nameOf(provider) }
       ),
       confirmText: t('common.delete', 'Delete'),
       onConfirm: async () => {
@@ -164,7 +156,7 @@ export const ProvidersPage = (): ReactElement => {
             toast.success(t('providers.alert.deleted', 'Source deleted'))
           },
           onError: (error) => {
-            toast.error(error.message)
+            toast.error(describeProviderConfigError(error) ?? error.message)
           },
         })
       },
@@ -289,7 +281,7 @@ export const ProvidersPage = (): ReactElement => {
                 installedManifestIds={installedManifestIds}
                 onImport={handleImport}
                 onDeleteManifest={handleDeleteManifest}
-                isImporting={create.isPending}
+                isImporting={create.isPending || addBuiltin.isPending}
               />
             </Stack>
           )}

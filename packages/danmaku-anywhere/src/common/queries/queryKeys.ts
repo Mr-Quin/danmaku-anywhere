@@ -72,6 +72,10 @@ export const sourceQueryKeys = {
     locale === undefined
       ? ([{ scope: 'source', kind: 'manifestList' }] as const)
       : ([{ scope: 'source', kind: 'manifestList', locale }] as const),
+  // Sits under the manifestList family, so whatever refreshes the lists also
+  // refreshes the names.
+  manifestNames: (locale: string) =>
+    [{ scope: 'source', kind: 'manifestList', locale, names: true }] as const,
   pendingUpdates: () => [{ scope: 'source', kind: 'pendingUpdates' }] as const,
   // Omit manifestId for a family-prefix key that matches every cached source
   // (used to invalidate after a save/delete).

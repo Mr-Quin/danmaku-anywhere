@@ -1,16 +1,16 @@
-import type { ConfigSchema } from '@mr-quin/dango'
+import { type ConfigSchema, validateConfig } from '@mr-quin/dango'
 import { describe, expect, it } from 'vitest'
-import { makeProviderConfig } from '@/tests/factories'
+import { configIssueMessage } from '@/common/options/providerConfig/issueText'
 import {
   buildDefaultValues,
+  fieldIssueMessage,
   getFieldKind,
   getObjectFields,
   getSelectOptions,
-  hiddenConfigFields,
+  issueFieldPath,
   mergeConfigValues,
+  omitKeys,
   toNumberOrUndefined,
-  validateConfigValues,
-  validateScalar,
 } from './schemaForm'
 
 /**
@@ -19,7 +19,8 @@ import {
  * and react-hook-form default values seeded from stored config + schema
  * defaults. Exercises string/enum/number/boolean/object/array shapes drawn from
  * the real dandanplay and bilibili manifests, labelled enum options
- * (oneOf const/title), and object-level anyOf required alternatives.
+ * (oneOf const/title), and the text and placement of the issues dango's
+ * validateConfig reports.
  */
 
 const ddpSchema: ConfigSchema = {
@@ -261,108 +262,40 @@ describe('buildDefaultValues', () => {
   })
 })
 
-describe('validateScalar', () => {
-  it('skips constraint checks for empty values', () => {
+// The test setup mocks i18n.t to return the key, so messages are asserted by
+// the key that was picked.
+describe('fieldIssueMessage', () => {
+  it('has nothing to say about an empty value', () => {
     const schema: ConfigSchema = { type: 'string', minLength: 5 }
-    expect(validateScalar(schema, '')).toBeNull()
-    expect(validateScalar(schema, undefined)).toBeNull()
-    expect(validateScalar(schema, null)).toBeNull()
+    expect(fieldIssueMessage(schema, '')).toBeNull()
+    expect(fieldIssueMessage(schema, undefined)).toBeNull()
   })
 
-  it('returns null when there are no constraints', () => {
-    expect(validateScalar({ type: 'string' }, 'anything')).toBeNull()
-    expect(validateScalar({ type: 'number' }, 12.5)).toBeNull()
+  it('names the constraint that failed', () => {
+    const text: ConfigSchema = { type: 'string', minLength: 2, maxLength: 4 }
+    expect(fieldIssueMessage(text, 'a')).toContain('minLength')
+    expect(fieldIssueMessage(text, 'abcde')).toContain('maxLength')
+    expect(fieldIssueMessage(text, 'abc')).toBeNull()
+    const url: ConfigSchema = { type: 'string', format: 'uri' }
+    expect(fieldIssueMessage(url, 'not a url')).toContain('url')
+    const bounded: ConfigSchema = { type: 'number', minimum: 1, maximum: 10 }
+    expect(fieldIssueMessage(bounded, 0)).toContain('minimum')
+    expect(fieldIssueMessage(bounded, 11)).toContain('maximum')
   })
 
-  // The test setup mocks i18n.t to return the key, so messages are asserted
-  // by the constraint key that fired.
-  it('enforces minLength and maxLength', () => {
-    const schema: ConfigSchema = { type: 'string', minLength: 2, maxLength: 4 }
-    expect(validateScalar(schema, 'a')).toContain('minLength')
-    expect(validateScalar(schema, 'abcde')).toContain('maxLength')
-    expect(validateScalar(schema, 'abc')).toBeNull()
+  it('asks for a whole number when an integer field gets a fraction', () => {
+    expect(fieldIssueMessage({ type: 'integer' }, 1.5)).toContain('integer')
   })
 
-  it('enforces pattern', () => {
-    const schema: ConfigSchema = { type: 'string', pattern: '^[a-z]+$' }
-    expect(validateScalar(schema, 'abc')).toBeNull()
-    expect(validateScalar(schema, 'ABC')).not.toBeNull()
-  })
-
-  it('ignores an invalid pattern regex', () => {
-    const schema: ConfigSchema = { type: 'string', pattern: '[' }
-    expect(validateScalar(schema, 'anything')).toBeNull()
-  })
-
-  it('enforces uri format and ignores unknown formats', () => {
-    const uri: ConfigSchema = { type: 'string', format: 'uri' }
-    expect(validateScalar(uri, 'not a url')).not.toBeNull()
-    expect(validateScalar(uri, 'https://example.test')).toBeNull()
-    const unknown: ConfigSchema = { type: 'string', format: 'hostname' }
-    expect(validateScalar(unknown, 'anything')).toBeNull()
-  })
-
-  it('enforces minimum and maximum', () => {
-    const schema: ConfigSchema = { type: 'number', minimum: 1, maximum: 10 }
-    expect(validateScalar(schema, 0)).toContain('minimum')
-    expect(validateScalar(schema, 11)).toContain('maximum')
-    expect(validateScalar(schema, 5)).toBeNull()
-  })
-
-  it('rejects fractional values for integer schemas', () => {
-    const schema: ConfigSchema = { type: 'integer' }
-    expect(validateScalar(schema, 1.5)).not.toBeNull()
-    expect(validateScalar(schema, 2)).toBeNull()
+  it('reports a value outside the options', () => {
+    expect(
+      fieldIssueMessage(bilibiliSchema.properties?.danmakuFormat ?? {}, 'json')
+    ).toContain('enum')
   })
 })
 
-describe('validateConfigValues', () => {
-  it('returns no errors without a schema', () => {
-    expect(validateConfigValues(undefined, { foo: 'bar' })).toEqual([])
-  })
-
-  it('reports missing or empty required fields with their path', () => {
-    const schema: ConfigSchema = {
-      type: 'object',
-      required: ['baseUrl'],
-      properties: { baseUrl: { type: 'string' } },
-    }
-    expect(validateConfigValues(schema, {})).toMatchObject([
-      { path: 'baseUrl' },
-    ])
-    expect(validateConfigValues(schema, { baseUrl: '' })).toMatchObject([
-      { path: 'baseUrl' },
-    ])
-    expect(validateConfigValues(schema, { baseUrl: 'x' })).toEqual([])
-  })
-
-  it('reports constraint violations with their path', () => {
-    const schema: ConfigSchema = {
-      type: 'object',
-      properties: { baseUrl: { type: 'string', format: 'uri' } },
-    }
-    expect(validateConfigValues(schema, { baseUrl: 'nope' })).toMatchObject([
-      { path: 'baseUrl' },
-    ])
-  })
-
-  it('walks nested objects and array items', () => {
-    const errors = validateConfigValues(ddpSchema, {
-      baseUrl: 'https://example.test',
-      auth: { enabled: true, headers: [{ key: 'X-Token', value: '' }] },
-    })
-    expect(errors).toMatchObject([{ path: 'auth.headers.0.value' }])
-  })
-
-  it('ignores stored keys the schema does not know about', () => {
-    const schema: ConfigSchema = {
-      type: 'object',
-      properties: { baseUrl: { type: 'string' } },
-    }
-    expect(validateConfigValues(schema, { legacyOnly: 'keep' })).toEqual([])
-  })
-
-  it('requires one of the anyOf required alternatives', () => {
+describe('configIssueMessage', () => {
+  it('lists the alternatives by their titles', () => {
     const schema: ConfigSchema = {
       type: 'object',
       anyOf: [{ required: ['baseUrl'] }, { required: ['appId', 'appSecret'] }],
@@ -372,26 +305,37 @@ describe('validateConfigValues', () => {
         appSecret: { type: 'string', title: 'App Secret' },
       },
     }
+    const [issue] = validateConfig(schema, {})
 
-    expect(validateConfigValues(schema, {})).toMatchObject([
-      { path: 'baseUrl' },
-    ])
-    expect(validateConfigValues(schema, { appId: 'id' })).toHaveLength(1)
-    expect(validateConfigValues(schema, { baseUrl: 'https://a.test' })).toEqual(
-      []
+    expect(configIssueMessage(issue, schema)).toContain('requiredAlternatives')
+  })
+})
+
+describe('issueFieldPath', () => {
+  it('puts a missing alternative on the first field of the first alternative', () => {
+    const [issue] = validateConfig(
+      {
+        type: 'object',
+        anyOf: [{ required: ['baseUrl'] }, { required: ['appId'] }],
+      },
+      {}
     )
-    expect(
-      validateConfigValues(schema, { appId: 'id', appSecret: 'secret' })
-    ).toEqual([])
+
+    expect(issueFieldPath(issue)).toEqual(['baseUrl'])
   })
 
-  it('accepts a fully valid config', () => {
-    const errors = validateConfigValues(ddpSchema, {
-      baseUrl: 'https://example.test',
-      auth: { enabled: false, headers: [] },
-      chConvert: 0,
+  it('keeps the path of any other issue', () => {
+    const [issue] = validateConfig(ddpSchema, {
+      auth: { headers: [{ key: 'X-Token' }] },
     })
-    expect(errors).toEqual([])
+
+    expect(issueFieldPath(issue)).toEqual(['auth', 'headers', 0, 'value'])
+  })
+})
+
+describe('omitKeys', () => {
+  it('leaves out the given keys', () => {
+    expect(omitKeys({ a: 1, b: 2 }, new Set(['b']))).toEqual({ a: 1 })
   })
 })
 
@@ -415,30 +359,5 @@ describe('mergeConfigValues', () => {
   it('does not resurrect a stored value that was cleared in the form', () => {
     const result = mergeConfigValues({ baseUrl: 'old' }, { baseUrl: '' })
     expect(result).toEqual({})
-  })
-})
-
-describe('hiddenConfigFields', () => {
-  it('hides the server fields of a built-in config and leaves chConvert editable', () => {
-    const builtin = makeProviderConfig({
-      id: 'dandanplay',
-      manifestId: 'dandanplay',
-    })
-
-    const hidden = hiddenConfigFields(builtin)
-
-    expect([...hidden].sort()).toEqual(
-      ['appId', 'appSecret', 'auth', 'baseUrl'].sort()
-    )
-    expect(hidden.has('chConvert')).toBe(false)
-  })
-
-  it('hides nothing on a custom instance', () => {
-    const custom = makeProviderConfig({
-      id: 'd9d068cc-d7a5-4277-990b-73b28f7637f8',
-      manifestId: 'dandanplay',
-    })
-
-    expect(hiddenConfigFields(custom).size).toBe(0)
   })
 })

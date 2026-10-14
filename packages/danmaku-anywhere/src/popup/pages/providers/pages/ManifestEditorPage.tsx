@@ -210,8 +210,6 @@ function ManifestEditor({
           create.mutate(
             createConfigFromManifest({
               id: manifest.id,
-              name:
-                typeof manifest.name === 'string' ? manifest.name : manifest.id,
               configSchema: manifest.configSchema,
             }),
             {

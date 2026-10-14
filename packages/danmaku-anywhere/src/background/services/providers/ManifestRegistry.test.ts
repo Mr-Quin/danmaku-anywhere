@@ -1,8 +1,9 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createLogger, type LogEntry } from '@/common/Logger'
+import { bundledCatalogIndex } from '@/common/providers/bundledCatalog'
 import { silentLogger } from '@/tests/silentLogger'
-import { bundledCatalogIndex } from './bundledCatalog'
+import { createExtensionFetchLike } from './extensionFetchLike'
 import { ManifestRegistry } from './ManifestRegistry'
 import {
   type IManifestStore,
@@ -126,6 +127,8 @@ async function settleIndexRetry<T>(run: () => Promise<T>): Promise<T> {
   return promise
 }
 
+const testFetcher = createExtensionFetchLike(async () => true)
+
 class InMemoryStore implements IManifestStore {
   private lastCheckedAt: number | null = null
 
@@ -179,7 +182,7 @@ describe('ManifestRegistry', () => {
       'test:one': { manifest: makeManifest('test:one'), kind: 'preinstalled' },
       'test:two': { manifest: makeManifest('test:two'), kind: 'user' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     expect(fetchMock).not.toHaveBeenCalled()
@@ -195,7 +198,7 @@ describe('ManifestRegistry', () => {
       [manifestPath('two')]: makeManifest('two'),
     })
     const store = new InMemoryStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.update()
 
     const record = await store.getAll()
@@ -209,7 +212,7 @@ describe('ManifestRegistry', () => {
   it('update reports an index that lists no manifests as empty', async () => {
     stubCatalogFetch([], {})
     const store = new InMemoryStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
 
     expect(await registry.update()).toBe('empty')
   })
@@ -223,7 +226,7 @@ describe('ManifestRegistry', () => {
       {}
     )
     const store = new InMemoryStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     const result = await registry.update()
 
     expect(result).toBe('empty')
@@ -240,7 +243,7 @@ describe('ManifestRegistry', () => {
     stubCatalogFetch([catalogEntry('dandanplay', '0.6.0')], {
       [manifestPath('dandanplay')]: makeManifest('dandanplay', 1, '0.6.0'),
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
     const result = await registry.update()
 
@@ -260,7 +263,7 @@ describe('ManifestRegistry', () => {
     stubCatalogFetch([catalogEntry('other')], {
       [manifestPath('other')]: makeManifest('other'),
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
     await registry.update()
 
@@ -277,7 +280,7 @@ describe('ManifestRegistry', () => {
       },
     })
     stubCatalogFetch([catalogEntry('dandanplay', '0.6.0')], {})
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     expect(await registry.getPendingUpdates()).toEqual([])
@@ -293,7 +296,7 @@ describe('ManifestRegistry', () => {
     stubCatalogFetch([catalogEntry('dandanplay', '0.6.0')], {
       [manifestPath('dandanplay')]: makeManifest('dandanplay', 1, '0.6.0'),
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
     await registry.applyUpdates(['dandanplay'])
 
@@ -309,7 +312,7 @@ describe('ManifestRegistry', () => {
         kind: 'user',
       },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     const stored = await store.get('dandanplay')
@@ -323,7 +326,7 @@ describe('ManifestRegistry', () => {
       one: { manifest: makeManifest('one', 1, '2.1.0'), kind: 'preinstalled' },
       'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     expect(registry.listManifests()).toEqual(
@@ -364,7 +367,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       one: { manifest, kind: 'preinstalled' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     const [info] = registry.listManifests('zh-CN')
@@ -381,7 +384,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       one: { manifest, kind: 'preinstalled' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     expect(registry.listManifests()[0].name).toBe('Source')
@@ -392,7 +395,7 @@ describe('ManifestRegistry', () => {
       [manifestPath('one')]: makeManifest('one'),
     })
     const store = new InMemoryStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
 
     await registry.update()
     expect(await registry.getLastCheckedAt()).toBeNull()
@@ -407,7 +410,7 @@ describe('ManifestRegistry', () => {
       { [manifestPath('good')]: makeManifest('good') }
     )
     const store = new InMemoryStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.update()
 
     expect(nonBundled(registeredIds(registry))).toEqual(['good'])
@@ -422,7 +425,11 @@ describe('ManifestRegistry', () => {
       { [manifestPath('good')]: makeManifest('good') }
     )
     const warn = vi.spyOn(silentLogger, 'warn')
-    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+    const registry = new ManifestRegistry(
+      silentLogger,
+      new InMemoryStore(),
+      testFetcher
+    )
     await registry.update()
 
     expect(warn).toHaveBeenCalledTimes(1)
@@ -433,7 +440,7 @@ describe('ManifestRegistry', () => {
   it('update retries once, then falls back to the bundle when the index fetch keeps failing', async () => {
     const fetchMock = stubFetch(() => ({ status: 503, body: 'unavailable' }))
     const store = new InMemoryStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await expect(settleIndexRetry(() => registry.update())).resolves.toBe(
       'unreachable'
     )
@@ -459,7 +466,7 @@ describe('ManifestRegistry', () => {
       return { status: 200, body: { manifests: [catalogEntry('one')] } }
     })
     const store = new InMemoryStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await expect(settleIndexRetry(() => registry.update())).resolves.toBe(
       'synced'
     )
@@ -475,7 +482,7 @@ describe('ManifestRegistry', () => {
         : { status: 200, body: { packageVersion: '0.0.0' } }
     )
     const store = new InMemoryStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await expect(settleIndexRetry(() => registry.update())).resolves.toBe(
       'unreachable'
     )
@@ -487,7 +494,7 @@ describe('ManifestRegistry', () => {
       [manifestPath('bad')]: { apiVersion: 1, id: 'bad' },
     })
     const store = new InMemoryStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.update()
 
     expect(nonBundled(registeredIds(registry))).toEqual(['good'])
@@ -500,7 +507,7 @@ describe('ManifestRegistry', () => {
       [manifestPath('mismatch')]: makeManifest('something-else'),
     })
     const store = new InMemoryStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.update()
 
     expect(nonBundled(Object.keys(await store.getAll()))).toEqual(['good'])
@@ -513,7 +520,7 @@ describe('ManifestRegistry', () => {
       { [manifestPath('broken')]: 500 }
     )
     const store = new InMemoryStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.update()
     expect(nonBundled(Object.keys(await store.getAll()))).toEqual(['good'])
 
@@ -553,7 +560,7 @@ describe('ManifestRegistry', () => {
       onLog: (entry) => logEntries.push(entry),
     })
     const store = new InMemoryStore()
-    const registry = new ManifestRegistry(logger, store)
+    const registry = new ManifestRegistry(logger, store, testFetcher)
 
     expect(await registry.update()).toBe('synced')
     expect(nonBundled(Object.keys(await store.getAll()))).toEqual([
@@ -584,7 +591,11 @@ describe('ManifestRegistry', () => {
     stubCatalogFetch([catalogEntry('one')], {
       [manifestPath('one')]: makeManifest('one'),
     })
-    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+    const registry = new ManifestRegistry(
+      silentLogger,
+      new InMemoryStore(),
+      testFetcher
+    )
     await registry.update()
 
     expect(timeout).toHaveBeenCalledTimes(2)
@@ -599,7 +610,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
     const setMany = vi.spyOn(store, 'setMany')
     await registry.update()
@@ -615,7 +626,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
     await registry.update()
 
@@ -632,7 +643,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     const pending = await registry.getPendingUpdates()
@@ -655,7 +666,7 @@ describe('ManifestRegistry', () => {
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
       two: { manifest: makeManifest('two', 1, '1.0.0'), kind: 'user' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     expect(await registry.getPendingUpdates()).toEqual([])
@@ -666,7 +677,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     await registry.getPendingUpdates()
@@ -679,7 +690,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     await expect(
@@ -699,7 +710,7 @@ describe('ManifestRegistry', () => {
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
       two: { manifest: makeManifest('two', 1, '1.0.0'), kind: 'preinstalled' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     await registry.applyUpdates(['one'])
@@ -723,7 +734,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       mine: { manifest: makeManifest('mine', 1, '1.0.0'), kind: 'user' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     await registry.applyUpdates(['mine', 'fresh'])
@@ -745,7 +756,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     await expect(registry.applyUpdates(['one'])).rejects.toThrow(
@@ -762,7 +773,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     await expect(
@@ -777,7 +788,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'user' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
     await registry.update()
 
@@ -798,7 +809,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       one: { manifest: makeManifest('one', 1, '1.0.0'), kind: 'preinstalled' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
     await registry.update()
 
@@ -809,7 +820,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       'test:one': { manifest: makeManifest('test:one'), kind: 'user' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     expect(() => registry.getRunner('missing')).toThrow(
@@ -821,7 +832,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       'test:one': { manifest: makeManifest('test:one'), kind: 'user' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     await registry.unregister('test:one')
@@ -835,7 +846,7 @@ describe('ManifestRegistry', () => {
       'good:one': { manifest: makeManifest('good:one'), kind: 'user' },
       'bad:one': { manifest: makeManifest('bad:one', 999), kind: 'user' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     expect(registry.getRunner('good:one')).toBeDefined()
@@ -845,7 +856,7 @@ describe('ManifestRegistry', () => {
 
   it('saveUserManifest create stores a user manifest and builds its runner', async () => {
     const store = new InMemoryStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     await registry.saveUserManifest(makeManifest('mine:one'), 'create')
@@ -861,7 +872,7 @@ describe('ManifestRegistry', () => {
         kind: 'preinstalled',
       },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     await expect(
@@ -876,7 +887,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     await registry.saveUserManifest(
@@ -894,7 +905,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     await expect(
@@ -909,7 +920,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     await expect(
@@ -925,7 +936,7 @@ describe('ManifestRegistry', () => {
         kind: 'preinstalled',
       },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     await expect(
@@ -942,7 +953,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore({
       'mine:one': { manifest: raw, kind: 'user' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     expect(await registry.getSource('mine:one')).toEqual({
@@ -983,14 +994,14 @@ describe('ManifestRegistry storage failures', () => {
   it('rejects ready when the store cannot be read', async () => {
     const store = new FlakyStore()
     store.failReads = true
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
 
     await expect(registry.ready).rejects.toThrow('IO error')
   })
 
   it('saveUserManifest rejects on a failed write and registers no runner', async () => {
     const store = new FlakyStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
     store.failWrites = true
 
@@ -1007,7 +1018,7 @@ describe('ManifestRegistry storage failures', () => {
     const store = new FlakyStore({
       'mine:one': { manifest: makeManifest('mine:one'), kind: 'user' },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
     store.failWrites = true
 
@@ -1023,7 +1034,7 @@ describe('ManifestRegistry storage failures', () => {
       [manifestPath('one')]: makeManifest('one'),
     })
     const store = new FlakyStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
     store.failWrites = true
 
@@ -1046,7 +1057,11 @@ describe('ManifestRegistry storage failures', () => {
       .spyOn(fakeBrowser.storage.local, 'get')
       .mockRejectedValue(new Error('IO error'))
 
-    const registry = new ManifestRegistry(silentLogger, new ManifestStore())
+    const registry = new ManifestRegistry(
+      silentLogger,
+      new ManifestStore(),
+      testFetcher
+    )
 
     await expect(registry.ready).rejects.toThrow('IO error')
     get.mockRestore()
@@ -1060,7 +1075,7 @@ describe('ManifestRegistry bundled manifests', () => {
   it('registers the bundled manifests before ready, with no catalog sync', async () => {
     const fetchMock = stubCatalogFetch([], {})
     const store = new InMemoryStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     expect(fetchMock).not.toHaveBeenCalled()
@@ -1080,7 +1095,7 @@ describe('ManifestRegistry bundled manifests', () => {
       { [manifestPath('dandanplay')]: 500 }
     )
     const store = new InMemoryStore()
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
 
     expect(await registry.update()).toBe('synced')
     expect(registry.getRunner('dandanplay').manifest.id).toBe('dandanplay')
@@ -1102,7 +1117,7 @@ describe('ManifestRegistry bundled manifests', () => {
         kind: 'preinstalled',
       },
     })
-    const registry = new ManifestRegistry(silentLogger, store)
+    const registry = new ManifestRegistry(silentLogger, store, testFetcher)
     await registry.ready
 
     expect(

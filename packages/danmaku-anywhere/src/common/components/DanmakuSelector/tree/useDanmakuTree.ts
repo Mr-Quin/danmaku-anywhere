@@ -22,8 +22,8 @@ import {
   isSourceEpisode,
   splitCustomEpisodePath,
 } from '@/common/danmaku/utils'
-import { providerDisplayNames } from '@/common/options/providerConfig/displayName'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import { useSourceNames } from '@/common/options/providerConfig/useSourceNames'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import { compareLocale } from '@/common/utils/collator'
 import { matchWithPinyin } from '@/common/utils/utils'
@@ -154,13 +154,13 @@ export const useDanmakuTree = (
   const { data: seasons } = useGetAllSeasonsSuspense({ includeEmpty: true })
   const { data: bookmarks } = useBookmarksSuspense()
   const { getProviderById, configs } = useProviderConfig()
+  const { nameOf } = useSourceNames()
 
   const { t } = useTranslation()
 
   const { treeItems, treeItemMap } = useMemo(() => {
     const treeItemMap = new Map<string, ExtendedTreeItem>()
     const treeItems: ExtendedTreeItem[] = []
-    const displayNames = providerDisplayNames(configs)
 
     function register(item: ExtendedTreeItem) {
       treeItemMap.set(item.id, item)
@@ -280,7 +280,7 @@ export const useDanmakuTree = (
           label: season.title,
           kind: 'season',
           data: season,
-          providerName: provider && displayNames.get(provider.id),
+          providerName: provider && nameOf(provider),
           orphaned,
           children,
         })
@@ -363,7 +363,7 @@ export const useDanmakuTree = (
         label: season.title,
         kind: 'season' as const,
         data: season,
-        providerName: provider && displayNames.get(provider.id),
+        providerName: provider && nameOf(provider),
         orphaned,
         bookmarked: true,
         children: stubNodes.sort(compareEpisodes),
@@ -392,6 +392,7 @@ export const useDanmakuTree = (
     t,
     getProviderById,
     configs,
+    nameOf,
   ])
 
   return {

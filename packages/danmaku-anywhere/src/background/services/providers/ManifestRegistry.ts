@@ -1,4 +1,5 @@
 import {
+  type FetchLike,
   getDisplayStrings,
   type Manifest,
   ManifestRunner,
@@ -8,13 +9,16 @@ import {
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import {
+  bundledCatalogIndex,
+  bundledManifestRaw,
+} from '@/common/providers/bundledCatalog'
 import type {
   ManifestUpdate,
   ProviderManifestInfo,
 } from '@/common/rpcClient/background/types'
 import { invariant, sleep } from '@/common/utils/utils'
-import { bundledCatalogIndex, bundledManifestRaw } from './bundledCatalog'
-import { extensionFetchLike } from './extensionFetchLike'
+import { ManifestFetcherSymbol } from './extensionFetchLike'
 import {
   type IManifestStore,
   type ManifestEntry,
@@ -81,7 +85,8 @@ export class ManifestRegistry {
 
   constructor(
     @inject(LoggerSymbol) logger: ILogger,
-    @inject(ManifestStore) store: IManifestStore
+    @inject(ManifestStore) store: IManifestStore,
+    @inject(ManifestFetcherSymbol) private readonly fetcher: FetchLike
   ) {
     this.log = logger.sub('[ManifestRegistry]')
     this.store = store
@@ -405,7 +410,7 @@ export class ManifestRegistry {
   }
 
   private async fetchJson(url: string, timeoutMs: number): Promise<unknown> {
-    const res = await extensionFetchLike(url, {
+    const res = await this.fetcher(url, {
       signal: AbortSignal.timeout(timeoutMs),
     })
     if (res.status !== 200) {
@@ -433,6 +438,6 @@ export class ManifestRegistry {
   }
 
   private buildRunner(manifest: Manifest): ManifestRunner {
-    return new ManifestRunner(manifest, { fetcher: extensionFetchLike })
+    return new ManifestRunner(manifest, { fetcher: this.fetcher })
   }
 }

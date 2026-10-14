@@ -8,8 +8,13 @@ import type {
   PlayerRelayEvents,
 } from '@/common/rpcClient/background/types'
 import type { ControllerMethods } from '@/common/rpcClient/controller/types'
+import { loadStandaloneBackend } from '@/common/standalone/loadStandaloneBackend'
 import type { MountConfig } from '../options/mountConfig/schema'
 import type { StandaloneRpcHandlers } from './createStandaloneRpcClient'
+
+async function providerConfigWriter() {
+  return (await loadStandaloneBackend()).providerConfigWriter()
+}
 
 const standaloneBaseUrlConfig: BaseUrlConfig = {
   baseUrls: ['https://example.com'],
@@ -71,7 +76,7 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     authSignIn: () => ({ state: 'success', user: mockUser }),
     authSignOut: () => ({ state: 'success' }),
     authDeleteAccount: () => ({ state: 'success' }),
-    iconSet: () => ({ state: 'available' }),
+    iconSet: () => undefined,
     seasonSearch: () => [],
     seasonFilter: () => [],
     seasonGetAll: () => [],
@@ -104,7 +109,16 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     danmakuCountPurgeable: () => 0,
     danmakuPurgeCache: () => 0,
     providerProbeLogin: () => ({ hasLoginProbe: false, ok: true }),
-    providerGetManifestSpec: () => ({ name: '', hasLoginProbe: false }),
+    providerGetManifestSpec: async ({ manifestId, locale }) => {
+      return (await loadStandaloneBackend()).bundledManifestSpec(
+        manifestId,
+        locale
+      )
+    },
+    providerListManifests: () => ({ manifests: [], lastCheckedAt: null }),
+    providerListManifestNames: async ({ locale }) => {
+      return (await loadStandaloneBackend()).bundledManifestNames(locale)
+    },
     providerGetPendingUpdates: () => [],
     providerApplyUpdates: () => undefined,
     fetchImage: ({ src }) => src,
@@ -141,7 +155,24 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     openPopupInNewTab: () => undefined,
     getConfigMacCms: () => standaloneBaseUrlConfig,
     getConfigDanmuIcu: () => standaloneBaseUrlConfig,
-    providerConfigDelete: () => undefined,
+    providerConfigCreate: async (draft) => {
+      return (await providerConfigWriter()).create(draft)
+    },
+    providerConfigAddBuiltin: async ({ manifestId }) => {
+      return (await providerConfigWriter()).addBuiltin(manifestId)
+    },
+    providerConfigUpdate: async ({ id, edit }) => {
+      return (await providerConfigWriter()).update(id, edit)
+    },
+    providerConfigSetEnabled: async ({ id, enabled }) => {
+      return (await providerConfigWriter()).setEnabled(id, enabled)
+    },
+    providerConfigSetOrder: async ({ ids }) => {
+      return (await providerConfigWriter()).setOrder(ids)
+    },
+    providerConfigDelete: async (id) => {
+      return (await providerConfigWriter()).delete(id)
+    },
     testAiProvider: () => ({ state: 'success' }),
     backupExport: () => standaloneBackupData,
     backupImport: () => standaloneBackupRestoreResult,

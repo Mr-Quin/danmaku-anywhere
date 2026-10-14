@@ -519,6 +519,8 @@
       "cloudListError": "加载云备份失败。",
       "cloudRevisions": "历史版本",
       "cloudSignInTitle": "登录以启用云备份",
+      "droppedEntries_other": "{{store}}（跳过 {{count}} 项）",
+      "droppedEntriesWithReasons_other": "{{store}}（跳过 {{count}} 项：{{reasons}}）",
       "error": {
         "invalidFormat": "此备份文件已损坏，或不是由弹幕任何地方创建的。",
         "notJson": "此文件不是弹幕任何地方的备份文件。",
@@ -718,6 +720,7 @@
         "viewTitle": "清单源码"
       },
       "name": "名称",
+      "nameDefaultHint": "留空则使用默认名称",
       "specError": "加载弹幕源设置失败。部分字段缺失，此时保存会丢失这些字段。",
       "testRun": {
         "danmakuCount_other": "已获取 {{count}} 条弹幕",
@@ -734,7 +737,9 @@
         "edit": "编辑弹幕源：{{name}}"
       },
       "validation": {
+        "enum": "请从选项中选择",
         "integer": "必须是整数",
+        "invalid": "值无效",
         "maximum": "不能大于 {{max}}",
         "maxLength": "不能超过 {{max}} 个字符",
         "minimum": "不能小于 {{min}}",
@@ -746,8 +751,15 @@
       }
     },
     "error": {
+      "duplicate": "这个内置弹幕源已经安装",
       "episodesUnsupported": "{{name}} 不支持获取剧集列表",
-      "refetchUnsupported": "{{name}} 无法重新获取已保存剧集的弹幕"
+      "nameRequired": "请为弹幕源命名",
+      "notBuiltin": "这个弹幕源没有内置实例",
+      "notFound": "这个弹幕源已不存在，可能已被删除。",
+      "orderMismatch": "弹幕源列表已变化，请重新排序。",
+      "outdated": "弹幕源正在更新到当前版本，请稍后再试。",
+      "refetchUnsupported": "{{name}} 无法重新获取已保存剧集的弹幕",
+      "unknownSource": "这个弹幕源未安装，无法修改它的设置"
     },
     "filter": {
       "placeholder": "筛选弹幕源"
@@ -763,9 +775,6 @@
       "reorder": "排序",
       "reorderDone": "完成",
       "title": "已安装"
-    },
-    "instance": {
-      "defaultName": "自建弹弹play"
     },
     "name": "弹幕源",
     "updates": {

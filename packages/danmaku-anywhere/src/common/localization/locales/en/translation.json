@@ -539,6 +539,10 @@
       "cloudListError": "Failed to load cloud backups.",
       "cloudRevisions": "Revisions",
       "cloudSignInTitle": "Sign in to enable cloud backup",
+      "droppedEntries_one": "{{store}} ({{count}} entry skipped)",
+      "droppedEntries_other": "{{store}} ({{count}} entries skipped)",
+      "droppedEntriesWithReasons_one": "{{store}} ({{count}} entry skipped: {{reasons}})",
+      "droppedEntriesWithReasons_other": "{{store}} ({{count}} entries skipped: {{reasons}})",
       "error": {
         "invalidFormat": "This backup file is damaged or was not made by Danmaku Anywhere.",
         "notJson": "This file is not a Danmaku Anywhere backup.",
@@ -745,6 +749,7 @@
         "viewTitle": "Manifest source"
       },
       "name": "Name",
+      "nameDefaultHint": "Leave empty to use the default name",
       "specError": "Failed to load source settings. Some fields are missing, saving now would drop them.",
       "testRun": {
         "danmakuCount_one": "{{count}} comment fetched",
@@ -762,7 +767,9 @@
         "edit": "Edit Source: {{name}}"
       },
       "validation": {
+        "enum": "Pick one of the options",
         "integer": "Must be a whole number",
+        "invalid": "Not a valid value",
         "maximum": "Must be at most {{max}}",
         "maxLength": "Must be at most {{max}} characters",
         "minimum": "Must be at least {{min}}",
@@ -774,8 +781,15 @@
       }
     },
     "error": {
+      "duplicate": "This built-in source is already installed",
       "episodesUnsupported": "{{name}} cannot list episodes",
-      "refetchUnsupported": "{{name}} cannot fetch danmaku for saved episodes again"
+      "nameRequired": "Give the source a name",
+      "notBuiltin": "This source has no built-in instance",
+      "notFound": "This source no longer exists. It may have been deleted.",
+      "orderMismatch": "The source list changed. Try reordering again.",
+      "outdated": "Your sources are being updated to this version. Try again in a moment.",
+      "refetchUnsupported": "{{name}} cannot fetch danmaku for saved episodes again",
+      "unknownSource": "This source is not installed, so its settings cannot be changed"
     },
     "filter": {
       "placeholder": "Filter sources"
@@ -792,9 +806,6 @@
       "reorder": "Reorder",
       "reorderDone": "Done",
       "title": "Installed"
-    },
-    "instance": {
-      "defaultName": "Self-hosted DanDanPlay"
     },
     "name": "Danmaku sources",
     "updates": {

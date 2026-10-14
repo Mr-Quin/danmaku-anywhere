@@ -14,11 +14,11 @@ import { useProviderConfig } from './useProviderConfig'
  * renders the upgraded configs once the version is written.
  */
 
-function config(name: string): ProviderConfig {
+function config(customName: string): ProviderConfig {
   return {
     id: 'dandanplay',
     manifestId: 'dandanplay',
-    name,
+    customName,
     enabled: true,
     configValues: {},
   }
@@ -26,7 +26,7 @@ function config(name: string): ProviderConfig {
 
 function ConfigNames() {
   const { configs } = useProviderConfig()
-  return <span>{configs.map((c) => c.name).join(',')}</span>
+  return <span>{configs.map((c) => c.customName).join(',')}</span>
 }
 
 let root: Root | undefined
@@ -60,7 +60,7 @@ it('suspends until the upgrade records the running version', async () => {
   expect(element.textContent).toBe('loading')
 
   await fakeBrowser.storage.sync.set({
-    providerConfig: { data: [config('after upgrade')], version: 5 },
+    providerConfig: { data: [config('after upgrade')], version: 6 },
   })
   await fakeBrowser.storage.local.set({
     lastVersion: { lastVersion: EXTENSION_VERSION },

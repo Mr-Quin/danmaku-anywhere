@@ -6,7 +6,7 @@ const BUILTIN_IDS = ['dandanplay', 'bilibili', 'tencent']
 
 interface StoredBuiltinNames {
   lang: string
-  names: Record<string, string>
+  customNames: Record<string, string | null>
 }
 
 async function readBuiltinNames(page: Page): Promise<StoredBuiltinNames> {
@@ -17,42 +17,22 @@ async function readBuiltinNames(page: Page): Promise<StoredBuiltinNames> {
     ])
     const options = stored.extensionOptions as { data: { lang: string } }
     const configs = stored.providerConfig as {
-      data: Array<{ id: string; name: string }>
+      data: Array<{ id: string; customName: string | null }>
     }
-    const names: Record<string, string> = {}
+    const customNames: Record<string, string | null> = {}
     for (const config of configs.data) {
       if (ids.includes(config.id)) {
-        names[config.id] = config.name
+        customNames[config.id] = config.customName
       }
     }
-    return { lang: options.data.lang, names }
+    return { lang: options.data.lang, customNames }
   }, BUILTIN_IDS)
 }
 
-// The rename runs after the catalog sync, so it can land after the page first
-// renders.
-async function expectStoredNamesLocalized(
-  page: Page
-): Promise<Record<string, string>> {
-  const { lang } = await readBuiltinNames(page)
-  const expected = Object.fromEntries(
-    BUILTIN_IDS.map((id) => [id, manifestDisplayName(id, lang)])
-  )
-  await expect
-    .poll(
-      async () => {
-        return (await readBuiltinNames(page)).names
-      },
-      { message: `built-in names localized for ${lang}` }
-    )
-    .toEqual(expected)
-  return expected
-}
-
 // v1.5.0 stored the built-in names as English literals. After an upgrade or a
-// restore of its backup they must match what a fresh install seeds in the
-// profile's language, on the providers page and optionally on the library's
-// season chips.
+// restore of its backup the built-ins are on their default names, which show
+// in the profile's language on the providers page and optionally on the
+// library's season chips.
 //
 // Detached skips the popup's last-route restore, which would otherwise pull a
 // new page over to whatever tab an earlier step left open.
@@ -65,7 +45,13 @@ export async function assertBuiltinNamesLocalized(
   const popup = await Popup.open(page, extensionId, '/providers', {
     detached: true,
   })
-  const names = await expectStoredNamesLocalized(page)
+  const { lang, customNames } = await readBuiltinNames(page)
+  expect(customNames).toEqual(
+    Object.fromEntries(BUILTIN_IDS.map((id) => [id, null]))
+  )
+  const names = Object.fromEntries(
+    BUILTIN_IDS.map((id) => [id, manifestDisplayName(id, lang)])
+  )
   for (const name of Object.values(names)) {
     await expect(popup.providers.row(name).first()).toBeVisible()
   }

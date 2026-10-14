@@ -20,6 +20,7 @@ import { NothingHere } from '@/common/components/NothingHere'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import { useSourceNames } from '@/common/options/providerConfig/useSourceNames'
 import { useSearchHistory } from '@/common/options/searchHistory/useSearchHistory'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
@@ -67,6 +68,7 @@ export function SearchForm({
 
   const { data: extOptions } = useExtensionOptions()
   const { configs } = useProviderConfig()
+  const { nameOf } = useSourceNames()
   const { addEntry } = useSearchHistory()
 
   const enabledProviders = useMemo(
@@ -132,7 +134,7 @@ export function SearchForm({
       return t(
         'searchPage.error.network',
         "Couldn't reach {{name}}. Check your connection and try again.",
-        { name: activeProvider?.name ?? '' }
+        { name: activeProvider ? nameOf(activeProvider) : '' }
       )
     }
     return failure.message || t('error.unknown', 'Something went wrong.')
@@ -255,7 +257,7 @@ export function SearchForm({
           }
           signIn={
             signIn.needsSignIn
-              ? { sourceName: activeProvider.name, url: signIn.signInUrl }
+              ? { sourceName: nameOf(activeProvider), url: signIn.signInUrl }
               : undefined
           }
           onRetry={() => {

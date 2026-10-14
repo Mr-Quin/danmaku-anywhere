@@ -6,6 +6,7 @@ import {
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { backgroundContainerModule } from '@/background/ioc'
 import { LoggerSymbol } from '@/common/Logger'
+import { PROXY_DDP_BASE_URL } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { createTestContainer } from '@/tests/createTestContainer'
 import { silentLogger } from '@/tests/silentLogger'
@@ -73,25 +74,28 @@ function customDdp(opts: {
   return {
     id: 'custom-1',
     manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-    name: 'Custom DDP',
+    customName: 'Custom DDP',
     enabled: true,
     configValues: opts,
   }
 }
 
 describe('ProviderFactory dispatch', () => {
-  it('routes built-in DanDanPlay to the dandanplay manifest', async () => {
+  it('routes built-in DanDanPlay to the dandanplay manifest with the extension server', async () => {
     const factory = buildFactory()
     const service = factory({
       id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
       manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.DanDanPlay],
-      name: 'DanDanPlay',
+      customName: null,
       enabled: true,
-      configValues: {},
+      configValues: { baseUrl: 'https://stored.example' },
     })
 
     await service.search({ keyword: 'x' })
-    expect(mockRunner.runSearch).toHaveBeenCalledWith({ q: 'x' }, RUN_OPTS)
+    expect(mockRunner.runSearch).toHaveBeenCalledWith(
+      { baseUrl: PROXY_DDP_BASE_URL, q: 'x' },
+      RUN_OPTS
+    )
   })
 
   it('routes Bilibili and threads danmakuFormat from configValues', async () => {
@@ -99,7 +103,7 @@ describe('ProviderFactory dispatch', () => {
     const service = factory({
       id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
       manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Bilibili],
-      name: 'Bilibili',
+      customName: 'Bilibili',
       enabled: true,
       configValues: { danmakuFormat: 'protobuf' },
     })
@@ -119,7 +123,7 @@ describe('ProviderFactory dispatch', () => {
     const service = factory({
       id: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
       manifestId: PROVIDER_TO_BUILTIN_ID[DanmakuSourceType.Tencent],
-      name: 'Tencent',
+      customName: 'Tencent',
       enabled: true,
       configValues: {},
     })
@@ -153,7 +157,7 @@ describe('ProviderFactory dispatch', () => {
     const service = factory({
       id: LEGACY_MACCMS_ID,
       manifestId: LEGACY_MACCMS_ID,
-      name: 'MacCMS',
+      customName: 'MacCMS',
       enabled: true,
       configValues: {},
     })
@@ -166,7 +170,7 @@ describe('ProviderFactory dispatch', () => {
     const service = factory({
       id: 'iqiyi-1',
       manifestId: 'iqiyi',
-      name: 'iQIYI',
+      customName: 'iQIYI',
       enabled: true,
       configValues: { region: 'cn' },
     })

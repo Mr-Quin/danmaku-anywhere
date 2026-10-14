@@ -3,17 +3,24 @@ import { Box } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { describeProviderConfigError } from '@/common/options/providerConfig/issueText'
+import type {
+  ProviderConfigDraft,
+  ProviderConfigEdit,
+} from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import { useSourceNames } from '@/common/options/providerConfig/useSourceNames'
 import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
 import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 import { MacCmsProviderForm } from '../components/forms/MacCmsProviderForm'
 import { ProviderConfigForm } from '../components/forms/ProviderConfigForm'
+import { useManifestSpec } from '../hooks/useManifestSpec'
 
 interface ProviderEditorProps {
   mode: 'add' | 'edit'
-  provider: ProviderConfig
+  // A stored config when editing, a draft when adding
+  provider: ProviderConfigDraft & { id?: string }
   onClose: () => void
 }
 
@@ -24,35 +31,48 @@ export const ProviderEditor = ({
 }: ProviderEditorProps) => {
   const { t } = useTranslation()
   const { update, create } = useEditProviderConfig()
+  const { nameOf } = useSourceNames()
+  // Legacy MacCMS has no manifest to ask for
+  const { data: spec } = useManifestSpec(provider.manifestId, {
+    enabled: !isLegacyMacCms(provider),
+  })
+  const configSchema = spec?.configSchema
   const toast = useToast.use.toast()
 
   const isEdit = mode === 'edit'
 
-  const handleSave = async (data: ProviderConfig) => {
+  const handleSave = async (edit: Required<ProviderConfigEdit>) => {
     if (isEdit && provider.id) {
       return update.mutate(
-        { id: provider.id, config: data },
+        { id: provider.id, edit },
         {
           onSuccess: () => {
             toast.success(t('providers.alert.updated', 'Source updated'))
             onClose()
           },
           onError: (error) => {
-            toast.error(error.message)
+            toast.error(
+              describeProviderConfigError(error, configSchema) ?? error.message
+            )
           },
         }
       )
     }
 
-    return create.mutate(data, {
-      onSuccess: () => {
-        toast.success(t('providers.alert.created', 'Source created'))
-        onClose()
-      },
-      onError: (error) => {
-        toast.error(error.message)
-      },
-    })
+    return create.mutate(
+      { ...provider, ...edit },
+      {
+        onSuccess: () => {
+          toast.success(t('providers.alert.created', 'Source created'))
+          onClose()
+        },
+        onError: (error) => {
+          toast.error(
+            describeProviderConfigError(error, configSchema) ?? error.message
+          )
+        },
+      }
+    )
   }
 
   const isCustomDdp =
@@ -61,7 +81,7 @@ export const ProviderEditor = ({
   const getTitle = () => {
     if (isEdit) {
       return t('providers.editor.title.edit', 'Edit Source: {{name}}', {
-        name: provider.name,
+        name: nameOf(provider),
       })
     }
     if (isCustomDdp) {

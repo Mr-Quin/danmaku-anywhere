@@ -10,7 +10,8 @@ import { OptionsService } from './OptionsService'
  * write error rejects and leaves the stored value alone, while a migration that
  * throws still resets the store to defaults. Also covers readStoredUnblocked
  * telling an absent store from a stored empty list, and set/update rejecting
- * when the write fails.
+ * when the write fails. transform() runs read, change and write as one queued
+ * step, so concurrent transforms and sets never lose each other's changes.
  */
 
 interface Counter {
@@ -206,6 +207,86 @@ describe('OptionsService', () => {
       )
 
       await expect(service.get()).rejects.toThrow('IO error')
+    })
+  })
+
+  describe('transform', () => {
+    beforeEach(async () => {
+      await storeRaw({ data: { count: 5 }, version: 2 })
+    })
+
+    it('writes what the change returns at the stored version', async () => {
+      const service = createCounterService(readiness)
+
+      const result = await service.transform((data) => ({
+        count: data.count * 2,
+      }))
+
+      expect(result).toEqual({ count: 10 })
+      expect(await readRaw()).toEqual({ data: { count: 10 }, version: 2 })
+    })
+
+    it('runs concurrent transforms one after another', async () => {
+      const service = createCounterService(readiness)
+
+      await Promise.all([
+        service.transform(async (data) => {
+          await new Promise((resolve) => setTimeout(resolve, 5))
+          return { count: data.count + 1 }
+        }),
+        service.transform((data) => ({ count: data.count + 10 })),
+      ])
+
+      expect(await readRaw()).toEqual({ data: { count: 16 }, version: 2 })
+    })
+
+    it('does not let a set land between the read and the write', async () => {
+      const service = createCounterService(readiness)
+
+      const transformed = service.transform(async (data) => {
+        await new Promise((resolve) => setTimeout(resolve, 5))
+        return { count: data.count + 1 }
+      })
+      const set = service.set({ count: 100 })
+      await Promise.all([transformed, set])
+
+      expect(await readRaw()).toEqual({ data: { count: 100 }, version: 2 })
+    })
+
+    it('writes nothing when the change throws', async () => {
+      const service = createCounterService(readiness)
+      const setSpy = vi.spyOn(fakeBrowser.storage.local, 'set')
+
+      await expect(
+        service.transform(() => {
+          throw new Error('not allowed')
+        })
+      ).rejects.toThrow('not allowed')
+      expect(setSpy).not.toHaveBeenCalled()
+      expect(await readRaw()).toEqual({ data: { count: 5 }, version: 2 })
+    })
+
+    it('refuses data stored at an older version and writes nothing', async () => {
+      await storeRaw({ data: { count: 5 }, version: 1 })
+      const service = createCounterService(readiness)
+      const change = vi.fn((data: Counter) => ({ count: data.count + 1 }))
+
+      await expect(service.transform(change)).rejects.toMatchObject({
+        name: 'OptionsOutdatedError',
+        version: 1,
+        expected: 2,
+      })
+      expect(change).not.toHaveBeenCalled()
+      expect(await readRaw()).toEqual({ data: { count: 5 }, version: 1 })
+    })
+
+    it('skips the write when the change returns the data it was given', async () => {
+      const service = createCounterService(readiness)
+      const setSpy = vi.spyOn(fakeBrowser.storage.local, 'set')
+
+      await service.transform((data) => data)
+
+      expect(setSpy).not.toHaveBeenCalled()
     })
   })
 })

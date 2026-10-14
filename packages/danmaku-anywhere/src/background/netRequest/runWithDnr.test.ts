@@ -17,6 +17,8 @@ function makeHandle(
   }
 }
 
+const OPTIONS = { restrictInitiatorDomain: true }
+
 describe('runWithDnr', () => {
   const mockSetSessionHeader = vi.mocked(setSessionHeader)
 
@@ -35,13 +37,15 @@ describe('runWithDnr', () => {
     const context = { query: 'test' }
     const action = vi.fn().mockResolvedValue('result')
 
-    const runner = runWithDnr(spec, context)
+    const runner = runWithDnr(spec, OPTIONS, context)
     const result = await runner(action)
 
     expect(result).toBe('result')
-    expect(mockSetSessionHeader).toHaveBeenCalledWith('https://example.com/*', {
-      Referer: 'https://referrer.com?q=test',
-    })
+    expect(mockSetSessionHeader).toHaveBeenCalledWith(
+      'https://example.com/*',
+      { Referer: 'https://referrer.com?q=test' },
+      OPTIONS
+    )
     expect(action).toHaveBeenCalled()
   })
 
@@ -55,7 +59,7 @@ describe('runWithDnr', () => {
     }
     const action = vi.fn().mockResolvedValue('result')
 
-    const runner = runWithDnr(spec, {})
+    const runner = runWithDnr(spec, OPTIONS)
     await runner(action)
 
     // Verify dispose is called.
@@ -73,7 +77,7 @@ describe('runWithDnr', () => {
     }
     const action = vi.fn().mockRejectedValue(new Error('Action failed'))
 
-    const runner = runWithDnr(spec, {})
+    const runner = runWithDnr(spec, OPTIONS)
     await expect(runner(action)).rejects.toThrow('Action failed')
 
     expect(disposeMock).toHaveBeenCalled()

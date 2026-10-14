@@ -32,6 +32,7 @@ import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { MountConfigService } from '@/common/options/mountConfig/service'
+import { ProviderConfigWriter } from '@/common/options/providerConfig/ProviderConfigWriter'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
 import type { RPCServerHandlers, RRPServerHandler } from '@/common/rpc/server'
@@ -69,6 +70,8 @@ export class RpcManager {
     private mountConfigService: MountConfigService,
     @inject(ProviderConfigService)
     private providerConfigService: ProviderConfigService,
+    @inject(ProviderConfigWriter)
+    private providerConfigWriter: ProviderConfigWriter,
     @inject(EpisodeMatchingService)
     private episodeMatchingService: EpisodeMatchingService,
     @inject(LogService) private logService: LogService,
@@ -134,6 +137,9 @@ export class RpcManager {
       },
       providerListManifests: async ({ locale } = {}) => {
         return this.providerService.listManifests(locale)
+      },
+      providerListManifestNames: async ({ locale } = {}) => {
+        return this.providerService.listManifestNames(locale)
       },
       providerRefreshCatalog: async ({ locale } = {}) => {
         return this.providerService.refreshCatalog(locale)
@@ -381,10 +387,23 @@ export class RpcManager {
         }
         return res.data
       },
+      providerConfigCreate: async (draft) => {
+        return this.providerConfigWriter.create(draft)
+      },
+      providerConfigAddBuiltin: async ({ manifestId }) => {
+        return this.providerConfigWriter.addBuiltin(manifestId)
+      },
+      providerConfigUpdate: async ({ id, edit }) => {
+        return this.providerConfigWriter.update(id, edit)
+      },
+      providerConfigSetEnabled: async ({ id, enabled }) => {
+        return this.providerConfigWriter.setEnabled(id, enabled)
+      },
+      providerConfigSetOrder: async ({ ids }) => {
+        return this.providerConfigWriter.setOrder(ids)
+      },
       providerConfigDelete: async (id, sender) => {
-        await this.bookmarkService.deleteByProviderConfig(id)
-        await this.providerConfigService.deleteFromStorage(id)
-
+        await this.providerConfigWriter.delete(id)
         void invalidateContentScriptData(sender.tab?.id)
       },
       providerDeleteUserManifest: async ({ manifestId }, sender) => {
