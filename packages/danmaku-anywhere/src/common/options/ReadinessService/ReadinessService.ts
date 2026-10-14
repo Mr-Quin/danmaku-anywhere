@@ -156,12 +156,15 @@ export class ReadinessService implements ReadinessGate {
     if (status.current || deadline === undefined) {
       return
     }
-    this.staleRunTimer = setTimeout(
-      () => {
-        this.scheduleEvaluation()
-      },
-      Math.max(deadline - Date.now(), 0)
-    )
+    const delay = deadline - Date.now()
+    // Past the deadline the run already reads as failed, and nothing changes
+    // until storage does.
+    if (delay <= 0) {
+      return
+    }
+    this.staleRunTimer = setTimeout(() => {
+      this.scheduleEvaluation()
+    }, delay)
   }
 
   private setState(next: ReadinessState) {
