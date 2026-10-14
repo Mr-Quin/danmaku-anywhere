@@ -8,9 +8,9 @@ import { ReadinessService } from './ReadinessService/ReadinessService'
 // upgraded so the UI never reads or writes a store in its old shape.
 export function useOptionStoreQuery<TEnvelope>(store: OptionStoreDescriptor) {
   const readiness = useInjectService(ReadinessService)
-  if (readiness.getState().status !== 'ready') {
-    use(readiness.waitUntilReady())
-  }
+  // Always the same promise, so once it has resolved React reads it without
+  // suspending, and the hook calls use() on every render as React requires.
+  use(readiness.waitUntilReady())
   return useSuspenseExtStorageQuery<TEnvelope>(store.key, {
     storageType: store.area,
   })
