@@ -258,13 +258,9 @@ export class ProviderService {
     // any pasted URL regardless of which sources the user has toggled on.
     // Disabling Bilibili would otherwise make a recognized bilibili.com
     // URL fail with "No provider found".
-    await this.manifestRegistry.ready
     const configs = await this.providerConfigService.getAll()
     for (const config of configs) {
       const service = this.danmakuProviderFactory(config)
-      if (!service.canParse?.(url)) {
-        continue
-      }
       if (!service.parseUrl) {
         continue
       }
@@ -283,10 +279,8 @@ export class ProviderService {
   }
 
   async probeLogin<T = unknown>(manifestId: string): Promise<T | null> {
-    await this.manifestRegistry.ready
-    return this.manifestRegistry
-      .getRunner(manifestId)
-      .runLoginProbe<T>(undefined, MANIFEST_RUN_OPTIONS)
+    const runner = await this.manifestRegistry.getRunner(manifestId)
+    return runner.runLoginProbe<T>(undefined, MANIFEST_RUN_OPTIONS)
   }
 
   // Resolves whether a manifest-driven source needs a login/cookie action so
@@ -338,9 +332,8 @@ export class ProviderService {
   // the popup can render the catalog section (registered manifests the user
   // has no config for) without bundling the manifest set itself.
   async listManifests(locale?: string): Promise<ProviderManifestList> {
-    await this.manifestRegistry.ready
     return {
-      manifests: this.manifestRegistry.listManifests(locale),
+      manifests: await this.manifestRegistry.listManifests(locale),
       lastCheckedAt: await this.manifestRegistry.getLastCheckedAt(),
     }
   }
@@ -350,9 +343,6 @@ export class ProviderService {
       return this.onInstalled(details.reason).catch((e) => {
         this.logger.error('Install handling failed:', e)
       })
-    })
-    this.manifestRegistry.ready.catch((e) => {
-      this.logger.error('Failed to load manifests:', e)
     })
   }
 
@@ -390,13 +380,11 @@ export class ProviderService {
   // locked the seed flag, or a restored pre-manifest backup), so a name the
   // user sets later is never touched.
   async localizeLegacyBuiltinNames(): Promise<void> {
-    await this.manifestRegistry.ready
     const { lang } = await this.extensionOptions.get()
-    const names = new Map(
-      this.manifestRegistry
-        .listManifests(toManifestLocale(lang))
-        .map((m) => [m.id, m.name])
+    const manifests = await this.manifestRegistry.listManifests(
+      toManifestLocale(lang)
     )
+    const names = new Map(manifests.map((m) => [m.id, m.name]))
     const configs = await this.providerConfigService.getAll()
     const localized = localizeLegacyBuiltinNames(configs, names)
     if (localized !== configs) {
@@ -424,37 +412,39 @@ export class ProviderService {
   // manual via the Updates list. Records the check only on a real sync, so
   // "checked Nm ago" never advances on a bare detection. Returns how the
   // catalog index resolved.
-  async syncCatalog(): Promise<CatalogSyncResult> {
-    const result = await this.manifestRegistry.update()
-    if (result === 'synced') {
-      // update() just reached the index, so a failure here means it died
-      // mid-sync; skip the best-effort auto-apply rather than fail the sync.
-      const pending = await this.manifestRegistry
-        .getPendingUpdates()
-        .catch((e) => {
-          this.logger.warn('Failed to detect pending updates mid-sync:', e)
-          return []
-        })
-      const configs = await this.providerConfigService.getAll()
-      const installed = new Set(configs.map((config) => config.manifestId))
-      const uninstalled = pending
-        .filter((update) => !installed.has(update.manifestId))
-        .map((update) => update.manifestId)
-      if (uninstalled.length > 0) {
-        try {
-          await this.manifestRegistry.applyUpdates(uninstalled)
-        } catch (e) {
-          // Best-effort: a failed background apply retries next sync and must
-          // not block recording the check or the rest of the refresh.
-          this.logger.warn('Failed to auto-apply catalog updates:', e)
+  syncCatalog(): Promise<CatalogSyncResult> {
+    return this.manifestRegistry.batchChanges(async () => {
+      const result = await this.manifestRegistry.update()
+      if (result === 'synced') {
+        // update() just reached the index, so a failure here means it died
+        // mid-sync; skip the best-effort auto-apply rather than fail the sync.
+        const pending = await this.manifestRegistry
+          .getPendingUpdates()
+          .catch((e) => {
+            this.logger.warn('Failed to detect pending updates mid-sync:', e)
+            return []
+          })
+        const configs = await this.providerConfigService.getAll()
+        const installed = new Set(configs.map((config) => config.manifestId))
+        const uninstalled = pending
+          .filter((update) => !installed.has(update.manifestId))
+          .map((update) => update.manifestId)
+        if (uninstalled.length > 0) {
+          try {
+            await this.manifestRegistry.applyUpdates(uninstalled)
+          } catch (e) {
+            // Best-effort: a failed background apply retries next sync and must
+            // not block recording the check or the rest of the refresh.
+            this.logger.warn('Failed to auto-apply catalog updates:', e)
+          }
         }
+        await this.manifestRegistry.recordChecked()
       }
-      await this.manifestRegistry.recordChecked()
-    }
-    // The registry holds the bundled manifests from startup, so an unusable
-    // catalog still seeds working sources instead of an empty list.
-    await this.seedDefaultProviders()
-    return result
+      // The registry holds the bundled manifests from startup, so an unusable
+      // catalog still seeds working sources instead of an empty list.
+      await this.seedDefaultProviders()
+      return result
+    })
   }
 
   // syncCatalog can run concurrently (install, alarm, popup refresh) and the
@@ -483,13 +473,11 @@ export class ProviderService {
       await this.providerConfigService.markSeeded()
       return
     }
-    await this.manifestRegistry.ready
     const { lang } = await this.extensionOptions.get()
-    const names = new Map(
-      this.manifestRegistry
-        .listManifests(toManifestLocale(lang))
-        .map((m) => [m.id, m.name])
+    const manifests = await this.manifestRegistry.listManifests(
+      toManifestLocale(lang)
     )
+    const names = new Map(manifests.map((m) => [m.id, m.name]))
     const configs: ProviderConfig[] = []
     for (const entry of AUTO_IMPORT_PROVIDERS) {
       const name = names.get(entry.manifestId)
@@ -509,8 +497,7 @@ export class ProviderService {
     manifestId: string,
     locale?: string
   ): Promise<ProviderManifestSpec> {
-    await this.manifestRegistry.ready
-    const { manifest } = this.manifestRegistry.getRunner(manifestId)
+    const { manifest } = await this.manifestRegistry.getRunner(manifestId)
     const display = getDisplayStrings(manifest, locale)
     return {
       name: display.name,

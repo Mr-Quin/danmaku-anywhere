@@ -114,10 +114,8 @@ async function run({
   await page.locator('#root').waitFor({ state: 'visible' })
   await dismissReleaseNotes(page)
 
-  // Opened right away, while the offline sync is still retrying. The page
-  // queries the registry once on mount with no refetch, so iQIYI (never a
-  // config the user owned) shows only if the bundle registered before the
-  // registry first answered.
+  // Opened right away, while the offline sync is still retrying. iQIYI was
+  // never a config the user owned, so it can only come from the bundle.
   let popup = await Popup.open(page, MIGRATION_EXTENSION_ID, '/providers')
   await expect(popup.providers.checkedNeverLabel()).toBeVisible()
   await expect(popup.providers.importButton(/iQIYI|爱奇艺/)).toBeVisible()

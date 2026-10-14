@@ -8,11 +8,15 @@ import {
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import {
+  type ManifestChange,
+  publishDataChange,
+} from '@/common/messaging/dataChangeChannel'
 import type {
   ManifestUpdate,
   ProviderManifestInfo,
 } from '@/common/rpcClient/background/types'
-import { invariant, sleep } from '@/common/utils/utils'
+import { sleep } from '@/common/utils/utils'
 import { bundledCatalogIndex, bundledManifestRaw } from './bundledCatalog'
 import { extensionFetchLike } from './extensionFetchLike'
 import {
@@ -76,8 +80,9 @@ export class ManifestRegistry {
   private readonly log: ILogger
   private readonly store: IManifestStore
   private readonly baseUrl = import.meta.env.VITE_PROXY_URL
-  private initialized = false
-  readonly ready: Promise<void>
+  private loading: Promise<void> | null = null
+  private batchDepth = 0
+  private unannounced: ManifestChange | null = null
 
   constructor(
     @inject(LoggerSymbol) logger: ILogger,
@@ -85,11 +90,13 @@ export class ManifestRegistry {
   ) {
     this.log = logger.sub('[ManifestRegistry]')
     this.store = store
-    this.ready = this.init()
+    this.whenLoaded().catch((e) => {
+      this.log.error('Failed to load manifests:', e)
+    })
   }
 
-  getRunner(manifestId: string): ManifestRunner {
-    invariant(this.initialized, 'ManifestRegistry accessed before ready')
+  async getRunner(manifestId: string): Promise<ManifestRunner> {
+    await this.whenLoaded()
     const entry = this.runners.get(manifestId)
     if (!entry) {
       throw new Error(`no manifest registered with id: ${manifestId}`)
@@ -97,8 +104,8 @@ export class ManifestRegistry {
     return entry.runner
   }
 
-  listManifests(locale?: string): ProviderManifestInfo[] {
-    invariant(this.initialized, 'ManifestRegistry accessed before ready')
+  async listManifests(locale?: string): Promise<ProviderManifestInfo[]> {
+    await this.whenLoaded()
     return [...this.runners.values()].map(({ runner, kind }) => {
       const { manifest } = runner
       const display = getDisplayStrings(manifest, locale)
@@ -117,14 +124,16 @@ export class ManifestRegistry {
   }
 
   // Stamp the catalog as freshly synced; the caller decides when it is current.
-  recordChecked(): Promise<void> {
-    return this.store.setLastCheckedAt(Date.now())
+  async recordChecked(): Promise<void> {
+    await this.store.setLastCheckedAt(Date.now())
+    this.recordChange([], true)
   }
 
   async unregister(manifestId: string): Promise<void> {
-    await this.ready
+    await this.whenLoaded()
     await this.store.remove(manifestId)
     this.runners.delete(manifestId)
+    this.recordChange([manifestId], false)
   }
 
   // Add-only except for 'bundled' entries, which the catalog copy replaces
@@ -132,7 +141,7 @@ export class ManifestRegistry {
   // getPendingUpdates instead. A bundled entry whose file fails to download
   // stays bundled until the next sync.
   async update(): Promise<CatalogSyncResult> {
-    await this.ready
+    await this.whenLoaded()
     const entries = await this.loadIndex()
     if (!entries) {
       return 'unreachable'
@@ -154,7 +163,7 @@ export class ManifestRegistry {
   // check" must stay distinguishable, or a failed check would clear the
   // popup's pending list.
   async getPendingUpdates(): Promise<ManifestUpdate[]> {
-    await this.ready
+    await this.whenLoaded()
     const entries = await this.loadIndex()
     if (!entries) {
       throw new Error(CATALOG_UNREACHABLE_MESSAGE)
@@ -192,7 +201,7 @@ export class ManifestRegistry {
   // apply) so a user-driven update surfaces the error instead of silently
   // no-op'ing.
   async applyUpdates(manifestIds: string[]): Promise<void> {
-    await this.ready
+    await this.whenLoaded()
     const entries = await this.loadIndex()
     if (!entries) {
       throw new Error(CATALOG_UNREACHABLE_MESSAGE)
@@ -225,7 +234,7 @@ export class ManifestRegistry {
     mode: 'create' | 'update',
     expectedId?: string
   ): Promise<void> {
-    await this.ready
+    await this.whenLoaded()
     const parsed = zManifest.safeParse(manifest)
     if (!parsed.success) {
       throw new Error(
@@ -253,6 +262,7 @@ export class ManifestRegistry {
     const runner = this.buildRunner(parsed.data)
     await this.store.set(id, { manifest, kind: 'user' })
     this.runners.set(id, { runner, kind: 'user' })
+    this.recordChange([id], false)
   }
 
   // Returns the raw stored manifest JSON (not the parsed runner form) so the
@@ -261,15 +271,60 @@ export class ManifestRegistry {
     return this.store.get(manifestId)
   }
 
+  private whenLoaded(): Promise<void> {
+    this.loading ??= this.load().catch((e: unknown) => {
+      this.loading = null
+      throw e
+    })
+    return this.loading
+  }
+
   // The bundle fills in whatever the store lacks, so the built-in sources exist
   // before any catalog sync.
-  private async init(): Promise<void> {
+  private async load(): Promise<void> {
+    this.runners.clear()
     const record = await this.store.getAll()
     for (const [id, entry] of Object.entries(record)) {
       this.loadEntry(id, entry)
     }
     await this.seedFromBundle(record)
-    this.initialized = true
+  }
+
+  // Changes made while run is in flight are announced together when it
+  // settles, so a multi-step sync costs readers one refetch.
+  async batchChanges<T>(run: () => Promise<T>): Promise<T> {
+    this.batchDepth += 1
+    try {
+      return await run()
+    } finally {
+      this.batchDepth -= 1
+      if (this.batchDepth === 0) {
+        this.announce()
+      }
+    }
+  }
+
+  // Call only once both the store and the runners hold the change. Readers
+  // refetch on the announcement and must not see the old state.
+  private recordChange(manifestIds: string[], catalogChanged: boolean): void {
+    const previous = this.unannounced
+    this.unannounced = {
+      manifestIds: [
+        ...new Set([...(previous?.manifestIds ?? []), ...manifestIds]),
+      ],
+      catalogChanged: catalogChanged || (previous?.catalogChanged ?? false),
+    }
+    if (this.batchDepth === 0) {
+      this.announce()
+    }
+  }
+
+  private announce(): void {
+    if (!this.unannounced) {
+      return
+    }
+    publishDataChange({ type: 'manifestsChanged', ...this.unannounced })
+    this.unannounced = null
   }
 
   // Returns the ids actually stored; the caller can compare against what it
@@ -294,6 +349,10 @@ export class ManifestRegistry {
         kind: 'preinstalled',
       })
     }
+    this.recordChange(
+      fetched.map(({ parsed }) => parsed.id),
+      true
+    )
     return fetched.map(({ parsed }) => parsed.id)
   }
 
@@ -332,6 +391,10 @@ export class ManifestRegistry {
         kind: 'bundled',
       })
     }
+    this.recordChange(
+      toRegister.map((manifest) => manifest.id),
+      false
+    )
   }
 
   private async loadIndex(): Promise<CatalogEntry[] | null> {

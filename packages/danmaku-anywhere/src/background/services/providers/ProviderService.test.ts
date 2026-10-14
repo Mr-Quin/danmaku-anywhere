@@ -89,6 +89,10 @@ interface ServiceDoubles {
 // each collaborator double is typed against the class it stands in for
 // instead of blanket-casting the whole constructor argument list. A test
 // only overrides the collaborators its scenario actually touches.
+function runBatch<T>(run: () => Promise<T>): Promise<T> {
+  return run()
+}
+
 function buildService(doubles: ServiceDoubles = {}) {
   const overrides: TestContainerOverride<unknown>[] = [
     { identifier: DanmakuService, value: doubles.danmakuService ?? {} },
@@ -100,7 +104,7 @@ function buildService(doubles: ServiceDoubles = {}) {
     { identifier: DanmakuProviderFactory, value: doubles.factory ?? vi.fn() },
     {
       identifier: ManifestRegistry,
-      value: doubles.registry ?? { ready: Promise.resolve() },
+      value: doubles.registry ?? {},
     },
     { identifier: BookmarkService, value: doubles.bookmarkService ?? {} },
     { identifier: LoggerSymbol, value: doubles.logger ?? silentLogger },
@@ -178,11 +182,11 @@ describe('ProviderService.probeLogin', () => {
     // runLoginProbe<T = unknown> is generic, so a vi.fn double can't satisfy
     // ManifestRunner's real signature without an unsafe cast.
     const getRunner = vi.fn<ManifestRegistry['getRunner']>(
-      () => ({ runLoginProbe }) as unknown as ManifestRunner // lint-specs-allow-cast: generic method signature, see comment above
+      async () => ({ runLoginProbe }) as unknown as ManifestRunner // lint-specs-allow-cast: generic method signature, see comment above
     )
     const service = buildService({
       factory: vi.fn(() => makeProvider()),
-      registry: { ready: Promise.resolve(), getRunner },
+      registry: { getRunner },
     })
 
     await service.probeLogin('dandanplay')
@@ -194,11 +198,11 @@ describe('ProviderService.probeLogin', () => {
 describe('ProviderService.getManifestSpec', () => {
   function buildWithManifest(manifest: Record<string, unknown>) {
     const getRunner = vi.fn<ManifestRegistry['getRunner']>(
-      () => ({ manifest }) as ManifestRunner
+      async () => ({ manifest }) as ManifestRunner
     )
     return buildService({
       factory: vi.fn(() => makeProvider()),
-      registry: { ready: Promise.resolve(), getRunner },
+      registry: { getRunner },
     })
   }
 
@@ -243,12 +247,12 @@ describe('ProviderService.getManifestSpec', () => {
   })
 
   it('rejects when no manifest is registered for the id', async () => {
-    const getRunner = vi.fn<ManifestRegistry['getRunner']>(() => {
+    const getRunner = vi.fn<ManifestRegistry['getRunner']>(async () => {
       throw new Error('no manifest registered with id: missing')
     })
     const service = buildService({
       factory: vi.fn(() => makeProvider()),
-      registry: { ready: Promise.resolve(), getRunner },
+      registry: { getRunner },
     })
 
     await expect(service.getManifestSpec('missing')).rejects.toThrow()
@@ -670,18 +674,28 @@ describe('ProviderService.refreshCatalog', () => {
       async () => opts.pending
     )
     const update = vi.fn<ManifestRegistry['update']>(async () => 'synced')
-    const listManifests = vi.fn<ManifestRegistry['listManifests']>(() => [])
+    const listManifests = vi.fn<ManifestRegistry['listManifests']>(
+      async () => []
+    )
     const getLastCheckedAt = vi.fn<ManifestRegistry['getLastCheckedAt']>(
       async () => 0
     )
+    let batchDepth = 0
     const registry = {
-      ready: Promise.resolve(),
       update,
       getPendingUpdates,
       applyUpdates,
       recordChecked,
       listManifests,
       getLastCheckedAt,
+      batchChanges: async <T>(run: () => Promise<T>): Promise<T> => {
+        batchDepth += 1
+        try {
+          return await run()
+        } finally {
+          batchDepth -= 1
+        }
+      },
     }
 
     const getAll = vi.fn<ProviderConfigService['getAll']>(async () =>
@@ -694,7 +708,14 @@ describe('ProviderService.refreshCatalog', () => {
 
     const service = buildService({ providerConfigService, registry })
 
-    return { service, applyUpdates, recordChecked, getPendingUpdates }
+    return {
+      service,
+      registry,
+      applyUpdates,
+      recordChecked,
+      getPendingUpdates,
+      inBatch: () => batchDepth > 0,
+    }
   }
 
   it('auto-applies updates for uninstalled manifests only', async () => {
@@ -709,6 +730,30 @@ describe('ProviderService.refreshCatalog', () => {
     await service.refreshCatalog()
 
     expect(applyUpdates).toHaveBeenCalledWith(['iqiyi'])
+  })
+
+  it('runs every registry write of a sync inside one batch', async () => {
+    const { service, registry, inBatch } = buildForRefresh({
+      pending: [
+        { manifestId: 'iqiyi', fromVersion: '1.0.0', toVersion: '2.0.0' },
+      ],
+      installedManifestIds: [],
+    })
+    const callsInBatch: boolean[] = []
+    registry.update.mockImplementation(async () => {
+      callsInBatch.push(inBatch())
+      return 'synced'
+    })
+    registry.applyUpdates.mockImplementation(async () => {
+      callsInBatch.push(inBatch())
+    })
+    registry.recordChecked.mockImplementation(async () => {
+      callsInBatch.push(inBatch())
+    })
+
+    await service.refreshCatalog()
+
+    expect(callsInBatch).toEqual([true, true, true])
   })
 
   it('does not apply anything when every pending update is installed', async () => {
@@ -757,18 +802,20 @@ describe('ProviderService.refreshCatalog', () => {
       async () => []
     )
     const update = vi.fn<ManifestRegistry['update']>(async () => 'unreachable')
-    const listManifests = vi.fn<ManifestRegistry['listManifests']>(() => [])
+    const listManifests = vi.fn<ManifestRegistry['listManifests']>(
+      async () => []
+    )
     const getLastCheckedAt = vi.fn<ManifestRegistry['getLastCheckedAt']>(
       async () => 0
     )
     const registry = {
-      ready: Promise.resolve(),
       update,
       getPendingUpdates,
       applyUpdates: vi.fn(async () => {}),
       recordChecked,
       listManifests,
       getLastCheckedAt,
+      batchChanges: runBatch,
     }
     const hasSeeded = vi.fn<ProviderConfigService['hasSeeded']>(
       async () => true
@@ -791,18 +838,20 @@ describe('ProviderService.refreshCatalog', () => {
     const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
       async () => []
     )
-    const listManifests = vi.fn<ManifestRegistry['listManifests']>(() => [])
+    const listManifests = vi.fn<ManifestRegistry['listManifests']>(
+      async () => []
+    )
     const getLastCheckedAt = vi.fn<ManifestRegistry['getLastCheckedAt']>(
       async () => 0
     )
     const registry = {
-      ready: Promise.resolve(),
       update,
       getPendingUpdates,
       applyUpdates: vi.fn(async () => {}),
       recordChecked: vi.fn(async () => {}),
       listManifests,
       getLastCheckedAt,
+      batchChanges: runBatch,
     }
     const hasSeeded = vi.fn<ProviderConfigService['hasSeeded']>(
       async () => true
@@ -876,7 +925,7 @@ describe('ProviderService.seedDefaultProviders', () => {
       getAll,
     }
 
-    const listManifests = vi.fn(() => opts.manifests ?? DEFAULT_MANIFESTS)
+    const listManifests = vi.fn(async () => opts.manifests ?? DEFAULT_MANIFESTS)
     const recordChecked = vi.fn<ManifestRegistry['recordChecked']>(
       async () => {}
     )
@@ -887,11 +936,11 @@ describe('ProviderService.seedDefaultProviders', () => {
       async () => []
     )
     const registry = {
-      ready: Promise.resolve(),
       update,
       getPendingUpdates,
       recordChecked,
       listManifests,
+      batchChanges: runBatch,
     }
 
     const service = buildService({
@@ -1231,7 +1280,6 @@ describe('ProviderService.deleteUserManifest', () => {
       opts.kind ? { manifest: {}, kind: opts.kind } : undefined
     )
     const registry = {
-      ready: Promise.resolve(),
       getSource,
       unregister,
     }

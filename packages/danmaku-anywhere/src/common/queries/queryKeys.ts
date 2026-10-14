@@ -9,6 +9,8 @@ import type {
 } from '@/common/danmaku/dto'
 
 export const storageQueryKeys = {
+  area: (storageType: string) =>
+    [{ scope: 'storage', kind: 'external', storageType }] as const,
   external: (storageType: string, key: string | null | (string | null)[]) => {
     return [
       {
@@ -66,19 +68,14 @@ export const sourceQueryKeys = {
     [{ scope: 'source', kind: 'loginStatus', manifestId }] as const,
   manifestSpec: (manifestId: string, locale: string) =>
     [{ scope: 'source', kind: 'manifestSpec', manifestId, locale }] as const,
-  // Omit locale for a family-prefix key that matches every locale's list
-  // (used to invalidate all cached lists at once).
-  manifestList: (locale?: string) =>
-    locale === undefined
-      ? ([{ scope: 'source', kind: 'manifestList' }] as const)
-      : ([{ scope: 'source', kind: 'manifestList', locale }] as const),
+  manifestSpecs: (manifestId: string) =>
+    [{ scope: 'source', kind: 'manifestSpec', manifestId }] as const,
+  manifestList: (locale: string) =>
+    [{ scope: 'source', kind: 'manifestList', locale }] as const,
+  manifestLists: () => [{ scope: 'source', kind: 'manifestList' }] as const,
   pendingUpdates: () => [{ scope: 'source', kind: 'pendingUpdates' }] as const,
-  // Omit manifestId for a family-prefix key that matches every cached source
-  // (used to invalidate after a save/delete).
-  manifestSource: (manifestId?: string) =>
-    manifestId === undefined
-      ? ([{ scope: 'source', kind: 'manifestSource' }] as const)
-      : ([{ scope: 'source', kind: 'manifestSource', manifestId }] as const),
+  manifestSource: (manifestId: string) =>
+    [{ scope: 'source', kind: 'manifestSource', manifestId }] as const,
 }
 
 export const tabQueryKeys = {
