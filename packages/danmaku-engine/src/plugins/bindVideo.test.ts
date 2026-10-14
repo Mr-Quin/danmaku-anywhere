@@ -8,34 +8,26 @@ import { type BindContext, bindVideo } from './bindVideo'
 /**
  * After a seek on a paused video the engine unfreezes danmu so the comments at
  * the new time render, then freezes again so they hold still. danmu drops a
- * push whose deferred frames have not run when freeze flips, and on a busy
- * machine that can take well over 200 ms. The refreeze waits until the danmaku
- * created for every push from the seek has started moving or been destroyed.
- * Drives the plugin with a fake video and a fake danmu manager that creates and
- * commits danmaku when the test says.
+ * danmaku whose deferred frames have not run when freeze flips, and on a busy
+ * machine that can take well over 200 ms. Scrolling pushes wait in danmu's
+ * stash for its next render tick, so the refreeze waits for that tick, then
+ * for every danmaku danmu put on screen to start moving or leave. Pushes still
+ * in the stash are kept by danmu across a freeze and are not waited for.
+ * Drives the plugin with a fake video and a fake danmu manager whose render
+ * ticks and danmaku the test controls.
  */
 
-type Hook = (danmaku: object) => void
+type Hook = (value: unknown) => void
 
-interface FakeManager {
-  frozen: boolean
-  playing: boolean
-  accepts: boolean
-  pushes: number
-  freeze: ReturnType<typeof vi.fn>
-  plugins: Record<string, unknown>[]
-}
-
-function fakeManager(): FakeManager & Record<string, unknown> {
-  const state: FakeManager & Record<string, unknown> = {
+function fakeManager() {
+  const state = {
     frozen: true,
     playing: false,
     accepts: true,
     pushes: 0,
-    plugins: [],
+    plugins: [] as Record<string, unknown>[],
     freeze: vi.fn(() => {
       state.frozen = true
-      state.playing = false
     }),
     unfreeze: () => {
       state.frozen = false
@@ -64,14 +56,6 @@ function fakeManager(): FakeManager & Record<string, unknown> {
     trackCount: 4,
   }
   return state
-}
-
-function hook(manager: FakeManager, name: string): Hook {
-  const plugin = manager.plugins.find((p) => name in p)
-  if (!plugin) {
-    throw new Error(`No plugin handles ${name}`)
-  }
-  return plugin[name] as Hook
 }
 
 function comment(time: number): ParsedComment {
@@ -119,11 +103,20 @@ describe('bindVideo after a seek on a paused video', () => {
     )(manager as unknown as Manager<ParsedComment>)
   }
 
-  // danmu creates the danmaku for each accepted push when it renders it.
-  function created(count: number) {
+  function emit(name: string, value?: unknown) {
+    const plugin = manager.plugins.find((p) => name in p)
+    if (!plugin) {
+      throw new Error(`No plugin handles ${name}`)
+    }
+    ;(plugin[name] as Hook)(value)
+  }
+
+  // danmu's render tick takes danmaku from its stash and puts them on screen.
+  function renderTick(count: number) {
+    emit('render', 'facile')
     const danmaku = Array.from({ length: count }, (_, id) => ({ id }))
     for (const each of danmaku) {
-      hook(manager, '$createNode')(each)
+      emit('$createNode', each)
     }
     return danmaku
   }
@@ -152,7 +145,7 @@ describe('bindVideo after a seek on a paused video', () => {
     vi.unstubAllGlobals()
   })
 
-  it('keeps comments whose push commits more than 200 ms after the seek', () => {
+  it('keeps comments that start moving more than 200 ms after the seek', () => {
     bind([comment(9), comment(9.5)])
     seekTo(10)
     expect(manager.pushes).toBe(2)
@@ -160,23 +153,50 @@ describe('bindVideo after a seek on a paused video', () => {
     vi.advanceTimersByTime(600)
     expect(manager.freeze).not.toHaveBeenCalled()
 
-    const [first, second] = created(2)
-    const moving = hook(manager, '$beforeMove')
-    moving(first)
+    const [first, second] = renderTick(2)
     vi.advanceTimersByTime(FRAME_MS)
     expect(manager.freeze).not.toHaveBeenCalled()
 
-    moving(second)
+    emit('$beforeMove', first)
+    vi.advanceTimersByTime(FRAME_MS)
+    expect(manager.freeze).not.toHaveBeenCalled()
+
+    emit('$beforeMove', second)
     vi.advanceTimersByTime(FRAME_MS)
     expect(manager.freeze).toHaveBeenCalledTimes(1)
   })
 
-  it('counts a destroyed push as done', () => {
+  it('freezes right after the first batch on a video with more comments than tracks', () => {
+    bind(Array.from({ length: 12 }, (_, index) => comment(9 + index / 100)))
+    seekTo(10)
+    expect(manager.pushes).toBe(12)
+
+    const onScreen = renderTick(4)
+    for (const danmaku of onScreen) {
+      emit('$beforeMove', danmaku)
+    }
+    vi.advanceTimersByTime(2 * FRAME_MS)
+
+    expect(manager.freeze).toHaveBeenCalledTimes(1)
+  })
+
+  it('stops waiting for a danmaku danmu puts back in its stash', () => {
     bind([comment(9)])
     seekTo(10)
 
-    const [danmaku] = created(1)
-    hook(manager, '$destroyed')(danmaku)
+    const [danmaku] = renderTick(1)
+    emit('$removeNode', danmaku)
+    vi.advanceTimersByTime(FRAME_MS)
+
+    expect(manager.freeze).toHaveBeenCalledTimes(1)
+  })
+
+  it('stops waiting for a destroyed danmaku', () => {
+    bind([comment(9)])
+    seekTo(10)
+
+    const [danmaku] = renderTick(1)
+    emit('$destroyed', danmaku)
     vi.advanceTimersByTime(FRAME_MS)
 
     expect(manager.freeze).toHaveBeenCalledTimes(1)
@@ -185,22 +205,26 @@ describe('bindVideo after a seek on a paused video', () => {
   it('does not count danmaku from before the seek', () => {
     bind([comment(9)])
     const earlier = { id: 'earlier' }
-    hook(manager, '$createNode')(earlier)
+    emit('$createNode', earlier)
     seekTo(10)
 
-    hook(manager, '$destroyed')(earlier)
+    const [danmaku] = renderTick(1)
+    emit('$destroyed', earlier)
     vi.advanceTimersByTime(FRAME_MS)
-
     expect(manager.freeze).not.toHaveBeenCalled()
+
+    emit('$beforeMove', danmaku)
+    vi.advanceTimersByTime(FRAME_MS)
+    expect(manager.freeze).toHaveBeenCalledTimes(1)
   })
 
   it('counts each danmaku once', () => {
     bind([comment(9), comment(9.5)])
     seekTo(10)
 
-    const [first] = created(2)
-    hook(manager, '$beforeMove')(first)
-    hook(manager, '$destroyed')(first)
+    const [first] = renderTick(2)
+    emit('$beforeMove', first)
+    emit('$destroyed', first)
     vi.advanceTimersByTime(FRAME_MS)
 
     expect(manager.freeze).not.toHaveBeenCalled()
@@ -223,7 +247,7 @@ describe('bindVideo after a seek on a paused video', () => {
     expect(manager.freeze).toHaveBeenCalledTimes(1)
   })
 
-  it('still freezes when a push never renders', () => {
+  it('still freezes when danmu never renders the push', () => {
     bind([comment(9)])
     seekTo(10)
 
@@ -233,23 +257,29 @@ describe('bindVideo after a seek on a paused video', () => {
     expect(manager.freeze).toHaveBeenCalledTimes(1)
   })
 
-  it('does not freeze a video that is playing again by the time pushes commit', () => {
+  it('does not freeze a video that is playing again by the time danmaku move', () => {
     bind([comment(9)])
     seekTo(10)
     video.paused = false
 
-    const [danmaku] = created(1)
-    hook(manager, '$beforeMove')(danmaku)
+    const [danmaku] = renderTick(1)
+    emit('$beforeMove', danmaku)
     vi.advanceTimersByTime(FRAME_MS)
 
     expect(manager.freeze).not.toHaveBeenCalled()
   })
 
-  it('ignores a pause while the seek settles', () => {
+  it('stops danmu playing as well when the video was paused during the settle', () => {
     bind([comment(9)])
     seekTo(10)
-
     video.dispatchEvent(new Event('waiting'))
     expect(manager.freeze).not.toHaveBeenCalled()
+
+    const [danmaku] = renderTick(1)
+    emit('$beforeMove', danmaku)
+    vi.advanceTimersByTime(FRAME_MS)
+
+    expect(manager.freeze).toHaveBeenCalledTimes(1)
+    expect(manager.isPlaying()).toBe(false)
   })
 })
