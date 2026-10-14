@@ -780,7 +780,9 @@ describe('useIntegrationPolicy', () => {
     showEpisode('Show B')
     await settle()
 
-    expect(rpc.unmount).toHaveBeenCalledWith({ frameId: 0 })
+    expect(rpc.unmount).toHaveBeenCalledWith(
+      expect.objectContaining({ frameId: 0 })
+    )
     const { frame, danmaku } = useStore.getState()
     expect(frame.allFrames.get(0)?.mounted).toBe(false)
     expect(frame.allFrames.get(1)?.mounted).toBe(true)

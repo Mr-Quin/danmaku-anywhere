@@ -68,6 +68,9 @@ interface StoreState {
     lastCommand: number
     recordCommand: number
     mountedFrameId?: number
+    // Numbers a command without making it the frame's latest mount or
+    // unmount, for commands that only order against others in the player.
+    takeCommandNumber: () => number
     issueCommand: (frameId: number) => number
     isLatestCommand: (frameId: number, command: number) => boolean
     commitMount: (
@@ -190,10 +193,16 @@ const useStoreBase = create<StoreState>()(
       lastCommand: 0,
       recordCommand: 0,
       mountedFrameId: undefined,
-      issueCommand: (frameId) => {
+      takeCommandNumber: () => {
         const command = get().danmaku.lastCommand + 1
         set((state) => {
           state.danmaku.lastCommand = command
+        })
+        return command
+      },
+      issueCommand: (frameId) => {
+        const command = get().danmaku.takeCommandNumber()
+        set((state) => {
           const frame = state.frame.allFrames.get(frameId)
           if (frame) {
             writeFrame(state, { ...frame, issuedCommand: command })

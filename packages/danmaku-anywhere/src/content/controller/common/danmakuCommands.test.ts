@@ -116,7 +116,9 @@ describe('sendMount', () => {
     mountA.resolve({ data: true })
 
     expect(await pending).toEqual({ status: 'cancelled' })
-    expect(rpc.unmount).toHaveBeenCalledWith({ frameId: 0 })
+    expect(rpc.unmount).toHaveBeenCalledWith(
+      expect.objectContaining({ frameId: 0 })
+    )
     expect(mountedState()).toEqual(NOTHING_MOUNTED)
     expect(frameMounted(0)).toBe(false)
   })
@@ -148,7 +150,9 @@ describe('sendMount', () => {
     mountA.resolve({ data: true })
     await pendingA
 
-    expect(rpc.unmount).toHaveBeenCalledWith({ frameId: 0 })
+    expect(rpc.unmount).toHaveBeenCalledWith(
+      expect.objectContaining({ frameId: 0 })
+    )
     expect(mountedState()).toEqual({
       isMounted: true,
       titles: ['B'],
@@ -177,7 +181,11 @@ describe('sendMount', () => {
 
     expect(rpc.mount).toHaveBeenCalledWith({
       frameId: 0,
-      data: { comments: expect.any(Array), visible: false },
+      data: {
+        comments: expect.any(Array),
+        visible: false,
+        order: expect.any(Object),
+      },
     })
     expect(rpc.show).not.toHaveBeenCalled()
   })
@@ -293,7 +301,11 @@ describe('sendVisibility', () => {
 
     expect(rpc.mount).toHaveBeenCalledWith({
       frameId: 0,
-      data: { comments: expect.any(Array), visible: false },
+      data: {
+        comments: expect.any(Array),
+        visible: false,
+        order: expect.any(Object),
+      },
     })
     expect(useStore.getState().danmaku.isVisible).toBe(false)
   })
@@ -307,7 +319,11 @@ describe('sendVisibility', () => {
     expect(useStore.getState().danmaku.isVisible).toBe(false)
     expect(rpc.mount).toHaveBeenCalledWith({
       frameId: 0,
-      data: { comments: expect.any(Array), visible: false },
+      data: {
+        comments: expect.any(Array),
+        visible: false,
+        order: expect.any(Object),
+      },
     })
   })
 
@@ -317,7 +333,10 @@ describe('sendVisibility', () => {
 
     await sendVisibility(false)
 
-    expect(rpc.show).toHaveBeenCalledWith({ frameId: 0, data: false })
+    expect(rpc.show).toHaveBeenCalledWith({
+      frameId: 0,
+      data: { visible: false, order: expect.any(Object) },
+    })
   })
 })
 
@@ -333,7 +352,9 @@ describe('a mount that replies after another frame became active', () => {
     await sendUnmount()
     await sendMount([episode('B')])
 
-    expect(rpc.unmount).toHaveBeenCalledWith({ frameId: 0 })
+    expect(rpc.unmount).toHaveBeenCalledWith(
+      expect.objectContaining({ frameId: 0 })
+    )
     expect(frameMounted(0)).toBe(false)
     expect(frameMounted(1)).toBe(true)
     expect(mountedState()).toEqual({
@@ -355,7 +376,9 @@ describe('a mount whose reply loses the record to another frame', () => {
     mountA.resolve({ data: true })
 
     expect(await pendingA).toEqual({ status: 'cancelled' })
-    expect(rpc.unmount).toHaveBeenCalledWith({ frameId: 0 })
+    expect(rpc.unmount).toHaveBeenCalledWith(
+      expect.objectContaining({ frameId: 0 })
+    )
     expect(frameMounted(0)).toBe(false)
     expect(mountedState()).toEqual({
       isMounted: true,
@@ -395,5 +418,39 @@ describe('a mount whose frame was removed while it was sent', () => {
 
     expect(await pendingA).toEqual({ status: 'cancelled' })
     expect(mountedState()).toEqual(NOTHING_MOUNTED)
+  })
+})
+
+describe('the order sent with each command', () => {
+  it('numbers mount, visibility and unmount in the order they are sent', async () => {
+    await sendMount([episode('A')])
+    await sendVisibility(false)
+    await sendUnmount()
+
+    const orders = [
+      rpc.mount.mock.calls[0][0].data.order,
+      rpc.show.mock.calls[0][0].data.order,
+      rpc.unmount.mock.calls[0][0].data.order,
+    ]
+    expect(new Set(orders.map((order) => order.session)).size).toBe(1)
+    const numbers = orders.map((order) => order.command)
+    expect(numbers).toEqual([...numbers].sort((a, b) => a - b))
+    expect(new Set(numbers).size).toBe(3)
+  })
+
+  it('does not stop a cancelled mount from taking itself down', async () => {
+    const mountA = deferred<{ data: boolean }>()
+    rpc.mount.mockReturnValueOnce(mountA.promise)
+    const controller = new AbortController()
+
+    const pending = sendMount([episode('A')], controller.signal)
+    await sendVisibility(false)
+    controller.abort()
+    mountA.resolve({ data: true })
+    await pending
+
+    expect(rpc.unmount).toHaveBeenCalledWith(
+      expect.objectContaining({ frameId: 0 })
+    )
   })
 })

@@ -21,6 +21,7 @@ import { InfoPanelService } from '@/content/player/infoPanel/InfoPanel.service'
 import { OcclusionEntryDeriver } from '@/content/player/infoPanel/occlusionEntry'
 import infoPanelCss from '@/content/player/infoPanel/PlayerInfoPanel.css?inline'
 import { buildSakuraCssVars } from '@/content/player/infoPanel/sakuraCssVars'
+import { OrderedPlayerCommands } from '@/content/player/orderedPlayerCommands'
 import { createPipWindow, moveElement } from '@/content/player/pipUtils'
 import { VideoEventService } from '@/content/player/videoEvent/VideoEvent.service'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
@@ -271,23 +272,19 @@ export class PlayerCommandHandler {
           // Already started — idempotent
           this.manager.start(query)
         },
-        'relay:command:mount': async ({ data: { comments, visible } }) => {
-          this.mount(comments, visible)
+        'relay:command:mount': async ({ data }) => {
+          this.ordered.mount(data)
           return true
         },
-        'relay:command:unmount': async () => {
-          this.unmount()
+        'relay:command:unmount': async ({ data }) => {
+          this.ordered.unmount(data)
           return true
         },
         'relay:command:seek': async ({ data: time }) => {
           this.manager.seek(time)
         },
-        'relay:command:show': async ({ data: show }) => {
-          if (show) {
-            this.manager.show()
-          } else {
-            this.manager.hide()
-          }
+        'relay:command:show': async ({ data }) => {
+          this.ordered.show(data)
         },
         'relay:command:controllerReady': async () => {
           this.logger.debug('Controller ready, re-sending playerReady')
@@ -327,12 +324,23 @@ export class PlayerCommandHandler {
     server.listen(chrome.runtime.onMessage)
   }
 
-  private mount(comments: CommentEntity[], visible: boolean) {
-    if (visible) {
-      this.manager.show()
-    } else {
-      this.manager.hide()
-    }
+  private readonly ordered = new OrderedPlayerCommands({
+    mount: (comments) => {
+      this.mount(comments)
+    },
+    unmount: () => {
+      this.unmount()
+    },
+    setVisible: (visible) => {
+      if (visible) {
+        this.manager.show()
+      } else {
+        this.manager.hide()
+      }
+    },
+  })
+
+  private mount(comments: CommentEntity[]) {
     this.manager.mount(comments)
     this.videoSkip.setComments(comments)
     this.density.setComments(comments)
