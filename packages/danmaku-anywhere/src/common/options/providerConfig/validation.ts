@@ -19,9 +19,20 @@ export const LEGACY_MACCMS_CONFIG_SCHEMA: ConfigSchema = {
   },
 }
 
+// Names sit in source chips, list rows and inside sentences such as error
+// toasts, none of which have room for more.
+export const MAX_NAME_LENGTH = 64
+
 export type ProviderConfigIssue =
   | { kind: 'config'; issue: ConfigIssue }
   | { kind: 'nameRequired' }
+  | { kind: 'nameTooLong'; max: number }
+
+// Counted in code points, so a CJK or emoji name gets as many characters as
+// a Latin one.
+export function nameTooLong(name: string): boolean {
+  return [...name].length > MAX_NAME_LENGTH
+}
 
 export interface ProviderConfigCheck {
   config: ProviderConfigDraft & { id?: string }
@@ -43,6 +54,9 @@ export function checkProviderConfig({
   if (config.customName === null && !hasDefaultName(config)) {
     issues.push({ kind: 'nameRequired' })
   }
+  if (config.customName !== null && nameTooLong(config.customName)) {
+    issues.push({ kind: 'nameTooLong', max: MAX_NAME_LENGTH })
+  }
   for (const issue of validateConfig(
     configSchema,
     effectiveConfigValues(config)
@@ -61,6 +75,9 @@ export function configIssues(issues: ProviderConfigIssue[]): ConfigIssue[] {
 export function describeIssue(issue: ProviderConfigIssue): string {
   if (issue.kind === 'nameRequired') {
     return 'A name is required'
+  }
+  if (issue.kind === 'nameTooLong') {
+    return `The name is longer than ${issue.max} characters`
   }
   const path = issue.issue.path.join('.')
   return path === '' ? issue.issue.message : `${path}: ${issue.issue.message}`

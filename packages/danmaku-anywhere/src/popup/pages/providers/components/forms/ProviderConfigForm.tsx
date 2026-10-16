@@ -75,7 +75,19 @@ function ConfigForm({
       configSchema,
     })
     const messages: string[] = []
+    let nameInvalid = false
     for (const issue of issues) {
+      if (issue.kind === 'nameTooLong') {
+        setError('name', {
+          message: t(
+            'providers.editor.validation.maxLength',
+            'Must be at most {{max}} characters',
+            { max: issue.max }
+          ),
+        })
+        nameInvalid = true
+        continue
+      }
       if (issue.kind !== 'config') {
         continue
       }
@@ -95,6 +107,8 @@ function ConfigForm({
     }
     if (messages.length > 0) {
       toast.error(messages[0])
+    }
+    if (messages.length > 0 || nameInvalid) {
       return
     }
     await onSubmit({ customName, configValues })

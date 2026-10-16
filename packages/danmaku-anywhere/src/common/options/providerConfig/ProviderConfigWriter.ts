@@ -31,6 +31,7 @@ import {
   configIssues,
   describeIssue,
   LEGACY_MACCMS_CONFIG_SCHEMA,
+  MAX_NAME_LENGTH,
   type ProviderConfigIssue,
 } from './validation'
 
@@ -42,10 +43,10 @@ const editSchema = providerConfigSchema
   .strict()
 
 function touchedBy(edit: ProviderConfigEdit, issue: ProviderConfigIssue) {
-  if (issue.kind === 'nameRequired') {
-    return 'customName' in edit
+  if (issue.kind === 'config') {
+    return 'configValues' in edit
   }
-  return 'configValues' in edit
+  return 'customName' in edit
 }
 
 function notFound(id: string): AppError {
@@ -97,10 +98,17 @@ function throwIfInvalid(issues: ProviderConfigIssue[]): void {
   }
   const message = `Invalid source settings: ${issues.map(describeIssue).join('; ')}`
   const found = configIssues(issues)
-  if (found.length === 0) {
-    throw new AppError('config.nameRequired', {}, { message })
+  if (found.length > 0) {
+    throw new AppError('config.invalid', { issues: found }, { message })
   }
-  throw new AppError('config.invalid', { issues: found }, { message })
+  if (issues.some((issue) => issue.kind === 'nameTooLong')) {
+    throw new AppError(
+      'config.nameTooLong',
+      { max: MAX_NAME_LENGTH },
+      { message }
+    )
+  }
+  throw new AppError('config.nameRequired', {}, { message })
 }
 
 // The one writer of provider configs. Each operation reads, checks and writes
@@ -312,13 +320,14 @@ export class ProviderConfigWriter implements IRestoreListCheck {
       }
     }
     const availability = await this.availability(parsed.data.manifestId)
+    // Older versions saved names of any length, so a long one is kept.
     const issues = checkProviderConfig({
       config: parsed.data,
       configSchema:
         availability.status === 'ok' && !availability.fallback
           ? availability.configSchema
           : undefined,
-    })
+    }).filter((issue) => issue.kind !== 'nameTooLong')
     if (issues.length > 0) {
       const settings = issues.some((issue) => issue.kind === 'config')
       return {

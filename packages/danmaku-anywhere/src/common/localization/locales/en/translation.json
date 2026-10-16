@@ -849,6 +849,7 @@
     "error": {
       "duplicate": "This built-in source is already installed",
       "nameRequired": "Give the source a name",
+      "nameTooLong": "A source name can be at most {{max}} characters",
       "notBuiltin": "This source has no built-in instance",
       "orderMismatch": "The source list changed. Try reordering again.",
       "outdated": "Your sources are being updated to this version. Try again in a moment."

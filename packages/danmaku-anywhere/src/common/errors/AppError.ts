@@ -111,6 +111,7 @@ const PARAMS = {
   'config.notFound': z.object({ id: z.string().optional() }),
   'config.invalid': z.object({ issues: z.array(zConfigIssue) }),
   'config.nameRequired': zNoParams,
+  'config.nameTooLong': z.object({ max: z.number() }),
   'config.notBuiltin': z.object({ manifestId: z.string() }),
   'config.orderMismatch': zNoParams,
   'options.outdated': z.object({

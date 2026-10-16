@@ -283,6 +283,13 @@ const MESSAGES: MessageTable = {
   'config.nameRequired': () => {
     return i18n.t('providers.error.nameRequired', 'Give the source a name')
   },
+  'config.nameTooLong': ({ max }) => {
+    return i18n.t(
+      'providers.error.nameTooLong',
+      'A source name can be at most {{max}} characters',
+      { max }
+    )
+  },
   'config.notBuiltin': () => {
     return i18n.t(
       'providers.error.notBuiltin',

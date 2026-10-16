@@ -75,6 +75,7 @@ const PARAMS: { [C in keyof AppErrorParams]: AppErrorParams[C] } = {
     ],
   },
   'config.nameRequired': {},
+  'config.nameTooLong': { max: 64 },
   'config.notBuiltin': { manifestId: 'iqiyi' },
   'config.orderMismatch': {},
   'options.outdated': { store: 'providerConfig', version: 5, expected: 6 },

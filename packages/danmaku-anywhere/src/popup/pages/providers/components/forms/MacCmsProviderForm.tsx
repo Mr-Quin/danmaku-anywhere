@@ -10,6 +10,10 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { Controller, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import {
+  MAX_NAME_LENGTH,
+  nameTooLong,
+} from '@/common/options/providerConfig/validation'
 import { configQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { FormActions } from './FormActions'
@@ -97,7 +101,16 @@ export const MacCmsProviderForm = ({
         helperText={errors.name?.message}
         {...register('name', {
           required: true,
-          validate: (value) => value.trim() !== '',
+          validate: {
+            filled: (value) => value.trim() !== '',
+            short: (value) =>
+              !nameTooLong(value.trim()) ||
+              t(
+                'providers.editor.validation.maxLength',
+                'Must be at most {{max}} characters',
+                { max: MAX_NAME_LENGTH }
+              ),
+          },
         })}
         fullWidth
         required

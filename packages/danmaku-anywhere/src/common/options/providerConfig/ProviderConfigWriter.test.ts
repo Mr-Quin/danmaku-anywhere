@@ -166,6 +166,55 @@ describe('ProviderConfigWriter.create', () => {
   })
 })
 
+describe('ProviderConfigWriter names', () => {
+  it('takes a name of 64 characters, counting each CJK character once', async () => {
+    await seedProviders(selfHosted)
+    const { writer, readAll } = setup()
+
+    await writer.update('self-hosted', { customName: '弹'.repeat(64) })
+
+    expect((await readAll())[0].customName).toBe('弹'.repeat(64))
+  })
+
+  it('refuses a longer name on create and rename, saying the limit', async () => {
+    await seedProviders(selfHosted)
+    const { writer, readAll } = setup()
+
+    let refusal: unknown
+    try {
+      await writer.update('self-hosted', { customName: 'x'.repeat(65) })
+    } catch (error) {
+      refusal = error
+    }
+    const code = await errorCode(
+      writer.create({
+        manifestId: 'dandanplay',
+        customName: 'x'.repeat(300),
+        enabled: true,
+        configValues: { baseUrl: 'https://ddp.other.example' },
+      })
+    )
+
+    expect(refusal).toBeInstanceOf(AppError)
+    expect((refusal as AppError).code).toBe('config.nameTooLong')
+    expect((refusal as AppError).params).toEqual({ max: 64 })
+    expect(code).toBe('config.nameTooLong')
+    expect(await readAll()).toEqual([selfHosted])
+  })
+
+  it('lets a stored long name stay while other settings change', async () => {
+    const longName = { ...selfHosted, customName: 'x'.repeat(300) }
+    await seedProviders(longName)
+    const { writer, readAll } = setup()
+
+    await writer.update('self-hosted', {
+      configValues: { baseUrl: 'https://ddp.other.example' },
+    })
+
+    expect((await readAll())[0].customName).toBe('x'.repeat(300))
+  })
+})
+
 describe('ProviderConfigWriter.addBuiltin', () => {
   it('adds the built-in with its preset settings and the default name', async () => {
     await seedProviders(selfHosted)
@@ -475,6 +524,14 @@ describe('ProviderConfigWriter.check for restore', () => {
         { ...bilibili, id: 'gone', manifestId: 'not-installed' },
       ])
     ).toEqual([undefined, undefined])
+  })
+
+  it('keeps a config with a name longer than the editor allows', async () => {
+    const { writer } = setup()
+
+    expect(
+      await writer.check([{ ...selfHosted, customName: 'x'.repeat(300) }])
+    ).toEqual([undefined])
   })
 
   it('keeps a config whose stored manifest needs a newer extension, does not load or runs on the fallback', async () => {
