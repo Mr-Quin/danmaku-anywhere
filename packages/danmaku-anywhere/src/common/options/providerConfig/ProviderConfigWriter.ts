@@ -53,36 +53,17 @@ function notFound(id: string): AppError {
   )
 }
 
-function unknownSource(manifestId: string): AppError {
-  return new AppError(
-    'config.unknownSource',
-    { manifestId },
-    { message: `No source "${manifestId}" is installed` }
-  )
-}
-
 // A source's settings can only be checked, and so only be set, once its
 // manifest loads here.
 function unusableSource(
   manifestId: string,
-  availability: Exclude<ManifestAvailability, { status: 'ok' }>
+  availability: Extract<ManifestAvailability, { status: 'unavailable' }>
 ): AppError {
-  switch (availability.status) {
-    case 'unknown':
-      return unknownSource(manifestId)
-    case 'incompatible':
-      return new AppError(
-        'manifest.unavailable',
-        { manifestId, reason: 'needs-newer-extension' },
-        { message: `Source "${manifestId}" needs a newer extension` }
-      )
-    case 'malformed':
-      return new AppError(
-        'manifest.unavailable',
-        { manifestId, reason: 'invalid-manifest' },
-        { message: `Source "${manifestId}" cannot be loaded` }
-      )
-  }
+  return new AppError(
+    'manifest.unavailable',
+    { manifestId, reason: availability.reason },
+    { message: `Source "${manifestId}" is unavailable: ${availability.reason}` }
+  )
 }
 
 function sameJson(a: unknown, b: unknown): boolean {

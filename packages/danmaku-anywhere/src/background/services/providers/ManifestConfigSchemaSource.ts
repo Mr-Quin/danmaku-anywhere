@@ -20,13 +20,6 @@ export class ManifestConfigSchemaSource implements IConfigSchemaSource {
         configSchema: lookup.runner.manifest.configSchema,
       }
     }
-    switch (lookup.reason) {
-      case 'needs-newer-extension':
-        return { status: 'incompatible' }
-      case 'invalid-manifest':
-        return { status: 'malformed' }
-      case 'not-registered':
-        return { status: 'unknown' }
-    }
+    return lookup
   }
 }

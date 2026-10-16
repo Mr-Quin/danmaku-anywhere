@@ -142,7 +142,7 @@ describe('ProviderConfigWriter.create', () => {
       })
     )
 
-    expect(code).toBe('config.unknownSource')
+    expect(code).toBe('manifest.unavailable')
     expect(await readAll()).toEqual([builtinDdp])
   })
 
@@ -274,7 +274,7 @@ describe('ProviderConfigWriter.update', () => {
       writer.update('self-hosted', { configValues: { anything: 2 } })
     )
 
-    expect(code).toBe('config.unknownSource')
+    expect(code).toBe('manifest.unavailable')
     expect(await readAll()).toEqual([
       { ...unavailable, customName: 'Still mine' },
     ])
@@ -480,14 +480,19 @@ describe('ProviderConfigWriter.check for restore', () => {
   it('keeps a config whose stored manifest needs a newer extension or does not load', async () => {
     const { container } = setup()
     const availability = new Map<string, ManifestAvailability>([
-      ['future', { status: 'incompatible' }],
-      ['broken', { status: 'malformed' }],
+      ['future', { status: 'unavailable', reason: 'needs-newer-extension' }],
+      ['broken', { status: 'unavailable', reason: 'invalid-manifest' }],
     ])
     const writer = new ProviderConfigWriter(
       container.get(ProviderConfigService),
       {
         find: async (manifestId) => {
-          return availability.get(manifestId) ?? { status: 'unknown' }
+          return (
+            availability.get(manifestId) ?? {
+              status: 'unavailable',
+              reason: 'not-registered',
+            }
+          )
         },
       },
       { beforeDelete: async () => {} }

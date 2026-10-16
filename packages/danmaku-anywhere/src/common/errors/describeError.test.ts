@@ -75,7 +75,6 @@ const PARAMS: { [C in keyof AppErrorParams]: AppErrorParams[C] } = {
   },
   'config.nameRequired': {},
   'config.notBuiltin': { manifestId: 'iqiyi' },
-  'config.unknownSource': { manifestId: 'iqiyi' },
   'config.orderMismatch': {},
   'options.outdated': { store: 'providerConfig', version: 5, expected: 6 },
   'catalog.applyFailed': {

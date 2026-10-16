@@ -22,7 +22,7 @@ const configSchemaSource: IConfigSchemaSource = {
   find: async (manifestId: string): Promise<ManifestAvailability> => {
     const bundled = bundledConfigSchema(manifestId)
     if (bundled === undefined) {
-      return { status: 'unknown' }
+      return { status: 'unavailable', reason: 'not-registered' }
     }
     return { status: 'ok', configSchema: bundled.configSchema }
   },

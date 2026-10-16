@@ -282,12 +282,6 @@ const MESSAGES: MessageTable = {
       'This source has no built-in instance'
     )
   },
-  'config.unknownSource': () => {
-    return i18n.t(
-      'providers.error.unknownSource',
-      'This source is not installed, so its settings cannot be changed'
-    )
-  },
   'config.orderMismatch': () => {
     return i18n.t(
       'providers.error.orderMismatch',
