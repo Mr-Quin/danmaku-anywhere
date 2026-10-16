@@ -1454,7 +1454,7 @@ describe('ManifestRegistry engine compatibility', () => {
     })
     const registry = new ManifestRegistry(silentLogger, store)
 
-    expect(registry.getRunner('mine:one')).toBeDefined()
+    expect(await registry.getRunner('mine:one')).toBeDefined()
   })
 
   it('saveUserManifest rejects a manifest that needs a newer engine', async () => {
@@ -1560,7 +1560,7 @@ describe('ManifestRegistry stored manifests this build cannot run', () => {
     expect(await findListed(registry, 'mine:one')).toBeUndefined()
     expect(await store.get('mine:one')).toBeUndefined()
     await registry.saveUserManifest(makeManifest('mine:one'), 'create')
-    expect(registry.getRunner('mine:one')).toBeDefined()
+    expect(await registry.getRunner('mine:one')).toBeDefined()
   })
 
   it('fixes an unavailable user manifest in place with an update', async () => {
@@ -1689,7 +1689,7 @@ describe('ManifestRegistry stored manifests this build cannot run', () => {
     expect(await findListed(registry, 'gone:one')).not.toHaveProperty(
       'unavailable'
     )
-    expect(registry.getRunner('gone:one')).toBeDefined()
+    expect(await registry.getRunner('gone:one')).toBeDefined()
   })
 
   it('keeps a stored copy written for a newer engine through a sync', async () => {
@@ -1745,7 +1745,7 @@ describe('ManifestRegistry stored manifests this build cannot run', () => {
     expect(await findListed(registry, 'gone:one')).not.toHaveProperty(
       'unavailable'
     )
-    expect(registry.getRunner('gone:one')).toBeDefined()
+    expect(await registry.getRunner('gone:one')).toBeDefined()
   })
 
   it('keeps the broken copy and says so when the catalog is unreachable', async () => {
