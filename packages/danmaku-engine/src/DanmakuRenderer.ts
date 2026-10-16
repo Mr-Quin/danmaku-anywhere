@@ -292,11 +292,14 @@ export class DanmakuRenderer {
     this.created = false
   }
 
+  // Kept in the config so a manager created later starts in the same state.
   show(): void {
+    this.config = { ...this.config, show: true }
     this.manager?.show()
   }
 
   hide(): void {
+    this.config = { ...this.config, show: false }
     this.manager?.hide()
   }
 

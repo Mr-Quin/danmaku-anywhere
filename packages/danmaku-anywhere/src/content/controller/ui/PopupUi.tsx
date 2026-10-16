@@ -4,17 +4,38 @@ import { Suspense, useRef, useState } from 'react'
 import { useHotkeys } from 'react-hotkeys-hook'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import { useHotkeyOptions } from '@/common/options/extensionOptions/useHotkeyOptions'
+import { createVirtualElement } from '@/common/utils/utils'
+import { canInteractInFullscreen } from '@/content/common/fullscreenInteraction'
+import { useFullscreenElement } from '@/content/common/hooks/useFullscreenElement'
 import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 import { ControllerWindow } from '@/content/controller/ui/floatingPanel/ControllerWindow'
 import { CONTROLLER_ROOT_ID } from '../common/constants/rootId'
 import { useStore } from '../store/store'
 import { FloatingButton } from './floatingButton/FloatingButton'
 
+// Where the window opens when there is no floating button to open it from.
+const bottomLeftAnchor: PopoverVirtualElement = {
+  getBoundingClientRect: () => {
+    return createVirtualElement(
+      32,
+      window.innerHeight - 24
+    ).getBoundingClientRect()
+  },
+  nodeType: Node.ELEMENT_NODE,
+}
+
 export const PopupUi = () => {
   const { isOpen, toggleOpen, lock, open, triggerSearchFocus } = usePopup()
   const isPicking = useStore((state) => state.integrationForm.isPicking)
   const { data: options } = useExtensionOptions()
-  const { showFloatingButton } = options
+  const { showFloatingButton, playerOptions } = options
+  const fullscreenElement = useFullscreenElement()
+  const canShowFloatingButton =
+    showFloatingButton &&
+    canInteractInFullscreen(
+      fullscreenElement,
+      playerOptions.enableFullscreenInteraction
+    )
   const { getKeyCombo } = useHotkeyOptions()
   const openSearchCombo = getKeyCombo('openSearchPanel')
 
@@ -69,9 +90,11 @@ export const PopupUi = () => {
         }}
       >
         <Suspense fallback={null}>
-          <ControllerWindow anchorEl={anchorEl ?? fallbackAnchorEl.current} />
+          <ControllerWindow
+            anchorEl={anchorEl ?? fallbackAnchorEl.current ?? bottomLeftAnchor}
+          />
         </Suspense>
-        {showFloatingButton && (
+        {canShowFloatingButton && (
           <FloatingButton
             color="primary"
             size="small"

@@ -53,7 +53,7 @@ export const BookmarkToggleButton = ({
     <Tooltip
       title={t(
         'bookmark.tooltip',
-        'Follow to see all episodes in your library anytime, including ones you have not downloaded yet.'
+        "Follow to see all episodes in your library anytime, including ones you have not downloaded yet, and to preload the next episode's danmaku while you watch."
       )}
       placement="bottom-end"
     >

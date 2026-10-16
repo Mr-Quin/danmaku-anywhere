@@ -16,7 +16,7 @@ import {
   DanmakuSourceType,
   localizedDanmakuSourceType,
 } from '@/common/danmaku/enums'
-import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import { useFetchDanmakuWithToast } from '@/common/danmaku/queries/useFetchDanmaku'
 import { describeSourceError } from '@/common/providers/describeSourceError'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -86,7 +86,7 @@ export function UrlParseSection({
     select: (res) => res.data,
   })
 
-  const fetchDanmaku = useFetchDanmaku()
+  const fetchDanmaku = useFetchDanmakuWithToast()
 
   const handleFetchDanmaku = () => {
     if (!query.data) {

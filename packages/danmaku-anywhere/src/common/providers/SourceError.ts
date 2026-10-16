@@ -1,3 +1,5 @@
+import { isNetworkError } from '@/common/utils/networkError'
+
 export type SourceProblem =
   | 'sourceRemoved'
   | 'noUrlParser'
@@ -30,10 +32,20 @@ function isSourceProblem(value: unknown): value is SourceProblem {
   return SOURCE_PROBLEMS.some((problem) => problem === value)
 }
 
+// Errors cross the RPC boundary as plain Errors with the original attached as
+// `cause`, and the provider's error can be wrapped again inside that.
+function* errorChain(error: unknown): Generator<Error> {
+  let current = error
+  for (let depth = 0; depth < 5 && current instanceof Error; depth++) {
+    yield current
+    current = current.cause
+  }
+}
+
 export function getSourceError(
   error: unknown
 ): { problem: SourceProblem; sourceName?: string } | undefined {
-  for (let current = error; current instanceof Error; ) {
+  for (const current of errorChain(error)) {
     if (
       current.name === SOURCE_ERROR_NAME &&
       'problem' in current &&
@@ -45,7 +57,20 @@ export function getSourceError(
           : undefined
       return { problem: current.problem, sourceName }
     }
-    current = current.cause
   }
   return undefined
+}
+
+const HTTP_FAILURE = /\bHTTP \d{3}\b|Request failed with status \d{3}/
+
+export function isUnreachableError(error: unknown): boolean {
+  for (const current of errorChain(error)) {
+    if (current.name === 'HttpException') {
+      return true
+    }
+    if (isNetworkError(current) || HTTP_FAILURE.test(current.message)) {
+      return true
+    }
+  }
+  return false
 }

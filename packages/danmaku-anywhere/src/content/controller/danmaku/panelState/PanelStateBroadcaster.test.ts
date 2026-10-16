@@ -1,6 +1,10 @@
 import type { CustomEpisode } from '@danmaku-anywhere/danmaku-converter'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
+import {
+  sendMount,
+  sendUnmount,
+} from '@/content/controller/common/danmakuCommands'
 import { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import { useStore } from '@/content/controller/store/store'
 import { startPanelStateBroadcaster } from './PanelStateBroadcaster'
@@ -16,7 +20,11 @@ const syncPanelState = vi.hoisted(() => vi.fn())
 
 vi.mock('@/common/rpcClient/background/client', () => ({
   playerRpcClient: {
-    player: { 'relay:command:syncPanelState': syncPanelState },
+    player: {
+      'relay:command:syncPanelState': syncPanelState,
+      'relay:command:mount': () => Promise.resolve({ data: true }),
+      'relay:command:unmount': () => Promise.resolve({ data: true }),
+    },
   },
 }))
 
@@ -70,8 +78,8 @@ describe('PanelStateBroadcaster', () => {
     }
   })
 
-  it('sends the mounted entry to the active frame only', () => {
-    useStore.getState().danmaku.mount([episode])
+  it('sends the mounted entry to the active frame only', async () => {
+    await sendMount([episode])
 
     expect(sentTo(0).at(-1)).toMatchObject({
       substate: 'mounted',
@@ -80,8 +88,8 @@ describe('PanelStateBroadcaster', () => {
     expect(sentTo(1).at(-1)).toBeNull()
   })
 
-  it('moves the entry when the active frame changes', () => {
-    useStore.getState().danmaku.mount([episode])
+  it('moves the entry when the active frame changes', async () => {
+    await sendMount([episode])
     syncPanelState.mockClear()
 
     useStore.getState().frame.setActiveFrame(1)
@@ -92,11 +100,11 @@ describe('PanelStateBroadcaster', () => {
     ])
   })
 
-  it('clears every frame after an unmount', () => {
-    useStore.getState().danmaku.mount([episode])
+  it('clears every frame after an unmount', async () => {
+    await sendMount([episode])
     syncPanelState.mockClear()
 
-    useStore.getState().danmaku.unmount()
+    await sendUnmount()
 
     expect(sentTo(0)).toEqual([null])
     expect(sentTo(1)).toEqual([null])

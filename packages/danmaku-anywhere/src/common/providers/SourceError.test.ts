@@ -1,0 +1,44 @@
+import { describe, expect, it } from 'vitest'
+import { RpcException } from '@/common/rpc/types'
+import { deserializeError, serializeError } from '@/common/utils/serializeError'
+import { isUnreachableError } from './SourceError'
+
+/**
+ * isUnreachableError tells HTTP and network failures apart from other errors,
+ * including when they arrive wrapped by the RPC layer.
+ */
+
+function overRpc(error: Error): RpcException {
+  return new RpcException(error.message, {
+    cause: deserializeError(serializeError(error)),
+  })
+}
+
+describe('isUnreachableError', () => {
+  it('matches an HTTP status failure from a manifest source', () => {
+    expect(
+      isUnreachableError(
+        overRpc(new Error('HTTP 500 for https://proxy.example/search?k=a'))
+      )
+    ).toBe(true)
+  })
+
+  it('matches a network failure', () => {
+    expect(isUnreachableError(new TypeError('Failed to fetch'))).toBe(true)
+  })
+
+  it('matches a provider HttpException by name through the cause chain', () => {
+    const inner = new Error('upstream said no')
+    inner.name = 'HttpException'
+    const outer = new RpcException('Search failed', { cause: inner })
+    expect(isUnreachableError(outer)).toBe(true)
+  })
+
+  it('does not match other failures', () => {
+    expect(isUnreachableError(new Error('No danmaku found for Frieren'))).toBe(
+      false
+    )
+    expect(isUnreachableError('HTTP 500')).toBe(false)
+    expect(isUnreachableError(undefined)).toBe(false)
+  })
+})

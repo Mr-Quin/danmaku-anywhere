@@ -20,6 +20,17 @@ export class Toast {
     return this.page.locator(SELECTORS.snackbar)
   }
 
+  // The in-page toast container. Collapsed, the newest toast sits in front with
+  // older ones peeking out behind; hover or focus spreads them out.
+  pile(): Locator {
+    return this.page.getByTestId('toast-pile')
+  }
+
+  // Stays the same when a keyed toast is replaced in place.
+  async keyOf(toast: Locator): Promise<string | null> {
+    return toast.getAttribute('data-toast-key')
+  }
+
   bySeverity(severity: Severity): Locator {
     return this.page.locator(SELECTORS.bySeverity(severity))
   }

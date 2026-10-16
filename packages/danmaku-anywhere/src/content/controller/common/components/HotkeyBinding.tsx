@@ -1,8 +1,8 @@
 import { useHotkeys } from 'react-hotkeys-hook'
 
-import type { ContextMenuItemProps } from './ContextMenuItem'
+import type { ContextMenuItemProps } from '@/content/controller/ui/floatingButton/components/ContextMenuItem'
 
-export const ContextMenuShortcut = ({
+export const HotkeyBinding = ({
   hotkey,
   disabled,
   action,

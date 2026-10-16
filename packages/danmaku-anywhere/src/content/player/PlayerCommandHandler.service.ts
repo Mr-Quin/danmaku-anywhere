@@ -21,6 +21,7 @@ import { InfoPanelService } from '@/content/player/infoPanel/InfoPanel.service'
 import { OcclusionEntryDeriver } from '@/content/player/infoPanel/occlusionEntry'
 import infoPanelCss from '@/content/player/infoPanel/PlayerInfoPanel.css?inline'
 import { buildSakuraCssVars } from '@/content/player/infoPanel/sakuraCssVars'
+import { OrderedPlayerCommands } from '@/content/player/orderedPlayerCommands'
 import { createPipWindow, moveElement } from '@/content/player/pipUtils'
 import { VideoEventService } from '@/content/player/videoEvent/VideoEvent.service'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
@@ -30,6 +31,7 @@ import { reparentPopover } from '../common/reparentPopover'
 interface StartContext {
   frameId: number
   query: string
+  session: string
   sendPlayerReady: () => void
 }
 
@@ -68,6 +70,7 @@ export class PlayerCommandHandler {
   async start(ctx: StartContext) {
     this.frameId = ctx.frameId
     this.sendPlayerReady = ctx.sendPlayerReady
+    this.ordered.adopt(ctx.session)
 
     await this.setupDom()
     this.wireLifecycleEvents()
@@ -267,29 +270,25 @@ export class PlayerCommandHandler {
   private createRpcServer() {
     const server = createRpcServer<PlayerRelayCommands>(
       {
-        'relay:command:start': async ({ data: query }) => {
+        'relay:command:start': async ({ data: { query, session } }) => {
           // Already started — idempotent
+          this.ordered.adopt(session)
           this.manager.start(query)
         },
-        'relay:command:mount': async ({ data: comments }) => {
-          this.mount(comments)
-          return true
+        'relay:command:mount': async ({ data }) => {
+          return this.ordered.mount(data)
         },
-        'relay:command:unmount': async () => {
-          this.unmount()
-          return true
+        'relay:command:unmount': async ({ data }) => {
+          return this.ordered.unmount(data)
         },
         'relay:command:seek': async ({ data: time }) => {
           this.manager.seek(time)
         },
-        'relay:command:show': async ({ data: show }) => {
-          if (show) {
-            this.manager.show()
-          } else {
-            this.manager.hide()
-          }
+        'relay:command:show': async ({ data }) => {
+          this.ordered.show(data)
         },
-        'relay:command:controllerReady': async () => {
+        'relay:command:controllerReady': async ({ data: { session } }) => {
+          this.ordered.adopt(session)
           this.logger.debug('Controller ready, re-sending playerReady')
           this.sendPlayerReady()
         },
@@ -326,6 +325,22 @@ export class PlayerCommandHandler {
 
     server.listen(chrome.runtime.onMessage)
   }
+
+  private readonly ordered = new OrderedPlayerCommands({
+    mount: (comments) => {
+      this.mount(comments)
+    },
+    unmount: () => {
+      this.unmount()
+    },
+    setVisible: (visible) => {
+      if (visible) {
+        this.manager.show()
+      } else {
+        this.manager.hide()
+      }
+    },
+  })
 
   private mount(comments: CommentEntity[]) {
     this.manager.mount(comments)

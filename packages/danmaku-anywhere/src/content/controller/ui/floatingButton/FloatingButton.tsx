@@ -6,9 +6,11 @@ import {
   Fade,
   SpeedDialIcon,
   styled,
+  Tooltip,
 } from '@mui/material'
 import type { MouseEventHandler } from 'react'
 import { forwardRef, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useAnyLoading } from '@/common/hooks/useAnyLoading'
 import { useMergeRefs } from '@/common/hooks/useMergeRefs'
 import { isConfigIncomplete } from '@/common/options/mountConfig/isPermissive'
@@ -48,6 +50,7 @@ export const FloatingButton = forwardRef<
   HTMLButtonElement,
   FloatingButtonProps
 >(({ onOpen, isOpen }: FloatingButtonProps, ref) => {
+  const { t } = useTranslation()
   const isLoading = useAnyLoading()
 
   const showFab = useWindowActive()
@@ -139,20 +142,37 @@ export const FloatingButton = forwardRef<
                       },
                     }}
                   >
-                    <StyledFab
-                      size="small"
-                      onContextMenu={handleContextMenu}
-                      ref={mergedFabRefs}
-                      color={dialColor}
-                      hover={fabHover}
-                      onMouseOver={() => setFabHover(true)}
-                      onMouseOut={() => setFabHover(false)}
+                    <Tooltip
+                      title={
+                        isOpen || contextMenuAnchor
+                          ? ''
+                          : t(
+                              'floatingButton.tooltip',
+                              'Danmaku Anywhere. Right-click for quick actions'
+                            )
+                      }
+                      placement="right"
+                      enterDelay={600}
                     >
-                      <SpeedDialIcon />
-                      <FabLoadingIndicator
-                        isLoading={!isDisconnected && isLoading}
-                      />
-                    </StyledFab>
+                      <StyledFab
+                        size="small"
+                        aria-label={t(
+                          'floatingButton.label',
+                          'Open Danmaku Anywhere'
+                        )}
+                        onContextMenu={handleContextMenu}
+                        ref={mergedFabRefs}
+                        color={dialColor}
+                        hover={fabHover}
+                        onMouseOver={() => setFabHover(true)}
+                        onMouseOut={() => setFabHover(false)}
+                      >
+                        <SpeedDialIcon />
+                        <FabLoadingIndicator
+                          isLoading={!isDisconnected && isLoading}
+                        />
+                      </StyledFab>
+                    </Tooltip>
                   </Badge>
                 </div>
               </Fade>

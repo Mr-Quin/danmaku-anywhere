@@ -24,6 +24,8 @@ function makeFrame(
     url: `https://example.com/frame/${frameId}`,
     started: true,
     mounted: false,
+    issuedCommand: 0,
+    committedCommand: 0,
     hasVideo: videoInfo != null,
     videoChangeCount: 0,
     videoInfo: videoInfo

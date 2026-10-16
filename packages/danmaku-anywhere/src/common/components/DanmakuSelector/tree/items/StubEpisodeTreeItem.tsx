@@ -2,7 +2,7 @@ import type { EpisodeStub, Season } from '@danmaku-anywhere/danmaku-converter'
 import { CloudDownload } from '@mui/icons-material'
 import { CircularProgress, Stack, Typography } from '@mui/material'
 import type { ReactElement } from 'react'
-import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import { useFetchDanmakuWithToast } from '@/common/danmaku/queries/useFetchDanmaku'
 
 interface StubEpisodeTreeItemProps {
   stub: EpisodeStub
@@ -15,7 +15,7 @@ export const StubEpisodeTreeItem = ({
   season,
   label,
 }: StubEpisodeTreeItemProps): ReactElement => {
-  const fetchDanmaku = useFetchDanmaku()
+  const fetchDanmaku = useFetchDanmakuWithToast()
 
   const handleClick = (e: React.MouseEvent) => {
     e.stopPropagation()

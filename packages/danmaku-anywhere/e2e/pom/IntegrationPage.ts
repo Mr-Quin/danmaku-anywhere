@@ -77,6 +77,53 @@ export class IntegrationPage {
     })
   }
 
+  // The XPath integration watches this node's text, so editing it plays the
+  // part of an SPA moving to another episode.
+  async setEpisodeText(text: string): Promise<void> {
+    await this.page.evaluate((value) => {
+      const episode = document.querySelector('[data-testid="da-episode"]')
+      if (!episode) {
+        throw new Error('IntegrationPage.setEpisodeText: no episode node')
+      }
+      episode.textContent = value
+    }, text)
+  }
+
+  // Element fullscreen needs a user gesture, so this clicks a page button
+  // that requests it rather than calling requestFullscreen from evaluate.
+  async enterIframeFullscreen(): Promise<void> {
+    if (!this.iframeSelector) {
+      throw new Error('IntegrationPage.enterIframeFullscreen: no iframe in use')
+    }
+    await this.page.evaluate((selector) => {
+      const button = document.createElement('button')
+      button.textContent = 'fullscreen iframe'
+      button.dataset.testid = 'da-fullscreen-iframe'
+      button.style.cssText = 'position:fixed;top:8px;right:8px;z-index:1'
+      button.addEventListener('click', () => {
+        void document.querySelector(selector)?.requestFullscreen()
+      })
+      document.body.appendChild(button)
+    }, this.iframeSelector)
+    await this.page.getByTestId('da-fullscreen-iframe').click()
+    await this.page.waitForFunction(
+      () => document.fullscreenElement?.nodeName === 'IFRAME'
+    )
+  }
+
+  // Outside an element in fullscreen the page is inert, and an inert button
+  // drops out of the accessibility tree while still being drawn.
+  floatingButton({ includeInert = false } = {}): Locator {
+    return this.page.getByRole('button', {
+      name: /^(Open Danmaku Anywhere|打开 Danmaku Anywhere)$/,
+      includeHidden: includeInert,
+    })
+  }
+
+  controllerWindow(): Locator {
+    return this.page.getByTestId('controller-window')
+  }
+
   private get target(): Page | Frame {
     return this.videoFrame ?? this.page
   }
@@ -173,6 +220,13 @@ export class IntegrationPage {
         .locator('#danmaku-anywhere-player .da-danmaku')
     }
     return this.page.locator('#danmaku-anywhere-player .da-danmaku')
+  }
+
+  // Hiding danmaku keeps the comment nodes and sets visibility: hidden on them.
+  async commentVisibilities(): Promise<string[]> {
+    return this.commentElements().evaluateAll((nodes) =>
+      nodes.map((node) => getComputedStyle(node).visibility)
+    )
   }
 
   // The danmu library's container element, where the occlusion mask-image is

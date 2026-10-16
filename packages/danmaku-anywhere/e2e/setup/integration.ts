@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import type { Integration } from '@danmaku-anywhere/integration-policy'
 import type { BrowserContext } from '@playwright/test'
 import { BUILT_IN_AI_PROVIDER_ID } from '../../src/common/options/aiProviderConfig/constant'
+import type { ExtensionOptions } from '../../src/common/options/extensionOptions/schema'
 import {
   zIntegration,
   zIntegrationPolicy,
@@ -99,10 +100,11 @@ const FIXTURE_COMMENTS = [
 export async function seedFixtureIntegration(
   context: BrowserContext,
   da: DaClient,
-  patterns: string[]
+  patterns: string[],
+  extensionOptions: Partial<ExtensionOptions> = {}
 ): Promise<{ episodeId: number }> {
   await applyProfile(context, da, {
-    extensionOptions: { matchLocalDanmaku: true },
+    extensionOptions: { matchLocalDanmaku: true, ...extensionOptions },
   })
 
   const customEpisode = await da.episode.addCustom({
