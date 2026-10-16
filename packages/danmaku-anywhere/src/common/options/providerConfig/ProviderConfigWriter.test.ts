@@ -266,7 +266,10 @@ describe('ProviderConfigWriter.update', () => {
     await seedProviders(unavailable)
     const { writer, readAll } = setup()
 
-    await writer.update('self-hosted', { customName: 'Still mine' })
+    await writer.update('self-hosted', {
+      customName: 'Still mine',
+      configValues: { anything: 1 },
+    })
     const code = await errorCode(
       writer.update('self-hosted', { configValues: { anything: 2 } })
     )

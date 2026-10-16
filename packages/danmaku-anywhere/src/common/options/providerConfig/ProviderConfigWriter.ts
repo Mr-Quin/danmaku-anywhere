@@ -85,6 +85,24 @@ function unusableSource(
   }
 }
 
+function sameJson(a: unknown, b: unknown): boolean {
+  if (Array.isArray(a) && Array.isArray(b)) {
+    return a.length === b.length && a.every((item, i) => sameJson(item, b[i]))
+  }
+  if (isRecord(a) && isRecord(b)) {
+    const keys = Object.keys(a)
+    return (
+      keys.length === Object.keys(b).length &&
+      keys.every((key) => key in b && sameJson(a[key], b[key]))
+    )
+  }
+  return Object.is(a, b)
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
 function configSchemaOf(availability: ManifestAvailability) {
   return availability.status === 'ok' ? availability.configSchema : undefined
 }
@@ -170,10 +188,15 @@ export class ProviderConfigWriter implements IRestoreListCheck {
         throw notFound(id)
       }
       const availability = await this.availability(current.manifestId)
-      if (availability.status !== 'ok' && 'configValues' in edit) {
+      const next = withoutLockedValues({ ...current, ...edit })
+      // The editor always sends the settings, so only a change to them needs
+      // a manifest to check against.
+      if (
+        availability.status !== 'ok' &&
+        !sameJson(next.configValues, current.configValues)
+      ) {
         throw unusableSource(current.manifestId, availability)
       }
-      const next = withoutLockedValues({ ...current, ...edit })
       const issues = checkProviderConfig({
         config: next,
         configSchema: configSchemaOf(availability),
