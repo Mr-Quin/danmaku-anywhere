@@ -3,7 +3,6 @@ import { Box } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
-import { describeLocalError } from '@/common/errors/describeError'
 import { describeProviderConfigError } from '@/common/options/providerConfig/issueText'
 import type {
   ProviderConfigDraft,
@@ -52,10 +51,7 @@ export const ProviderEditor = ({
             onClose()
           },
           onError: (error) => {
-            toast.error(
-              describeProviderConfigError(error, configSchema) ??
-                describeLocalError(error)
-            )
+            toast.error(describeProviderConfigError(error, configSchema))
           },
         }
       )
@@ -69,10 +65,7 @@ export const ProviderEditor = ({
           onClose()
         },
         onError: (error) => {
-          toast.error(
-            describeProviderConfigError(error, configSchema) ??
-              describeLocalError(error)
-          )
+          toast.error(describeProviderConfigError(error, configSchema))
         },
       }
     )

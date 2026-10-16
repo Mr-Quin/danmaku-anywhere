@@ -5,12 +5,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ConfigStateService } from '@/background/services/Backup/ConfigStateService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { DANMAKU_DB_NAME, DanmakuAnywhereDb } from '@/common/db/db'
+import { AppError } from '@/common/errors/AppError'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
 import { makeProviderConfig, makeSeasonInsert } from '@/tests/factories'
 import { effectiveConfigValues } from './builtin'
 import { PROXY_DDP_BASE_URL } from './constant'
-import { getProviderConfigError } from './ProviderConfigError'
 import { ProviderConfigWriter } from './ProviderConfigWriter'
 import type { ProviderConfig, ProviderConfigEdit } from './schema'
 import { ProviderConfigService } from './service'
@@ -77,7 +77,7 @@ async function errorCode(promise: Promise<unknown>) {
   try {
     await promise
   } catch (error) {
-    return getProviderConfigError(error)?.code
+    return error instanceof AppError ? error.code : undefined
   }
   return undefined
 }
@@ -119,7 +119,7 @@ describe('ProviderConfigWriter.create', () => {
       })
       .catch((reason: unknown) => reason)
 
-    expect(getProviderConfigError(error)).toMatchObject({
+    expect(error).toMatchObject({
       code: 'config.invalid',
       params: {
         issues: [{ code: 'requiredAlternatives' }, { code: 'enum' }],

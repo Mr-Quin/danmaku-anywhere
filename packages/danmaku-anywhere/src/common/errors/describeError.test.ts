@@ -64,6 +64,20 @@ const PARAMS: { [C in keyof AppErrorParams]: AppErrorParams[C] } = {
   'catalog.empty': {},
   'config.duplicate': {},
   'config.notFound': {},
+  'config.invalid': {
+    issues: [
+      {
+        path: ['baseUrl'],
+        code: 'format',
+        message: 'Must be a URL',
+      },
+    ],
+  },
+  'config.nameRequired': {},
+  'config.notBuiltin': { manifestId: 'iqiyi' },
+  'config.unknownSource': { manifestId: 'iqiyi' },
+  'config.orderMismatch': {},
+  'options.outdated': { store: 'providerConfig', version: 5, expected: 6 },
   'catalog.applyFailed': {
     sources: [
       { manifestId: 'bilibili', name: 'Bilibili' },

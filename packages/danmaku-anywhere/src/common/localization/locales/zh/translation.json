@@ -70,6 +70,7 @@
     "catalogApplyFailed": "无法更新 {{sources}}，请稍后重试。",
     "catalogEmpty": "弹幕源目录中没有当前版本可用的弹幕源。",
     "configDuplicate": "已存在相同 ID 的项目。",
+    "configInvalid": "部分设置无效。",
     "configNotFound": "该项已不存在，可能已被删除。",
     "danmakuUnsupported": "{{source}} 不支持获取弹幕。",
     "episodesUnsupported": "{{source}} 不支持获取剧集列表。",
@@ -801,7 +802,6 @@
       "duplicate": "这个内置弹幕源已经安装",
       "nameRequired": "请为弹幕源命名",
       "notBuiltin": "这个弹幕源没有内置实例",
-      "notFound": "这个弹幕源已不存在，可能已被删除。",
       "orderMismatch": "弹幕源列表已变化，请重新排序。",
       "outdated": "弹幕源正在更新到当前版本，请稍后再试。",
       "unknownSource": "这个弹幕源未安装，无法修改它的设置"

@@ -70,6 +70,7 @@
     "catalogApplyFailed": "Couldn't update {{sources}}. Try again later.",
     "catalogEmpty": "The source catalog has no sources this version can use.",
     "configDuplicate": "An item with the same ID already exists.",
+    "configInvalid": "Some settings are not valid.",
     "configNotFound": "This item no longer exists. It may have been deleted.",
     "danmakuUnsupported": "{{source}} cannot fetch danmaku.",
     "episodesUnsupported": "{{source}} cannot list episodes.",
@@ -832,7 +833,6 @@
       "duplicate": "This built-in source is already installed",
       "nameRequired": "Give the source a name",
       "notBuiltin": "This source has no built-in instance",
-      "notFound": "This source no longer exists. It may have been deleted.",
       "orderMismatch": "The source list changed. Try reordering again.",
       "outdated": "Your sources are being updated to this version. Try again in a moment.",
       "unknownSource": "This source is not installed, so its settings cannot be changed"

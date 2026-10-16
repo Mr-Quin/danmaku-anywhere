@@ -17,7 +17,6 @@ import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { describeLocalError } from '@/common/errors/describeError'
 import {
   effectiveConfigValues,
   isBuiltinConfig,
@@ -127,10 +126,7 @@ export const InstalledList = ({
             arrayMove(configs, source, destination).map((c) => c.id),
             {
               onError: (error) => {
-                toast.error(
-                  describeProviderConfigError(error) ??
-                    describeLocalError(error)
-                )
+                toast.error(describeProviderConfigError(error))
               },
             }
           )

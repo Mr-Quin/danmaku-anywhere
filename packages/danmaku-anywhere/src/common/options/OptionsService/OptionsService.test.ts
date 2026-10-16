@@ -284,9 +284,8 @@ describe('OptionsService', () => {
       const change = vi.fn((data: Counter) => ({ count: data.count + 1 }))
 
       await expect(service.transform(change)).rejects.toMatchObject({
-        name: 'OptionsOutdatedError',
-        version: 1,
-        expected: 2,
+        code: 'options.outdated',
+        params: { version: 1, expected: 2 },
       })
       expect(change).not.toHaveBeenCalled()
       expect(await readRaw()).toEqual({ data: { count: 5 }, version: 1 })

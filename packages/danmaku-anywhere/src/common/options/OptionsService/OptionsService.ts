@@ -1,9 +1,9 @@
+import { AppError } from '@/common/errors/AppError'
 import type { ILogger } from '@/common/Logger'
 import type { ExtStorageType } from '@/common/storage/getStorageArea'
 import { ExtStorageService } from '../../storage/ExtStorageService'
 import type { ReadinessGate } from '../ReadinessService/ReadinessService'
 import { migrateOptions } from './migrationOptions'
-import { OptionsOutdatedError } from './OptionsOutdatedError'
 import { isStoredAtVersion } from './storedVersion'
 import type {
   DeferredWrite,
@@ -187,10 +187,18 @@ export class OptionsService<T extends OptionsSchema> {
         throw new Error('Cannot transform options without existing options')
       }
       if (stored.version !== this.latestVersion) {
-        throw new OptionsOutdatedError(
-          this.key,
-          stored.version,
-          this.latestVersion
+        // A change written now would keep the older version's tag, and the
+        // next upgrade would migrate data that is already in the new shape.
+        throw new AppError(
+          'options.outdated',
+          {
+            store: this.key,
+            version: stored.version,
+            expected: this.latestVersion,
+          },
+          {
+            message: `Cannot change ${this.key} stored at version ${stored.version}, expected ${this.latestVersion}`,
+          }
         )
       }
       const next = await change(stored.data)

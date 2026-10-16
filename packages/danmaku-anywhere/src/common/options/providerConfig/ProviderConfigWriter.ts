@@ -1,5 +1,6 @@
 import type { ConfigSchema } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
+import { AppError } from '@/common/errors/AppError'
 import type { IRestoreListCheck } from '@/common/options/RestoreListCheck'
 import { getRandomUUID } from '@/common/utils/utils'
 import {
@@ -8,7 +9,6 @@ import {
   findBuiltinSource,
   withoutLockedValues,
 } from './builtin'
-import { ProviderConfigError } from './ProviderConfigError'
 import {
   ConfigSchemaSourceSymbol,
   type IConfigSchemaSource,
@@ -45,17 +45,19 @@ function touchedBy(edit: ProviderConfigEdit, issue: ProviderConfigIssue) {
   return 'configValues' in edit
 }
 
-function notFound(id: string): ProviderConfigError {
-  return new ProviderConfigError(
-    { code: 'config.notFound', params: { id } },
-    `Source "${id}" not found, it might have been deleted.`
+function notFound(id: string): AppError {
+  return new AppError(
+    'config.notFound',
+    { id },
+    { message: `Source "${id}" not found, it might have been deleted.` }
   )
 }
 
-function unknownSource(manifestId: string): ProviderConfigError {
-  return new ProviderConfigError(
-    { code: 'config.unknownSource', params: { manifestId } },
-    `No source "${manifestId}" is installed`
+function unknownSource(manifestId: string): AppError {
+  return new AppError(
+    'config.unknownSource',
+    { manifestId },
+    { message: `No source "${manifestId}" is installed` }
   )
 }
 
@@ -66,15 +68,9 @@ function throwIfInvalid(issues: ProviderConfigIssue[]): void {
   const message = `Invalid source settings: ${issues.map(describeIssue).join('; ')}`
   const found = configIssues(issues)
   if (found.length === 0) {
-    throw new ProviderConfigError(
-      { code: 'config.nameRequired', params: {} },
-      message
-    )
+    throw new AppError('config.nameRequired', {}, { message })
   }
-  throw new ProviderConfigError(
-    { code: 'config.invalid', params: { issues: found } },
-    message
-  )
+  throw new AppError('config.invalid', { issues: found }, { message })
 }
 
 // The one writer of provider configs. Each operation reads, checks and writes
@@ -112,17 +108,19 @@ export class ProviderConfigWriter implements IRestoreListCheck {
   async addBuiltin(manifestId: string): Promise<ProviderConfig> {
     const source = findBuiltinSource(manifestId)
     if (!source) {
-      throw new ProviderConfigError(
-        { code: 'config.notBuiltin', params: { manifestId } },
-        `"${manifestId}" has no built-in source`
+      throw new AppError(
+        'config.notBuiltin',
+        { manifestId },
+        { message: `"${manifestId}" has no built-in source` }
       )
     }
     const config = createBuiltinConfig(source)
     await this.options.transform((configs) => {
       if (configs.some((item) => item.id === config.id)) {
-        throw new ProviderConfigError(
-          { code: 'config.duplicate', params: { manifestId } },
-          `The built-in "${manifestId}" source already exists`
+        throw new AppError(
+          'config.duplicate',
+          { manifestId },
+          { message: `The built-in "${manifestId}" source already exists` }
         )
       }
       return [...configs, config]
@@ -189,9 +187,10 @@ export class ProviderConfigWriter implements IRestoreListCheck {
         ordered.length !== configs.length ||
         new Set(ids).size !== configs.length
       ) {
-        throw new ProviderConfigError(
-          { code: 'config.orderMismatch', params: {} },
-          'The new order must list every source exactly once'
+        throw new AppError(
+          'config.orderMismatch',
+          {},
+          { message: 'The new order must list every source exactly once' }
         )
       }
       return ordered

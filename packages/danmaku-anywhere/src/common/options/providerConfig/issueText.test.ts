@@ -1,10 +1,8 @@
 import { type ConfigSchema, validateConfig } from '@mr-quin/dango'
 import { describe, expect, it } from 'vitest'
-import { OptionsOutdatedError } from '@/common/options/OptionsService/OptionsOutdatedError'
-import { RpcException } from '@/common/rpc/types'
+import { AppError } from '@/common/errors/AppError'
 import { deserializeError, serializeError } from '@/common/utils/serializeError'
 import { describeProviderConfigError } from './issueText'
-import { ProviderConfigError } from './ProviderConfigError'
 
 /**
  * describeProviderConfigError turns a failed source write into one line of
@@ -13,10 +11,8 @@ import { ProviderConfigError } from './ProviderConfigError'
  * older build tagged gets its own message. The i18n mock returns keys.
  */
 
-function acrossRpc(error: Error): RpcException {
-  return new RpcException(error.message, {
-    cause: deserializeError(serializeError(error)),
-  })
+function acrossRpc(error: Error): Error {
+  return deserializeError(serializeError(error))
 }
 
 const schema: ConfigSchema = {
@@ -44,9 +40,10 @@ describe('describeProviderConfigError', () => {
   it('names an invalid field by its titles', () => {
     const issues = validateConfig(schema, { auth: { headers: [{}] } })
     const error = acrossRpc(
-      new ProviderConfigError(
-        { code: 'config.invalid', params: { issues } },
-        'Invalid source settings'
+      new AppError(
+        'config.invalid',
+        { issues },
+        { message: 'Invalid source settings' }
       )
     )
 
@@ -59,12 +56,18 @@ describe('describeProviderConfigError', () => {
   })
 
   it('explains a store an older build tagged', () => {
-    const error = acrossRpc(new OptionsOutdatedError('providerConfig', 5, 6))
+    const error = acrossRpc(
+      new AppError('options.outdated', {
+        store: 'providerConfig',
+        version: 5,
+        expected: 6,
+      })
+    )
 
     expect(describeProviderConfigError(error)).toBe('providers.error.outdated')
   })
 
-  it('leaves other errors to the caller', () => {
-    expect(describeProviderConfigError(new Error('boom'))).toBeUndefined()
+  it('keeps the text of a local error', () => {
+    expect(describeProviderConfigError(new Error('boom'))).toBe('boom')
   })
 })

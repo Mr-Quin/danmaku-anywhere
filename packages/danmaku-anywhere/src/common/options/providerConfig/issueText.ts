@@ -1,7 +1,9 @@
-import type { ConfigIssue, ConfigSchema } from '@mr-quin/dango'
+import type { ConfigSchema } from '@mr-quin/dango'
+import { type AppConfigIssue, AppError } from '@/common/errors/AppError'
+import { describeLocalError } from '@/common/errors/describeError'
 import { i18n } from '@/common/localization/i18n'
-import { isOptionsOutdatedError } from '@/common/options/OptionsService/OptionsOutdatedError'
-import { getProviderConfigError } from './ProviderConfigError'
+
+type ConfigIssue = AppConfigIssue
 
 function schemaAt(
   root: ConfigSchema | undefined,
@@ -126,61 +128,20 @@ export function issueFieldLabel(
   return labels.join(' › ')
 }
 
-// Undefined when the error did not come from a source write. `configSchema`
-// names the fields an invalid-settings error points at.
+// `configSchema` names the fields an invalid-settings error points at.
 export function describeProviderConfigError(
   error: unknown,
   configSchema?: ConfigSchema
-): string | undefined {
-  if (isOptionsOutdatedError(error)) {
-    return i18n.t(
-      'providers.error.outdated',
-      'Your sources are being updated to this version. Try again in a moment.'
-    )
+): string {
+  if (!(error instanceof AppError) || error.code !== 'config.invalid') {
+    return describeLocalError(error)
   }
-  const detail = getProviderConfigError(error)
-  if (!detail) {
-    return undefined
+  const { issues } = error.params as AppError<'config.invalid'>['params']
+  const [issue] = issues
+  if (!issue) {
+    return i18n.t('providers.editor.validation.invalid', 'Not a valid value')
   }
-  switch (detail.code) {
-    case 'config.invalid': {
-      const [issue] = detail.params.issues
-      if (!issue) {
-        return i18n.t(
-          'providers.editor.validation.invalid',
-          'Not a valid value'
-        )
-      }
-      const label = issueFieldLabel(issue, configSchema)
-      const message = configIssueMessage(issue, configSchema)
-      return label === '' ? message : `${label}: ${message}`
-    }
-    case 'config.nameRequired':
-      return i18n.t('providers.error.nameRequired', 'Give the source a name')
-    case 'config.notFound':
-      return i18n.t(
-        'providers.error.notFound',
-        'This source no longer exists. It may have been deleted.'
-      )
-    case 'config.duplicate':
-      return i18n.t(
-        'providers.error.duplicate',
-        'This built-in source is already installed'
-      )
-    case 'config.notBuiltin':
-      return i18n.t(
-        'providers.error.notBuiltin',
-        'This source has no built-in instance'
-      )
-    case 'config.unknownSource':
-      return i18n.t(
-        'providers.error.unknownSource',
-        'This source is not installed, so its settings cannot be changed'
-      )
-    case 'config.orderMismatch':
-      return i18n.t(
-        'providers.error.orderMismatch',
-        'The source list changed. Try reordering again.'
-      )
-  }
+  const label = issueFieldLabel(issue, configSchema)
+  const message = configIssueMessage(issue, configSchema)
+  return label === '' ? message : `${label}: ${message}`
 }

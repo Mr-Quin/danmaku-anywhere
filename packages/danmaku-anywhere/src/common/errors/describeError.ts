@@ -234,7 +234,13 @@ const MESSAGES: MessageTable = {
       { sources: formatList(names) }
     )
   },
-  'config.duplicate': () => {
+  'config.duplicate': ({ manifestId }) => {
+    if (manifestId !== undefined) {
+      return i18n.t(
+        'providers.error.duplicate',
+        'This built-in source is already installed'
+      )
+    }
     return i18n.t(
       'appError.configDuplicate',
       'An item with the same ID already exists.'
@@ -244,6 +250,36 @@ const MESSAGES: MessageTable = {
     return i18n.t(
       'appError.configNotFound',
       'This item no longer exists. It may have been deleted.'
+    )
+  },
+  'config.invalid': () => {
+    return i18n.t('appError.configInvalid', 'Some settings are not valid.')
+  },
+  'config.nameRequired': () => {
+    return i18n.t('providers.error.nameRequired', 'Give the source a name')
+  },
+  'config.notBuiltin': () => {
+    return i18n.t(
+      'providers.error.notBuiltin',
+      'This source has no built-in instance'
+    )
+  },
+  'config.unknownSource': () => {
+    return i18n.t(
+      'providers.error.unknownSource',
+      'This source is not installed, so its settings cannot be changed'
+    )
+  },
+  'config.orderMismatch': () => {
+    return i18n.t(
+      'providers.error.orderMismatch',
+      'The source list changed. Try reordering again.'
+    )
+  },
+  'options.outdated': () => {
+    return i18n.t(
+      'providers.error.outdated',
+      'Your sources are being updated to this version. Try again in a moment.'
     )
   },
   'backup.notJson': () => {

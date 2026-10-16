@@ -14,10 +14,7 @@ import { TabBody } from '@/common/components/layout/TabBody'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useToast } from '@/common/components/Toast/toastStore'
-import {
-  describeError,
-  describeLocalError,
-} from '@/common/errors/describeError'
+import { describeError } from '@/common/errors/describeError'
 import { findBuiltinSource } from '@/common/options/providerConfig/builtin'
 import {
   createCustomDanDanPlayDraft,
@@ -124,9 +121,7 @@ export const ProvidersPage = (): ReactElement => {
       toast.success(t('providers.alert.created', 'Source created'))
     },
     onError: (error: Error) => {
-      toast.error(
-        describeProviderConfigError(error) ?? describeLocalError(error)
-      )
+      toast.error(describeProviderConfigError(error))
     },
   }
 
@@ -166,9 +161,7 @@ export const ProvidersPage = (): ReactElement => {
             toast.success(t('providers.alert.deleted', 'Source deleted'))
           },
           onError: (error) => {
-            toast.error(
-              describeProviderConfigError(error) ?? describeLocalError(error)
-            )
+            toast.error(describeProviderConfigError(error))
           },
         })
       },
