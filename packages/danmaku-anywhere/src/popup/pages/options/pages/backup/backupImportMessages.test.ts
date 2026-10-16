@@ -75,13 +75,13 @@ describe('describeRestoreStorageProblems', () => {
         danmakuOptions: {
           success: false,
           error: 'quota',
-          storageProblem: 'options.storeFull',
+          code: 'options.storeFull',
         },
         mountConfig: { success: false, error: 'bad' },
         providerConfig: { success: true, droppedEntries: 0 },
       },
     })
 
-    expect(sentences).toEqual(['optionsStorage.saveFailed'])
+    expect(sentences).toEqual(['appError.optionsStoreFull'])
   })
 })

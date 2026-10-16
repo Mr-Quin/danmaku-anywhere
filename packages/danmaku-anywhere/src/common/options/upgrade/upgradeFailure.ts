@@ -1,14 +1,11 @@
-import { OptionsMigrationError } from '../OptionsService/OptionsMigrationError'
 import {
-  isOptionsStorageProblem,
-  OptionsStorageError,
-  type OptionsStorageProblem,
-} from '../OptionsService/OptionsStorageError'
+  AppError,
+  type UpgradeProblem,
+  zUpgradeProblem,
+} from '@/common/errors/AppError'
+import { storageProblemOf } from '../OptionsService/storageProblem'
 
-export type UpgradeProblem =
-  | OptionsStorageProblem
-  | 'options.migration'
-  | 'unknown'
+export type { UpgradeProblem }
 
 // Why one store could not be upgraded. store is the store's storage key.
 export interface StoreFailure {
@@ -24,31 +21,33 @@ const REPEATING_PROBLEMS: readonly UpgradeProblem[] = [
   'options.migration',
 ]
 
-export class OptionsUpgradeError extends AggregateError {
-  constructor(
-    readonly failures: StoreFailure[],
-    errors: unknown[]
-  ) {
-    super(
-      errors,
-      `Failed to upgrade options: ${failures.map((f) => f.store).join(', ')}`
-    )
-    this.name = 'OptionsUpgradeError'
-  }
+// The error of each store goes in the cause, for the log.
+export function upgradeFailedError(
+  failures: StoreFailure[],
+  errors: unknown[]
+): AppError<'options.upgradeFailed'> {
+  return new AppError(
+    'options.upgradeFailed',
+    { stores: failures },
+    {
+      message: `Failed to upgrade options: ${failures.map((f) => f.store).join(', ')}`,
+      cause: new AggregateError(errors),
+    }
+  )
 }
 
 export function toStoreFailure(store: string, error: unknown): StoreFailure {
-  if (error instanceof OptionsMigrationError) {
+  if (error instanceof AppError && error.code === 'options.migration') {
     return { store, problem: 'options.migration' }
   }
-  return {
-    store,
-    problem: error instanceof OptionsStorageError ? error.problem : 'unknown',
-  }
+  return { store, problem: storageProblemOf(error) ?? 'unknown' }
 }
 
 export function storeFailuresOf(error: unknown): StoreFailure[] {
-  return error instanceof OptionsUpgradeError ? error.failures : []
+  if (error instanceof AppError && error.code === 'options.upgradeFailed') {
+    return (error as AppError<'options.upgradeFailed'>).params.stores
+  }
+  return []
 }
 
 export function isRepeatingFailure(failures: readonly StoreFailure[]): boolean {
@@ -71,14 +70,7 @@ export function parseStoreFailures(value: unknown): StoreFailure[] {
     if (typeof store !== 'string') {
       return []
     }
-    return [{ store, problem: isUpgradeProblem(problem) ? problem : 'unknown' }]
+    const parsed = zUpgradeProblem.safeParse(problem)
+    return [{ store, problem: parsed.success ? parsed.data : 'unknown' }]
   })
-}
-
-function isUpgradeProblem(value: unknown): value is UpgradeProblem {
-  return (
-    isOptionsStorageProblem(value) ||
-    value === 'options.migration' ||
-    value === 'unknown'
-  )
 }

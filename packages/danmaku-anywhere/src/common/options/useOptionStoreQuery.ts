@@ -1,14 +1,14 @@
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { use, useMemo } from 'react'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeError } from '@/common/errors/describeError'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { OptionsStorage } from './OptionsService/OptionsStorage'
-import { OptionsStorageError } from './OptionsService/OptionsStorageError'
+import { storageProblemOf } from './OptionsService/storageProblem'
 import type { Options } from './OptionsService/types'
 import type { OptionStoreDescriptor } from './optionStores'
 import { ReadinessService } from './ReadinessService/ReadinessService'
-import { describeSaveFailure } from './storeMessages'
 
 // Reads an option store's envelope, suspending until every store has been
 // upgraded so the UI never reads or writes a store in its old shape. A write
@@ -41,8 +41,8 @@ export function useOptionStoreQuery<T>(store: OptionStoreDescriptor) {
     mutationFn: (envelope: Options<T>) => storage.write(envelope),
     meta: { invalidates: [queryKey] },
     onError: (error) => {
-      if (error instanceof OptionsStorageError) {
-        toast.error(describeSaveFailure(error.problem, error.store))
+      if (storageProblemOf(error) !== undefined) {
+        toast.error(describeError(error).message)
       }
     },
   })

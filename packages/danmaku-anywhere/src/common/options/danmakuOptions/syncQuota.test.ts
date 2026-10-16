@@ -1,6 +1,6 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { OptionsStorageError } from '@/common/options/OptionsService/OptionsStorageError'
+import { AppError } from '@/common/errors/AppError'
 import { OptionsUpgradeService } from '@/common/options/upgrade/OptionsUpgradeService'
 import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
 import { chromeItemBytes, enforceSyncQuota } from '@/tests/syncQuota'
@@ -115,8 +115,11 @@ describe('danmakuOptions under the sync quota', () => {
       .update({ filters: rules(3000) })
       .catch((reason: unknown) => reason)
 
-    expect(error).toBeInstanceOf(OptionsStorageError)
-    expect(error).toMatchObject({ problem: 'options.storeFull', store: KEY })
+    expect(error).toBeInstanceOf(AppError)
+    expect(error).toMatchObject({
+      code: 'options.storeFull',
+      params: { store: KEY },
+    })
     expect((await service.get()).filters).toEqual(rules(10))
   })
 })

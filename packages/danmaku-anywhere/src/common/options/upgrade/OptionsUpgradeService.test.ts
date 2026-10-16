@@ -188,7 +188,7 @@ describe('OptionsUpgradeService', () => {
     expect(await readRaw(UPGRADE_RUN_KEY)).toMatchObject({
       status: 'failed',
       attempts: 1,
-      message: 'Failed to upgrade options: beta',
+      message: 'options.upgradeFailed: Failed to upgrade options: beta',
     })
     readiness.subscribe(() => undefined)
     await vi.waitFor(() => {

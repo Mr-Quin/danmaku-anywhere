@@ -101,6 +101,12 @@
     "network": "无法连接{{target}}，请检查网络后重试。",
     "noDanmaku": "没有找到 {{title}} 的弹幕。",
     "noUrlParser": "没有弹幕源能解析此链接。",
+    "optionsIncomplete": "{{name}}：已存储的副本不完整，可能仍在从其他设备同步。请稍后再试。",
+    "optionsItemTooLarge": "{{name}}：内容太大，无法放入浏览器的同步存储。",
+    "optionsMigration": "{{name}}：已保存的数据已损坏，或其格式无法被此版本转换。",
+    "optionsStoreFull": "{{name}}：浏览器为本扩展设置提供的存储空间已满。",
+    "optionsUpgradeFailed": "以下设置未能更新到此版本，已按原样保留：{{stores}}。",
+    "optionsWriteRateLimited": "{{name}}：短时间内保存次数过多。请一分钟后再试。",
     "rpcUnreachable": "与扩展的连接已断开，请刷新页面后重试。",
     "searchUnsupported": "{{source}} 不支持搜索。",
     "seasonRefreshUnsupported": "{{source}} 不支持刷新番剧信息。",
@@ -718,17 +724,6 @@
     "uploadDebugDataDesc": "上传诊断数据并复制参考 ID。",
     "uploadDebugDataSuccess": "提交成功 {{ id }}"
   },
-  "optionsStorage": {
-    "problem": {
-      "incomplete": "已存储的副本不完整，可能仍在从其他设备同步。请稍后再试。",
-      "itemTooLarge": "内容太大，无法放入浏览器的同步存储。",
-      "migration": "已保存的数据已损坏，或其格式无法被此版本转换。",
-      "storeFull": "浏览器为本扩展设置提供的存储空间已满。",
-      "unknown": "未能更新。",
-      "writeRateLimited": "短时间内保存次数过多。请一分钟后再试。"
-    },
-    "saveFailed": "未能保存{{name}}。{{reason}}"
-  },
   "optionsStore": {
     "searchHistory": "搜索历史",
     "userAuth": "账号登录"
@@ -742,7 +737,8 @@
       "description": "{{name}}当前保存的内容会先保留为恢复副本并下载为文件，然后{{name}}将恢复为默认值。",
       "failed": "重置未完成，请重试。",
       "title": "重置{{name}}？"
-    }
+    },
+    "storeFailed": "{{name}}：未能更新。"
   },
   "providers": {
     "add": {

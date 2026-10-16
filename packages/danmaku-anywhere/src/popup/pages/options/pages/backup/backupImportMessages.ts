@@ -3,11 +3,9 @@ import type {
   DroppedEntry,
   DropReason,
 } from '@/common/backup/dto'
+import { describeCode } from '@/common/errors/describeError'
 import { i18n } from '@/common/localization/i18n'
-import {
-  describeSaveFailure,
-  localizedStoreName,
-} from '@/common/options/storeMessages'
+import { localizedStoreName } from '@/common/options/storeMessages'
 
 const SHOWN_REASONS = 3
 
@@ -98,9 +96,9 @@ export function describeRestoreStorageProblems(
   result: BackupRestoreResult
 ): string[] {
   return Object.entries(result.details).flatMap(([name, detail]) => {
-    if (!detail.storageProblem) {
+    if (!detail.code) {
       return []
     }
-    return [describeSaveFailure(detail.storageProblem, name)]
+    return [describeCode(detail.code, { store: name })]
   })
 }

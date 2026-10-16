@@ -1,8 +1,8 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { AppError } from '@/common/errors/AppError'
 import type { ReadinessGate } from '@/common/options/ReadinessService/ReadinessService'
 import { silentLogger } from '@/tests/silentLogger'
-import { OptionsMigrationError } from './OptionsMigrationError'
 import { OptionsService } from './OptionsService'
 
 /**
@@ -131,7 +131,11 @@ describe('OptionsService', () => {
 
       const error = await service.upgrade().catch((reason: unknown) => reason)
 
-      expect(error).toBeInstanceOf(OptionsMigrationError)
+      expect(error).toBeInstanceOf(AppError)
+      expect(error).toMatchObject({
+        code: 'options.migration',
+        params: { store: KEY },
+      })
       expect(set).not.toHaveBeenCalled()
       expect(await readRaw()).toEqual({ data: { count: 5 }, version: 1 })
     })
@@ -150,7 +154,11 @@ describe('OptionsService', () => {
 
       const error = await service.upgrade().catch((reason: unknown) => reason)
 
-      expect(error).toBeInstanceOf(OptionsMigrationError)
+      expect(error).toBeInstanceOf(AppError)
+      expect(error).toMatchObject({
+        code: 'options.migration',
+        params: { store: KEY },
+      })
       expect(await readRaw()).toEqual(stored)
     })
   })

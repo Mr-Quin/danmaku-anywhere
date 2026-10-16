@@ -78,6 +78,17 @@ const PARAMS: { [C in keyof AppErrorParams]: AppErrorParams[C] } = {
   'config.nameTooLong': { max: 64 },
   'config.notBuiltin': { manifestId: 'iqiyi' },
   'config.orderMismatch': {},
+  'options.itemTooLarge': { store: 'danmakuOptions' },
+  'options.storeFull': { store: 'danmakuOptions' },
+  'options.writeRateLimited': { store: 'danmakuOptions' },
+  'options.incomplete': { store: 'danmakuOptions' },
+  'options.migration': { store: 'providerConfig' },
+  'options.upgradeFailed': {
+    stores: [
+      { store: 'danmakuOptions', problem: 'options.itemTooLarge' },
+      { store: 'providerConfig', problem: 'options.migration' },
+    ],
+  },
   'options.outdated': { store: 'providerConfig', version: 5, expected: 6 },
   'catalog.applyFailed': {
     sources: [

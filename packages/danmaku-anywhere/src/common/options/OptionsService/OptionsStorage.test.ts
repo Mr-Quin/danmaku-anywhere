@@ -2,7 +2,7 @@ import { fakeBrowser } from '@webext-core/fake-browser'
 import { describe, expect, it, vi } from 'vitest'
 import { enforceSyncQuota } from '@/tests/syncQuota'
 import { OptionsStorage } from './OptionsStorage'
-import { OptionsStorageError } from './OptionsStorageError'
+import { storageProblemOf } from './storageProblem'
 
 /**
  * OptionsStorage over fake chrome.storage. A split store is read with one
@@ -11,7 +11,7 @@ import { OptionsStorageError } from './OptionsStorageError'
  * hear about a write that only touched a part's chunks once the store reads
  * whole again. An item that would still be over the per-item limit is refused
  * before anything is written, and the browser's quota errors become typed
- * OptionsStorageErrors while other failures pass through unchanged.
+ * AppError codes while other failures pass through unchanged.
  */
 
 interface Data {
@@ -25,10 +25,6 @@ function createStorage() {
     area: 'sync',
     parts: ['list'],
   })
-}
-
-function storageProblem(error: unknown) {
-  return error instanceof OptionsStorageError ? error.problem : undefined
 }
 
 describe('OptionsStorage', () => {
@@ -99,7 +95,7 @@ describe('OptionsStorage', () => {
       .write({ data: { font: 'x'.repeat(9000), list: [] }, version: 2 })
       .catch((reason: unknown) => reason)
 
-    expect(storageProblem(error)).toBe('options.itemTooLarge')
+    expect(storageProblemOf(error)).toBe('options.itemTooLarge')
     expect(set).not.toHaveBeenCalled()
   })
 
@@ -116,7 +112,7 @@ describe('OptionsStorage', () => {
       .write({ data: { font: 'serif', list: ['y'.repeat(9000)] }, version: 2 })
       .catch((reason: unknown) => reason)
 
-    expect(storageProblem(error)).toBe('options.storeFull')
+    expect(storageProblemOf(error)).toBe('options.storeFull')
   })
 
   it.each([
@@ -140,7 +136,7 @@ describe('OptionsStorage', () => {
       .write({ data: { font: 'serif', list: [] }, version: 2 })
       .catch((reason: unknown) => reason)
 
-    expect(storageProblem(error)).toBe(problem)
+    expect(storageProblemOf(error)).toBe(problem)
   })
 
   it('passes any other write failure through unchanged', async () => {

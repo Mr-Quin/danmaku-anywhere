@@ -17,7 +17,7 @@ import {
   type IStoreService,
   StoreServiceSymbol,
 } from '@/common/options/IStoreService'
-import { OptionsStorageError } from '@/common/options/OptionsService/OptionsStorageError'
+import { storageProblemOf } from '@/common/options/OptionsService/storageProblem'
 import type {
   DeferredWrite,
   StoreSnapshot,
@@ -73,10 +73,6 @@ function droppedEntry(
     reason,
     detail,
   }
-}
-
-function storageProblemOf(error: unknown) {
-  return error instanceof OptionsStorageError ? error.problem : undefined
 }
 
 @injectable('Singleton')
@@ -228,7 +224,7 @@ export class ConfigStateService {
         result.details[service.name] = {
           success: false,
           error: errorMessage(error),
-          storageProblem: storageProblemOf(error),
+          code: storageProblemOf(error),
         }
       }
     }
@@ -253,7 +249,7 @@ export class ConfigStateService {
           result.details[name] = {
             success: false,
             error: errorMessage(error),
-            storageProblem: storageProblemOf(error),
+            code: storageProblemOf(error),
           }
         }
       })

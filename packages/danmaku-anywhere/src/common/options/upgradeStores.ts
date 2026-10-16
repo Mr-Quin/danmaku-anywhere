@@ -3,9 +3,9 @@ import type { IStoreService } from './IStoreService'
 import { isStoredAtVersion } from './OptionsService/storedVersion'
 import type { Options, StoreSnapshot } from './OptionsService/types'
 import {
-  OptionsUpgradeError,
   type StoreFailure,
   toStoreFailure,
+  upgradeFailedError,
 } from './upgrade/upgradeFailure'
 
 // Each store's envelope, version included, as it was before the first
@@ -24,7 +24,7 @@ export interface UpgradeSnapshotStore {
 }
 
 // Tries every store even after one fails, then rejects with an
-// OptionsUpgradeError naming each store that did not persist and why. Steps
+// options.upgradeFailed naming each store that did not persist and why. Steps
 // that read other stores get the data from before the first attempt, even on
 // a retry after some stores were already upgraded. The snapshot is saved
 // before the first write; the caller keeps it until an attempt succeeds. A
@@ -51,7 +51,7 @@ export async function upgradeStores(
     }
   }
   if (unreadable.length > 0) {
-    throw new OptionsUpgradeError(unreadable, readErrors)
+    throw upgradeFailedError(unreadable, readErrors)
   }
   const needsUpgrade = services.some((service) => {
     const { key, latestVersion } = service.options
@@ -90,7 +90,7 @@ export async function upgradeStores(
   }
 
   if (failures.length > 0) {
-    throw new OptionsUpgradeError(failures, errors)
+    throw upgradeFailedError(failures, errors)
   }
 }
 

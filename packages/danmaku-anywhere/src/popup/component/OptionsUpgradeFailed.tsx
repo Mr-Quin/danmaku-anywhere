@@ -4,17 +4,19 @@ import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { GlobalDialog } from '@/common/components/Dialog/GlobalDialog'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
+import { describeCode } from '@/common/errors/describeError'
 import { useInjectService } from '@/common/hooks/useInjectService'
+import { i18n } from '@/common/localization/i18n'
 import { useOptionsReadiness } from '@/common/options/ReadinessService/useOptionsReadiness'
-import {
-  describeOptionsProblem,
-  localizedStoreName,
-} from '@/common/options/storeMessages'
+import { localizedStoreName } from '@/common/options/storeMessages'
 import {
   type OptionsUpgrader,
   OptionsUpgraderSymbol,
 } from '@/common/options/upgrade/OptionsUpgrader'
-import type { UpgradeProblem } from '@/common/options/upgrade/upgradeFailure'
+import type {
+  StoreFailure,
+  UpgradeProblem,
+} from '@/common/options/upgrade/upgradeFailure'
 import { downloadRecoveryCopy } from './downloadRecoveryCopy'
 
 // Failures the user has no other way out of. One that can pass on its own
@@ -27,6 +29,19 @@ const RESETTABLE_PROBLEMS: readonly UpgradeProblem[] = [
 
 function canReset(problem: UpgradeProblem): boolean {
   return RESETTABLE_PROBLEMS.includes(problem)
+}
+
+function describeFailure({ store, problem }: StoreFailure): string {
+  if (problem === 'unknown') {
+    return i18n.t(
+      'optionsUpgrade.storeFailed',
+      '{{name}}: It could not be updated.',
+      {
+        name: localizedStoreName(store),
+      }
+    )
+  }
+  return describeCode(problem, { store })
 }
 
 export function OptionsUpgradeFailed() {
@@ -91,9 +106,7 @@ export function OptionsUpgradeFailed() {
                       variant="body2"
                       sx={{ flex: 1, textAlign: 'left' }}
                     >
-                      <strong>{localizedStoreName(failure.store)}</strong>
-                      {': '}
-                      {describeOptionsProblem(failure.problem)}
+                      {describeFailure(failure)}
                     </Typography>
                     {canReset(failure.problem) && (
                       <Button

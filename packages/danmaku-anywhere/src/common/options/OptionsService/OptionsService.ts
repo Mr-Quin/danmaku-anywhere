@@ -2,7 +2,6 @@ import { AppError } from '@/common/errors/AppError'
 import type { ILogger } from '@/common/Logger'
 import type { ReadinessGate } from '../ReadinessService/ReadinessService'
 import { migrateOptions } from './migrationOptions'
-import { OptionsMigrationError } from './OptionsMigrationError'
 import { OptionsStorage, type OptionsStorageLocation } from './OptionsStorage'
 import { isStoredAtVersion } from './storedVersion'
 import type {
@@ -65,7 +64,7 @@ export class OptionsService<T extends OptionsSchema> {
     return this
   }
 
-  // Data that cannot be migrated rejects with an OptionsMigrationError and
+  // Data that cannot be migrated rejects with options.migration and
   // stays as it was, for the user to fix or reset. A storage error propagates
   // the same way. Writes deferred by the steps land before this store is
   // persisted, so if one fails the old data is still here for the next attempt
@@ -92,9 +91,11 @@ export class OptionsService<T extends OptionsSchema> {
     }
 
     if (!isOptionsEnvelope(stored)) {
-      throw new OptionsMigrationError(this.key, {
-        cause: new Error('The stored value is not an options envelope'),
-      })
+      throw new AppError(
+        'options.migration',
+        { store: this.key },
+        { message: 'The stored value is not an options envelope' }
+      )
     }
 
     const deferred: DeferredWrite[] = []
@@ -108,7 +109,11 @@ export class OptionsService<T extends OptionsSchema> {
         { stores, defer: (write) => deferred.push(write) }
       )
     } catch (error) {
-      throw new OptionsMigrationError(this.key, { cause: error })
+      throw new AppError(
+        'options.migration',
+        { store: this.key },
+        { cause: error }
+      )
     }
 
     for (const write of deferred) {

@@ -162,7 +162,7 @@ describe('restoring a backup with pre-providerConfig extensionOptions', () => {
     expect(result.details.extensionOptions).toEqual({
       success: false,
       error: expect.stringContaining('QUOTA_BYTES quota exceeded'),
-      storageProblem: 'options.storeFull',
+      code: 'options.storeFull',
     })
     expect(await readStored('extensionOptions')).toBeUndefined()
     expect((await readStored('providerConfig'))?.data).toEqual(current)
