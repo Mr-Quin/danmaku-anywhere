@@ -1,9 +1,9 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { describe, expect, it, vi } from 'vitest'
 import { createBackgroundContainer } from '@/background/ioc'
-import { EXTENSION_VERSION } from '@/common/constants'
 import { createMountConfig } from '@/common/options/mountConfig/constant'
 import { LATEST_MOUNT_CONFIG_VERSION } from '@/common/options/mountConfig/version'
+import { OPTION_STORES } from '@/common/options/optionStores'
 import { MAIN_CONTENT_SCRIPT_ID, ScriptingManager } from './ScriptingManager'
 
 vi.mock('@/content/controller?script', () => {
@@ -57,12 +57,16 @@ function fakeScripting(initial: RegisteredScript[]) {
   return { scripting, scripts }
 }
 
+// Every store is seeded at its latest version, so readiness lets the mount
+// config read through without an upgrade run.
 async function seedMountConfigs(
   configs: { patterns: string[]; enabled: boolean }[]
 ) {
-  await fakeBrowser.storage.local.set({
-    lastVersion: { lastVersion: EXTENSION_VERSION },
-  })
+  for (const store of OPTION_STORES) {
+    await fakeBrowser.storage[store.area].set({
+      [store.key]: { data: {}, version: store.latestVersion },
+    })
+  }
   await fakeBrowser.storage.sync.set({
     mountConfig: {
       data: configs.map((config, i) => {
