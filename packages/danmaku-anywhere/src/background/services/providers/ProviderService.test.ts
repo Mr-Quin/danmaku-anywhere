@@ -211,7 +211,7 @@ function build(
     seasonService,
     providerConfigService,
     factory,
-    registry: { ready: Promise.resolve(), listManifests },
+    registry: { listManifests },
   })
 
   return { service, provider, danmakuService, seasonService, listManifests }
@@ -347,7 +347,9 @@ describe('ProviderService legacy-maccms decoupling', () => {
       const config = { ...makeConfig('iqiyi'), customName: null }
       const { service, listManifests } = build(
         config,
-        { search: vi.fn(async () => []) },
+        makeProvider({
+          getStatus: available(capabilitiesFromManifest({ search: {} })),
+        }),
         { manifests: [{ id: 'iqiyi', name: '爱奇艺' }] }
       )
 

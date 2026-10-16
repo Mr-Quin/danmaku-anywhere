@@ -173,25 +173,6 @@ describe('describeError', () => {
     }
   })
 
-  it('names a built-in source in the active language', async () => {
-    const error = new AppError('network', {
-      target: {
-        kind: 'source',
-        ref: {
-          providerConfigId: 'dandanplay',
-          manifestId: 'dandanplay',
-          name: 'DanDanPlay',
-        },
-      },
-    })
-
-    const [en] = await messagesIn('en', [error])
-    const [zh] = await messagesIn('zh', [error])
-
-    expect(en).toContain('DanDanPlay')
-    expect(zh).toContain('弹弹play')
-  })
-
   it('keeps the name the user gave a source', async () => {
     const error = new AppError('network', {
       target: {
@@ -214,7 +195,8 @@ describe('describeError', () => {
     const [zh] = await messagesIn('zh', [errorFor('catalog.applyFailed')])
 
     expect(en).toBe("Couldn't update Bilibili and iQIYI. Try again later.")
-    expect(zh).toContain('B站')
+    expect(zh).toContain('Bilibili')
+    expect(zh).toContain('iQIYI')
   })
 
   it('describes a code without building an error', async () => {

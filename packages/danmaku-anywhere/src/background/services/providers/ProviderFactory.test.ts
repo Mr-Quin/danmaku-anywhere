@@ -9,6 +9,7 @@ import { backgroundContainerModule } from '@/background/ioc'
 import { LoggerSymbol } from '@/common/Logger'
 import { PROXY_DDP_BASE_URL } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { toSourceRef } from '@/common/options/providerConfig/utils'
 import { createTestContainer } from '@/tests/createTestContainer'
 import { silentLogger } from '@/tests/silentLogger'
 import {
@@ -58,14 +59,17 @@ beforeEach(() => {
   mockRunner.runDanmaku.mockClear()
 })
 
-function buildFactory(): IDanmakuProviderFactory {
-  return createTestContainer(
+function buildFactory() {
+  const factory = createTestContainer(
     [backgroundContainerModule],
     [
       { identifier: ManifestRegistry, value: { getRunner } },
       { identifier: LoggerSymbol, value: silentLogger },
     ]
-  ).get(DanmakuProviderFactory)
+  ).get<IDanmakuProviderFactory>(DanmakuProviderFactory)
+  return (config: ProviderConfig) => {
+    return factory(config, toSourceRef(config, config.manifestId))
+  }
 }
 
 function customDdp(opts: {

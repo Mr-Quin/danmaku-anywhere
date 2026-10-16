@@ -5,11 +5,13 @@ import { backgroundContainerModule } from '@/background/ioc'
 import { LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { toSourceRef } from '@/common/options/providerConfig/utils'
 import { LEGACY_MACCMS_CAPABILITIES } from '@/common/providers/sourceCapabilities'
 import { createTestContainer } from '@/tests/createTestContainer'
 import { silentLogger } from '@/tests/silentLogger'
 import { type ManifestLookup, ManifestRegistry } from './ManifestRegistry'
 import { SourceCapabilityService } from './SourceCapabilityService'
+import { SourceNames } from './SourceNames'
 
 /**
  * Capabilities come from the installed manifest through the real provider
@@ -75,6 +77,13 @@ function build(configs: ProviderConfig[], runners: ManifestRunner[]) {
     }
     return runner
   })
+  const refOf = (config: ProviderConfig) => {
+    return toSourceRef(config, config.customName ?? config.manifestId)
+  }
+  const sourceNames = {
+    refs: async () => refOf,
+    refOf: async (config: ProviderConfig) => refOf(config),
+  } satisfies Pick<SourceNames, 'refs' | 'refOf'>
   const providerConfigService = {
     getAll: vi.fn(async () => configs),
     get: vi.fn(async (id: string) => configs.find((c) => c.id === id)),
@@ -87,6 +96,7 @@ function build(configs: ProviderConfig[], runners: ManifestRunner[]) {
         value: { lookup, getRunner },
       },
       { identifier: ProviderConfigService, value: providerConfigService },
+      { identifier: SourceNames, value: sourceNames },
       { identifier: LoggerSymbol, value: silentLogger },
     ]
   ).get(SourceCapabilityService)

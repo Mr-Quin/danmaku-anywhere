@@ -1,9 +1,12 @@
 import { inject, injectable } from 'inversify'
-import { AppError, type AppErrorCode } from '@/common/errors/AppError'
+import {
+  AppError,
+  type AppErrorCode,
+  type SourceRef,
+} from '@/common/errors/AppError'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import { toSourceRef } from '@/common/options/providerConfig/utils'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import {
   canMatchBySearch,
@@ -20,11 +23,12 @@ import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
 } from './ProviderFactory'
+import { SourceNames } from './SourceNames'
 
 type SourceOperation = 'episodes' | 'danmaku' | 'seasonRefresh'
 
 interface UrlParser {
-  config: ProviderConfig
+  source: SourceRef
   provider: SourceProvider
 }
 
@@ -36,31 +40,28 @@ const UNSUPPORTED = {
 } as const satisfies Record<Exclude<SourceCapability, 'parseUrl'>, AppErrorCode>
 
 function unsupported(
-  config: ProviderConfig,
+  source: SourceRef,
   status: SourceStatus,
   capability: SourceCapability
 ): AppError {
-  const source = toSourceRef(config)
   if (status.status === 'unavailable') {
     return new AppError(
       'source.unavailable',
       { source, reason: status.reason },
-      {
-        message: `${toSourceRef(config).name} is unavailable: ${status.reason}`,
-      }
+      { message: `${source.name} is unavailable: ${status.reason}` }
     )
   }
   if (capability === 'parseUrl') {
     return new AppError(
       'source.noUrlParser',
       {},
-      { message: `${toSourceRef(config).name} cannot parse links` }
+      { message: `${source.name} cannot parse links` }
     )
   }
   return new AppError(
     UNSUPPORTED[capability],
     { source },
-    { message: `${toSourceRef(config).name} cannot use ${capability}` }
+    { message: `${source.name} cannot use ${capability}` }
   )
 }
 
@@ -73,6 +74,8 @@ export class SourceCapabilityService {
     private providerConfigService: ProviderConfigService,
     @inject(DanmakuProviderFactory)
     private danmakuProviderFactory: IDanmakuProviderFactory,
+    @inject(SourceNames)
+    private sourceNames: SourceNames,
     @inject(LoggerSymbol) logger: ILogger
   ) {
     this.logger = logger.sub('[SourceCapabilityService]')
@@ -88,12 +91,14 @@ export class SourceCapabilityService {
     if (!config) {
       return { status: 'removed' }
     }
-    return this.danmakuProviderFactory(config).getStatus()
+    const source = await this.sourceNames.refOf(config)
+    return this.danmakuProviderFactory(config, source).getStatus()
   }
 
   async searchProvider(config: ProviderConfig): Promise<IDanmakuProvider> {
-    const provider = this.danmakuProviderFactory(config)
-    await this.require(config, provider, 'search')
+    const source = await this.sourceNames.refOf(config)
+    const provider = this.danmakuProviderFactory(config, source)
+    await this.require(source, provider, 'search')
     return provider
   }
 
@@ -101,10 +106,11 @@ export class SourceCapabilityService {
     config: ProviderConfig,
     operation: SourceOperation
   ): Promise<SourceProvider> {
-    const provider = this.danmakuProviderFactory(config)
-    const status = await this.require(config, provider, operation)
+    const source = await this.sourceNames.refOf(config)
+    const provider = this.danmakuProviderFactory(config, source)
+    const status = await this.require(source, provider, operation)
     if (provider.kind === 'searchOnly') {
-      throw unsupported(config, status, operation)
+      throw unsupported(source, status, operation)
     }
     return provider
   }
@@ -126,15 +132,17 @@ export class SourceCapabilityService {
   // recognizes it, even one switched off for search.
   async getUrlParsers(): Promise<UrlParser[]> {
     const configs = await this.providerConfigService.getAll()
+    const refOf = await this.sourceNames.refs()
     const parsers: UrlParser[] = []
     for (const config of configs) {
-      const provider = this.danmakuProviderFactory(config)
+      const source = refOf(config)
+      const provider = this.danmakuProviderFactory(config, source)
       if (provider.kind === 'searchOnly') {
         continue
       }
-      const capabilities = await this.capabilitiesOrNone(config, provider)
+      const capabilities = await this.capabilitiesOrNone(source, provider)
       if (capabilities?.parseUrl) {
-        parsers.push({ config, provider })
+        parsers.push({ source, provider })
       }
     }
     return parsers
@@ -145,35 +153,35 @@ export class SourceCapabilityService {
       return { kind: 'notLink' }
     }
     const url = withUrlScheme(text)
-    for (const { config, provider } of await this.getUrlParsers()) {
-      if (await this.matchesUrl(config, provider, url)) {
-        return { kind: 'parseable', sourceName: toSourceRef(config).name }
+    for (const { source, provider } of await this.getUrlParsers()) {
+      if (await this.matchesUrl(source, provider, url)) {
+        return { kind: 'parseable', sourceName: source.name }
       }
     }
     return { kind: 'unclaimed' }
   }
 
   private async matchesUrl(
-    config: ProviderConfig,
+    source: SourceRef,
     provider: SourceProvider,
     url: string
   ): Promise<boolean> {
     try {
       return await provider.canParse(url)
     } catch (e) {
-      this.logger.error(`Skipping source ${toSourceRef(config).name}:`, e)
+      this.logger.error(`Skipping source ${source.name}:`, e)
       return false
     }
   }
 
   private async require(
-    config: ProviderConfig,
+    source: SourceRef,
     provider: IDanmakuProvider,
     capability: SourceCapability
   ): Promise<SourceStatus> {
     const status = await provider.getStatus()
     if (status.status !== 'available' || !status.capabilities[capability]) {
-      throw unsupported(config, status, capability)
+      throw unsupported(source, status, capability)
     }
     return status
   }
@@ -182,13 +190,15 @@ export class SourceCapabilityService {
     qualifies: (capabilities: SourceCapabilities) => boolean
   ): Promise<ProviderConfig[]> {
     const configs = await this.providerConfigService.getAll()
+    const refOf = await this.sourceNames.refs()
     const matching: ProviderConfig[] = []
     for (const config of configs) {
       if (!config.enabled) {
         continue
       }
-      const provider = this.danmakuProviderFactory(config)
-      const capabilities = await this.capabilitiesOrNone(config, provider)
+      const source = refOf(config)
+      const provider = this.danmakuProviderFactory(config, source)
+      const capabilities = await this.capabilitiesOrNone(source, provider)
       if (capabilities && qualifies(capabilities)) {
         matching.push(config)
       }
@@ -199,20 +209,20 @@ export class SourceCapabilityService {
   // These loops run over every config, so a source that cannot load is
   // skipped rather than failing the whole pass.
   private async capabilitiesOrNone(
-    config: ProviderConfig,
+    source: SourceRef,
     provider: IDanmakuProvider
   ): Promise<SourceCapabilities | undefined> {
     try {
       const status = await provider.getStatus()
       if (status.status === 'unavailable') {
         this.logger.warn(
-          `Skipping source ${toSourceRef(config).name} (${config.manifestId}): ${status.reason}`
+          `Skipping source ${source.name} (${source.manifestId}): ${status.reason}`
         )
         return undefined
       }
       return status.capabilities
     } catch (e) {
-      this.logger.error(`Skipping source ${toSourceRef(config).name}:`, e)
+      this.logger.error(`Skipping source ${source.name}:`, e)
       return undefined
     }
   }
