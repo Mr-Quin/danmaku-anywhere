@@ -1291,6 +1291,27 @@ describe('ManifestRegistry change announcements', () => {
     expect(publishDataChange).not.toHaveBeenCalled()
   })
 
+  it('announces a reinstalled manifest by id', async () => {
+    stubCatalogFetch([catalogEntry('gone:one')], {
+      [manifestPath('gone:one')]: makeManifest('gone:one'),
+    })
+    const registry = new ManifestRegistry(
+      silentLogger,
+      fullySeededStore({
+        'gone:one': {
+          manifest: { ...makeManifest('gone:one'), hosts: [] },
+          kind: 'preinstalled',
+        },
+      })
+    )
+
+    await registry.reinstall('gone:one')
+
+    expect(publishDataChange).toHaveBeenCalledExactlyOnceWith(
+      announced(['gone:one'], false)
+    )
+  })
+
   it('announces everything changed inside a batch once, when it ends', async () => {
     stubCatalogFetch([catalogEntry('one')], {
       [manifestPath('one')]: makeManifest('one'),

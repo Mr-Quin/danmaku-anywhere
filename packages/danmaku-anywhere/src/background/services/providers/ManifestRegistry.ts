@@ -251,6 +251,7 @@ export class ManifestRegistry {
         kind: replacement.kind,
       })
       this.unavailable.delete(manifestId)
+      this.recordChange([manifestId], false)
     })
   }
 
