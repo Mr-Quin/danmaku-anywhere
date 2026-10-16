@@ -167,12 +167,16 @@ function PileToast({
             opacity: shown.contentVisible ? 1 : 0,
             transition: reducedMotion ? 'none' : 'opacity 200ms ease',
           },
+          // The message wraps; the action keeps its label on one line
+          '& .MuiAlert-message': { minWidth: 0, overflowWrap: 'anywhere' },
+          '& .MuiAlert-action': { flexShrink: 0 },
         }}
         action={
           notification.actionFn ? (
             <Button
               size="small"
               color="inherit"
+              sx={{ whiteSpace: 'nowrap' }}
               onClick={(e) => {
                 // prevent the event from triggering other events like ClickAwayListeners
                 e.stopPropagation()
