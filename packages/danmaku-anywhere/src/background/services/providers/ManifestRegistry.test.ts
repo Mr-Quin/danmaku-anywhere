@@ -1129,7 +1129,10 @@ describe('ManifestRegistry', () => {
     await registry.unregister('test:one')
 
     expect(await store.get('test:one')).toBeUndefined()
-    await expect(registry.getRunner('test:one')).rejects.toThrow()
+    await expect(registry.getRunner('test:one')).rejects.toMatchObject({
+      code: 'manifest.unavailable',
+      params: { manifestId: 'test:one', reason: 'not-registered' },
+    })
   })
 
   it('skips a manifest that fails safeParse without taking the registry down', async () => {
@@ -1145,7 +1148,10 @@ describe('ManifestRegistry', () => {
     )
 
     expect(await registry.getRunner('good:one')).toBeDefined()
-    await expect(registry.getRunner('bad:one')).rejects.toThrow()
+    await expect(registry.getRunner('bad:one')).rejects.toMatchObject({
+      code: 'manifest.unavailable',
+      params: { manifestId: 'bad:one', reason: 'needs-newer-extension' },
+    })
     expect(nonBundled(await registeredIds(registry))).toEqual(['good:one'])
   })
 
