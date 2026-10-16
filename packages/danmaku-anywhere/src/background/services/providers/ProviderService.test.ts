@@ -14,7 +14,6 @@ import { backgroundContainerModule } from '@/background/ioc'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
-import { EXTENSION_VERSION } from '@/common/constants'
 import { DANMAKU_DB_NAME, DanmakuAnywhereDb } from '@/common/db/db'
 import { LoggerSymbol } from '@/common/Logger'
 import { Language } from '@/common/localization/language'
@@ -31,6 +30,7 @@ import {
   createTestContainer,
   type TestContainerOverride,
 } from '@/tests/createTestContainer'
+import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
 import { makeSeason, makeSeasonInsert } from '@/tests/factories'
 import { silentLogger } from '@/tests/silentLogger'
 import type { SourceProvider } from './IDanmakuProvider'
@@ -1148,12 +1148,9 @@ describe('ProviderService.seedDefaultProviders', () => {
   })
 
   it('leaves the seed flag unset when the config write fails', async () => {
-    await fakeBrowser.storage.local.set({
-      lastVersion: { lastVersion: EXTENSION_VERSION },
-    })
-    const providerConfigService = createTestContainer([
-      backgroundContainerModule,
-    ]).get(ProviderConfigService)
+    const providerConfigService = createUpgradeContainer().get(
+      ProviderConfigService
+    )
     await fakeBrowser.storage.sync.set({
       providerConfig: {
         data: [],

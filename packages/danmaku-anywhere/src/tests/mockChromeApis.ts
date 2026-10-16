@@ -12,6 +12,19 @@ delete (fakeBrowser.runtime as { getBackgroundPage?: unknown })
 // The extension holds the permissions API, so answering true is what it sees.
 fakeBrowser.permissions.contains = async () => true
 
+// jsdom has no Web Locks. A test never has two upgrade services competing
+// for the lock, so granting each request straight away is enough.
+if (!('locks' in navigator)) {
+  Object.defineProperty(navigator, 'locks', {
+    configurable: true,
+    value: {
+      request: (_name: string, callback: () => unknown) => {
+        return Promise.resolve().then(callback)
+      },
+    },
+  })
+}
+
 // unstubGlobals drops the stub after every test, so it has to be reapplied.
 vi.stubGlobal('chrome', fakeBrowser)
 

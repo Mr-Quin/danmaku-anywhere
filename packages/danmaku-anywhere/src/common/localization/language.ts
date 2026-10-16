@@ -3,6 +3,10 @@ export enum Language {
   zh = 'zh',
 }
 
+export function isLanguage(value: unknown): value is Language {
+  return Object.values<unknown>(Language).includes(value)
+}
+
 // Map the app's bare language code to a BCP-47 locale tag (e.g. `zh` -> `zh-CN`).
 export function toManifestLocale(language?: string): string {
   if (!language) {

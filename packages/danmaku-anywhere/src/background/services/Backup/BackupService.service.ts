@@ -59,12 +59,13 @@ export class BackupService {
     await sink.save(data)
   }
 
-  private getAuth() {
+  private async getAuth() {
+    await this.userAuthStore.ensureReady()
     return { token: this.userAuthStore.getTokenSync() }
   }
 
   async getCloudBackups(): Promise<CloudBackupItem[]> {
-    const result = await listCloudBackups(this.getAuth())
+    const result = await listCloudBackups(await this.getAuth())
     if (!result.success) {
       throw result.error
     }
@@ -76,7 +77,7 @@ export class BackupService {
     const result = await createCloudBackupApi(
       data,
       data.meta.extensionVersion,
-      this.getAuth()
+      await this.getAuth()
     )
     if (!result.success) {
       throw result.error
@@ -85,7 +86,7 @@ export class BackupService {
   }
 
   async downloadCloudBackup(id: string): Promise<unknown> {
-    const result = await downloadCloudBackupApi(id, this.getAuth())
+    const result = await downloadCloudBackupApi(id, await this.getAuth())
     if (!result.success) {
       throw result.error
     }

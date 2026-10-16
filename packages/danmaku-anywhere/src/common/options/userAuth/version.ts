@@ -1,0 +1,1 @@
+export const LATEST_USER_AUTH_VERSION = 1

@@ -1,10 +1,12 @@
 import type { ZodType } from 'zod'
 import type { OptionsService } from './OptionsService/OptionsService'
+import type { OptionStoreDescriptor } from './optionStores'
 
 export interface IStoreService {
   // biome-ignore lint/suspicious/noExplicitAny: generic options service
   options: OptionsService<any>
   name: string
+  descriptor: OptionStoreDescriptor
   shouldBackup?: boolean
   /**
    * Validates a restored payload once it has been migrated to the store's
@@ -22,3 +24,5 @@ export interface IStoreService {
 }
 
 export const StoreServiceSymbol = Symbol.for('StoreService')
+
+export const UpgradableOptionStores = Symbol.for('UpgradableOptionStores')

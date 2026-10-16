@@ -1,18 +1,13 @@
 import { useMutation } from '@tanstack/react-query'
 import { useInjectService } from '@/common/hooks/useInjectService'
+import { namingRuleDescriptor } from '@/common/options/optionStores'
+import { useOptionStoreQuery } from '@/common/options/useOptionStoreQuery'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
-import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import type { NamingRuleStore } from './schema'
 import { NamingRuleService } from './service'
 
 export const useNamingRules = () => {
-  const store = useSuspenseExtStorageQuery<NamingRuleStore>(
-    'localMatchingRule',
-    {
-      storageType: 'local',
-      isOptionStore: true,
-    }
-  )
+  const store = useOptionStoreQuery<NamingRuleStore>(namingRuleDescriptor)
 
   return {
     ...store,

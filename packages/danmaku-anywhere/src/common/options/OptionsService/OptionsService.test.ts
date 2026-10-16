@@ -1,16 +1,16 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { EXTENSION_VERSION } from '@/common/constants'
-import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
+import type { ReadinessGate } from '@/common/options/ReadinessService/ReadinessService'
 import { silentLogger } from '@/tests/silentLogger'
 import { OptionsService } from './OptionsService'
 
 /**
  * OptionsService over fake chrome.storage. Covers upgrade(): a read error or a
- * write error rejects and leaves the stored value alone, while a migration that
- * throws still resets the store to defaults. Also covers readStoredUnblocked
- * telling an absent store from a stored empty list, and set/update rejecting
- * when the write fails.
+ * write error rejects and leaves the stored value alone, a migration that
+ * throws still resets the store to defaults, and a store already at its latest
+ * version is not written. Also covers readStoredUnblocked telling an absent
+ * store from a stored empty list, and set/update rejecting when the write
+ * fails.
  */
 
 interface Counter {
@@ -19,17 +19,12 @@ interface Counter {
 
 const KEY = 'testOptions'
 
-async function readyReadiness() {
-  await fakeBrowser.storage.local.set({
-    lastVersion: { lastVersion: EXTENSION_VERSION },
-  })
-  const readiness = new ReadinessService(silentLogger)
-  await readiness.waitUntilReady()
-  return readiness
+const readiness: ReadinessGate = {
+  waitUntilReady: () => Promise.resolve(),
 }
 
 function createCounterService(
-  readiness: ReadinessService,
+  readiness: ReadinessGate,
   upgradeToV2: (data: Counter) => Counter = (data) => ({
     count: data.count + 1,
   })
@@ -55,12 +50,6 @@ async function readRaw() {
 }
 
 describe('OptionsService', () => {
-  let readiness: ReadinessService
-
-  beforeEach(async () => {
-    readiness = await readyReadiness()
-  })
-
   describe('upgrade', () => {
     it('writes defaults at the latest version when nothing is stored', async () => {
       const service = createCounterService(readiness)
@@ -77,6 +66,29 @@ describe('OptionsService', () => {
       await service.upgrade()
 
       expect(await readRaw()).toEqual({ data: { count: 6 }, version: 2 })
+    })
+
+    it('leaves a store already at the latest version unwritten', async () => {
+      await storeRaw({ data: { count: 5 }, version: 2 })
+      const service = createCounterService(readiness)
+      const set = vi.spyOn(fakeBrowser.storage.local, 'set')
+
+      await service.upgrade()
+
+      expect(set).not.toHaveBeenCalled()
+      expect(await readRaw()).toEqual({ data: { count: 5 }, version: 2 })
+    })
+
+    it('leaves a store written by a newer version unwritten', async () => {
+      await storeRaw({ data: { count: 5, extra: true }, version: 3 })
+      const service = createCounterService(readiness)
+
+      await service.upgrade()
+
+      expect(await readRaw()).toEqual({
+        data: { count: 5, extra: true },
+        version: 3,
+      })
     })
 
     it('rejects on a read error and writes nothing', async () => {

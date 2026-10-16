@@ -7,6 +7,7 @@ import { ImportResultDialog } from './ImportResultDialog'
 import { MountConfigPage } from './MountConfigPage'
 import { MountPage } from './MountPage'
 import { OptionsPage } from './OptionsPage'
+import { OptionsUpgradeScreen } from './OptionsUpgradeScreen'
 import { ProvidersPage } from './ProvidersPage'
 import { SearchPage } from './SearchPage'
 import { SeasonDetailsPage } from './SeasonDetailsPage'
@@ -22,6 +23,7 @@ export class Popup {
   readonly seasonDetails: SeasonDetailsPage
   readonly providers: ProvidersPage
   readonly options: OptionsPage
+  readonly optionsUpgrade: OptionsUpgradeScreen
   readonly backup: BackupPage
   readonly toast: Toast
   readonly dialog: ConfirmDialog
@@ -37,6 +39,7 @@ export class Popup {
     this.seasonDetails = new SeasonDetailsPage(page)
     this.providers = new ProvidersPage(page)
     this.options = new OptionsPage(page)
+    this.optionsUpgrade = new OptionsUpgradeScreen(page)
     this.backup = new BackupPage(page)
     this.toast = new Toast(page)
     this.dialog = new ConfirmDialog(page)

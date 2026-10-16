@@ -12,16 +12,17 @@ import {
   isSettledAfterMicrotasks,
 } from '@/tests/providerConfigWrites'
 import { readV150Store, seedV150Store } from '@/tests/v150Backup'
-import { UpgradeService } from './UpgradeService'
+import { OptionsUpgradeService } from './OptionsUpgradeService'
 
 /**
  * Runs the whole startup upgrade through the real container for a profile
  * older than providerConfig: extensionOptions at version 20 holding
  * danmakuSources and no providerConfig store. Asserts the three built-ins (and
  * the custom MacCMS source when configured) are derived from danmakuSources,
- * the provider store lands at the current version before the extension
- * version is recorded, and danmakuSources is gone. A failed provider write fails the
- * upgrade and leaves extensionOptions as it was, so the next start redoes it.
+ * the provider store lands at the current version before extensionOptions
+ * does, and danmakuSources is gone. A failed provider write fails the upgrade,
+ * leaves extensionOptions as it was and readiness failed, and the next start
+ * redoes it.
  */
 
 function createDanmakuSources(custom: Record<string, unknown>) {
@@ -93,7 +94,7 @@ async function seedLegacyProfile(custom: Record<string, unknown>) {
 async function upgradeLegacyProfile(custom: Record<string, unknown>) {
   await seedLegacyProfile(custom)
   const container = createUpgradeContainer({ ready: false })
-  await container.get(UpgradeService).upgrade()
+  await container.get(OptionsUpgradeService).upgrade()
   return container.get(ProviderConfigService)
 }
 
@@ -157,7 +158,7 @@ describe('startup upgrade of a profile that predates providerConfig', () => {
     expect(stored?.data).toMatchObject({ lang: 'zh' })
   })
 
-  it('has the providers stored before the version of a rewound v1.5.0 profile is recorded', async () => {
+  it('has the providers stored before a rewound v1.5.0 extensionOptions reaches its latest version', async () => {
     for (const name of [
       'danmakuOptions',
       'mountConfig',
@@ -177,18 +178,22 @@ describe('startup upgrade of a profile that predates providerConfig', () => {
       },
     })
 
-    const container = createUpgradeContainer({ ready: false })
-    const readiness = container.get(ReadinessService)
-    const setVersion = readiness.setVersion.bind(readiness)
-    let providersAtVersionRecord: unknown
-    vi.spyOn(readiness, 'setVersion').mockImplementation(async (version) => {
-      providersAtVersionRecord = await readStoredProviders()
-      return setVersion(version)
-    })
+    const set = fakeBrowser.storage.sync.set.bind(fakeBrowser.storage.sync)
+    let providersAtLatestExtensionOptions: unknown
+    vi.spyOn(fakeBrowser.storage.sync, 'set').mockImplementation(
+      async (items) => {
+        if ('extensionOptions' in items) {
+          providersAtLatestExtensionOptions = await readStoredProviders()
+        }
+        return set(items)
+      }
+    )
 
-    await container.get(UpgradeService).upgrade()
+    await createUpgradeContainer({ ready: false })
+      .get(OptionsUpgradeService)
+      .upgrade()
 
-    expect(providersAtVersionRecord).toEqual({
+    expect(providersAtLatestExtensionOptions).toEqual({
       version: 5,
       data: derivedBuiltins,
     })
@@ -199,7 +204,7 @@ describe('startup upgrade of a profile that predates providerConfig', () => {
     const release = holdProviderWrites()
 
     const pending = createUpgradeContainer({ ready: false })
-      .get(UpgradeService)
+      .get(OptionsUpgradeService)
       .upgrade()
 
     expect(await isSettledAfterMicrotasks(pending)).toBe(false)
@@ -213,10 +218,11 @@ describe('startup upgrade of a profile that predates providerConfig', () => {
     failNextProviderWrite(new Error('QUOTA_BYTES quota exceeded'))
 
     await expect(
-      createUpgradeContainer({ ready: false }).get(UpgradeService).upgrade()
+      createUpgradeContainer({ ready: false })
+        .get(OptionsUpgradeService)
+        .upgrade()
     ).rejects.toThrow(/extensionOptions/)
 
-    expect(await fakeBrowser.storage.local.get('lastVersion')).toEqual({})
     const stored = await readStoredStore('extensionOptions')
     expect(stored?.version).toBe(20)
     expect(stored?.data).toHaveProperty('danmakuSources')
@@ -229,17 +235,24 @@ describe('startup upgrade of a profile that predates providerConfig', () => {
         new Error('QUOTA_BYTES quota exceeded')
       )
       const container = createUpgradeContainer({ ready: false })
-      return container.get(UpgradeService).upgrade()
+      const upgrade = container.get(OptionsUpgradeService).upgrade()
+      return { readiness: container.get(ReadinessService), upgrade }
     }
 
-    it('rejects without recording the extension version', async () => {
-      await expect(failFirstUpgrade()).rejects.toThrow(/extensionOptions/)
+    it('rejects and leaves readiness failed', async () => {
+      const { readiness, upgrade } = await failFirstUpgrade()
+      readiness.subscribe(() => undefined)
 
-      expect(await fakeBrowser.storage.local.get('lastVersion')).toEqual({})
+      await expect(upgrade).rejects.toThrow(/extensionOptions/)
+
+      await vi.waitFor(() => {
+        expect(readiness.getState()).toMatchObject({ status: 'failed' })
+      })
     })
 
     it('keeps extensionOptions at version 20 with its danmakuSources', async () => {
-      await failFirstUpgrade().catch(() => {})
+      const { upgrade } = await failFirstUpgrade()
+      await upgrade.catch(() => {})
 
       const stored = await readStoredStore('extensionOptions')
       expect(stored?.version).toBe(20)
@@ -250,10 +263,11 @@ describe('startup upgrade of a profile that predates providerConfig', () => {
     })
 
     it('derives the same providers on the next start', async () => {
-      await failFirstUpgrade().catch(() => {})
+      const { upgrade } = await failFirstUpgrade()
+      await upgrade.catch(() => {})
 
       await createUpgradeContainer({ ready: false })
-        .get(UpgradeService)
+        .get(OptionsUpgradeService)
         .upgrade()
 
       expect((await readStoredProviders()).data).toEqual(derivedBuiltins)

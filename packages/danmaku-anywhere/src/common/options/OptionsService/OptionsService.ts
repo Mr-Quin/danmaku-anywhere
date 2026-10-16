@@ -1,8 +1,9 @@
 import type { ILogger } from '@/common/Logger'
 import type { ExtStorageType } from '@/common/storage/getStorageArea'
 import { ExtStorageService } from '../../storage/ExtStorageService'
-import type { ReadinessService } from '../ReadinessService/ReadinessService'
+import type { ReadinessGate } from '../ReadinessService/ReadinessService'
 import { migrateOptions } from './migrationOptions'
+import { isStoredAtVersion } from './storedVersion'
 import type {
   DeferredWrite,
   Options,
@@ -30,7 +31,7 @@ export class OptionsService<T extends OptionsSchema> {
   private isProcessingQueue = false
 
   constructor(
-    private readinessService: ReadinessService,
+    private readinessService: ReadinessGate,
     readonly key: string,
     private defaultOptions: T,
     logger: ILogger,
@@ -81,6 +82,12 @@ export class OptionsService<T extends OptionsSchema> {
     }
 
     this.logger.debug(`Found options with version '${stored.version}'`)
+
+    // Readiness counts a store at its latest version as done, so rewriting it
+    // here could overwrite a change the UI makes once every store is current.
+    if (isStoredAtVersion(stored, this.latestVersion)) {
+      return
+    }
 
     const deferred: DeferredWrite[] = []
     let upgraded: Options<T>

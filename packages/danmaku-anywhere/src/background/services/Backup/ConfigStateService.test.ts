@@ -2,10 +2,9 @@ import { fakeBrowser } from '@webext-core/fake-browser'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { z } from 'zod'
 import type { BackupData } from '@/common/backup/dto'
-import { EXTENSION_VERSION } from '@/common/constants'
 import type { IStoreService } from '@/common/options/IStoreService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
-import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
+import type { ReadinessGate } from '@/common/options/ReadinessService/ReadinessService'
 import { silentLogger } from '@/tests/silentLogger'
 import { ConfigStateService } from './ConfigStateService'
 
@@ -559,7 +558,7 @@ describe('ConfigStateService', () => {
 })
 
 describe('ConfigStateService over chrome.storage', () => {
-  async function createStore(readiness: ReadinessService, name: string) {
+  async function createStore(readiness: ReadinessGate, name: string) {
     await fakeBrowser.storage.sync.set({
       [name]: { data: { value: 'stored' }, version: 1 },
     })
@@ -569,7 +568,11 @@ describe('ConfigStateService over chrome.storage', () => {
       { value: 'default' },
       silentLogger
     ).version(1, { upgrade: (data) => data })
-    return { name, options } satisfies IStoreService
+    return {
+      name,
+      descriptor: { key: name, area: 'sync', latestVersion: 1 },
+      options,
+    } satisfies IStoreService
   }
 
   async function readStored(name: string) {
@@ -578,10 +581,7 @@ describe('ConfigStateService over chrome.storage', () => {
   }
 
   async function setup() {
-    await fakeBrowser.storage.local.set({
-      lastVersion: { lastVersion: EXTENSION_VERSION },
-    })
-    const readiness = new ReadinessService(silentLogger)
+    const readiness = { waitUntilReady: () => Promise.resolve() }
     const stores = [
       await createStore(readiness, 'alpha'),
       await createStore(readiness, 'beta'),

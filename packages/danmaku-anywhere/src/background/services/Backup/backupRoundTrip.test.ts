@@ -23,7 +23,6 @@ import type { IOptionsServiceFactory } from '@/common/options/OptionsService/Opt
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import type { OptionsSchema } from '@/common/options/OptionsService/types'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
 import { silentLogger } from '@/tests/silentLogger'
 import { ConfigStateService } from './ConfigStateService'
 
@@ -53,8 +52,7 @@ describe('backup round trip', () => {
     })
 
     const logger = silentLogger
-    const readinessService = new ReadinessService(logger)
-    readinessService.setReady()
+    const readinessService = { waitUntilReady: () => Promise.resolve() }
 
     const factory: IOptionsServiceFactory = <T extends OptionsSchema>(
       key: string,

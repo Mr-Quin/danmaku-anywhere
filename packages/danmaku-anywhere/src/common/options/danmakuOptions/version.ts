@@ -1,0 +1,1 @@
+export const LATEST_DANMAKU_OPTIONS_VERSION = 10

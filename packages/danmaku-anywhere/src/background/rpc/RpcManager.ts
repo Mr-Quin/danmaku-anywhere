@@ -34,6 +34,7 @@ import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { OptionsUpgradeService } from '@/common/options/upgrade/OptionsUpgradeService'
 import type { TabRPCClientMethod } from '@/common/rpc/client'
 import type { RPCServerHandlers, RRPServerHandler } from '@/common/rpc/server'
 import { createRpcServer } from '@/common/rpc/server'
@@ -92,7 +93,9 @@ export class RpcManager {
     @inject(ManifestSandbox)
     private manifestSandbox: ManifestSandbox,
     @inject(SourceCapabilityService)
-    private sourceCapabilities: SourceCapabilityService
+    private sourceCapabilities: SourceCapabilityService,
+    @inject(OptionsUpgradeService)
+    private optionsUpgradeService: OptionsUpgradeService
   ) {
     this.logger = logger.sub('[RpcManager]')
   }
@@ -420,6 +423,12 @@ export class RpcManager {
       dataWipeDanmaku: async (data, sender) => {
         await this.dataManagementService.wipeAllData(data)
         void invalidateContentScriptData(sender.tab?.id)
+      },
+      optionsEnsureUpgraded: async () => {
+        return this.optionsUpgradeService.ensureUpgraded()
+      },
+      optionsUpgrade: async () => {
+        return this.optionsUpgradeService.upgrade()
       },
       bookmarkGetAll: async () => {
         return this.bookmarkService.getAll()

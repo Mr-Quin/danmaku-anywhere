@@ -1,0 +1,1 @@
+export const LATEST_SEARCH_HISTORY_VERSION = 1

@@ -7,6 +7,7 @@ import {
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { providerConfigDescriptor } from '@/common/options/optionStores'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { isServiceWorker } from '@/common/utils/utils'
@@ -20,10 +21,12 @@ import {
 } from './migration'
 import type { ProviderConfig } from './schema'
 import { providerConfigSchema } from './schema'
+import { LATEST_PROVIDER_CONFIG_VERSION } from './version'
 
 @injectable('Singleton')
 export class ProviderConfigService implements IStoreService {
   public readonly name = 'providerConfig'
+  public readonly descriptor = providerConfigDescriptor
   public readonly options: OptionsService<ProviderConfig[]>
   public readonly backupItemSchema = providerConfigSchema
 
@@ -41,10 +44,11 @@ export class ProviderConfigService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory<ProviderConfig[]>(
-      'providerConfig',
+      providerConfigDescriptor.key,
       // Fresh installs start empty and are seeded after the catalog loads.
       [],
-      this.logger
+      this.logger,
+      providerConfigDescriptor.area
     )
       .version(2, {
         upgrade: (data) => {
@@ -87,7 +91,7 @@ export class ProviderConfigService implements IStoreService {
           }
         },
       })
-      .version(5, {
+      .version(LATEST_PROVIDER_CONFIG_VERSION, {
         upgrade: (data) => {
           try {
             return migrateDropDeadProviderFields(data)

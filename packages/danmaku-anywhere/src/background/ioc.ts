@@ -1,21 +1,16 @@
 import 'reflect-metadata'
 import { Container, ContainerModule } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
-import { AiProviderConfigService } from '@/common/options/aiProviderConfig/service'
-import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
-import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
-import { StoreServiceSymbol } from '@/common/options/IStoreService'
-import { IntegrationPolicyService } from '@/common/options/integrationPolicyStore/service'
-import { NamingRuleService } from '@/common/options/localMatchingRule/service'
-import { MountConfigService } from '@/common/options/mountConfig/service'
+import { bindOptionStores } from '@/common/options/bindOptionStores'
 import {
   type IOptionsServiceFactory,
   OptionsServiceFactory,
   optionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
-import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import { SearchHistoryService } from '@/common/options/searchHistory/service'
-import { UserAuthStore } from '@/common/options/userAuth/service'
+import {
+  OPTION_STORES,
+  OptionStoreDescriptors,
+} from '@/common/options/optionStores'
 import { Logger } from './backgroundLogger'
 import {
   DanmakuProviderFactory,
@@ -23,16 +18,10 @@ import {
   type IDanmakuProviderFactory,
 } from './services/providers/ProviderFactory'
 
-export const backgroundContainerModule = new ContainerModule(({ bind }) => {
-  bind(StoreServiceSymbol).toService(ExtensionOptionsService)
-  bind(StoreServiceSymbol).toService(DanmakuOptionsService)
-  bind(StoreServiceSymbol).toService(IntegrationPolicyService)
-  bind(StoreServiceSymbol).toService(MountConfigService)
-  bind(StoreServiceSymbol).toService(ProviderConfigService)
-  bind(StoreServiceSymbol).toService(AiProviderConfigService)
-  bind(StoreServiceSymbol).toService(SearchHistoryService)
-  bind(StoreServiceSymbol).toService(NamingRuleService)
-  bind(StoreServiceSymbol).toService(UserAuthStore)
+export const backgroundContainerModule = new ContainerModule((options) => {
+  const { bind } = options
+  bindOptionStores(options)
+  bind(OptionStoreDescriptors).toConstantValue(OPTION_STORES)
 
   bind<IDanmakuProviderFactory>(DanmakuProviderFactory).toFactory(
     danmakuProviderFactory

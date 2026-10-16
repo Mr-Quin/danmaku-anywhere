@@ -236,6 +236,6 @@ Smoke assertions combine an error gate, a schema gate, AND positive data integri
 - `ensureCurrentBuildForMigration()`: copies the current `build/` into `.e2e-cache/prior-releases/current-<workerSlot>/extension/`, injects the test key, bumps the manifest version.
 - `launchExtension({ userDataDir, extensionPath })`: launches a persistent context with the prior build via `--load-extension` and the CDP Extensions flag.
 - `swapExtension(launched, { extensionPath })`: swaps to the current build via CDP `Extensions.loadUnpacked` in the same context.
-- `upgradeToCurrentBuild(context, currentExt)` (`e2e/setup/priorInstall.ts`): swaps and returns once the upgrade has finished. While package.json still carries the baseline's version, the current build's `ReadinessService` sees v1.5.0's `lastVersion` as its own and never waits for the upgrade, so a spec that reads storage right after a bare `swapExtension` can catch a half-upgraded store. The helper records an older `lastVersion` before the swap and waits for the upgrade to write the current one.
+- `upgradeToCurrentBuild(context, currentExt)` (`e2e/setup/priorInstall.ts`): swaps and returns once the upgrade has finished, which it reads from the current build's popup getting past its upgrade screen. A spec that reads storage right after a bare `swapExtension` can catch a half-upgraded store.
 
 Vendored POMs for the prior release's UI live under `e2e/poms/legacy/<version>/` and are frozen. Never share with current POMs since current UI evolves.

@@ -8,7 +8,6 @@ import { createGunzip } from 'node:zlib'
 import { stripBuiltinPrefix } from '@danmaku-anywhere/danmaku-converter'
 import type { BrowserContext, Page } from '@playwright/test'
 import { expect, test } from '@playwright/test'
-import packageJson from '../../../package.json' with { type: 'json' }
 import { DANMAKU_DB_NAME } from '../../../src/common/db/db'
 import migrationConfig from '../../migration.config.json' with { type: 'json' }
 import { mockCatalog } from '../../network/catalog'
@@ -163,12 +162,6 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   const postManifest = await probe.evaluate(
     () => chrome.runtime.getManifest().version
   )
-  // ExtStorageService wraps stored values under their key, so the value
-  // at chrome.storage.local['lastVersion'] is itself { lastVersion: '...' }.
-  const postLastVersion = await probe.evaluate(async () => {
-    const i = await chrome.storage.local.get('lastVersion')
-    return i.lastVersion as { lastVersion?: string } | undefined
-  })
   await probe.close()
 
   const errors = consoleWatcher
@@ -178,7 +171,6 @@ async function runSwap(tmpRoot: string): Promise<BrowserContext> {
   expect(postManifest).not.toBe(
     migrationConfig.baselinePriorTag.replace(/^v/, '')
   )
-  expect(postLastVersion?.lastVersion).toBe(packageJson.version)
   // The upgrade strips the `builtin:` prefix from stored provider config ids,
   // so the seeded ids are expected to migrate to bare.
   const expectedProviderConfigIds = seededSync.providerConfigIds
