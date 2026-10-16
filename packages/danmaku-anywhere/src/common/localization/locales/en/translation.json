@@ -555,6 +555,8 @@
       "latestRevision": "Latest",
       "localBackup": "Local Backup",
       "noCloudBackups": "No cloud backups yet. Create one to get started.",
+      "recoveryCopies": "Recovery copies",
+      "recoveryCopySaved": "Saved before a reset on {{date}}",
       "restoreConfirmDesc": "Restoring this backup will overwrite your current settings. Are you sure you want to proceed?",
       "restoreConfirmTitle": "Restore Settings?",
       "store": {

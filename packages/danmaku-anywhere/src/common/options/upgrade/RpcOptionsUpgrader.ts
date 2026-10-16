@@ -13,8 +13,12 @@ export class RpcOptionsUpgrader implements OptionsUpgrader {
     await chromeRpcClient.optionsUpgrade()
   }
 
-  async resetStore(key: string): Promise<OptionsRecoveryCopy> {
-    const { data } = await chromeRpcClient.optionsResetStore(key)
+  async saveRecoveryCopy(key: string): Promise<OptionsRecoveryCopy> {
+    const { data } = await chromeRpcClient.optionsSaveRecoveryCopy(key)
     return data
+  }
+
+  async resetStore(key: string, copyId: string): Promise<void> {
+    await chromeRpcClient.optionsResetStore({ store: key, copyId })
   }
 }

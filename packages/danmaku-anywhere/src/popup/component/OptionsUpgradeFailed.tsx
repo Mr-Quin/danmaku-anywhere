@@ -14,8 +14,20 @@ import {
   type OptionsUpgrader,
   OptionsUpgraderSymbol,
 } from '@/common/options/upgrade/OptionsUpgrader'
-import { recoveryFileName } from '@/common/options/upgrade/recoveryCopy'
-import { createDownload } from '@/common/utils/utils'
+import type { UpgradeProblem } from '@/common/options/upgrade/upgradeFailure'
+import { downloadRecoveryCopy } from './downloadRecoveryCopy'
+
+// Failures the user has no other way out of. One that can pass on its own
+// gets Retry only.
+const RESETTABLE_PROBLEMS: readonly UpgradeProblem[] = [
+  'options.migration',
+  'options.itemTooLarge',
+  'options.storeFull',
+]
+
+function canReset(problem: UpgradeProblem): boolean {
+  return RESETTABLE_PROBLEMS.includes(problem)
+}
 
 export function OptionsUpgradeFailed() {
   const { t } = useTranslation()
@@ -28,11 +40,9 @@ export function OptionsUpgradeFailed() {
   })
   const reset = useMutation({
     mutationFn: async (store: string) => {
-      const copy = await upgrader.resetStore(store)
-      const file = new Blob([JSON.stringify(copy, null, 2)], {
-        type: 'application/json',
-      })
-      await createDownload(file, recoveryFileName(copy))
+      const copy = await upgrader.saveRecoveryCopy(store)
+      await downloadRecoveryCopy(copy)
+      await upgrader.resetStore(store, copy.id)
     },
   })
 
@@ -85,14 +95,16 @@ export function OptionsUpgradeFailed() {
                       {': '}
                       {describeOptionsProblem(failure.problem)}
                     </Typography>
-                    <Button
-                      size="small"
-                      color="warning"
-                      disabled={reset.isPending}
-                      onClick={() => confirmReset(failure.store)}
-                    >
-                      {t('optionsUpgrade.reset.button', 'Reset')}
-                    </Button>
+                    {canReset(failure.problem) && (
+                      <Button
+                        size="small"
+                        color="warning"
+                        disabled={reset.isPending}
+                        onClick={() => confirmReset(failure.store)}
+                      >
+                        {t('optionsUpgrade.reset.button', 'Reset')}
+                      </Button>
+                    )}
                   </Stack>
                 ))}
               </Stack>

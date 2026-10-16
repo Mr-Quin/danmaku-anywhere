@@ -2,7 +2,7 @@ import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ReadinessGate } from '@/common/options/ReadinessService/ReadinessService'
 import { silentLogger } from '@/tests/silentLogger'
-import { isOptionsMigrationError } from './OptionsMigrationError'
+import { OptionsMigrationError } from './OptionsMigrationError'
 import { OptionsService } from './OptionsService'
 
 /**
@@ -130,7 +130,7 @@ describe('OptionsService', () => {
 
       const error = await service.upgrade().catch((reason: unknown) => reason)
 
-      expect(isOptionsMigrationError(error)).toBe(true)
+      expect(error).toBeInstanceOf(OptionsMigrationError)
       expect(set).not.toHaveBeenCalled()
       expect(await readRaw()).toEqual({ data: { count: 5 }, version: 1 })
     })
@@ -149,7 +149,7 @@ describe('OptionsService', () => {
 
       const error = await service.upgrade().catch((reason: unknown) => reason)
 
-      expect(isOptionsMigrationError(error)).toBe(true)
+      expect(error).toBeInstanceOf(OptionsMigrationError)
       expect(await readRaw()).toEqual(stored)
     })
   })

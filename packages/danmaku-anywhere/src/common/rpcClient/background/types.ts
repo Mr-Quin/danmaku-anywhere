@@ -301,7 +301,8 @@ export type BackgroundMethods = {
   dataWipeDanmaku: RPCDef<{ includeCustomEpisodes: boolean }, void>
   optionsEnsureUpgraded: RPCDef<void, void>
   optionsUpgrade: RPCDef<void, void>
-  optionsResetStore: RPCDef<string, OptionsRecoveryCopy>
+  optionsSaveRecoveryCopy: RPCDef<string, OptionsRecoveryCopy>
+  optionsResetStore: RPCDef<{ store: string; copyId: string }, void>
   bookmarkAdd: RPCDef<BookmarkAddInput, Bookmark>
   bookmarkDelete: RPCDef<BookmarkDeleteInput, void>
   bookmarkDeleteBySeason: RPCDef<BookmarkDeleteBySeasonInput, void>

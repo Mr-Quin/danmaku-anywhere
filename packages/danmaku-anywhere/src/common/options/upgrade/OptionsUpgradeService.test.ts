@@ -13,7 +13,7 @@ import { OptionStoreDescriptors } from '@/common/options/optionStores'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
 import { silentLogger } from '@/tests/silentLogger'
 import { OptionsUpgradeService } from './OptionsUpgradeService'
-import { OPTIONS_RECOVERY_KEY } from './recoveryCopy'
+import { MAX_RECOVERY_COPIES, OPTIONS_RECOVERY_KEY } from './recoveryCopy'
 import {
   UPGRADE_RUN_KEY,
   UPGRADE_SNAPSHOT_KEY,
@@ -28,9 +28,10 @@ import {
  * readiness: it skips current stores, a failed run whose retry delay has
  * not passed, and a failure every attempt would repeat. A failed run records
  * each failed store and its problem. upgrade always runs, so Retry upgrades a
- * store fixed by hand. resetStore keeps a recovery copy of a store before
- * resetting it to its defaults, makes those the data other stores' steps see,
- * and runs the upgrade again.
+ * store fixed by hand. saveRecoveryCopy keeps what a store holds without
+ * replacing earlier copies, up to a cap on the newest. resetStore resets a
+ * store only from a copy it kept, makes the defaults the data other stores'
+ * steps see, and runs the upgrade again.
  */
 
 interface Counter {
@@ -335,23 +336,74 @@ describe('OptionsUpgradeService', () => {
     expect(await readRaw(UPGRADE_RUN_KEY)).toBeUndefined()
   })
 
-  it('resets a failed store after keeping a recovery copy, and finishes the upgrade', async () => {
+  it('resets a failed store from its saved recovery copy, and finishes the upgrade', async () => {
     await storeV1('alpha', 1)
     await storeCorrupt('beta')
     const { upgrader, readiness } = setup(['alpha', 'beta'])
     await expect(upgrader.upgrade()).rejects.toThrow()
 
-    const copy = await upgrader.resetStore('beta')
+    const copy = await upgrader.saveRecoveryCopy('beta')
+    expect(await readRaw('beta')).toEqual(CORRUPT)
+    await upgrader.resetStore('beta', copy.id)
 
     expect(copy).toEqual({
+      id: expect.any(String),
       store: 'beta',
       savedAt: expect.any(Number),
-      items: { beta: CORRUPT },
+      envelope: CORRUPT,
     })
-    expect(await readRaw(OPTIONS_RECOVERY_KEY)).toEqual({ beta: copy })
+    expect(await readRaw(OPTIONS_RECOVERY_KEY)).toEqual([copy])
     expect(await readRaw('beta')).toEqual({ data: { count: 0 }, version: 2 })
     expect(await readRaw(UPGRADE_RUN_KEY)).toBeUndefined()
     await expect(readiness.waitUntilReady()).resolves.toBeUndefined()
+  })
+
+  it('refuses to reset a store without a saved recovery copy', async () => {
+    await storeCorrupt('beta')
+    const { upgrader } = setup(['beta'])
+    await expect(upgrader.upgrade()).rejects.toThrow()
+    const other = await upgrader.saveRecoveryCopy('beta')
+
+    await expect(upgrader.resetStore('beta', 'not-saved')).rejects.toThrow()
+    await expect(upgrader.resetStore('alpha', other.id)).rejects.toThrow()
+
+    expect(await readRaw('beta')).toEqual(CORRUPT)
+  })
+
+  it('keeps the first copy when a store is reset again after the upgrade still failed', async () => {
+    await storeCorrupt('alpha')
+    await storeCorrupt('beta')
+    const { upgrader } = setup(['alpha', 'beta'])
+    await expect(upgrader.upgrade()).rejects.toThrow()
+
+    const first = await upgrader.saveRecoveryCopy('beta')
+    await upgrader.resetStore('beta', first.id)
+    const second = await upgrader.saveRecoveryCopy('beta')
+    await upgrader.resetStore('beta', second.id)
+
+    expect(await readRaw(OPTIONS_RECOVERY_KEY)).toEqual([
+      expect.objectContaining({ id: first.id, envelope: CORRUPT }),
+      expect.objectContaining({
+        id: second.id,
+        envelope: { data: { count: 0 }, version: 2 },
+      }),
+    ])
+    expect(await readRaw(UPGRADE_RUN_KEY)).toMatchObject({
+      status: 'failed',
+      stores: [{ store: 'alpha', problem: 'options.migration' }],
+    })
+  })
+
+  it('keeps only the newest recovery copies', async () => {
+    await storeCorrupt('beta')
+    const { upgrader } = setup(['beta'])
+    const ids: string[] = []
+    for (let index = 0; index < MAX_RECOVERY_COPIES + 2; index++) {
+      ids.push((await upgrader.saveRecoveryCopy('beta')).id)
+    }
+
+    const kept = (await readRaw(OPTIONS_RECOVERY_KEY)) as { id: string }[]
+    expect(kept.map((copy) => copy.id)).toEqual(ids.slice(2))
   })
 
   it('hands the other stores the defaults of a reset store, not its old data', async () => {
@@ -361,28 +413,14 @@ describe('OptionsUpgradeService', () => {
     const { upgrader, seenStores } = setup(['alpha', 'beta'], ['alpha'])
     await expect(upgrader.upgrade()).rejects.toThrow()
 
-    await upgrader.resetStore('beta')
+    const copy = await upgrader.saveRecoveryCopy('beta')
+    await upgrader.resetStore('beta', copy.id)
     failing.mockRestore()
     await upgrader.upgrade()
 
     expect(seenStores.at(-1)).toEqual({
       alpha: { count: 1 },
       beta: { count: 0 },
-    })
-  })
-
-  it('resolves a reset with the copy even when another store still fails', async () => {
-    await storeCorrupt('alpha')
-    await storeCorrupt('beta')
-    const { upgrader } = setup(['alpha', 'beta'])
-    await expect(upgrader.upgrade()).rejects.toThrow()
-
-    const copy = await upgrader.resetStore('beta')
-
-    expect(copy.items).toEqual({ beta: CORRUPT })
-    expect(await readRaw(UPGRADE_RUN_KEY)).toMatchObject({
-      status: 'failed',
-      stores: [{ store: 'alpha', problem: 'options.migration' }],
     })
   })
 

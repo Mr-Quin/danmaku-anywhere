@@ -535,6 +535,8 @@
       "latestRevision": "最新",
       "localBackup": "本地备份",
       "noCloudBackups": "暂无云备份。创建一个开始使用。",
+      "recoveryCopies": "恢复副本",
+      "recoveryCopySaved": "{{date}} 重置前保存",
       "restoreConfirmDesc": "恢复此备份将覆盖你当前的设置。确定要继续吗？",
       "restoreConfirmTitle": "恢复设置？",
       "store": {
