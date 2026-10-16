@@ -39,7 +39,7 @@ import type {
   SeasonSearchParams,
   SourceProvider,
 } from './IDanmakuProvider'
-import type { ManifestRegistry } from './ManifestRegistry'
+import type { ManifestLookup, ManifestRegistry } from './ManifestRegistry'
 import type { ManifestOutputSource } from './manifestErrors'
 import { resolveManifestInputs } from './manifestInputs'
 import {
@@ -85,6 +85,16 @@ const EPISODE_ROW_FIELDS = [
   'alternativeTitle',
   'params',
 ] as const
+
+export function manifestStatus(lookup: ManifestLookup): SourceStatus {
+  if (lookup.status === 'unavailable') {
+    return lookup
+  }
+  return {
+    status: 'available',
+    capabilities: capabilitiesFromManifest(lookup.runner.manifest),
+  }
+}
 
 export class ManifestProviderService implements SourceProvider {
   constructor(
@@ -176,14 +186,9 @@ export class ManifestProviderService implements SourceProvider {
   readonly kind = 'source'
 
   async getStatus(): Promise<SourceStatus> {
-    const lookup = await this.registry.lookup(this.config.source.manifestId)
-    if (lookup.status === 'unavailable') {
-      return lookup
-    }
-    return {
-      status: 'available',
-      capabilities: capabilitiesFromManifest(lookup.runner.manifest),
-    }
+    return manifestStatus(
+      await this.registry.lookup(this.config.source.manifestId)
+    )
   }
 
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {

@@ -7,10 +7,12 @@ import {
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import {
   canMatchBySearch,
   canResolveMapping,
+  LEGACY_MACCMS_CAPABILITIES,
   type SourceCapabilities,
   type SourceCapability,
   type SourceCapabilityAnswer,
@@ -19,6 +21,8 @@ import {
 } from '@/common/providers/sourceCapabilities'
 import { isLink, withUrlScheme } from '@/common/utils/link'
 import type { IDanmakuProvider, SourceProvider } from './IDanmakuProvider'
+import { manifestStatus } from './ManifestProviderService'
+import { ManifestRegistry } from './ManifestRegistry'
 import {
   DanmakuProviderFactory,
   type IDanmakuProviderFactory,
@@ -69,6 +73,8 @@ export class SourceCapabilityService {
     private danmakuProviderFactory: IDanmakuProviderFactory,
     @inject(SourceNames)
     private sourceNames: SourceNames,
+    @inject(ManifestRegistry)
+    private manifestRegistry: ManifestRegistry,
     @inject(LoggerSymbol) logger: ILogger
   ) {
     this.logger = logger.sub('[SourceCapabilityService]')
@@ -84,8 +90,10 @@ export class SourceCapabilityService {
     if (!config) {
       return { status: 'removed' }
     }
-    const source = await this.sourceNames.refOf(config)
-    return this.danmakuProviderFactory(config, source).getStatus()
+    if (isLegacyMacCms(config)) {
+      return { status: 'available', capabilities: LEGACY_MACCMS_CAPABILITIES }
+    }
+    return manifestStatus(await this.manifestRegistry.lookup(config.manifestId))
   }
 
   async searchProvider(config: ProviderConfig): Promise<IDanmakuProvider> {
