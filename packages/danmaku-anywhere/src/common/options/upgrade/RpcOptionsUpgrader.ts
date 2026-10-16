@@ -1,6 +1,7 @@
 import { injectable } from 'inversify'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type { OptionsUpgrader } from './OptionsUpgrader'
+import type { OptionsRecoveryCopy } from './recoveryCopy'
 
 @injectable('Singleton')
 export class RpcOptionsUpgrader implements OptionsUpgrader {
@@ -10,5 +11,10 @@ export class RpcOptionsUpgrader implements OptionsUpgrader {
 
   async upgrade(): Promise<void> {
     await chromeRpcClient.optionsUpgrade()
+  }
+
+  async resetStore(key: string): Promise<OptionsRecoveryCopy> {
+    const { data } = await chromeRpcClient.optionsResetStore(key)
+    return data
   }
 }

@@ -67,6 +67,7 @@ import type {
   MountConfig,
   MountConfigAiConfig,
 } from '@/common/options/mountConfig/schema'
+import type { OptionsRecoveryCopy } from '@/common/options/upgrade/recoveryCopy'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
 import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.types'
 import type { RPCDef } from '../../rpc/types'
@@ -300,6 +301,7 @@ export type BackgroundMethods = {
   dataWipeDanmaku: RPCDef<{ includeCustomEpisodes: boolean }, void>
   optionsEnsureUpgraded: RPCDef<void, void>
   optionsUpgrade: RPCDef<void, void>
+  optionsResetStore: RPCDef<string, OptionsRecoveryCopy>
   bookmarkAdd: RPCDef<BookmarkAddInput, Bookmark>
   bookmarkDelete: RPCDef<BookmarkDeleteInput, void>
   bookmarkDeleteBySeason: RPCDef<BookmarkDeleteBySeasonInput, void>

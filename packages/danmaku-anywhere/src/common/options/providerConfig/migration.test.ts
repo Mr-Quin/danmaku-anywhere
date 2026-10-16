@@ -576,17 +576,17 @@ describe('migrateProviderConfigsToFlat', () => {
     expect(flat[0].configValues).toEqual({})
   })
 
-  it('returns empty array if data is not an array', () => {
-    expect(
-      migrateProviderConfigsToFlat(
-        null as unknown as never[] // lint-specs-allow-cast: deliberately invalid input to exercise the catch/fallback path
+  it('throws when the stored value is not a list', () => {
+    expect(() => {
+      return migrateProviderConfigsToFlat(
+        null as unknown as never[] // lint-specs-allow-cast: deliberately invalid input
       )
-    ).toEqual([])
-    expect(
-      migrateProviderConfigsToFlat(
-        { foo: 'bar' } as unknown as never[] // lint-specs-allow-cast: deliberately invalid input to exercise the catch/fallback path
+    }).toThrow()
+    expect(() => {
+      return migrateProviderConfigsToFlat(
+        { foo: 'bar' } as unknown as never[] // lint-specs-allow-cast: deliberately invalid input
       )
-    ).toEqual([])
+    }).toThrow()
   })
 
   it('drops corrupted records with unknown type', () => {

@@ -2,15 +2,17 @@ import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ReadinessGate } from '@/common/options/ReadinessService/ReadinessService'
 import { silentLogger } from '@/tests/silentLogger'
+import { isOptionsMigrationError } from './OptionsMigrationError'
 import { OptionsService } from './OptionsService'
 
 /**
  * OptionsService over fake chrome.storage. Covers upgrade(): a read error or a
  * write error rejects and leaves the stored value alone, a migration that
- * throws still resets the store to defaults, and a store already at its latest
- * version is not written. Also covers readStoredUnblocked telling an absent
- * store from a stored empty list, and set/update rejecting when the write
- * fails.
+ * throws or a stored value that is not an options envelope rejects with a
+ * migration failure and leaves the stored value alone, and a store already at
+ * its latest version is not written. Also covers readStoredUnblocked telling
+ * an absent store from a stored empty list, and set/update rejecting when the
+ * write fails.
  */
 
 interface Counter {
@@ -119,29 +121,36 @@ describe('OptionsService', () => {
       expect(await readRaw()).toEqual({ data: { count: 5 }, version: 1 })
     })
 
-    it('resets to defaults when a migration step throws', async () => {
+    it('rejects with a migration failure and keeps the stored value when a step throws', async () => {
       await storeRaw({ data: { count: 5 }, version: 1 })
       const service = createCounterService(readiness, () => {
         throw new Error('bad data')
       })
+      const set = vi.spyOn(fakeBrowser.storage.local, 'set')
 
-      await service.upgrade()
+      const error = await service.upgrade().catch((reason: unknown) => reason)
 
-      expect(await readRaw()).toEqual({ data: { count: 0 }, version: 2 })
+      expect(isOptionsMigrationError(error)).toBe(true)
+      expect(set).not.toHaveBeenCalled()
+      expect(await readRaw()).toEqual({ data: { count: 5 }, version: 1 })
     })
 
-    it('rejects when the reset after a throwing migration cannot be written', async () => {
-      await storeRaw({ data: { count: 5 }, version: 1 })
-      const service = createCounterService(readiness, () => {
-        throw new Error('bad data')
-      })
-      vi.spyOn(fakeBrowser.storage.local, 'set').mockRejectedValue(
-        new Error('QUOTA_BYTES quota exceeded')
-      )
+    it.each([
+      ['a string', 'garbage'],
+      ['a list', [1, 2]],
+      [
+        'an envelope with a version that is not a number',
+        { data: {}, version: 'abc' },
+      ],
+      ['an envelope with a negative version', { data: {}, version: -1 }],
+    ])('rejects with a migration failure for %s and keeps it', async (_, stored) => {
+      await storeRaw(stored)
+      const service = createCounterService(readiness)
 
-      await expect(service.upgrade()).rejects.toThrow(
-        'QUOTA_BYTES quota exceeded'
-      )
+      const error = await service.upgrade().catch((reason: unknown) => reason)
+
+      expect(isOptionsMigrationError(error)).toBe(true)
+      expect(await readRaw()).toEqual(stored)
     })
   })
 

@@ -181,11 +181,7 @@ export function migrateProviderConfigsToFlat(
   data: any[]
 ): ProviderConfig[] {
   if (!Array.isArray(data)) {
-    console.error(
-      'migrateProviderConfigsToFlat: input is not an array, returning empty:',
-      data
-    )
-    return []
+    throw new Error('Stored provider configs are not a list')
   }
   const out: ProviderConfig[] = []
   for (const old of data) {
