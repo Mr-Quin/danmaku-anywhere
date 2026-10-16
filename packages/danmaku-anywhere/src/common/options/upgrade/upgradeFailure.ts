@@ -50,6 +50,19 @@ export function storeFailuresOf(error: unknown): StoreFailure[] {
   return []
 }
 
+// A repeating failure has no other way out. A store that reads as incomplete
+// may still be syncing in, so it gets Retry alone until it has failed two
+// upgrade attempts in a row.
+export function canResetStore(
+  failure: StoreFailure,
+  failedAttempts: number
+): boolean {
+  if (failure.problem === 'options.incomplete') {
+    return failedAttempts >= 2
+  }
+  return REPEATING_PROBLEMS.includes(failure.problem)
+}
+
 export function isRepeatingFailure(failures: readonly StoreFailure[]): boolean {
   return (
     failures.length > 0 &&
