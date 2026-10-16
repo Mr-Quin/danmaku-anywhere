@@ -96,12 +96,16 @@ export class ManifestRegistry {
   }
 
   async getRunner(manifestId: string): Promise<ManifestRunner> {
-    await this.whenLoaded()
-    const entry = this.runners.get(manifestId)
-    if (!entry) {
+    const runner = await this.findRunner(manifestId)
+    if (!runner) {
       throw new Error(`no manifest registered with id: ${manifestId}`)
     }
-    return entry.runner
+    return runner
+  }
+
+  async findRunner(manifestId: string): Promise<ManifestRunner | undefined> {
+    await this.whenLoaded()
+    return this.runners.get(manifestId)?.runner
   }
 
   async listManifests(locale?: string): Promise<ProviderManifestInfo[]> {

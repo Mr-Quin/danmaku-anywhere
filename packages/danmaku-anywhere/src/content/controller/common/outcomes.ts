@@ -1,6 +1,5 @@
 import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
 import type { KeptStored } from '@/common/danmaku/dto'
-import { isSourceEpisode } from '@/common/danmaku/utils'
 
 export type LoadOutcome =
   | { status: 'mounted'; episode: GenericEpisode }
@@ -15,7 +14,3 @@ export type EpisodeOutcome =
   | LoadOutcome
   | { status: 'matchFailed'; error: unknown }
   | { status: 'notFound'; title: string }
-
-export function isRefreshable(episode: GenericEpisode) {
-  return isSourceEpisode(episode) && episode.season.manifestId === 'dandanplay'
-}

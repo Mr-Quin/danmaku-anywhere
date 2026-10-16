@@ -26,6 +26,7 @@ import { TitleMappingService } from '@/background/services/persistence/TitleMapp
 import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
 import { ManifestRegistry } from '@/background/services/providers/ManifestRegistry'
 import { ManifestSandbox } from '@/background/services/providers/ManifestSandbox'
+import { SourceCapabilityService } from '@/background/services/providers/SourceCapabilityService'
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import { AuthClientService } from '@/common/auth/AuthClientService'
 import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
@@ -89,7 +90,9 @@ export class RpcManager {
     @inject(ManifestRegistry)
     private manifestRegistry: ManifestRegistry,
     @inject(ManifestSandbox)
-    private manifestSandbox: ManifestSandbox
+    private manifestSandbox: ManifestSandbox,
+    @inject(SourceCapabilityService)
+    private sourceCapabilities: SourceCapabilityService
   ) {
     this.logger = logger.sub('[RpcManager]')
   }
@@ -120,6 +123,9 @@ export class RpcManager {
       mediaParseUrl: async (input) => {
         return this.providerService.parseUrl(input.url)
       },
+      mediaFindUrlSource: async (input) => {
+        return this.sourceCapabilities.findUrlSource(input.url)
+      },
       episodeFetchBySeason: async (input: EpisodeFetchBySeasonParams) => {
         return this.providerService.fetchEpisodesBySeason(input.seasonId)
       },
@@ -128,6 +134,9 @@ export class RpcManager {
       },
       providerProbeLogin: async ({ manifestId }) => {
         return this.providerService.getLoginStatus(manifestId)
+      },
+      providerGetCapabilities: async ({ providerConfigId }) => {
+        return this.sourceCapabilities.forProviderConfig(providerConfigId)
       },
       providerGetManifestSpec: async ({ manifestId, locale }) => {
         return this.providerService.getManifestSpec(manifestId, locale)

@@ -64,6 +64,11 @@ export const customEpisodeQueryKeys = {
 }
 
 export const sourceQueryKeys = {
+  capabilities: () => [{ scope: 'source', kind: 'capabilities' }] as const,
+  configCapabilities: (providerConfigId: string) =>
+    [{ scope: 'source', kind: 'capabilities', providerConfigId }] as const,
+  urlSource: (url: string) =>
+    [{ scope: 'source', kind: 'capabilities', url }] as const,
   loginStatus: (manifestId: string) =>
     [{ scope: 'source', kind: 'loginStatus', manifestId }] as const,
   manifestSpec: (manifestId: string, locale: string) =>

@@ -12,6 +12,10 @@ import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig
 import { DrilldownContextMenu } from '@/common/components/Menu/DrilldownContextMenu'
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { isCustomSeason } from '@/common/danmaku/utils'
+import {
+  menuItemState,
+  type SeasonActions,
+} from '@/common/providers/seasonActions'
 
 export interface SeasonContextMenuPureProps {
   season: Season | CustomSeason
@@ -21,7 +25,7 @@ export interface SeasonContextMenuPureProps {
   onRefresh: () => void
   isRefreshing: boolean
   isExporting: boolean
-  orphaned?: boolean
+  actions: SeasonActions
   bookmarked: boolean
   onBookmarkToggle: () => void
   onBookmarkRefresh: () => void
@@ -38,7 +42,7 @@ export const SeasonContextMenuPure = ({
   onRefresh,
   isRefreshing,
   isExporting,
-  orphaned,
+  actions,
   bookmarked,
   onBookmarkToggle,
   onBookmarkRefresh,
@@ -77,43 +81,47 @@ export const SeasonContextMenuPure = ({
   ]
 
   if (!isCustomSeason(season)) {
-    const sourceRemovedTooltip = orphaned
-      ? t('anime.sourceRemovedTooltip', 'This source has been deleted.')
-      : undefined
+    const refreshGate = menuItemState(actions.refreshMetadata)
+    const followGate = menuItemState(actions.follow)
+    const unfollowGate = menuItemState(actions.unfollow)
+    const refreshEpisodesGate = menuItemState(actions.refreshEpisodes)
 
-    items.unshift({
-      kind: 'item',
-      id: 'refresh',
-      label: t('anime.refreshMetadata', 'Refresh Metadata'),
-      icon: <Sync />,
-      onClick: onRefresh,
-      loading: isRefreshing,
-      disabled: orphaned,
-      tooltip: sourceRemovedTooltip,
-    })
+    if (refreshGate) {
+      items.unshift({
+        kind: 'item',
+        id: 'refresh',
+        label: t('anime.refreshMetadata', 'Refresh Metadata'),
+        icon: <Sync />,
+        onClick: onRefresh,
+        loading: isRefreshing,
+        ...refreshGate,
+      })
+    }
 
     if (bookmarked) {
-      items.unshift(
-        {
-          kind: 'item',
-          id: 'bookmarkRefresh',
-          label: t('bookmark.refreshEpisodes', 'Refresh Episodes'),
-          icon: <Sync fontSize="small" />,
-          onClick: onBookmarkRefresh,
-          loading: isBookmarkLoading,
-          disabled: orphaned,
-          tooltip: sourceRemovedTooltip,
-        },
-        {
+      if (unfollowGate) {
+        items.unshift({
           kind: 'item',
           id: 'bookmarkRemove',
           label: t('bookmark.unfollow', 'Unfollow'),
           icon: <Favorite fontSize="small" />,
           onClick: onBookmarkToggle,
           loading: isBookmarkLoading,
-        }
-      )
-    } else {
+          ...unfollowGate,
+        })
+      }
+      if (refreshEpisodesGate) {
+        items.unshift({
+          kind: 'item',
+          id: 'bookmarkRefresh',
+          label: t('bookmark.refreshEpisodes', 'Refresh Episodes'),
+          icon: <Sync fontSize="small" />,
+          onClick: onBookmarkRefresh,
+          loading: isBookmarkLoading,
+          ...refreshEpisodesGate,
+        })
+      }
+    } else if (followGate) {
       items.unshift({
         kind: 'item',
         id: 'bookmarkAdd',
@@ -121,8 +129,7 @@ export const SeasonContextMenuPure = ({
         icon: <FavoriteBorder fontSize="small" />,
         onClick: onBookmarkToggle,
         loading: isBookmarkLoading,
-        disabled: orphaned,
-        tooltip: sourceRemovedTooltip,
+        ...followGate,
       })
     }
   }

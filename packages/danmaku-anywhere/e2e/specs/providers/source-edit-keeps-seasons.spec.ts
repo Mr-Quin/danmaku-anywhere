@@ -9,7 +9,7 @@ import { applyProfile } from '../../setup/profile'
  * A season belongs to the config that fetched it, so editing that config never
  * detaches its seasons. Renaming a self-hosted instance and moving it to
  * another host through the editor keeps its season attached in the mount tree
- * (no orphan badge, refresh still offered, chip shows the new name). A season
+ * (no orphan badge, follow still offered, chip shows the new name). A season
  * whose config disappears from storage turns orphaned but stays visible with
  * its follow, so it can still be unfollowed.
  */
@@ -75,7 +75,7 @@ test('renaming a self-hosted source and moving it to another host keeps its seas
   ).toBeVisible()
 
   await mount.mount.openContextMenu(seasonItem)
-  await expect(mount.mount.contextMenuItem('refresh')).toBeEnabled()
+  await expect(mount.mount.contextMenuItem('bookmarkAdd')).toBeEnabled()
 
   const season = await da.season.get(seasonId)
   expect(season?.providerConfigId).toBe(selfHosted.id)

@@ -268,7 +268,6 @@ export const useDanmakuTree = (
           label: ep.title,
           kind: 'episode',
           data: ep,
-          orphaned,
         })
       )
 

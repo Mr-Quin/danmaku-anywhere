@@ -2,15 +2,21 @@ import { isNetworkError } from '@/common/utils/networkError'
 
 export type SourceProblem =
   | 'sourceRemoved'
+  | 'sourceUnavailable'
   | 'noUrlParser'
+  | 'searchUnsupported'
   | 'episodesUnsupported'
-  | 'refetchUnsupported'
+  | 'danmakuUnsupported'
+  | 'seasonRefreshUnsupported'
 
 const SOURCE_PROBLEMS: readonly SourceProblem[] = [
   'sourceRemoved',
+  'sourceUnavailable',
   'noUrlParser',
+  'searchUnsupported',
   'episodesUnsupported',
-  'refetchUnsupported',
+  'danmakuUnsupported',
+  'seasonRefreshUnsupported',
 ]
 
 const SOURCE_ERROR_NAME = 'SourceError'

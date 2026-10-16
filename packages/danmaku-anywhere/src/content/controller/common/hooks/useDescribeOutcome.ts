@@ -1,15 +1,16 @@
+import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
 import { useEventCallback } from '@mui/material'
+import { useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import type {
   Severity,
   ToastOptions,
 } from '@/common/components/Toast/toastStore'
 import { describeKeptStored } from '@/common/danmaku/describeKeptStored'
-import { episodeToString } from '@/common/danmaku/utils'
-import {
-  type EpisodeOutcome,
-  isRefreshable,
-} from '@/content/controller/common/outcomes'
+import { episodeToString, isSourceEpisode } from '@/common/danmaku/utils'
+import { mayOffer } from '@/common/providers/sourceCapabilities'
+import { sourceCapabilitiesQuery } from '@/common/providers/useSourceCapabilities'
+import type { EpisodeOutcome } from '@/content/controller/common/outcomes'
 import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 import { describeMountError } from './mountError'
 import { useDescribeSourceError } from './useDescribeSourceError'
@@ -33,6 +34,19 @@ interface DescribeOptions {
 export function useDescribeOutcome() {
   const { t } = useTranslation()
   const describeSourceError = useDescribeSourceError()
+  const queryClient = useQueryClient()
+
+  // Reads only what is already cached, so the toast never waits on the
+  // background. A refresh the source cannot do is refused by the background.
+  const mayRefetch = (episode: GenericEpisode): boolean => {
+    if (!isSourceEpisode(episode)) {
+      return false
+    }
+    const { queryKey } = sourceCapabilitiesQuery(
+      episode.season.providerConfigId
+    )
+    return mayOffer(queryClient.getQueryData(queryKey), 'danmaku')
+  }
 
   const searchAction = () => {
     return {
@@ -66,7 +80,7 @@ export function useDescribeOutcome() {
                   { name, count }
                 ),
             action:
-              onRefresh && !refreshed && isRefreshable(outcome.episode)
+              onRefresh && !refreshed && mayRefetch(outcome.episode)
                 ? {
                     actionFn: onRefresh,
                     actionLabel: t('danmaku.refresh', 'Refresh Danmaku'),

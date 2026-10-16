@@ -9,18 +9,36 @@ export function describeSourceError(error: unknown): string {
         'anime.sourceRemovedTooltip',
         'This source has been deleted.'
       )
+    case 'sourceUnavailable':
+      return i18n.t(
+        'providers.error.sourceUnavailable',
+        "{{name}} can't be used right now",
+        { name: sourceError.sourceName }
+      )
     case 'noUrlParser':
       return i18n.t('searchPage.parse.noSource', 'No source can read this link')
+    case 'searchUnsupported':
+      return i18n.t(
+        'providers.error.searchUnsupported',
+        '{{name}} cannot search',
+        { name: sourceError.sourceName }
+      )
     case 'episodesUnsupported':
       return i18n.t(
         'providers.error.episodesUnsupported',
         '{{name}} cannot list episodes',
         { name: sourceError.sourceName }
       )
-    case 'refetchUnsupported':
+    case 'danmakuUnsupported':
       return i18n.t(
-        'providers.error.refetchUnsupported',
-        '{{name}} cannot fetch danmaku for saved episodes again',
+        'providers.error.danmakuUnsupported',
+        '{{name}} cannot fetch danmaku',
+        { name: sourceError.sourceName }
+      )
+    case 'seasonRefreshUnsupported':
+      return i18n.t(
+        'providers.error.seasonRefreshUnsupported',
+        '{{name}} cannot refresh season details',
         { name: sourceError.sourceName }
       )
     default:

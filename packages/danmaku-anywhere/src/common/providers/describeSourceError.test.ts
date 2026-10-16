@@ -23,7 +23,10 @@ describe('describeSourceError', () => {
     ['sourceRemoved', 'anime.sourceRemovedTooltip'],
     ['noUrlParser', 'searchPage.parse.noSource'],
     ['episodesUnsupported', 'providers.error.episodesUnsupported'],
-    ['refetchUnsupported', 'providers.error.refetchUnsupported'],
+    ['sourceUnavailable', 'providers.error.sourceUnavailable'],
+    ['searchUnsupported', 'providers.error.searchUnsupported'],
+    ['danmakuUnsupported', 'providers.error.danmakuUnsupported'],
+    ['seasonRefreshUnsupported', 'providers.error.seasonRefreshUnsupported'],
   ] satisfies [
     SourceProblem,
     string,

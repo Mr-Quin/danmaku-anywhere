@@ -14,14 +14,12 @@ import type {
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
 import { isSourceEpisode } from '@/common/danmaku/utils'
+import { useCanRefetchDanmaku } from '@/common/providers/useSourceCapabilities'
 import {
   type MountResult,
   sendMount,
 } from '@/content/controller/common/danmakuCommands'
-import {
-  isRefreshable,
-  type LoadOutcome,
-} from '@/content/controller/common/outcomes'
+import type { LoadOutcome } from '@/content/controller/common/outcomes'
 import { preemptAutomatic } from '@/content/controller/store/automaticPreemption'
 import { useStore } from '@/content/controller/store/store'
 import { describeMountError } from './mountError'
@@ -105,8 +103,8 @@ export const useLoadDanmaku = () => {
 
   const isLoading = useIsMutating({ mutationKey: LOAD_MUTATION_KEY }) > 0
 
-  const canRefresh =
-    !!episodes && episodes.length === 1 && isRefreshable(episodes[0])
+  const mountedEpisode = episodes?.length === 1 ? episodes[0] : undefined
+  const canRefresh = useCanRefetchDanmaku(mountedEpisode)
 
   const mount = useEventCallback(
     (
@@ -219,11 +217,8 @@ export const useLoadDanmaku = () => {
   // aborts or something else changes what is mounted first.
   const refreshComments = useEventCallback(
     async ({ signal }: RefreshOptions = {}) => {
-      if (!canRefresh || signal?.aborted) {
-        return
-      }
-      const episode = episodes[0]
-      if (!isSourceEpisode(episode)) {
+      const episode = mountedEpisode
+      if (!episode || !isSourceEpisode(episode) || signal?.aborted) {
         return
       }
 
