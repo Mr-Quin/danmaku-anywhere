@@ -42,20 +42,13 @@ const UNSUPPORTED = {
 function unsupported(
   source: SourceRef,
   status: SourceStatus,
-  capability: SourceCapability
+  capability: keyof typeof UNSUPPORTED
 ): AppError {
   if (status.status === 'unavailable') {
     return new AppError(
       'source.unavailable',
       { source, reason: status.reason },
       { message: `${source.name} is unavailable: ${status.reason}` }
-    )
-  }
-  if (capability === 'parseUrl') {
-    return new AppError(
-      'source.noUrlParser',
-      {},
-      { message: `${source.name} cannot parse links` }
     )
   }
   return new AppError(
@@ -177,7 +170,7 @@ export class SourceCapabilityService {
   private async require(
     source: SourceRef,
     provider: IDanmakuProvider,
-    capability: SourceCapability
+    capability: keyof typeof UNSUPPORTED
   ): Promise<SourceStatus> {
     const status = await provider.getStatus()
     if (status.status !== 'available' || !status.capabilities[capability]) {

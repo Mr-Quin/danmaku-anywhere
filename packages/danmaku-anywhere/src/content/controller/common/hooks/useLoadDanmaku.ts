@@ -46,12 +46,6 @@ function isOnlyMounted(episode: Episode): boolean {
   return isSourceEpisode(mounted) && mounted.id === episode.id
 }
 
-function providerConfigIdOf(request: DanmakuFetchDto) {
-  return request.type === 'by-meta'
-    ? request.meta.season.providerConfigId
-    : undefined
-}
-
 // Aborts when the caller's signal does or when the mounted episodes change.
 function followMountedEpisodes(signal: AbortSignal | undefined) {
   const controller = new AbortController()
@@ -125,11 +119,7 @@ export const useLoadDanmaku = () => {
       try {
         fetched = await fetchMutation.mutateAsync(request)
       } catch (error) {
-        return {
-          status: 'fetchFailed',
-          error,
-          providerConfigId: providerConfigIdOf(request),
-        }
+        return { status: 'fetchFailed', error }
       }
       const { episode, keptStored } = fetched
       if (signal?.aborted) {
