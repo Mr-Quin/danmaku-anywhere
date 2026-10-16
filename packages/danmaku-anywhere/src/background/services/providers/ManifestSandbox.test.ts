@@ -8,9 +8,10 @@ import {
 
 /**
  * ManifestSandbox previews an unsaved manifest. Covers validation surfacing,
- * the input precedence (defaults < config values < per-call), and the trust
- * boundary: every ad-hoc run withholds `allowPrivateHosts` so the engine's
- * host-rejection applies, and an invalid manifest never reaches the runner.
+ * the input precedence (defaults < config values < per-call), the trust
+ * boundary (every ad-hoc run withholds `allowPrivateHosts`, and an invalid
+ * manifest never reaches the runner), and output parsing that drops and
+ * rejects exactly what the saved source would.
  */
 
 function makeManifest(id = 'mine:one'): Record<string, unknown> {
@@ -32,6 +33,23 @@ describe('ManifestSandbox.validate', () => {
   it('accepts a well-formed manifest', () => {
     expect(new ManifestSandbox().validate(makeManifest())).toEqual({
       valid: true,
+    })
+  })
+
+  it('says a manifest for a newer engine needs a newer extension', () => {
+    expect(
+      new ManifestSandbox().validate({
+        ...makeManifest(),
+        minEngineVersion: '99.0.0',
+      })
+    ).toEqual({
+      valid: false,
+      issues: [
+        {
+          path: '',
+          message: 'This manifest needs a newer version of the extension',
+        },
+      ],
     })
   })
 
@@ -91,7 +109,11 @@ describe('ManifestSandbox test runs', () => {
   it('counts danmaku, threads params under providerIds, and tolerates a failed segment', async () => {
     const runDanmaku = vi
       .spyOn(ManifestRunner.prototype, 'runDanmaku')
-      .mockResolvedValue([{}, {}, {}])
+      .mockResolvedValue([
+        { p: '1,1,16777215', m: 'a' },
+        { p: '2,1,16777215', m: 'b' },
+        { p: '3,1,16777215', m: 'c' },
+      ])
     vi.spyOn(ManifestRunner.prototype, 'configDefaults').mockReturnValue({})
 
     const result = await new ManifestSandbox().danmaku({
@@ -116,5 +138,55 @@ describe('ManifestSandbox test runs', () => {
       new ManifestSandbox().search({ manifest: { id: 'x' }, keyword: 'y' })
     ).rejects.toThrow(/invalid/i)
     expect(runSearch).not.toHaveBeenCalled()
+  })
+
+  it('returns the valid search rows and what the saved source would drop', async () => {
+    const row = { indexedId: '1', title: 'Frieren', providerIds: { id: 1 } }
+    vi.spyOn(ManifestRunner.prototype, 'runSearch').mockResolvedValue([
+      row,
+      { ...row, indexedId: 2 },
+    ])
+
+    const result = await new ManifestSandbox().search({
+      manifest: makeManifest(),
+      keyword: 'frieren',
+    })
+
+    expect(result).toEqual({
+      rows: [row],
+      dropped: {
+        count: 1,
+        firstIssue:
+          '[1] indexedId: Invalid input: expected string, received number',
+      },
+    })
+  })
+
+  it('fails like the saved source when no episode is valid', async () => {
+    vi.spyOn(ManifestRunner.prototype, 'runEpisodes').mockResolvedValue([
+      { title: 'no ids' },
+    ])
+
+    await expect(
+      new ManifestSandbox().episodes({
+        manifest: makeManifest(),
+        providerIds: { seasonId: 7 },
+      })
+    ).rejects.toThrow(/^Manifest mine:one episodes output has no valid rows/)
+  })
+
+  it('reports dropped comments next to the count', async () => {
+    vi.spyOn(ManifestRunner.prototype, 'runDanmaku').mockResolvedValue([
+      { p: '1,1,16777215', m: 'a' },
+      { p: 'garbage', m: 'b' },
+    ])
+
+    const result = await new ManifestSandbox().danmaku({
+      manifest: makeManifest(),
+      providerIds: { cid: 9 },
+    })
+
+    expect(result.commentCount).toBe(1)
+    expect(result.dropped?.count).toBe(1)
   })
 })

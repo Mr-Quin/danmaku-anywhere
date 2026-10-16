@@ -8,6 +8,7 @@ import type {
 import type { Result } from '@danmaku-anywhere/result'
 import { getDisplayStrings } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
+import { z } from 'zod'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
@@ -39,6 +40,7 @@ import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { OmitSeasonId } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
 import { type CatalogSync, ManifestRegistry } from './ManifestRegistry'
+import { parseOutputValue } from './manifestOutput'
 import { SourceCapabilityService } from './SourceCapabilityService'
 
 function enrichEpisode(
@@ -134,6 +136,15 @@ export class ProviderService {
   async fetchEpisodesBySeason(
     seasonId: number
   ): Promise<WithSeason<EpisodeMeta>[]> {
+    const { episodes } = await this.fetchEpisodeListBySeason(seasonId)
+    return episodes
+  }
+
+  // Also says whether the source dropped invalid rows, for callers that would
+  // otherwise read a shorter list as episodes the source no longer has.
+  async fetchEpisodeListBySeason(
+    seasonId: number
+  ): Promise<{ episodes: WithSeason<EpisodeMeta>[]; partial: boolean }> {
     const season = await this.seasonService.mustGetById(seasonId)
 
     const providerConfig = await this.getConfigForSeason(season)
@@ -142,8 +153,11 @@ export class ProviderService {
       providerConfig,
       'episodes'
     )
-    const episodes = await service.getEpisodes(season.providerIds)
-    return episodes.map((episode) => enrichEpisode(episode, season))
+    const { episodes, partial } = await service.getEpisodes(season.providerIds)
+    return {
+      episodes: episodes.map((episode) => enrichEpisode(episode, season)),
+      partial,
+    }
   }
 
   async refreshSeason(filter: SeasonQueryFilter) {
@@ -264,9 +278,16 @@ export class ProviderService {
     )
   }
 
-  async probeLogin<T = unknown>(manifestId: string): Promise<T | null> {
+  async probeLogin(manifestId: string): Promise<boolean | null> {
     const runner = await this.manifestRegistry.getRunner(manifestId)
-    return runner.runLoginProbe<T>(undefined, MANIFEST_RUN_OPTIONS)
+    const output = await runner.runLoginProbe(undefined, MANIFEST_RUN_OPTIONS)
+    if (output === null) {
+      return null
+    }
+    return parseOutputValue(z.boolean(), output, {
+      manifestId,
+      pipeline: 'loginProbe',
+    })
   }
 
   // Resolves whether a manifest-driven source needs a login/cookie action so
@@ -286,7 +307,7 @@ export class ProviderService {
       return { hasLoginProbe: false, cookieSet, ok: true }
     }
     try {
-      const ok = await this.probeLogin<boolean>(manifestId)
+      const ok = await this.probeLogin(manifestId)
       return { hasLoginProbe: true, cookieSet, ok: ok ?? false }
     } catch (e) {
       this.logger.error('loginProbe failed', manifestId, e)
@@ -312,6 +333,11 @@ export class ProviderService {
       }
     }
     await this.manifestRegistry.unregister(manifestId)
+  }
+
+  // Configs stay; they point at the manifest id, not the copy.
+  async reinstallManifest(manifestId: string): Promise<void> {
+    await this.manifestRegistry.reinstall(manifestId)
   }
 
   // Lists every registered manifest plus the last catalog-check timestamp so

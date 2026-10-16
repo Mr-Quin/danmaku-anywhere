@@ -141,7 +141,7 @@ Well-named identifiers are the WHAT. Comment only the WHY, and only when WHY is 
 
 The fixture seeds the manifest store from the default catalog at boot (before the test body runs), and `applyProfile` clears storage. So a spec that seeds a *stale* manifest via `rawStorage` races the boot seed: under load, boot can overwrite your stale seed with the real version, and the spec flakes (the "update available" never appears). Don't seed staleness into storage.
 
-The deterministic pattern for an update-flow spec: seed the store at the manifest's *real* version (`manifestStoreSeed`), and make the catalog advertise a newer one (`mockCatalog(ids, { id: '9.9.9' })`). The boot seed and your seed agree on the real version, so the race is benign; the "available update" comes from the catalog, whose request happens at popup time against the bumped mock. See `e2e/specs/sources/updates.spec.ts`.
+The deterministic pattern for an update-flow spec: seed the store at the manifest's *real* version (`manifestStoreSeed`), and make the catalog advertise a newer one (`mockCatalog({ ids, versions: { id: '9.9.9' } })`). The boot seed and your seed agree on the real version, so the race is benign; the "available update" comes from the catalog, whose request happens at popup time against the bumped mock. See `e2e/specs/sources/updates.spec.ts`.
 
 ## Baselines
 

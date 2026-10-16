@@ -186,3 +186,70 @@ describe('BookmarkService.deleteByProviderConfig', () => {
     expect(await db.season.get(deleted)).toBeDefined()
   })
 })
+
+describe('BookmarkService.refresh', () => {
+  let db: DanmakuAnywhereDb
+  let service: BookmarkService
+
+  beforeEach(async () => {
+    await Dexie.delete(DANMAKU_DB_NAME)
+    db = new DanmakuAnywhereDb()
+    await db.open()
+    service = new BookmarkService(db)
+  })
+
+  afterEach(async () => {
+    db.close()
+    await Dexie.delete(DANMAKU_DB_NAME)
+  })
+
+  async function refreshWith(
+    stored: EpisodeStub[],
+    fresh: EpisodeStub[],
+    partial: boolean
+  ): Promise<string[]> {
+    const seasonId = await db.season.add(makeSeasonRow({}))
+    const id = await db.bookmark.add({
+      seasonId,
+      episodes: stored,
+      lastRefreshed: 0,
+      timeUpdated: 0,
+      version: 1,
+    })
+    const provider = {
+      fetchEpisodeListBySeason: vi.fn<
+        ProviderService['fetchEpisodeListBySeason']
+      >(async () => ({
+        episodes: fresh.map(
+          (episode) => ({ ...episode, seasonId }) as WithSeason<EpisodeMeta>
+        ),
+        partial,
+      })),
+    }
+    const refreshed = await service.refresh(
+      id,
+      provider as unknown as ProviderService // lint-specs-allow-cast: ProviderService has private fields; double only implements the method refresh calls
+    )
+    return refreshed.episodes.map((episode) => episode.indexedId)
+  }
+
+  it('replaces the stored stubs with a complete refresh, dropping removed episodes', async () => {
+    expect(
+      await refreshWith(
+        [stub('a', 1), stub('b', 2), stub('c', 3)],
+        [stub('a', 1), stub('c', 3)],
+        false
+      )
+    ).toEqual(['a', 'c'])
+  })
+
+  it('keeps stored stubs a partial refresh is missing and adds new ones', async () => {
+    expect(
+      await refreshWith(
+        [stub('a', 1), stub('b', 2)],
+        [stub('a', 1), stub('c', 3), stub('d', 4)],
+        true
+      )
+    ).toEqual(['a', 'b', 'c', 'd'])
+  })
+})

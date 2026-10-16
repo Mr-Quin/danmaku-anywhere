@@ -44,7 +44,7 @@ test('a failed update marks the row and Retry applies it once the outage clears'
     rawStorage: [
       { area: 'local', key: 'manifests', value: manifestStoreSeed() },
     ],
-    network: [mockCatalog(undefined, { bilibili: BUMPED })],
+    network: [mockCatalog({ versions: { bilibili: BUMPED } })],
   })
 
   // Registered after applyProfile so it shadows the catalog mock's file
@@ -94,7 +94,7 @@ test('a failed update keeps its row when the whole catalog is unreachable', asyn
     rawStorage: [
       { area: 'local', key: 'manifests', value: manifestStoreSeed() },
     ],
-    network: [mockCatalog(undefined, { bilibili: BUMPED })],
+    network: [mockCatalog({ versions: { bilibili: BUMPED } })],
   })
 
   // Registered after applyProfile so it shadows the whole catalog mock

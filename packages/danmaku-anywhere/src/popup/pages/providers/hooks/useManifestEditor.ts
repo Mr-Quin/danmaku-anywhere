@@ -69,6 +69,22 @@ export const useDeleteUserManifest = () => {
   })
 }
 
+export const useReinstallManifest = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (manifestId: string) =>
+      chromeRpcClient.providerReinstallManifest({ manifestId }),
+    onSuccess: (_data, manifestId) => {
+      void queryClient.invalidateQueries({
+        queryKey: sourceQueryKeys.manifestLists(),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: sourceQueryKeys.manifestSource(manifestId),
+      })
+    },
+  })
+}
+
 export const useManifestTestRun = () => {
   const search = useMutation({
     mutationFn: async (input: ManifestTestSearchInput) =>

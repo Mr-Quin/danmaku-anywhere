@@ -16,7 +16,13 @@ function manifestFile(id: string): string {
   return `src/manifests/${id}.json`
 }
 
-function loadManifest(id: string): { apiVersion: number; version: string } {
+interface CatalogManifest {
+  apiVersion: number
+  version: string
+  minEngineVersion?: string
+}
+
+function loadManifest(id: string): CatalogManifest {
   const resolved = nodeRequire.resolve(
     `@mr-quin/dango-manifests/manifests/${id}.json`
   )
@@ -58,18 +64,33 @@ export function manifestStoreSeed(
   )
 }
 
-// Defaults to the built-in three. Pass extra ids to seed catalog-only sources
-// (registered but unconfigured) so a spec can exercise the import flow.
-// versionOverrides bumps a manifest's version in both the index and its file,
-// so a store seeded at the real version sees an available update.
-export function mockCatalog(
-  ids: readonly string[] = CATALOG_IDS,
-  versionOverrides: Record<string, string> = {}
-): NetworkMock {
+export interface MockCatalogOptions {
+  // Defaults to the built-in three. Extra ids seed catalog-only sources
+  // (registered but unconfigured) so a spec can exercise the import flow.
+  ids?: readonly string[]
+  // Bumps a manifest's version in both the index and its file, so a store
+  // seeded at the real version sees an available update.
+  versions?: Record<string, string>
+  // Sets the engine a manifest requires, in both the index and its file.
+  minEngineVersions?: Record<string, string>
+}
+
+export function mockCatalog({
+  ids = CATALOG_IDS,
+  versions = {},
+  minEngineVersions = {},
+}: MockCatalogOptions = {}): NetworkMock {
   const manifests = ids.map((id) => {
-    const manifest = loadManifest(id)
-    const version = versionOverrides[id]
-    return { id, manifest: version ? { ...manifest, version } : manifest }
+    const manifest = { ...loadManifest(id) }
+    const version = versions[id]
+    if (version) {
+      manifest.version = version
+    }
+    const minEngineVersion = minEngineVersions[id]
+    if (minEngineVersion) {
+      manifest.minEngineVersion = minEngineVersion
+    }
+    return { id, manifest }
   })
 
   const files: Record<string, unknown> = Object.fromEntries(
@@ -81,6 +102,7 @@ export function mockCatalog(
     manifests: manifests.map(({ id, manifest }) => ({
       id,
       apiVersion: manifest.apiVersion,
+      minEngineVersion: manifest.minEngineVersion,
       version: manifest.version,
       file: manifestFile(id),
     })),

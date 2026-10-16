@@ -15,6 +15,13 @@ export interface SeasonSearchParams {
   keyword: string
 }
 
+export interface EpisodeList {
+  episodes: OmitSeasonId<EpisodeMeta>[]
+  // The source returned rows that were dropped as invalid, so the list may
+  // be missing episodes the source has.
+  partial: boolean
+}
+
 export interface ParseUrlResult {
   episodeMeta: OmitSeasonId<EpisodeMeta>
   seasonInsert: SeasonInsert
@@ -41,9 +48,7 @@ export interface SourceProvider extends ProviderBase {
     seasonRemoteIds: Season['providerIds']
   ): Promise<SeasonInsert | null>
 
-  getEpisodes(
-    seasonRemoteIds: Season['providerIds']
-  ): Promise<OmitSeasonId<EpisodeMeta>[]>
+  getEpisodes(seasonRemoteIds: Season['providerIds']): Promise<EpisodeList>
 
   getDanmaku(request: DanmakuFetchByMeta): Promise<CommentEntity[]>
 

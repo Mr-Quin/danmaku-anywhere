@@ -33,6 +33,7 @@ manifestRouter.get(
                     name: z.string(),
                     version: z.string(),
                     apiVersion: z.number(),
+                    minEngineVersion: z.string().optional(),
                     file: z.string(),
                   })
                 ),

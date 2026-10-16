@@ -56,10 +56,10 @@ async function fireCatalogSyncAlarm(context: BrowserContext): Promise<void> {
 }
 
 async function recoverCatalog(context: BrowserContext): Promise<void> {
-  const recovered = mockCatalog(
-    ['dandanplay', 'bilibili', 'tencent', 'iqiyi'],
-    { iqiyi: BUMPED }
-  )
+  const recovered = mockCatalog({
+    ids: ['dandanplay', 'bilibili', 'tencent', 'iqiyi'],
+    versions: { iqiyi: BUMPED },
+  })
   await context.route(recovered.pattern, recovered.respond)
 }
 

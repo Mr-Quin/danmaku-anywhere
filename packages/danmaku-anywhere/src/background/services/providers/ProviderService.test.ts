@@ -38,6 +38,7 @@ import { silentLogger } from '@/tests/silentLogger'
 import type { SourceProvider } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
 import { ManifestRegistry } from './ManifestRegistry'
+import { ManifestOutputError } from './manifestErrors'
 import { DanmakuProviderFactory } from './ProviderFactory'
 import { ProviderService } from './ProviderService'
 
@@ -93,7 +94,7 @@ function makeProvider(overrides: Partial<ProviderDouble> = {}): ProviderDouble {
     kind: 'source',
     getStatus: available(MANIFEST_CAPABILITIES),
     search: vi.fn(async () => []),
-    getEpisodes: vi.fn(async () => []),
+    getEpisodes: vi.fn(async () => ({ episodes: [], partial: false })),
     getDanmaku: vi.fn(async () => []),
     ...overrides,
   }
@@ -222,9 +223,24 @@ describe('ProviderService.probeLogin', () => {
       registry: { getRunner },
     })
 
-    await service.probeLogin('dandanplay')
+    expect(await service.probeLogin('dandanplay')).toBe(true)
 
     expect(runLoginProbe).toHaveBeenCalledWith(undefined, MANIFEST_RUN_OPTIONS)
+  })
+
+  it('rejects a probe output that is not a boolean', async () => {
+    const runLoginProbe = vi.fn(async () => ({ isLogin: true }))
+    const getRunner = vi.fn<ManifestRegistry['getRunner']>(
+      async () => ({ runLoginProbe }) as unknown as ManifestRunner // lint-specs-allow-cast: generic method signature, see the test above
+    )
+    const service = buildService({
+      factory: vi.fn(() => makeProvider()),
+      registry: { getRunner },
+    })
+
+    await expect(service.probeLogin('bilibili')).rejects.toThrow(
+      ManifestOutputError
+    )
   })
 })
 
@@ -300,7 +316,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
   describe('fetchEpisodesBySeason', () => {
     it('fetches episodes for a generic catalog source without throwing', async () => {
       const provider = makeProvider({
-        getEpisodes: vi.fn(async () => []),
+        getEpisodes: vi.fn(async () => ({ episodes: [], partial: false })),
       })
       const { service } = build(makeConfig('iqiyi'), provider)
 
