@@ -7,7 +7,6 @@ import {
   type AppErrorParams,
   type AppErrorParamsArg,
   type ErrorTarget,
-  type SourceRef,
 } from './AppError'
 import { errorMessage } from './errorMessage'
 
@@ -19,17 +18,13 @@ type MessageTable = {
   [C in AppErrorCode]: (params: AppErrorParams[C]) => string
 }
 
-function sourceName(source: SourceRef): string {
-  return source.name
-}
-
 function targetName(target: ErrorTarget | undefined): string {
   if (target === undefined) {
     return i18n.t('appError.target.server', 'the server')
   }
   switch (target.kind) {
     case 'source':
-      return sourceName(target.ref)
+      return target.ref.name
     case 'catalog':
       return i18n.t('appError.target.catalog', 'the source catalog')
     case 'cloud':
@@ -82,7 +77,7 @@ const MESSAGES: MessageTable = {
     return i18n.t(
       'appError.hostNotAllowed',
       '{{source}} tried to reach a site it is not allowed to use.',
-      { source: sourceName(source) }
+      { source: source.name }
     )
   },
   'rpc.unreachable': () => {
@@ -104,7 +99,7 @@ const MESSAGES: MessageTable = {
     )
   },
   'source.unavailable': ({ source, reason }) => {
-    const name = sourceName(source)
+    const name = source.name
     switch (reason) {
       case 'not-registered':
         return i18n.t(
@@ -128,28 +123,28 @@ const MESSAGES: MessageTable = {
   },
   'source.searchUnsupported': ({ source }) => {
     return i18n.t('appError.searchUnsupported', '{{source}} cannot search.', {
-      source: sourceName(source),
+      source: source.name,
     })
   },
   'source.episodesUnsupported': ({ source }) => {
     return i18n.t(
       'appError.episodesUnsupported',
       '{{source}} cannot list episodes.',
-      { source: sourceName(source) }
+      { source: source.name }
     )
   },
   'source.danmakuUnsupported': ({ source }) => {
     return i18n.t(
       'appError.danmakuUnsupported',
       '{{source}} cannot fetch danmaku.',
-      { source: sourceName(source) }
+      { source: source.name }
     )
   },
   'source.seasonRefreshUnsupported': ({ source }) => {
     return i18n.t(
       'appError.seasonRefreshUnsupported',
       '{{source}} cannot refresh season details.',
-      { source: sourceName(source) }
+      { source: source.name }
     )
   },
   'source.noDanmaku': ({ title }) => {
@@ -193,7 +188,7 @@ const MESSAGES: MessageTable = {
       return i18n.t(
         'appError.sourceBadOutput',
         "{{source}} sent data this version can't read. It may have changed.",
-        { source: sourceName(source) }
+        { source: source.name }
       )
     }
     return i18n.t(
@@ -225,13 +220,10 @@ const MESSAGES: MessageTable = {
     )
   },
   'catalog.applyFailed': ({ sources }) => {
-    const names = sources.map((source) => {
-      return sourceName({ providerConfigId: source.manifestId, ...source })
-    })
     return i18n.t(
       'appError.catalogApplyFailed',
       "Couldn't update {{sources}}. Try again later.",
-      { sources: formatList(names) }
+      { sources: formatList(sources.map((source) => source.name)) }
     )
   },
   'config.duplicate': ({ manifestId }) => {
