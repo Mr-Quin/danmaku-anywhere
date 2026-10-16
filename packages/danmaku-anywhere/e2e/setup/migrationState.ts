@@ -6,6 +6,8 @@ import { extensionOptionsSchema } from '../../src/common/options/extensionOption
 import { zIntegration } from '../../src/common/options/integrationPolicyStore/schema'
 import { namingRuleOptionsSchema } from '../../src/common/options/localMatchingRule/schema'
 import { mountConfigInputListSchema } from '../../src/common/options/mountConfig/schema'
+import { decodeEnvelope } from '../../src/common/options/OptionsService/storeLayout'
+import { OPTION_STORES as OPTION_STORE_LAYOUTS } from '../../src/common/options/optionStores'
 import { providerConfigSchema } from '../../src/common/options/providerConfig/schema'
 
 const OPTION_STORES = {
@@ -40,20 +42,22 @@ const CURRENT_SCHEMAS: Partial<Record<OptionStoreName, z.ZodType>> = {
 export async function readOptionsSnapshot(
   page: Page
 ): Promise<OptionsSnapshot> {
-  return page.evaluate(async (stores) => {
+  const areas = await page.evaluate(async () => {
     const [sync, local] = await Promise.all([
       chrome.storage.sync.get(null),
       chrome.storage.local.get(null),
     ])
-    const out: Record<string, unknown> = {}
-    for (const [name, { area, key }] of Object.entries(stores)) {
-      const value = area === 'sync' ? sync[key] : local[key]
-      if (value !== undefined) {
-        out[name] = value
-      }
+    return { sync, local }
+  })
+  const out: OptionsSnapshot = {}
+  for (const [name, { area, key }] of Object.entries(OPTION_STORES)) {
+    const layout = OPTION_STORE_LAYOUTS.find((store) => store.key === key)
+    const envelope = decodeEnvelope({ key, parts: layout?.parts }, areas[area])
+    if (envelope !== undefined) {
+      out[name as OptionStoreName] = envelope
     }
-    return out as OptionsSnapshot
-  }, OPTION_STORES)
+  }
+  return out
 }
 
 // Maps each store that is missing or fails its current schema to the zod

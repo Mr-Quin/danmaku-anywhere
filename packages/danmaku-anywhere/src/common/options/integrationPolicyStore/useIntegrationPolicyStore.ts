@@ -6,7 +6,6 @@ import type {
   IntegrationInput,
 } from '@/common/options/integrationPolicyStore/schema'
 import { MountConfigService } from '@/common/options/mountConfig/service'
-import type { Options } from '@/common/options/OptionsService/types'
 import { integrationPolicyDescriptor } from '@/common/options/optionStores'
 import { useOptionStoreQuery } from '@/common/options/useOptionStoreQuery'
 import { createDownload } from '@/common/utils/utils'
@@ -16,7 +15,7 @@ export const useIntegrationPolicyStore = () => {
     data,
     update: updateMutation,
     ...rest
-  } = useOptionStoreQuery<Options<Integration[]>>(integrationPolicyDescriptor)
+  } = useOptionStoreQuery<Integration[]>(integrationPolicyDescriptor)
 
   const mountConfigService = useInjectService(MountConfigService)
 

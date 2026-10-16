@@ -7,7 +7,7 @@ import { useInjectService } from '@/common/hooks/useInjectService'
 import { aiProviderConfigDescriptor } from '@/common/options/optionStores'
 import { useOptionStoreQuery } from '@/common/options/useOptionStoreQuery'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
-import type { AiProviderConfig, AiProviderConfigOptions } from './schema'
+import type { AiProviderConfig } from './schema'
 import { AiProviderConfigService } from './service'
 
 export const useAiProviderConfig = () => {
@@ -15,7 +15,7 @@ export const useAiProviderConfig = () => {
     data: options,
     update,
     ...rest
-  } = useOptionStoreQuery<AiProviderConfigOptions>(aiProviderConfigDescriptor)
+  } = useOptionStoreQuery<AiProviderConfig[]>(aiProviderConfigDescriptor)
 
   const configs: AiProviderConfig[] = options.data || []
 

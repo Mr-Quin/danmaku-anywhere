@@ -13,7 +13,7 @@ import type {
 
 // Read-only: the store's writes go through useEditProviderConfig.
 export const useProviderConfig = () => {
-  const { data: options } = useOptionStoreQuery<ProviderConfigOptions>(
+  const { data: options } = useOptionStoreQuery<ProviderConfig[]>(
     providerConfigDescriptor
   )
 

@@ -24,8 +24,9 @@ import {
  * requests share one run. A run is recorded as running while it is in flight,
  * as failed with its attempt count when it fails, and the record is removed
  * when it succeeds. ensureUpgraded checks storage, not this context's
- * readiness: it skips current stores and a failed run whose retry delay has
- * not passed. upgrade always runs.
+ * readiness: it skips current stores, a failed run whose retry delay has
+ * not passed, and a failure every attempt would repeat. A failed run records
+ * each failed store and its storage problem. upgrade always runs.
  */
 
 interface Counter {
@@ -53,10 +54,9 @@ function setup(keys: string[], bumped: string[] = []) {
     migrations[key] = 0
     const options = new OptionsService<Counter>(
       { waitUntilReady: () => Promise.resolve() },
-      key,
+      { key, area: 'local' },
       { count: 0 },
-      silentLogger,
-      'local'
+      silentLogger
     )
       .version(1, { upgrade: (data) => data })
       .version(2, {
@@ -99,13 +99,13 @@ async function readRaw(key: string) {
   return stored[key]
 }
 
-function failWritesTo(key: string) {
+function failWritesTo(key: string, message = 'IO error') {
   const set = fakeBrowser.storage.local.set.bind(fakeBrowser.storage.local)
   return vi
     .spyOn(fakeBrowser.storage.local, 'set')
     .mockImplementation(async (items) => {
       if (key in items) {
-        throw new Error('QUOTA_BYTES quota exceeded')
+        throw new Error(message)
       }
       return set(items)
     })
@@ -245,6 +245,48 @@ describe('OptionsUpgradeService', () => {
 
     vi.setSystemTime(failedAt + MINUTE)
     await upgrader.ensureUpgraded()
+    expect(migrations.alpha).toBe(2)
+    expect(await readRaw('alpha')).toEqual({ data: { count: 2 }, version: 2 })
+  })
+
+  it('records which store failed and why', async () => {
+    await storeV1('alpha', 1)
+    await storeV1('beta', 5)
+    failWritesTo('beta', 'Resource::kQuotaBytes quota exceeded')
+    const { upgrader, readiness } = setup(['alpha', 'beta'])
+
+    await expect(upgrader.upgrade()).rejects.toThrow(/beta/)
+
+    expect(await readRaw(UPGRADE_RUN_KEY)).toMatchObject({
+      status: 'failed',
+      stores: [{ store: 'beta', problem: 'options.storeFull' }],
+    })
+    readiness.subscribe(() => undefined)
+    await vi.waitFor(() => {
+      expect(readiness.getState()).toMatchObject({
+        status: 'failed',
+        stores: [{ store: 'beta', problem: 'options.storeFull' }],
+      })
+    })
+  })
+
+  it('leaves a failure that would repeat to Retry instead of retrying it on ensureUpgraded', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(0)
+    await storeV1('alpha', 1)
+    const failing = failWritesTo(
+      'alpha',
+      'Resource::kQuotaBytesPerItem quota exceeded'
+    )
+    const { upgrader, migrations } = setup(['alpha'])
+    await expect(upgrader.ensureUpgraded()).rejects.toThrow()
+    failing.mockRestore()
+
+    vi.setSystemTime(1000 * MINUTE)
+    await upgrader.ensureUpgraded()
+    expect(migrations.alpha).toBe(1)
+
+    await upgrader.upgrade()
     expect(migrations.alpha).toBe(2)
     expect(await readRaw('alpha')).toEqual({ data: { count: 2 }, version: 2 })
   })

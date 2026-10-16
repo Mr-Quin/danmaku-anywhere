@@ -69,11 +69,10 @@ export class ProviderConfigService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory<ProviderConfig[]>(
-      providerConfigDescriptor.key,
+      providerConfigDescriptor,
       // Fresh installs start empty and are seeded after the catalog loads.
       [],
-      this.logger,
-      providerConfigDescriptor.area
+      this.logger
     )
       .version(2, {
         upgrade: (data) => {

@@ -141,12 +141,23 @@ function followStorageArea(
   }
 }
 
+// An option store split over several items keeps its chunks under
+// "<key>.<field>.<n>", and a write that only lands chunks still changes what
+// a query of the store reads.
 function readsAnyOf(queryKey: QueryKey, changed: Set<string>): boolean {
   const [head] = queryKey
   if (typeof head !== 'object' || head === null || !('key' in head)) {
     return false
   }
   return toArray(head.key).some((key) => {
-    return key === null || (typeof key === 'string' && changed.has(key))
+    if (key === null) {
+      return true
+    }
+    if (typeof key !== 'string') {
+      return false
+    }
+    return [...changed].some((changedKey) => {
+      return changedKey === key || changedKey.startsWith(`${key}.`)
+    })
   })
 }

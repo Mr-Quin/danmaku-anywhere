@@ -11,6 +11,12 @@ export class OptionsUpgradeScreen {
     return this.page.getByTestId('options-upgrade-failed')
   }
 
+  failedStore(key: string): Locator {
+    return this.failed().locator(
+      `[data-testid="options-upgrade-failed-store"][data-store="${key}"]`
+    )
+  }
+
   retryButton(): Locator {
     return this.failed().getByRole('button', { name: /^(Retry|重试)$/ })
   }

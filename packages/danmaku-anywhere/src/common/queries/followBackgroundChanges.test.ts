@@ -9,10 +9,11 @@ import { seasonQueryKeys, sourceQueryKeys, storageQueryKeys } from './queryKeys'
  * invalidations: a manifest announcement marks the lists, plus pending updates
  * for a catalog change or the per-source queries of the manifests it names,
  * an invalidateQueries event marks the keys it names, and a chrome.storage
- * write marks the queries reading that key in that area. Source capability
- * answers follow a changed manifest and a write to the stored configs or
- * manifests. A change that lands during a query's first fetch still leaves the
- * query stale once it settles.
+ * write marks the queries reading that key in that area, or the store whose
+ * chunk items ("<key>.<field>.<n>") it wrote. Source capability answers
+ * follow a changed manifest and a write to the stored configs or manifests. A
+ * change that lands during a query's first fetch still leaves the query stale
+ * once it settles.
  */
 
 const sender = new BroadcastChannel('danmaku-anywhere:data-change')
@@ -203,6 +204,20 @@ describe('followBackgroundChanges', () => {
     })
     expect(isInvalidated(otherKey)).toBe(false)
     expect(isInvalidated(otherArea)).toBe(false)
+  })
+
+  it('invalidates the queries reading a store when only its chunk items change', async () => {
+    const store = storageQueryKeys.external('sync', ['danmakuOptions'])
+    const lookalike = storageQueryKeys.external('sync', ['danmakuOptionsX'])
+    client.setQueryData(store, {})
+    client.setQueryData(lookalike, {})
+
+    await fakeBrowser.storage.sync.set({ 'danmakuOptions.filters.1': '[]' })
+
+    await vi.waitFor(() => {
+      expect(isInvalidated(store)).toBe(true)
+    })
+    expect(isInvalidated(lookalike)).toBe(false)
   })
 
   it('stops invalidating once unsubscribed', async () => {

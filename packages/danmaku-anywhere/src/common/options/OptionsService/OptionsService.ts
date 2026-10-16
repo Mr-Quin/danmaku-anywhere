@@ -1,9 +1,8 @@
 import { AppError } from '@/common/errors/AppError'
 import type { ILogger } from '@/common/Logger'
-import type { ExtStorageType } from '@/common/storage/getStorageArea'
-import { ExtStorageService } from '../../storage/ExtStorageService'
 import type { ReadinessGate } from '../ReadinessService/ReadinessService'
 import { migrateOptions } from './migrationOptions'
+import { OptionsStorage, type OptionsStorageLocation } from './OptionsStorage'
 import { isStoredAtVersion } from './storedVersion'
 import type {
   DeferredWrite,
@@ -27,22 +26,22 @@ type QueuedOperation<T> = {
 export class OptionsService<T extends OptionsSchema> {
   private versions: Version[] = []
   private readonly logger: ILogger
-  private storageService: ExtStorageService<Options<T>>
+  private readonly storageService: OptionsStorage<T>
   private operationQueue: QueuedOperation<unknown>[] = []
   private isProcessingQueue = false
 
   constructor(
     private readinessService: ReadinessGate,
-    readonly key: string,
+    location: OptionsStorageLocation,
     private defaultOptions: T,
-    logger: ILogger,
-    storageType: ExtStorageType = 'sync'
+    logger: ILogger
   ) {
-    this.storageService = new ExtStorageService<Options<T>>(key, {
-      storageType,
-    })
-    this.logger = logger.sub('[OptionsService]').sub(`[${key}]`)
-    this.setup()
+    this.storageService = new OptionsStorage<T>(location)
+    this.logger = logger.sub('[OptionsService]').sub(`[${location.key}]`)
+  }
+
+  get key(): string {
+    return this.storageService.key
   }
 
   get latestVersion(): number {
@@ -109,7 +108,7 @@ export class OptionsService<T extends OptionsSchema> {
     for (const write of deferred) {
       await write.run()
     }
-    await this.queueOperation(() => this.storageService.set(upgraded))
+    await this.queueOperation(() => this.storageService.write(upgraded))
   }
 
   // Unlike upgrade(), a failing step throws instead of resetting the store to
@@ -127,7 +126,7 @@ export class OptionsService<T extends OptionsSchema> {
   // for writes made while the stores are being upgraded or restored.
   setUnblocked(data: T): Promise<void> {
     return this.queueOperation(() =>
-      this.storageService.set({ data, version: this.latestVersion })
+      this.storageService.write({ data, version: this.latestVersion })
     )
   }
 
@@ -156,7 +155,7 @@ export class OptionsService<T extends OptionsSchema> {
         }
         currentVersion = options.version
       }
-      return this.storageService.set({
+      return this.storageService.write({
         data,
         version: currentVersion,
       })
@@ -203,21 +202,23 @@ export class OptionsService<T extends OptionsSchema> {
       }
       const next = await change(stored.data)
       if (next !== stored.data) {
-        await this.storageService.set({ data: next, version: stored.version })
+        await this.storageService.write({ data: next, version: stored.version })
       }
       return next
     })
   }
 
   onChange(listener: (data: T) => void) {
-    this.storageService.subscribe((options) => {
-      if (!options) return
+    this.storageService.watch((options) => {
+      if (!options) {
+        return
+      }
       listener(options.data)
     })
   }
 
   destroy() {
-    this.storageService.destroy()
+    this.storageService.unwatchAll()
     // Clear the queue and reject any pending operations
     this.operationQueue.forEach((operation) => {
       operation.promise.reject(new Error('OptionsService was destroyed'))
@@ -239,14 +240,10 @@ export class OptionsService<T extends OptionsSchema> {
     return this.storageService.read()
   }
 
-  private setup() {
-    this.storageService.setup()
-  }
-
   // reset options to default, not blocked
   private async reset() {
     return this.queueOperation(async () => {
-      return this.storageService.set({
+      return this.storageService.write({
         data: this.defaultOptions,
         version: this.getLatestVersion().version,
       })
@@ -263,7 +260,7 @@ export class OptionsService<T extends OptionsSchema> {
       }
       currentVersion = options.version
     }
-    return this.storageService.set({
+    return this.storageService.write({
       data,
       version: currentVersion,
     })

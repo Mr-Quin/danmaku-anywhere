@@ -64,10 +64,9 @@ export class MountConfigService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory<MountConfig[]>(
-      mountConfigDescriptor.key,
+      mountConfigDescriptor,
       defaultMountConfig,
-      this.logger,
-      mountConfigDescriptor.area
+      this.logger
     )
       .version(1, {
         upgrade: (data) => data,

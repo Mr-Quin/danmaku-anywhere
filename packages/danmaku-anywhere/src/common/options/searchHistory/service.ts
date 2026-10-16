@@ -41,10 +41,9 @@ export class SearchHistoryService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory(
-      searchHistoryDescriptor.key,
+      searchHistoryDescriptor,
       defaultSearchHistory,
-      this.logger,
-      searchHistoryDescriptor.area
+      this.logger
     ).version(LATEST_SEARCH_HISTORY_VERSION, {
       upgrade: (data) => data,
     })

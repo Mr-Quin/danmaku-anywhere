@@ -2,10 +2,15 @@ import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { getStorageArea } from '@/common/storage/getStorageArea'
 import { tryCatch } from '@/common/utils/tryCatch'
+import { isLayoutKey } from '../OptionsService/storeLayout'
 import {
   type OptionStoreDescriptor,
   OptionStoreDescriptors,
 } from '../optionStores'
+import {
+  parseStoreFailures,
+  type StoreFailure,
+} from '../upgrade/upgradeFailure'
 import { settleRun, staleAt, UPGRADE_RUN_KEY } from '../upgrade/upgradeRun'
 import {
   type OptionStoresStatus,
@@ -15,7 +20,7 @@ import {
 export type ReadinessState =
   | { status: 'pending' }
   | { status: 'ready' }
-  | { status: 'failed'; message: string }
+  | { status: 'failed'; message: string; stores: StoreFailure[] }
 
 export interface ReadinessGate {
   waitUntilReady(): Promise<void>
@@ -29,8 +34,9 @@ const MAX_RETRY_DELAY_MS = 30_000
 /**
  * Whether the option stores can be read in their current shape. Every context
  * derives it from what is stored: ready once each store is at its latest
- * version, failed while the last upgrade attempt is recorded as failed, and
- * pending otherwise. Ready is final for the context.
+ * version, failed while a store split over several items does not add up or
+ * the last upgrade attempt is recorded as failed, and pending otherwise. Ready
+ * is final for the context.
  */
 @injectable('Singleton')
 export class ReadinessService implements ReadinessGate {
@@ -81,14 +87,18 @@ export class ReadinessService implements ReadinessGate {
     }
     this.observing = true
 
-    const watched = new Set([
-      ...this.stores.map((store) => store.key),
-      UPGRADE_RUN_KEY,
-    ])
+    // A store's chunk items count too: one that arrives late completes a
+    // store that read as incomplete.
+    const watches = (key: string) => {
+      return (
+        key === UPGRADE_RUN_KEY ||
+        this.stores.some((store) => isLayoutKey(store, key))
+      )
+    }
     const onChanged = (
       changes: Record<string, chrome.storage.StorageChange>
     ) => {
-      if (Object.keys(changes).some((key) => watched.has(key))) {
+      if (Object.keys(changes).some(watches)) {
         this.scheduleEvaluation()
       }
     }
@@ -186,16 +196,32 @@ function toState(status: OptionStoresStatus, now: number): ReadinessState {
   if (status.current) {
     return READY
   }
+  if (status.incomplete.length > 0) {
+    return {
+      status: 'failed',
+      message: `Incomplete option stores: ${status.incomplete.join(', ')}`,
+      stores: status.incomplete.map((store) => {
+        return { store, problem: 'options.incomplete' }
+      }),
+    }
+  }
   const run = status.run && settleRun(status.run, now)
   if (run?.status === 'failed') {
-    return { status: 'failed', message: run.message }
+    return {
+      status: 'failed',
+      message: run.message,
+      stores: parseStoreFailures(run.stores),
+    }
   }
   return PENDING
 }
 
 function isSameState(a: ReadinessState, b: ReadinessState): boolean {
   if (a.status === 'failed' && b.status === 'failed') {
-    return a.message === b.message
+    return (
+      a.message === b.message &&
+      JSON.stringify(a.stores) === JSON.stringify(b.stores)
+    )
   }
   return a.status === b.status
 }
