@@ -12,8 +12,8 @@ export const useRefreshDanmaku = () => {
 
   const mutation = useFetchDanmakuWithToast()
 
-  const refreshDanmaku = async (episode: WithSeason<EpisodeMeta>) => {
-    return await mutation.mutateAsync(
+  const refreshDanmaku = (episode: WithSeason<EpisodeMeta>) => {
+    mutation.mutate(
       {
         type: 'by-meta',
         meta: episode,

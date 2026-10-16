@@ -22,7 +22,7 @@ export const EpisodeContextMenuContainer = ({
   orphaned,
 }: EpisodeContextMenuContainerProps): ReactElement => {
   const { t } = useTranslation()
-  const { mutateAsync: load, isPending } = useFetchDanmakuWithToast()
+  const { mutate: load, isPending } = useFetchDanmakuWithToast()
   const exportDanmaku = useExportXml()
   const exportBackup = useExportDanmaku()
   const deleteDanmakuMutation = useDeleteEpisode()
@@ -31,12 +31,12 @@ export const EpisodeContextMenuContainer = ({
   const { setViewingDanmaku, contextMenu, setContextMenu } =
     useDanmakuTreeContext()
 
-  const handleFetchDanmaku = async () => {
+  const handleFetchDanmaku = () => {
     if (!isSourceEpisode(episode)) {
       return
     }
 
-    await load({
+    load({
       type: 'by-meta',
       meta: episode,
       options: {
