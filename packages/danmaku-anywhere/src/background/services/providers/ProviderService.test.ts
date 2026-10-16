@@ -138,7 +138,7 @@ function buildService(doubles: ServiceDoubles = {}) {
     { identifier: DanmakuProviderFactory, value: doubles.factory ?? vi.fn() },
     {
       identifier: ManifestRegistry,
-      value: doubles.registry ?? { listManifests: async () => [] },
+      value: doubles.registry ?? { displayNames: async () => new Map() },
     },
     { identifier: BookmarkService, value: doubles.bookmarkService ?? {} },
     {
@@ -205,16 +205,20 @@ function build(
 
   const factory = vi.fn(() => provider)
 
-  const listManifests = vi.fn(() => opts.manifests ?? [])
+  const displayNames = vi.fn(async () => {
+    return new Map(
+      (opts.manifests ?? []).map((manifest) => [manifest.id, manifest.name])
+    )
+  })
   const service = buildService({
     danmakuService,
     seasonService,
     providerConfigService,
     factory,
-    registry: { listManifests },
+    registry: { displayNames },
   })
 
-  return { service, provider, danmakuService, seasonService, listManifests }
+  return { service, provider, danmakuService, seasonService }
 }
 
 describe('ProviderService.probeLogin', () => {
@@ -343,9 +347,9 @@ describe('ProviderService legacy-maccms decoupling', () => {
       })
     })
 
-    it('names a source on the default name in the UI language', async () => {
+    it('names a source on the default name by its manifest name', async () => {
       const config = { ...makeConfig('iqiyi'), customName: null }
-      const { service, listManifests } = build(
+      const { service } = build(
         config,
         makeProvider({
           getStatus: available(capabilitiesFromManifest({ search: {} })),
@@ -357,7 +361,6 @@ describe('ProviderService legacy-maccms decoupling', () => {
         code: 'source.episodesUnsupported',
         params: { source: expect.objectContaining({ name: '爱奇艺' }) },
       })
-      expect(listManifests).toHaveBeenCalledWith('zh-CN')
     })
 
     it('throws a source-removed error when the season is orphaned', async () => {

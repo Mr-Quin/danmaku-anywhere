@@ -1,7 +1,5 @@
 import { inject, injectable } from 'inversify'
 import type { SourceRef } from '@/common/errors/AppError'
-import { toManifestLocale } from '@/common/localization/language'
-import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import {
@@ -14,12 +12,10 @@ import { ManifestRegistry } from './ManifestRegistry'
 export type SourceRefOf = (config: ProviderConfig) => SourceRef
 
 // Errors carry the name the UI shows for a source: its custom name, or its
-// manifest's name in the extension's language.
+// manifest's name as the registry names it.
 @injectable('Singleton')
 export class SourceNames {
   constructor(
-    @inject(ExtensionOptionsService)
-    private readonly extensionOptions: ExtensionOptionsService,
     @inject(ManifestRegistry)
     private readonly manifestRegistry: ManifestRegistry,
     @inject(ProviderConfigService)
@@ -27,13 +23,7 @@ export class SourceNames {
   ) {}
 
   async refs(): Promise<SourceRefOf> {
-    const { lang } = await this.extensionOptions.get()
-    const manifests = await this.manifestRegistry.listManifests(
-      toManifestLocale(lang)
-    )
-    const manifestNames = new Map(
-      manifests.map((manifest) => [manifest.id, manifest.name])
-    )
+    const manifestNames = await this.manifestRegistry.displayNames()
     const configs = await this.providerConfigService.getAll()
     const displayNames = sourceDisplayNames(configs, manifestNames)
     return (config) => {

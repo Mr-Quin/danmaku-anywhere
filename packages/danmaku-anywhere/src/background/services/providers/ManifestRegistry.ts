@@ -18,10 +18,12 @@ import {
 } from '@/common/errors/AppError'
 import { classifyFetchRejection } from '@/common/errors/fetchFailure'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import { toManifestLocale } from '@/common/localization/language'
 import {
   type ManifestChange,
   publishDataChange,
 } from '@/common/messaging/dataChangeChannel'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import {
   bundledCatalogIndex,
   bundledManifestRaw,
@@ -141,7 +143,9 @@ export class ManifestRegistry {
   constructor(
     @inject(LoggerSymbol) logger: ILogger,
     @inject(ManifestStore) store: IManifestStore,
-    @inject(ManifestFetcherSymbol) private readonly fetcher: FetchLike
+    @inject(ManifestFetcherSymbol) private readonly fetcher: FetchLike,
+    @inject(ExtensionOptionsService)
+    private readonly extensionOptions: Pick<ExtensionOptionsService, 'get'>
   ) {
     this.log = logger.sub('[ManifestRegistry]')
     this.store = store
@@ -202,6 +206,14 @@ export class ManifestRegistry {
     return [...available, ...unavailable]
   }
 
+  // Every name the extension shows for a manifest, including the ones in
+  // errors, comes from here: the listed name in the extension's language.
+  async displayNames(): Promise<Map<string, string>> {
+    const { lang } = await this.extensionOptions.get()
+    const manifests = await this.listManifests(toManifestLocale(lang))
+    return new Map(manifests.map((manifest) => [manifest.id, manifest.name]))
+  }
+
   getLastCheckedAt(): Promise<number | null> {
     return this.store.getLastCheckedAt()
   }
@@ -241,7 +253,7 @@ export class ManifestRegistry {
       if (replacement === null) {
         throw new AppError(
           'catalog.applyFailed',
-          { sources: [this.unavailableLabel(manifestId, unavailable)] },
+          { sources: await this.sourceLabels([manifestId]) },
           {
             message: `No working copy of manifest ${manifestId} to reinstall; try again once the catalog is reachable`,
           }
@@ -367,8 +379,8 @@ export class ManifestRegistry {
   // so an apply can never clobber a user manifest or install a brand-new
   // source. Throws on failure (unreachable catalog or a file that did not
   // apply) so a user-driven update surfaces the error instead of silently
-  // no-op'ing. The failure names sources in `locale`.
-  applyUpdates(manifestIds: string[], locale?: string): Promise<void> {
+  // no-op'ing.
+  applyUpdates(manifestIds: string[]): Promise<void> {
     return this.exclusive(async () => {
       await this.whenLoaded()
       const index = await this.loadIndex()
@@ -392,7 +404,7 @@ export class ManifestRegistry {
           .filter((id) => !applied.includes(id))
         throw new AppError(
           'catalog.applyFailed',
-          { sources: failed.map((id) => this.sourceLabel(id, locale)) },
+          { sources: await this.sourceLabels(failed) },
           { message: `Failed to apply updates: ${failed.join(', ')}` }
         )
       }
@@ -745,22 +757,13 @@ export class ManifestRegistry {
     }
   }
 
-  private unavailableLabel(
-    manifestId: string,
-    unavailable: UnavailableManifest
-  ): { manifestId: string; name: string } {
-    return { manifestId, name: unavailable.name }
-  }
-
-  private sourceLabel(
-    manifestId: string,
-    locale: string | undefined
-  ): { manifestId: string; name: string } {
-    const manifest = this.runners.get(manifestId)?.runner.manifest
-    if (manifest === undefined) {
-      return { manifestId, name: manifestId }
-    }
-    return { manifestId, name: getDisplayStrings(manifest, locale).name }
+  private async sourceLabels(
+    manifestIds: string[]
+  ): Promise<{ manifestId: string; name: string }[]> {
+    const names = await this.displayNames()
+    return manifestIds.map((manifestId) => {
+      return { manifestId, name: names.get(manifestId) ?? manifestId }
+    })
   }
 
   // Per-manifest, and runner construction can throw past parsing, so one bad

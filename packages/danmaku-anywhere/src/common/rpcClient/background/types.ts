@@ -278,7 +278,7 @@ export type BackgroundMethods = {
   providerListManifestNames: RPCDef<{ locale?: string }, Record<string, string>>
   providerRefreshCatalog: RPCDef<{ locale?: string }, ProviderManifestList>
   providerGetPendingUpdates: RPCDef<void, ManifestUpdate[]>
-  providerApplyUpdates: RPCDef<{ manifestIds: string[]; locale?: string }, void>
+  providerApplyUpdates: RPCDef<{ manifestIds: string[] }, void>
   providerValidateManifest: RPCDef<
     { manifest: unknown },
     ManifestValidationResult

@@ -160,8 +160,8 @@ export class RpcManager {
       providerGetPendingUpdates: async () => {
         return this.manifestRegistry.getPendingUpdates()
       },
-      providerApplyUpdates: async ({ manifestIds, locale }) => {
-        await this.manifestRegistry.applyUpdates(manifestIds, locale)
+      providerApplyUpdates: async ({ manifestIds }) => {
+        await this.manifestRegistry.applyUpdates(manifestIds)
       },
       providerValidateManifest: async ({ manifest }) => {
         return this.manifestSandbox.validate(manifest)
