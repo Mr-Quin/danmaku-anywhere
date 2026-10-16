@@ -201,7 +201,12 @@ export class ProviderService {
     })
 
     if (existingDanmaku && !options.forceUpdate) {
-      this.logger.debug('Danmaku found in db', existingDanmaku)
+      this.logger.debug('Danmaku found in db', {
+        id: existingDanmaku.id,
+        seasonId: existingDanmaku.seasonId,
+        indexedId: existingDanmaku.indexedId,
+        commentCount: existingDanmaku.commentCount,
+      })
       return { episode: existingDanmaku }
     }
 
