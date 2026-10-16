@@ -25,7 +25,13 @@ import {
 export type ReadinessState =
   | { status: 'pending' }
   | { status: 'ready' }
-  | { status: 'failed'; message: string; stores: StoreFailure[] }
+  | {
+      status: 'failed'
+      message: string
+      stores: StoreFailure[]
+      // Upgrade attempts that failed in a row, 0 when none was recorded
+      attempts: number
+    }
 
 export interface ReadinessGate {
   waitUntilReady(): Promise<void>
@@ -200,6 +206,8 @@ function toState(status: OptionStoresStatus, now: number): ReadinessState {
   if (status.current) {
     return READY
   }
+  const run = failedOnThisBuild(status.run, now)
+  const attempts = run?.attempts ?? 0
   if (status.incomplete.length > 0) {
     return {
       status: 'failed',
@@ -207,14 +215,15 @@ function toState(status: OptionStoresStatus, now: number): ReadinessState {
       stores: status.incomplete.map((store) => {
         return { store, problem: 'options.incomplete' }
       }),
+      attempts,
     }
   }
-  const run = failedOnThisBuild(status.run, now)
   if (run) {
     return {
       status: 'failed',
       message: run.message,
       stores: parseStoreFailures(run.stores),
+      attempts,
     }
   }
   return PENDING
@@ -224,6 +233,7 @@ function isSameState(a: ReadinessState, b: ReadinessState): boolean {
   if (a.status === 'failed' && b.status === 'failed') {
     return (
       a.message === b.message &&
+      a.attempts === b.attempts &&
       JSON.stringify(a.stores) === JSON.stringify(b.stores)
     )
   }

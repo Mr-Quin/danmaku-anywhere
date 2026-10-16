@@ -13,23 +13,11 @@ import {
   type OptionsUpgrader,
   OptionsUpgraderSymbol,
 } from '@/common/options/upgrade/OptionsUpgrader'
-import type {
-  StoreFailure,
-  UpgradeProblem,
+import {
+  canResetStore,
+  type StoreFailure,
 } from '@/common/options/upgrade/upgradeFailure'
 import { downloadRecoveryCopy } from './downloadRecoveryCopy'
-
-// Failures the user has no other way out of. One that can pass on its own
-// gets Retry only.
-const RESETTABLE_PROBLEMS: readonly UpgradeProblem[] = [
-  'options.migration',
-  'options.itemTooLarge',
-  'options.storeFull',
-]
-
-function canReset(problem: UpgradeProblem): boolean {
-  return RESETTABLE_PROBLEMS.includes(problem)
-}
 
 function describeFailure({ store, problem }: StoreFailure): string {
   if (problem === 'unknown') {
@@ -49,6 +37,7 @@ export function OptionsUpgradeFailed() {
   const dialog = useDialog()
   const readiness = useOptionsReadiness()
   const failures = readiness.status === 'failed' ? readiness.stores : []
+  const failedAttempts = readiness.status === 'failed' ? readiness.attempts : 0
   const upgrader = useInjectService<OptionsUpgrader>(OptionsUpgraderSymbol)
   const retry = useMutation({
     mutationFn: () => upgrader.upgrade(),
@@ -108,7 +97,7 @@ export function OptionsUpgradeFailed() {
                     >
                       {describeFailure(failure)}
                     </Typography>
-                    {canReset(failure.problem) && (
+                    {canResetStore(failure, failedAttempts) && (
                       <Button
                         size="small"
                         color="warning"

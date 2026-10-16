@@ -108,6 +108,7 @@ describe('ReadinessService', () => {
       status: 'failed',
       message: 'QUOTA_BYTES quota exceeded',
       stores: [],
+      attempts: 1,
     })
   })
 
@@ -157,6 +158,33 @@ describe('ReadinessService', () => {
 
     await vi.waitFor(() => {
       expect(readiness.getState()).toEqual({ status: 'ready' })
+    })
+  })
+
+  it('counts the failed attempts of a store that stays incomplete', async () => {
+    const split: OptionStoreDescriptor = {
+      key: 'split',
+      area: 'sync',
+      latestVersion: 2,
+      parts: ['list'],
+    }
+    const items = encodeEnvelope(
+      split,
+      { data: { list: 'x'.repeat(9000) }, version: 2 },
+      {}
+    )
+    await fakeBrowser.storage.sync.set({ ...items, 'split.list.1': 'torn' })
+    await recordRun({
+      ...failedRun,
+      attempts: 2,
+      stores: [{ store: 'split', problem: 'options.incomplete' }],
+    })
+    const readiness = createReadiness([split])
+
+    expect(await settledState(readiness)).toMatchObject({
+      status: 'failed',
+      stores: [{ store: 'split', problem: 'options.incomplete' }],
+      attempts: 2,
     })
   })
 
