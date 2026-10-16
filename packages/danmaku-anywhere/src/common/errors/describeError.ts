@@ -378,6 +378,13 @@ const MESSAGES: MessageTable = {
       'This version of Danmaku Anywhere cannot read this backup format.'
     )
   },
+  'backup.recoveryUnrestorable': ({ store }) => {
+    return i18n.t(
+      'appError.backupRecoveryUnrestorable',
+      'This recovery file of {{name}} holds data that cannot be restored, such as settings that were saved incomplete. Keep it for reference.',
+      { name: localizedStoreName(store) }
+    )
+  },
   'mount.noActiveFrame': () => {
     return i18n.t('appError.mountNoActiveFrame', 'Video is not detected.')
   },

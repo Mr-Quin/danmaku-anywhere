@@ -165,6 +165,7 @@ const PARAMS = {
   'backup.notJson': zNoParams,
   'backup.invalidFormat': zNoParams,
   'backup.unsupportedVersion': zNoParams,
+  'backup.recoveryUnrestorable': zStore,
   'mount.noActiveFrame': zNoParams,
   'mount.failed': zNoParams,
   'shareCode.invalid': zNoParams,

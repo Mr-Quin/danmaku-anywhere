@@ -99,6 +99,7 @@ const PARAMS: { [C in keyof AppErrorParams]: AppErrorParams[C] } = {
   'backup.notJson': {},
   'backup.invalidFormat': {},
   'backup.unsupportedVersion': {},
+  'backup.recoveryUnrestorable': { store: 'danmakuOptions' },
   'mount.noActiveFrame': {},
   'mount.failed': {},
   'shareCode.invalid': {},

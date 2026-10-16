@@ -14,7 +14,8 @@ import { ConfigStateService } from './ConfigStateService'
  * and the result reports each store's outcome. Over real storage, a store
  * whose write fails is reported with the storage error while the others report
  * their own outcome, and an export fails on a read error instead of exporting
- * defaults.
+ * defaults. A recovery file restores as a backup of its one store, and one
+ * whose items do not add up is refused.
  */
 
 describe('ConfigStateService', () => {
@@ -635,6 +636,59 @@ describe('ConfigStateService over chrome.storage', () => {
     })
     expect(await readStored('beta')).toEqual({
       data: { value: 'restored' },
+      version: 1,
+    })
+  })
+
+  it('restores a recovery copy as a backup of its one store', async () => {
+    const service = await setup()
+
+    const result = await service.restoreState({
+      id: 'alpha-1',
+      store: 'alpha',
+      savedAt: 12345,
+      envelope: { data: { value: 'recovered' }, version: 1 },
+    })
+
+    expect(result).toEqual({
+      success: true,
+      details: { alpha: { success: true, droppedEntries: 0 } },
+    })
+    expect(await readStored('alpha')).toEqual({
+      data: { value: 'recovered' },
+      version: 1,
+    })
+    expect(await readStored('beta')).toEqual({
+      data: { value: 'stored' },
+      version: 1,
+    })
+  })
+
+  it('refuses a recovery copy whose items do not add up to the store', async () => {
+    const service = await setup()
+
+    const error = await service
+      .restoreState({
+        id: 'alpha-1',
+        store: 'alpha',
+        savedAt: 12345,
+        items: {
+          alpha: {
+            version: 1,
+            data: {},
+            parts: { value: { chunks: 2, hash: '00000000' } },
+          },
+          'alpha.value.0': '"recov',
+        },
+      })
+      .catch((reason: unknown) => reason)
+
+    expect(error).toMatchObject({
+      code: 'backup.recoveryUnrestorable',
+      params: { store: 'alpha' },
+    })
+    expect(await readStored('alpha')).toEqual({
+      data: { value: 'stored' },
       version: 1,
     })
   })
