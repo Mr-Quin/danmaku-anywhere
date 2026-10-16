@@ -480,15 +480,19 @@ export function migrateToCustomNames(
   data: ProviderConfigV5[]
 ): ProviderConfig[] {
   if (!Array.isArray(data)) {
-    return []
+    throw new Error('Stored provider configs are not a list')
   }
+  // Like the flat-shape step, junk that is not a record is skipped, but a
+  // record this step cannot read is damaged data.
   return data.flatMap((record: unknown) => {
+    if (!isRecord(record)) {
+      return []
+    }
     if (
-      !isRecord(record) ||
       typeof record.id !== 'string' ||
       typeof record.manifestId !== 'string'
     ) {
-      return []
+      throw new Error('A stored provider config has no id or manifestId')
     }
     const { name, customName, ...rest } = record
     const isBuiltin =

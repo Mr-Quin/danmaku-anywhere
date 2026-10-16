@@ -2,6 +2,8 @@ import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { MountConfigService } from '@/common/options/mountConfig/service'
+import { BUILTIN_SOURCES } from '@/common/options/providerConfig/builtin'
+import { ProviderConfigWriter } from '@/common/options/providerConfig/ProviderConfigWriter'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
 import { readV150Backup } from '@/tests/v150Backup'
@@ -14,8 +16,9 @@ import { UPGRADE_RUN_KEY } from './upgradeRun'
  * A corrupt store fails the upgrade as a migration failure and is kept byte
  * for byte instead of being reset or losing entries. Resetting it keeps the
  * corrupt data, custom sources included, in the recovery copy and lets the
- * upgrade finish. A split store whose chunks do not add up is kept as its raw
- * items.
+ * upgrade finish, and a reset providerConfig is empty and unseeded, so the
+ * writer's seeding gives it the built-ins again. A split store whose chunks
+ * do not add up is kept as its raw items.
  */
 
 const SYNC_STORES = [
@@ -105,6 +108,11 @@ describe('upgrading v1.5.0 stores with one of them corrupt', () => {
     expect(await container.get(ProviderConfigService).hasSeeded()).toBe(false)
     expect(await readLocal(UPGRADE_RUN_KEY)).toBeUndefined()
     expect(await container.get(MountConfigService).options.getVersion()).toBe(6)
+
+    expect(await container.get(ProviderConfigWriter).seedBuiltins()).toBe(true)
+    expect(
+      (await container.get(ProviderConfigService).getAll()).map((c) => c.id)
+    ).toEqual(BUILTIN_SOURCES.map((source) => source.manifestId))
   })
 
   it('keeps the raw items of a split store that does not add up', async () => {
