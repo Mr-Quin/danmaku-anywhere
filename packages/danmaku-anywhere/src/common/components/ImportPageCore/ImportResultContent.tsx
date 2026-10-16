@@ -20,6 +20,7 @@ import type {
   DanmakuImportData,
   DanmakuImportResult,
 } from '@/common/danmaku/dto'
+import { describeCode, describeError } from '@/common/errors/describeError'
 
 export interface ImportResultContentProps {
   importResult: ImportResultRenderParams<DanmakuImportResult>
@@ -53,7 +54,7 @@ export const ImportResultContent = ({
               <AlertTitle>
                 {t('importPage.parseError', 'Failed to parse file')}
               </AlertTitle>
-              {error?.message}
+              {describeError(error).message}
             </Alert>
           </Stack>
         )
@@ -178,7 +179,12 @@ export const ImportResultContent = ({
                 {result.error.map((item, i) => (
                   <Alert key={i} severity="error" variant="outlined">
                     <AlertTitle>{item.title}</AlertTitle>
-                    {item.message}
+                    {item.reason === 'notDanmaku'
+                      ? describeCode('importFile.notDanmaku')
+                      : t(
+                          'importPage.fileFailed',
+                          "Couldn't import this file."
+                        )}
                   </Alert>
                 ))}
               </Stack>
@@ -194,7 +200,7 @@ export const ImportResultContent = ({
             <AlertTitle>
               {t('error.unknown', 'Something went wrong.')}
             </AlertTitle>
-            {importError?.message}
+            {describeError(importError).message}
           </Alert>
         </Stack>
       )

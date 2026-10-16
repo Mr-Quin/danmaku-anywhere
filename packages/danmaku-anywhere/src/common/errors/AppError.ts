@@ -126,6 +126,8 @@ const PARAMS = {
   'mount.noActiveFrame': zNoParams,
   'mount.failed': zNoParams,
   'shareCode.invalid': zNoParams,
+  'importFile.unreadable': zNoParams,
+  'importFile.notDanmaku': zNoParams,
   'importUrl.invalidUrl': zNoParams,
   'importUrl.invalidScheme': zNoParams,
   'importUrl.unsupportedExtension': zNoParams,

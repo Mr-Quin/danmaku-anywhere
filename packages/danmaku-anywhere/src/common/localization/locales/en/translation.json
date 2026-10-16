@@ -78,6 +78,8 @@
     "http": "Got an error from {{target}} (HTTP {{status}}). Try again later.",
     "httpAuth": "The request to {{target}} was refused (HTTP {{status}}). You may need to sign in.",
     "httpRateLimited": "Too many requests to {{target}}. Wait a moment and try again.",
+    "importFileNotDanmaku": "The file does not hold danmaku or a library backup this version can read.",
+    "importFileUnreadable": "The file is damaged or is not in the format its extension says.",
     "importUrlExtension": "URL must point to a .json, .xml, .bin, or .zip file.",
     "importUrlInvalid": "Not a valid URL.",
     "importUrlScheme": "Only http and https URLs are supported.",
@@ -366,6 +368,7 @@
     "alreadyImported_one": "Skipped {{count}} file already in the library",
     "alreadyImported_other": "Skipped {{count}} files already in the library",
     "confirm": "Confirm Import",
+    "fileFailed": "Couldn't import this file.",
     "help": {
       "dragNDrop1": "Drag and drop files here",
       "dragNDrop2": "Or click to select files"

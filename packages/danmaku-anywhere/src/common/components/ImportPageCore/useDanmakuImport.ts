@@ -3,6 +3,7 @@ import { useMutation } from '@tanstack/react-query'
 import { decodeBilibiliDanmakuProto } from '@/common/components/ImportPageCore/decodeBilibiliDanmakuProto'
 
 import type { DanmakuImportData } from '@/common/danmaku/dto'
+import { AppError } from '@/common/errors/AppError'
 import { useInvalidateSeasonAndEpisode } from '@/common/hooks/useInvalidateSeasonAndEpisode'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
@@ -21,6 +22,18 @@ function isFileValid(file: File) {
 }
 
 async function parseFile(file: File): Promise<unknown> {
+  try {
+    return await decodeFile(file)
+  } catch (e) {
+    throw new AppError(
+      'importFile.unreadable',
+      {},
+      { message: `Could not read ${file.name}`, cause: e }
+    )
+  }
+}
+
+async function decodeFile(file: File): Promise<unknown> {
   const ext = getExtension(file)
   if (ext === '.bin') {
     const buffer = await file.arrayBuffer()

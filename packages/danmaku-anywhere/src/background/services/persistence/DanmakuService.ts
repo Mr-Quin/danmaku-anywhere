@@ -476,17 +476,13 @@ export class DanmakuService {
         // 3. unable to import, return aggregated errors
         errors.push(backupParseResult.skipped)
 
-        results.error.push({
-          title,
-          message: JSON.stringify(errors, null, 2),
-        })
+        this.logger.warn(`Not a danmaku file: ${title}`, errors)
+        results.error.push({ title, reason: 'notDanmaku' })
         return
       })
       if (err) {
-        results.error.push({
-          title,
-          message: err.message,
-        })
+        this.logger.error(`Failed to import ${title}`, err)
+        results.error.push({ title, reason: 'failed' })
       }
     }
 

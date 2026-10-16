@@ -78,6 +78,8 @@
     "http": "{{target}}返回错误（HTTP {{status}}），请稍后重试。",
     "httpAuth": "{{target}}拒绝了请求（HTTP {{status}}），可能需要登录。",
     "httpRateLimited": "对{{target}}的请求过于频繁，请稍候再试。",
+    "importFileNotDanmaku": "文件中没有当前版本能读取的弹幕或弹幕库备份。",
+    "importFileUnreadable": "文件已损坏，或内容与其扩展名不符。",
     "importUrlExtension": "URL 必须指向 .json、.xml、.bin 或 .zip 文件。",
     "importUrlInvalid": "URL 格式不正确。",
     "importUrlScheme": "仅支持 http 和 https URL。",
@@ -357,6 +359,7 @@
   "importPage": {
     "alreadyImported_other": "已跳过 {{count}} 个弹幕库中已有的文件",
     "confirm": "确认导入",
+    "fileFailed": "无法导入此文件。",
     "help": {
       "dragNDrop1": "拖拽文件到此处",
       "dragNDrop2": "或点击此处选择文件"

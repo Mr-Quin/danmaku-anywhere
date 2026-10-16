@@ -93,7 +93,8 @@ export type DanmakuImportResult = {
   }[]
   error: {
     title: string
-    message: string
+    // Described in the UI language at the edge
+    reason: 'notDanmaku' | 'failed'
   }[]
 }
 

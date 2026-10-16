@@ -89,6 +89,8 @@ const PARAMS: { [C in keyof AppErrorParams]: AppErrorParams[C] } = {
   'mount.noActiveFrame': {},
   'mount.failed': {},
   'shareCode.invalid': {},
+  'importFile.unreadable': {},
+  'importFile.notDanmaku': {},
   'importUrl.invalidUrl': {},
   'importUrl.invalidScheme': {},
   'importUrl.unsupportedExtension': {},

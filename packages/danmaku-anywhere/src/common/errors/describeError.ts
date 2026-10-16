@@ -321,6 +321,18 @@ const MESSAGES: MessageTable = {
   'shareCode.invalid': () => {
     return i18n.t('appError.shareCodeInvalid', 'This share code is not valid.')
   },
+  'importFile.unreadable': () => {
+    return i18n.t(
+      'appError.importFileUnreadable',
+      'The file is damaged or is not in the format its extension says.'
+    )
+  },
+  'importFile.notDanmaku': () => {
+    return i18n.t(
+      'appError.importFileNotDanmaku',
+      'The file does not hold danmaku or a library backup this version can read.'
+    )
+  },
   'importUrl.invalidUrl': () => {
     return i18n.t('appError.importUrlInvalid', 'Not a valid URL.')
   },
