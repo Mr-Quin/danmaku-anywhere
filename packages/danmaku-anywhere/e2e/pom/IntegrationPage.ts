@@ -237,4 +237,8 @@ export class IntegrationPage {
   infoPanelTab(): Locator {
     return this.inPlayer('.da-ip-tab')
   }
+
+  floatingButton(): Locator {
+    return this.page.locator('#danmaku-anywhere-controller .MuiFab-root')
+  }
 }
