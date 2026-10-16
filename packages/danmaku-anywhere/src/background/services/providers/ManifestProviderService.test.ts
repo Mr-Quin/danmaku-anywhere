@@ -3,7 +3,11 @@ import {
   EPISODE_SCHEMA_VERSION,
   SEASON_SCHEMA_VERSION,
 } from '@danmaku-anywhere/danmaku-converter'
-import { HostNotAllowedError, type ManifestRunner } from '@mr-quin/dango'
+import {
+  AbortedError,
+  HostNotAllowedError,
+  type ManifestRunner,
+} from '@mr-quin/dango'
 import { describe, expect, it, vi } from 'vitest'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { ILogger } from '@/common/Logger'
@@ -12,6 +16,7 @@ import {
   DANMAKU_RUN_OPTIONS,
   MANIFEST_RUN_OPTIONS,
   ManifestProviderService,
+  SOURCE_RUN_TIMEOUT_MS,
 } from './ManifestProviderService'
 import type { ManifestRegistry } from './ManifestRegistry'
 
@@ -22,7 +27,7 @@ import type { ManifestRegistry } from './ManifestRegistry'
  * reaches the caller. Input precedence is exercised via the configValues path.
  */
 
-const RUN_OPTS = MANIFEST_RUN_OPTIONS
+const RUN_OPTS = expect.objectContaining(MANIFEST_RUN_OPTIONS)
 
 function makeRunner(returns: Record<string, unknown>): ManifestRunner {
   return {
@@ -444,7 +449,7 @@ describe('ManifestProviderService.getDanmaku', () => {
     expect(result).toEqual(raw)
     expect(runner.runDanmaku).toHaveBeenCalledWith(
       { episodeId: 42 },
-      DANMAKU_RUN_OPTIONS
+      expect.objectContaining(DANMAKU_RUN_OPTIONS)
     )
   })
 
@@ -620,6 +625,39 @@ describe('ManifestProviderService run failures', () => {
       silentLogger
     )
   }
+
+  it('codes a run that outlives its budget as a timeout', async () => {
+    vi.useFakeTimers()
+    const runner = makeRunner({})
+    vi.mocked(runner.runSearch).mockImplementation(
+      (_inputs, options) =>
+        new Promise((_resolve, reject) => {
+          options?.signal?.addEventListener('abort', () => {
+            reject(new AbortedError())
+          })
+        })
+    )
+    const svc = new ManifestProviderService(
+      {
+        source: {
+          manifestId: 'bilibili',
+          providerConfigId: 'bilibili',
+          name: 'Bilibili',
+        },
+      },
+      makeRegistry(runner),
+      silentLogger
+    )
+
+    const result = svc.search({ keyword: 'x' }).catch((error) => error)
+    await vi.advanceTimersByTimeAsync(SOURCE_RUN_TIMEOUT_MS)
+
+    expect(await result).toMatchObject({
+      code: 'timeout',
+      params: { target: { kind: 'source', ref: { name: 'Bilibili' } } },
+    })
+    vi.useRealTimers()
+  })
 
   it('codes an engine error with the source name', async () => {
     const engineError = new HostNotAllowedError(

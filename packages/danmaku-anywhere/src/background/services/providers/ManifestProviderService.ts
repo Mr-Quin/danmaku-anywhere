@@ -60,6 +60,10 @@ export interface ManifestProviderConfig {
 // self-hosted local server resolves instead of being blocked.
 export const MANIFEST_RUN_OPTIONS: RunOptions = { allowPrivateHosts: true }
 
+export const SOURCE_RUN_TIMEOUT_MS = 30_000
+// A danmaku run fetches every segment of an episode, so it gets longer.
+export const DANMAKU_RUN_TIMEOUT_MS = 90_000
+
 // A danmaku run fans out across segments; tolerate a failed segment so one
 // missing segment doesn't drop the whole overlay.
 export const DANMAKU_RUN_OPTIONS: RunOptions = {
@@ -164,11 +168,32 @@ export class ManifestProviderService implements SourceProvider {
     return this.registry.getRunner(this.config.source.manifestId)
   }
 
-  private async run<T>(pipeline: () => Promise<T>): Promise<T> {
+  // A source that accepts a request and never answers would otherwise keep
+  // the run, and every caller waiting on it, open indefinitely.
+  private async run<T>(
+    pipeline: (options: RunOptions) => Promise<T>,
+    options: RunOptions,
+    timeoutMs: number
+  ): Promise<T> {
+    const controller = new AbortController()
+    let timedOut = false
+    const timer = setTimeout(() => {
+      timedOut = true
+      controller.abort(new DOMException('source run timed out', 'TimeoutError'))
+    }, timeoutMs)
     try {
-      return await pipeline()
+      return await pipeline({ ...options, signal: controller.signal })
     } catch (e) {
+      if (timedOut) {
+        throw new AppError(
+          'timeout',
+          { target: { kind: 'source', ref: this.config.source } },
+          { cause: e }
+        )
+      }
       throw fromDangoError(e, this.config.source)
+    } finally {
+      clearTimeout(timer)
     }
   }
 
@@ -199,8 +224,10 @@ export class ManifestProviderService implements SourceProvider {
     )
     const runner = await this.getRunner()
     const inputs = this.resolveInputs(runner, { q: params.keyword })
-    const output = await this.run(() =>
-      runner.runSearch(inputs, MANIFEST_RUN_OPTIONS)
+    const output = await this.run(
+      (options) => runner.runSearch(inputs, options),
+      MANIFEST_RUN_OPTIONS,
+      SOURCE_RUN_TIMEOUT_MS
     )
     return this.parseRows('search', zSearchRow, output).rows.map((row) =>
       this.toSeasonInsert(row)
@@ -217,8 +244,10 @@ export class ManifestProviderService implements SourceProvider {
     )
     const runner = await this.getRunner()
     const inputs = this.resolveInputs(runner, seasonRemoteIds)
-    const output = await this.run(() =>
-      runner.runSeason(inputs, MANIFEST_RUN_OPTIONS)
+    const output = await this.run(
+      (options) => runner.runSeason(inputs, options),
+      MANIFEST_RUN_OPTIONS,
+      SOURCE_RUN_TIMEOUT_MS
     )
     // A season pipeline yields nothing when the source no longer has the season.
     if (output === null || output === undefined) {
@@ -237,8 +266,10 @@ export class ManifestProviderService implements SourceProvider {
     )
     const runner = await this.getRunner()
     const inputs = this.resolveInputs(runner, seasonRemoteIds)
-    const output = await this.run(() =>
-      runner.runEpisodes(inputs, MANIFEST_RUN_OPTIONS)
+    const output = await this.run(
+      (options) => runner.runEpisodes(inputs, options),
+      MANIFEST_RUN_OPTIONS,
+      SOURCE_RUN_TIMEOUT_MS
     )
     const now = Date.now()
     const { rows, dropped } = this.parseRows('episodes', zEpisodeRow, output)
@@ -262,8 +293,10 @@ export class ManifestProviderService implements SourceProvider {
       ...meta.params,
       ...meta.providerIds,
     })
-    const output = await this.run(() =>
-      runner.runDanmaku(inputs, DANMAKU_RUN_OPTIONS)
+    const output = await this.run(
+      (options) => runner.runDanmaku(inputs, options),
+      DANMAKU_RUN_OPTIONS,
+      DANMAKU_RUN_TIMEOUT_MS
     )
     // Stricter than dango's zCommentRow: it also rejects comment options the
     // renderer cannot parse.
@@ -298,8 +331,10 @@ export class ManifestProviderService implements SourceProvider {
       url
     )
     const runner = await this.getRunner()
-    const output = await this.run(() =>
-      runner.runParseUrl(url, undefined, MANIFEST_RUN_OPTIONS)
+    const output = await this.run(
+      (options) => runner.runParseUrl(url, undefined, options),
+      MANIFEST_RUN_OPTIONS,
+      SOURCE_RUN_TIMEOUT_MS
     )
     if (output === null) {
       return null

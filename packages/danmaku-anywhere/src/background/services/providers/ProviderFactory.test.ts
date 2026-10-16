@@ -32,7 +32,7 @@ import {
  * configValues; there is no DDP-compat special case.
  */
 
-const RUN_OPTS = MANIFEST_RUN_OPTIONS
+const RUN_OPTS = expect.objectContaining(MANIFEST_RUN_OPTIONS)
 
 const mockRunner = {
   runSearch: vi.fn(async () => []),
