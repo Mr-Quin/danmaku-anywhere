@@ -477,11 +477,22 @@ describe('ProviderConfigWriter.check for restore', () => {
     ).toEqual([undefined, undefined])
   })
 
-  it('keeps a config whose stored manifest needs a newer extension or does not load', async () => {
+  it('keeps a config whose stored manifest needs a newer extension, does not load or runs on the fallback', async () => {
     const { container } = setup()
     const availability = new Map<string, ManifestAvailability>([
       ['future', { status: 'unavailable', reason: 'needs-newer-extension' }],
       ['broken', { status: 'unavailable', reason: 'invalid-manifest' }],
+      [
+        'fallback',
+        {
+          status: 'ok',
+          configSchema: {
+            type: 'object',
+            properties: { baseUrl: { type: 'number' } },
+          },
+          fallback: true,
+        },
+      ],
     ])
     const writer = new ProviderConfigWriter(
       container.get(ProviderConfigService),
@@ -503,8 +514,9 @@ describe('ProviderConfigWriter.check for restore', () => {
         { ...selfHosted, id: 'a', manifestId: 'future' },
         { ...selfHosted, id: 'b', manifestId: 'broken' },
         { ...selfHosted, id: 'c', manifestId: 'not-installed' },
+        { ...selfHosted, id: 'd', manifestId: 'fallback' },
       ])
-    ).toEqual([undefined, undefined, undefined])
+    ).toEqual([undefined, undefined, undefined, undefined])
   })
 
   it('refuses a config its known manifest does not accept, saying why', async () => {

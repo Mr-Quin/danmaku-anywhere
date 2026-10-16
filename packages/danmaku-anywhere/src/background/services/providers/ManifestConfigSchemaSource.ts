@@ -18,6 +18,7 @@ export class ManifestConfigSchemaSource implements IConfigSchemaSource {
       return {
         status: 'ok',
         configSchema: lookup.runner.manifest.configSchema,
+        fallback: lookup.fallback,
       }
     }
     return lookup

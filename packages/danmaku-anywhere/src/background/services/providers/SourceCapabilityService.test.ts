@@ -68,7 +68,7 @@ function build(configs: ProviderConfig[], runners: ManifestRunner[]) {
     if (!runner) {
       return { status: 'unavailable', reason: 'not-registered' }
     }
-    return { status: 'ok', runner }
+    return { status: 'ok', runner, fallback: false }
   })
   const getRunner = vi.fn(async (manifestId: string) => {
     const runner = byId.get(manifestId)

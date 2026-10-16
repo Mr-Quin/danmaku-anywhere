@@ -270,9 +270,10 @@ export class ProviderConfigWriter implements IRestoreListCheck {
   }
 
   // Restore runs entries through the store's backupItemSchema first. A source
-  // whose manifest is not installed, needs a newer extension or does not load
-  // stays and shows as unavailable, since there is no configSchema to check
-  // it against and dropping it would lose the user's settings. Ids key
+  // whose manifest is not installed, needs a newer extension, does not load
+  // or runs on the bundled fallback stays, since there is no configSchema
+  // its settings were written for to check them against, and dropping it
+  // would lose them. Ids key
   // seasons and every write, so of several sources with one id the first that
   // is otherwise valid is restored and the others are refused.
   async check(entries: unknown[]): Promise<(string | undefined)[]> {
@@ -304,7 +305,10 @@ export class ProviderConfigWriter implements IRestoreListCheck {
     const availability = await this.availability(parsed.data.manifestId)
     const issues = checkProviderConfig({
       config: parsed.data,
-      configSchema: configSchemaOf(availability),
+      configSchema:
+        availability.status === 'ok' && !availability.fallback
+          ? availability.configSchema
+          : undefined,
     })
     if (issues.length > 0) {
       return { ok: false, reason: issues.map(describeIssue).join('; ') }
@@ -316,7 +320,11 @@ export class ProviderConfigWriter implements IRestoreListCheck {
     manifestId: string
   ): Promise<ManifestAvailability> {
     if (isLegacyMacCms({ manifestId })) {
-      return { status: 'ok', configSchema: LEGACY_MACCMS_CONFIG_SCHEMA }
+      return {
+        status: 'ok',
+        configSchema: LEGACY_MACCMS_CONFIG_SCHEMA,
+        fallback: false,
+      }
     }
     return this.configSchemaSource.find(manifestId)
   }

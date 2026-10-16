@@ -109,7 +109,8 @@ interface RegisteredManifest {
 }
 
 export type ManifestLookup =
-  | { status: 'ok'; runner: ManifestRunner }
+  // fallback: the bundled copy runs because the stored one cannot
+  | { status: 'ok'; runner: ManifestRunner; fallback: boolean }
   | { status: 'unavailable'; reason: SourceUnavailableReason }
 
 // A stored manifest this build cannot run. It stays in storage untouched, so
@@ -172,7 +173,11 @@ export class ManifestRegistry {
     await this.whenLoaded()
     const registered = this.runners.get(manifestId)
     if (registered) {
-      return { status: 'ok', runner: registered.runner }
+      return {
+        status: 'ok',
+        runner: registered.runner,
+        fallback: this.fallback.has(manifestId),
+      }
     }
     const reason = this.unavailable.get(manifestId)?.reason ?? 'not-registered'
     return { status: 'unavailable', reason }

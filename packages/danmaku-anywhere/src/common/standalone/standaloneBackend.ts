@@ -24,7 +24,7 @@ const configSchemaSource: IConfigSchemaSource = {
     if (bundled === undefined) {
       return { status: 'unavailable', reason: 'not-registered' }
     }
-    return { status: 'ok', configSchema: bundled.configSchema }
+    return { status: 'ok', configSchema: bundled.configSchema, fallback: false }
   },
 }
 
