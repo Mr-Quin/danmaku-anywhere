@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { isCustomEpisode } from '@/common/danmaku/utils'
+import { describeError } from '@/common/errors/describeError'
 import { Logger } from '@/common/Logger'
 import {
   customEpisodeQueryKeys,
@@ -75,7 +76,7 @@ export const useMountDanmakuContent = () => {
     onError: (e) => {
       toast.error(
         t('danmaku.alert.mountError', 'Failed to mount danmaku: {{message}}', {
-          message: (e as Error).message,
+          message: describeError(e).message,
         })
       )
       Logger.debug(e)

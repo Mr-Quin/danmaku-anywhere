@@ -1,5 +1,6 @@
 import { inject, injectable } from 'inversify'
 import { IS_OCCLUSION_SUPPORTED } from '@/common/constants'
+import { errorMessage } from '@/common/errors/errorMessage'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ModelEntry } from '@/common/models/schema'
 import { FrameSource } from './frameSource'
@@ -221,7 +222,7 @@ export class OcclusionService {
       if (this.video === video) {
         this.setRunning(false)
       }
-      const detail = e instanceof Error ? e.message : String(e)
+      const detail = errorMessage(e)
       const reason = /webgpu/i.test(detail) ? 'webgpu' : 'init'
       this.status(reason, `provider init failed: ${detail}`)
       return
@@ -269,9 +270,7 @@ export class OcclusionService {
         await this.segmentAndApply(video)
       } catch (e) {
         if (this.running && this.video === video) {
-          this.recordFrameFailure(
-            `frame failed: ${e instanceof Error ? e.message : e}`
-          )
+          this.recordFrameFailure(`frame failed: ${errorMessage(e)}`)
         }
       } finally {
         this.busy = false
@@ -395,7 +394,7 @@ export class OcclusionService {
       if (e instanceof DOMException && e.name === 'SecurityError') {
         return 'taint'
       }
-      this.log(`capture failed: ${e instanceof Error ? e.message : e}`)
+      this.log(`capture failed: ${errorMessage(e)}`)
       return null
     }
   }

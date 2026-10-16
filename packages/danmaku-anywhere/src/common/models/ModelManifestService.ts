@@ -1,5 +1,6 @@
 import { inject, injectable, optional } from 'inversify'
 import { IS_DA_E2E } from '@/common/constants'
+import { errorMessage } from '@/common/errors/errorMessage'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { BASELINE_MANIFEST, MANIFEST_URL } from './baseline'
 import {
@@ -69,7 +70,7 @@ export class ModelManifestService {
       }
       return modelManifestSchema.parse(await res.json())
     } catch (e) {
-      const detail = e instanceof Error ? e.message : String(e)
+      const detail = errorMessage(e)
       this.logger.debug(`falling back to baseline manifest: ${detail}`)
       // Keep a manifest already resolved this session; only cold-start failures
       // land on the baseline.

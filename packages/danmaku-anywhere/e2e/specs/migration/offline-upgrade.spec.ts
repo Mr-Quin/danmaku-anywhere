@@ -60,7 +60,7 @@ const BUILTIN_MANIFEST_IDS = ['dandanplay', 'bilibili', 'tencent']
 // query each hit the dead index and log their own failure.
 const OFFLINE_ERROR_PATTERNS = [
   /Failed to fetch manifest catalog/,
-  /Error in RPC handler.*Failed to fetch the manifest catalog/,
+  /Error in RPC handler.*message: (network|http|timeout):/,
 ]
 
 test.setTimeout(120_000)

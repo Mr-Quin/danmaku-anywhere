@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { describeKeptStored } from '@/common/danmaku/describeKeptStored'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
-import { describeSourceError } from '@/common/providers/describeSourceError'
+import { describeError } from '@/common/errors/describeError'
 import {
   bookmarkQueryKeys,
   episodeQueryKeys,
@@ -57,7 +57,7 @@ export const useFetchDanmakuWithToast = () => {
       }
     },
     onError: (error) => {
-      toast.error(describeSourceError(error))
+      toast.error(describeError(error).message)
     },
   })
 

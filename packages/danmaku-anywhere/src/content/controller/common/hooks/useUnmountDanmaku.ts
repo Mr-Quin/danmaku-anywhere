@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeError } from '@/common/errors/describeError'
 import { sendUnmount } from '@/content/controller/common/danmakuCommands'
 import { preemptAutomatic } from '@/content/controller/store/automaticPreemption'
 
@@ -21,7 +22,7 @@ export const useUnmountDanmaku = () => {
       toast.info(t('danmaku.alert.unmounted', 'Danmaku Unmounted'))
     },
     onError: (err) => {
-      toast.error(err.message)
+      toast.error(describeError(err).message)
     },
   })
 }

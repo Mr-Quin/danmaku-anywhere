@@ -10,59 +10,13 @@ import { useMutation } from '@tanstack/react-query'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialogStore } from '@/common/components/Dialog/dialogStore'
-import { i18n } from '@/common/localization/i18n'
-import {
-  ImportFromUrlError,
-  type ImportFromUrlErrorCode,
-  validateImportUrl,
-} from './fetchUrlAsFile'
+import { describeCode, describeError } from '@/common/errors/describeError'
+import { validateImportUrl } from './fetchUrlAsFile'
 
 type UrlImportDialogProps = {
   open: boolean
   onClose: () => void
   onSubmit: (url: string, signal: AbortSignal) => Promise<void>
-}
-
-type DisplayedErrorCode = Exclude<ImportFromUrlErrorCode, 'aborted'>
-
-type DisplayedError = {
-  code: DisplayedErrorCode
-  params: Record<string, string | number>
-}
-
-const ERROR_MESSAGE: Record<
-  DisplayedErrorCode,
-  (params: Record<string, string | number>) => string
-> = {
-  invalidUrl: () =>
-    i18n.t('importPage.urlDialog.errors.invalidUrl', 'Not a valid URL.'),
-  invalidScheme: () =>
-    i18n.t(
-      'importPage.urlDialog.errors.invalidScheme',
-      'Only http and https URLs are supported.'
-    ),
-  unsupportedExtension: () =>
-    i18n.t(
-      'importPage.urlDialog.errors.unsupportedExtension',
-      'URL must point to a .json, .xml, .bin, or .zip file.'
-    ),
-  fetchFailed: () =>
-    i18n.t(
-      'importPage.urlDialog.errors.fetchFailed',
-      'Failed to fetch the URL.'
-    ),
-  httpError: (params) =>
-    i18n.t(
-      'importPage.urlDialog.errors.httpError',
-      'Server returned {{status}}.',
-      params
-    ),
-  sizeLimitExceeded: (params) =>
-    i18n.t(
-      'importPage.urlDialog.errors.sizeLimitExceeded',
-      'File is larger than the {{limit}} limit.',
-      params
-    ),
 }
 
 export function UrlImportDialog({
@@ -74,7 +28,7 @@ export function UrlImportDialog({
   const dialogContainer = useDialogStore.use.container()
 
   const [url, setUrl] = useState('')
-  const [error, setError] = useState<DisplayedError | null>(null)
+  const [error, setError] = useState<unknown>(null)
   const controllerRef = useRef<AbortController | null>(null)
 
   const mutation = useMutation({
@@ -83,15 +37,7 @@ export function UrlImportDialog({
       controllerRef.current = controller
       await onSubmit(value, controller.signal)
     },
-    onError: (err) => {
-      if (err instanceof ImportFromUrlError) {
-        if (err.code !== 'aborted') {
-          setError({ code: err.code, params: err.params })
-        }
-        return
-      }
-      setError({ code: 'fetchFailed', params: {} })
-    },
+    onError: setError,
   })
 
   useEffect(() => {
@@ -106,11 +52,17 @@ export function UrlImportDialog({
   const validation = validateImportUrl(url)
   const canSubmit = url.length > 0 && validation.ok && !mutation.isPending
 
-  const validationError: DisplayedError | null =
-    url.length > 0 && !validation.ok
-      ? { code: validation.reason, params: {} }
-      : null
-  const displayedError = error ?? validationError
+  const errorText = describeDisplayedError()
+
+  function describeDisplayedError(): string | null {
+    if (error !== null) {
+      return describeError(error).message
+    }
+    if (url.length > 0 && !validation.ok) {
+      return describeCode(validation.reason)
+    }
+    return null
+  }
 
   const handleSubmit = () => {
     if (!canSubmit) {
@@ -158,15 +110,14 @@ export function UrlImportDialog({
               handleSubmit()
             }
           }}
-          error={displayedError !== null}
+          error={errorText !== null}
           helperText={
             <span data-testid="url-import-helper">
-              {displayedError
-                ? ERROR_MESSAGE[displayedError.code](displayedError.params)
-                : t(
-                    'importPage.urlDialog.urlHelper',
-                    'Direct link to a .json, .xml, .bin, or .zip file'
-                  )}
+              {errorText ??
+                t(
+                  'importPage.urlDialog.urlHelper',
+                  'Direct link to a .json, .xml, .bin, or .zip file'
+                )}
             </span>
           }
           disabled={mutation.isPending}

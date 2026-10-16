@@ -5,13 +5,13 @@ import { generateText, NoObjectGeneratedError, Output } from 'ai'
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
 import { EXTRACT_TITLE_SYSTEM_PROMPT } from '@/common/ai/prompts'
+import { errorMessage } from '@/common/errors/errorMessage'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { BUILT_IN_AI_PROVIDER_ID } from '@/common/options/aiProviderConfig/constant'
 import type { AiProviderConfigInput } from '@/common/options/aiProviderConfig/schema'
 import { AiProviderConfigService } from '@/common/options/aiProviderConfig/service'
 import type { MountConfigAiConfig } from '@/common/options/mountConfig/schema'
 import type { TestAiProviderResponse } from '@/common/rpcClient/background/types'
-import { serializeError } from '@/common/utils/serializeError'
 import { tryCatch } from '@/common/utils/tryCatch'
 import { invariant } from '@/common/utils/utils'
 
@@ -148,7 +148,7 @@ export class GenAIService {
 
       return {
         state: 'error',
-        message: serializeError(err).message,
+        message: errorMessage(err),
       }
     }
 

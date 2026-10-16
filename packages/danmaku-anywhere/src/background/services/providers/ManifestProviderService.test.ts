@@ -3,7 +3,7 @@ import {
   EPISODE_SCHEMA_VERSION,
   SEASON_SCHEMA_VERSION,
 } from '@danmaku-anywhere/danmaku-converter'
-import type { ManifestRunner } from '@mr-quin/dango'
+import { HostNotAllowedError, type ManifestRunner } from '@mr-quin/dango'
 import { describe, expect, it, vi } from 'vitest'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { ILogger } from '@/common/Logger'
@@ -61,8 +61,11 @@ describe('ManifestProviderService.search', () => {
     })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'bilibili',
-        providerConfigId: 'bilibili',
+        source: {
+          manifestId: 'bilibili',
+          providerConfigId: 'bilibili',
+          name: 'Test Source',
+        },
       },
       makeRegistry(runner),
       silentLogger
@@ -85,8 +88,11 @@ describe('ManifestProviderService.search', () => {
     const runner = makeRunner({ search: [] })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'dandanplay',
-        providerConfigId: 'custom-ddp-1',
+        source: {
+          manifestId: 'dandanplay',
+          providerConfigId: 'custom-ddp-1',
+          name: 'Test Source',
+        },
         configValues: {
           baseUrl: 'https://compat.example',
           authHeaders: [],
@@ -114,8 +120,11 @@ describe('ManifestProviderService.getSeason', () => {
     const runner = makeRunner({})
     const svc = new ManifestProviderService(
       {
-        manifestId: 'tencent',
-        providerConfigId: 'tencent',
+        source: {
+          manifestId: 'tencent',
+          providerConfigId: 'tencent',
+          name: 'Test Source',
+        },
       },
       makeRegistry(runner),
       silentLogger
@@ -136,8 +145,11 @@ describe('ManifestProviderService.getSeason', () => {
     })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'bilibili',
-        providerConfigId: 'bilibili',
+        source: {
+          manifestId: 'bilibili',
+          providerConfigId: 'bilibili',
+          name: 'Test Source',
+        },
       },
       makeRegistry(runner),
       silentLogger
@@ -157,8 +169,11 @@ describe('ManifestProviderService.getSeason', () => {
     const runner = makeRunner({ season: null })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'bilibili',
-        providerConfigId: 'bilibili',
+        source: {
+          manifestId: 'bilibili',
+          providerConfigId: 'bilibili',
+          name: 'Test Source',
+        },
       },
       makeRegistry(runner),
       silentLogger
@@ -180,8 +195,11 @@ describe('ManifestProviderService.getEpisodes', () => {
     })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'bilibili',
-        providerConfigId: 'bilibili',
+        source: {
+          manifestId: 'bilibili',
+          providerConfigId: 'bilibili',
+          name: 'Test Source',
+        },
       },
       makeRegistry(runner),
       silentLogger
@@ -226,8 +244,11 @@ describe('ManifestProviderService.getDanmaku', () => {
     const logger = { ...silentLogger, warn } satisfies ILogger
     const svc = new ManifestProviderService(
       {
-        manifestId: 'dandanplay',
-        providerConfigId: 'dandanplay',
+        source: {
+          manifestId: 'dandanplay',
+          providerConfigId: 'dandanplay',
+          name: 'Test Source',
+        },
       },
       makeRegistry(makeRunner({ danmaku })),
       logger
@@ -240,8 +261,11 @@ describe('ManifestProviderService.getDanmaku', () => {
     const runner = makeRunner({ danmaku: raw })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'dandanplay',
-        providerConfigId: 'dandanplay',
+        source: {
+          manifestId: 'dandanplay',
+          providerConfigId: 'dandanplay',
+          name: 'Test Source',
+        },
       },
       makeRegistry(runner),
       silentLogger
@@ -297,9 +321,22 @@ describe('ManifestProviderService.getDanmaku', () => {
 
     await expect(
       svc.getDanmaku(makeRequest({ episodeId: 42 }))
-    ).rejects.toThrow(
-      'Danmaku output from manifest dandanplay is not an array, got object'
-    )
+    ).rejects.toMatchObject({
+      code: 'badResponse',
+      params: {
+        target: {
+          kind: 'source',
+          ref: {
+            providerConfigId: 'dandanplay',
+            manifestId: 'dandanplay',
+            name: 'Test Source',
+          },
+        },
+      },
+      message: expect.stringContaining(
+        'Danmaku output from manifest dandanplay is not an array, got object'
+      ),
+    })
   })
 
   it('throws when every comment in a non-empty batch is malformed', async () => {
@@ -307,7 +344,12 @@ describe('ManifestProviderService.getDanmaku', () => {
 
     await expect(
       svc.getDanmaku(makeRequest({ episodeId: 42 }))
-    ).rejects.toThrow(/Every comment from manifest dandanplay was malformed/)
+    ).rejects.toMatchObject({
+      code: 'badResponse',
+      message: expect.stringMatching(
+        /Every comment from manifest dandanplay was malformed/
+      ),
+    })
   })
 
   it('only the danmaku run tolerates a failed segment', () => {
@@ -335,8 +377,11 @@ describe('ManifestProviderService.parseUrl', () => {
     })
     const svc = new ManifestProviderService(
       {
-        manifestId: 'dandanplay',
-        providerConfigId: 'custom-ddp-1',
+        source: {
+          manifestId: 'dandanplay',
+          providerConfigId: 'custom-ddp-1',
+          name: 'Test Source',
+        },
         configValues: { baseUrl: 'https://my-server/api' },
       },
       makeRegistry(runner),
@@ -354,5 +399,50 @@ describe('ManifestProviderService.parseUrl', () => {
       manifestId: 'dandanplay',
       providerConfigId: 'custom-ddp-1',
     })
+  })
+})
+
+describe('ManifestProviderService run failures', () => {
+  function makeFailingService(error: unknown): ManifestProviderService {
+    const runner = makeRunner({})
+    vi.mocked(runner.runSearch).mockRejectedValue(error)
+    return new ManifestProviderService(
+      {
+        source: {
+          manifestId: 'bilibili',
+          providerConfigId: 'bilibili',
+          name: 'Bilibili',
+        },
+      },
+      makeRegistry(runner),
+      silentLogger
+    )
+  }
+
+  it('codes an engine error with the source name', async () => {
+    const engineError = new HostNotAllowedError(
+      'host-not-allowed',
+      'https://evil.example/'
+    )
+    const svc = makeFailingService(engineError)
+
+    await expect(svc.search({ keyword: 'x' })).rejects.toMatchObject({
+      code: 'hostNotAllowed',
+      params: {
+        source: {
+          providerConfigId: 'bilibili',
+          manifestId: 'bilibili',
+          name: 'Bilibili',
+        },
+      },
+      cause: engineError,
+    })
+  })
+
+  it('passes an unknown failure through untouched', async () => {
+    const bug = new TypeError('boom')
+    const svc = makeFailingService(bug)
+
+    await expect(svc.search({ keyword: 'x' })).rejects.toBe(bug)
   })
 })

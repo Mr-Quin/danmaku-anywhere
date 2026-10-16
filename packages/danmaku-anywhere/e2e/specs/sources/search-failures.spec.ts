@@ -34,7 +34,7 @@ const LOGGED_OUT_NAV = {
 test.describe('unreachable source', () => {
   test.use({
     expectedConsoleErrors: [
-      /\[RpcManager\] Error in RPC handler.*Failed to fetch/,
+      /\[RpcManager\] Error in RPC handler.*message: network:/,
     ],
   })
 
@@ -69,7 +69,9 @@ test.describe('unreachable source', () => {
 
 test.describe('repeated search', () => {
   test.use({
-    expectedConsoleErrors: [/\[RpcManager\] Error in RPC handler.*HTTP 500/],
+    expectedConsoleErrors: [
+      /\[RpcManager\] Error in RPC handler.*message: http:/,
+    ],
   })
 
   test('pressing Search again on the same keyword retries a failed source', async ({

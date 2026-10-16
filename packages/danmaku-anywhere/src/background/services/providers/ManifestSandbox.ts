@@ -1,5 +1,6 @@
 import { ManifestRunner, type RunOptions, zManifest } from '@mr-quin/dango'
 import { injectable } from 'inversify'
+import { errorMessage } from '@/common/errors/errorMessage'
 import type {
   ManifestTestDanmakuInput,
   ManifestTestEpisodeRow,
@@ -95,7 +96,7 @@ export class ManifestSandbox {
     try {
       return new ManifestRunner(parsed.data, { fetcher: extensionFetchLike })
     } catch (e) {
-      const reason = e instanceof Error ? e.message : String(e)
+      const reason = errorMessage(e)
       throw new Error(`Failed to build manifest runner: ${reason}`)
     }
   }

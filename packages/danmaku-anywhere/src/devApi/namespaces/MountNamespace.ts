@@ -1,5 +1,6 @@
 import { injectable } from 'inversify'
 import { MAIN_CONTENT_SCRIPT_ID } from '@/background/scripting/ScriptingManager'
+import { errorMessage } from '@/common/errors/errorMessage'
 import type { MountMirror } from '@/content/controller/common/devMountMirror'
 import { MOUNT_MIRROR_GLOBAL } from '@/content/controller/common/devMountMirror'
 import { type AnyMethodDef, type DevNamespace, defineMethod } from '../registry'
@@ -41,7 +42,7 @@ async function readMirror(tabId: number): Promise<MountMirror | undefined> {
     return results[0]?.result ?? undefined
   } catch (err) {
     // Swallow tab-gone / no-permission so polling callers can keep retrying.
-    const message = err instanceof Error ? err.message : String(err)
+    const message = errorMessage(err)
     if (
       message.includes('No tab with id') ||
       message.includes('Cannot access') ||

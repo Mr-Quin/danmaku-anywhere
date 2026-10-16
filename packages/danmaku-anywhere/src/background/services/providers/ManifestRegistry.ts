@@ -1,3 +1,4 @@
+import { err, ok, type Result } from '@danmaku-anywhere/result'
 import {
   getDisplayStrings,
   type Manifest,
@@ -7,6 +8,8 @@ import {
 } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
+import { AppError, type ErrorTarget } from '@/common/errors/AppError'
+import { classifyFetchRejection } from '@/common/errors/fetchFailure'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import {
   type ManifestChange,
@@ -16,6 +19,7 @@ import type {
   ManifestUpdate,
   ProviderManifestInfo,
 } from '@/common/rpcClient/background/types'
+import { fetchChecked } from '@/common/utils/fetchOrThrow'
 import { sleep } from '@/common/utils/utils'
 import { bundledCatalogIndex, bundledManifestRaw } from './bundledCatalog'
 import { extensionFetchLike } from './extensionFetchLike'
@@ -41,16 +45,9 @@ const zCatalogIndex = z.object({
 type CatalogEntry = z.infer<typeof zCatalogEntry>
 type CatalogManifest = { raw: unknown; parsed: Manifest }
 
-// Shared by every catalog-gated path; tests and the popup toast match on it.
-export const CATALOG_UNREACHABLE_MESSAGE =
-  'Failed to fetch the manifest catalog'
+export type CatalogSync = 'synced' | 'empty'
 
-// A catalog that answered but offers nothing this build can run is not a
-// network failure, so it must not be reported as one.
-export const CATALOG_EMPTY_MESSAGE =
-  'The manifest catalog has no sources this version can use'
-
-export type CatalogSyncResult = 'synced' | 'unreachable' | 'empty'
+const CATALOG: ErrorTarget = { kind: 'catalog' }
 
 const INDEX_TIMEOUT_MS = 5000
 // File fetches run concurrently, so this only stretches a sync when a file is
@@ -144,14 +141,15 @@ export class ManifestRegistry {
   // with no manual apply. A changed preinstalled manifest surfaces via
   // getPendingUpdates instead. A bundled entry whose file fails to download
   // stays bundled until the next sync.
-  async update(): Promise<CatalogSyncResult> {
+  async update(): Promise<Result<CatalogSync, AppError>> {
     await this.whenLoaded()
-    const entries = await this.loadIndex()
-    if (!entries) {
-      return 'unreachable'
+    const index = await this.loadIndex()
+    if (!index.success) {
+      return index
     }
+    const entries = index.data
     if (entries.length === 0) {
-      return 'empty'
+      return ok('empty')
     }
     const stored = await this.store.getAll()
     const missing = entries.filter((entry) => !stored[entry.id])
@@ -159,7 +157,7 @@ export class ManifestRegistry {
       (entry) => stored[entry.id]?.kind === 'bundled'
     )
     await this.fetchAndStore([...missing, ...bundledStale])
-    return 'synced'
+    return ok('synced')
   }
 
   // Index-only: diff stored versions against the catalog without fetching files
@@ -168,10 +166,11 @@ export class ManifestRegistry {
   // popup's pending list.
   async getPendingUpdates(): Promise<ManifestUpdate[]> {
     await this.whenLoaded()
-    const entries = await this.loadIndex()
-    if (!entries) {
-      throw new Error(CATALOG_UNREACHABLE_MESSAGE)
+    const index = await this.loadIndex()
+    if (!index.success) {
+      throw index.error
     }
+    const entries = index.data
     const stored = await this.store.getAll()
     const updates: ManifestUpdate[] = []
     for (const entry of entries) {
@@ -206,10 +205,11 @@ export class ManifestRegistry {
   // no-op'ing.
   async applyUpdates(manifestIds: string[]): Promise<void> {
     await this.whenLoaded()
-    const entries = await this.loadIndex()
-    if (!entries) {
-      throw new Error(CATALOG_UNREACHABLE_MESSAGE)
+    const index = await this.loadIndex()
+    if (!index.success) {
+      throw index.error
     }
+    const entries = index.data
     const wanted = new Set(manifestIds)
     const stored = await this.store.getAll()
     const targets = entries.filter((entry) => {
@@ -224,7 +224,11 @@ export class ManifestRegistry {
       const failed = targets
         .map((entry) => entry.id)
         .filter((id) => !applied.includes(id))
-      throw new Error(`Failed to apply updates: ${failed.join(', ')}`)
+      throw new AppError(
+        'catalog.applyFailed',
+        { sources: failed.map((id) => this.sourceLabel(id)) },
+        { message: `Failed to apply updates: ${failed.join(', ')}` }
+      )
     }
   }
 
@@ -401,36 +405,54 @@ export class ManifestRegistry {
     )
   }
 
-  private async loadIndex(): Promise<CatalogEntry[] | null> {
-    try {
-      return await this.fetchIndex()
-    } catch (e) {
-      this.log.warn('Catalog index fetch failed, retrying:', e)
+  private async loadIndex(): Promise<Result<CatalogEntry[], AppError>> {
+    const first = await this.fetchIndex()
+    if (first.success) {
+      return first
     }
+    this.log.warn('Catalog index fetch failed, retrying:', first.error)
     await sleep(1000)
-    try {
-      return await this.fetchIndex()
-    } catch (e) {
-      this.log.error('Failed to fetch manifest catalog:', e)
-      return null
+    const second = await this.fetchIndex()
+    if (!second.success) {
+      this.log.error('Failed to fetch manifest catalog:', second.error)
     }
+    return second
   }
 
-  private async fetchIndex(): Promise<CatalogEntry[]> {
-    const index = zCatalogIndex.parse(
-      await this.fetchJson(`${this.baseUrl}/manifest`, INDEX_TIMEOUT_MS)
+  private async fetchIndex(): Promise<Result<CatalogEntry[], AppError>> {
+    const body = await this.fetchJson(
+      `${this.baseUrl}/manifest`,
+      INDEX_TIMEOUT_MS
     )
-    return index.manifests.filter((entry) => {
-      if (SUPPORTED_API_VERSIONS.has(entry.apiVersion)) {
-        return true
-      }
-      this.log.warn(
-        'Dropping catalog manifest with unsupported apiVersion:',
-        entry.id,
-        entry.apiVersion
+    if (!body.success) {
+      return body
+    }
+    const index = zCatalogIndex.safeParse(body.data)
+    if (!index.success) {
+      return err(
+        new AppError(
+          'badResponse',
+          { target: CATALOG },
+          {
+            message: 'catalog index has an unexpected shape',
+            cause: index.error,
+          }
+        )
       )
-      return false
-    })
+    }
+    return ok(
+      index.data.manifests.filter((entry) => {
+        if (SUPPORTED_API_VERSIONS.has(entry.apiVersion)) {
+          return true
+        }
+        this.log.warn(
+          'Dropping catalog manifest with unsupported apiVersion:',
+          entry.id,
+          entry.apiVersion
+        )
+        return false
+      })
+    )
   }
 
   // Skip (null) on any per-manifest failure so one bad file doesn't block the
@@ -439,16 +461,20 @@ export class ManifestRegistry {
     file: string,
     id: string
   ): Promise<CatalogManifest | null> {
-    let raw: unknown
-    try {
-      raw = await this.fetchJson(
-        `${this.baseUrl}/manifest/file?file=${encodeURIComponent(file)}`,
-        FILE_TIMEOUT_MS
+    const fetched = await this.fetchJson(
+      `${this.baseUrl}/manifest/file?file=${encodeURIComponent(file)}`,
+      FILE_TIMEOUT_MS
+    )
+    if (!fetched.success) {
+      this.log.error(
+        'Failed to fetch catalog manifest:',
+        id,
+        file,
+        fetched.error
       )
-    } catch (e) {
-      this.log.error('Failed to fetch catalog manifest:', id, file, e)
       return null
     }
+    const raw = fetched.data
     const parsed = zManifest.safeParse(raw)
     if (!parsed.success) {
       this.log.error(
@@ -471,14 +497,45 @@ export class ManifestRegistry {
     return { raw, parsed: parsed.data }
   }
 
-  private async fetchJson(url: string, timeoutMs: number): Promise<unknown> {
-    const res = await extensionFetchLike(url, {
-      signal: AbortSignal.timeout(timeoutMs),
-    })
-    if (res.status !== 200) {
-      throw new Error(`catalog fetch failed (${res.status}): ${url}`)
+  private async fetchJson(
+    url: string,
+    timeoutMs: number
+  ): Promise<Result<unknown, AppError>> {
+    const signal = AbortSignal.timeout(timeoutMs)
+    const response = await fetchChecked(
+      extensionFetchLike,
+      url,
+      { signal },
+      CATALOG
+    )
+    if (!response.success) {
+      return response
     }
-    return JSON.parse(await res.text())
+    let text: string
+    try {
+      text = await response.data.text()
+    } catch (e) {
+      return err(classifyFetchRejection(e, signal, CATALOG))
+    }
+    try {
+      return ok(JSON.parse(text))
+    } catch (e) {
+      return err(
+        new AppError(
+          'badResponse',
+          { target: CATALOG },
+          { message: `catalog response is not JSON: ${url}`, cause: e }
+        )
+      )
+    }
+  }
+
+  private sourceLabel(manifestId: string): {
+    manifestId: string
+    name: string
+  } {
+    const name = this.runners.get(manifestId)?.runner.manifest.name
+    return { manifestId, name: name ?? manifestId }
   }
 
   private loadEntry(id: string, entry: ManifestEntry): void {

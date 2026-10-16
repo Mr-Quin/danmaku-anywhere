@@ -5,6 +5,7 @@ import type {
   SeasonInsert,
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
+import type { Result } from '@danmaku-anywhere/result'
 import { getDisplayStrings } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
@@ -16,6 +17,7 @@ import type {
   DanmakuFetchRequest,
   DanmakuFetchResult,
 } from '@/common/danmaku/dto'
+import { AppError } from '@/common/errors/AppError'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { toManifestLocale } from '@/common/localization/language'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
@@ -27,7 +29,6 @@ import { localizeLegacyBuiltinNames } from '@/common/options/providerConfig/loca
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
-import { SourceError } from '@/common/providers/SourceError'
 import type {
   ProviderLoginStatus,
   ProviderManifestList,
@@ -37,12 +38,7 @@ import { withUrlScheme } from '@/common/utils/link'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { OmitSeasonId } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
-import {
-  CATALOG_EMPTY_MESSAGE,
-  CATALOG_UNREACHABLE_MESSAGE,
-  type CatalogSyncResult,
-  ManifestRegistry,
-} from './ManifestRegistry'
+import { type CatalogSync, ManifestRegistry } from './ManifestRegistry'
 import { SourceCapabilityService } from './SourceCapabilityService'
 
 function enrichEpisode(
@@ -123,9 +119,13 @@ export class ProviderService {
       await this.providerConfigService.getAll()
     )
     if (!config) {
-      throw new SourceError(
-        'sourceRemoved',
-        'This source has been removed, so new danmaku cannot be fetched.'
+      throw new AppError(
+        'source.removed',
+        {},
+        {
+          message:
+            'This source has been removed, so new danmaku cannot be fetched.',
+        }
       )
     }
     return config
@@ -216,7 +216,11 @@ export class ProviderService {
     const comments = await service.getDanmaku(resolved)
 
     if (options.automatic && comments.length === 0) {
-      throw new Error(`No danmaku found for ${meta.title}`)
+      throw new AppError(
+        'source.noDanmaku',
+        { title: meta.title },
+        { message: `No danmaku found for ${meta.title}` }
+      )
     }
 
     const { season, ...rest } = meta
@@ -253,9 +257,10 @@ export class ProviderService {
       }
     }
 
-    throw new SourceError(
-      'noUrlParser',
-      'No provider found capable of parsing URL'
+    throw new AppError(
+      'source.noUrlParser',
+      {},
+      { message: 'No provider found capable of parsing URL' }
     )
   }
 
@@ -379,11 +384,11 @@ export class ProviderService {
   // build can run is not a network problem.
   async refreshCatalog(locale?: string): Promise<ProviderManifestList> {
     const result = await this.syncCatalog()
-    if (result === 'unreachable') {
-      throw new Error(CATALOG_UNREACHABLE_MESSAGE)
+    if (!result.success) {
+      throw result.error
     }
-    if (result === 'empty') {
-      throw new Error(CATALOG_EMPTY_MESSAGE)
+    if (result.data === 'empty') {
+      throw new AppError('catalog.empty')
     }
     return this.listManifests(locale)
   }
@@ -393,10 +398,10 @@ export class ProviderService {
   // manual via the Updates list. Records the check only on a real sync, so
   // "checked Nm ago" never advances on a bare detection. Returns how the
   // catalog index resolved.
-  syncCatalog(): Promise<CatalogSyncResult> {
+  syncCatalog(): Promise<Result<CatalogSync, AppError>> {
     return this.manifestRegistry.batchChanges(async () => {
       const result = await this.manifestRegistry.update()
-      if (result === 'synced') {
+      if (result.success && result.data === 'synced') {
         // update() just reached the index, so a failure here means it died
         // mid-sync; skip the best-effort auto-apply rather than fail the sync.
         const pending = await this.manifestRegistry

@@ -16,6 +16,7 @@ import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeLocalError } from '@/common/errors/describeError'
 import { isBuiltinConfig } from '@/common/options/providerConfig/displayName'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
@@ -94,7 +95,7 @@ export const InstalledList = ({
             arrayMove(configs, source, destination).map((c) => c.id),
             {
               onError: (error) => {
-                toast.error(error.message)
+                toast.error(describeLocalError(error))
               },
             }
           )

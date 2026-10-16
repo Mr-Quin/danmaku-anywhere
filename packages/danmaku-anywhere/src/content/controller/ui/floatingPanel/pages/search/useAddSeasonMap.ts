@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeError } from '@/common/errors/describeError'
 import { seasonMapQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type { SeasonMap } from '@/common/seasonMap/SeasonMap'
@@ -26,7 +27,7 @@ export const useAddSeasonMap = () => {
         t(
           'searchPage.alert.mappingFailed',
           'Failed to save mapping: {{message}}',
-          { message: e.message }
+          { message: describeError(e).message }
         )
       )
     },

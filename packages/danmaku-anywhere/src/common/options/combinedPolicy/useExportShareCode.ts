@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeError } from '@/common/errors/describeError'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import { CombinedPolicyService } from '@/common/options/combinedPolicy/index'
-import { serializeError } from '@/common/utils/serializeError'
 import type { MountConfig } from '../mountConfig/schema'
 
 export function useExportShareCode() {
@@ -16,7 +16,7 @@ export function useExportShareCode() {
       await navigator.clipboard.writeText(code)
       toast.success(t('common.copiedToClipboard', 'Copied to clipboard'))
     } catch (e) {
-      toast.error(serializeError(e).message)
+      toast.error(describeError(e).message)
     }
   }
 

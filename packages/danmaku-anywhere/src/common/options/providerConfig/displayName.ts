@@ -2,7 +2,9 @@ import type { ProviderConfig } from './schema'
 
 // A user's own server can point at the hosted proxy URL too, so the built-in
 // is told by its identity, never by its base URL.
-export function isBuiltinConfig(config: ProviderConfig): boolean {
+export function isBuiltinConfig(
+  config: Pick<ProviderConfig, 'id' | 'manifestId'>
+): boolean {
   return config.id === config.manifestId
 }
 

@@ -13,11 +13,10 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useFetchDanmakuWithToast } from '@/common/danmaku/queries/useFetchDanmaku'
-import { describeSourceError } from '@/common/providers/describeSourceError'
+import { describeError } from '@/common/errors/describeError'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
-import { isNetworkError } from '@/common/utils/networkError'
 
 interface UrlParseSectionProps {
   url: string
@@ -79,7 +78,7 @@ export function UrlParseSection({
             t(
               'danmaku.alert.fetchError',
               'Failed to fetch danmaku: {{message}}',
-              { message: describeSourceError(error) }
+              { message: describeError(error).message }
             )
           )
         },
@@ -104,12 +103,7 @@ export function UrlParseSection({
   }
 
   if (query.isError) {
-    const reason = isNetworkError(query.error)
-      ? t(
-          'searchPage.parse.networkError',
-          "Couldn't reach the site. Check your connection and try again."
-        )
-      : describeSourceError(query.error)
+    const reason = describeError(query.error).message
     return (
       <Box
         data-testid="parse-error"

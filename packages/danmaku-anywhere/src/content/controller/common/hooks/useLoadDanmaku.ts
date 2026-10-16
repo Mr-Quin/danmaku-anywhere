@@ -22,7 +22,7 @@ import {
 import type { LoadOutcome } from '@/content/controller/common/outcomes'
 import { preemptAutomatic } from '@/content/controller/store/automaticPreemption'
 import { useStore } from '@/content/controller/store/store'
-import { describeMountError } from './mountError'
+import { mountFailedMessage } from './mountError'
 import { type OutcomeMessage, useDescribeOutcome } from './useDescribeOutcome'
 
 const REFRESH_TOAST_ID = 'refresh-danmaku'
@@ -174,7 +174,7 @@ export const useLoadDanmaku = () => {
     try {
       result = await mount(episodes)
     } catch (error) {
-      toast.error(describeMountError(error))
+      toast.error(mountFailedMessage(error))
       throw error
     }
     if (result.status !== 'mounted') {

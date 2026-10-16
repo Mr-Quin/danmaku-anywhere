@@ -10,6 +10,7 @@ import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeLocalError } from '@/common/errors/describeError'
 import { MountConfigAiSettingsForm } from '@/common/options/mountConfig/components/MountConfigAiSettingsForm'
 import {
   DEFAULT_MOUNT_CONFIG_AI_CONFIG,
@@ -53,7 +54,7 @@ export const AiSettingsEditor = (): ReactElement => {
       toggleAiEditor(false)
     },
     onError: (error) => {
-      toast.error(error.message)
+      toast.error(describeLocalError(error))
     },
   })
 

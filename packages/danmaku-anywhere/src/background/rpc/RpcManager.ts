@@ -26,6 +26,7 @@ import { TitleMappingService } from '@/background/services/persistence/TitleMapp
 import { MacCmsProviderService } from '@/background/services/providers/MacCmsProviderService'
 import { ManifestRegistry } from '@/background/services/providers/ManifestRegistry'
 import { ManifestSandbox } from '@/background/services/providers/ManifestSandbox'
+import { fromProviderApiError } from '@/background/services/providers/providerErrors'
 import { SourceCapabilityService } from '@/background/services/providers/SourceCapabilityService'
 import { invalidateContentScriptData } from '@/background/utils/invalidateContentScriptData'
 import { AuthClientService } from '@/common/auth/AuthClientService'
@@ -382,14 +383,14 @@ export class RpcManager {
       getConfigMacCms: async (input) => {
         const res = await getMaccmsConfig(input?.force)
         if (!res.success) {
-          throw res.error
+          throw fromProviderApiError(res.error)
         }
         return res.data
       },
       getConfigDanmuIcu: async (input) => {
         const res = await getDanmuicuConfig(input?.force)
         if (!res.success) {
-          throw res.error
+          throw fromProviderApiError(res.error)
         }
         return res.data
       },

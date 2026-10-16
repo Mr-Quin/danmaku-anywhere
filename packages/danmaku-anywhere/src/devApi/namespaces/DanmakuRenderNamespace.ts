@@ -1,4 +1,5 @@
 import { injectable } from 'inversify'
+import { errorMessage } from '@/common/errors/errorMessage'
 import { RENDER_LOG_GLOBAL } from '@/content/player/danmakuManager/devRenderLog'
 import { type AnyMethodDef, type DevNamespace, defineMethod } from '../registry'
 
@@ -41,7 +42,7 @@ async function readLog(tabId: number): Promise<string[]> {
     return results.flatMap((r) => (r.result as string[] | undefined) ?? [])
   } catch (err) {
     // Swallow tab-gone / no-permission so polling callers can keep retrying.
-    const message = err instanceof Error ? err.message : String(err)
+    const message = errorMessage(err)
     if (
       message.includes('No tab with id') ||
       message.includes('Cannot access') ||

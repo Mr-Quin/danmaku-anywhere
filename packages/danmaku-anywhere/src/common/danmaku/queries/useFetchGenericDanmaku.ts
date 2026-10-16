@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { MacCMSFetchData } from '@/common/danmaku/dto'
+import { describeError } from '@/common/errors/describeError'
 import {
   customEpisodeQueryKeys,
   seasonQueryKeys,
@@ -25,7 +26,7 @@ export const useFetchGenericDanmaku = () => {
       invalidates: [customEpisodeQueryKeys.all(), seasonQueryKeys.all()],
     },
     onError: async (error) => {
-      toast.error(error.message)
+      toast.error(describeError(error).message)
     },
   })
 }

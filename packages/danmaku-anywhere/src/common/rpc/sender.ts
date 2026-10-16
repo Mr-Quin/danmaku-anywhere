@@ -1,6 +1,5 @@
 import { resolveTargetTab } from '@/common/rpc/targetTab'
 import type { RPCPayload, RPCResponse } from '@/common/rpc/types'
-import { RpcException } from '@/common/rpc/types'
 
 type ChromeSender = <TInput, TOutput>(
   payload: RPCPayload<TInput>
@@ -14,9 +13,7 @@ export const chromeSender: ChromeSender = async <TInput, TOutput>(
   )) as RPCResponse<TOutput>
 
   if (chrome.runtime.lastError) {
-    throw new RpcException(
-      chrome.runtime.lastError.message ?? 'Unknown lastError'
-    )
+    throw new Error(chrome.runtime.lastError.message ?? 'Unknown lastError')
   }
 
   return res
@@ -49,18 +46,11 @@ export const tabSender: TabSender = async <TInput, TOutput>(
   const tab = await findTab(tabInfoParam, getTab)
 
   if (!tab) {
-    throw new RpcException('No matching tab found')
+    throw new Error('No matching tab found')
   }
 
-  try {
-    return (await chrome.tabs.sendMessage(
-      tab.id as number,
-      payload
-    )) as RPCResponse<TOutput>
-  } catch (e) {
-    if (e instanceof Error) {
-      throw new RpcException(e.message)
-    }
-    throw new RpcException('Unknown error occurred when sending message to tab')
-  }
+  return (await chrome.tabs.sendMessage(
+    tab.id as number,
+    payload
+  )) as RPCResponse<TOutput>
 }

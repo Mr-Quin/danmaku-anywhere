@@ -10,6 +10,7 @@ import {
 } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeError } from '@/common/errors/describeError'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { type CheckedAgo, checkedAgo, matchesQuery } from '../catalog'
 import { useManifestList, useRefreshCatalog } from '../hooks/useManifestList'
@@ -165,7 +166,7 @@ export const CatalogSection = ({
               onClick={() =>
                 refresh.mutate(undefined, {
                   onError: (error) => {
-                    toast.error(error.message)
+                    toast.error(describeError(error).message)
                   },
                 })
               }
