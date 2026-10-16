@@ -223,6 +223,7 @@ export const ProvidersPage = (): ReactElement => {
             <InstalledList
               configs={configs}
               manifestById={manifestById}
+              manifestsLoaded={manifestData !== undefined}
               reorderMode
               filterActive={false}
               onEdit={handleEdit}
@@ -284,6 +285,7 @@ export const ProvidersPage = (): ReactElement => {
               <InstalledList
                 configs={visibleConfigs}
                 manifestById={manifestById}
+                manifestsLoaded={manifestData !== undefined}
                 reorderMode={false}
                 filterActive={filterActive}
                 onEdit={handleEdit}

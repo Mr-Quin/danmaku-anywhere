@@ -29,11 +29,16 @@ import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { groupInstalled, supportsInstances } from '../catalog'
 import { ManifestKindChip } from './ManifestKindChip'
 import { ProviderRow, sourceCardSx } from './ProviderRow'
-import { canReinstall, useManifestStateLabel } from './useManifestStateLabel'
+import {
+  canReinstall,
+  manifestStateOf,
+  useManifestStateLabel,
+} from './useManifestStateLabel'
 
 interface InstalledListProps {
   configs: ProviderConfig[]
   manifestById: Map<string, ProviderManifestInfo>
+  manifestsLoaded: boolean
   reorderMode: boolean
   filterActive: boolean
   onEdit: (config: ProviderConfig) => void
@@ -61,6 +66,7 @@ export function versionSubtitle(
 export const InstalledList = ({
   configs,
   manifestById,
+  manifestsLoaded,
   reorderMode,
   filterActive,
   onEdit,
@@ -78,17 +84,21 @@ export const InstalledList = ({
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const stateLabel = useManifestStateLabel()
 
-  const withState = (text: string, manifest?: ProviderManifestInfo) => {
-    const state = manifest ? stateLabel(manifest) : undefined
-    if (state === undefined) {
+  const stateOf = (manifestId: string) =>
+    manifestStateOf(manifestId, manifestById, manifestsLoaded)
+
+  const withState = (text: string, manifestId: string) => {
+    const state = stateOf(manifestId)
+    const label = state ? stateLabel(state) : undefined
+    if (label === undefined) {
       return text
     }
-    return `${text} · ${state}`
+    return text === '' ? label : `${text} · ${label}`
   }
 
   const subtitle = (config: ProviderConfig) => {
     const manifest = manifestById.get(config.manifestId)
-    return withState(versionSubtitle(config, manifest), manifest)
+    return withState(versionSubtitle(config, manifest), config.manifestId)
   }
 
   const reinstallItem = (manifestId: string): DAMenuItemConfig => ({
@@ -193,11 +203,10 @@ export const InstalledList = ({
     />
   )
 
-  const groupSubtitle = (count: string, manifest?: ProviderManifestInfo) => {
-    if (!manifest) {
-      return count
-    }
-    return withState(`${count} · v${manifest.version}`, manifest)
+  const groupSubtitle = (manifestId: string, count: string) => {
+    const manifest = manifestById.get(manifestId)
+    const text = manifest ? `${count} · v${manifest.version}` : count
+    return withState(text, manifestId)
   }
 
   const toggleCollapsed = (id: string) => {
@@ -250,7 +259,7 @@ export const InstalledList = ({
           }
         )
         const isOpen = !collapsed.has(unit.id)
-        const runs = manifest?.unavailable === undefined
+        const runs = stateOf(unit.manifestId)?.unavailable === undefined
         const menuItems: DAMenuItemConfig[] = []
         if (runs) {
           menuItems.push({
@@ -288,7 +297,7 @@ export const InstalledList = ({
               avatarSeed={unit.manifestId}
               primary={name}
               titleChip={<ManifestKindChip kind={manifest?.kind} />}
-              secondary={groupSubtitle(count, manifest)}
+              secondary={groupSubtitle(unit.manifestId, count)}
               onClick={() => toggleCollapsed(unit.id)}
               action={
                 <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>

@@ -843,6 +843,7 @@
       "fallback": "正在使用内置版本。已存储的版本：{{reason}}",
       "invalid": "无法加载",
       "needsNewerExtension": "需要更新扩展版本",
+      "notRegistered": "清单未安装",
       "reinstall": "重新安装"
     },
     "updates": {

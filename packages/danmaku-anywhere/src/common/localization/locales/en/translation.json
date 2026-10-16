@@ -875,6 +875,7 @@
       "fallback": "Running the built-in copy. Stored copy: {{reason}}",
       "invalid": "Cannot be loaded",
       "needsNewerExtension": "Needs a newer version of the extension",
+      "notRegistered": "Manifest not installed",
       "reinstall": "Reinstall"
     },
     "updates": {
