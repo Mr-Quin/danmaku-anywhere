@@ -1,9 +1,12 @@
-import type { ConfigSchema } from '@mr-quin/dango'
+import type { ConfigIssueCode, ConfigSchema } from '@mr-quin/dango'
 import { type AppConfigIssue, AppError } from '@/common/errors/AppError'
 import { describeError } from '@/common/errors/describeError'
 import { i18n } from '@/common/localization/i18n'
 
 type ConfigIssue = AppConfigIssue
+
+// urlScheme comes from a dango release newer than the one bundled here.
+type IssueCode = ConfigIssueCode | 'urlScheme'
 
 function schemaAt(
   root: ConfigSchema | undefined,
@@ -47,7 +50,7 @@ export function configIssueMessage(
   issue: ConfigIssue,
   root: ConfigSchema | undefined
 ): string {
-  switch (issue.code) {
+  switch (issue.code as IssueCode) {
     case 'required':
       return i18n.t(
         'providers.editor.validation.required',
@@ -79,6 +82,11 @@ export function configIssueMessage(
       )
     case 'format':
       return i18n.t('providers.editor.validation.url', 'Not a valid URL')
+    case 'urlScheme':
+      return i18n.t(
+        'providers.editor.validation.urlScheme',
+        'The URL must start with http:// or https://'
+      )
     case 'minimum':
       return i18n.t(
         'providers.editor.validation.minimum',
@@ -104,6 +112,7 @@ export function configIssueMessage(
         'providers.editor.validation.enum',
         'Pick one of the options'
       )
+    // Also any code an engine newer than this build reports
     default:
       return i18n.t('providers.editor.validation.invalid', 'Not a valid value')
   }

@@ -811,7 +811,8 @@
         "pattern": "必须匹配模式 {{pattern}}",
         "required": "此项为必填项",
         "requiredAlternatives": "请填写{{fields}}",
-        "url": "不是有效的 URL"
+        "url": "不是有效的 URL",
+        "urlScheme": "URL 必须以 http:// 或 https:// 开头"
       }
     },
     "error": {

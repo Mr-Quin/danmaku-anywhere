@@ -842,7 +842,8 @@
         "pattern": "Must match the pattern {{pattern}}",
         "required": "This field is required",
         "requiredAlternatives": "Fill in {{fields}}",
-        "url": "Not a valid URL"
+        "url": "Not a valid URL",
+        "urlScheme": "The URL must start with http:// or https://"
       }
     },
     "error": {
