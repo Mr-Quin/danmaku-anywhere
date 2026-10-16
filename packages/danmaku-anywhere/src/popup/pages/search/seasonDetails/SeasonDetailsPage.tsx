@@ -97,13 +97,10 @@ export const SeasonDetailsPage = () => {
               season={season}
               filter={filter}
               renderEpisode={(data) => {
-                const { mutateAsync: load, isPending } =
-                  useFetchDanmakuWithToast()
+                const { mutate: load, isPending } = useFetchDanmakuWithToast()
 
-                const handleFetchDanmaku = async (
-                  meta: WithSeason<EpisodeMeta>
-                ) => {
-                  return await load({
+                const handleFetchDanmaku = (meta: WithSeason<EpisodeMeta>) => {
+                  load({
                     type: 'by-meta',
                     meta,
                     options: { forceUpdate: true },

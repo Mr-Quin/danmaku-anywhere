@@ -46,7 +46,7 @@ const CommentsLoader = ({
     if (!canRefresh) {
       return
     }
-    void refreshDanmaku(episodeLite)
+    refreshDanmaku(episodeLite)
   }
 
   if (!episode) {
