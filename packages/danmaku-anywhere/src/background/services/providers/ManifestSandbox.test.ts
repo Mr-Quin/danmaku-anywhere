@@ -178,7 +178,9 @@ describe('ManifestSandbox test runs', () => {
         manifest: makeManifest(),
         providerIds: { seasonId: 7 },
       })
-    ).rejects.toThrow(/^Manifest mine:one episodes output has no valid rows/)
+    ).rejects.toThrow(
+      /^manifest\.badOutput: Manifest mine:one episodes output has no valid rows/
+    )
   })
 
   it('reports dropped comments next to the count', async () => {
