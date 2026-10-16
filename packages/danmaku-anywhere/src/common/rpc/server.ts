@@ -21,6 +21,37 @@ export type RPCServerHandlers<TRecords extends RPCRecord> = {
   [TKey in keyof TRecords]: RRPServerHandler<TRecords[TKey]>
 }
 
+const MAX_LOGGED_STRING = 64
+
+function shapeOf(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return `array(${value.length})`
+  }
+  if (typeof value === 'string') {
+    return value.length > MAX_LOGGED_STRING ? `string(${value.length})` : value
+  }
+  if (typeof value === 'object' && value !== null) {
+    return 'object'
+  }
+  return value
+}
+
+// Inputs and outputs can be whole comment lists or files, and every logged
+// argument is serialized to be forwarded to the background, so only the top
+// level is logged, with sizes in place of lists and long text.
+export function summarizePayload(value: unknown): unknown {
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [key, shapeOf(item)])
+    )
+  }
+  return shapeOf(value)
+}
+
+function senderSummary(sender: chrome.runtime.MessageSender) {
+  return { tab: sender.tab?.id, frame: sender.frameId }
+}
+
 // biome-ignore lint/suspicious/noExplicitAny: the input can be any type
 type Filter = (method: string, input: any) => boolean
 
@@ -85,7 +116,11 @@ class RpcServer<TRecords extends RPCRecord> {
     const { method, input, options } = message
 
     if (!options?.silent) {
-      this.logger.debug('Received message:', { ...message, sender })
+      this.logger.debug('Received message:', {
+        method,
+        input: summarizePayload(input),
+        sender: senderSummary(sender),
+      })
     }
 
     const time = Date.now()
@@ -125,18 +160,22 @@ class RpcServer<TRecords extends RPCRecord> {
 
     const output = await getResult()
 
-    const meta = {
-      method,
-      input,
-      output,
-      sender,
-      baseContext: this.baseContext,
-    }
-
     const elapsed = Date.now() - time
 
     if (!options?.silent) {
-      this.logger.debug('Sending response:', meta, `(${elapsed}ms)`)
+      this.logger.debug(
+        'Sending response:',
+        {
+          method,
+          state: output.state,
+          output:
+            output.state === 'success'
+              ? summarizePayload(output.output)
+              : undefined,
+          sender: senderSummary(sender),
+        },
+        `(${elapsed}ms)`
+      )
     }
 
     return output
