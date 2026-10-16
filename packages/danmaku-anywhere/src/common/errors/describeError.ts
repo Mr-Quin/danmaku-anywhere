@@ -1,7 +1,10 @@
 import { z } from 'zod'
 import { Logger } from '@/common/Logger'
 import { i18n } from '@/common/localization/i18n'
-import { localizedStoreName } from '@/common/options/storeMessages'
+import {
+  localizedStoreName,
+  storeTrimAdvice,
+} from '@/common/options/storeMessages'
 import {
   AppError,
   type AppErrorCode,
@@ -306,14 +309,14 @@ const MESSAGES: MessageTable = {
   'options.itemTooLarge': ({ store }) => {
     return i18n.t(
       'appError.optionsItemTooLarge',
-      "{{name}}: It is too large for the browser's synced storage.",
-      { name: localizedStoreName(store) }
+      "{{name}}: It is too large for the browser's synced storage. {{advice}}",
+      { name: localizedStoreName(store), advice: storeTrimAdvice(store) }
     )
   },
   'options.storeFull': ({ store }) => {
     return i18n.t(
       'appError.optionsStoreFull',
-      "{{name}}: The browser's storage for this extension's settings is full.",
+      "{{name}}: The browser's storage for this extension's settings is full. Remove some sources, configs or block rules to make room.",
       { name: localizedStoreName(store) }
     )
   },

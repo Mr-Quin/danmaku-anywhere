@@ -33,3 +33,34 @@ export function localizedStoreName(name: string): string {
       return name
   }
 }
+
+// What to remove when a store is too large for one synced item
+export function storeTrimAdvice(store: string): string {
+  switch (store) {
+    case 'providerConfig':
+      return i18n.t(
+        'optionsStore.trimAdvice.providerConfig',
+        'Remove some sources or shorten their settings.'
+      )
+    case 'mountConfig':
+      return i18n.t(
+        'optionsStore.trimAdvice.mountConfig',
+        'Remove some configs.'
+      )
+    case 'aiProviderConfig':
+      return i18n.t(
+        'optionsStore.trimAdvice.aiProviderConfig',
+        'Remove some AI providers.'
+      )
+    case 'danmakuOptions':
+      return i18n.t(
+        'optionsStore.trimAdvice.danmakuOptions',
+        'Remove some block rules or shorten the custom CSS.'
+      )
+    default:
+      return i18n.t(
+        'optionsStore.trimAdvice.other',
+        'Remove some of what it holds.'
+      )
+  }
+}
