@@ -5,7 +5,7 @@ import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import { useOptionsReadiness } from '@/common/options/ReadinessService/useOptionsReadiness'
 import {
-  describeUpgradeProblem,
+  describeOptionsProblem,
   localizedStoreName,
 } from '@/common/options/storeMessages'
 import {
@@ -49,7 +49,7 @@ export function OptionsUpgradeFailed() {
                   >
                     <strong>{localizedStoreName(failure.store)}</strong>
                     {': '}
-                    {describeUpgradeProblem(failure.problem)}
+                    {describeOptionsProblem(failure.problem)}
                   </Typography>
                 ))}
               </Box>

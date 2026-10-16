@@ -67,8 +67,8 @@ describe('canRetryAutomatically', () => {
     const run: UpgradeRun = {
       ...failed(1),
       stores: [
-        { store: 'danmakuOptions', problem: 'itemTooLarge' },
-        { store: 'mountConfig', problem: 'storeFull' },
+        { store: 'danmakuOptions', problem: 'options.itemTooLarge' },
+        { store: 'mountConfig', problem: 'options.storeFull' },
       ],
     }
 
@@ -79,8 +79,8 @@ describe('canRetryAutomatically', () => {
     const run: UpgradeRun = {
       ...failed(1),
       stores: [
-        { store: 'danmakuOptions', problem: 'storeFull' },
-        { store: 'mountConfig', problem: 'writeRateLimited' },
+        { store: 'danmakuOptions', problem: 'options.storeFull' },
+        { store: 'mountConfig', problem: 'options.writeRateLimited' },
       ],
     }
 

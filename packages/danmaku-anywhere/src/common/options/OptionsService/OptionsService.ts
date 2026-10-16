@@ -1,8 +1,7 @@
 import type { ILogger } from '@/common/Logger'
-import type { ExtStorageType } from '@/common/storage/getStorageArea'
 import type { ReadinessGate } from '../ReadinessService/ReadinessService'
 import { migrateOptions } from './migrationOptions'
-import { OptionsStorage } from './OptionsStorage'
+import { OptionsStorage, type OptionsStorageLocation } from './OptionsStorage'
 import { isStoredAtVersion } from './storedVersion'
 import type {
   DeferredWrite,
@@ -32,18 +31,16 @@ export class OptionsService<T extends OptionsSchema> {
 
   constructor(
     private readinessService: ReadinessGate,
-    readonly key: string,
+    location: OptionsStorageLocation,
     private defaultOptions: T,
-    logger: ILogger,
-    storageType: ExtStorageType = 'sync',
-    parts: readonly string[] = []
+    logger: ILogger
   ) {
-    this.storageService = new OptionsStorage<T>({
-      key,
-      area: storageType,
-      parts,
-    })
-    this.logger = logger.sub('[OptionsService]').sub(`[${key}]`)
+    this.storageService = new OptionsStorage<T>(location)
+    this.logger = logger.sub('[OptionsService]').sub(`[${location.key}]`)
+  }
+
+  get key(): string {
+    return this.storageService.key
   }
 
   get latestVersion(): number {

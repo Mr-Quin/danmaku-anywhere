@@ -31,10 +31,9 @@ function createCounterService(
 ) {
   return new OptionsService<Counter>(
     readiness,
-    KEY,
+    { key: KEY, area: 'local' },
     { count: 0 },
-    silentLogger,
-    'local'
+    silentLogger
   )
     .version(1, { upgrade: (data) => data })
     .version(2, { upgrade: upgradeToV2 })
@@ -150,10 +149,9 @@ describe('OptionsService', () => {
     function createListService() {
       return new OptionsService<string[]>(
         readiness,
-        KEY,
+        { key: KEY, area: 'local' },
         ['default'],
-        silentLogger,
-        'local'
+        silentLogger
       ).version(1, { upgrade: (data) => data })
     }
 

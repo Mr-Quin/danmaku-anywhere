@@ -29,10 +29,9 @@ export class NamingRuleService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory(
-      namingRuleDescriptor.key,
+      namingRuleDescriptor,
       defaultNamingRuleOptions,
-      this.logger,
-      namingRuleDescriptor.area
+      this.logger
     ).version(LATEST_NAMING_RULE_VERSION, {
       upgrade: () => defaultNamingRuleOptions,
     })

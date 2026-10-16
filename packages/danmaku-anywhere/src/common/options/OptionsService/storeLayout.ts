@@ -1,15 +1,17 @@
 import {
   jsonStringCodePointBytes,
   QUOTA_BYTES_PER_ITEM,
+  storedItemBytes,
   utf8Bytes,
 } from '@/common/storage/syncQuota'
 import { OptionsStorageError } from './OptionsStorageError'
 import type { Options } from './types'
 
-// How a store is laid out in storage. Each field named in parts is kept out
-// of the store's own item: its JSON is cut into string chunks stored under
-// "<key>.<field>.<index>", and the store's item records the chunk count and a
-// hash of the JSON. A store with no parts is one item holding the envelope.
+// How a store is laid out in storage. A store is one item holding its
+// envelope while that fits the sync per-item limit. Past it, each field named
+// in parts leaves the store's item: its JSON is cut into string chunks stored
+// under "<key>.<field>.<index>", and the store's item records the chunk count
+// and a hash of the JSON.
 export interface StoreLayout {
   readonly key: string
   readonly parts?: readonly string[]
@@ -22,60 +24,59 @@ interface PartManifest {
 
 type Items = Record<string, unknown>
 
-// More than the sync area can hold for one field (QUOTA_BYTES / chunk size).
-export const MAX_CHUNKS_PER_PART = 16
-
-// Room left in each chunk for a browser that measures an item a little
+// Room left in each item for a browser that measures an item a little
 // differently from storedItemBytes.
-const CHUNK_SAFETY_BYTES = 64
+const SAFETY_BYTES = 64
 
 export function chunkKey(key: string, part: string, index: number): string {
   return `${key}.${part}.${index}`
-}
-
-// Every key the layout can occupy, so one read returns a consistent store
-// whatever its chunk counts are.
-export function layoutKeys(layout: StoreLayout): string[] {
-  const keys = [layout.key]
-  for (const part of layout.parts ?? []) {
-    for (let index = 0; index < MAX_CHUNKS_PER_PART; index++) {
-      keys.push(chunkKey(layout.key, part, index))
-    }
-  }
-  return keys
 }
 
 export function isLayoutKey(layout: StoreLayout, key: string): boolean {
   return key === layout.key || key.startsWith(`${layout.key}.`)
 }
 
-// The chunk keys the store's item points to, which can include parts this
-// build does not split.
-export function referencedKeys(layout: StoreLayout, items: Items): string[] {
-  const manifest = readManifest(items[layout.key])
-  if (!manifest) {
-    return []
-  }
-  return Object.entries(manifest).flatMap(([part, { chunks }]) => {
-    return Array.from({ length: chunks }, (_, index) => {
-      return chunkKey(layout.key, part, index)
+// The items of the store among everything stored in its area
+export function layoutItems(layout: StoreLayout, area: Items): Items {
+  return Object.fromEntries(
+    Object.entries(area).filter(([key, value]) => {
+      return value !== undefined && isLayoutKey(layout, key)
     })
-  })
+  )
 }
 
 // Everything is written in one storage call, which the browser applies as a
 // whole, so a reader never sees the store's item from one write and its
-// chunks from another. Chunks a shorter value no longer uses are blanked in
-// that same call instead of removed after it: a separate remove could land
-// after another context's write that uses those keys again.
+// chunks from another. Chunks the new layout does not use are blanked in that
+// same call instead of removed after it: a separate remove could land after
+// another context's write that uses those keys again.
 export function encodeEnvelope(
   layout: StoreLayout,
   envelope: Options<unknown>,
   existing: Items
 ): Items {
+  const items = splitEnvelope(layout, envelope) ?? {
+    [layout.key]: envelope,
+  }
+  for (const [key, value] of Object.entries(existing)) {
+    const unused = key !== layout.key && !(key in items)
+    const holdsChunk = typeof value === 'string' && value !== ''
+    if (unused && holdsChunk && isLayoutKey(layout, key)) {
+      items[key] = ''
+    }
+  }
+  return items
+}
+
+function splitEnvelope(
+  layout: StoreLayout,
+  envelope: Options<unknown>
+): Items | undefined {
   const parts = layout.parts ?? []
-  if (parts.length === 0 || !isRecord(envelope.data)) {
-    return { [layout.key]: envelope }
+  const fits =
+    storedItemBytes(layout.key, envelope) <= QUOTA_BYTES_PER_ITEM - SAFETY_BYTES
+  if (fits || parts.length === 0 || !isRecord(envelope.data)) {
+    return undefined
   }
 
   const items: Items = {}
@@ -89,28 +90,19 @@ export function encodeEnvelope(
     const json = JSON.stringify(data[part])
     delete data[part]
     const chunks = splitJson(json, chunkBudget(layout.key, part))
-    if (chunks.length > MAX_CHUNKS_PER_PART) {
-      throw new OptionsStorageError('storeFull', layout.key)
-    }
     chunks.forEach((chunk, index) => {
       items[chunkKey(layout.key, part, index)] = chunk
     })
     manifest[part] = { chunks: chunks.length, hash: hashString(json) }
-  }
-  for (const [key, value] of Object.entries(existing)) {
-    const unused = key !== layout.key && !(key in items)
-    const holdsChunk = typeof value === 'string' && value !== ''
-    if (unused && holdsChunk && isLayoutKey(layout, key)) {
-      items[key] = ''
-    }
   }
   items[layout.key] = { version: envelope.version, data, parts: manifest }
   return items
 }
 
 // The envelope as it was written, with each part joined back into its field.
-// A store's item without a parts record is returned as stored: options saved
-// before the layout existed, or anything else for the upgrade to deal with.
+// A store's item without a parts record is returned as stored: a store that
+// fits one item, options saved before the layout existed, or anything else
+// for the upgrade to deal with.
 export function decodeEnvelope(
   layout: StoreLayout,
   items: Items
@@ -121,7 +113,7 @@ export function decodeEnvelope(
   }
   const manifest = readManifest(stored)
   if (!manifest || !isRecord(stored.data)) {
-    throw new OptionsStorageError('incomplete', layout.key)
+    throw new OptionsStorageError('options.incomplete', layout.key)
   }
   const data: Record<string, unknown> = { ...stored.data }
   for (const [part, { chunks, hash }] of Object.entries(manifest)) {
@@ -129,12 +121,12 @@ export function decodeEnvelope(
     for (let index = 0; index < chunks; index++) {
       const chunk = items[chunkKey(layout.key, part, index)]
       if (typeof chunk !== 'string') {
-        throw new OptionsStorageError('incomplete', layout.key)
+        throw new OptionsStorageError('options.incomplete', layout.key)
       }
       json += chunk
     }
     if (hashString(json) !== hash) {
-      throw new OptionsStorageError('incomplete', layout.key)
+      throw new OptionsStorageError('options.incomplete', layout.key)
     }
     data[part] = JSON.parse(json)
   }
@@ -142,9 +134,9 @@ export function decodeEnvelope(
 }
 
 function readManifest(
-  stored: unknown
+  stored: Record<string, unknown>
 ): Record<string, PartManifest> | undefined {
-  if (!isRecord(stored) || !isRecord(stored.parts)) {
+  if (!isRecord(stored.parts)) {
     return undefined
   }
   const manifest: Record<string, PartManifest> = {}
@@ -162,9 +154,9 @@ function readManifest(
 }
 
 function chunkBudget(key: string, part: string): number {
-  const longestKey = chunkKey(key, part, MAX_CHUNKS_PER_PART - 1)
-  // The two quotes around the stored string
-  return QUOTA_BYTES_PER_ITEM - utf8Bytes(longestKey) - 2 - CHUNK_SAFETY_BYTES
+  // The two quotes around the stored string, and room for a three-digit index
+  const longestKey = chunkKey(key, part, 999)
+  return QUOTA_BYTES_PER_ITEM - utf8Bytes(longestKey) - 2 - SAFETY_BYTES
 }
 
 // Cuts only between code points: a surrogate pair split over two chunks would

@@ -21,6 +21,7 @@ import { NamingRuleService } from '@/common/options/localMatchingRule/service'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 import type { IOptionsServiceFactory } from '@/common/options/OptionsService/OptionServiceFactory'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import type { OptionsStorageLocation } from '@/common/options/OptionsService/OptionsStorage'
 import type { OptionsSchema } from '@/common/options/OptionsService/types'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { silentLogger } from '@/tests/silentLogger'
@@ -57,19 +58,15 @@ describe('backup round trip', () => {
     const readinessService = { waitUntilReady: () => Promise.resolve() }
 
     const factory: IOptionsServiceFactory = <T extends OptionsSchema>(
-      key: string,
+      location: OptionsStorageLocation,
       defaultOptions: T,
-      optionsLogger: ILogger,
-      storageType?: 'local' | 'sync' | 'session',
-      parts?: readonly string[]
+      optionsLogger: ILogger
     ) => {
       return new OptionsService<T>(
         readinessService,
-        key,
+        location,
         defaultOptions,
-        optionsLogger,
-        storageType,
-        parts
+        optionsLogger
       )
     }
 

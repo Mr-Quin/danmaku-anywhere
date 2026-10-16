@@ -1,5 +1,4 @@
 import { i18n } from '@/common/localization/i18n'
-import type { OptionsStorageProblem } from './OptionsService/OptionsStorageError'
 import type { UpgradeProblem } from './upgrade/upgradeFailure'
 
 // Takes a store's backup name or its storage key; the integration policy is
@@ -36,63 +35,48 @@ export function localizedStoreName(name: string): string {
   }
 }
 
-export function describeOptionsWriteError(
-  problem: OptionsStorageProblem,
-  store: string
-): string {
-  const name = localizedStoreName(store)
+// Why a store could not be saved or upgraded, shown after the store's name
+// on the upgrade screen and in the messages for a failed save or restore.
+export function describeOptionsProblem(problem: UpgradeProblem): string {
   switch (problem) {
-    case 'itemTooLarge':
+    case 'options.itemTooLarge':
       return i18n.t(
-        'optionsStorage.error.itemTooLarge',
-        '{{name}} could not be saved: they are too large for synced storage. Remove some entries and try again.',
-        { name }
+        'optionsStorage.problem.itemTooLarge',
+        "It is too large for the browser's synced storage."
       )
-    case 'storeFull':
+    case 'options.storeFull':
       return i18n.t(
-        'optionsStorage.error.storeFull',
-        "{{name}} could not be saved: the browser's storage for this extension's settings is full. Remove some block rules, custom CSS or configs and try again.",
-        { name }
+        'optionsStorage.problem.storeFull',
+        "The browser's storage for this extension's settings is full."
       )
-    case 'writeRateLimited':
+    case 'options.writeRateLimited':
       return i18n.t(
-        'optionsStorage.error.writeRateLimited',
-        '{{name}} could not be saved: settings were changed too many times in a short while. Wait a minute and try again.',
-        { name }
+        'optionsStorage.problem.writeRateLimited',
+        'It was saved too many times in a short while. Try again in a minute.'
       )
-    case 'incomplete':
+    case 'options.incomplete':
       return i18n.t(
-        'optionsStorage.error.incomplete',
-        '{{name}} could not be saved: the stored copy is incomplete, possibly because it is still syncing from another device. Try again in a moment.',
-        { name }
+        'optionsStorage.problem.incomplete',
+        'The stored copy is incomplete, possibly because it is still syncing from another device. Try again in a moment.'
+      )
+    case 'unknown':
+      return i18n.t(
+        'optionsStorage.problem.unknown',
+        'It could not be updated.'
       )
   }
 }
 
-// Why a store failed to upgrade, shown after the store's name.
-export function describeUpgradeProblem(problem: UpgradeProblem): string {
-  switch (problem) {
-    case 'itemTooLarge':
-      return i18n.t(
-        'optionsUpgrade.problem.itemTooLarge',
-        'Too large to save in synced storage.'
-      )
-    case 'storeFull':
-      return i18n.t(
-        'optionsUpgrade.problem.storeFull',
-        "The browser's storage for this extension's settings is full."
-      )
-    case 'writeRateLimited':
-      return i18n.t(
-        'optionsUpgrade.problem.writeRateLimited',
-        'Saved too many times in a short while. Retry in a minute.'
-      )
-    case 'incomplete':
-      return i18n.t(
-        'optionsUpgrade.problem.incomplete',
-        'The stored copy is incomplete, possibly because it is still syncing from another device. Retry in a moment.'
-      )
-    case 'unknown':
-      return i18n.t('optionsUpgrade.problem.unknown', 'Could not be updated.')
-  }
+export function describeSaveFailure(
+  problem: UpgradeProblem,
+  store: string
+): string {
+  return i18n.t(
+    'optionsStorage.saveFailed',
+    'Could not save {{name}}. {{reason}}',
+    {
+      name: localizedStoreName(store),
+      reason: describeOptionsProblem(problem),
+    }
+  )
 }

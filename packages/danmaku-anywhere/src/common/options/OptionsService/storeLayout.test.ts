@@ -1,21 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { chromeItemBytes } from '@/tests/syncQuota'
-import { getOptionsStorageError } from './OptionsStorageError'
+import { OptionsStorageError } from './OptionsStorageError'
 import {
   chunkKey,
   decodeEnvelope,
   encodeEnvelope,
-  referencedKeys,
   type StoreLayout,
 } from './storeLayout'
 
 /**
- * The storage layout of an option store. Fields named as parts leave the
- * store's own item and are cut into string chunks that each fit Chrome's
- * per-item limit as Chrome counts it, never inside a surrogate pair. Decoding
- * joins them back into the same envelope, and returns an item written without
- * parts as it is. Chunks a shorter value no longer needs are blanked in the
- * same write. A missing chunk, chunks from different writes or a damaged parts
+ * The storage layout of an option store. A store that fits one sync item is
+ * written as that one item. Past the limit, fields named as parts leave the
+ * store's item and are cut into string chunks that each fit Chrome's per-item
+ * limit as Chrome counts it, never inside a surrogate pair, and decoding joins
+ * them back into the same envelope. Chunks the new layout does not use are
+ * blanked in the same write, including all of them when the store fits one
+ * item again. A missing chunk, chunks from different writes or a damaged parts
  * record decode as an incomplete store instead of partial data.
  */
 
@@ -34,6 +34,14 @@ function longList(count: number) {
   }))
 }
 
+function chunkKeysOf(items: Record<string, unknown>) {
+  return Object.keys(items).filter((key) => key !== 'store')
+}
+
+function filledChunkKeysOf(items: Record<string, unknown>) {
+  return chunkKeysOf(items).filter((key) => items[key] !== '')
+}
+
 function expectIncomplete(read: () => unknown) {
   let error: unknown
   try {
@@ -41,24 +49,25 @@ function expectIncomplete(read: () => unknown) {
   } catch (caught) {
     error = caught
   }
-  expect(getOptionsStorageError(error)).toEqual({
-    problem: 'incomplete',
+  expect(error).toBeInstanceOf(OptionsStorageError)
+  expect(error).toMatchObject({
+    problem: 'options.incomplete',
     store: 'store',
   })
 }
 
 describe('encodeEnvelope and decodeEnvelope', () => {
-  it('stores a store without parts as one item', () => {
-    const stored = envelope({ list: [1, 2] })
+  it('writes a store that fits one item as that item, whatever its parts', () => {
+    const stored = envelope({ scalar: 1, list: longList(3), text: 'a{}' })
 
-    const items = encodeEnvelope({ key: 'store' }, stored, {})
+    const items = encodeEnvelope(layout, stored, {})
 
     expect(items).toEqual({ store: stored })
-    expect(decodeEnvelope({ key: 'store' }, items)).toEqual(stored)
+    expect(decodeEnvelope(layout, items)).toEqual(stored)
   })
 
-  it('moves the parts out of the store item and joins them back', () => {
-    const stored = envelope({ scalar: 1, list: longList(3), text: 'a{}' })
+  it('moves the parts of a store past the item limit out and joins them back', () => {
+    const stored = envelope({ scalar: 1, list: longList(300), text: 'a{}' })
 
     const items = encodeEnvelope(layout, stored, {})
 
@@ -66,25 +75,14 @@ describe('encodeEnvelope and decodeEnvelope', () => {
       version: 3,
       data: { scalar: 1 },
       parts: {
-        list: { chunks: 1, hash: expect.any(String) },
+        list: { chunks: expect.any(Number), hash: expect.any(String) },
         text: { chunks: 1, hash: expect.any(String) },
       },
     })
     expect(decodeEnvelope(layout, items)).toEqual(stored)
   })
 
-  it('leaves out a part the data does not have', () => {
-    const stored = envelope({ scalar: 1, list: [] })
-
-    const items = encodeEnvelope(layout, stored, {})
-
-    expect(Object.keys(items).sort()).toEqual(
-      ['store', chunkKey('store', 'list', 0)].sort()
-    )
-    expect(decodeEnvelope(layout, items)).toEqual(stored)
-  })
-
-  it('reads an item written before the layout as it is', () => {
+  it('reads an item without a parts record as it is', () => {
     const stored = envelope({ scalar: 1, list: longList(2), text: 'b' }, 1)
 
     expect(decodeEnvelope(layout, { store: stored })).toEqual(stored)
@@ -98,7 +96,7 @@ describe('encodeEnvelope and decodeEnvelope', () => {
 
     const items = encodeEnvelope(layout, stored, {})
 
-    expect(Object.keys(items).length).toBeGreaterThan(10)
+    expect(chunkKeysOf(items).length).toBeGreaterThan(10)
     for (const [key, value] of Object.entries(items)) {
       expect(chromeItemBytes(key, value), key).toBeLessThanOrEqual(PER_ITEM)
     }
@@ -110,9 +108,7 @@ describe('encodeEnvelope and decodeEnvelope', () => {
 
     const items = encodeEnvelope(layout, stored, {})
 
-    const chunks = Object.entries(items)
-      .filter(([key]) => key !== 'store')
-      .map(([, value]) => value as string)
+    const chunks = chunkKeysOf(items).map((key) => items[key] as string)
     expect(chunks.length).toBeGreaterThan(1)
     for (const chunk of chunks) {
       expect(chunk.isWellFormed()).toBe(true)
@@ -121,20 +117,43 @@ describe('encodeEnvelope and decodeEnvelope', () => {
 
   it('blanks the chunks a shorter value no longer uses in the same write', () => {
     const long = encodeEnvelope(layout, envelope({ list: longList(800) }), {})
-    const longChunks = referencedKeys(layout, long)
-    expect(longChunks.length).toBeGreaterThan(2)
 
-    const short = encodeEnvelope(layout, envelope({ list: longList(1) }), long)
+    const shorter = encodeEnvelope(
+      layout,
+      envelope({ list: longList(300) }),
+      long
+    )
 
-    expect(referencedKeys(layout, short)).toEqual([
-      chunkKey('store', 'list', 0),
-    ])
-    for (const key of longChunks.slice(1)) {
-      expect(short[key]).toBe('')
+    const used = new Set(filledChunkKeysOf(shorter))
+    const unused = chunkKeysOf(long).filter((key) => !used.has(key))
+    expect(unused.length).toBeGreaterThan(0)
+    for (const key of unused) {
+      expect(shorter[key]).toBe('')
     }
-    expect(decodeEnvelope(layout, { ...long, ...short })).toEqual(
+    expect(decodeEnvelope(layout, { ...long, ...shorter })).toEqual(
+      envelope({ list: longList(300) })
+    )
+  })
+
+  it('writes one item again and blanks every chunk once the store fits', () => {
+    const long = encodeEnvelope(layout, envelope({ list: longList(800) }), {})
+
+    const small = encodeEnvelope(layout, envelope({ list: longList(1) }), long)
+
+    expect(small.store).toEqual(envelope({ list: longList(1) }))
+    expect(filledChunkKeysOf(small)).toEqual([])
+    expect(chunkKeysOf(small).sort()).toEqual(chunkKeysOf(long).sort())
+    expect(decodeEnvelope(layout, { ...long, ...small })).toEqual(
       envelope({ list: longList(1) })
     )
+  })
+
+  it('blanks chunks of a part this layout does not name', () => {
+    const existing = { [chunkKey('store', 'gone', 0)]: '[1]' }
+
+    const items = encodeEnvelope(layout, envelope({ list: [1] }), existing)
+
+    expect(items[chunkKey('store', 'gone', 0)]).toBe('')
   })
 
   it('writes nothing for chunk keys that hold nothing', () => {
@@ -143,9 +162,7 @@ describe('encodeEnvelope and decodeEnvelope', () => {
       [chunkKey('store', 'text', 0)]: '',
     })
 
-    expect(Object.keys(items).sort()).toEqual(
-      ['store', chunkKey('store', 'list', 0)].sort()
-    )
+    expect(Object.keys(items)).toEqual(['store'])
   })
 
   it('reads a store with a missing chunk as incomplete', () => {
@@ -181,15 +198,11 @@ describe('encodeEnvelope and decodeEnvelope', () => {
     })
   })
 
-  it('joins a part this layout does not name when its chunks are given', () => {
+  it('joins a part this layout does not name when its chunks are there', () => {
     const newer: StoreLayout = { key: 'store', parts: ['list', 'extra'] }
-    const items = encodeEnvelope(newer, envelope({ extra: [1, 2, 3] }), {})
+    const stored = envelope({ extra: longList(300) })
+    const items = encodeEnvelope(newer, stored, {})
 
-    expect(referencedKeys(layout, items)).toEqual([
-      chunkKey('store', 'extra', 0),
-    ])
-    expect(decodeEnvelope(layout, items)).toEqual(
-      envelope({ extra: [1, 2, 3] })
-    )
+    expect(decodeEnvelope(layout, items)).toEqual(stored)
   })
 })

@@ -1,6 +1,6 @@
 import {
-  getOptionsStorageError,
   isOptionsStorageProblem,
+  OptionsStorageError,
   type OptionsStorageProblem,
 } from '../OptionsService/OptionsStorageError'
 
@@ -15,8 +15,8 @@ export interface StoreFailure {
 // Problems that fail the same way on every attempt until something changes
 // what is stored.
 const REPEATING_PROBLEMS: readonly UpgradeProblem[] = [
-  'itemTooLarge',
-  'storeFull',
+  'options.itemTooLarge',
+  'options.storeFull',
 ]
 
 export class OptionsUpgradeError extends AggregateError {
@@ -35,7 +35,7 @@ export class OptionsUpgradeError extends AggregateError {
 export function toStoreFailure(store: string, error: unknown): StoreFailure {
   return {
     store,
-    problem: getOptionsStorageError(error)?.problem ?? 'unknown',
+    problem: error instanceof OptionsStorageError ? error.problem : 'unknown',
   }
 }
 

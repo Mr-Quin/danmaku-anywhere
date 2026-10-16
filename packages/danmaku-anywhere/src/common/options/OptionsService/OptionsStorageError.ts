@@ -1,24 +1,22 @@
+// These names are stored, in the upgrade run record and in a restore result,
+// so renaming one strands the records already written.
 export type OptionsStorageProblem =
   // One stored item would pass the browser's per-item limit
-  | 'itemTooLarge'
+  | 'options.itemTooLarge'
   // The storage area is out of bytes or items
-  | 'storeFull'
-  | 'writeRateLimited'
+  | 'options.storeFull'
+  | 'options.writeRateLimited'
   // A store split over several items is missing some of them or they do not
   // match, as while another device's write is still syncing in
-  | 'incomplete'
+  | 'options.incomplete'
 
 const OPTIONS_STORAGE_PROBLEMS: readonly OptionsStorageProblem[] = [
-  'itemTooLarge',
-  'storeFull',
-  'writeRateLimited',
-  'incomplete',
+  'options.itemTooLarge',
+  'options.storeFull',
+  'options.writeRateLimited',
+  'options.incomplete',
 ]
 
-const OPTIONS_STORAGE_ERROR_NAME = 'OptionsStorageError'
-
-// Callers across the RPC boundary get a plain Error back, so they match on the
-// name and problem, not instanceof.
 export class OptionsStorageError extends Error {
   constructor(
     readonly problem: OptionsStorageProblem,
@@ -27,8 +25,8 @@ export class OptionsStorageError extends Error {
   ) {
     const detail =
       options?.cause instanceof Error ? `: ${options.cause.message}` : ''
-    super(`Options storage error (${problem}) in ${store}${detail}`, options)
-    this.name = OPTIONS_STORAGE_ERROR_NAME
+    super(`${problem} in ${store}${detail}`, options)
+    this.name = 'OptionsStorageError'
   }
 }
 
@@ -36,24 +34,6 @@ export function isOptionsStorageProblem(
   value: unknown
 ): value is OptionsStorageProblem {
   return OPTIONS_STORAGE_PROBLEMS.some((problem) => problem === value)
-}
-
-export function getOptionsStorageError(
-  error: unknown
-): { problem: OptionsStorageProblem; store: string } | undefined {
-  for (let current = error; current instanceof Error; ) {
-    if (
-      current.name === OPTIONS_STORAGE_ERROR_NAME &&
-      'problem' in current &&
-      isOptionsStorageProblem(current.problem) &&
-      'store' in current &&
-      typeof current.store === 'string'
-    ) {
-      return { problem: current.problem, store: current.store }
-    }
-    current = current.cause
-  }
-  return undefined
 }
 
 // Chrome words these as "Resource::kQuotaBytesPerItem quota exceeded" (older
@@ -65,13 +45,13 @@ export function classifyStorageFailure(
 ): OptionsStorageProblem | undefined {
   const message = error instanceof Error ? error.message : String(error)
   if (/QuotaBytesPerItem|QUOTA_BYTES_PER_ITEM/i.test(message)) {
-    return 'itemTooLarge'
+    return 'options.itemTooLarge'
   }
   if (/MAX_WRITE_OPERATIONS|WriteOperationsPer/i.test(message)) {
-    return 'writeRateLimited'
+    return 'options.writeRateLimited'
   }
   if (/QuotaBytes|QUOTA_BYTES|MaxItems|MAX_ITEMS|quota/i.test(message)) {
-    return 'storeFull'
+    return 'options.storeFull'
   }
   return undefined
 }
