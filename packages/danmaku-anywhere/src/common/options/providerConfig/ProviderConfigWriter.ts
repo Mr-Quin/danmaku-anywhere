@@ -1,6 +1,9 @@
 import { inject, injectable } from 'inversify'
 import { AppError } from '@/common/errors/AppError'
-import type { IRestoreListCheck } from '@/common/options/RestoreListCheck'
+import type {
+  IRestoreListCheck,
+  RestoreRefusal,
+} from '@/common/options/RestoreListCheck'
 import { getRandomUUID } from '@/common/utils/utils'
 import {
   BUILTIN_SOURCES,
@@ -273,20 +276,21 @@ export class ProviderConfigWriter implements IRestoreListCheck {
   // whose manifest is not installed, needs a newer extension, does not load
   // or runs on the bundled fallback stays, since there is no configSchema
   // its settings were written for to check them against, and dropping it
-  // would lose them. Ids key
-  // seasons and every write, so of several sources with one id the first that
-  // is otherwise valid is restored and the others are refused.
-  async check(entries: unknown[]): Promise<(string | undefined)[]> {
+  // would lose them. Ids key seasons and every write, so of several sources
+  // with one id the first that is otherwise valid is restored and the others
+  // are refused.
+  async check(entries: unknown[]): Promise<(RestoreRefusal | undefined)[]> {
     const seen = new Set<string>()
-    const reasons: (string | undefined)[] = []
+    const reasons: (RestoreRefusal | undefined)[] = []
     for (const entry of entries) {
       const result = await this.checkEntry(entry)
       if (!result.ok) {
-        reasons.push(result.reason)
+        reasons.push(result.refusal)
       } else if (seen.has(result.id)) {
-        reasons.push(
-          `Another source in the backup has the id "${result.id}"; the first one was restored`
-        )
+        reasons.push({
+          reason: 'duplicateId',
+          detail: `Another source in the backup has the id "${result.id}"; the first one was restored`,
+        })
       } else {
         seen.add(result.id)
         reasons.push(undefined)
@@ -297,10 +301,15 @@ export class ProviderConfigWriter implements IRestoreListCheck {
 
   private async checkEntry(
     entry: unknown
-  ): Promise<{ ok: true; id: string } | { ok: false; reason: string }> {
+  ): Promise<
+    { ok: true; id: string } | { ok: false; refusal: RestoreRefusal }
+  > {
     const parsed = providerConfigSchema.safeParse(entry)
     if (!parsed.success) {
-      return { ok: false, reason: 'Not a source config' }
+      return {
+        ok: false,
+        refusal: { reason: 'invalidEntry', detail: 'Not a source config' },
+      }
     }
     const availability = await this.availability(parsed.data.manifestId)
     const issues = checkProviderConfig({
@@ -311,7 +320,14 @@ export class ProviderConfigWriter implements IRestoreListCheck {
           : undefined,
     })
     if (issues.length > 0) {
-      return { ok: false, reason: issues.map(describeIssue).join('; ') }
+      const settings = issues.some((issue) => issue.kind === 'config')
+      return {
+        ok: false,
+        refusal: {
+          reason: settings ? 'invalidSettings' : 'nameRequired',
+          detail: issues.map(describeIssue).join('; '),
+        },
+      }
     }
     return { ok: true, id: parsed.data.id }
   }

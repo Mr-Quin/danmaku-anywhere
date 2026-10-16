@@ -451,7 +451,11 @@ describe('backup round trip', () => {
       success: true,
       droppedEntries: 1,
       dropped: [
-        { id: 'no-server', reason: expect.stringMatching(/chConvert/) },
+        {
+          id: 'no-server',
+          reason: 'invalidSettings',
+          detail: expect.stringMatching(/chConvert/),
+        },
       ],
     })
     expect(await providerConfigService.getAll()).toEqual([valid, unavailable])
@@ -484,7 +488,13 @@ describe('backup round trip', () => {
     expect(result.details.providerConfig).toMatchObject({
       success: true,
       droppedEntries: 1,
-      dropped: [{ id: 'shared-id', reason: expect.stringMatching(/first/) }],
+      dropped: [
+        expect.objectContaining({
+          id: 'shared-id',
+          reason: 'duplicateId',
+          detail: expect.stringMatching(/first/),
+        }),
+      ],
     })
     expect(result.success).toBe(false)
     expect(await providerConfigService.getAll()).toEqual([first])

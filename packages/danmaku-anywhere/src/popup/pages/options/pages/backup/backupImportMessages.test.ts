@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { describeRestoreProblems } from './backupImportMessages'
+import {
+  describeMissingStores,
+  describeRestoreProblems,
+} from './backupImportMessages'
 
 /**
  * Messages shown after a settings restore. A partial restore names the failed
@@ -32,14 +35,24 @@ describe('describeRestoreProblems', () => {
           success: true,
           droppedEntries: 2,
           dropped: [
-            { id: 'home', reason: 'baseUrl: Not a valid URL' },
-            { reason: 'Could not be migrated' },
+            { id: 'home', label: 'Home', reason: 'invalidSettings' },
+            { reason: 'notMigrated' },
           ],
         },
       },
     })
 
     expect(message).toBe('optionsPage.backup.droppedEntriesWithReasons')
+  })
+
+  it('names the settings a backup did not include', () => {
+    expect(
+      describeMissingStores({
+        success: true,
+        details: {},
+        missing: ['localMatchingRule'],
+      })
+    ).toBe('optionsPage.backup.store.localMatchingRule')
   })
 
   it('falls back to the id for a store it does not know', () => {

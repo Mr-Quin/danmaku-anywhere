@@ -41,11 +41,25 @@ type EntriesCheck =
   | { ok: true; data: unknown[]; dropped: DroppedEntry[] }
   | { ok: false; error: string }
 
-function entryId(entry: unknown): string | undefined {
-  if (typeof entry !== 'object' || entry === null || !('id' in entry)) {
+function stringField(entry: unknown, key: string): string | undefined {
+  if (typeof entry !== 'object' || entry === null || !(key in entry)) {
     return undefined
   }
-  return typeof entry.id === 'string' ? entry.id : undefined
+  const value: unknown = Reflect.get(entry, key)
+  return typeof value === 'string' && value !== '' ? value : undefined
+}
+
+function droppedEntry(
+  entry: unknown,
+  reason: DroppedEntry['reason'],
+  detail: string
+): DroppedEntry {
+  return {
+    id: stringField(entry, 'id'),
+    label: stringField(entry, 'name') ?? stringField(entry, 'customName'),
+    reason,
+    detail,
+  }
 }
 
 @injectable('Singleton')
@@ -131,7 +145,9 @@ export class ConfigStateService {
       .map((service) => {
         return { service, backupData: services[service.name] }
       })
-      .filter((candidate) => candidate.backupData !== undefined)
+    const present = candidates.flatMap(({ service, backupData }) => {
+      return backupData === undefined ? [] : [{ service, backupData }]
+    })
 
     const stores: StoreSnapshot = Object.fromEntries(
       await Promise.all(
@@ -146,7 +162,7 @@ export class ConfigStateService {
     )
 
     const validated = await Promise.all(
-      candidates.map(async ({ service, backupData }) => {
+      present.map(async ({ service, backupData }) => {
         const check = await this.checkPayload(service, backupData, stores)
         if (!check.ok) {
           this.logger.error(
@@ -167,6 +183,7 @@ export class ConfigStateService {
         .filter(({ check }) => check.ok)
         .map(({ service }) => service.options.key)
     )
+    const derivedStores = new Set<string>()
     const accepted: {
       service: IStoreService
       data: unknown
@@ -180,6 +197,7 @@ export class ConfigStateService {
         for (const write of check.deferred) {
           if (!restoredStores.has(write.store)) {
             await write.run()
+            derivedStores.add(write.store)
           }
         }
         accepted.push({
@@ -221,6 +239,19 @@ export class ConfigStateService {
         }
       })
     )
+
+    // A store an older backup did not carry may have been derived from one
+    // it did, such as the sources a v1.5.0 backup kept in its settings.
+    const missing = candidates
+      .filter(({ service, backupData }) => {
+        return (
+          backupData === undefined && !derivedStores.has(service.options.key)
+        )
+      })
+      .map(({ service }) => service.name)
+    if (missing.length > 0) {
+      result.missing = missing
+    }
 
     return result
   }
@@ -303,10 +334,9 @@ export class ConfigStateService {
       if (parsed.success) {
         passed.push(parsed.data)
       } else {
-        dropped.push({
-          id: entryId(entry),
-          reason: prettifyError(parsed.error),
-        })
+        dropped.push(
+          droppedEntry(entry, 'invalidEntry', prettifyError(parsed.error))
+        )
       }
     }
 
@@ -315,14 +345,14 @@ export class ConfigStateService {
       if (check.store !== service.name) {
         continue
       }
-      const reasons = await check.check(kept)
+      const refusals = await check.check(kept)
       kept.forEach((entry, index) => {
-        const reason = reasons[index]
-        if (reason !== undefined) {
-          dropped.push({ id: entryId(entry), reason })
+        const refusal = refusals[index]
+        if (refusal !== undefined) {
+          dropped.push(droppedEntry(entry, refusal.reason, refusal.detail))
         }
       })
-      kept = kept.filter((_, index) => reasons[index] === undefined)
+      kept = kept.filter((_, index) => refusals[index] === undefined)
     }
 
     // Writing an empty list would wipe the store, so a payload where nothing
@@ -337,7 +367,7 @@ export class ConfigStateService {
 
     const lost = original.length - migrated.length
     for (let i = 0; i < lost; i++) {
-      dropped.push({ reason: 'Could not be migrated' })
+      dropped.push({ reason: 'notMigrated', detail: 'Could not be migrated' })
     }
     return { ok: true, data: kept, dropped }
   }

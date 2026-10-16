@@ -558,6 +558,7 @@
     "backup": {
       "alert": {
         "exportSuccess": "成功导出备份",
+        "importMissing": "备份已导入。备份中没有{{stores}}，这些设置保持不变。",
         "importPartial": "部分设置未能恢复：{{stores}}",
         "importSuccess": "成功导入备份"
       },
@@ -573,6 +574,13 @@
       "cloudSignInTitle": "登录以启用云备份",
       "droppedEntries_other": "{{store}}（跳过 {{count}} 项）",
       "droppedEntriesWithReasons_other": "{{store}}（跳过 {{count}} 项：{{reasons}}）",
+      "dropReason": {
+        "duplicateId": "备份中另有一个 ID 相同的条目",
+        "invalidEntry": "条目已损坏",
+        "invalidSettings": "其设置对所属弹幕源无效",
+        "nameRequired": "缺少名称",
+        "notMigrated": "无法从旧版本转换"
+      },
       "export": "导出",
       "exportRowDesc": "将设置保存为 JSON 文件",
       "exportToFile": "保存到文件",

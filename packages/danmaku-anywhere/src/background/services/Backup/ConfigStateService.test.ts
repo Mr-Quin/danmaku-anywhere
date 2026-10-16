@@ -145,6 +145,16 @@ describe('ConfigStateService', () => {
       expect(mockMountConfigService.options.set).not.toHaveBeenCalled()
     })
 
+    it('should list the stores the backup does not carry', async () => {
+      const result = await service.restoreState(validBackup)
+
+      expect(result.missing).toEqual([
+        'mountConfig',
+        'providerConfig',
+        'integrationPolicy',
+      ])
+    })
+
     it('should handle failures gracefully (fail-safe)', async () => {
       // simulate danmaku options failing
       mockDanmakuOptionsService.options.set.mockRejectedValue(

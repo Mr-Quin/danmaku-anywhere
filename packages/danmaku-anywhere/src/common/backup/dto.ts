@@ -12,13 +12,27 @@ export interface BackupData {
   services: Record<string, ServiceBackupData<unknown>>
 }
 
+// Why a restore left an entry out, described in the UI language at the edge.
+export type DropReason =
+  | 'invalidEntry'
+  | 'notMigrated'
+  | 'duplicateId'
+  | 'invalidSettings'
+  | 'nameRequired'
+
 export interface DroppedEntry {
   id?: string
-  reason: string
+  // The entry's own name, when it has one the user gave it
+  label?: string
+  reason: DropReason
+  // English, for the log
+  detail?: string
 }
 
 export interface BackupRestoreResult {
   success: boolean
+  // Stores the backup did not carry, which the restore left as they were
+  missing?: string[]
   details: Record<
     string,
     {

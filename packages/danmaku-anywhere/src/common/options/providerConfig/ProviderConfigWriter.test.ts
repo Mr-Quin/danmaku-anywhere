@@ -522,11 +522,14 @@ describe('ProviderConfigWriter.check for restore', () => {
   it('refuses a config its known manifest does not accept, saying why', async () => {
     const { writer } = setup()
 
-    const [reason] = await writer.check([
+    const [refusal] = await writer.check([
       { ...selfHosted, configValues: { chConvert: 'loud' } },
     ])
 
-    expect(reason).toMatch(/chConvert/)
+    expect(refusal).toEqual({
+      reason: 'invalidSettings',
+      detail: expect.stringMatching(/chConvert/),
+    })
   })
 
   it('keeps the first valid source of an id and refuses the rest', async () => {
@@ -541,10 +544,10 @@ describe('ProviderConfigWriter.check for restore', () => {
 
     expect(await writer.check([first, second])).toEqual([
       undefined,
-      expect.stringMatching(/shared-id/),
+      { reason: 'duplicateId', detail: expect.stringMatching(/shared-id/) },
     ])
     expect(await writer.check([invalidFirst, second])).toEqual([
-      expect.stringMatching(/chConvert/),
+      expect.objectContaining({ reason: 'invalidSettings' }),
       undefined,
     ])
   })
