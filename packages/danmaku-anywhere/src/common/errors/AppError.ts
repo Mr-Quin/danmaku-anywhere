@@ -180,6 +180,61 @@ export type AppErrorParams = {
 
 export const APP_ERROR_CODES = Object.keys(PARAMS) as AppErrorCode[]
 
+// Whether trying the same thing again can succeed, so a Retry is worth
+// offering. Every code has to decide.
+const RETRYABLE: Record<AppErrorCode, boolean> = {
+  network: true,
+  http: true,
+  timeout: true,
+  aborted: true,
+  hostNotAllowed: false,
+  'rpc.unreachable': true,
+  'source.removed': false,
+  'source.noUrlParser': false,
+  'source.urlEpisodeNotFound': false,
+  'source.urlTitleNotFound': false,
+  'source.unavailable': false,
+  'source.searchUnsupported': false,
+  'source.episodesUnsupported': false,
+  'source.danmakuUnsupported': false,
+  'source.seasonRefreshUnsupported': false,
+  'source.noDanmaku': false,
+  badResponse: true,
+  'manifest.unavailable': false,
+  'manifest.badOutput': true,
+  'manifest.rejected': false,
+  'match.notFound': false,
+  'catalog.empty': true,
+  'config.duplicate': false,
+  'config.notFound': false,
+  'config.invalid': false,
+  'config.nameRequired': false,
+  'config.nameTooLong': false,
+  'config.notBuiltin': false,
+  'config.orderMismatch': true,
+  'options.itemTooLarge': false,
+  'options.storeFull': false,
+  'options.writeRateLimited': true,
+  'options.incomplete': true,
+  'options.migration': false,
+  'options.upgradeFailed': true,
+  'options.outdated': true,
+  'catalog.applyFailed': true,
+  'backup.notJson': false,
+  'backup.invalidFormat': false,
+  'backup.unsupportedVersion': false,
+  'backup.recoveryUnrestorable': false,
+  'mount.noActiveFrame': true,
+  'mount.failed': true,
+  'shareCode.invalid': false,
+  'importFile.unreadable': false,
+  'importFile.notDanmaku': false,
+  'importUrl.invalidUrl': false,
+  'importUrl.invalidScheme': false,
+  'importUrl.unsupportedExtension': false,
+  'importUrl.tooLarge': false,
+}
+
 interface AppErrorOptions {
   message?: string
   cause?: unknown
@@ -243,4 +298,14 @@ export function appErrorFromParts(
     error.message = options.message
   }
   return error
+}
+
+// An error from outside the error model may be passing, so it counts as
+// retryable.
+export function isRetryable(error: unknown): boolean {
+  if (!(error instanceof AppError)) {
+    return true
+  }
+  const code: AppErrorCode = error.code
+  return RETRYABLE[code]
 }

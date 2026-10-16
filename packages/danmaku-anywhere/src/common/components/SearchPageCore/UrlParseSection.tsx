@@ -13,6 +13,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useFetchDanmakuWithToast } from '@/common/danmaku/queries/useFetchDanmaku'
+import { isRetryable } from '@/common/errors/AppError'
 import { describeError } from '@/common/errors/describeError'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
@@ -136,13 +137,15 @@ export function UrlParseSection({
             </Typography>
           ) : null}
           <Stack direction="row" spacing={1}>
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => void query.refetch()}
-            >
-              {t('searchPage.retrySearch', 'Retry')}
-            </Button>
+            {isRetryable(query.error) ? (
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={() => void query.refetch()}
+              >
+                {t('searchPage.retrySearch', 'Retry')}
+              </Button>
+            ) : null}
             {onSearchInstead ? (
               <Button variant="text" size="small" onClick={onSearchInstead}>
                 {t('searchPage.parse.searchInstead', 'Search by title instead')}
