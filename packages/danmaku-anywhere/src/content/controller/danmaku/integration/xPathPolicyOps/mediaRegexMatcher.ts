@@ -9,10 +9,15 @@ export const mediaRegexMatcher = {
     }
 
     for (const r of regexes) {
+      // v1.5.0 saved an untouched regex field as an empty pattern, which
+      // matches the empty string at the start of any title.
+      if (r.trim() === '') {
+        continue
+      }
       try {
         const reg = new RegExp(r)
         const m = reg.exec(text)
-        if (m) {
+        if (m && (m[1] ?? m[0]) !== '') {
           const val = m[1] ?? m[0]
           return {
             value: val,

@@ -22,7 +22,7 @@ export function findEpisodeByNumber<T extends OmitSeasonId<EpisodeMeta>>(
 ): T | null {
   const episodeByNumber = episodes.find((ep) => {
     // try to match by the episodeNumber field if it exists
-    if (ep.episodeNumber !== undefined) {
+    if (ep.episodeNumber !== undefined && ep.episodeNumber !== null) {
       return ep.episodeNumber.toString() === episodeNumber.toString()
     }
 

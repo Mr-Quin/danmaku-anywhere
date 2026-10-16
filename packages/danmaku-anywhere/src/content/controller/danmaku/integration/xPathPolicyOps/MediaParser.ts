@@ -47,11 +47,14 @@ class ParsingContext {
   }
 }
 
-function coerceToNumber(val: string | number): number {
+// Undefined for text that holds no number, so the episode stays unknown
+// rather than NaN.
+function coerceToNumber(val: string | number): number | undefined {
   if (typeof val === 'number') {
     return val
   }
-  return chineseToNumber(val) ?? Number.parseInt(val, 10)
+  const parsed = chineseToNumber(val) ?? Number.parseInt(val, 10)
+  return Number.isFinite(parsed) ? parsed : undefined
 }
 
 export class MediaParser {

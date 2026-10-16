@@ -13,6 +13,24 @@ const createInput = (
 })
 
 describe('MediaParser', () => {
+  describe('an episode regex left empty, as v1.5.0 saved it', () => {
+    it('reads the episode from the title instead', () => {
+      const input = createInput('葬送的芙莉莲 第3集', [], {
+        episode: { value: '葬送的芙莉莲 第3集', regex: [''] },
+      })
+
+      expect(parser.parse(input).episode).toBe(3)
+    })
+
+    it('leaves the episode unknown when the title has none', () => {
+      const input = createInput('Frieren', [], {
+        episode: { value: 'Frieren', regex: [''] },
+      })
+
+      expect(parser.parse(input).episode).toBeUndefined()
+    })
+  })
+
   describe('Strategy: User Regex (Named Groups)', () => {
     it('should extract fields and respect user-defined title group', () => {
       const input = createInput('Attack on Titan S4E10 A Sound Argument', [

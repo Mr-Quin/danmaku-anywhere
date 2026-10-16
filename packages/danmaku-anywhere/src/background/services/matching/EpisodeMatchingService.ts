@@ -22,8 +22,16 @@ export class EpisodeMatchingService {
   }
 
   async findMatchingEpisodes(
-    input: MatchEpisodeInput
+    received: MatchEpisodeInput
   ): Promise<MatchEpisodeResult> {
+    // NaN crosses the message channel as null, and the strategies only treat
+    // undefined as an unknown episode.
+    const input: MatchEpisodeInput = {
+      ...received,
+      episodeNumber: Number.isFinite(received.episodeNumber)
+        ? received.episodeNumber
+        : undefined,
+    }
     for (const strategy of this.strategies) {
       this.logger.debug(`Matching using strategy ${strategy.name}`, input)
       const result = await strategy.match(input)
