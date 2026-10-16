@@ -100,8 +100,8 @@
     "noDanmaku": "No danmaku found for {{title}}.",
     "noUrlParser": "No source can read this link.",
     "optionsIncomplete": "{{name}}: The stored copy is incomplete, possibly because it is still syncing from another device. Try again in a moment.",
-    "optionsItemTooLarge": "{{name}}: It is too large for the browser's synced storage.",
-    "optionsStoreFull": "{{name}}: The browser's storage for this extension's settings is full.",
+    "optionsItemTooLarge": "{{name}}: It is too large for the browser's synced storage. {{advice}}",
+    "optionsStoreFull": "{{name}}: The browser's storage for this extension's settings is full. Remove some sources, configs or block rules to make room.",
     "optionsUpgradeFailed": "These settings could not be updated for this version and have been kept as they were: {{stores}}.",
     "optionsWriteRateLimited": "{{name}}: It was saved too many times in a short while. Try again in a minute.",
     "rpcUnreachable": "Lost connection to the extension. Reload the page and try again.",
@@ -745,6 +745,13 @@
   },
   "optionsStore": {
     "searchHistory": "Search history",
+    "trimAdvice": {
+      "aiProviderConfig": "Remove some AI providers.",
+      "danmakuOptions": "Remove some block rules or shorten the custom CSS.",
+      "mountConfig": "Remove some configs.",
+      "other": "Remove some of what it holds.",
+      "providerConfig": "Remove some sources or shorten their settings."
+    },
     "userAuth": "Account sign-in"
   },
   "optionsUpgrade": {

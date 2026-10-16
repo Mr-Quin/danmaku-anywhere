@@ -232,6 +232,22 @@ describe('describeError', () => {
     )
   })
 
+  it('says what to remove when a store is too large for one synced item', async () => {
+    const errors = ['providerConfig', 'danmakuOptions', 'extensionOptions'].map(
+      (store) => new AppError('options.itemTooLarge', { store })
+    )
+    const en = await messagesIn('en', errors)
+    const zh = await messagesIn('zh', errors)
+
+    expect(en).toEqual([
+      "Sources: It is too large for the browser's synced storage. Remove some sources or shorten their settings.",
+      "Danmaku Settings: It is too large for the browser's synced storage. Remove some block rules or shorten the custom CSS.",
+      "General settings: It is too large for the browser's synced storage. Remove some of what it holds.",
+    ])
+    expectBothLocales(en, zh, 'options.itemTooLarge')
+    expect(zh[0]).toContain('请删除部分弹幕源')
+  })
+
   it('gives an unclassified error the generic message and logs each error object once', async () => {
     await i18n.changeLanguage('en')
     const { Logger } = await import('@/common/Logger')

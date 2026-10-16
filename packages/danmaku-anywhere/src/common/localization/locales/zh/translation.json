@@ -100,8 +100,8 @@
     "noDanmaku": "没有找到 {{title}} 的弹幕。",
     "noUrlParser": "没有弹幕源能解析此链接。",
     "optionsIncomplete": "{{name}}：已存储的副本不完整，可能仍在从其他设备同步。请稍后再试。",
-    "optionsItemTooLarge": "{{name}}：内容太大，无法放入浏览器的同步存储。",
-    "optionsStoreFull": "{{name}}：浏览器为本扩展设置提供的存储空间已满。",
+    "optionsItemTooLarge": "{{name}}：内容太大，无法放入浏览器的同步存储。{{advice}}",
+    "optionsStoreFull": "{{name}}：浏览器为本扩展设置提供的存储空间已满。请删除部分弹幕源、配置或屏蔽规则以腾出空间。",
     "optionsUpgradeFailed": "以下设置未能更新到此版本，已按原样保留：{{stores}}。",
     "optionsWriteRateLimited": "{{name}}：短时间内保存次数过多。请一分钟后再试。",
     "rpcUnreachable": "与扩展的连接已断开，请刷新页面后重试。",
@@ -719,6 +719,13 @@
   },
   "optionsStore": {
     "searchHistory": "搜索历史",
+    "trimAdvice": {
+      "aiProviderConfig": "请删除部分AI源。",
+      "danmakuOptions": "请删除部分屏蔽规则或缩短自定义CSS。",
+      "mountConfig": "请删除部分配置。",
+      "other": "请删除其中部分内容。",
+      "providerConfig": "请删除部分弹幕源或精简其设置。"
+    },
     "userAuth": "账号登录"
   },
   "optionsUpgrade": {
