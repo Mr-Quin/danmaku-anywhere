@@ -117,7 +117,9 @@ export interface ProviderCookieSet {
 export interface ProviderLoginStatus {
   hasLoginProbe: boolean
   cookieSet?: ProviderCookieSet
-  ok: boolean
+  // null when the probe itself failed, so whether the user is signed in is
+  // not known
+  ok: boolean | null
 }
 
 export interface ProviderManifestSpec {

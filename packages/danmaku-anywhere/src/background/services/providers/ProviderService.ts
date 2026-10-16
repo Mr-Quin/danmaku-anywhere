@@ -302,7 +302,7 @@ export class ProviderService {
       return { hasLoginProbe: true, cookieSet, ok: ok ?? false }
     } catch (e) {
       this.logger.error('loginProbe failed', manifestId, e)
-      return { hasLoginProbe: true, cookieSet, ok: false }
+      return { hasLoginProbe: true, cookieSet, ok: null }
     }
   }
 

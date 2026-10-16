@@ -255,6 +255,30 @@ describe('ProviderService.probeLogin', () => {
   })
 })
 
+describe('ProviderService.getLoginStatus', () => {
+  it('reports the login state as unknown when the probe itself fails', async () => {
+    const runLoginProbe = vi.fn(async () => ({ isLogin: true }))
+    const manifest = {
+      id: 'tencent',
+      name: 'Tencent',
+      version: '1.0.0',
+      loginProbe: {},
+    }
+    const getRunner = vi.fn<ManifestRegistry['getRunner']>(
+      async () => ({ manifest, runLoginProbe }) as unknown as ManifestRunner // lint-specs-allow-cast: generic method signature, see the probeLogin tests
+    )
+    const service = buildService({
+      factory: vi.fn(() => makeProvider()),
+      registry: { getRunner },
+    })
+
+    expect(await service.getLoginStatus('tencent')).toMatchObject({
+      hasLoginProbe: true,
+      ok: null,
+    })
+  })
+})
+
 describe('ProviderService.getManifestSpec', () => {
   function buildWithManifest(manifest: Record<string, unknown>) {
     const getRunner = vi.fn<ManifestRegistry['getRunner']>(
