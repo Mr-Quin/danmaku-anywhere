@@ -116,7 +116,7 @@ export class ProviderConfigService implements IStoreService {
           }
         },
       })
-      .version(LATEST_PROVIDER_CONFIG_VERSION, {
+      .version(5, {
         upgrade: (data) => {
           try {
             return migrateDropDeadProviderFields(data)
@@ -131,7 +131,7 @@ export class ProviderConfigService implements IStoreService {
           }
         },
       })
-      .version(6, {
+      .version(LATEST_PROVIDER_CONFIG_VERSION, {
         upgrade: (data) => {
           try {
             return migrateToCustomNames(data)
