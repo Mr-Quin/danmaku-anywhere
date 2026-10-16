@@ -7,6 +7,7 @@ import {
   type ManifestChange,
   subscribeDataChange,
 } from '@/common/messaging/dataChangeChannel'
+import { isLayoutKey } from '@/common/options/OptionsService/storeLayout'
 import {
   type ExtStorageType,
   getStorageArea,
@@ -125,7 +126,7 @@ function followStorageArea(
   const listener = (changes: StorageChanges) => {
     const changed = new Set(Object.keys(changes))
     const sourceKey = SOURCE_STORAGE_KEYS[storageType]
-    if (sourceKey !== undefined && changed.has(sourceKey)) {
+    if (sourceKey !== undefined && writesTo(sourceKey, changed)) {
       invalidator.invalidate({ queryKey: sourceQueryKeys.capabilities() })
     }
     invalidator.invalidate({
@@ -144,6 +145,10 @@ function followStorageArea(
 // An option store split over several items keeps its chunks under
 // "<key>.<field>.<n>", and a write that only lands chunks still changes what
 // a query of the store reads.
+function writesTo(key: string, changed: Set<string>): boolean {
+  return [...changed].some((changedKey) => isLayoutKey({ key }, changedKey))
+}
+
 function readsAnyOf(queryKey: QueryKey, changed: Set<string>): boolean {
   const [head] = queryKey
   if (typeof head !== 'object' || head === null || !('key' in head)) {
@@ -156,8 +161,6 @@ function readsAnyOf(queryKey: QueryKey, changed: Set<string>): boolean {
     if (typeof key !== 'string') {
       return false
     }
-    return [...changed].some((changedKey) => {
-      return changedKey === key || changedKey.startsWith(`${key}.`)
-    })
+    return writesTo(key, changed)
   })
 }
