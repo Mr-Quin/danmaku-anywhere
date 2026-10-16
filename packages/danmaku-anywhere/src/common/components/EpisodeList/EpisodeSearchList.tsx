@@ -5,10 +5,11 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import type { MacCmsParsedPlayUrl } from '@danmaku-anywhere/danmaku-provider/maccms'
-import { Box, Skeleton, Stack } from '@mui/material'
-import { useQuery } from '@tanstack/react-query'
+import { Box, Button, Skeleton, Stack } from '@mui/material'
+import { useQuery, useQueryErrorResetBoundary } from '@tanstack/react-query'
 import { Fragment, Suspense, useMemo } from 'react'
 import { ErrorBoundary } from 'react-error-boundary'
+import { useTranslation } from 'react-i18next'
 import type {
   RenderCustomEpisode,
   RenderEpisode,
@@ -16,6 +17,7 @@ import type {
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { useSearchEpisode } from '@/common/danmaku/queries/useSearchEpisode'
 import { isCustomSeason } from '@/common/danmaku/utils'
+import { describeError } from '@/common/errors/describeError'
 import { episodeQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
@@ -147,10 +149,26 @@ export function EpisodeSearchList({
   renderCustomEpisode,
   filter,
 }: SeasonListItemProps) {
+  const { t } = useTranslation()
+  const { reset } = useQueryErrorResetBoundary()
+
   return (
     <ErrorBoundary
-      fallbackRender={({ error }) => (
-        <ErrorMessage message={(error as Error).message} />
+      onReset={reset}
+      fallbackRender={({ error, resetErrorBoundary }) => (
+        <ErrorMessage
+          message={describeError(error).message}
+          size={160}
+          action={
+            <Button
+              variant="text"
+              onClick={resetErrorBoundary}
+              data-testid="episode-list-retry"
+            >
+              {t('searchPage.retrySearch', 'Retry')}
+            </Button>
+          }
+        />
       )}
     >
       <Suspense fallback={<FallbackEpisodeList />}>

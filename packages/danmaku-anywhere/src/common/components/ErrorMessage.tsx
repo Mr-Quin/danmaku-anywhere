@@ -30,7 +30,12 @@ export const ErrorMessage = ({
       {showMessage ? (
         <>
           <Typography>{t('error.unknown', 'Something went wrong.')}</Typography>
-          <Typography color="error">{message}</Typography>
+          <Typography
+            color="error"
+            sx={{ overflowWrap: 'anywhere', textAlign: 'center', maxWidth: 1 }}
+          >
+            {message}
+          </Typography>
         </>
       ) : null}
       {action}
