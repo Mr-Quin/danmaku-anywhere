@@ -121,7 +121,9 @@ export class ManifestProviderService implements SourceProvider {
     output: unknown
   ): ParsedRows<T> {
     const source = this.source(pipeline)
-    const parsed = parseOutputRows(schema, output, source)
+    const parsed = parseOutputRows(schema, output, source, (paths) => {
+      this.logRepair(pipeline, paths)
+    })
     if (parsed.dropped) {
       this.logger.warn(describeDroppedRows(source, parsed.dropped))
     }
@@ -133,7 +135,15 @@ export class ManifestProviderService implements SourceProvider {
     schema: OutputSchema<T>,
     output: unknown
   ): T {
-    return parseOutputValue(schema, output, this.source(pipeline))
+    return parseOutputValue(schema, output, this.source(pipeline), (paths) => {
+      this.logRepair(pipeline, paths)
+    })
+  }
+
+  private logRepair(pipeline: ManifestPipeline, paths: string[]): void {
+    this.logger.warn(
+      `Dropped or converted ${paths.join(', ')} in ${pipeline} output from manifest ${this.config.source.manifestId}`
+    )
   }
 
   // Optional fields the source left out stay absent, so a refresh merged into

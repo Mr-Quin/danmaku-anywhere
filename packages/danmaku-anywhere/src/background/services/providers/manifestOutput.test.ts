@@ -1,5 +1,5 @@
-import { zSearchRow, zSeasonRow } from '@mr-quin/dango'
-import { describe, expect, it } from 'vitest'
+import { zParseUrlOutput, zSearchRow, zSeasonRow } from '@mr-quin/dango'
+import { describe, expect, it, vi } from 'vitest'
 import { AppError } from '@/common/errors/AppError'
 import {
   describeDroppedRows,
@@ -125,5 +125,82 @@ describe('parseOutputValue', () => {
     expect(() => parseOutputValue(zSeasonRow, 'x', seasonSource)).toThrow(
       'Manifest acme season output is invalid, Invalid input: expected object, received string'
     )
+  })
+})
+
+describe('optional presentational fields', () => {
+  // A live Tencent cover link (v.qq.com/x/cover/mzc00200k4cgltp/y0047bg48g9.html)
+  // sends its episode count as a string, and "" for a film.
+  const tencentParse = {
+    seasonInsert: {
+      providerIds: { cid: 'mzc00200k4cgltp' },
+      indexedId: 'mzc00200k4cgltp',
+      title: '地球脉动 第3季[普通话版]',
+      type: '1',
+      imageUrl:
+        'https://puui.qpic.cn/vcover_vt_pic/0/mzc00200s9hvibp1698046483704/0',
+      episodeCount: '8',
+    },
+    episodeMeta: {
+      providerIds: { vid: 'y0047bg48g9' },
+      indexedId: 'y0047bg48g9',
+      title: '【中文版】第1集：海陆之间',
+      episodeNumber: '【中文版】第1集：海陆之间',
+      alternativeTitle: ['【中文版】第1集：海陆之间'],
+    },
+  }
+  const parseSource = { manifestId: 'tencent', pipeline: 'parseUrl' } as const
+
+  it('reads a plain count from its string', () => {
+    const onRepair = vi.fn()
+
+    const parsed = parseOutputValue(
+      zParseUrlOutput,
+      tencentParse,
+      parseSource,
+      onRepair
+    )
+
+    expect(parsed.seasonInsert.episodeCount).toBe(8)
+    expect(onRepair).toHaveBeenCalledWith(['seasonInsert.episodeCount'])
+    expect(tencentParse.seasonInsert.episodeCount).toBe('8')
+  })
+
+  it('drops a count that is not a plain number', () => {
+    for (const episodeCount of ['', '1.5', '-3', '28集']) {
+      const parsed = parseOutputValue(
+        zParseUrlOutput,
+        {
+          ...tencentParse,
+          seasonInsert: { ...tencentParse.seasonInsert, episodeCount },
+        },
+        parseSource
+      )
+
+      expect(parsed.seasonInsert).not.toHaveProperty('episodeCount')
+      expect(parsed.seasonInsert.indexedId).toBe('mzc00200k4cgltp')
+    }
+  })
+
+  it('keeps a migu search row whose year is null, without the year', () => {
+    const { rows, dropped } = parseOutputRows(
+      zSearchRow,
+      [{ ...row, year: null, imageUrl: 42 }],
+      { manifestId: 'migu', pipeline: 'search' }
+    )
+
+    expect(dropped).toBeUndefined()
+    expect(rows).toEqual([row])
+  })
+
+  it('never repairs an identity or required field', () => {
+    const { rows, dropped } = parseOutputRows(
+      zSearchRow,
+      [row, { ...row, indexedId: 7 }, { ...row, title: null }],
+      { manifestId: 'migu', pipeline: 'search' }
+    )
+
+    expect(rows).toEqual([row])
+    expect(dropped?.count).toBe(2)
   })
 })
