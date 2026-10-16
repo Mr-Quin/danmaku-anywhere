@@ -26,7 +26,9 @@ import {
  * - `migrateDropDeadProviderFields`: drops the retired `impl`/`isBuiltIn`
  *   fields, leaving corrupt records untouched.
  * - `migrateToCustomNames`: replaces `name` with `customName`, null for every
- *   built-in whatever it was called, the stored name for everything else.
+ *   built-in whatever it was called, the stored name for everything else. It
+ *   skips entries that are not records and throws on a store that is not a
+ *   list or a record without an id or manifestId.
  */
 
 describe('migrateDanmakuSourcesToProviders', () => {
@@ -1064,5 +1066,15 @@ describe('migrateToCustomNames', () => {
     ])
 
     expect(migrated.map((c) => c.id)).toEqual(['custom-1'])
+  })
+
+  it('throws on a store that is not a list or a record it cannot read', () => {
+    expect(() => migrateToCustomNames({} as never)).toThrow(/not a list/)
+    expect(() =>
+      migrateToCustomNames([
+        v5('custom-1', 'iqiyi', 'Mine'),
+        { manifestId: 'iqiyi', name: 'No id' } as never,
+      ])
+    ).toThrow(/no id or manifestId/)
   })
 })
