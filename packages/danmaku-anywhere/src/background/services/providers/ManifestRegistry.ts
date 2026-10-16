@@ -5,11 +5,16 @@ import {
   loadManifest,
   type Manifest,
   type ManifestIncompatibility,
+  type ManifestIssue,
   ManifestRunner,
 } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
-import { AppError, type ErrorTarget } from '@/common/errors/AppError'
+import {
+  AppError,
+  type ErrorTarget,
+  type SourceUnavailableReason,
+} from '@/common/errors/AppError'
 import { classifyFetchRejection } from '@/common/errors/fetchFailure'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import {
@@ -32,10 +37,7 @@ import {
   type ManifestRecord,
   ManifestStore,
 } from './ManifestStore'
-import {
-  ManifestUnavailableError,
-  ManifestValidationError,
-} from './manifestErrors'
+import { manifestRejected, manifestUnavailable } from './manifestErrors'
 
 const zCatalogEntry = z.object({
   id: z.string(),
@@ -73,6 +75,19 @@ function rawString(manifest: unknown, key: string): string | undefined {
   return undefined
 }
 
+function describeFirstIssue(
+  issues: readonly ManifestIssue[]
+): string | undefined {
+  const [issue] = issues
+  if (issue === undefined) {
+    return undefined
+  }
+  if (issue.path === '') {
+    return issue.message
+  }
+  return `${issue.path}: ${issue.message}`
+}
+
 function describeIncompatibility(
   incompatibility: ManifestIncompatibility
 ): string {
@@ -86,6 +101,10 @@ interface RegisteredManifest {
   runner: ManifestRunner
   kind: ManifestKind
 }
+
+export type ManifestLookup =
+  | { status: 'ok'; runner: ManifestRunner }
+  | { status: 'unavailable'; reason: SourceUnavailableReason }
 
 // A stored manifest this build cannot run. It stays in storage untouched, so
 // a newer build picks it up again, and is listed so the user can see why the
@@ -133,20 +152,21 @@ export class ManifestRegistry {
   }
 
   async getRunner(manifestId: string): Promise<ManifestRunner> {
-    const runner = await this.findRunner(manifestId)
-    if (runner) {
-      return runner
+    const lookup = await this.lookup(manifestId)
+    if (lookup.status === 'unavailable') {
+      throw manifestUnavailable(manifestId, lookup.reason)
     }
-    const unavailable = this.unavailable.get(manifestId)
-    if (unavailable) {
-      throw new ManifestUnavailableError(manifestId, unavailable.reason)
-    }
-    throw new ManifestUnavailableError(manifestId, 'not-registered')
+    return lookup.runner
   }
 
-  async findRunner(manifestId: string): Promise<ManifestRunner | undefined> {
+  async lookup(manifestId: string): Promise<ManifestLookup> {
     await this.whenLoaded()
-    return this.runners.get(manifestId)?.runner
+    const registered = this.runners.get(manifestId)
+    if (registered) {
+      return { status: 'ok', runner: registered.runner }
+    }
+    const reason = this.unavailable.get(manifestId)?.reason ?? 'not-registered'
+    return { status: 'unavailable', reason }
   }
 
   async listManifests(locale?: string): Promise<ProviderManifestInfo[]> {
@@ -214,8 +234,12 @@ export class ManifestRegistry {
       }
       const replacement = await this.findReplacement(manifestId)
       if (replacement === null) {
-        throw new Error(
-          `No working copy of manifest ${manifestId} to reinstall; try again once the catalog is reachable`
+        throw new AppError(
+          'catalog.applyFailed',
+          { sources: [this.unavailableLabel(manifestId, unavailable)] },
+          {
+            message: `No working copy of manifest ${manifestId} to reinstall; try again once the catalog is reachable`,
+          }
         )
       }
       await this.store.set(manifestId, {
@@ -383,13 +407,14 @@ export class ManifestRegistry {
       await this.whenLoaded()
       const loaded = loadManifest(manifest)
       if (loaded.status === 'malformed') {
-        throw new ManifestValidationError(
+        throw manifestRejected(
           'save-invalid',
-          `invalid manifest: ${JSON.stringify(loaded.issues)}`
+          `invalid manifest: ${JSON.stringify(loaded.issues)}`,
+          describeFirstIssue(loaded.issues)
         )
       }
       if (loaded.status === 'incompatible') {
-        throw new ManifestValidationError(
+        throw manifestRejected(
           'save-needs-newer-extension',
           'This manifest needs a newer version of the extension'
         )
@@ -717,6 +742,13 @@ export class ManifestRegistry {
         )
       )
     }
+  }
+
+  private unavailableLabel(
+    manifestId: string,
+    unavailable: UnavailableManifest
+  ): { manifestId: string; name: string } {
+    return { manifestId, name: unavailable.name }
   }
 
   private sourceLabel(manifestId: string): {

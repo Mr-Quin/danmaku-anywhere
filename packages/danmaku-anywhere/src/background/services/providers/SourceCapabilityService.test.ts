@@ -8,7 +8,7 @@ import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { LEGACY_MACCMS_CAPABILITIES } from '@/common/providers/sourceCapabilities'
 import { createTestContainer } from '@/tests/createTestContainer'
 import { silentLogger } from '@/tests/silentLogger'
-import { ManifestRegistry } from './ManifestRegistry'
+import { type ManifestLookup, ManifestRegistry } from './ManifestRegistry'
 import { SourceCapabilityService } from './SourceCapabilityService'
 
 /**
@@ -61,8 +61,12 @@ function makeConfig(
 
 function build(configs: ProviderConfig[], runners: ManifestRunner[]) {
   const byId = new Map(runners.map((runner) => [runner.id, runner]))
-  const findRunner = vi.fn(async (manifestId: string) => {
-    return byId.get(manifestId)
+  const lookup = vi.fn(async (manifestId: string): Promise<ManifestLookup> => {
+    const runner = byId.get(manifestId)
+    if (!runner) {
+      return { status: 'unavailable', reason: 'not-registered' }
+    }
+    return { status: 'ok', runner }
   })
   const getRunner = vi.fn(async (manifestId: string) => {
     const runner = byId.get(manifestId)
@@ -80,7 +84,7 @@ function build(configs: ProviderConfig[], runners: ManifestRunner[]) {
     [
       {
         identifier: ManifestRegistry,
-        value: { findRunner, getRunner },
+        value: { lookup, getRunner },
       },
       { identifier: ProviderConfigService, value: providerConfigService },
       { identifier: LoggerSymbol, value: silentLogger },

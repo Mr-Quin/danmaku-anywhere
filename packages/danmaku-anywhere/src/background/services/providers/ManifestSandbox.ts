@@ -7,6 +7,7 @@ import {
   zSearchRow,
 } from '@mr-quin/dango'
 import { injectable } from 'inversify'
+import type { ManifestPipeline } from '@/common/errors/AppError'
 import { errorMessage } from '@/common/errors/errorMessage'
 import type {
   ManifestTestDanmakuInput,
@@ -20,10 +21,7 @@ import type {
   ManifestValidationResult,
 } from '@/common/rpcClient/background/types'
 import { extensionFetchLike } from './extensionFetchLike'
-import {
-  type ManifestPipeline,
-  ManifestValidationError,
-} from './manifestErrors'
+import { manifestRejected } from './manifestErrors'
 import { resolveManifestInputs } from './manifestInputs'
 import {
   type OutputSchema,
@@ -137,16 +135,13 @@ export class ManifestSandbox {
   private buildRunner(manifest: unknown): ManifestRunner {
     const loaded = loadManifest(manifest)
     if (loaded.status === 'incompatible') {
-      throw new ManifestValidationError(
+      throw manifestRejected(
         'save-needs-newer-extension',
         NEEDS_NEWER_EXTENSION
       )
     }
     if (loaded.status === 'malformed') {
-      throw new ManifestValidationError(
-        'save-invalid',
-        'Cannot run an invalid manifest'
-      )
+      throw manifestRejected('save-invalid', 'Cannot run an invalid manifest')
     }
     try {
       return new ManifestRunner(loaded.manifest, {

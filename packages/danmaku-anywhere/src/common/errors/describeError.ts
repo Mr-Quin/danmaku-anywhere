@@ -112,12 +112,25 @@ const MESSAGES: MessageTable = {
     )
   },
   'source.unavailable': ({ source, reason }) => {
+    const name = sourceName(source)
     switch (reason) {
       case 'not-registered':
         return i18n.t(
           'appError.sourceNotRegistered',
           "{{source}} isn't installed. Add it again from Sources.",
-          { source: sourceName(source) }
+          { source: name }
+        )
+      case 'needs-newer-extension':
+        return i18n.t(
+          'appError.sourceNeedsNewerExtension',
+          '{{source}} needs a newer version of Danmaku Anywhere.',
+          { source: name }
+        )
+      case 'invalid-manifest':
+        return i18n.t(
+          'appError.sourceInvalidManifest',
+          "{{source}} is damaged and can't run. Reinstall it from Sources.",
+          { source: name }
         )
     }
   },
@@ -163,6 +176,55 @@ const MESSAGES: MessageTable = {
       "Couldn't read the data from {{target}}. It may have changed.",
       { target: targetName(target) }
     )
+  },
+  'manifest.unavailable': ({ reason }) => {
+    switch (reason) {
+      case 'not-registered':
+        return i18n.t(
+          'appError.manifestNotRegistered',
+          "This source isn't installed. Add it again from Sources."
+        )
+      case 'needs-newer-extension':
+        return i18n.t(
+          'appError.manifestNeedsNewerExtension',
+          'This source needs a newer version of Danmaku Anywhere.'
+        )
+      case 'invalid-manifest':
+        return i18n.t(
+          'appError.manifestInvalid',
+          "This source is damaged and can't run. Reinstall it from Sources."
+        )
+    }
+  },
+  'manifest.badOutput': ({ source, pipeline, detail }) => {
+    if (source) {
+      return i18n.t(
+        'appError.sourceBadOutput',
+        "{{source}} sent data this version can't read. It may have changed.",
+        { source: sourceName(source) }
+      )
+    }
+    return i18n.t(
+      'appError.manifestBadOutput',
+      'The {{pipeline}} output does not match what the extension expects: {{detail}}',
+      { pipeline, detail }
+    )
+  },
+  'manifest.rejected': ({ reason, detail }) => {
+    if (reason === 'save-needs-newer-extension') {
+      return i18n.t(
+        'appError.manifestNeedsNewerExtensionToSave',
+        'This manifest needs a newer version of Danmaku Anywhere.'
+      )
+    }
+    if (detail) {
+      return i18n.t(
+        'appError.manifestRejectedDetail',
+        'This manifest is not valid: {{detail}}',
+        { detail }
+      )
+    }
+    return i18n.t('appError.manifestRejected', 'This manifest is not valid.')
   },
   'catalog.empty': () => {
     return i18n.t(

@@ -13,6 +13,8 @@ const OFFERS_SEARCH: ReadonlySet<AppErrorCode> = new Set<AppErrorCode>([
   'hostNotAllowed',
   'source.removed',
   'source.unavailable',
+  'manifest.unavailable',
+  'manifest.badOutput',
   'source.searchUnsupported',
   'source.episodesUnsupported',
   'source.danmakuUnsupported',

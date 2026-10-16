@@ -20,7 +20,11 @@ import {
   zSeasonRow,
 } from '@mr-quin/dango'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
-import { AppError, type SourceRef } from '@/common/errors/AppError'
+import {
+  AppError,
+  type ManifestPipeline,
+  type SourceRef,
+} from '@/common/errors/AppError'
 import type { ILogger } from '@/common/Logger'
 import {
   capabilitiesFromManifest,
@@ -36,7 +40,7 @@ import type {
   SourceProvider,
 } from './IDanmakuProvider'
 import type { ManifestRegistry } from './ManifestRegistry'
-import type { ManifestOutputSource, ManifestPipeline } from './manifestErrors'
+import type { ManifestOutputSource } from './manifestErrors'
 import { resolveManifestInputs } from './manifestInputs'
 import {
   describeDroppedRows,
@@ -92,8 +96,8 @@ export class ManifestProviderService implements SourceProvider {
   private source(pipeline: ManifestPipeline): ManifestOutputSource {
     return {
       manifestId: this.config.source.manifestId,
-      providerConfigId: this.config.source.providerConfigId,
       pipeline,
+      source: this.config.source,
     }
   }
 
@@ -172,13 +176,13 @@ export class ManifestProviderService implements SourceProvider {
   readonly kind = 'source'
 
   async getStatus(): Promise<SourceStatus> {
-    const runner = await this.registry.findRunner(this.config.source.manifestId)
-    if (!runner) {
-      return { status: 'unavailable', reason: 'not-registered' }
+    const lookup = await this.registry.lookup(this.config.source.manifestId)
+    if (lookup.status === 'unavailable') {
+      return lookup
     }
     return {
       status: 'available',
-      capabilities: capabilitiesFromManifest(runner.manifest),
+      capabilities: capabilitiesFromManifest(lookup.runner.manifest),
     }
   }
 

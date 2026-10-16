@@ -12,10 +12,6 @@ import {
   type ManifestRecord,
   ManifestStore,
 } from './ManifestStore'
-import {
-  ManifestUnavailableError,
-  ManifestValidationError,
-} from './manifestErrors'
 
 /**
  * ManifestRegistry hydrates runners from storage on init (no network) and
@@ -874,9 +870,10 @@ describe('ManifestRegistry', () => {
     })
     const registry = new ManifestRegistry(silentLogger, store)
 
-    await expect(registry.getRunner('missing')).rejects.toThrow(
-      new ManifestUnavailableError('missing', 'not-registered')
-    )
+    await expect(registry.getRunner('missing')).rejects.toMatchObject({
+      code: 'manifest.unavailable',
+      params: { manifestId: 'missing', reason: 'not-registered' },
+    })
   })
 
   it('unregister removes the manifest from store and runners', async () => {
@@ -1469,7 +1466,7 @@ describe('ManifestRegistry engine compatibility', () => {
         manifestNeedingNewerEngine('mine:one', '1.0.0'),
         'create'
       )
-    ).rejects.toThrow(ManifestValidationError)
+    ).rejects.toMatchObject({ code: 'manifest.rejected' })
 
     expect(await store.get('mine:one')).toBeUndefined()
   })
@@ -1528,9 +1525,10 @@ describe('ManifestRegistry stored manifests this build cannot run', () => {
     expect(await findListed(registry, 'gone:one')).toMatchObject({
       unavailable: 'needs-newer-extension',
     })
-    await expect(registry.getRunner('gone:one')).rejects.toThrow(
-      new ManifestUnavailableError('gone:one', 'needs-newer-extension')
-    )
+    await expect(registry.getRunner('gone:one')).rejects.toMatchObject({
+      code: 'manifest.unavailable',
+      params: { manifestId: 'gone:one', reason: 'needs-newer-extension' },
+    })
   })
 
   it('lists a user manifest that needs a newer engine with its kind, name and version', async () => {
@@ -1546,9 +1544,9 @@ describe('ManifestRegistry stored manifests this build cannot run', () => {
       kind: 'user',
       unavailable: 'needs-newer-extension',
     })
-    await expect(registry.getRunner('mine:one')).rejects.toThrow(
-      ManifestUnavailableError
-    )
+    await expect(registry.getRunner('mine:one')).rejects.toMatchObject({
+      code: 'manifest.unavailable',
+    })
   })
 
   it('deletes an unavailable user manifest and lets a fixed copy be imported again', async () => {
@@ -1602,8 +1600,8 @@ describe('ManifestRegistry stored manifests this build cannot run', () => {
     await expect(
       registry.saveUserManifest(futureManifest('mine:one'), 'create')
     ).rejects.toMatchObject({
-      name: 'ManifestValidationError',
-      reason: 'save-needs-newer-extension',
+      code: 'manifest.rejected',
+      params: { reason: 'save-needs-newer-extension' },
     })
   })
 
@@ -1613,8 +1611,8 @@ describe('ManifestRegistry stored manifests this build cannot run', () => {
     await expect(
       registry.saveUserManifest({ id: 'mine:one' }, 'create')
     ).rejects.toMatchObject({
-      name: 'ManifestValidationError',
-      reason: 'save-invalid',
+      code: 'manifest.rejected',
+      params: { reason: 'save-invalid' },
     })
   })
 
@@ -1761,7 +1759,10 @@ describe('ManifestRegistry stored manifests this build cannot run', () => {
 
     await expect(
       settleIndexRetry(() => registry.reinstall('gone:one'))
-    ).rejects.toThrow('No working copy of manifest gone:one')
+    ).rejects.toMatchObject({
+      code: 'catalog.applyFailed',
+      params: { sources: [{ manifestId: 'gone:one' }] },
+    })
     expect(await store.get('gone:one')).toEqual(stored)
     expect(await findListed(registry, 'gone:one')).toMatchObject({
       unavailable: 'invalid-manifest',

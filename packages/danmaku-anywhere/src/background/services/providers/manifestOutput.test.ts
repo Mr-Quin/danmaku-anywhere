@@ -1,6 +1,6 @@
 import { zSearchRow, zSeasonRow } from '@mr-quin/dango'
 import { describe, expect, it } from 'vitest'
-import { ManifestOutputError } from './manifestErrors'
+import { AppError } from '@/common/errors/AppError'
 import {
   describeDroppedRows,
   parseOutputRows,
@@ -16,8 +16,8 @@ import {
 
 const source = {
   manifestId: 'acme',
-  providerConfigId: 'acme-1',
   pipeline: 'search',
+  source: { providerConfigId: 'acme-1', manifestId: 'acme', name: 'Acme' },
 } as const
 
 const row = { indexedId: '1', title: 'Frieren', providerIds: { id: 1 } }
@@ -66,11 +66,11 @@ describe('parseOutputRows', () => {
       parseOutputRows(zSearchRow, [{ ...row, indexedId: 123 }], source)
     )
 
-    expect(error).toBeInstanceOf(ManifestOutputError)
+    expect(error).toBeInstanceOf(AppError)
     expect(error).toMatchObject({
-      reason: 'no-valid-rows',
+      params: { reason: 'no-valid-rows' },
       message:
-        'Manifest acme search output has no valid rows (1 invalid), first: [0] indexedId: Invalid input: expected string, received number',
+        'manifest.badOutput: Manifest acme search output has no valid rows (1 invalid), first: [0] indexedId: Invalid input: expected string, received number',
     })
   })
 
@@ -80,20 +80,23 @@ describe('parseOutputRows', () => {
     )
 
     expect(error).toMatchObject({
-      reason: 'not-array',
-      message: 'Manifest acme search output is not an array, got undefined',
+      params: { reason: 'not-array' },
+      message:
+        'manifest.badOutput: Manifest acme search output is not an array, got undefined',
     })
   })
 
-  it('names the manifest, config and pipeline on the error', () => {
+  it('names the manifest, source and pipeline on the error', () => {
     const error = catchError(() => parseOutputRows(zSearchRow, null, source))
 
-    expect(error).toBeInstanceOf(ManifestOutputError)
+    expect(error).toBeInstanceOf(AppError)
     expect(error).toMatchObject({
-      name: 'ManifestOutputError',
-      manifestId: 'acme',
-      providerConfigId: 'acme-1',
-      pipeline: 'search',
+      code: 'manifest.badOutput',
+      params: {
+        manifestId: 'acme',
+        pipeline: 'search',
+        source: { providerConfigId: 'acme-1' },
+      },
     })
   })
 })
@@ -110,12 +113,11 @@ describe('parseOutputValue', () => {
       parseOutputValue(zSeasonRow, { ...row, providerIds: 'x' }, seasonSource)
     )
 
-    expect(error).toBeInstanceOf(ManifestOutputError)
+    expect(error).toBeInstanceOf(AppError)
     expect(error).toMatchObject({
-      reason: 'invalid-output',
-      providerConfigId: undefined,
+      params: { reason: 'invalid-output', source: undefined },
       message:
-        'Manifest acme season output is invalid, providerIds: Invalid input: expected record, received string',
+        'manifest.badOutput: Manifest acme season output is invalid, providerIds: Invalid input: expected record, received string',
     })
   })
 

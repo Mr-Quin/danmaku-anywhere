@@ -58,6 +58,7 @@ import type {
   EpisodeQueryFilter,
   MacCMSFetchData,
 } from '@/common/danmaku/dto'
+import type { SourceUnavailableReason } from '@/common/errors/AppError'
 import type { LogEntry } from '@/common/Logger'
 import type { ModelManagementState } from '@/common/models/dto'
 import type { ModelEntry } from '@/common/models/schema'
@@ -121,9 +122,12 @@ export interface ProviderManifestSpec {
   configSchema?: ConfigSchema
 }
 
-export type ManifestUnavailableReason =
-  | 'needs-newer-extension'
-  | 'invalid-manifest'
+// Why a stored manifest cannot run; a manifest that is not stored at all is
+// 'not-registered', which never appears in the list.
+export type ManifestUnavailableReason = Exclude<
+  SourceUnavailableReason,
+  'not-registered'
+>
 
 export interface ProviderManifestInfo {
   id: string

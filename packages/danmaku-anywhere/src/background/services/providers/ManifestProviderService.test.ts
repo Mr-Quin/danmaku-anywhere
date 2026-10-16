@@ -14,7 +14,6 @@ import {
   ManifestProviderService,
 } from './ManifestProviderService'
 import type { ManifestRegistry } from './ManifestRegistry'
-import { ManifestOutputError } from './manifestErrors'
 
 /**
  * Covers ManifestProviderService's host-side responsibilities: applying
@@ -169,11 +168,11 @@ describe('ManifestProviderService.search output validation', () => {
       search: [{ ...seasonRow, indexedId: 123 }],
     })
 
-    await expect(svc.search({ keyword: 'x' })).rejects.toThrow(
-      ManifestOutputError
+    await expect(svc.search({ keyword: 'x' })).rejects.toEqual(
+      expect.objectContaining({ code: 'manifest.badOutput' })
     )
     await expect(svc.search({ keyword: 'x' })).rejects.toThrow(
-      /^Manifest acme search output has no valid rows \(1 invalid\), first: \[0\] indexedId: /
+      /^manifest\.badOutput: Manifest acme search output has no valid rows \(1 invalid\), first: \[0\] indexedId: /
     )
   })
 
@@ -273,14 +272,16 @@ describe('ManifestProviderService.getSeason', () => {
     const { svc } = makeService({ season: { ...seasonRow, providerIds: 1 } })
 
     await expect(svc.getSeason({ seasonId: 1 })).rejects.toMatchObject({
-      name: 'ManifestOutputError',
-      reason: 'invalid-output',
-      manifestId: 'acme',
-      providerConfigId: 'acme-1',
-      pipeline: 'season',
+      code: 'manifest.badOutput',
+      params: {
+        reason: 'invalid-output',
+        manifestId: 'acme',
+        pipeline: 'season',
+        source: { providerConfigId: 'acme-1' },
+      },
     })
     await expect(svc.getSeason({ seasonId: 1 })).rejects.toThrow(
-      /^Manifest acme season output is invalid, providerIds: /
+      /^manifest\.badOutput: Manifest acme season output is invalid, providerIds: /
     )
   })
 
@@ -371,8 +372,8 @@ describe('ManifestProviderService.getEpisodes output validation', () => {
   it('fails when every episode is invalid', async () => {
     const { svc } = makeService({ episodes: [{ ...episodeRow, indexedId: 2 }] })
 
-    await expect(svc.getEpisodes({ seasonId: 1 })).rejects.toThrow(
-      ManifestOutputError
+    await expect(svc.getEpisodes({ seasonId: 1 })).rejects.toEqual(
+      expect.objectContaining({ code: 'manifest.badOutput' })
     )
   })
 
@@ -501,7 +502,7 @@ describe('ManifestProviderService.getDanmaku', () => {
     await expect(
       svc.getDanmaku(makeRequest({ episodeId: 42 }))
     ).rejects.toThrow(
-      /^Manifest dandanplay danmaku output has no valid rows \(2 invalid\)/
+      /^manifest\.badOutput: Manifest dandanplay danmaku output has no valid rows \(2 invalid\)/
     )
   })
 
@@ -569,7 +570,7 @@ describe('ManifestProviderService.parseUrl', () => {
     })
 
     await expect(svc.parseUrl('https://acme.example/v/1')).rejects.toThrow(
-      /^Manifest acme parseUrl output is invalid, seasonInsert\.indexedId: /
+      /^manifest\.badOutput: Manifest acme parseUrl output is invalid, seasonInsert\.indexedId: /
     )
   })
 
@@ -581,16 +582,16 @@ describe('ManifestProviderService.parseUrl', () => {
       },
     })
 
-    await expect(svc.parseUrl('https://acme.example/v/1')).rejects.toThrow(
-      ManifestOutputError
+    await expect(svc.parseUrl('https://acme.example/v/1')).rejects.toEqual(
+      expect.objectContaining({ code: 'manifest.badOutput' })
     )
   })
 
   it('fails when a matched URL yields nothing', async () => {
     const { svc } = makeService({ parseUrl: undefined })
 
-    await expect(svc.parseUrl('https://acme.example/v/1')).rejects.toThrow(
-      ManifestOutputError
+    await expect(svc.parseUrl('https://acme.example/v/1')).rejects.toEqual(
+      expect.objectContaining({ code: 'manifest.badOutput' })
     )
   })
 

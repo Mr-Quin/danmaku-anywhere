@@ -38,7 +38,6 @@ import { silentLogger } from '@/tests/silentLogger'
 import type { SourceProvider } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
 import { ManifestRegistry } from './ManifestRegistry'
-import { ManifestOutputError } from './manifestErrors'
 import { DanmakuProviderFactory } from './ProviderFactory'
 import { ProviderService } from './ProviderService'
 
@@ -238,8 +237,8 @@ describe('ProviderService.probeLogin', () => {
       registry: { getRunner },
     })
 
-    await expect(service.probeLogin('bilibili')).rejects.toThrow(
-      ManifestOutputError
+    await expect(service.probeLogin('bilibili')).rejects.toEqual(
+      expect.objectContaining({ code: 'manifest.badOutput' })
     )
   })
 })

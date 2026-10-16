@@ -48,6 +48,18 @@ const PARAMS: { [C in keyof AppErrorParams]: AppErrorParams[C] } = {
   'source.seasonRefreshUnsupported': { source: BILIBILI },
   'source.noDanmaku': { title: 'Frieren' },
   badResponse: { target: SOURCE },
+  'manifest.unavailable': {
+    manifestId: 'bilibili',
+    reason: 'needs-newer-extension',
+  },
+  'manifest.badOutput': {
+    manifestId: 'bilibili',
+    pipeline: 'search',
+    reason: 'no-valid-rows',
+    detail: '[0] title: expected string',
+    source: BILIBILI,
+  },
+  'manifest.rejected': { reason: 'save-invalid' },
   'match.notFound': { title: 'Frieren' },
   'catalog.empty': {},
   'config.duplicate': {},

@@ -1,7 +1,5 @@
-import {
-  ManifestOutputError,
-  type ManifestOutputSource,
-} from './manifestErrors'
+import { AppError, type ManifestOutputFailure } from '@/common/errors/AppError'
+import type { ManifestOutputSource } from './manifestErrors'
 
 interface OutputIssue {
   path: readonly PropertyKey[]
@@ -37,6 +35,18 @@ function describeIssue(issues: readonly OutputIssue[]): string {
   return `${issue.path.map(String).join('.')}: ${issue.message}`
 }
 
+function outputError(
+  { manifestId, pipeline, source }: ManifestOutputSource,
+  reason: ManifestOutputFailure,
+  detail: string
+): AppError<'manifest.badOutput'> {
+  return new AppError(
+    'manifest.badOutput',
+    { manifestId, pipeline, reason, detail, source },
+    { message: `Manifest ${manifestId} ${pipeline} output ${detail}` }
+  )
+}
+
 function describeType(value: unknown): string {
   if (value === null) {
     return 'null'
@@ -55,7 +65,7 @@ export function parseOutputRows<T>(
   source: ManifestOutputSource
 ): ParsedRows<T> {
   if (!Array.isArray(output)) {
-    throw new ManifestOutputError(
+    throw outputError(
       source,
       'not-array',
       `is not an array, got ${describeType(output)}`
@@ -78,7 +88,7 @@ export function parseOutputRows<T>(
   }
   const count = output.length - rows.length
   if (rows.length === 0) {
-    throw new ManifestOutputError(
+    throw outputError(
       source,
       'no-valid-rows',
       `has no valid rows (${count} invalid), first: ${firstIssue}`
@@ -94,7 +104,7 @@ export function parseOutputValue<T>(
 ): T {
   const parsed = schema.safeParse(output)
   if (!parsed.success) {
-    throw new ManifestOutputError(
+    throw outputError(
       source,
       'invalid-output',
       `is invalid, ${describeIssue(parsed.error.issues)}`

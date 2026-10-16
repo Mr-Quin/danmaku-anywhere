@@ -1,48 +1,21 @@
-import type { ManifestUnavailableReason } from '@/common/rpcClient/background/types'
-
-export type ManifestPipeline =
-  | 'search'
-  | 'season'
-  | 'episodes'
-  | 'parseUrl'
-  | 'danmaku'
-  | 'loginProbe'
+import {
+  AppError,
+  type ManifestPipeline,
+  type ManifestRejection,
+  type SourceRef,
+  type SourceUnavailableReason,
+} from '@/common/errors/AppError'
 
 export interface ManifestOutputSource {
   manifestId: string
-  // Absent for an unsaved manifest run from the editor.
-  providerConfigId?: string
   pipeline: ManifestPipeline
+  // Absent for an unsaved manifest run from the editor.
+  source?: SourceRef
 }
-
-export type ManifestOutputFailure =
-  | 'not-array'
-  | 'no-valid-rows'
-  | 'invalid-output'
-
-export class ManifestOutputError extends Error {
-  readonly manifestId: string
-  readonly providerConfigId: string | undefined
-  readonly pipeline: ManifestPipeline
-
-  constructor(
-    source: ManifestOutputSource,
-    readonly reason: ManifestOutputFailure,
-    detail: string
-  ) {
-    super(`Manifest ${source.manifestId} ${source.pipeline} output ${detail}`)
-    this.name = 'ManifestOutputError'
-    this.manifestId = source.manifestId
-    this.providerConfigId = source.providerConfigId
-    this.pipeline = source.pipeline
-  }
-}
-
-export type ManifestLookupFailure = 'not-registered' | ManifestUnavailableReason
 
 function describeLookupFailure(
   manifestId: string,
-  reason: ManifestLookupFailure
+  reason: SourceUnavailableReason
 ): string {
   switch (reason) {
     case 'not-registered':
@@ -54,25 +27,22 @@ function describeLookupFailure(
   }
 }
 
-export class ManifestUnavailableError extends Error {
-  constructor(
-    readonly manifestId: string,
-    readonly reason: ManifestLookupFailure
-  ) {
-    super(describeLookupFailure(manifestId, reason))
-    this.name = 'ManifestUnavailableError'
-  }
+export function manifestUnavailable(
+  manifestId: string,
+  reason: SourceUnavailableReason
+): AppError<'manifest.unavailable'> {
+  return new AppError(
+    'manifest.unavailable',
+    { manifestId, reason },
+    { message: describeLookupFailure(manifestId, reason) }
+  )
 }
 
-export type ManifestRejection = 'save-invalid' | 'save-needs-newer-extension'
-
 // A manifest offered for saving or a test run that this build will not take.
-export class ManifestValidationError extends Error {
-  constructor(
-    readonly reason: ManifestRejection,
-    message: string
-  ) {
-    super(message)
-    this.name = 'ManifestValidationError'
-  }
+export function manifestRejected(
+  reason: ManifestRejection,
+  message: string,
+  detail?: string
+): AppError<'manifest.rejected'> {
+  return new AppError('manifest.rejected', { reason, detail }, { message })
 }
