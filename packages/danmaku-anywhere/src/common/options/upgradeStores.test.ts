@@ -4,6 +4,7 @@ import { silentLogger } from '@/tests/silentLogger'
 import type { IStoreService } from './IStoreService'
 import { OptionsService } from './OptionsService/OptionsService'
 import type { StoreSnapshot } from './OptionsService/types'
+import { storeFailuresOf } from './upgrade/upgradeFailure'
 import {
   type UpgradeSnapshot,
   type UpgradeSnapshotStore,
@@ -18,8 +19,9 @@ import {
  * Each captured entry is kept while its store is still at the captured
  * version or already at its latest version; a store changed any other way is
  * captured again on its own. A store that fails does not
- * stop the others, and the call then rejects naming each failed store. A
- * read error while taking the snapshot rejects before anything is written.
+ * stop the others, and the call then rejects naming each failed store and the
+ * storage problem behind it. A read error while taking the snapshot rejects
+ * before anything is written.
  */
 
 interface Value {
@@ -88,12 +90,18 @@ async function readRaw(key: string) {
 }
 
 function failWritesTo(key: string) {
+  return failWrites({ [key]: 'IO error' })
+}
+
+function failWrites(messages: Record<string, string>) {
   const set = fakeBrowser.storage.local.set.bind(fakeBrowser.storage.local)
   return vi
     .spyOn(fakeBrowser.storage.local, 'set')
     .mockImplementation(async (items) => {
-      if (key in items) {
-        throw new Error('QUOTA_BYTES quota exceeded')
+      for (const [key, message] of Object.entries(messages)) {
+        if (key in items) {
+          throw new Error(message)
+        }
       }
       return set(items)
     })
@@ -149,6 +157,27 @@ describe('upgradeStores', () => {
       data: { value: 'b upgraded' },
       version: 2,
     })
+  })
+
+  it('tells which storage problem stopped each failed store', async () => {
+    await storeAt('alpha', 'a', 1)
+    await storeAt('beta', 'b', 1)
+    await storeAt('gamma', 'c', 1)
+    failWrites({
+      alpha: 'Resource::kQuotaBytes quota exceeded',
+      beta: 'IO error',
+    })
+
+    const error = await upgradeStores(
+      [createStore('alpha'), createStore('beta'), createStore('gamma')],
+      silentLogger,
+      memorySnapshots()
+    ).catch((reason: unknown) => reason)
+
+    expect(storeFailuresOf(error)).toEqual([
+      { store: 'alpha', problem: 'storeFull' },
+      { store: 'beta', problem: 'unknown' },
+    ])
   })
 
   it('saves the snapshot with store versions before the first write', async () => {
@@ -274,10 +303,15 @@ describe('upgradeStores', () => {
       new Error('IO error')
     )
 
-    await expect(
-      upgradeStores([createStore('alpha')], silentLogger, memorySnapshots())
-    ).rejects.toThrow('IO error')
+    const error = await upgradeStores(
+      [createStore('alpha')],
+      silentLogger,
+      memorySnapshots()
+    ).catch((reason: unknown) => reason)
 
+    expect(storeFailuresOf(error)).toEqual([
+      { store: 'alpha', problem: 'unknown' },
+    ])
     expect(await readRaw('alpha')).toEqual({ data: { value: 'a' }, version: 1 })
   })
 })

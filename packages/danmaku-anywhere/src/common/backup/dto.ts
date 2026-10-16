@@ -1,3 +1,4 @@
+import type { OptionsStorageProblem } from '@/common/options/OptionsService/OptionsStorageError'
 export interface ServiceBackupData<T> {
   version: number
   data: T
@@ -21,6 +22,8 @@ export interface BackupRestoreResult {
       error?: string
       /** Entries dropped because they failed validation. */
       droppedEntries?: number
+      /** Set when the browser's storage refused the restored data. */
+      storageProblem?: OptionsStorageProblem
     }
   >
 }

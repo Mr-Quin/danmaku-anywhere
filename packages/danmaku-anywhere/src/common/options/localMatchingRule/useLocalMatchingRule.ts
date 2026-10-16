@@ -3,11 +3,11 @@ import { useInjectService } from '@/common/hooks/useInjectService'
 import { namingRuleDescriptor } from '@/common/options/optionStores'
 import { useOptionStoreQuery } from '@/common/options/useOptionStoreQuery'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
-import type { NamingRuleStore } from './schema'
+import type { NamingRuleOptions } from './schema'
 import { NamingRuleService } from './service'
 
 export const useNamingRules = () => {
-  const store = useOptionStoreQuery<NamingRuleStore>(namingRuleDescriptor)
+  const store = useOptionStoreQuery<NamingRuleOptions>(namingRuleDescriptor)
 
   return {
     ...store,

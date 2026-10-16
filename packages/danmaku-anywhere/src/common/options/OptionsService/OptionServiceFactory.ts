@@ -9,7 +9,8 @@ export type IOptionsServiceFactory = <T extends OptionsSchema>(
   key: string,
   defaultOptions: T,
   logger: ILogger,
-  storageType?: ExtStorageType
+  storageType?: ExtStorageType,
+  parts?: readonly string[]
 ) => OptionsService<T>
 
 export const OptionsServiceFactory = Symbol.for('OptionsServiceFactory')
@@ -21,7 +22,8 @@ export function optionsServiceFactory(
     key: string,
     defaultOptions: T,
     logger: ILogger,
-    storageType?: ExtStorageType
+    storageType?: ExtStorageType,
+    parts?: readonly string[]
   ) => {
     const readinessService = context.get<ReadinessService>(ReadinessService)
     return new OptionsService<T>(
@@ -29,7 +31,8 @@ export function optionsServiceFactory(
       key,
       defaultOptions,
       logger,
-      storageType
+      storageType,
+      parts
     )
   }
 }

@@ -106,6 +106,28 @@ describe('ReadinessService', () => {
     expect(await settledState(readiness)).toEqual({
       status: 'failed',
       message: 'QUOTA_BYTES quota exceeded',
+      stores: [],
+    })
+  })
+
+  it('reports which stores the failed run could not upgrade and why', async () => {
+    await storeAt(alpha, 1)
+    await recordRun({
+      ...failedRun,
+      stores: [
+        { store: 'alpha', problem: 'storeFull' },
+        { store: 'beta', problem: 'noSuchProblem' },
+        'garbage',
+      ] as never,
+    })
+    const readiness = createReadiness([alpha])
+
+    expect(await settledState(readiness)).toMatchObject({
+      status: 'failed',
+      stores: [
+        { store: 'alpha', problem: 'storeFull' },
+        { store: 'beta', problem: 'unknown' },
+      ],
     })
   })
 

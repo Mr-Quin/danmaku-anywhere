@@ -6,6 +6,10 @@ import {
   type OptionStoreDescriptor,
   OptionStoreDescriptors,
 } from '../optionStores'
+import {
+  parseStoreFailures,
+  type StoreFailure,
+} from '../upgrade/upgradeFailure'
 import { settleRun, staleAt, UPGRADE_RUN_KEY } from '../upgrade/upgradeRun'
 import {
   type OptionStoresStatus,
@@ -15,7 +19,7 @@ import {
 export type ReadinessState =
   | { status: 'pending' }
   | { status: 'ready' }
-  | { status: 'failed'; message: string }
+  | { status: 'failed'; message: string; stores: StoreFailure[] }
 
 export interface ReadinessGate {
   waitUntilReady(): Promise<void>
@@ -188,14 +192,21 @@ function toState(status: OptionStoresStatus, now: number): ReadinessState {
   }
   const run = status.run && settleRun(status.run, now)
   if (run?.status === 'failed') {
-    return { status: 'failed', message: run.message }
+    return {
+      status: 'failed',
+      message: run.message,
+      stores: parseStoreFailures(run.stores),
+    }
   }
   return PENDING
 }
 
 function isSameState(a: ReadinessState, b: ReadinessState): boolean {
   if (a.status === 'failed' && b.status === 'failed') {
-    return a.message === b.message
+    return (
+      a.message === b.message &&
+      JSON.stringify(a.stores) === JSON.stringify(b.stores)
+    )
   }
   return a.status === b.status
 }

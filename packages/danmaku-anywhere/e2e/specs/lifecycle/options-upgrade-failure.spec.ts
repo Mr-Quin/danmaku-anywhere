@@ -11,10 +11,10 @@ import { applyProfile } from '../../setup/profile'
 
 /**
  * An options upgrade that cannot write to sync storage leaves the popup on a
- * failure screen with a Retry button, not a blank page, and once sync writes
- * work again Retry upgrades the stores and the popup opens its pages. A page
- * the controller mounts on shows a failure button in place of its floating
- * button meanwhile.
+ * failure screen naming the store and the full storage as the reason, with a
+ * Retry button instead of a blank page, and once sync writes work again Retry
+ * upgrades the stores and the popup opens its pages. A page the controller
+ * mounts on shows a failure button in place of its floating button meanwhile.
  */
 
 test.use({
@@ -82,6 +82,9 @@ test('popup shows a failed options upgrade and Retry recovers', async ({
 
   const popup = await Popup.open(page, extensionId)
   await expect(popup.optionsUpgrade.failed()).toBeVisible()
+  await expect(popup.optionsUpgrade.failedStore('aiProviderConfig')).toHaveText(
+    /^(AI Providers|AI源).+(settings is full|存储空间已满)/
+  )
   await expect(popup.optionsUpgrade.retryButton()).toBeEnabled()
 
   await restoreSyncWrites()

@@ -4,15 +4,19 @@ import { canRetryAutomatically, settleRun, type UpgradeRun } from './upgradeRun'
 /**
  * canRetryAutomatically lets a startup or wake retry a failed upgrade after a
  * delay that grows four times per attempt, starting at one minute, and stops
- * after five attempts. A run still marked running five minutes after it
- * started was cut off: it settles as a failed attempt, both for what the UI
- * shows and for the retry delay, so a worker that keeps dying mid-run cannot
- * retry forever.
+ * after five attempts. A failure that every attempt would repeat, a full
+ * storage area or an item over the size limit, is not retried at all. A run
+ * still marked running five minutes after it started was cut off: it settles
+ * as a failed attempt, both for what the UI shows and for the retry delay, so
+ * a worker that keeps dying mid-run cannot retry forever.
  */
 
 const MINUTE = 60_000
 
-function failed(attempts: number, failedAt = 0): UpgradeRun {
+function failed(
+  attempts: number,
+  failedAt = 0
+): Extract<UpgradeRun, { status: 'failed' }> {
   return { status: 'failed', attempts, failedAt, message: 'IO error' }
 }
 
@@ -57,6 +61,30 @@ describe('canRetryAutomatically', () => {
   it('applies the retry delay to a cut-off run from when it went stale', () => {
     expect(canRetryAutomatically(running(1), 6 * MINUTE - 1)).toBe(false)
     expect(canRetryAutomatically(running(1), 6 * MINUTE)).toBe(true)
+  })
+
+  it('does not retry a failure where every store would fail the same way again', () => {
+    const run: UpgradeRun = {
+      ...failed(1),
+      stores: [
+        { store: 'danmakuOptions', problem: 'itemTooLarge' },
+        { store: 'mountConfig', problem: 'storeFull' },
+      ],
+    }
+
+    expect(canRetryAutomatically(run, 1000 * MINUTE)).toBe(false)
+  })
+
+  it('retries a failure where some store may pass next time', () => {
+    const run: UpgradeRun = {
+      ...failed(1),
+      stores: [
+        { store: 'danmakuOptions', problem: 'storeFull' },
+        { store: 'mountConfig', problem: 'writeRateLimited' },
+      ],
+    }
+
+    expect(canRetryAutomatically(run, MINUTE)).toBe(true)
   })
 
   it('stops retrying a worker that keeps dying mid-run', () => {
