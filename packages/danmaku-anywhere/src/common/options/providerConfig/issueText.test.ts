@@ -67,7 +67,9 @@ describe('describeProviderConfigError', () => {
     expect(describeProviderConfigError(error)).toBe('providers.error.outdated')
   })
 
-  it('keeps the text of a local error', () => {
-    expect(describeProviderConfigError(new Error('boom'))).toBe('boom')
+  it('gives an error from outside the error model the generic text', () => {
+    expect(describeProviderConfigError(new Error('boom'))).toBe(
+      'appError.unknown'
+    )
   })
 })

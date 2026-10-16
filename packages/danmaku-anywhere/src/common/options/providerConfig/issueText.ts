@@ -1,6 +1,6 @@
 import type { ConfigSchema } from '@mr-quin/dango'
 import { type AppConfigIssue, AppError } from '@/common/errors/AppError'
-import { describeLocalError } from '@/common/errors/describeError'
+import { describeError } from '@/common/errors/describeError'
 import { i18n } from '@/common/localization/i18n'
 
 type ConfigIssue = AppConfigIssue
@@ -134,7 +134,7 @@ export function describeProviderConfigError(
   configSchema?: ConfigSchema
 ): string {
   if (!(error instanceof AppError) || error.code !== 'config.invalid') {
-    return describeLocalError(error)
+    return describeError(error).message
   }
   const { issues } = error.params as AppError<'config.invalid'>['params']
   const [issue] = issues
