@@ -39,6 +39,7 @@ function makeRunner(returns: Record<string, unknown>): ManifestRunner {
       'parseUrl' in returns ? returns.parseUrl : null
     ),
     hasSeason: vi.fn(() => 'season' in returns),
+    canParse: vi.fn(() => returns.canParse ?? true),
     configDefaults: vi.fn(
       () => (returns.configDefaults as Record<string, unknown>) ?? {}
     ),
@@ -561,7 +562,7 @@ describe('ManifestProviderService.parseUrl', () => {
   })
 
   it('returns null when no URL pattern of the manifest matched', async () => {
-    const { svc } = makeService({ parseUrl: null })
+    const { svc } = makeService({ canParse: false })
 
     expect(await svc.parseUrl('https://acme.example/v/1')).toBeNull()
   })
@@ -592,11 +593,18 @@ describe('ManifestProviderService.parseUrl', () => {
     )
   })
 
-  it('fails when a matched URL yields nothing', async () => {
-    const { svc } = makeService({ parseUrl: undefined })
+  it.each([
+    ['nothing', undefined],
+    ['null', null],
+    ['a season with no identity', { seasonInsert: { providerIds: {} } }],
+  ])('says the title is not found when a matched URL yields %s', async (_, parseUrl) => {
+    const { svc } = makeService({ parseUrl })
 
     await expect(svc.parseUrl('https://acme.example/v/1')).rejects.toEqual(
-      expect.objectContaining({ code: 'manifest.badOutput' })
+      expect.objectContaining({
+        code: 'source.urlTitleNotFound',
+        params: { source: expect.objectContaining({ manifestId: 'acme' }) },
+      })
     )
   })
 

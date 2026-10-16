@@ -117,7 +117,8 @@
     },
     "timeout": "Timed out waiting for {{target}}.",
     "unknown": "Something went wrong.",
-    "urlEpisodeNotFound": "The link was recognized, but its episode could not be found."
+    "urlEpisodeNotFound": "The link was recognized, but its episode could not be found.",
+    "urlTitleNotFound": "{{source}} has nothing at this link. The title may have been removed or not be available in your region."
   },
   "bookmark": {
     "add": "Follow",

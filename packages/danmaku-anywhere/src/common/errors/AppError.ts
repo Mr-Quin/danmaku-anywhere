@@ -81,6 +81,7 @@ const PARAMS = {
   'source.removed': zNoParams,
   'source.noUrlParser': zNoParams,
   'source.urlEpisodeNotFound': zNoParams,
+  'source.urlTitleNotFound': zSource,
   'source.unavailable': zSource.extend({ reason: zSourceUnavailableReason }),
   'source.searchUnsupported': zSource,
   'source.episodesUnsupported': zSource,

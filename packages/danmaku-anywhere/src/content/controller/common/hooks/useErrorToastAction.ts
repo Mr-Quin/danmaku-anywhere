@@ -20,6 +20,7 @@ const OFFERS_SEARCH: ReadonlySet<AppErrorCode> = new Set<AppErrorCode>([
   'source.danmakuUnsupported',
   'source.seasonRefreshUnsupported',
   'source.noDanmaku',
+  'source.urlTitleNotFound',
   'badResponse',
 ])
 

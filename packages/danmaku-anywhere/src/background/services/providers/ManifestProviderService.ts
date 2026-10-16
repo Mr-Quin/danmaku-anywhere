@@ -90,6 +90,18 @@ const EPISODE_ROW_FIELDS = [
   'params',
 ] as const
 
+function hasSeasonIdentity(output: unknown): boolean {
+  if (typeof output !== 'object' || output === null) {
+    return false
+  }
+  const seasonInsert: unknown = Reflect.get(output, 'seasonInsert')
+  if (typeof seasonInsert !== 'object' || seasonInsert === null) {
+    return false
+  }
+  const indexedId: unknown = Reflect.get(seasonInsert, 'indexedId')
+  return indexedId !== undefined && indexedId !== null && indexedId !== ''
+}
+
 export function manifestStatus(lookup: ManifestLookup): SourceStatus {
   if (lookup.status === 'unavailable') {
     return lookup
@@ -341,13 +353,22 @@ export class ManifestProviderService implements SourceProvider {
       url
     )
     const runner = await this.getRunner()
+    if (!runner.canParse(url)) {
+      return null
+    }
     const output = await this.run(
       (options) => runner.runParseUrl(url, undefined, options),
       MANIFEST_RUN_OPTIONS,
       SOURCE_RUN_TIMEOUT_MS
     )
-    if (output === null) {
-      return null
+    // The link matched, so an output with no title identity means the source
+    // has nothing there, such as a removed or region-locked title.
+    if (!hasSeasonIdentity(output)) {
+      throw new AppError(
+        'source.urlTitleNotFound',
+        { source: this.config.source },
+        { message: `No title found for url: ${url}` }
+      )
     }
     const { seasonInsert, episodeMeta } = this.parseValue(
       'parseUrl',

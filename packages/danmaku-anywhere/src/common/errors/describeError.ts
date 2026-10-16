@@ -92,6 +92,13 @@ const MESSAGES: MessageTable = {
   'source.noUrlParser': () => {
     return i18n.t('appError.noUrlParser', 'No source can read this link.')
   },
+  'source.urlTitleNotFound': ({ source }) => {
+    return i18n.t(
+      'appError.urlTitleNotFound',
+      '{{source}} has nothing at this link. The title may have been removed or not be available in your region.',
+      { source: source.name }
+    )
+  },
   'source.urlEpisodeNotFound': () => {
     return i18n.t(
       'appError.urlEpisodeNotFound',

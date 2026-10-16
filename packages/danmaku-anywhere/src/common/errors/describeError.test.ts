@@ -41,6 +41,7 @@ const PARAMS: { [C in keyof AppErrorParams]: AppErrorParams[C] } = {
   'source.removed': {},
   'source.noUrlParser': {},
   'source.urlEpisodeNotFound': {},
+  'source.urlTitleNotFound': { source: BILIBILI },
   'source.unavailable': { source: BILIBILI, reason: 'not-registered' },
   'source.searchUnsupported': { source: BILIBILI },
   'source.episodesUnsupported': { source: BILIBILI },

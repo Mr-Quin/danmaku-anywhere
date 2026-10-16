@@ -117,7 +117,8 @@
     },
     "timeout": "等待{{target}}响应超时。",
     "unknown": "出错啦！",
-    "urlEpisodeNotFound": "已识别此链接，但找不到对应的剧集。"
+    "urlEpisodeNotFound": "已识别此链接，但找不到对应的剧集。",
+    "urlTitleNotFound": "{{source}}在此链接下没有找到作品，可能已下架或在你所在的地区不可用。"
   },
   "bookmark": {
     "add": "关注",
