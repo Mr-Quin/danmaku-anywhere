@@ -38,6 +38,11 @@ export type ManifestOutputFailure = z.infer<typeof zManifestOutputFailure>
 const zManifestRejection = z.enum([
   'save-invalid',
   'save-needs-newer-extension',
+  'save-id-changed',
+  'save-duplicate-id',
+  'save-not-user',
+  'delete-not-user',
+  'reinstall-not-broken',
 ])
 
 export type ManifestRejection = z.infer<typeof zManifestRejection>

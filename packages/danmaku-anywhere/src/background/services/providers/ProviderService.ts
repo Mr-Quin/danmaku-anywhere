@@ -33,6 +33,7 @@ import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { OmitSeasonId } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
 import { type CatalogSync, ManifestRegistry } from './ManifestRegistry'
+import { manifestRejected } from './manifestErrors'
 import { parseOutputValue } from './manifestOutput'
 import { SourceCapabilityService } from './SourceCapabilityService'
 
@@ -313,7 +314,10 @@ export class ProviderService {
   async deleteUserManifest(manifestId: string): Promise<void> {
     const source = await this.manifestRegistry.getSource(manifestId)
     if (source?.kind !== 'user') {
-      throw new Error('Only user manifests can be deleted')
+      throw manifestRejected(
+        'delete-not-user',
+        'Only user manifests can be deleted'
+      )
     }
     await this.providerConfigWriter.deleteByManifest(manifestId)
     await this.manifestRegistry.unregister(manifestId)

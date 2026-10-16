@@ -198,20 +198,46 @@ const MESSAGES: MessageTable = {
     )
   },
   'manifest.rejected': ({ reason, detail }) => {
-    if (reason === 'save-needs-newer-extension') {
-      return i18n.t(
-        'appError.manifestNeedsNewerExtensionToSave',
-        'This manifest needs a newer version of Danmaku Anywhere.'
-      )
+    switch (reason) {
+      case 'save-needs-newer-extension':
+        return i18n.t(
+          'appError.manifestNeedsNewerExtensionToSave',
+          'This manifest needs a newer version of Danmaku Anywhere.'
+        )
+      case 'save-id-changed':
+        return i18n.t(
+          'appError.manifestIdChanged',
+          "A manifest's id cannot be changed. Save it as a new manifest instead."
+        )
+      case 'save-duplicate-id':
+        return i18n.t(
+          'appError.manifestDuplicateId',
+          'A source with this id is already installed.'
+        )
+      case 'save-not-user':
+      case 'delete-not-user':
+        return i18n.t(
+          'appError.manifestNotUser',
+          'Only manifests you added can be changed or deleted.'
+        )
+      case 'reinstall-not-broken':
+        return i18n.t(
+          'appError.manifestNotReinstallable',
+          'Only a damaged built-in source can be reinstalled.'
+        )
+      case 'save-invalid':
+        if (detail) {
+          return i18n.t(
+            'appError.manifestRejectedDetail',
+            'This manifest is not valid: {{detail}}',
+            { detail }
+          )
+        }
+        return i18n.t(
+          'appError.manifestRejected',
+          'This manifest is not valid.'
+        )
     }
-    if (detail) {
-      return i18n.t(
-        'appError.manifestRejectedDetail',
-        'This manifest is not valid: {{detail}}',
-        { detail }
-      )
-    }
-    return i18n.t('appError.manifestRejected', 'This manifest is not valid.')
   },
   'catalog.empty': () => {
     return i18n.t(

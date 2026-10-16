@@ -247,7 +247,10 @@ export class ManifestRegistry {
         unavailable.kind === 'user' ||
         unavailable.reason !== 'invalid-manifest'
       ) {
-        throw new Error(`Manifest ${manifestId} cannot be reinstalled`)
+        throw manifestRejected(
+          'reinstall-not-broken',
+          `Manifest ${manifestId} cannot be reinstalled`
+        )
       }
       const replacement = await this.findReplacement(manifestId)
       if (replacement === null) {
@@ -446,14 +449,23 @@ export class ManifestRegistry {
         mode === 'update' &&
         (expectedId === undefined || id !== expectedId)
       ) {
-        throw new Error('A manifest id cannot be changed')
+        throw manifestRejected(
+          'save-id-changed',
+          'A manifest id cannot be changed'
+        )
       }
       const existing = await this.store.get(id)
       if (mode === 'create' && existing) {
-        throw new Error(`A manifest with id "${id}" already exists`)
+        throw manifestRejected(
+          'save-duplicate-id',
+          `A manifest with id "${id}" already exists`
+        )
       }
       if (mode === 'update' && existing?.kind !== 'user') {
-        throw new Error(`No user manifest with id "${id}" to update`)
+        throw manifestRejected(
+          'save-not-user',
+          `No user manifest with id "${id}" to update`
+        )
       }
       // Build before persisting: a manifest that passes zManifest can still throw
       // at runner construction, and a stored-but-unbuildable manifest would break
