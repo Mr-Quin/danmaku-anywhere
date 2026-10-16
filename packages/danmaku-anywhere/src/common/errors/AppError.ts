@@ -8,6 +8,10 @@ const zSourceRef = z.object({
 
 export type SourceRef = z.infer<typeof zSourceRef>
 
+const zSourceUnavailableReason = z.enum(['not-registered'])
+
+export type SourceUnavailableReason = z.infer<typeof zSourceUnavailableReason>
+
 const zTarget = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('source'), ref: zSourceRef }),
   z.object({ kind: z.literal('catalog') }),
@@ -31,8 +35,11 @@ const PARAMS = {
   'source.removed': zNoParams,
   'source.noUrlParser': zNoParams,
   'source.urlEpisodeNotFound': zNoParams,
+  'source.unavailable': zSource.extend({ reason: zSourceUnavailableReason }),
+  'source.searchUnsupported': zSource,
   'source.episodesUnsupported': zSource,
-  'source.refetchUnsupported': zSource,
+  'source.danmakuUnsupported': zSource,
+  'source.seasonRefreshUnsupported': zSource,
   'source.noDanmaku': zTitle,
   badResponse: zTransport,
   'match.notFound': zTitle,

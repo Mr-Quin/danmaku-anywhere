@@ -49,7 +49,10 @@ describe('seasonActions', () => {
   })
 
   it('disables every action of an unavailable source', () => {
-    const actions = seasonActions({ status: 'unavailable', reason: 'missing' })
+    const actions = seasonActions({
+      status: 'unavailable',
+      reason: 'not-registered',
+    })
 
     expect(actions.follow).toEqual({
       state: 'disabled',

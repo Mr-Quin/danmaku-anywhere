@@ -315,9 +315,8 @@ describe('ProviderService legacy-maccms decoupling', () => {
       )
 
       await expect(service.fetchEpisodesBySeason(1)).rejects.toMatchObject({
-        name: 'SourceError',
-        problem: 'episodesUnsupported',
-        sourceName: LEGACY_MACCMS_ID,
+        code: 'source.episodesUnsupported',
+        params: { source: expect.objectContaining({ name: LEGACY_MACCMS_ID }) },
       })
     })
 
@@ -485,8 +484,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
       await expect(
         service.getDanmaku({ type: 'by-meta', meta: maccmsMeta, options: {} })
       ).rejects.toMatchObject({
-        name: 'SourceError',
-        problem: 'danmakuUnsupported',
+        code: 'source.danmakuUnsupported',
       })
     })
 
@@ -521,8 +519,7 @@ describe('ProviderService capability gates', () => {
     await expect(
       service.searchSeason({ providerConfigId: config.id, keyword: 'a' })
     ).rejects.toMatchObject({
-      name: 'SourceError',
-      problem: 'searchUnsupported',
+      code: 'source.searchUnsupported',
     })
     expect(provider.search).not.toHaveBeenCalled()
   })
@@ -534,9 +531,8 @@ describe('ProviderService capability gates', () => {
     const { service } = build(config, provider)
 
     await expect(service.fetchEpisodesBySeason(1)).rejects.toMatchObject({
-      name: 'SourceError',
-      problem: 'episodesUnsupported',
-      sourceName: config.name,
+      code: 'source.episodesUnsupported',
+      params: { source: expect.objectContaining({ name: config.name }) },
     })
     expect(provider.getEpisodes).not.toHaveBeenCalled()
   })
@@ -560,8 +556,7 @@ describe('ProviderService capability gates', () => {
     await expect(
       service.getDanmaku({ type: 'by-meta', meta, options: {} })
     ).rejects.toMatchObject({
-      name: 'SourceError',
-      problem: 'danmakuUnsupported',
+      code: 'source.danmakuUnsupported',
     })
     expect(provider.getDanmaku).not.toHaveBeenCalled()
   })
@@ -586,8 +581,7 @@ describe('ProviderService capability gates', () => {
     await expect(
       service.refreshSeason({ id: season.id })
     ).rejects.toMatchObject({
-      name: 'SourceError',
-      problem: 'seasonRefreshUnsupported',
+      code: 'source.seasonRefreshUnsupported',
     })
     expect(getSeason).not.toHaveBeenCalled()
     expect(upsert).not.toHaveBeenCalled()

@@ -5,10 +5,7 @@ import { backgroundContainerModule } from '@/background/ioc'
 import { LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import {
-  LEGACY_MACCMS_CAPABILITIES,
-  MANIFEST_MISSING,
-} from '@/common/providers/sourceCapabilities'
+import { LEGACY_MACCMS_CAPABILITIES } from '@/common/providers/sourceCapabilities'
 import { createTestContainer } from '@/tests/createTestContainer'
 import { silentLogger } from '@/tests/silentLogger'
 import { ManifestRegistry } from './ManifestRegistry'
@@ -169,7 +166,7 @@ describe('SourceCapabilityService with a config whose manifest is missing', () =
 
     expect(await service.forProviderConfig(broken.id)).toEqual({
       status: 'unavailable',
-      reason: MANIFEST_MISSING,
+      reason: 'not-registered',
     })
   })
 
@@ -195,9 +192,11 @@ describe('SourceCapabilityService with a config whose manifest is missing', () =
     await expect(
       service.sourceProvider(broken, 'danmaku')
     ).rejects.toMatchObject({
-      name: 'SourceError',
-      problem: 'sourceUnavailable',
-      sourceName: 'Gone',
+      code: 'source.unavailable',
+      params: {
+        source: expect.objectContaining({ name: 'Gone' }),
+        reason: 'not-registered',
+      },
     })
   })
 })
@@ -240,19 +239,18 @@ describe('SourceCapabilityService.forProviderConfig', () => {
 
 describe('SourceCapabilityService gates', () => {
   it.each([
-    ['episodes', ['search'], 'episodesUnsupported'],
-    ['danmaku', ['search', 'episodes'], 'danmakuUnsupported'],
-    ['seasonRefresh', FULL, 'seasonRefreshUnsupported'],
-  ] as const)('refuses %s for a manifest without that pipeline', async (operation, pipelines, problem) => {
+    ['episodes', ['search'], 'source.episodesUnsupported'],
+    ['danmaku', ['search', 'episodes'], 'source.danmakuUnsupported'],
+    ['seasonRefresh', FULL, 'source.seasonRefreshUnsupported'],
+  ] as const)('refuses %s for a manifest without that pipeline', async (operation, pipelines, code) => {
     const config = makeConfig('partial')
     const service = build([config], [makeRunner('partial', [...pipelines])])
 
     await expect(
       service.sourceProvider(config, operation)
     ).rejects.toMatchObject({
-      name: 'SourceError',
-      problem,
-      sourceName: config.name,
+      code,
+      params: { source: expect.objectContaining({ name: config.name }) },
     })
   })
 
@@ -263,7 +261,7 @@ describe('SourceCapabilityService gates', () => {
     await expect(
       service.sourceProvider(config, 'episodes')
     ).rejects.toMatchObject({
-      problem: 'episodesUnsupported',
+      code: 'source.episodesUnsupported',
     })
   })
 
@@ -275,8 +273,7 @@ describe('SourceCapabilityService gates', () => {
     )
 
     await expect(service.searchProvider(config)).rejects.toMatchObject({
-      name: 'SourceError',
-      problem: 'searchUnsupported',
+      code: 'source.searchUnsupported',
     })
   })
 

@@ -16,7 +16,6 @@ import { AppError, type SourceRef } from '@/common/errors/AppError'
 import type { ILogger } from '@/common/Logger'
 import {
   capabilitiesFromManifest,
-  MANIFEST_MISSING,
   type SourceStatus,
 } from '@/common/providers/sourceCapabilities'
 import { findEpisodeByNumber } from './common/findEpisodeByNumber'
@@ -168,7 +167,7 @@ export class ManifestProviderService implements SourceProvider {
   async getStatus(): Promise<SourceStatus> {
     const runner = await this.registry.findRunner(this.config.source.manifestId)
     if (!runner) {
-      return { status: 'unavailable', reason: MANIFEST_MISSING }
+      return { status: 'unavailable', reason: 'not-registered' }
     }
     return {
       status: 'available',

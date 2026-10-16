@@ -12,8 +12,11 @@ const OFFERS_SEARCH: ReadonlySet<AppErrorCode> = new Set<AppErrorCode>([
   'timeout',
   'hostNotAllowed',
   'source.removed',
+  'source.unavailable',
+  'source.searchUnsupported',
   'source.episodesUnsupported',
-  'source.refetchUnsupported',
+  'source.danmakuUnsupported',
+  'source.seasonRefreshUnsupported',
   'source.noDanmaku',
   'badResponse',
 ])

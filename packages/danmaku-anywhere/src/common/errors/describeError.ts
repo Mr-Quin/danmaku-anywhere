@@ -111,6 +111,21 @@ const MESSAGES: MessageTable = {
       'The link was recognized, but its episode could not be found.'
     )
   },
+  'source.unavailable': ({ source, reason }) => {
+    switch (reason) {
+      case 'not-registered':
+        return i18n.t(
+          'appError.sourceNotRegistered',
+          "{{source}} isn't installed. Add it again from Sources.",
+          { source: sourceName(source) }
+        )
+    }
+  },
+  'source.searchUnsupported': ({ source }) => {
+    return i18n.t('appError.searchUnsupported', '{{source}} cannot search.', {
+      source: sourceName(source),
+    })
+  },
   'source.episodesUnsupported': ({ source }) => {
     return i18n.t(
       'appError.episodesUnsupported',
@@ -118,10 +133,17 @@ const MESSAGES: MessageTable = {
       { source: sourceName(source) }
     )
   },
-  'source.refetchUnsupported': ({ source }) => {
+  'source.danmakuUnsupported': ({ source }) => {
     return i18n.t(
-      'appError.refetchUnsupported',
-      '{{source}} cannot fetch danmaku for saved episodes again.',
+      'appError.danmakuUnsupported',
+      '{{source}} cannot fetch danmaku.',
+      { source: sourceName(source) }
+    )
+  },
+  'source.seasonRefreshUnsupported': ({ source }) => {
+    return i18n.t(
+      'appError.seasonRefreshUnsupported',
+      '{{source}} cannot refresh season details.',
       { source: sourceName(source) }
     )
   },
