@@ -1,5 +1,5 @@
 import { inject, injectable, multiInject, optional } from 'inversify'
-import { prettifyError, type ZodType } from 'zod'
+import { prettifyError, type ZodType, z } from 'zod'
 import type {
   BackupData,
   BackupRestoreResult,
@@ -18,6 +18,7 @@ import {
   StoreServiceSymbol,
 } from '@/common/options/IStoreService'
 import { storageProblemOf } from '@/common/options/OptionsService/storageProblem'
+import { decodeEnvelope } from '@/common/options/OptionsService/storeLayout'
 import type {
   DeferredWrite,
   StoreSnapshot,
@@ -28,6 +29,19 @@ import {
 } from '@/common/options/RestoreListCheck'
 
 type ServiceBackup = ParsedBackupData['services'][string]
+
+// The file the upgrade screen downloads before it resets a store
+// (OptionsRecoveryCopy). It holds the store's envelope, or its raw items when
+// they did not add up to one.
+const recoveryCopySchema = z.object({
+  id: z.string(),
+  store: z.string(),
+  savedAt: z.number(),
+  envelope: z.unknown().optional(),
+  items: z.record(z.string(), z.unknown()).optional(),
+})
+
+const envelopeSchema = z.object({ version: z.number(), data: z.unknown() })
 
 type PayloadCheck =
   | {
@@ -125,7 +139,11 @@ export class ConfigStateService {
     }
   }
 
-  async restoreState(backup: unknown): Promise<BackupRestoreResult> {
+  async restoreState(file: unknown): Promise<BackupRestoreResult> {
+    const fromRecovery = recoveryCopySchema.safeParse(file)
+    const backup = fromRecovery.success
+      ? this.backupFromRecoveryCopy(fromRecovery.data)
+      : file
     const parsed = backupDataSchema.safeParse(backup)
 
     if (!parsed.success) {
@@ -276,11 +294,46 @@ export class ConfigStateService {
         )
       })
       .map(({ service }) => service.name)
-    if (missing.length > 0) {
+    // A recovery file holds one store on purpose.
+    if (missing.length > 0 && !fromRecovery.success) {
       result.missing = missing
     }
 
     return result
+  }
+
+  // A recovery copy restores as a backup holding only its store, so it goes
+  // through the same migrations and checks as a backup's section would.
+  private backupFromRecoveryCopy(
+    copy: z.infer<typeof recoveryCopySchema>
+  ): BackupData {
+    const service = this.services.find((candidate) => {
+      return candidate.options.key === copy.store
+    })
+    const unrestorable = new AppError(
+      'backup.recoveryUnrestorable',
+      { store: copy.store },
+      { message: `The recovery copy of ${copy.store} cannot be restored` }
+    )
+    if (!service || service.shouldBackup === false) {
+      throw unrestorable
+    }
+    let envelope: unknown = copy.envelope
+    if (copy.items !== undefined) {
+      try {
+        envelope = decodeEnvelope(service.descriptor, copy.items)
+      } catch {
+        throw unrestorable
+      }
+    }
+    const parsed = envelopeSchema.safeParse(envelope)
+    if (!parsed.success) {
+      throw unrestorable
+    }
+    return {
+      meta: { version: BACKUP_FORMAT_VERSION, timestamp: copy.savedAt },
+      services: { [service.name]: parsed.data },
+    }
   }
 
   private async checkPayload(
