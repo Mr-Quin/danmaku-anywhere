@@ -1,5 +1,6 @@
 import { Tab, Tabs } from '@mui/material'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { useSourceNames } from '@/common/options/providerConfig/useSourceNames'
 
 interface SeasonSearchTabsProps {
   providers: ProviderConfig[]
@@ -12,6 +13,7 @@ export const SeasonSearchTabs = ({
   selectedProvider,
   onTabChange,
 }: SeasonSearchTabsProps) => {
+  const { nameOf } = useSourceNames()
   return (
     <Tabs
       value={selectedProvider.id}
@@ -36,7 +38,7 @@ export const SeasonSearchTabs = ({
     >
       {providers.map((provider) => {
         return (
-          <Tab value={provider.id} label={provider.name} key={provider.id} />
+          <Tab value={provider.id} label={nameOf(provider)} key={provider.id} />
         )
       })}
     </Tabs>

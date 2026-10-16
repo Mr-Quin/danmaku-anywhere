@@ -45,20 +45,22 @@ function unsupported(
     return new AppError(
       'source.unavailable',
       { source, reason: status.reason },
-      { message: `${config.name} is unavailable: ${status.reason}` }
+      {
+        message: `${toSourceRef(config).name} is unavailable: ${status.reason}`,
+      }
     )
   }
   if (capability === 'parseUrl') {
     return new AppError(
       'source.noUrlParser',
       {},
-      { message: `${config.name} cannot parse links` }
+      { message: `${toSourceRef(config).name} cannot parse links` }
     )
   }
   return new AppError(
     UNSUPPORTED[capability],
     { source },
-    { message: `${config.name} cannot use ${capability}` }
+    { message: `${toSourceRef(config).name} cannot use ${capability}` }
   )
 }
 
@@ -145,7 +147,7 @@ export class SourceCapabilityService {
     const url = withUrlScheme(text)
     for (const { config, provider } of await this.getUrlParsers()) {
       if (await this.matchesUrl(config, provider, url)) {
-        return { kind: 'parseable', sourceName: config.name }
+        return { kind: 'parseable', sourceName: toSourceRef(config).name }
       }
     }
     return { kind: 'unclaimed' }
@@ -159,7 +161,7 @@ export class SourceCapabilityService {
     try {
       return await provider.canParse(url)
     } catch (e) {
-      this.logger.error(`Skipping source ${config.name}:`, e)
+      this.logger.error(`Skipping source ${toSourceRef(config).name}:`, e)
       return false
     }
   }
@@ -204,13 +206,13 @@ export class SourceCapabilityService {
       const status = await provider.getStatus()
       if (status.status === 'unavailable') {
         this.logger.warn(
-          `Skipping source ${config.name} (${config.manifestId}): ${status.reason}`
+          `Skipping source ${toSourceRef(config).name} (${config.manifestId}): ${status.reason}`
         )
         return undefined
       }
       return status.capabilities
     } catch (e) {
-      this.logger.error(`Skipping source ${config.name}:`, e)
+      this.logger.error(`Skipping source ${toSourceRef(config).name}:`, e)
       return undefined
     }
   }

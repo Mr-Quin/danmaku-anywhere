@@ -19,6 +19,6 @@ export function toSourceRef(config: ProviderConfig): SourceRef {
   return {
     providerConfigId: config.id,
     manifestId: config.manifestId,
-    name: config.name,
+    name: config.customName ?? config.manifestId,
   }
 }

@@ -3,7 +3,10 @@ import { sourceQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { useManifestLocale } from './useManifestLocale'
 
-export const useManifestSpec = (manifestId: string) => {
+export const useManifestSpec = (
+  manifestId: string,
+  { enabled = true }: { enabled?: boolean } = {}
+) => {
   const locale = useManifestLocale()
   return useQuery({
     queryFn: () =>
@@ -11,6 +14,7 @@ export const useManifestSpec = (manifestId: string) => {
     select: (res) => res.data,
     queryKey: sourceQueryKeys.manifestSpec(manifestId, locale),
     retry: false,
+    enabled,
     refetchOnWindowFocus: false,
     refetchOnMount: false,
   })

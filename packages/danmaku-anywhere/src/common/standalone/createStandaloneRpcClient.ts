@@ -4,7 +4,7 @@ import type { RPCRecord, RpcContext } from '@/common/rpc/types'
 export type StandaloneRpcHandlers<TRecords extends RPCRecord> = Partial<{
   [TKey in keyof TRecords]: (
     input: TRecords[TKey]['input']
-  ) => TRecords[TKey]['output']
+  ) => TRecords[TKey]['output'] | Promise<TRecords[TKey]['output']>
 }>
 
 type StandaloneRpcOptions<TRecords extends RPCRecord> = {
@@ -38,11 +38,15 @@ export const createStandaloneRpcClient = <TRecords extends RPCRecord>(
       get(_, method: string) {
         return async (input: TRecords[string]['input']) => {
           const handler = handlers[method as keyof TRecords] as
-            | ((value: TRecords[string]['input']) => TRecords[string]['output'])
+            | ((
+                value: TRecords[string]['input']
+              ) =>
+                | TRecords[string]['output']
+                | Promise<TRecords[string]['output']>)
             | undefined
 
           const output =
-            handler?.(input) ??
+            (await handler?.(input)) ??
             defaultOutput?.(method as keyof TRecords, input) ??
             (undefined as unknown as TRecords[keyof TRecords]['output'])
 

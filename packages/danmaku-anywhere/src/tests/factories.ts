@@ -15,7 +15,7 @@ export function makeProviderConfig(
   return {
     id: 'provider-1',
     manifestId: 'dandanplay',
-    name: 'DanDanPlay',
+    customName: null,
     enabled: true,
     configValues: {},
     ...overrides,

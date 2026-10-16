@@ -1,7 +1,6 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
-import { PROXY_DDP_BASE_URL } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
 import { makeProviderConfig } from '@/tests/factories'
@@ -13,7 +12,7 @@ import {
 import { readV150Store } from '@/tests/v150Backup'
 import { ConfigStateService } from './ConfigStateService'
 
-const current = [makeProviderConfig({ id: 'keep-me', name: 'Keep' })]
+const current = [makeProviderConfig({ id: 'keep-me', customName: 'Keep' })]
 
 const danmakuSources = {
   dandanplay: {
@@ -30,21 +29,21 @@ const derivedProviders: ProviderConfig[] = [
   {
     id: 'dandanplay',
     manifestId: 'dandanplay',
-    name: 'DanDanPlay',
+    customName: null,
     enabled: true,
-    configValues: { baseUrl: PROXY_DDP_BASE_URL, chConvert: 0 },
+    configValues: { chConvert: 0 },
   },
   {
     id: 'bilibili',
     manifestId: 'bilibili',
-    name: 'Bilibili',
+    customName: null,
     enabled: true,
     configValues: { danmakuFormat: 'xml' },
   },
   {
     id: 'tencent',
     manifestId: 'tencent',
-    name: 'Tencent',
+    customName: null,
     enabled: false,
     configValues: {},
   },
@@ -74,7 +73,7 @@ async function readStored(name: string) {
 describe('restoring a backup with pre-providerConfig extensionOptions', () => {
   beforeEach(async () => {
     await fakeBrowser.storage.sync.set({
-      providerConfig: { version: 5, data: current },
+      providerConfig: { version: 6, data: current },
     })
   })
 
@@ -97,7 +96,7 @@ describe('restoring a backup with pre-providerConfig extensionOptions', () => {
       droppedEntries: 0,
     })
     expect(await readStored('providerConfig')).toEqual({
-      version: 5,
+      version: 6,
       data: derivedProviders,
     })
     expect((await readStored('extensionOptions'))?.data).not.toHaveProperty(
@@ -117,12 +116,18 @@ describe('restoring a backup with pre-providerConfig extensionOptions', () => {
   })
 
   it('keeps the providerConfig entry of the same backup without writing the derived providers', async () => {
-    const own = [makeProviderConfig({ id: 'from-backup', name: 'Backup' })]
+    const own = [
+      makeProviderConfig({
+        id: 'from-backup',
+        customName: 'Backup',
+        configValues: { baseUrl: 'https://ddp.backup.example' },
+      }),
+    ]
     const setUnblocked = vi.spyOn(OptionsService.prototype, 'setUnblocked')
 
     const result = await restore({
       extensionOptions: legacyExtensionOptions(),
-      providerConfig: { version: 5, data: own },
+      providerConfig: { version: 6, data: own },
     })
 
     expect(result.success).toBe(true)

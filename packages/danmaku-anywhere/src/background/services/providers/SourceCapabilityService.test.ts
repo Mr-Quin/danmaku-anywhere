@@ -52,7 +52,7 @@ function makeConfig(
   return {
     id: `${manifestId}-config`,
     manifestId,
-    name: `${manifestId} source`,
+    customName: `${manifestId} source`,
     enabled: true,
     configValues: {},
     ...overrides,
@@ -157,7 +157,7 @@ describe('SourceCapabilityService mapping resolution', () => {
 })
 
 describe('SourceCapabilityService with a config whose manifest is missing', () => {
-  const broken = makeConfig('gone', { name: 'Gone' })
+  const broken = makeConfig('gone', { customName: 'Gone' })
   const full = makeConfig('full')
   const bili = makeConfig('bili')
   const runners = () => [
@@ -186,7 +186,7 @@ describe('SourceCapabilityService with a config whose manifest is missing', () =
 
     expect(await service.findUrlSource(BANGUMI_URL)).toEqual({
       kind: 'parseable',
-      sourceName: bili.name,
+      sourceName: bili.customName,
     })
   })
 
@@ -254,7 +254,7 @@ describe('SourceCapabilityService gates', () => {
       service.sourceProvider(config, operation)
     ).rejects.toMatchObject({
       code,
-      params: { source: expect.objectContaining({ name: config.name }) },
+      params: { source: expect.objectContaining({ name: config.customName }) },
     })
   })
 
@@ -294,7 +294,7 @@ describe('SourceCapabilityService gates', () => {
 describe('SourceCapabilityService.findUrlSource', () => {
   it('names the installed source whose manifest parses the link', async () => {
     const service = build(
-      [makeConfig('other'), makeConfig('bili', { name: 'Bilibili' })],
+      [makeConfig('other'), makeConfig('bili', { customName: 'Bilibili' })],
       [
         makeRunner('other', FULL),
         makeRunner('bili', [...FULL, 'parseUrl'], [BANGUMI]),
@@ -365,7 +365,7 @@ describe('SourceCapabilityService.findUrlSource', () => {
       throw new Error('runner went away')
     })
     const service = build(
-      [makeConfig('flaky'), makeConfig('bili', { name: 'Bilibili' })],
+      [makeConfig('flaky'), makeConfig('bili', { customName: 'Bilibili' })],
       [flaky, makeRunner('bili', ['parseUrl'], [BANGUMI])]
     )
 

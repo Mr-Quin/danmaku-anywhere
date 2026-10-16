@@ -17,7 +17,7 @@ import { applyProfile } from '../../setup/profile'
 const selfHosted: ProviderConfig = {
   id: 'f3a1c2d4-5b6e-4f70-8a91-b2c3d4e5f607',
   manifestId: 'dandanplay',
-  name: 'SelfHosted',
+  customName: 'SelfHosted',
   enabled: true,
   configValues: {
     baseUrl: 'http://my-server.invalid/api',

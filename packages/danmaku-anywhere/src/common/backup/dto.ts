@@ -12,6 +12,11 @@ export interface BackupData {
   services: Record<string, ServiceBackupData<unknown>>
 }
 
+export interface DroppedEntry {
+  id?: string
+  reason: string
+}
+
 export interface BackupRestoreResult {
   success: boolean
   details: Record<
@@ -21,6 +26,8 @@ export interface BackupRestoreResult {
       error?: string
       /** Entries dropped because they failed validation. */
       droppedEntries?: number
+      /** Why each dropped entry was refused, with its id when it had one. */
+      dropped?: DroppedEntry[]
     }
   >
 }

@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { Logger } from '@/common/Logger'
 import { i18n } from '@/common/localization/i18n'
-import { builtinDisplayName } from '@/common/options/providerConfig/builtinNames'
 import {
   AppError,
   type AppErrorCode,
@@ -21,14 +20,7 @@ type MessageTable = {
 }
 
 function sourceName(source: SourceRef): string {
-  return builtinDisplayName(
-    {
-      id: source.providerConfigId,
-      manifestId: source.manifestId,
-      name: source.name,
-    },
-    i18n.language
-  )
+  return source.name
 }
 
 function targetName(target: ErrorTarget | undefined): string {

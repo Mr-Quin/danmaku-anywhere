@@ -1,15 +1,15 @@
-import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
-import { container } from '../ioc'
 import { getSelfDomain } from './getSelfDomain'
 import { addSessionRule, type SessionRuleHandle } from './sessionRules'
 
+export interface SessionHeaderOptions {
+  restrictInitiatorDomain: boolean
+}
+
 export async function setSessionHeader(
   matchUrl: string,
-  headers: Record<string, string>
+  headers: Record<string, string>,
+  options: SessionHeaderOptions
 ): Promise<SessionRuleHandle> {
-  const extensionOptionsService = container.get(ExtensionOptionsService)
-  const options = await extensionOptionsService.get()
-
   return addSessionRule((id) => ({
     id,
     action: {
@@ -23,10 +23,9 @@ export async function setSessionHeader(
     condition: {
       urlFilter: `|${matchUrl}`,
       resourceTypes: ['xmlhttprequest'],
-      initiatorDomains:
-        options.restrictInitiatorDomain !== false
-          ? [getSelfDomain()]
-          : undefined,
+      initiatorDomains: options.restrictInitiatorDomain
+        ? [getSelfDomain()]
+        : undefined,
     },
   }))
 }

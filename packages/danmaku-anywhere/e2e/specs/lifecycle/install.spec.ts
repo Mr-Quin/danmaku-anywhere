@@ -8,11 +8,10 @@ import { expect, test } from '../../setup/fixtures'
 
 /**
  * Fresh-install smoke. Asserts the SW registers, onInstalled seeds default
- * extensionOptions, and the three preloaded provider configs are seeded after
- * the manifest catalog loads with names derived from the manifest (so they
- * localize): the default UI language is Chinese, so the seeded names are the
- * manifests' zh strings, not hardcoded English. Then opens the popup providers
- * list and asserts those localized names render. No console errors.
+ * extensionOptions, and the three preloaded provider configs are seeded on
+ * their default names. The default UI language is Chinese, so the popup
+ * providers list shows the manifests' zh names, not hardcoded English. No
+ * console errors.
  *
  * A runtime.reload() variant was dropped: under --load-extension, the
  * extension does not respawn after reload, so the case isn't exercisable.
@@ -53,7 +52,7 @@ test('fresh install: default options seeded, no console errors', {
 
   const providers = await da.providerConfig.list()
   for (const provider of providers) {
-    expect(provider.name).toBe(LOCALIZED_NAMES_BY_ID[provider.id])
+    expect(provider.customName).toBeNull()
   }
 
   // The providers list runs each configured provider's connectivity probe on

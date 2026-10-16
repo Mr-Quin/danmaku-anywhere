@@ -14,11 +14,11 @@ import { OptionsUpgradeService } from './upgrade/OptionsUpgradeService'
  * old shape.
  */
 
-function config(name: string): ProviderConfig {
+function config(customName: string): ProviderConfig {
   return {
     id: 'dandanplay',
     manifestId: 'dandanplay',
-    name,
+    customName,
     enabled: true,
     configValues: {},
   }
@@ -26,7 +26,7 @@ function config(name: string): ProviderConfig {
 
 function ConfigNames() {
   const { configs } = useProviderConfig()
-  return <span>{configs.map((c) => c.name).join(',')}</span>
+  return <span>{configs.map((c) => c.customName).join(',')}</span>
 }
 
 let root: Root | undefined

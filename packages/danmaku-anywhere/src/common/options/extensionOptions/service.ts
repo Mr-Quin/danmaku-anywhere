@@ -231,10 +231,14 @@ export class ExtensionOptionsService implements IStoreService {
           if (!data.danmakuSources) {
             return data
           }
-          const providers = migrateDanmakuSourcesToProviders(
-            data.danmakuSources
-          )
           const { options } = this.providerConfigService
+          // The legacy sources map to the provider store's version 5 shape,
+          // which its own steps carry to the version setUnblocked writes.
+          const providers = options.migrate(
+            migrateDanmakuSourcesToProviders(data.danmakuSources),
+            5,
+            context
+          )
           context.defer({
             store: options.key,
             run: () => options.setUnblocked(providers),

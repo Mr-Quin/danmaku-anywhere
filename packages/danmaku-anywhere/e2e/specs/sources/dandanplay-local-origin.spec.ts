@@ -17,7 +17,7 @@ const LOCAL_BASE_URL = 'http://localhost:7766'
 const localConfig: ProviderConfig = {
   id: 'local-ddp-1',
   manifestId: 'dandanplay',
-  name: 'LocalDdp',
+  customName: 'LocalDdp',
   enabled: true,
   configValues: {
     baseUrl: LOCAL_BASE_URL,

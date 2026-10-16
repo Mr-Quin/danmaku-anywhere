@@ -1,6 +1,7 @@
 import { err, ok, type Result } from '@danmaku-anywhere/result'
 import {
   checkManifestCompatibility,
+  type FetchLike,
   getDisplayStrings,
   loadManifest,
   type Manifest,
@@ -21,6 +22,10 @@ import {
   type ManifestChange,
   publishDataChange,
 } from '@/common/messaging/dataChangeChannel'
+import {
+  bundledCatalogIndex,
+  bundledManifestRaw,
+} from '@/common/providers/bundledCatalog'
 import type {
   ManifestUnavailableReason,
   ManifestUpdate,
@@ -28,8 +33,7 @@ import type {
 } from '@/common/rpcClient/background/types'
 import { fetchChecked } from '@/common/utils/fetchOrThrow'
 import { sleep } from '@/common/utils/utils'
-import { bundledCatalogIndex, bundledManifestRaw } from './bundledCatalog'
-import { extensionFetchLike } from './extensionFetchLike'
+import { ManifestFetcherSymbol } from './extensionFetchLike'
 import {
   type IManifestStore,
   type ManifestEntry,
@@ -136,7 +140,8 @@ export class ManifestRegistry {
 
   constructor(
     @inject(LoggerSymbol) logger: ILogger,
-    @inject(ManifestStore) store: IManifestStore
+    @inject(ManifestStore) store: IManifestStore,
+    @inject(ManifestFetcherSymbol) private readonly fetcher: FetchLike
   ) {
     this.log = logger.sub('[ManifestRegistry]')
     this.store = store
@@ -717,12 +722,7 @@ export class ManifestRegistry {
     timeoutMs: number
   ): Promise<Result<unknown, AppError>> {
     const signal = AbortSignal.timeout(timeoutMs)
-    const response = await fetchChecked(
-      extensionFetchLike,
-      url,
-      { signal },
-      CATALOG
-    )
+    const response = await fetchChecked(this.fetcher, url, { signal }, CATALOG)
     if (!response.success) {
       return response
     }
@@ -812,6 +812,6 @@ export class ManifestRegistry {
   }
 
   private buildRunner(manifest: Manifest): ManifestRunner {
-    return new ManifestRunner(manifest, { fetcher: extensionFetchLike })
+    return new ManifestRunner(manifest, { fetcher: this.fetcher })
   }
 }

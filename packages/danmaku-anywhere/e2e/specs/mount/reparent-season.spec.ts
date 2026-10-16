@@ -24,7 +24,7 @@ const COMMENTS: CommentEntity[] = [
 const BILIBILI_CONFIG = {
   id: 'bilibili',
   manifestId: 'bilibili',
-  name: 'Bilibili',
+  customName: null,
   enabled: true,
   configValues: { danmakuFormat: 'xml' as const },
 }
@@ -71,7 +71,7 @@ test('a season reparents when its source config is re-added', async ({
 const SELF_HOSTED = {
   id: '6c1d2e3f-4a5b-4c6d-8e7f-90a1b2c3d4e5',
   manifestId: 'dandanplay',
-  name: 'Home Server',
+  customName: 'Home Server',
   enabled: true,
   configValues: {
     baseUrl: 'https://ddp.home.invalid',

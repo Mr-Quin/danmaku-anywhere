@@ -1,6 +1,7 @@
 import type { ResolutionContext } from 'inversify'
 import type { IDanmakuProvider } from '@/background/services/providers/IDanmakuProvider'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import { effectiveConfigValues } from '@/common/options/providerConfig/builtin'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import {
   isLegacyMacCms,
@@ -26,7 +27,10 @@ function createDanmakuProvider(
     return new MacCmsProviderService(config, logger)
   }
   return new ManifestProviderService(
-    { source: toSourceRef(config), configValues: config.configValues },
+    {
+      source: toSourceRef(config),
+      configValues: effectiveConfigValues(config),
+    },
     registry,
     logger
   )

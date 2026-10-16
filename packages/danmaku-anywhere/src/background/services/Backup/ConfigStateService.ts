@@ -1,6 +1,10 @@
-import { inject, injectable, multiInject } from 'inversify'
+import { inject, injectable, multiInject, optional } from 'inversify'
 import { prettifyError, type ZodType } from 'zod'
-import type { BackupData, BackupRestoreResult } from '@/common/backup/dto'
+import type {
+  BackupData,
+  BackupRestoreResult,
+  DroppedEntry,
+} from '@/common/backup/dto'
 import {
   BACKUP_FORMAT_VERSION,
   backupDataSchema,
@@ -17,6 +21,10 @@ import type {
   DeferredWrite,
   StoreSnapshot,
 } from '@/common/options/OptionsService/types'
+import {
+  type IRestoreListCheck,
+  RestoreListCheckSymbol,
+} from '@/common/options/RestoreListCheck'
 
 type ServiceBackup = ParsedBackupData['services'][string]
 
@@ -24,14 +32,21 @@ type PayloadCheck =
   | {
       ok: true
       data: unknown
-      droppedEntries: number
+      dropped: DroppedEntry[]
       deferred: DeferredWrite[]
     }
   | { ok: false; error: string }
 
 type EntriesCheck =
-  | { ok: true; data: unknown[]; droppedEntries: number }
+  | { ok: true; data: unknown[]; dropped: DroppedEntry[] }
   | { ok: false; error: string }
+
+function entryId(entry: unknown): string | undefined {
+  if (typeof entry !== 'object' || entry === null || !('id' in entry)) {
+    return undefined
+  }
+  return typeof entry.id === 'string' ? entry.id : undefined
+}
 
 @injectable('Singleton')
 export class ConfigStateService {
@@ -40,7 +55,10 @@ export class ConfigStateService {
   constructor(
     @multiInject(StoreServiceSymbol)
     private services: IStoreService[],
-    @inject(LoggerSymbol) logger: ILogger
+    @inject(LoggerSymbol) logger: ILogger,
+    @multiInject(RestoreListCheckSymbol)
+    @optional()
+    private listChecks: IRestoreListCheck[] = []
   ) {
     this.logger = logger.sub('[ConfigStateService]')
   }
@@ -152,7 +170,7 @@ export class ConfigStateService {
     const accepted: {
       service: IStoreService
       data: unknown
-      dropped: number
+      dropped: DroppedEntry[]
     }[] = []
     for (const { service, check } of validated) {
       if (!check.ok) {
@@ -167,7 +185,7 @@ export class ConfigStateService {
         accepted.push({
           service,
           data: check.data,
-          dropped: check.droppedEntries,
+          dropped: check.dropped,
         })
       } catch (error) {
         this.logger.error(`Failed to restore ${service.name}`, error)
@@ -185,8 +203,12 @@ export class ConfigStateService {
         try {
           this.logger.debug(`Restoring ${name}...`)
           await service.options.set(data, service.options.latestVersion)
-          result.details[name] = { success: true, droppedEntries: dropped }
-          if (dropped > 0) {
+          result.details[name] =
+            dropped.length > 0
+              ? { success: true, droppedEntries: dropped.length, dropped }
+              : { success: true, droppedEntries: 0 }
+          if (dropped.length > 0) {
+            this.logger.warn(`Dropped restored ${name} entries`, dropped)
             result.success = false
           }
         } catch (error) {
@@ -240,6 +262,7 @@ export class ConfigStateService {
 
     if (backupItemSchema) {
       const entries = await this.checkEntries(
+        service,
         backupItemSchema,
         backupData.data,
         migrated
@@ -251,7 +274,7 @@ export class ConfigStateService {
     }
 
     if (!backupSchema) {
-      return { ok: true, data: migrated, droppedEntries: 0, deferred }
+      return { ok: true, data: migrated, dropped: [], deferred }
     }
 
     const parsed = await backupSchema.safeParseAsync(migrated)
@@ -260,10 +283,11 @@ export class ConfigStateService {
       return { ok: false, error: prettifyError(parsed.error) }
     }
 
-    return { ok: true, data: parsed.data, droppedEntries: 0, deferred }
+    return { ok: true, data: parsed.data, dropped: [], deferred }
   }
 
   private async checkEntries(
+    service: IStoreService,
     itemSchema: ZodType,
     original: unknown,
     migrated: unknown
@@ -272,14 +296,34 @@ export class ConfigStateService {
       return { ok: false, error: 'Expected a list of entries' }
     }
 
-    const checked = await Promise.all(
-      migrated.map((entry) => {
-        return itemSchema.safeParseAsync(entry)
+    const passed: unknown[] = []
+    const dropped: DroppedEntry[] = []
+    for (const entry of migrated) {
+      const parsed = await itemSchema.safeParseAsync(entry)
+      if (parsed.success) {
+        passed.push(parsed.data)
+      } else {
+        dropped.push({
+          id: entryId(entry),
+          reason: prettifyError(parsed.error),
+        })
+      }
+    }
+
+    let kept = passed
+    for (const check of this.listChecks) {
+      if (check.store !== service.name) {
+        continue
+      }
+      const reasons = await check.check(kept)
+      kept.forEach((entry, index) => {
+        const reason = reasons[index]
+        if (reason !== undefined) {
+          dropped.push({ id: entryId(entry), reason })
+        }
       })
-    )
-    const kept = checked.flatMap((entry) => {
-      return entry.success ? [entry.data] : []
-    })
+      kept = kept.filter((_, index) => reasons[index] === undefined)
+    }
 
     // Writing an empty list would wipe the store, so a payload where nothing
     // survives migration and validation is a failure rather than an empty
@@ -291,10 +335,10 @@ export class ConfigStateService {
       }
     }
 
-    return {
-      ok: true,
-      data: kept,
-      droppedEntries: Math.max(0, original.length - kept.length),
+    const lost = original.length - migrated.length
+    for (let i = 0; i < lost; i++) {
+      dropped.push({ reason: 'Could not be migrated' })
     }
+    return { ok: true, data: kept, dropped }
   }
 }

@@ -16,7 +16,7 @@ import { applyProfile } from '../../setup/profile'
 const localDdp: ProviderConfig = {
   id: 'localized-ddp',
   manifestId: 'dandanplay',
-  name: 'My DDP',
+  customName: 'My DDP',
   enabled: true,
   configValues: {
     baseUrl: '',

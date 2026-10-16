@@ -17,11 +17,11 @@ import { LATEST_PROVIDER_CONFIG_VERSION } from './version'
  * useOptionStoreQuery and OptionsReadinessGate tests.
  */
 
-function config(name: string): ProviderConfig {
+function config(customName: string): ProviderConfig {
   return {
     id: 'dandanplay',
     manifestId: 'dandanplay',
-    name,
+    customName,
     enabled: true,
     configValues: {},
   }
@@ -29,7 +29,7 @@ function config(name: string): ProviderConfig {
 
 function ConfigNames() {
   const { configs } = useProviderConfig()
-  return <span>{configs.map((c) => c.name).join(',')}</span>
+  return <span>{configs.map((c) => c.customName).join(',')}</span>
 }
 
 async function seedUpgradedStores(providers: ProviderConfig[]) {

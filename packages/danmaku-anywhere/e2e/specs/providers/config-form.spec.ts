@@ -26,7 +26,7 @@ import { applyProfile } from '../../setup/profile'
 const customDdp: ProviderConfig = {
   id: 'custom-ddp-form',
   manifestId: 'dandanplay',
-  name: 'My DDP Server',
+  customName: 'My DDP Server',
   enabled: true,
   configValues: {
     baseUrl: '',
@@ -136,7 +136,7 @@ test('edits the built-in Bilibili provider via the generic form', async ({
   await popup.toast.expectSuccess(/Source updated|弹幕源已更新/)
 
   const saved = await da.providerConfig.get('bilibili')
-  expect(saved?.name).toBe('Bilibili Custom')
+  expect(saved?.customName).toBe('Bilibili Custom')
   expect(saved?.configValues.danmakuFormat).toBe('protobuf')
 })
 
@@ -332,7 +332,7 @@ test('enforces configSchema constraints before saving config values', async ({
 const orphanedProvider: ProviderConfig = {
   id: 'orphaned-source',
   manifestId: 'manifest-that-failed-to-load',
-  name: 'Orphaned Source',
+  customName: 'Orphaned Source',
   enabled: true,
   configValues: {
     baseUrl: 'https://orphaned.example.invalid',

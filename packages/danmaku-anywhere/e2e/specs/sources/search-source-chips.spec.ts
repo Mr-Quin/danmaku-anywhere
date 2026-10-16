@@ -127,7 +127,7 @@ test('source chips: a self-hosted DanDanPlay named like the built-in shows its h
   const selfHosted: ProviderConfig = {
     id: 'home-ddp',
     manifestId: 'dandanplay',
-    name: 'DanDanPlay',
+    customName: 'DanDanPlay',
     enabled: true,
     configValues: {
       baseUrl: 'https://ddp.home.invalid',

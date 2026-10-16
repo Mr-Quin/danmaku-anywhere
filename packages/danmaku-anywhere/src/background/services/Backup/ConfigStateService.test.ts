@@ -273,9 +273,10 @@ describe('ConfigStateService', () => {
         [{ name: 'good' }, { name: 'also good' }],
         3
       )
-      expect(result.details.mountConfig).toEqual({
+      expect(result.details.mountConfig).toMatchObject({
         success: true,
         droppedEntries: 1,
+        dropped: [{ reason: expect.any(String) }],
       })
       expect(result.success).toBe(false)
     })
@@ -409,7 +410,7 @@ describe('ConfigStateService', () => {
         },
       })
 
-      expect(result.details.mountConfig).toEqual({
+      expect(result.details.mountConfig).toMatchObject({
         success: true,
         droppedEntries: 1,
       })
