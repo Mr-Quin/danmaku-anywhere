@@ -24,6 +24,8 @@ export interface IStoreService {
    * restored file does not cost the user the good ones.
    */
   backupItemSchema?: ZodType
+  // Runs after the user resets the store to its defaults
+  afterReset?(): Promise<void>
 }
 
 export const StoreServiceSymbol = Symbol.for('StoreService')

@@ -13,6 +13,7 @@ import { OptionStoreDescriptors } from '@/common/options/optionStores'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
 import { silentLogger } from '@/tests/silentLogger'
 import { OptionsUpgradeService } from './OptionsUpgradeService'
+import { MAX_RECOVERY_COPIES, OPTIONS_RECOVERY_KEY } from './recoveryCopy'
 import {
   UPGRADE_RUN_KEY,
   UPGRADE_SNAPSHOT_KEY,
@@ -26,7 +27,11 @@ import {
  * when it succeeds. ensureUpgraded checks storage, not this context's
  * readiness: it skips current stores, a failed run whose retry delay has
  * not passed, and a failure every attempt would repeat. A failed run records
- * each failed store and its storage problem. upgrade always runs.
+ * each failed store and its problem. upgrade always runs, so Retry upgrades a
+ * store fixed by hand. saveRecoveryCopy keeps what a store holds without
+ * replacing earlier copies, up to a cap on the newest. resetStore resets a
+ * store only from a copy it kept, makes the defaults the data other stores'
+ * steps see, and runs the upgrade again.
  */
 
 interface Counter {
@@ -86,6 +91,13 @@ function setup(keys: string[], bumped: string[] = []) {
     migrations,
     seenStores,
   }
+}
+
+// The version 2 step reads data.count, which throws on null data.
+const CORRUPT = { data: null, version: 1 }
+
+function storeCorrupt(key: string) {
+  return fakeBrowser.storage.local.set({ [key]: CORRUPT })
 }
 
 function storeV1(key: string, count: number) {
@@ -289,6 +301,127 @@ describe('OptionsUpgradeService', () => {
     await upgrader.upgrade()
     expect(migrations.alpha).toBe(2)
     expect(await readRaw('alpha')).toEqual({ data: { count: 2 }, version: 2 })
+  })
+
+  it('records a store whose migration throws and leaves it to Retry', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(0)
+    await storeV1('alpha', 1)
+    await storeCorrupt('beta')
+    const { upgrader, migrations } = setup(['alpha', 'beta'])
+
+    await expect(upgrader.upgrade()).rejects.toThrow(/beta/)
+    vi.setSystemTime(1000 * MINUTE)
+    await upgrader.ensureUpgraded()
+
+    expect(await readRaw(UPGRADE_RUN_KEY)).toMatchObject({
+      status: 'failed',
+      attempts: 1,
+      stores: [{ store: 'beta', problem: 'options.migration' }],
+    })
+    expect(migrations.beta).toBe(1)
+    expect(await readRaw('beta')).toEqual(CORRUPT)
+    expect(await readRaw('alpha')).toEqual({ data: { count: 2 }, version: 2 })
+  })
+
+  it('upgrades on Retry once the stored data has been fixed by hand', async () => {
+    await storeCorrupt('alpha')
+    const { upgrader } = setup(['alpha'])
+    await expect(upgrader.upgrade()).rejects.toThrow()
+
+    await storeV1('alpha', 7)
+    await upgrader.upgrade()
+
+    expect(await readRaw('alpha')).toEqual({ data: { count: 8 }, version: 2 })
+    expect(await readRaw(UPGRADE_RUN_KEY)).toBeUndefined()
+  })
+
+  it('resets a failed store from its saved recovery copy, and finishes the upgrade', async () => {
+    await storeV1('alpha', 1)
+    await storeCorrupt('beta')
+    const { upgrader, readiness } = setup(['alpha', 'beta'])
+    await expect(upgrader.upgrade()).rejects.toThrow()
+
+    const copy = await upgrader.saveRecoveryCopy('beta')
+    expect(await readRaw('beta')).toEqual(CORRUPT)
+    await upgrader.resetStore('beta', copy.id)
+
+    expect(copy).toEqual({
+      id: expect.any(String),
+      store: 'beta',
+      savedAt: expect.any(Number),
+      envelope: CORRUPT,
+    })
+    expect(await readRaw(OPTIONS_RECOVERY_KEY)).toEqual([copy])
+    expect(await readRaw('beta')).toEqual({ data: { count: 0 }, version: 2 })
+    expect(await readRaw(UPGRADE_RUN_KEY)).toBeUndefined()
+    await expect(readiness.waitUntilReady()).resolves.toBeUndefined()
+  })
+
+  it('refuses to reset a store without a saved recovery copy', async () => {
+    await storeCorrupt('beta')
+    const { upgrader } = setup(['beta'])
+    await expect(upgrader.upgrade()).rejects.toThrow()
+    const other = await upgrader.saveRecoveryCopy('beta')
+
+    await expect(upgrader.resetStore('beta', 'not-saved')).rejects.toThrow()
+    await expect(upgrader.resetStore('alpha', other.id)).rejects.toThrow()
+
+    expect(await readRaw('beta')).toEqual(CORRUPT)
+  })
+
+  it('keeps the first copy when a store is reset again after the upgrade still failed', async () => {
+    await storeCorrupt('alpha')
+    await storeCorrupt('beta')
+    const { upgrader } = setup(['alpha', 'beta'])
+    await expect(upgrader.upgrade()).rejects.toThrow()
+
+    const first = await upgrader.saveRecoveryCopy('beta')
+    await upgrader.resetStore('beta', first.id)
+    const second = await upgrader.saveRecoveryCopy('beta')
+    await upgrader.resetStore('beta', second.id)
+
+    expect(await readRaw(OPTIONS_RECOVERY_KEY)).toEqual([
+      expect.objectContaining({ id: first.id, envelope: CORRUPT }),
+      expect.objectContaining({
+        id: second.id,
+        envelope: { data: { count: 0 }, version: 2 },
+      }),
+    ])
+    expect(await readRaw(UPGRADE_RUN_KEY)).toMatchObject({
+      status: 'failed',
+      stores: [{ store: 'alpha', problem: 'options.migration' }],
+    })
+  })
+
+  it('keeps only the newest recovery copies', async () => {
+    await storeCorrupt('beta')
+    const { upgrader } = setup(['beta'])
+    const ids: string[] = []
+    for (let index = 0; index < MAX_RECOVERY_COPIES + 2; index++) {
+      ids.push((await upgrader.saveRecoveryCopy('beta')).id)
+    }
+
+    const kept = (await readRaw(OPTIONS_RECOVERY_KEY)) as { id: string }[]
+    expect(kept.map((copy) => copy.id)).toEqual(ids.slice(2))
+  })
+
+  it('hands the other stores the defaults of a reset store, not its old data', async () => {
+    await storeV1('alpha', 1)
+    await storeCorrupt('beta')
+    const failing = failWritesTo('alpha')
+    const { upgrader, seenStores } = setup(['alpha', 'beta'], ['alpha'])
+    await expect(upgrader.upgrade()).rejects.toThrow()
+
+    const copy = await upgrader.saveRecoveryCopy('beta')
+    await upgrader.resetStore('beta', copy.id)
+    failing.mockRestore()
+    await upgrader.upgrade()
+
+    expect(seenStores.at(-1)).toEqual({
+      alpha: { count: 1 },
+      beta: { count: 0 },
+    })
   })
 
   it('runs on upgrade even inside the retry delay', async () => {

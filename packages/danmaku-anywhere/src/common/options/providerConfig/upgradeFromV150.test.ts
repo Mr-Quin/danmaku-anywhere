@@ -273,20 +273,20 @@ describe('providerConfig upgrade edge cases', () => {
     expect(stored.data).toEqual(clean.data)
   })
 
-  it('drops a record of an unrecognized type and keeps the other records', async () => {
-    const stored = await upgradeFrom(1, [
+  it('fails on a record of a type v1.5.0 never wrote and keeps the store', async () => {
+    const records = [
       ...readFixtureRecords(),
       { id: 'mystery', name: 'Mystery', enabled: true, type: 'Unknown' },
-    ])
+    ]
+    await fakeBrowser.storage.sync.set({
+      providerConfig: { version: 1, data: records },
+    })
+    const service = createUpgradeContainer().get(ProviderConfigService)
 
-    expect(stored.data.map((c) => c.id)).toEqual([
-      SELF_HOSTED_ID,
-      'bilibili',
-      'dandanplay',
-      MACCMS_ID,
-      'tencent',
-      SECOND_COMPAT_ID,
-    ])
+    await expect(service.options.upgrade({})).rejects.toThrow(/Unknown/)
+
+    const entry = await fakeBrowser.storage.sync.get('providerConfig')
+    expect(entry.providerConfig).toEqual({ version: 1, data: records })
   })
 
   it('leaves a store that is already at version 6 unchanged, including a trailing /api', async () => {

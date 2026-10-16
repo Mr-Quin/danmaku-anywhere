@@ -27,27 +27,21 @@ import { BUILT_IN_AI_PROVIDER_ID } from '../aiProviderConfig/constant'
 import { migrateMountConfigV4V5 } from './migrations/migrateMountConfigV4V5'
 import { LATEST_MOUNT_CONFIG_VERSION } from './version'
 
-// A stale or corrupted stored value should degrade to dropping the bad
-// record, not crash the whole upgrade step and reset every mount config.
+// An entry that is not an object holds nothing to keep, so it is dropped. A
+// transform that throws fails the upgrade, which keeps the stored configs for
+// the user to fix or reset.
 function upgradeConfigs(
   data: PrevOptions,
   transform: (config: PrevOptions) => PrevOptions
 ): PrevOptions[] {
   if (!Array.isArray(data)) {
-    return []
+    throw new Error('Stored mount configs are not a list')
   }
   return data
     .filter(
       (config: PrevOptions) => typeof config === 'object' && config !== null
     )
-    .map((config: PrevOptions) => {
-      try {
-        return transform(config)
-      } catch {
-        return null
-      }
-    })
-    .filter((config: PrevOptions) => config !== null)
+    .map(transform)
 }
 
 @injectable('Singleton')

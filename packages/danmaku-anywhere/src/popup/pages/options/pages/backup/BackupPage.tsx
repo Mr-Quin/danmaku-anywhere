@@ -5,6 +5,7 @@ import { OptionsPageToolBar } from '@/popup/component/OptionsPageToolbar'
 import { OptionsPageLayout } from '@/popup/layout/OptionsPageLayout'
 import { CloudBackupSection } from './components/CloudBackupSection'
 import { LocalBackupSection } from './components/LocalBackupSection'
+import { RecoveryCopiesSection } from './components/RecoveryCopiesSection'
 
 export function BackupPage() {
   const { t } = useTranslation()
@@ -20,6 +21,7 @@ export function BackupPage() {
         <CloudBackupSection
           onRestoringChange={(val) => setIsRestoringCloud(val)}
         />
+        <RecoveryCopiesSection />
       </Box>
     </OptionsPageLayout>
   )

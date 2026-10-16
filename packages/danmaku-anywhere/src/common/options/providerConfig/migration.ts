@@ -205,11 +205,7 @@ export function migrateProviderConfigsToFlat(
   data: any[]
 ): ProviderConfigV5[] {
   if (!Array.isArray(data)) {
-    console.error(
-      'migrateProviderConfigsToFlat: input is not an array, returning empty:',
-      data
-    )
-    return []
+    throw new Error('Stored provider configs are not a list')
   }
   const out: ProviderConfigV5[] = []
   for (const old of data) {
@@ -228,12 +224,9 @@ export function migrateProviderConfigsToFlat(
         out.push(parsed.data)
         continue
       }
-      console.warn(
-        'Dropping partially-flat provider record that fails schema:',
-        old,
-        parsed.error.issues
+      throw new Error(
+        `A stored provider config does not match the schema: ${parsed.error.message}`
       )
-      continue
     }
     const base = {
       id: old.id as string,
@@ -287,10 +280,11 @@ export function migrateProviderConfigsToFlat(
           configValues: pruneUndefined(options),
         })
         break
+      // v1.5.0 and earlier wrote only the five types above, so anything
+      // else is damaged data.
       default:
-        console.warn(
-          'Dropping corrupted provider config record during v1→v2 migration (unrecognized type):',
-          old
+        throw new Error(
+          `A stored provider config has an unknown type: ${String(inferredType)}`
         )
     }
   }

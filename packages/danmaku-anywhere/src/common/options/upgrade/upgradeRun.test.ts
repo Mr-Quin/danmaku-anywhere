@@ -5,10 +5,11 @@ import { canRetryAutomatically, settleRun, type UpgradeRun } from './upgradeRun'
  * canRetryAutomatically lets a startup or wake retry a failed upgrade after a
  * delay that grows four times per attempt, starting at one minute, and stops
  * after five attempts. A failure that every attempt would repeat, a full
- * storage area or an item over the size limit, is not retried at all. A run
- * still marked running five minutes after it started was cut off: it settles
- * as a failed attempt, both for what the UI shows and for the retry delay, so
- * a worker that keeps dying mid-run cannot retry forever.
+ * storage area, an item over the size limit or data a migration cannot
+ * handle, is not retried at all. A run still marked running five minutes
+ * after it started was cut off: it settles as a failed attempt, both for what
+ * the UI shows and for the retry delay, so a worker that keeps dying mid-run
+ * cannot retry forever.
  */
 
 const MINUTE = 60_000
@@ -69,6 +70,7 @@ describe('canRetryAutomatically', () => {
       stores: [
         { store: 'danmakuOptions', problem: 'options.itemTooLarge' },
         { store: 'mountConfig', problem: 'options.storeFull' },
+        { store: 'providerConfig', problem: 'options.migration' },
       ],
     }
 
