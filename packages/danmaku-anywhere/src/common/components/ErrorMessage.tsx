@@ -23,19 +23,26 @@ export const ErrorMessage = ({
   size = 300,
 }: ErrorMessageProps) => {
   const { t } = useTranslation()
+  const heading = t('error.unknown', 'Something went wrong.')
 
   return (
     <Center>
       {beforeContent}
       {showMessage ? (
         <>
-          <Typography>{t('error.unknown', 'Something went wrong.')}</Typography>
-          <Typography
-            color="error"
-            sx={{ overflowWrap: 'anywhere', textAlign: 'center', maxWidth: 1 }}
-          >
-            {message}
-          </Typography>
+          <Typography>{heading}</Typography>
+          {message !== heading && (
+            <Typography
+              color="error"
+              sx={{
+                overflowWrap: 'anywhere',
+                textAlign: 'center',
+                maxWidth: 1,
+              }}
+            >
+              {message}
+            </Typography>
+          )}
         </>
       ) : null}
       {action}

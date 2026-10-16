@@ -39,9 +39,12 @@ export function fromDangoError(error: unknown, source: SourceRef): unknown {
   if (error instanceof AbortedError) {
     return new AppError('aborted', {}, { cause: error })
   }
+  // A SyntaxError here is the engine's JSON.parse of a truncated or non-JSON
+  // response body.
   if (
     error instanceof JsonataTimeoutError ||
-    error instanceof Base64DecodeError
+    error instanceof Base64DecodeError ||
+    error instanceof SyntaxError
   ) {
     return new AppError('badResponse', { target }, { cause: error })
   }

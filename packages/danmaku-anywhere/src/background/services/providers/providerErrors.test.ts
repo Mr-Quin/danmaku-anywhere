@@ -55,6 +55,11 @@ describe('fromDangoError', () => {
       'badResponse',
       { target: AT_BILIBILI },
     ],
+    [
+      new SyntaxError('Unexpected end of JSON input'),
+      'badResponse',
+      { target: AT_BILIBILI },
+    ],
   ])('codes %o as %s and keeps it as cause', (engineError, code, params) => {
     const error = fromDangoError(engineError, BILIBILI)
 
