@@ -73,7 +73,13 @@ export class ManifestSandbox {
     if (loaded.status === 'incompatible') {
       return {
         valid: false,
-        issues: [{ path: '', message: NEEDS_NEWER_EXTENSION }],
+        issues: [
+          {
+            path: '',
+            message: NEEDS_NEWER_EXTENSION,
+            needsNewerExtension: true,
+          },
+        ],
       }
     }
     return { valid: false, issues: loaded.issues }

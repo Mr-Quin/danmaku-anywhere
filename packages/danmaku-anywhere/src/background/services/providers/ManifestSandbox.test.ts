@@ -51,6 +51,7 @@ describe('ManifestSandbox.validate', () => {
         {
           path: '',
           message: 'This manifest needs a newer version of the extension',
+          needsNewerExtension: true,
         },
       ],
     })

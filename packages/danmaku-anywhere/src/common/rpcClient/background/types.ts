@@ -160,6 +160,8 @@ export interface ManifestUpdate {
 export interface ManifestValidationIssue {
   path: string
   message: string
+  // Set when the manifest is well formed but written for a newer engine
+  needsNewerExtension?: true
 }
 
 export type ManifestValidationResult =
