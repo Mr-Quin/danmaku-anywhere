@@ -1,4 +1,3 @@
-import type { ConfigSchema } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
 import { AppError } from '@/common/errors/AppError'
 import type { IRestoreListCheck } from '@/common/options/RestoreListCheck'
@@ -13,6 +12,7 @@ import {
   ConfigSchemaSourceSymbol,
   type IConfigSchemaSource,
   type IProviderConfigCleanup,
+  type ManifestAvailability,
   ProviderConfigCleanupSymbol,
 } from './ports'
 import {
@@ -61,6 +61,34 @@ function unknownSource(manifestId: string): AppError {
   )
 }
 
+// A source's settings can only be checked, and so only be set, once its
+// manifest loads here.
+function unusableSource(
+  manifestId: string,
+  availability: Exclude<ManifestAvailability, { status: 'ok' }>
+): AppError {
+  switch (availability.status) {
+    case 'unknown':
+      return unknownSource(manifestId)
+    case 'incompatible':
+      return new AppError(
+        'manifest.unavailable',
+        { manifestId, reason: 'needs-newer-extension' },
+        { message: `Source "${manifestId}" needs a newer extension` }
+      )
+    case 'malformed':
+      return new AppError(
+        'manifest.unavailable',
+        { manifestId, reason: 'invalid-manifest' },
+        { message: `Source "${manifestId}" cannot be loaded` }
+      )
+  }
+}
+
+function configSchemaOf(availability: ManifestAvailability) {
+  return availability.status === 'ok' ? availability.configSchema : undefined
+}
+
 function throwIfInvalid(issues: ProviderConfigIssue[]): void {
   if (issues.length === 0) {
     return
@@ -96,11 +124,13 @@ export class ProviderConfigWriter implements IRestoreListCheck {
   async create(input: ProviderConfigDraft): Promise<ProviderConfig> {
     const draft = draftSchema.parse(input)
     const config: ProviderConfig = { ...draft, id: getRandomUUID() }
-    const known = await this.findConfigSchema(config.manifestId)
-    if (!known) {
-      throw unknownSource(config.manifestId)
+    const availability = await this.availability(config.manifestId)
+    if (availability.status !== 'ok') {
+      throw unusableSource(config.manifestId, availability)
     }
-    throwIfInvalid(checkProviderConfig({ config, ...known }))
+    throwIfInvalid(
+      checkProviderConfig({ config, configSchema: availability.configSchema })
+    )
     await this.options.transform((configs) => [...configs, config])
     return config
   }
@@ -139,14 +169,14 @@ export class ProviderConfigWriter implements IRestoreListCheck {
       if (!current) {
         throw notFound(id)
       }
-      const known = await this.findConfigSchema(current.manifestId)
-      if (!known && 'configValues' in edit) {
-        throw unknownSource(current.manifestId)
+      const availability = await this.availability(current.manifestId)
+      if (availability.status !== 'ok' && 'configValues' in edit) {
+        throw unusableSource(current.manifestId, availability)
       }
       const next = withoutLockedValues({ ...current, ...edit })
       const issues = checkProviderConfig({
         config: next,
-        configSchema: known?.configSchema,
+        configSchema: configSchemaOf(availability),
       })
       throwIfInvalid(issues.filter((issue) => touchedBy(edit, issue)))
       updated = next
@@ -236,7 +266,9 @@ export class ProviderConfigWriter implements IRestoreListCheck {
   }
 
   // Restore runs entries through the store's backupItemSchema first. A source
-  // whose manifest is not installed stays and shows as unavailable. Ids key
+  // whose manifest is not installed, needs a newer extension or does not load
+  // stays and shows as unavailable, since there is no configSchema to check
+  // it against and dropping it would lose the user's settings. Ids key
   // seasons and every write, so of several sources with one id the first that
   // is otherwise valid is restored and the others are refused.
   async check(entries: unknown[]): Promise<(string | undefined)[]> {
@@ -265,10 +297,10 @@ export class ProviderConfigWriter implements IRestoreListCheck {
     if (!parsed.success) {
       return { ok: false, reason: 'Not a source config' }
     }
-    const known = await this.findConfigSchema(parsed.data.manifestId)
+    const availability = await this.availability(parsed.data.manifestId)
     const issues = checkProviderConfig({
       config: parsed.data,
-      configSchema: known?.configSchema,
+      configSchema: configSchemaOf(availability),
     })
     if (issues.length > 0) {
       return { ok: false, reason: issues.map(describeIssue).join('; ') }
@@ -276,12 +308,11 @@ export class ProviderConfigWriter implements IRestoreListCheck {
     return { ok: true, id: parsed.data.id }
   }
 
-  // Undefined when the manifest is not installed
-  private async findConfigSchema(
+  private async availability(
     manifestId: string
-  ): Promise<{ configSchema: ConfigSchema | undefined } | undefined> {
+  ): Promise<ManifestAvailability> {
     if (isLegacyMacCms({ manifestId })) {
-      return { configSchema: LEGACY_MACCMS_CONFIG_SCHEMA }
+      return { status: 'ok', configSchema: LEGACY_MACCMS_CONFIG_SCHEMA }
     }
     return this.configSchemaSource.find(manifestId)
   }

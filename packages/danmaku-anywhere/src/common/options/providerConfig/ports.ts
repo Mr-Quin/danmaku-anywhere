@@ -1,10 +1,15 @@
 import type { ConfigSchema } from '@mr-quin/dango'
 
+// Whether a source's manifest can run here. Only a manifest that loaded has a
+// configSchema to check settings against.
+export type ManifestAvailability =
+  | { status: 'ok'; configSchema: ConfigSchema | undefined }
+  | { status: 'incompatible' }
+  | { status: 'malformed' }
+  | { status: 'unknown' }
+
 export interface IConfigSchemaSource {
-  // Undefined when no manifest with this id is installed
-  find(
-    manifestId: string
-  ): Promise<{ configSchema: ConfigSchema | undefined } | undefined>
+  find(manifestId: string): Promise<ManifestAvailability>
 }
 
 export const ConfigSchemaSourceSymbol = Symbol.for('ConfigSchemaSource')

@@ -1,6 +1,8 @@
-import type { ConfigSchema } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
-import type { IConfigSchemaSource } from '@/common/options/providerConfig/ports'
+import type {
+  IConfigSchemaSource,
+  ManifestAvailability,
+} from '@/common/options/providerConfig/ports'
 import { ManifestRegistry } from './ManifestRegistry'
 
 @injectable('Singleton')
@@ -10,13 +12,21 @@ export class ManifestConfigSchemaSource implements IConfigSchemaSource {
     private readonly manifestRegistry: ManifestRegistry
   ) {}
 
-  async find(
-    manifestId: string
-  ): Promise<{ configSchema: ConfigSchema | undefined } | undefined> {
+  async find(manifestId: string): Promise<ManifestAvailability> {
     const lookup = await this.manifestRegistry.lookup(manifestId)
-    if (lookup.status !== 'ok') {
-      return undefined
+    if (lookup.status === 'ok') {
+      return {
+        status: 'ok',
+        configSchema: lookup.runner.manifest.configSchema,
+      }
     }
-    return { configSchema: lookup.runner.manifest.configSchema }
+    switch (lookup.reason) {
+      case 'needs-newer-extension':
+        return { status: 'incompatible' }
+      case 'invalid-manifest':
+        return { status: 'malformed' }
+      case 'not-registered':
+        return { status: 'unknown' }
+    }
   }
 }

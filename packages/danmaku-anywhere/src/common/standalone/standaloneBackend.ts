@@ -1,10 +1,10 @@
-import type { ConfigSchema } from '@mr-quin/dango'
 import { uiContainer } from '@/common/ioc/uiIoc'
 import { ProviderConfigWriter } from '@/common/options/providerConfig/ProviderConfigWriter'
 import {
   ConfigSchemaSourceSymbol,
   type IConfigSchemaSource,
   type IProviderConfigCleanup,
+  type ManifestAvailability,
   ProviderConfigCleanupSymbol,
 } from '@/common/options/providerConfig/ports'
 import { bundledConfigSchema } from './bundledManifests'
@@ -19,10 +19,12 @@ export { bundledManifestNames, bundledManifestSpec } from './bundledManifests'
 // call. It has no bookmarks to clean up and only the bundled manifests to
 // check configs against.
 const configSchemaSource: IConfigSchemaSource = {
-  find: async (
-    manifestId: string
-  ): Promise<{ configSchema: ConfigSchema | undefined } | undefined> => {
-    return bundledConfigSchema(manifestId)
+  find: async (manifestId: string): Promise<ManifestAvailability> => {
+    const bundled = bundledConfigSchema(manifestId)
+    if (bundled === undefined) {
+      return { status: 'unknown' }
+    }
+    return { status: 'ok', configSchema: bundled.configSchema }
   },
 }
 

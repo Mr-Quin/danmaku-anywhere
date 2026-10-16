@@ -12,6 +12,7 @@ import { makeProviderConfig, makeSeasonInsert } from '@/tests/factories'
 import { effectiveConfigValues } from './builtin'
 import { PROXY_DDP_BASE_URL } from './constant'
 import { ProviderConfigWriter } from './ProviderConfigWriter'
+import type { ManifestAvailability } from './ports'
 import type { ProviderConfig, ProviderConfigEdit } from './schema'
 import { ProviderConfigService } from './service'
 
@@ -471,6 +472,31 @@ describe('ProviderConfigWriter.check for restore', () => {
         { ...bilibili, id: 'gone', manifestId: 'not-installed' },
       ])
     ).toEqual([undefined, undefined])
+  })
+
+  it('keeps a config whose stored manifest needs a newer extension or does not load', async () => {
+    const { container } = setup()
+    const availability = new Map<string, ManifestAvailability>([
+      ['future', { status: 'incompatible' }],
+      ['broken', { status: 'malformed' }],
+    ])
+    const writer = new ProviderConfigWriter(
+      container.get(ProviderConfigService),
+      {
+        find: async (manifestId) => {
+          return availability.get(manifestId) ?? { status: 'unknown' }
+        },
+      },
+      { beforeDelete: async () => {} }
+    )
+
+    expect(
+      await writer.check([
+        { ...selfHosted, id: 'a', manifestId: 'future' },
+        { ...selfHosted, id: 'b', manifestId: 'broken' },
+        { ...selfHosted, id: 'c', manifestId: 'not-installed' },
+      ])
+    ).toEqual([undefined, undefined, undefined])
   })
 
   it('refuses a config its known manifest does not accept, saying why', async () => {
