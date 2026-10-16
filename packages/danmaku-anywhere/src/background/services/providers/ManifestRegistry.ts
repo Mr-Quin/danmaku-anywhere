@@ -367,8 +367,8 @@ export class ManifestRegistry {
   // so an apply can never clobber a user manifest or install a brand-new
   // source. Throws on failure (unreachable catalog or a file that did not
   // apply) so a user-driven update surfaces the error instead of silently
-  // no-op'ing.
-  applyUpdates(manifestIds: string[]): Promise<void> {
+  // no-op'ing. The failure names sources in `locale`.
+  applyUpdates(manifestIds: string[], locale?: string): Promise<void> {
     return this.exclusive(async () => {
       await this.whenLoaded()
       const index = await this.loadIndex()
@@ -392,7 +392,7 @@ export class ManifestRegistry {
           .filter((id) => !applied.includes(id))
         throw new AppError(
           'catalog.applyFailed',
-          { sources: failed.map((id) => this.sourceLabel(id)) },
+          { sources: failed.map((id) => this.sourceLabel(id, locale)) },
           { message: `Failed to apply updates: ${failed.join(', ')}` }
         )
       }
@@ -752,12 +752,15 @@ export class ManifestRegistry {
     return { manifestId, name: unavailable.name }
   }
 
-  private sourceLabel(manifestId: string): {
-    manifestId: string
-    name: string
-  } {
-    const name = this.runners.get(manifestId)?.runner.manifest.name
-    return { manifestId, name: name ?? manifestId }
+  private sourceLabel(
+    manifestId: string,
+    locale: string | undefined
+  ): { manifestId: string; name: string } {
+    const manifest = this.runners.get(manifestId)?.runner.manifest
+    if (manifest === undefined) {
+      return { manifestId, name: manifestId }
+    }
+    return { manifestId, name: getDisplayStrings(manifest, locale).name }
   }
 
   // Per-manifest, and runner construction can throw past parsing, so one bad

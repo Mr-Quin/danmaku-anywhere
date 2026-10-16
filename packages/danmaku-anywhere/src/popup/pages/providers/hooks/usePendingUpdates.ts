@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { sourceQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { useManifestLocale } from './useManifestLocale'
 
 export const usePendingUpdates = () => {
   return useQuery({
@@ -15,8 +16,9 @@ export const usePendingUpdates = () => {
 }
 
 export const useApplyUpdates = () => {
+  const locale = useManifestLocale()
   return useMutation({
     mutationFn: (manifestIds: string[]) =>
-      chromeRpcClient.providerApplyUpdates({ manifestIds }),
+      chromeRpcClient.providerApplyUpdates({ manifestIds, locale }),
   })
 }
