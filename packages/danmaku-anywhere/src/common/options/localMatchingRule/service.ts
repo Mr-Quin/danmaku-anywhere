@@ -21,6 +21,7 @@ export class NamingRuleService implements IStoreService {
   public readonly descriptor = namingRuleDescriptor
   public readonly options: OptionsService<NamingRuleOptions>
   public readonly backupSchema = namingRuleOptionsSchema
+  public readonly backupSince = '1.6.0'
 
   constructor(
     @inject(LoggerSymbol)

@@ -49,6 +49,18 @@ function stringField(entry: unknown, key: string): string | undefined {
   return typeof value === 'string' && value !== '' ? value : undefined
 }
 
+function isOlderVersion(version: string, than: string): boolean {
+  const a = version.split('.').map(Number)
+  const b = than.split('.').map(Number)
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const diff = (a[i] ?? 0) - (b[i] ?? 0)
+    if (diff !== 0) {
+      return diff < 0
+    }
+  }
+  return false
+}
+
 function droppedEntry(
   entry: unknown,
   reason: DroppedEntry['reason'],
@@ -244,8 +256,20 @@ export class ConfigStateService {
     // it did, such as the sources a v1.5.0 backup kept in its settings.
     const missing = candidates
       .filter(({ service, backupData }) => {
+        if (
+          backupData !== undefined ||
+          derivedStores.has(service.options.key)
+        ) {
+          return false
+        }
+        if (service.backupSince === undefined) {
+          return true
+        }
+        // Backups made before 1.6.0 do not record the release that made them.
+        const { extensionVersion } = meta
         return (
-          backupData === undefined && !derivedStores.has(service.options.key)
+          extensionVersion !== undefined &&
+          !isOlderVersion(extensionVersion, service.backupSince)
         )
       })
       .map(({ service }) => service.name)

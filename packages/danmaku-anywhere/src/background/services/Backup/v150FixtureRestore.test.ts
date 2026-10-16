@@ -78,6 +78,7 @@ describe('restoring the v1.5.0 backup fixture', () => {
         })
       )
     )
+    expect(result.missing).toBeUndefined()
   })
 
   it.each(
