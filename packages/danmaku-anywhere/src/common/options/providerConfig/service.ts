@@ -12,7 +12,6 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { isServiceWorker } from '@/common/utils/utils'
 import {
-  defaultProviderConfigs,
   ensureBuiltinProviders,
   migrateBuiltinPrefixedProviderIds,
   migrateDanDanPlayApiBaseUrl,
@@ -52,60 +51,24 @@ export class ProviderConfigService implements IStoreService {
     )
       .version(2, {
         upgrade: (data) => {
-          try {
-            return ensureBuiltinProviders(migrateProviderConfigsToFlat(data))
-          } catch (error) {
-            console.error(
-              '[providerConfig] migration failed, falling back to defaults:',
-              error
-            )
-            return [...defaultProviderConfigs]
-          }
+          return ensureBuiltinProviders(migrateProviderConfigsToFlat(data))
         },
       })
       .version(3, {
-        upgrade: (data) => {
-          try {
-            return migrateBuiltinPrefixedProviderIds(data)
-          } catch (error) {
-            console.error(
-              '[providerConfig] builtin-prefix migration failed, falling back to defaults:',
-              error
-            )
-            return [...defaultProviderConfigs]
-          }
-        },
+        upgrade: (data) => migrateBuiltinPrefixedProviderIds(data),
       })
       .version(4, {
-        upgrade: (data) => {
-          try {
-            return migrateDanDanPlayApiBaseUrl(data)
-          } catch (error) {
-            // A baseUrl tweak should never cost the user their configs, so
-            // leave the data untouched rather than reset to defaults.
-            console.error(
-              '[providerConfig] DanDanPlay baseUrl migration failed, leaving configs unchanged:',
-              error
-            )
-            return data
-          }
-        },
+        upgrade: (data) => migrateDanDanPlayApiBaseUrl(data),
       })
       .version(LATEST_PROVIDER_CONFIG_VERSION, {
-        upgrade: (data) => {
-          try {
-            return migrateDropDeadProviderFields(data)
-          } catch (error) {
-            // Dropping dead fields is cosmetic; never cost the user their
-            // configs over it.
-            console.error(
-              '[providerConfig] dead-field migration failed, leaving configs unchanged:',
-              error
-            )
-            return data
-          }
-        },
+        upgrade: (data) => migrateDropDeadProviderFields(data),
       })
+  }
+
+  // A reset leaves the list empty, so the next catalog sync seeds the
+  // built-in sources again.
+  async afterReset(): Promise<void> {
+    await this.seededFlag.delete()
   }
 
   async hasSeeded(): Promise<boolean> {

@@ -17,6 +17,10 @@ export class OptionsUpgradeScreen {
     )
   }
 
+  resetButton(key: string): Locator {
+    return this.failedStore(key).getByRole('button', { name: /^(Reset|重置)$/ })
+  }
+
   retryButton(): Locator {
     return this.failed().getByRole('button', { name: /^(Retry|重试)$/ })
   }

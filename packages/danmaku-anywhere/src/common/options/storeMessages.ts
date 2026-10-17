@@ -59,6 +59,11 @@ export function describeOptionsProblem(problem: UpgradeProblem): string {
         'optionsStorage.problem.incomplete',
         'The stored copy is incomplete, possibly because it is still syncing from another device. Try again in a moment.'
       )
+    case 'options.migration':
+      return i18n.t(
+        'optionsStorage.problem.migration',
+        'The saved data is damaged or in a shape this version cannot convert.'
+      )
     case 'unknown':
       return i18n.t(
         'optionsStorage.problem.unknown',

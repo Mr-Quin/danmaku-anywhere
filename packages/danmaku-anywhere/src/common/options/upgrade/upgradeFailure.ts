@@ -1,10 +1,14 @@
+import { isOptionsMigrationError } from '../OptionsService/OptionsMigrationError'
 import {
   isOptionsStorageProblem,
   OptionsStorageError,
   type OptionsStorageProblem,
 } from '../OptionsService/OptionsStorageError'
 
-export type UpgradeProblem = OptionsStorageProblem | 'unknown'
+export type UpgradeProblem =
+  | OptionsStorageProblem
+  | 'options.migration'
+  | 'unknown'
 
 // Why one store could not be upgraded. store is the store's storage key.
 export interface StoreFailure {
@@ -17,6 +21,7 @@ export interface StoreFailure {
 const REPEATING_PROBLEMS: readonly UpgradeProblem[] = [
   'options.itemTooLarge',
   'options.storeFull',
+  'options.migration',
 ]
 
 export class OptionsUpgradeError extends AggregateError {
@@ -33,6 +38,9 @@ export class OptionsUpgradeError extends AggregateError {
 }
 
 export function toStoreFailure(store: string, error: unknown): StoreFailure {
+  if (isOptionsMigrationError(error)) {
+    return { store, problem: 'options.migration' }
+  }
   return {
     store,
     problem: error instanceof OptionsStorageError ? error.problem : 'unknown',
@@ -68,5 +76,9 @@ export function parseStoreFailures(value: unknown): StoreFailure[] {
 }
 
 function isUpgradeProblem(value: unknown): value is UpgradeProblem {
-  return isOptionsStorageProblem(value) || value === 'unknown'
+  return (
+    isOptionsStorageProblem(value) ||
+    value === 'options.migration' ||
+    value === 'unknown'
+  )
 }

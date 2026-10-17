@@ -179,6 +179,29 @@ describe('upgradeStores', () => {
     ])
   })
 
+  it('reports a store whose migration throws as a migration failure and keeps it', async () => {
+    await storeAt('alpha', 'a', 1)
+    await storeAt('beta', 'b', 1)
+    const throwing = createStore('alpha', () => {
+      throw new Error('bad data')
+    })
+
+    const error = await upgradeStores(
+      [throwing, createStore('beta')],
+      silentLogger,
+      memorySnapshots()
+    ).catch((reason: unknown) => reason)
+
+    expect(storeFailuresOf(error)).toEqual([
+      { store: 'alpha', problem: 'options.migration' },
+    ])
+    expect(await readRaw('alpha')).toEqual({ data: { value: 'a' }, version: 1 })
+    expect(await readRaw('beta')).toEqual({
+      data: { value: 'b upgraded' },
+      version: 2,
+    })
+  })
+
   it('saves the snapshot with store versions before the first write', async () => {
     await storeAt('alpha', 'a', 1)
     const snapshots = memorySnapshots()

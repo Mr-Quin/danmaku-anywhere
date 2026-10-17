@@ -421,6 +421,9 @@ export class RpcManager {
       optionsUpgrade: async () => {
         return this.optionsUpgradeService.upgrade()
       },
+      optionsResetStore: async (key) => {
+        return this.optionsUpgradeService.resetStore(key)
+      },
       bookmarkGetAll: async () => {
         return this.bookmarkService.getAll()
       },

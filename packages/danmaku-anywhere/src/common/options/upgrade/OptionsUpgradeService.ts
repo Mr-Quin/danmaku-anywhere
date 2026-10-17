@@ -11,6 +11,7 @@ import {
 import { readOptionStoresStatus } from '../ReadinessService/optionStoresStatus'
 import { type UpgradeSnapshot, upgradeStores } from '../upgradeStores'
 import type { OptionsUpgrader } from './OptionsUpgrader'
+import { OPTIONS_RECOVERY_KEY, type OptionsRecoveryCopy } from './recoveryCopy'
 import { storeFailuresOf } from './upgradeFailure'
 import {
   canRetryAutomatically,
@@ -35,6 +36,9 @@ export class OptionsUpgradeService implements OptionsUpgrader {
     UPGRADE_SNAPSHOT_KEY,
     { storageType: 'local' }
   )
+  private readonly recovery = new ExtStorageService<
+    Record<string, OptionsRecoveryCopy>
+  >(OPTIONS_RECOVERY_KEY, { storageType: 'local' })
   private running?: Promise<void>
 
   constructor(
@@ -74,6 +78,50 @@ export class OptionsUpgradeService implements OptionsUpgrader {
   // still the data from before the upgrade, so it is kept.
   upgradeForNewBuild(): Promise<void> {
     return this.start(true)
+  }
+
+  async resetStore(key: string): Promise<OptionsRecoveryCopy> {
+    const service = this.stores.find((store) => store.options.key === key)
+    if (!service) {
+      throw new Error(`Unknown option store: ${key}`)
+    }
+    const copy = await navigator.locks.request('options-upgrade', () => {
+      return this.reset(service)
+    })
+    const [, error] = await tryCatch(() => this.upgrade())
+    if (error) {
+      this.logger.debug('The upgrade still fails after the reset', error)
+    }
+    return copy
+  }
+
+  // The copy is saved before anything is reset. The store's entry in the
+  // snapshot becomes the defaults, so the other stores' steps no longer see
+  // the data the user chose to drop.
+  private async reset(service: IStoreService): Promise<OptionsRecoveryCopy> {
+    const { options } = service
+    const copy: OptionsRecoveryCopy = {
+      store: options.key,
+      savedAt: Date.now(),
+      items: await options.readRawUnblocked(),
+    }
+    const saved = await this.recovery.read()
+    await this.recovery.set({ ...saved, [options.key]: copy })
+    this.logger.debug(`Resetting ${options.key}`)
+    await options.resetUnblocked()
+    await service.afterReset?.()
+
+    const snapshot = await this.snapshot.read()
+    if (snapshot?.[options.key]) {
+      await this.snapshot.set({
+        ...snapshot,
+        [options.key]: {
+          stored: await options.readStoredUnblocked(),
+          target: options.latestVersion,
+        },
+      })
+    }
+    return copy
   }
 
   private start(newBuild: boolean): Promise<void> {
