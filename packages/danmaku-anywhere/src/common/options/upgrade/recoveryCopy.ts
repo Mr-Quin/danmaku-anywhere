@@ -1,16 +1,21 @@
-// What an option store held before the user reset it, kept in storage.local
-// under OPTIONS_RECOVERY_KEY, one copy per store key, and offered as a
-// download when the reset happens.
+// What an option store held when the user chose to reset it. Copies are kept
+// in storage.local under OPTIONS_RECOVERY_KEY, oldest first, and never
+// replaced, so a reset that runs twice keeps the data from before the first.
 export interface OptionsRecoveryCopy {
+  id: string
   store: string
   savedAt: number
-  // Every stored item of the store, keyed by storage key
-  items: Record<string, unknown>
+  // The store's envelope as read, when it could be read
+  envelope?: unknown
+  // Every stored item of the store, when it could not be read as one envelope
+  items?: Record<string, unknown>
 }
 
 export const OPTIONS_RECOVERY_KEY = 'optionsRecovery'
 
+export const MAX_RECOVERY_COPIES = 20
+
 export function recoveryFileName(copy: OptionsRecoveryCopy): string {
-  const date = new Date(copy.savedAt).toISOString().slice(0, 10)
-  return `danmaku-anywhere-${copy.store}-recovery-${date}.json`
+  const time = new Date(copy.savedAt).toISOString().replaceAll(':', '-')
+  return `danmaku-anywhere-${copy.store}-recovery-${time}.json`
 }

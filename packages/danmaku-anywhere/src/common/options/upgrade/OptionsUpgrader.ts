@@ -7,10 +7,12 @@ export interface OptionsUpgrader {
   ensureUpgraded(): Promise<void>
   // Runs even when readiness is ready, for stores changed behind its back.
   upgrade(): Promise<void>
-  // Keeps a recovery copy of one store, resets it to its defaults and runs
-  // the upgrade again. Resolves with the copy even when the upgrade still
-  // fails for another store.
-  resetStore(key: string): Promise<OptionsRecoveryCopy>
+  // Saves what one store holds as a recovery copy and resolves with it.
+  saveRecoveryCopy(key: string): Promise<OptionsRecoveryCopy>
+  // Resets one store to its defaults once its recovery copy is saved, then
+  // runs the upgrade again. Resolves even when the upgrade still fails for
+  // another store.
+  resetStore(key: string, copyId: string): Promise<void>
 }
 
 export const OptionsUpgraderSymbol = Symbol.for('OptionsUpgrader')

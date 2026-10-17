@@ -1,4 +1,4 @@
-import { isOptionsMigrationError } from '../OptionsService/OptionsMigrationError'
+import { OptionsMigrationError } from '../OptionsService/OptionsMigrationError'
 import {
   isOptionsStorageProblem,
   OptionsStorageError,
@@ -38,7 +38,7 @@ export class OptionsUpgradeError extends AggregateError {
 }
 
 export function toStoreFailure(store: string, error: unknown): StoreFailure {
-  if (isOptionsMigrationError(error)) {
+  if (error instanceof OptionsMigrationError) {
     return { store, problem: 'options.migration' }
   }
   return {

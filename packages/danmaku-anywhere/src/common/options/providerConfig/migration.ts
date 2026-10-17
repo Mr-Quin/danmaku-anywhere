@@ -200,12 +200,9 @@ export function migrateProviderConfigsToFlat(
         out.push(parsed.data)
         continue
       }
-      console.warn(
-        'Dropping partially-flat provider record that fails schema:',
-        old,
-        parsed.error.issues
+      throw new Error(
+        `A stored provider config does not match the schema: ${parsed.error.message}`
       )
-      continue
     }
     const base = {
       id: old.id as string,
@@ -259,10 +256,11 @@ export function migrateProviderConfigsToFlat(
           configValues: pruneUndefined(options),
         })
         break
+      // v1.5.0 and earlier wrote only the five types above, so anything
+      // else is damaged data.
       default:
-        console.warn(
-          'Dropping corrupted provider config record during v1→v2 migration (unrecognized type):',
-          old
+        throw new Error(
+          `A stored provider config has an unknown type: ${String(inferredType)}`
         )
     }
   }

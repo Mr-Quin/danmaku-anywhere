@@ -14,7 +14,8 @@ import { UPGRADE_RUN_KEY } from './upgradeRun'
  * A corrupt store fails the upgrade as a migration failure and is kept byte
  * for byte instead of being reset or losing entries, while the other stores
  * upgrade. Resetting it keeps the corrupt data, custom sources included, in
- * the recovery copy and lets the upgrade finish.
+ * the recovery copy and lets the upgrade finish. A split store whose chunks do
+ * not add up is kept as its raw items.
  */
 
 const SYNC_STORES = [
@@ -98,14 +99,35 @@ describe('upgrading v1.5.0 stores with one of them corrupt', () => {
     await seedV150({ providerConfig: corrupt })
     await expect(upgrader.upgrade()).rejects.toThrow()
 
-    const copy = await upgrader.resetStore('providerConfig')
+    const copy = await upgrader.saveRecoveryCopy('providerConfig')
+    await upgrader.resetStore('providerConfig', copy.id)
 
-    expect(copy.items).toEqual({ providerConfig: corrupt })
+    expect(copy.envelope).toEqual(corrupt)
     expect(JSON.stringify(copy)).toContain('https://ddp.selfhosted.example')
     const container = createUpgradeContainer()
     expect(await container.get(ProviderConfigService).options.get()).toEqual([])
     expect(await container.get(ProviderConfigService).hasSeeded()).toBe(false)
     expect(await readLocal(UPGRADE_RUN_KEY)).toBeUndefined()
     expect(await container.get(MountConfigService).options.getVersion()).toBe(6)
+  })
+
+  it('keeps the raw items of a split store that does not add up', async () => {
+    const filters = Array.from({ length: 400 }, (_, index) => {
+      return { type: 'text' as const, value: `剧透 ${index}`, enabled: true }
+    })
+    await createUpgradeContainer().get(OptionsUpgradeService).upgrade()
+    await createUpgradeContainer()
+      .get(DanmakuOptionsService)
+      .options.update({ filters })
+    await fakeBrowser.storage.sync.set({ 'danmakuOptions.filters.1': 'torn' })
+
+    const copy = await upgrader.saveRecoveryCopy('danmakuOptions')
+
+    expect(copy.envelope).toBeUndefined()
+    expect(copy.items).toMatchObject({
+      danmakuOptions: expect.objectContaining({ parts: expect.any(Object) }),
+      'danmakuOptions.filters.0': expect.any(String),
+      'danmakuOptions.filters.1': 'torn',
+    })
   })
 })
