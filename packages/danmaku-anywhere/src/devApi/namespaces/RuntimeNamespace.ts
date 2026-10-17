@@ -1,6 +1,6 @@
 import { inject, injectable } from 'inversify'
-import { UpgradeService } from '@/background/syncOptions/UpgradeService/UpgradeService'
 import { EXTENSION_VERSION } from '@/common/constants'
+import { OptionsUpgradeService } from '@/common/options/upgrade/OptionsUpgradeService'
 import { type AnyMethodDef, type DevNamespace, defineMethod } from '../registry'
 
 export interface RuntimeApi {
@@ -16,8 +16,8 @@ export class RuntimeNamespace implements DevNamespace {
   readonly methods: readonly AnyMethodDef[]
 
   constructor(
-    @inject(UpgradeService)
-    private readonly upgradeService: UpgradeService
+    @inject(OptionsUpgradeService)
+    private readonly upgradeService: OptionsUpgradeService
   ) {
     this.methods = [
       defineMethod({

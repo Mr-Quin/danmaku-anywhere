@@ -3,8 +3,9 @@ import { useMutation } from '@tanstack/react-query'
 import { useMemo } from 'react'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useInjectService } from '@/common/hooks/useInjectService'
+import { aiProviderConfigDescriptor } from '@/common/options/optionStores'
+import { useOptionStoreQuery } from '@/common/options/useOptionStoreQuery'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
-import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
 import type { AiProviderConfig, AiProviderConfigOptions } from './schema'
 import { AiProviderConfigService } from './service'
 
@@ -13,10 +14,7 @@ export const useAiProviderConfig = () => {
     data: options,
     update,
     ...rest
-  } = useSuspenseExtStorageQuery<AiProviderConfigOptions>('aiProviderConfig', {
-    storageType: 'sync',
-    isOptionStore: true,
-  })
+  } = useOptionStoreQuery<AiProviderConfigOptions>(aiProviderConfigDescriptor)
 
   const configs: AiProviderConfig[] = options.data || []
 

@@ -15,13 +15,16 @@ import {
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { extensionOptionsDescriptor } from '@/common/options/optionStores'
 import { migrateDanmakuSourcesToProviders } from '@/common/options/providerConfig/migration'
 import { ColorMode } from '@/common/theme/enums'
 import { ProviderConfigService } from '../providerConfig/service'
+import { LATEST_EXTENSION_OPTIONS_VERSION } from './version'
 
 @injectable('Singleton')
 export class ExtensionOptionsService implements IStoreService {
   public readonly name = 'extensionOptions'
+  public readonly descriptor = extensionOptionsDescriptor
   public readonly options: OptionsService<ExtensionOptions>
   public readonly backupSchema = extensionOptionsSchema
 
@@ -34,9 +37,10 @@ export class ExtensionOptionsService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory(
-      'extensionOptions',
+      extensionOptionsDescriptor.key,
       defaultExtensionOptions,
-      this.logger
+      this.logger,
+      extensionOptionsDescriptor.area
     )
       .version(1, {
         upgrade: (data) => data,
@@ -279,7 +283,7 @@ export class ExtensionOptionsService implements IStoreService {
             draft.autoBookmark = false
           }),
       })
-      .version(27, {
+      .version(LATEST_EXTENSION_OPTIONS_VERSION, {
         upgrade: (data) =>
           produce<ExtensionOptions>(data, (draft) => {
             draft.infoPanel = {}

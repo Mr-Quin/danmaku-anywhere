@@ -8,8 +8,7 @@ import { injectFonts } from '@/common/fonts'
 import { Logger } from '@/common/Logger'
 import { queryClient } from '@/common/queries/queryClient'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { ensureStandaloneReady } from '@/common/standalone/ensureStandaloneReady'
-import { Theme } from '@/common/theme/Theme'
+import { SystemTheme, Theme } from '@/common/theme/Theme'
 import { App } from './App'
 import '@/common/localization/i18n'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
@@ -17,15 +16,16 @@ import { createPortal } from 'react-dom'
 import { IS_DA_PROD } from '@/common/constants'
 import { EnvironmentContext } from '@/common/environment/context'
 import { bootstrapUiLanguage, uiContainer } from '@/common/ioc/uiIoc'
+import { OptionsReadinessGate } from '@/common/options/ReadinessService/OptionsReadinessGate'
 import { tryCatchSync } from '@/common/utils/tryCatch'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
 import { attachMountMirror } from '@/content/controller/common/devMountMirror'
 import { startPanelStateBroadcaster } from '@/content/controller/danmaku/panelState/PanelStateBroadcaster'
 import { useStore } from '@/content/controller/store/store'
+import { OptionsUpgradeFailedButton } from '@/content/controller/ui/floatingButton/OptionsUpgradeFailedButton'
 
 bootstrapUiLanguage(uiContainer)
-await ensureStandaloneReady()
 startPanelStateBroadcaster()
 
 if (!IS_DA_PROD) {
@@ -102,9 +102,18 @@ ReactDOM.createRoot(shadowRoot).render(
             type: 'controller',
           }}
         >
-          <Theme options={themeOptions}>
-            <App />
-          </Theme>
+          <OptionsReadinessGate
+            pending={null}
+            failed={
+              <SystemTheme options={themeOptions}>
+                <OptionsUpgradeFailedButton />
+              </SystemTheme>
+            }
+          >
+            <Theme options={themeOptions}>
+              <App />
+            </Theme>
+          </OptionsReadinessGate>
         </EnvironmentContext>
         {import.meta.env.MODE === 'development' &&
           createPortal(

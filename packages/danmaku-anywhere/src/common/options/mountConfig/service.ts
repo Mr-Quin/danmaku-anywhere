@@ -20,6 +20,7 @@ import {
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import type { PrevOptions } from '@/common/options/OptionsService/types'
+import { mountConfigDescriptor } from '@/common/options/optionStores'
 import { getRandomUUID } from '@/common/utils/utils'
 import { BUILT_IN_AI_PROVIDER_ID } from '../aiProviderConfig/constant'
 import { migrateMountConfigV4V5 } from './migrations/migrateMountConfigV4V5'
@@ -51,6 +52,7 @@ function upgradeConfigs(
 @injectable('Singleton')
 export class MountConfigService implements IStoreService {
   public readonly name = 'mountConfig'
+  public readonly descriptor = mountConfigDescriptor
   public readonly options: OptionsService<MountConfig[]>
   public readonly backupItemSchema = mountConfigInputSchema
 
@@ -61,9 +63,10 @@ export class MountConfigService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory<MountConfig[]>(
-      'mountConfig',
+      mountConfigDescriptor.key,
       defaultMountConfig,
-      this.logger
+      this.logger,
+      mountConfigDescriptor.area
     )
       .version(1, {
         upgrade: (data) => data,

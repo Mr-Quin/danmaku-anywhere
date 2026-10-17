@@ -6,11 +6,14 @@ import {
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { userAuthDescriptor } from '@/common/options/optionStores'
 import { defaultUserAuthState, type UserAuthState } from './schema'
+import { LATEST_USER_AUTH_VERSION } from './version'
 
 @injectable('Singleton')
 export class UserAuthStore implements IStoreService {
   public readonly name = 'userAuth'
+  public readonly descriptor = userAuthDescriptor
   public readonly shouldBackup = false
   public readonly options: OptionsService<UserAuthState>
   private cachedState = defaultUserAuthState
@@ -21,11 +24,11 @@ export class UserAuthStore implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory<UserAuthState>(
-      'userAuth',
+      userAuthDescriptor.key,
       defaultUserAuthState,
       this.logger,
-      'local'
-    ).version(1, {
+      userAuthDescriptor.area
+    ).version(LATEST_USER_AUTH_VERSION, {
       upgrade: (data) => data,
     })
 
@@ -66,13 +69,8 @@ export class UserAuthStore implements IStoreService {
     await this.options.update(defaultUserAuthState)
   }
 
-  // initialize cache and subscribe to changes
   private initialize() {
     this.options.onChange((data) => {
-      this.cachedState = data ?? defaultUserAuthState
-    })
-
-    void this.options.get().then((data) => {
       this.cachedState = data ?? defaultUserAuthState
     })
   }

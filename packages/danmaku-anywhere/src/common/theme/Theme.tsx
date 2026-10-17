@@ -28,14 +28,29 @@ interface ThemeProps extends PropsWithChildren {
   options?: ThemeOptions
 }
 
-export const Theme = ({ children, options = {} }: ThemeProps) => {
+function usePreferredColorScheme(): 'dark' | 'light' {
   // TODO: for some reason, useMediaQuery crashes in Firefox so we wrap it in a try-catch
   // probably for the same reason as https://github.com/facebook/react/issues/16606
   const [prefersDarkMode] = tryCatchSync(() =>
     useMediaQuery('(prefers-color-scheme: dark)')
   )
+  return (prefersDarkMode ?? true) ? 'dark' : 'light'
+}
 
+function useSakuraTheme(colorScheme: 'dark' | 'light', options: ThemeOptions) {
   const { i18n } = useTranslation()
+
+  return useMemo(() => {
+    const languageMap: Record<string, Localization> = {
+      zh: zhCN,
+      en: enUS,
+    }
+    return createSakuraTheme(colorScheme, options, languageMap[i18n.language])
+  }, [colorScheme, options, i18n.language])
+}
+
+export const Theme = ({ children, options = {} }: ThemeProps) => {
+  const preferredColorScheme = usePreferredColorScheme()
 
   const { data, partialUpdate } = useExtensionOptions()
 
@@ -48,17 +63,10 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
   }
 
   const colorMode = data.theme.colorMode
-  const preferredColorScheme = (prefersDarkMode ?? true) ? 'dark' : 'light'
   const colorScheme: 'dark' | 'light' =
     colorMode === 'system' ? preferredColorScheme : colorMode
 
-  const theme = useMemo(() => {
-    const languageMap: Record<string, Localization> = {
-      zh: zhCN,
-      en: enUS,
-    }
-    return createSakuraTheme(colorScheme, options, languageMap[i18n.language])
-  }, [colorScheme, options, i18n.language])
+  const theme = useSakuraTheme(colorScheme, options)
 
   const themeContextValue = useMemo(
     () => ({
@@ -74,6 +82,14 @@ export const Theme = ({ children, options = {} }: ThemeProps) => {
       <ThemeProvider theme={theme}>{children}</ThemeProvider>
     </context.Provider>
   )
+}
+
+// For screens shown before the extension options can be read, so the user's
+// own color mode is not known yet.
+export const SystemTheme = ({ children, options = {} }: ThemeProps) => {
+  const theme = useSakuraTheme(usePreferredColorScheme(), options)
+
+  return <ThemeProvider theme={theme}>{children}</ThemeProvider>
 }
 
 export const useThemeContext = () => {

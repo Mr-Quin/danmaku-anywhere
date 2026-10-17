@@ -6,8 +6,10 @@ import {
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { searchHistoryDescriptor } from '@/common/options/optionStores'
 import { defaultSearchHistory, MAX_SEARCH_HISTORY_ENTRIES } from './constant'
 import type { SearchHistoryData } from './schema'
+import { LATEST_SEARCH_HISTORY_VERSION } from './version'
 
 export function addHistoryEntry(
   entries: string[],
@@ -28,6 +30,7 @@ export function removeHistoryEntry(entries: string[], query: string): string[] {
 @injectable('Singleton')
 export class SearchHistoryService implements IStoreService {
   public readonly name = 'searchHistory'
+  public readonly descriptor = searchHistoryDescriptor
   public readonly shouldBackup = false
   public readonly options: OptionsService<SearchHistoryData>
 
@@ -38,11 +41,11 @@ export class SearchHistoryService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory(
-      'searchHistory',
+      searchHistoryDescriptor.key,
       defaultSearchHistory,
       this.logger,
-      'local'
-    ).version(1, {
+      searchHistoryDescriptor.area
+    ).version(LATEST_SEARCH_HISTORY_VERSION, {
       upgrade: (data) => data,
     })
   }
