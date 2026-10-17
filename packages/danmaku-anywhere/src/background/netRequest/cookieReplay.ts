@@ -1,3 +1,5 @@
+import { IS_CHROME } from '@/common/constants'
+
 // fetch() strips Set-Cookie (forbidden response header). This module
 // captures it from webRequest and replays it for manifest engine use.
 
@@ -55,6 +57,15 @@ function parseSetCookie(line: string): ParsedSetCookie | null {
   return { name, value: nv.slice(eq + 1).trim() }
 }
 
+// Chrome hides Set-Cookie unless 'extraHeaders' is requested. Firefox always
+// exposes it and throws on the unknown enum value.
+function extraInfoSpec(): `${chrome.webRequest.OnHeadersReceivedOptions}`[] {
+  if (IS_CHROME) {
+    return ['responseHeaders', 'extraHeaders']
+  }
+  return ['responseHeaders']
+}
+
 export function setupCookieReplay(): void {
   if (typeof chrome === 'undefined' || !chrome.webRequest) {
     return
@@ -104,6 +115,6 @@ export function setupCookieReplay(): void {
       return {}
     },
     { urls: ['<all_urls>'] },
-    ['responseHeaders', 'extraHeaders']
+    extraInfoSpec()
   )
 }

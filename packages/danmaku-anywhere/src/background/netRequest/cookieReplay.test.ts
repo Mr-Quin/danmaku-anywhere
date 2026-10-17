@@ -242,3 +242,31 @@ describe('cookieReplay', () => {
     expect(consumeSetCookies('https://example.com/caps')).toBe('x=1')
   })
 })
+
+describe('cookieReplay on Firefox', () => {
+  afterEach(() => {
+    vi.doUnmock('@/common/constants')
+    vi.unstubAllGlobals()
+  })
+
+  it('does not request extraHeaders, which Firefox rejects', async () => {
+    vi.resetModules()
+    vi.doMock('@/common/constants', async (importOriginal) => {
+      return {
+        ...(await importOriginal<typeof import('@/common/constants')>()),
+        IS_CHROME: false,
+        IS_FIREFOX: true,
+      }
+    })
+    const addListener = vi.fn()
+    vi.stubGlobal('chrome', {
+      webRequest: { onHeadersReceived: { addListener } },
+    })
+    const { setupCookieReplay } = await import('./cookieReplay')
+
+    setupCookieReplay()
+
+    const [, , extraInfoSpec] = addListener.mock.calls[0]
+    expect(extraInfoSpec).toEqual(['responseHeaders'])
+  })
+})
