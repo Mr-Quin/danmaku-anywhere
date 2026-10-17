@@ -11,19 +11,12 @@ const encoder = new TextEncoder()
 function chromeJson(value: unknown): string {
   return JSON.stringify(value)
     .replaceAll('<', '\\u003C')
-    .replaceAll(' ', '\\u2028')
-    .replaceAll(' ', '\\u2029')
+    .replaceAll('\u2028', '\\u2028')
+    .replaceAll('\u2029', '\\u2029')
 }
 
 export function chromeItemBytes(key: string, value: unknown): number {
   return encoder.encode(key).length + encoder.encode(chromeJson(value)).length
-}
-
-export async function syncBytesInUse(): Promise<number> {
-  const all = await fakeBrowser.storage.sync.get(null)
-  return Object.entries(all).reduce((total, [key, value]) => {
-    return total + chromeItemBytes(key, value)
-  }, 0)
 }
 
 // Makes the fake sync area reject a write the way Chrome does: the whole call

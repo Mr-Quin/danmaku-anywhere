@@ -4,11 +4,11 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import { storageQueryKeys } from '@/common/queries/queryKeys'
 import { OptionsStorage } from './OptionsService/OptionsStorage'
-import { getOptionsStorageError } from './OptionsService/OptionsStorageError'
+import { OptionsStorageError } from './OptionsService/OptionsStorageError'
 import type { Options } from './OptionsService/types'
 import type { OptionStoreDescriptor } from './optionStores'
 import { ReadinessService } from './ReadinessService/ReadinessService'
-import { describeOptionsWriteError } from './storeMessages'
+import { describeSaveFailure } from './storeMessages'
 
 // Reads an option store's envelope, suspending until every store has been
 // upgraded so the UI never reads or writes a store in its old shape. A write
@@ -41,11 +41,8 @@ export function useOptionStoreQuery<T>(store: OptionStoreDescriptor) {
     mutationFn: (envelope: Options<T>) => storage.write(envelope),
     meta: { invalidates: [queryKey] },
     onError: (error) => {
-      const storageError = getOptionsStorageError(error)
-      if (storageError) {
-        toast.error(
-          describeOptionsWriteError(storageError.problem, storageError.store)
-        )
+      if (error instanceof OptionsStorageError) {
+        toast.error(describeSaveFailure(error.problem, error.store))
       }
     },
   })

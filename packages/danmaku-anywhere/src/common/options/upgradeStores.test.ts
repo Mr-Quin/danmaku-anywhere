@@ -31,10 +31,9 @@ interface Value {
 function createStore(key: string, onMigrate?: (stores: StoreSnapshot) => void) {
   const options = new OptionsService<Value>(
     { waitUntilReady: () => Promise.resolve() },
-    key,
+    { key, area: 'local' },
     { value: 'default' },
-    silentLogger,
-    'local'
+    silentLogger
   )
     .version(1, { upgrade: (data) => data })
     .version(2, {
@@ -175,7 +174,7 @@ describe('upgradeStores', () => {
     ).catch((reason: unknown) => reason)
 
     expect(storeFailuresOf(error)).toEqual([
-      { store: 'alpha', problem: 'storeFull' },
+      { store: 'alpha', problem: 'options.storeFull' },
       { store: 'beta', problem: 'unknown' },
     ])
   })

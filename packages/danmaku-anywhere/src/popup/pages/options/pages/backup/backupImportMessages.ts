@@ -2,7 +2,7 @@ import { getBackupFileProblem } from '@/common/backup/BackupFileError'
 import type { BackupRestoreResult } from '@/common/backup/dto'
 import { i18n } from '@/common/localization/i18n'
 import {
-  describeOptionsWriteError,
+  describeSaveFailure,
   localizedStoreName,
 } from '@/common/options/storeMessages'
 
@@ -26,7 +26,7 @@ export function describeRestoreStorageProblems(
     if (!detail.storageProblem) {
       return []
     }
-    return [describeOptionsWriteError(detail.storageProblem, name)]
+    return [describeSaveFailure(detail.storageProblem, name)]
   })
 }
 

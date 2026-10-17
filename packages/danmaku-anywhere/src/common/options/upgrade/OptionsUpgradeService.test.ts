@@ -54,10 +54,9 @@ function setup(keys: string[], bumped: string[] = []) {
     migrations[key] = 0
     const options = new OptionsService<Counter>(
       { waitUntilReady: () => Promise.resolve() },
-      key,
+      { key, area: 'local' },
       { count: 0 },
-      silentLogger,
-      'local'
+      silentLogger
     )
       .version(1, { upgrade: (data) => data })
       .version(2, {
@@ -260,13 +259,13 @@ describe('OptionsUpgradeService', () => {
 
     expect(await readRaw(UPGRADE_RUN_KEY)).toMatchObject({
       status: 'failed',
-      stores: [{ store: 'beta', problem: 'storeFull' }],
+      stores: [{ store: 'beta', problem: 'options.storeFull' }],
     })
     readiness.subscribe(() => undefined)
     await vi.waitFor(() => {
       expect(readiness.getState()).toMatchObject({
         status: 'failed',
-        stores: [{ store: 'beta', problem: 'storeFull' }],
+        stores: [{ store: 'beta', problem: 'options.storeFull' }],
       })
     })
   })

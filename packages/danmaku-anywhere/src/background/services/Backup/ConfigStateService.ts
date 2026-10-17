@@ -12,7 +12,7 @@ import {
   type IStoreService,
   StoreServiceSymbol,
 } from '@/common/options/IStoreService'
-import { getOptionsStorageError } from '@/common/options/OptionsService/OptionsStorageError'
+import { OptionsStorageError } from '@/common/options/OptionsService/OptionsStorageError'
 import type {
   DeferredWrite,
   StoreSnapshot,
@@ -32,6 +32,10 @@ type PayloadCheck =
 type EntriesCheck =
   | { ok: true; data: unknown[]; droppedEntries: number }
   | { ok: false; error: string }
+
+function storageProblemOf(error: unknown) {
+  return error instanceof OptionsStorageError ? error.problem : undefined
+}
 
 function describeError(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
@@ -175,7 +179,7 @@ export class ConfigStateService {
         result.details[service.name] = {
           success: false,
           error: describeError(error),
-          storageProblem: getOptionsStorageError(error)?.problem,
+          storageProblem: storageProblemOf(error),
         }
       }
     }
@@ -196,7 +200,7 @@ export class ConfigStateService {
           result.details[name] = {
             success: false,
             error: describeError(error),
-            storageProblem: getOptionsStorageError(error)?.problem,
+            storageProblem: storageProblemOf(error),
           }
         }
       })

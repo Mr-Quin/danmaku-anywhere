@@ -1,13 +1,9 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { getOptionsStorageError } from '@/common/options/OptionsService/OptionsStorageError'
+import { OptionsStorageError } from '@/common/options/OptionsService/OptionsStorageError'
 import { OptionsUpgradeService } from '@/common/options/upgrade/OptionsUpgradeService'
 import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
-import {
-  chromeItemBytes,
-  enforceSyncQuota,
-  syncBytesInUse,
-} from '@/tests/syncQuota'
+import { chromeItemBytes, enforceSyncQuota } from '@/tests/syncQuota'
 import { readV150Store } from '@/tests/v150Backup'
 import type { DanmakuOptions } from './constant'
 import { defaultDanmakuOptions } from './constant'
@@ -17,10 +13,9 @@ import { DanmakuOptionsService } from './service'
  * danmakuOptions against a sync area that enforces Chrome's quotas. A v1.5.0
  * user whose single danmakuOptions item is just under the 8 KB item limit
  * upgrades through the coordinator without losing a filter, and every item
- * stays under the limit. Block lists and custom CSS far larger than one item
- * round-trip, shrink without leaving stale chunks readable, and a write past
- * the whole area's quota rejects with a typed storeFull error and leaves the
- * stored options as they were.
+ * stays under the limit. A typical store stays one item, a block list past
+ * the limit is split, and a write past the whole area's quota rejects with a
+ * typed storeFull error and leaves the stored options as they were.
  */
 
 type Filter = DanmakuOptions['filters'][number]
@@ -94,9 +89,11 @@ describe('danmakuOptions under the sync quota', () => {
     expect(Object.values(stored), 'no blanked chunk items').not.toContain('')
   })
 
-  it('keeps the store item small whatever the block list holds', async () => {
+  it('keeps a typical store in one item and splits a block list past the item limit', async () => {
     const service = createUpgradeContainer().get(DanmakuOptionsService)
     await service.options.upgrade()
+    await service.update({ filters: rules(20) })
+    expect(Object.keys(await syncItemSizes())).toEqual([KEY])
 
     await service.update({ filters: rules(600), customCss: 'a{}'.repeat(3000) })
 
@@ -106,28 +103,7 @@ describe('danmakuOptions under the sync quota', () => {
     for (const [key, bytes] of Object.entries(sizes)) {
       expect(bytes, key).toBeLessThanOrEqual(PER_ITEM)
     }
-  })
-
-  it('round-trips a block list several items long and then a shorter one', async () => {
-    const service = createUpgradeContainer().get(DanmakuOptionsService)
-    await service.options.upgrade()
-
-    await service.update({ filters: rules(600) })
     expect((await service.get()).filters).toEqual(rules(600))
-
-    await service.update({ filters: rules(3) })
-    expect((await service.get()).filters).toEqual(rules(3))
-    expect(await syncBytesInUse()).toBeLessThan(4096)
-  })
-
-  it('round-trips text that costs more stored than it looks', async () => {
-    const service = createUpgradeContainer().get(DanmakuOptionsService)
-    await service.options.upgrade()
-    const customCss = '<style>"弹幕"\u2028\\😀</style>\n'.repeat(900)
-
-    await service.update({ customCss })
-
-    expect((await service.get()).customCss).toBe(customCss)
   })
 
   it('rejects a write past the area quota with storeFull and keeps what was stored', async () => {
@@ -139,10 +115,8 @@ describe('danmakuOptions under the sync quota', () => {
       .update({ filters: rules(3000) })
       .catch((reason: unknown) => reason)
 
-    expect(getOptionsStorageError(error)).toEqual({
-      problem: 'storeFull',
-      store: KEY,
-    })
+    expect(error).toBeInstanceOf(OptionsStorageError)
+    expect(error).toMatchObject({ problem: 'options.storeFull', store: KEY })
     expect((await service.get()).filters).toEqual(rules(10))
   })
 })

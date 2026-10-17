@@ -18,7 +18,7 @@ export function storedItemBytes(key: string, value: unknown): number {
   for (const char of json) {
     if (char === '<' || char === '\u007f') {
       extra += 5
-    } else if (char === ' ' || char === ' ') {
+    } else if (char === '\u2028' || char === '\u2029') {
       extra += 3
     }
   }
@@ -39,8 +39,8 @@ export function jsonStringCodePointBytes(codePoint: string): number {
       return 2
     case '<':
     case '\u007f':
-    case ' ':
-    case ' ':
+    case '\u2028':
+    case '\u2029':
       return 6
   }
   const code = codePoint.codePointAt(0) ?? 0

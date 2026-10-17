@@ -564,7 +564,7 @@ describe('ConfigStateService over chrome.storage', () => {
     })
     const options = new OptionsService<{ value: string }>(
       readiness,
-      name,
+      { key: name, area: 'sync' },
       { value: 'default' },
       silentLogger
     ).version(1, { upgrade: (data) => data })
@@ -615,7 +615,7 @@ describe('ConfigStateService over chrome.storage', () => {
     expect(result.details.alpha).toEqual({
       success: false,
       error: expect.stringContaining('QUOTA_BYTES_PER_ITEM quota exceeded'),
-      storageProblem: 'itemTooLarge',
+      storageProblem: 'options.itemTooLarge',
     })
     expect(result.details.beta).toEqual({ success: true, droppedEntries: 0 })
     expect(await readStored('alpha')).toEqual({
