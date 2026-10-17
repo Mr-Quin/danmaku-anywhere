@@ -13,17 +13,32 @@ interface Release {
 }
 
 async function fetchReleases(repository: string): Promise<Release[]> {
-  const response = await fetch(
-    `https://api.github.com/repos/${repository}/releases`
-  )
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch releases: ${response.status} ${response.statusText}`
-    )
+  const headers: Record<string, string> = {}
+  if (process.env.GITHUB_TOKEN) {
+    headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`
   }
 
-  return await response.json()
+  // Nightly and preview prereleases fill whole pages, so stable releases are
+  // only found by reading every page.
+  const releases: Release[] = []
+  for (let page = 1; ; page++) {
+    const response = await fetch(
+      `https://api.github.com/repos/${repository}/releases?per_page=100&page=${page}`,
+      { headers }
+    )
+
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch releases: ${response.status} ${response.statusText}`
+      )
+    }
+
+    const batch: Release[] = await response.json()
+    releases.push(...batch)
+    if (batch.length < 100) {
+      return releases
+    }
+  }
 }
 
 function processReleases(releases: Release[]): Release[] {
@@ -65,7 +80,7 @@ description: 更新日志
   releases.forEach((release) => {
     const date = new Date(release.published_at).toISOString().split('T')[0]
     const version = release.tag_name
-    const escapedBody = escapeHtmlChars(release.body)
+    const escapedBody = escapeHtmlChars(release.body.replace(/\r\n/g, '\n'))
     const body = transformGitHubLinks(escapedBody, repository)
     content += `## ${version} - ${date}\n\n`
     content += `${body}\n\n`
@@ -121,13 +136,13 @@ async function syncChangelog(
 }
 
 export {
-  fetchReleases,
-  processReleases,
   escapeHtmlChars,
-  transformGitHubLinks,
+  fetchReleases,
   generateChangelogContent,
-  writeChangelogFile,
+  processReleases,
   syncChangelog,
+  transformGitHubLinks,
+  writeChangelogFile,
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
