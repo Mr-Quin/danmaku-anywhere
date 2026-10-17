@@ -21,6 +21,15 @@ const mainScript: chrome.scripting.RegisteredContentScript = {
 
 const q = createTaskQueue()
 
+function isSameList(a: string[] | undefined, b: string[]) {
+  if (!a || a.length !== b.length) {
+    return false
+  }
+  return a.every((item, i) => {
+    return item === b[i]
+  })
+}
+
 @injectable('Singleton')
 export class ScriptingManager {
   private logger: ILogger
@@ -34,17 +43,27 @@ export class ScriptingManager {
   }
 
   setup() {
-    chrome.runtime.onStartup.addListener(async () => {
-      const configs = await this.mountConfigService.getAll()
+    this.mountConfigService.options.onChange(async (configs) => {
+      if (!configs) {
+        return
+      }
 
-      // ensure the handler doesn't run in parallel. This can happen because options.onChange can get called at startup
       await q.run(() => this.handleContentScriptRegistration(configs))
     })
 
-    this.mountConfigService.options.onChange(async (configs) => {
-      if (!configs) return
+    // An update can drop the registration or leave it pointing at the
+    // previous build's script without any mount config changing.
+    this.syncWithStoredConfigs().catch((err) => {
+      this.logger.error('Failed to sync content script registration', err)
+    })
+  }
 
-      await q.run(() => this.handleContentScriptRegistration(configs))
+  // Read inside the queue so this cannot overwrite a newer change with an
+  // older read.
+  private syncWithStoredConfigs() {
+    return q.run(async () => {
+      const configs = await this.mountConfigService.getAll()
+      return this.handleContentScriptRegistration(configs)
     })
   }
 
@@ -55,38 +74,45 @@ export class ScriptingManager {
       .map((config) => config.patterns)
       .flat()
 
-    const registeredScript = await chrome.scripting.getRegisteredContentScripts(
-      {
-        ids: [MAIN_CONTENT_SCRIPT_ID],
-      }
-    )
+    const [registered] = await chrome.scripting.getRegisteredContentScripts({
+      ids: [MAIN_CONTENT_SCRIPT_ID],
+    })
 
-    if (patterns.length === 0 && registeredScript.length > 0) {
-      this.logger.debug('Unregistering content scripts', { patterns })
-      return chrome.scripting.unregisterContentScripts({
-        ids: [MAIN_CONTENT_SCRIPT_ID],
-      })
+    if (patterns.length === 0) {
+      if (registered) {
+        this.logger.debug('Unregistering content scripts', { patterns })
+        await chrome.scripting.unregisterContentScripts({
+          ids: [MAIN_CONTENT_SCRIPT_ID],
+        })
+      }
+      return
     }
 
-    if (patterns.length > 0 && registeredScript.length === 0) {
+    if (!registered) {
       this.logger.debug('Registering content scripts', { patterns })
-      return chrome.scripting.registerContentScripts([
+      await chrome.scripting.registerContentScripts([
         {
           ...mainScript,
           matches: patterns,
         },
       ])
+      return
     }
 
-    if (patterns.length > 0 && registeredScript.length > 0) {
-      this.logger.debug('Updating content scripts', { patterns })
-      return chrome.scripting.updateContentScripts([
-        {
-          id: MAIN_CONTENT_SCRIPT_ID,
-          js: [contentScript],
-          matches: patterns,
-        },
-      ])
+    if (
+      isSameList(registered.js, [contentScript]) &&
+      isSameList(registered.matches, patterns)
+    ) {
+      return
     }
+
+    this.logger.debug('Updating content scripts', { patterns })
+    await chrome.scripting.updateContentScripts([
+      {
+        id: MAIN_CONTENT_SCRIPT_ID,
+        js: [contentScript],
+        matches: patterns,
+      },
+    ])
   }
 }
