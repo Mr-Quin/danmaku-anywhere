@@ -2,6 +2,11 @@ import type { ILogger } from '@/common/Logger'
 import type { IStoreService } from './IStoreService'
 import { isStoredAtVersion } from './OptionsService/storedVersion'
 import type { Options, StoreSnapshot } from './OptionsService/types'
+import {
+  OptionsUpgradeError,
+  type StoreFailure,
+  toStoreFailure,
+} from './upgrade/upgradeFailure'
 
 // Each store's envelope, version included, as it was before the first
 // upgrade step persisted, and the version that upgrade was taking it to.
@@ -18,22 +23,35 @@ export interface UpgradeSnapshotStore {
   save(snapshot: UpgradeSnapshot): Promise<void>
 }
 
-// Tries every store even after one fails, then rejects naming each store that
-// did not persist. Steps that read other stores get the data from before the
-// first attempt, even on a retry after some stores were already upgraded. The
-// snapshot is saved before the first write; the caller keeps it until an
-// attempt succeeds.
+// Tries every store even after one fails, then rejects with an
+// OptionsUpgradeError naming each store that did not persist and why. Steps
+// that read other stores get the data from before the first attempt, even on
+// a retry after some stores were already upgraded. The snapshot is saved
+// before the first write; the caller keeps it until an attempt succeeds. A
+// store that cannot be read rejects before anything is written.
 export async function upgradeStores(
   services: IStoreService[],
   logger: ILogger,
   snapshots: UpgradeSnapshotStore
 ): Promise<void> {
   const current: Record<string, Options<unknown>> = {}
+  const unreadable: StoreFailure[] = []
+  const readErrors: unknown[] = []
   for (const service of services) {
-    const stored = await service.options.readStoredUnblocked()
-    if (stored) {
-      current[service.options.key] = stored
+    const { key } = service.options
+    try {
+      const stored = await service.options.readStoredUnblocked()
+      if (stored) {
+        current[key] = stored
+      }
+    } catch (error) {
+      logger.error(`Failed to read ${key}`, error)
+      unreadable.push(toStoreFailure(key, error))
+      readErrors.push(error)
     }
+  }
+  if (unreadable.length > 0) {
+    throw new OptionsUpgradeError(unreadable, readErrors)
   }
   const needsUpgrade = services.some((service) => {
     const { key, latestVersion } = service.options
@@ -59,22 +77,20 @@ export async function upgradeStores(
   }
 
   const errors: unknown[] = []
-  const failed: string[] = []
+  const failures: StoreFailure[] = []
   for (const service of services) {
+    const { key } = service.options
     try {
       await service.options.upgrade(stores)
     } catch (error) {
-      logger.error(`Failed to upgrade ${service.options.key}`, error)
+      logger.error(`Failed to upgrade ${key}`, error)
       errors.push(error)
-      failed.push(service.options.key)
+      failures.push(toStoreFailure(key, error))
     }
   }
 
-  if (failed.length > 0) {
-    throw new AggregateError(
-      errors,
-      `Failed to upgrade options: ${failed.join(', ')}`
-    )
+  if (failures.length > 0) {
+    throw new OptionsUpgradeError(failures, errors)
   }
 }
 

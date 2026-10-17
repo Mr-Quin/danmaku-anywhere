@@ -12,6 +12,7 @@ import {
   type IStoreService,
   StoreServiceSymbol,
 } from '@/common/options/IStoreService'
+import { getOptionsStorageError } from '@/common/options/OptionsService/OptionsStorageError'
 import type {
   DeferredWrite,
   StoreSnapshot,
@@ -174,6 +175,7 @@ export class ConfigStateService {
         result.details[service.name] = {
           success: false,
           error: describeError(error),
+          storageProblem: getOptionsStorageError(error)?.problem,
         }
       }
     }
@@ -194,6 +196,7 @@ export class ConfigStateService {
           result.details[name] = {
             success: false,
             error: describeError(error),
+            storageProblem: getOptionsStorageError(error)?.problem,
           }
         }
       })

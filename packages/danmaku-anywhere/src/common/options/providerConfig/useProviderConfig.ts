@@ -15,7 +15,7 @@ export const useProviderConfig = () => {
     data: options,
     update,
     ...rest
-  } = useOptionStoreQuery<ProviderConfigOptions>(providerConfigDescriptor)
+  } = useOptionStoreQuery<ProviderConfig[]>(providerConfigDescriptor)
 
   const { i18n } = useTranslation()
   const configs: ProviderConfig[] = useMemo(

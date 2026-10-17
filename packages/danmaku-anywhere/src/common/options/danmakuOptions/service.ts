@@ -33,7 +33,8 @@ export class DanmakuOptionsService implements IStoreService {
       danmakuOptionsDescriptor.key,
       defaultDanmakuOptions,
       this.logger,
-      danmakuOptionsDescriptor.area
+      danmakuOptionsDescriptor.area,
+      danmakuOptionsDescriptor.parts
     )
       .version(1, {
         upgrade: (data) => data,

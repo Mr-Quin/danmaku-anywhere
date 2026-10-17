@@ -18,7 +18,7 @@ export const useMountConfig = () => {
     data: options,
     update,
     ...rest
-  } = useOptionStoreQuery<MountConfigOptions>(mountConfigDescriptor)
+  } = useOptionStoreQuery<MountConfig[]>(mountConfigDescriptor)
 
   const methods = useMemo(() => {
     const matchByUrl = (url: string) => {

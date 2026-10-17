@@ -5,6 +5,7 @@ import { deserializeError, serializeError } from '@/common/utils/serializeError'
 import {
   describeBackupImportError,
   describeRestoreProblems,
+  describeRestoreStorageProblems,
 } from './backupImportMessages'
 
 /**
@@ -12,6 +13,7 @@ import {
  * stores by their translated page names rather than their storage ids, and a
  * file that cannot be restored at all gets a translated explanation instead of
  * the validation output, even after the error has crossed the RPC boundary.
+ * A store the browser's storage quota refused gets a sentence saying so.
  * The i18n mock returns keys, so assertions compare translation keys.
  */
 
@@ -43,6 +45,25 @@ describe('describeRestoreProblems', () => {
     })
 
     expect(message).toBe('someNewStore')
+  })
+})
+
+describe('describeRestoreStorageProblems', () => {
+  it('explains each store the browser storage refused, and only those', () => {
+    const sentences = describeRestoreStorageProblems({
+      success: false,
+      details: {
+        danmakuOptions: {
+          success: false,
+          error: 'quota',
+          storageProblem: 'storeFull',
+        },
+        mountConfig: { success: false, error: 'bad' },
+        providerConfig: { success: true, droppedEntries: 0 },
+      },
+    })
+
+    expect(sentences).toEqual(['optionsStorage.error.storeFull'])
   })
 })
 
