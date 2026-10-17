@@ -11,10 +11,14 @@ import type { ILogger } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
+import {
+  LEGACY_MACCMS_CAPABILITIES,
+  type SourceStatus,
+} from '@/common/providers/sourceCapabilities'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
-import type { IDanmakuProvider, SeasonSearchParams } from './IDanmakuProvider'
+import type { SearchOnlyProvider, SeasonSearchParams } from './IDanmakuProvider'
 
-export class MacCmsProviderService implements IDanmakuProvider {
+export class MacCmsProviderService implements SearchOnlyProvider {
   private logger: ILogger
 
   constructor(
@@ -30,6 +34,12 @@ export class MacCmsProviderService implements IDanmakuProvider {
 
   private get configValues(): MacCmsConfigValues {
     return this.config.configValues as unknown as MacCmsConfigValues
+  }
+
+  readonly kind = 'searchOnly'
+
+  async getStatus(): Promise<SourceStatus> {
+    return { status: 'available', capabilities: LEGACY_MACCMS_CAPABILITIES }
   }
 
   async search(params: SeasonSearchParams): Promise<CustomSeason[]> {

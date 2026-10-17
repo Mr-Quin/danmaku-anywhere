@@ -26,7 +26,6 @@ import {
 import { localizeLegacyBuiltinNames } from '@/common/options/providerConfig/localizeLegacyNames'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import { isLegacyMacCms } from '@/common/options/providerConfig/utils'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import { SourceError } from '@/common/providers/SourceError'
 import type {
@@ -34,6 +33,7 @@ import type {
   ProviderManifestList,
   ProviderManifestSpec,
 } from '@/common/rpcClient/background/types'
+import { withUrlScheme } from '@/common/utils/link'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
 import type { OmitSeasonId } from './IDanmakuProvider'
 import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
@@ -43,10 +43,7 @@ import {
   type CatalogSyncResult,
   ManifestRegistry,
 } from './ManifestRegistry'
-import {
-  DanmakuProviderFactory,
-  type IDanmakuProviderFactory,
-} from './ProviderFactory'
+import { SourceCapabilityService } from './SourceCapabilityService'
 
 function enrichEpisode(
   episode: OmitSeasonId<EpisodeMeta>,
@@ -70,15 +67,15 @@ export class ProviderService {
     @inject(SeasonService) private seasonService: SeasonService,
     @inject(ProviderConfigService)
     private providerConfigService: ProviderConfigService,
-    @inject(DanmakuProviderFactory)
-    private danmakuProviderFactory: IDanmakuProviderFactory,
     @inject(ManifestRegistry)
     private manifestRegistry: ManifestRegistry,
     @inject(BookmarkService)
     private bookmarkService: BookmarkService,
     @inject(LoggerSymbol) logger: ILogger,
     @inject(ExtensionOptionsService)
-    private extensionOptions: ExtensionOptionsService
+    private extensionOptions: ExtensionOptionsService,
+    @inject(SourceCapabilityService)
+    private sourceCapabilities: SourceCapabilityService
   ) {
     invariant(
       isServiceWorker(),
@@ -94,15 +91,14 @@ export class ProviderService {
       params.providerConfigId
     )
 
-    const service = this.danmakuProviderFactory(providerConfig)
+    const service = await this.sourceCapabilities.searchProvider(providerConfig)
 
-    const seasonInserts = await service.search(params)
-    // TODO: fix this once we fold custom seasons into the season insert
-    if (isLegacyMacCms(providerConfig)) {
-      return seasonInserts as CustomSeason[]
+    // TODO: fold custom seasons into the season insert
+    if (service.kind === 'searchOnly') {
+      return service.search(params)
     }
     // Surface existing ids so bookmark / cache indicators still resolve.
-    const inserts = seasonInserts as SeasonInsert[]
+    const inserts = await service.search(params)
     return Promise.all(
       inserts.map(async (insert) => {
         const existing = await this.seasonService.findExisting(insert)
@@ -142,14 +138,10 @@ export class ProviderService {
 
     const providerConfig = await this.getConfigForSeason(season)
 
-    const service = this.danmakuProviderFactory(providerConfig)
-    if (!service.getEpisodes) {
-      throw new SourceError(
-        'episodesUnsupported',
-        `${providerConfig.name} does not support fetching episodes`,
-        providerConfig.name
-      )
-    }
+    const service = await this.sourceCapabilities.sourceProvider(
+      providerConfig,
+      'episodes'
+    )
     const episodes = await service.getEpisodes(season.providerIds)
     return episodes.map((episode) => enrichEpisode(episode, season))
   }
@@ -162,10 +154,10 @@ export class ProviderService {
 
     const providerConfig = await this.getConfigForSeason(season)
 
-    const service = this.danmakuProviderFactory(providerConfig)
-    if (!service.getSeason) {
-      return
-    }
+    const service = await this.sourceCapabilities.sourceProvider(
+      providerConfig,
+      'seasonRefresh'
+    )
     const seasonInsert = await service.getSeason(season.providerIds)
     if (seasonInsert) {
       await this.seasonService.upsert(seasonInsert)
@@ -216,14 +208,10 @@ export class ProviderService {
 
     const config = await this.getConfigForSeason(meta.season)
 
-    const service = this.danmakuProviderFactory(config)
-    if (!service.getDanmaku) {
-      throw new SourceError(
-        'refetchUnsupported',
-        `${config.name} episodes cannot be refetched`,
-        config.name
-      )
-    }
+    const service = await this.sourceCapabilities.sourceProvider(
+      config,
+      'danmaku'
+    )
 
     const comments = await service.getDanmaku(resolved)
 
@@ -253,18 +241,11 @@ export class ProviderService {
     return { episode: { ...episode, season } }
   }
 
-  async parseUrl(url: string): Promise<WithSeason<EpisodeMeta>> {
-    // URL parsing is independent of provider enablement: the popup feeds
-    // any pasted URL regardless of which sources the user has toggled on.
-    // Disabling Bilibili would otherwise make a recognized bilibili.com
-    // URL fail with "No provider found".
-    const configs = await this.providerConfigService.getAll()
-    for (const config of configs) {
-      const service = this.danmakuProviderFactory(config)
-      if (!service.parseUrl) {
-        continue
-      }
-      const result = await service.parseUrl(url)
+  async parseUrl(text: string): Promise<WithSeason<EpisodeMeta>> {
+    const url = withUrlScheme(text)
+    const parsers = await this.sourceCapabilities.getUrlParsers()
+    for (const { provider } of parsers) {
+      const result = await provider.parseUrl(url)
       if (result) {
         const { episodeMeta, seasonInsert } = result
         const season = await this.seasonService.upsert(seasonInsert)

@@ -9,6 +9,7 @@ import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import { SeasonMap } from '@/common/seasonMap/SeasonMap'
 import { serializeError } from '@/common/utils/serializeError'
+import { SourceCapabilityService } from '../../providers/SourceCapabilityService'
 import { EpisodeResolutionService } from '../EpisodeResolutionService'
 import type { IMatchingStrategy } from './IMatchingStrategy'
 
@@ -25,6 +26,8 @@ export class MappingMatchingStrategy implements IMatchingStrategy {
     private providerConfigService: ProviderConfigService,
     @inject(EpisodeResolutionService)
     private episodeResolver: EpisodeResolutionService,
+    @inject(SourceCapabilityService)
+    private sourceCapabilities: SourceCapabilityService,
     @inject(LoggerSymbol) logger: ILogger
   ) {
     this.logger = logger.sub('[MappingMatchingStrategy]')
@@ -91,14 +94,10 @@ export class MappingMatchingStrategy implements IMatchingStrategy {
     const mapping = await this.titleMappingService.get(mapKey)
 
     if (mapping) {
-      const autoProviders =
-        await this.providerConfigService.getAutomaticProviders()
+      const autoProviders = await this.sourceCapabilities.getMappingProviders()
 
       // go through all automatic providers and try to find one with a mapped season id
       for (const autoProvider of autoProviders) {
-        if (!autoProvider.enabled) {
-          continue
-        }
         this.logger.debug('Checking provider', autoProvider)
         const mappedId = mapping.getSeasonId(autoProvider.id)
         if (mappedId) {

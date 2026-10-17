@@ -5,7 +5,7 @@ import type {
   WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
 import { useEventCallback } from '@mui/material'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import type { DanmakuFetchDto, MacCMSFetchData } from '@/common/danmaku/dto'
@@ -13,6 +13,11 @@ import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
 import { episodeToString, isSourceEpisode } from '@/common/danmaku/utils'
 import { describeSourceError } from '@/common/providers/describeSourceError'
+import { mayOffer } from '@/common/providers/sourceCapabilities'
+import {
+  sourceCapabilitiesQuery,
+  useCanRefetchDanmaku,
+} from '@/common/providers/useSourceCapabilities'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import { concatArr } from '@/common/utils/utils'
 import { useStore } from '@/content/controller/store/store'
@@ -75,6 +80,7 @@ export const useLoadDanmaku = () => {
   const { t } = useTranslation()
 
   const toast = useToast.use.toast()
+  const queryClient = useQueryClient()
 
   const { episodes } = useStore.use.danmaku()
 
@@ -82,11 +88,21 @@ export const useLoadDanmaku = () => {
   const fetchGenericMutation = useFetchGenericDanmaku()
   const mountMutation = useMountDanmaku()
 
-  const canRefresh =
-    !!episodes &&
-    episodes.length === 1 &&
-    isSourceEpisode(episodes[0]) &&
-    episodes[0].season.manifestId === 'dandanplay'
+  const mountedEpisode = episodes?.length === 1 ? episodes[0] : undefined
+  const canRefresh = useCanRefetchDanmaku(mountedEpisode)
+
+  // Reads only what is already cached, so the toast never waits on the
+  // background. A refresh the source cannot do is refused by the background,
+  // and loadMutation shows that error.
+  const mayRefetch = (episode: GenericEpisode): boolean => {
+    if (!isSourceEpisode(episode)) {
+      return false
+    }
+    const { queryKey } = sourceCapabilitiesQuery(
+      episode.season.providerConfigId
+    )
+    return mayOffer(queryClient.getQueryData(queryKey), 'danmaku')
+  }
 
   const mountDanmaku = useEventCallback((episodes: GenericEpisode[]) => {
     return mountMutation.mutateAsync(episodes, {
@@ -104,11 +120,7 @@ export const useLoadDanmaku = () => {
               }
             ),
             {
-              actionFn:
-                isSourceEpisode(episode) &&
-                episode.season.manifestId === 'dandanplay'
-                  ? refreshComments
-                  : undefined,
+              actionFn: mayRefetch(episode) ? refreshComments : undefined,
               actionLabel: t('danmaku.refresh', 'Refresh Danmaku'),
             }
           )
@@ -157,12 +169,8 @@ export const useLoadDanmaku = () => {
   })
 
   const refreshComments = useEventCallback(async () => {
-    if (!canRefresh) return
-    const episode = episodes[0]
-    if (
-      !isSourceEpisode(episode) ||
-      episode.season.manifestId !== 'dandanplay'
-    ) {
+    const episode = mountedEpisode
+    if (!episode || !isSourceEpisode(episode)) {
       return
     }
 

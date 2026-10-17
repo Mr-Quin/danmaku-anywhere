@@ -12,45 +12,12 @@ import type { QueryKey } from '@tanstack/react-query'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import {
-  DanmakuSourceType,
-  localizedDanmakuSourceType,
-} from '@/common/danmaku/enums'
 import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
 import { describeSourceError } from '@/common/providers/describeSourceError'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { isNetworkError } from '@/common/utils/networkError'
-
-const PARSEABLE_HOSTS: Record<string, DanmakuSourceType> = {
-  'www.bilibili.com': DanmakuSourceType.Bilibili,
-  'v.qq.com': DanmakuSourceType.Tencent,
-}
-
-function resolveParseSource(value: string): DanmakuSourceType | undefined {
-  const trimmed = value.trim()
-  if (!trimmed) {
-    return undefined
-  }
-  const candidate = /^https?:\/\//i.test(trimmed)
-    ? trimmed
-    : `https://${trimmed}`
-  try {
-    return PARSEABLE_HOSTS[new URL(candidate).hostname]
-  } catch {
-    return undefined
-  }
-}
-
-export function isParseableUrl(value: string): boolean {
-  return resolveParseSource(value) !== undefined
-}
-
-export function getUrlProviderLabel(value: string): string | undefined {
-  const source = resolveParseSource(value)
-  return source ? localizedDanmakuSourceType(source) : undefined
-}
 
 interface UrlParseSectionProps {
   url: string
@@ -271,6 +238,42 @@ export function UrlParseSection({
           'URL detected. Parsing instead of searching.'
         )}
       </Typography>
+    </Box>
+  )
+}
+
+interface NoUrlParserNoticeProps {
+  onSearchInstead: () => void
+}
+
+export function NoUrlParserNotice({ onSearchInstead }: NoUrlParserNoticeProps) {
+  const { t } = useTranslation()
+  return (
+    <Box
+      data-testid="parse-no-source"
+      sx={(theme) => ({
+        borderRadius: 1.5,
+        border: `1px solid ${theme.palette.divider}`,
+        backgroundColor: theme.palette.background.paper,
+        padding: 1.5,
+      })}
+    >
+      <Stack spacing={1}>
+        <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+          <Info sx={{ fontSize: 14, color: 'info.main' }} />
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            {t('searchPage.parse.noSource', 'No source can read this link')}
+          </Typography>
+        </Stack>
+        <Button
+          variant="text"
+          size="small"
+          onClick={onSearchInstead}
+          sx={{ alignSelf: 'flex-start' }}
+        >
+          {t('searchPage.parse.searchInstead', 'Search by title instead')}
+        </Button>
+      </Stack>
     </Box>
   )
 }

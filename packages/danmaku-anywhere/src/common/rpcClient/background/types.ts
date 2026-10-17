@@ -67,6 +67,10 @@ import type {
   MountConfig,
   MountConfigAiConfig,
 } from '@/common/options/mountConfig/schema'
+import type {
+  SourceCapabilityAnswer,
+  UrlParseAnswer,
+} from '@/common/providers/sourceCapabilities'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
 import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.types'
 import type { RPCDef } from '../../rpc/types'
@@ -194,6 +198,7 @@ export type BackgroundMethods = {
   authSignOut: RPCDef<void, AuthSignOutResult>
   authDeleteAccount: RPCDef<void, AuthSignOutResult>
   mediaParseUrl: RPCDef<{ url: string }, WithSeason<EpisodeMeta>>
+  mediaFindUrlSource: RPCDef<{ url: string }, UrlParseAnswer>
   seasonSearch: RPCDef<
     SeasonSearchRequest,
     (Season | SeasonInsert | CustomSeason)[]
@@ -227,6 +232,10 @@ export type BackgroundMethods = {
   danmakuPurgeCache: RPCDef<number, number>
   bilibiliSetCookies: RPCDef<void, void>
   providerProbeLogin: RPCDef<{ manifestId: string }, ProviderLoginStatus>
+  providerGetCapabilities: RPCDef<
+    { providerConfigId: string },
+    SourceCapabilityAnswer
+  >
   providerGetManifestSpec: RPCDef<
     { manifestId: string; locale?: string },
     ProviderManifestSpec

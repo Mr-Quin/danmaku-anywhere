@@ -14,6 +14,11 @@ import { ManifestRegistry } from './ManifestRegistry'
 import { ProviderService } from './ProviderService'
 
 const dandanplay = makeProviderConfig({ id: 'dandanplay', name: 'DDP' })
+const bilibili = makeProviderConfig({
+  id: 'bilibili',
+  manifestId: 'bilibili',
+  name: 'Bilibili',
+})
 
 async function seedProviders(
   ...configs: ReturnType<typeof makeProviderConfig>[]
@@ -67,7 +72,7 @@ describe('ProviderService while the manifest registry is loading', () => {
   })
 
   it('recognizes a pasted URL once the stored manifests have been read', async () => {
-    await seedProviders(dandanplay)
+    await seedProviders(bilibili)
     const release = holdStoredManifests()
     vi.spyOn(ManifestRunner.prototype, 'runParseUrl').mockResolvedValue({
       seasonInsert: {
@@ -84,12 +89,14 @@ describe('ProviderService while the manifest registry is loading', () => {
     })
     const service = createUpgradeContainer().get(ProviderService)
 
-    const pending = settle(service.parseUrl('https://example.com/play/1'))
+    const pending = settle(
+      service.parseUrl('https://www.bilibili.com/bangumi/play/ss1')
+    )
     await new Promise((resolve) => setTimeout(resolve, 0))
     release()
 
     expect(await pending).toMatchObject({
-      value: { indexedId: '2', season: { providerConfigId: 'dandanplay' } },
+      value: { indexedId: '2', season: { providerConfigId: 'bilibili' } },
     })
   })
 
