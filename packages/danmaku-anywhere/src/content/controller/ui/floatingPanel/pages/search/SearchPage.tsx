@@ -26,7 +26,7 @@ export const SearchPage = (): React.ReactElement | null => {
     usePopup()
   const { mediaInfo } = useStore.use.integration()
   const { enabledProviders } = useProviderConfig()
-  const { mountDanmaku } = useLoadDanmaku()
+  const { mountChosen } = useLoadDanmaku()
   const { data: seasonMaps } = useAllSeasonMap()
   const upsertSeason = useUpsertSeason()
 
@@ -117,7 +117,7 @@ export const SearchPage = (): React.ReactElement | null => {
       providerId={providerId}
       onProviderIdChange={setProviderId}
       onSeasonClick={handleSeasonClick}
-      onImportSuccess={(episode) => mountDanmaku([episode])}
+      onImportSuccess={(episode) => mountChosen([episode])}
       dragOverlayPortal={highlighterPortal}
       focusToken={searchFocusToken}
     />

@@ -15,7 +15,7 @@ interface AlertWithIndicatorProps {
   pause?: boolean
 }
 
-const AlertWithIndicator = styled(Alert, {
+export const AlertWithIndicator = styled(Alert, {
   shouldForwardProp: (prop) => prop !== 'pause',
 })<AlertWithIndicatorProps>(({ severity, duration, pause, theme }) => {
   const opaqueBase = {
@@ -92,7 +92,17 @@ export const Toast = (props: ToastProps) => {
 
   return notifications.map(
     (
-      { key, message, duration, severity, actionLabel, actionFn, open, paused },
+      {
+        key,
+        revision,
+        message,
+        duration,
+        severity,
+        actionLabel,
+        actionFn,
+        open,
+        paused,
+      },
       i
     ) => {
       return (
@@ -100,7 +110,7 @@ export const Toast = (props: ToastProps) => {
           stackable={props.stackable}
           index={i}
           open={open}
-          key={key}
+          key={`${key}:${revision}`}
           autoHideDuration={duration}
           onClose={(_, reason) => {
             if (reason === 'clickaway' && props.disableCloseOnClickAway) return
@@ -117,7 +127,7 @@ export const Toast = (props: ToastProps) => {
           {...props.snackbarProps}
         >
           <AlertWithIndicator
-            duration={duration}
+            duration={duration ?? undefined}
             onClose={() => close(key)}
             onMouseOver={() => pause(key)}
             onMouseLeave={() => unpause(key)}

@@ -4,9 +4,7 @@ import { useToast } from '@/common/components/Toast/toastStore'
 import { IS_STANDALONE_RUNTIME } from '@/common/environment/isStandalone'
 import { uiContainer } from '@/common/ioc/uiIoc'
 import { Logger } from '@/common/Logger'
-import { i18n } from '@/common/localization/i18n'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
-import { describeSourceError } from '@/common/providers/describeSourceError'
 import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type {
@@ -16,7 +14,10 @@ import type {
 import { reparentPopover } from '@/content/common/reparentPopover'
 import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
-import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
+import {
+  CONTROLLER_SESSION,
+  sendUnmount,
+} from '@/content/controller/common/danmakuCommands'
 import { FrameRegistry } from '@/content/controller/danmaku/frame/FrameRegistry.service'
 import { selectBestFrame } from '@/content/controller/danmaku/frame/selectBestFrame'
 import { useMigrateDanmaku } from '@/content/controller/danmaku/frame/useMigrateDanmaku'
@@ -41,7 +42,6 @@ export const FrameManager = () => {
 
   const { updateFrame } = useStore.use.frame()
 
-  const unmountDanmaku = useUnmountDanmaku()
   const { preloadNext, canLoadNext } = usePreloadNextEpisode()
 
   useMigrateDanmaku()
@@ -88,15 +88,13 @@ export const FrameManager = () => {
   )
 
   const videoRemovedHandler = useEventCallback((frameId: number) => {
-    const activeFrame = useStore.getState().frame.activeFrame
-    if (activeFrame?.frameId === frameId) {
-      if (activeFrame.mounted) {
-        unmountDanmaku.mutate(frameId)
-      }
+    if (useStore.getState().frame.allFrames.get(frameId)?.mounted) {
+      sendUnmount(frameId).catch((error: unknown) => {
+        logger.debug('Failed to unmount danmaku for a removed video', error)
+      })
     }
     updateFrame(frameId, {
       hasVideo: false,
-      mounted: false,
       videoInfo: undefined,
     })
     reEvaluateActiveFrame()
@@ -116,17 +114,7 @@ export const FrameManager = () => {
     if (frameId !== activeFrame?.frameId || !canLoadNext()) {
       return
     }
-    try {
-      await preloadNext()
-    } catch (err) {
-      toast.error(
-        i18n.t(
-          'danmaku.alert.preloadError',
-          'Failed to preload the next episode: {{message}}',
-          { message: describeSourceError(err) }
-        )
-      )
-    }
+    await preloadNext()
   })
 
   const handleShowPopover = useEventCallback(() => {
@@ -152,7 +140,7 @@ export const FrameManager = () => {
           })
 
           await playerRpcClient.player['relay:command:start']({
-            data: config.mediaQuery,
+            data: { query: config.mediaQuery, session: CONTROLLER_SESSION },
             frameId,
           })
           updateFrame(frameId, { started: true })
@@ -207,7 +195,7 @@ export const FrameManager = () => {
   useEffect(() => {
     // Players that loaded before the controller re-send playerReady on this.
     void playerRpcClient.player['relay:command:controllerReady'](
-      { frameId: 0 },
+      { frameId: 0, data: { session: CONTROLLER_SESSION } },
       { optional: true }
     )
   }, [])

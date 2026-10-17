@@ -48,7 +48,8 @@ export const ControllerWindow = ({
           display: 'flex',
           position: 'relative',
           height: CONTROLLER_WINDOW_CONTENT_HEIGHT,
-          minHeight: CONTROLLER_WINDOW_CONTENT_HEIGHT,
+          minHeight: 0,
+          flexShrink: 1,
         }}
       >
         <PanelTabs />

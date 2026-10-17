@@ -355,21 +355,58 @@ export interface PipelineEntry {
   provider?: DanmakuSourceType
 }
 
+/**
+ * Where a mount, unmount or visibility command falls in the order the
+ * controller sent them. `session` identifies that controller; a player only
+ * applies commands from the session it took from the controller's handshake.
+ */
+export interface PlayerCommandOrder {
+  session: string
+  command: number
+}
+
+export interface PlayerMountCommand {
+  comments: CommentEntity[]
+  visible: boolean
+  order: PlayerCommandOrder
+}
+
+export interface PlayerUnmountCommand {
+  order: PlayerCommandOrder
+}
+
+export interface PlayerVisibilityCommand {
+  visible: boolean
+  order: PlayerCommandOrder
+}
+
 // Controller -> Player communication
 // Here the frameId is used to identify the DESTINATION frame
 export type PlayerRelayCommands = {
   'relay:command:mount': RPCDef<
-    InputWithFrameId<CommentEntity[]>,
+    InputWithFrameId<PlayerMountCommand>,
     boolean,
     FrameContext
   >
-  'relay:command:unmount': RPCDef<InputWithFrameId<void>, boolean, FrameContext>
-  'relay:command:start': RPCDef<InputWithFrameId<string>, void, FrameContext>
+  'relay:command:unmount': RPCDef<
+    InputWithFrameId<PlayerUnmountCommand>,
+    boolean,
+    FrameContext
+  >
+  'relay:command:start': RPCDef<
+    InputWithFrameId<{ query: string; session: string }>,
+    void,
+    FrameContext
+  >
   'relay:command:seek': RPCDef<InputWithFrameId<number>, void, FrameContext>
   'relay:command:enterPip': RPCDef<InputWithFrameId<void>, void, FrameContext>
-  'relay:command:show': RPCDef<InputWithFrameId<boolean>, void, FrameContext>
+  'relay:command:show': RPCDef<
+    InputWithFrameId<PlayerVisibilityCommand>,
+    void,
+    FrameContext
+  >
   'relay:command:controllerReady': RPCDef<
-    InputWithFrameId<void>,
+    InputWithFrameId<{ session: string }>,
     void,
     FrameContext
   >
