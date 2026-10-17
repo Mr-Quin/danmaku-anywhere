@@ -9,7 +9,7 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [ 24.x ]
+        node-version: [26.x]
 
     permissions:
       contents: write
