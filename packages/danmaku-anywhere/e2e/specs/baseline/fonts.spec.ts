@@ -1,10 +1,7 @@
 import { CONTROLLER_ROOT_ID } from '../../../src/content/controller/common/constants/rootId'
 import { IntegrationPage } from '../../pom/IntegrationPage'
 import { expect, test } from '../../setup/fixtures'
-import {
-  buildFixtureIntegrationPolicy,
-  seedXPathIntegration,
-} from '../../setup/integration'
+import { seedFixtureIntegration } from '../../setup/integration'
 
 /**
  * Mounts the controller on a host-origin page and asserts every variable
@@ -30,12 +27,9 @@ test('content-script controller paints text using bundled variable fonts', async
   page,
   da,
 }) => {
-  await seedXPathIntegration(da, {
-    patterns: [MOUNT_PATTERN],
-    name: 'da-e2e-fonts',
-    policy: buildFixtureIntegrationPolicy(),
-  })
-  await da.mount.waitForRegistration(MOUNT_PATTERN, 5_000)
+  // The local fixture episode lets auto-match resolve without a provider
+  // search, which would otherwise race the end of the test.
+  await seedFixtureIntegration(context, da, [MOUNT_PATTERN])
 
   const integrationPage = new IntegrationPage(page)
   await integrationPage.open(HOST_URL, 'native-video.html')
