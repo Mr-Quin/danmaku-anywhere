@@ -1,4 +1,4 @@
-import { mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { crx } from '@crxjs/vite-plugin'
 import react from '@vitejs/plugin-react'
@@ -6,7 +6,10 @@ import { defaultClientConditions, type Plugin } from 'vite'
 import { defineConfig } from 'vitest/config'
 import { manifest } from './manifest'
 import { getBuildContext } from './scripts/getBuildContext'
-import { vendorRuntimeAssets } from './scripts/vendorRuntimeAssets'
+import {
+  dropOcclusionRuntimes,
+  vendorRuntimeAssets,
+} from './scripts/vendorRuntimeAssets'
 
 const { browser, appVersion, isDev, daEnv, gitBranch } = getBuildContext()
 
@@ -72,24 +75,6 @@ function buildInfo(): Plugin {
   }
 }
 
-// Occlusion only runs in Chrome, so the Firefox package drops the model
-// runtimes that the public dir would otherwise copy in.
-function dropOcclusionRuntimes(): Plugin {
-  let outDir = ''
-  return {
-    name: 'da:drop-occlusion-runtimes',
-    apply: 'build',
-    configResolved(config) {
-      outDir = path.resolve(config.root, config.build.outDir)
-    },
-    closeBundle() {
-      for (const dir of ['mediapipe', 'ort']) {
-        rmSync(path.join(outDir, dir), { recursive: true, force: true })
-      }
-    },
-  }
-}
-
 export default defineConfig({
   // @ts-ignore
   plugins: [
@@ -97,6 +82,7 @@ export default defineConfig({
     react({}),
     crx({ manifest, browser: browser.name }),
     buildInfo(),
+    // Occlusion only runs in Chrome.
     ...(isFirefox ? [dropOcclusionRuntimes()] : []),
   ],
   // Don't pre-bundle the variable font packages: when crxjs serves dev assets,

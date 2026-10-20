@@ -3,13 +3,15 @@ import path from 'node:path'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 import { getBuildContext } from './scripts/getBuildContext'
+import { dropOcclusionRuntimes } from './scripts/vendorRuntimeAssets'
 
 const { browser, appVersion } = getBuildContext()
 
 const port = 3052
 
 export default defineConfig({
-  plugins: [react({})],
+  // The ort wasm is over the 25 MiB limit for one Cloudflare Workers asset.
+  plugins: [react({}), dropOcclusionRuntimes()],
   publicDir: path.resolve('public'),
   resolve: {
     alias: {

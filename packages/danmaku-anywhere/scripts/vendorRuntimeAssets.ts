@@ -82,3 +82,19 @@ export function vendorRuntimeAssets(): Plugin {
     },
   }
 }
+
+export function dropOcclusionRuntimes(): Plugin {
+  let outDir = ''
+  return {
+    name: 'da:drop-occlusion-runtimes',
+    apply: 'build',
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir)
+    },
+    closeBundle() {
+      for (const dir of ['mediapipe', 'ort']) {
+        fs.rmSync(path.join(outDir, dir), { recursive: true, force: true })
+      }
+    },
+  }
+}
