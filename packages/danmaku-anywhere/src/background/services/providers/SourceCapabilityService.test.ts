@@ -373,14 +373,4 @@ describe('SourceCapabilityService.findUrlSource', () => {
       sourceName: 'Bilibili',
     })
   })
-
-  it('treats a plain title as not a link', async () => {
-    const service = build(
-      [makeConfig('bili')],
-      [makeRunner('bili', ['parseUrl'], [BANGUMI])]
-    )
-
-    expect(await service.findUrlSource('frieren')).toEqual({ kind: 'notLink' })
-    expect(await service.findUrlSource('Dr.STONE')).toEqual({ kind: 'notLink' })
-  })
 })

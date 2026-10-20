@@ -13,7 +13,8 @@ import { applyProfile } from '../../setup/profile'
  * parsed season title renders, and the import success toast fires. A link
  * that no installed source claims, because Bilibili was removed or the path
  * matches no pattern, shows that no source can read it instead of searching,
- * with or without a scheme.
+ * with or without a scheme, and a title that only looks like a link can still
+ * be searched from that notice.
  */
 
 test('bilibili url paste: detect URL → parse → download danmaku', async ({
@@ -105,4 +106,31 @@ test('bilibili url paste: an unclaimed link typed without a scheme is not search
   await expect(page.getByTestId('parse-no-source')).toBeVisible()
   await expect(popup.search.parseButton).toBeDisabled()
   await expect(popup.search.resultCountSkeleton).toHaveCount(0)
+})
+
+test('bilibili url paste: a title that looks like a link can be searched by title', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, {
+    providers: { bilibili: { enabled: true } },
+    network: mockBilibiliXml({
+      searchBangumi: loadJsonFixture('bilibili-search-bangumi.json'),
+      searchFt: loadJsonFixture('bilibili-search-ft.json'),
+      season: loadJsonFixture('bilibili-season.json'),
+      xml: loadTextFixture('bilibili-xml.xml'),
+    }),
+  })
+
+  const popup = await Popup.open(page, extensionId)
+
+  await popup.search.input.fill('Re.Zero/2')
+  await expect(popup.search.noSourceNotice).toBeVisible()
+  await popup.search.searchInsteadButton.click()
+
+  await expect(popup.search.seasonCard('Bilibili')).toBeVisible()
+  await expect(popup.search.input).toHaveValue('Re.Zero/2')
+  await expect(popup.search.noSourceNotice).toHaveCount(0)
 })

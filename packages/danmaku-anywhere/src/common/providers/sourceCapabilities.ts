@@ -17,10 +17,11 @@ export type SourceStatus =
 
 export type SourceCapabilityAnswer = SourceStatus | { status: 'removed' }
 
-export type UrlParseAnswer =
+export type UrlSourceAnswer =
   | { kind: 'parseable'; sourceName: string }
   | { kind: 'unclaimed' }
-  | { kind: 'notLink' }
+
+export type UrlParseAnswer = UrlSourceAnswer | { kind: 'notLink' }
 
 interface ManifestPipelines {
   search?: unknown

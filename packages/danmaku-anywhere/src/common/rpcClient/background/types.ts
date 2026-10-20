@@ -69,7 +69,7 @@ import type {
 } from '@/common/options/mountConfig/schema'
 import type {
   SourceCapabilityAnswer,
-  UrlParseAnswer,
+  UrlSourceAnswer,
 } from '@/common/providers/sourceCapabilities'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
 import type { OcclusionStatus } from '@/content/player/occlusion/Occlusion.types'
@@ -198,7 +198,7 @@ export type BackgroundMethods = {
   authSignOut: RPCDef<void, AuthSignOutResult>
   authDeleteAccount: RPCDef<void, AuthSignOutResult>
   mediaParseUrl: RPCDef<{ url: string }, WithSeason<EpisodeMeta>>
-  mediaFindUrlSource: RPCDef<{ url: string }, UrlParseAnswer>
+  mediaFindUrlSource: RPCDef<{ url: string }, UrlSourceAnswer>
   seasonSearch: RPCDef<
     SeasonSearchRequest,
     (Season | SeasonInsert | CustomSeason)[]

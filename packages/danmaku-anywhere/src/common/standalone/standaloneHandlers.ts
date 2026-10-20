@@ -101,7 +101,7 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     }),
     mediaParseUrl: () =>
       null as unknown as BackgroundMethods['mediaParseUrl']['output'],
-    mediaFindUrlSource: () => ({ kind: 'notLink' }),
+    mediaFindUrlSource: () => ({ kind: 'unclaimed' }),
     danmakuCountPurgeable: () => 0,
     danmakuPurgeCache: () => 0,
     providerProbeLogin: () => ({ hasLoginProbe: false, ok: true }),

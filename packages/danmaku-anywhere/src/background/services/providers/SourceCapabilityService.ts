@@ -11,9 +11,9 @@ import {
   type SourceCapability,
   type SourceCapabilityAnswer,
   type SourceStatus,
-  type UrlParseAnswer,
+  type UrlSourceAnswer,
 } from '@/common/providers/sourceCapabilities'
-import { isLink, withUrlScheme } from '@/common/utils/link'
+import { withUrlScheme } from '@/common/utils/link'
 import type { IDanmakuProvider, SourceProvider } from './IDanmakuProvider'
 import {
   DanmakuProviderFactory,
@@ -133,10 +133,7 @@ export class SourceCapabilityService {
     return parsers
   }
 
-  async findUrlSource(text: string): Promise<UrlParseAnswer> {
-    if (!isLink(text)) {
-      return { kind: 'notLink' }
-    }
+  async findUrlSource(text: string): Promise<UrlSourceAnswer> {
     const url = withUrlScheme(text)
     for (const { config, provider } of await this.getUrlParsers()) {
       if (await this.matchesUrl(config, provider, url)) {

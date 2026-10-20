@@ -10,13 +10,15 @@ import {
 } from './sourceCapabilities'
 import {
   useCanRefetchDanmaku,
+  useSourceAnswers,
   useUrlParseAnswer,
 } from './useSourceCapabilities'
 
 /**
  * The UI asks the background what a source can do: refresh is offered only
- * when the episode's source can fetch danmaku, and the search box takes the
- * background's word on whether text is a link and which source reads it.
+ * when the episode's source can fetch danmaku, a failed answer does not hold
+ * up search, and the search box asks which source reads text only when the
+ * text is a link.
  */
 
 const rpc = vi.hoisted(() => ({
@@ -141,6 +143,26 @@ describe('useCanRefetchDanmaku', () => {
   })
 })
 
+function AnswersProbe({ ids }: { ids: string[] }) {
+  const { settled } = useSourceAnswers(ids)
+  return <span>{settled ? 'settled' : 'pending'}</span>
+}
+
+describe('useSourceAnswers', () => {
+  it('settles at once when the background fails to answer', async () => {
+    rpc.providerGetCapabilities.mockRejectedValue(new Error('registry failed'))
+    render(<AnswersProbe ids={['bilibili']} />)
+
+    await vi.waitFor(
+      () => {
+        expect(element.textContent).toBe('settled')
+      },
+      { timeout: 500 }
+    )
+    expect(rpc.providerGetCapabilities).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('useUrlParseAnswer', () => {
   it('names the installed source the background says parses the link', async () => {
     answerUrlSource({ kind: 'parseable', sourceName: 'Bilibili' })
@@ -166,6 +188,8 @@ describe('useUrlParseAnswer', () => {
   it.each([
     '  ',
     'sousou no frieren',
+    'frieren',
+    'Re:Zero',
   ])('leaves %j as not a link without asking', async (text) => {
     render(<UrlProbe text={text} />)
 

@@ -93,8 +93,11 @@ export function SearchForm({
   const [parseSubmitToken, setParseSubmitToken] = useState(0)
   const [committedParseUrl, setCommittedParseUrl] = useState('')
 
+  // Text that looks like a link but that no source parses (such as
+  // "Re.Zero/2") can still be searched as a title when the user asks to.
+  const [titleSearchOf, setTitleSearchOf] = useState<string | null>(null)
   const urlAnswer = useUrlParseAnswer(searchTerm)
-  const isUrl = urlAnswer.kind !== 'notLink'
+  const isUrl = urlAnswer.kind !== 'notLink' && searchTerm !== titleSearchOf
 
   const activeProviderId =
     enabledProviders.find((p) => p.id === providerId)?.id ??
@@ -194,6 +197,10 @@ export function SearchForm({
   }
 
   const submit = async (value: string) => {
+    if (value === titleSearchOf) {
+      handleSearchSubmit(value)
+      return
+    }
     const answer = await queryClient
       .fetchQuery(urlParseQuery(value))
       .catch(() => undefined)
@@ -229,9 +236,14 @@ export function SearchForm({
   }
 
   const renderBody = (): ReactNode => {
-    if (urlAnswer.kind === 'unclaimed') {
+    if (isUrl && urlAnswer.kind === 'unclaimed') {
       return (
-        <NoUrlParserNotice onSearchInstead={() => onSearchTermChange('')} />
+        <NoUrlParserNotice
+          onSearchInstead={() => {
+            setTitleSearchOf(searchTerm)
+            handleSearchSubmit(searchTerm)
+          }}
+        />
       )
     }
     if (isUrl) {

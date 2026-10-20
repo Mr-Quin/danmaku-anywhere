@@ -10,6 +10,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { isSourceEpisode } from '@/common/danmaku/utils'
 import { sourceQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
+import { isLink } from '@/common/utils/link'
 import {
   capabilitiesOf,
   type SourceCapabilityAnswer,
@@ -25,6 +26,7 @@ export function sourceCapabilitiesQuery(providerConfigId: string) {
   return queryOptions({
     queryKey: sourceQueryKeys.configCapabilities(providerConfigId),
     staleTime: Number.POSITIVE_INFINITY,
+    retry: false,
     queryFn: async () => {
       const res = await chromeRpcClient.providerGetCapabilities({
         providerConfigId,
@@ -86,8 +88,9 @@ export function urlParseQuery(text: string) {
   return queryOptions({
     queryKey: sourceQueryKeys.urlSource(url),
     staleTime: Number.POSITIVE_INFINITY,
+    retry: false,
     queryFn: async (): Promise<UrlParseAnswer> => {
-      if (url === '' || /\s/.test(url)) {
+      if (!isLink(url)) {
         return NOT_A_LINK
       }
       const res = await chromeRpcClient.mediaFindUrlSource({ url })
@@ -110,10 +113,14 @@ function useDebouncedValue<T>(value: T, delayMs: number): T {
 }
 
 export function useUrlParseAnswer(text: string): UrlParseAnswer {
-  const settledText = useDebouncedValue(text.trim(), URL_CHECK_DELAY_MS)
+  const trimmed = text.trim()
+  const settledText = useDebouncedValue(trimmed, URL_CHECK_DELAY_MS)
   const { data } = useQuery({
     ...urlParseQuery(settledText),
     placeholderData: keepPreviousData,
   })
+  if (!isLink(trimmed)) {
+    return NOT_A_LINK
+  }
   return data ?? NOT_A_LINK
 }
