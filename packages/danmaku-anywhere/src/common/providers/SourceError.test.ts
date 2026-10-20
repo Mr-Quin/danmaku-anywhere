@@ -56,6 +56,17 @@ describe('isUnreachableError', () => {
     expect(isUnreachableError(unavailable)).toBe(true)
   })
 
+  it('treats a fetch that never got a response as unreachable', () => {
+    const aborted = Object.assign(
+      new Error('signal is aborted without reason'),
+      {
+        name: 'HttpException',
+        status: 0,
+      }
+    )
+    expect(isUnreachableError(aborted)).toBe(true)
+  })
+
   it('does not match other failures', () => {
     expect(isUnreachableError(new Error('No danmaku found for Frieren'))).toBe(
       false

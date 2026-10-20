@@ -75,7 +75,7 @@ function httpStatusOf(error: Error): number | undefined {
 }
 
 // A client error such as 403 or 404 reached the source, so its own message
-// says more than "couldn't reach".
+// says more than "couldn't reach". Status 0 is a request that got no response.
 export function isUnreachableError(error: unknown): boolean {
   for (const current of errorChain(error)) {
     if (isNetworkError(current)) {
@@ -83,7 +83,7 @@ export function isUnreachableError(error: unknown): boolean {
     }
     const status = httpStatusOf(current)
     if (status !== undefined) {
-      return status >= 500
+      return status < 100 || status >= 500
     }
     if (current.name === 'HttpException') {
       return true
