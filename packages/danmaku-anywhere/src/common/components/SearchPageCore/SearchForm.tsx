@@ -160,12 +160,15 @@ export function SearchForm({
     return failure.message || t('error.unknown', 'Something went wrong.')
   }
 
+  const processKeyword = (raw: string): string => {
+    const trimmed = raw.trim()
+    return extOptions.searchUsingSimplified ? toSimplified(trimmed) : trimmed
+  }
+
   const handleSearchSubmit = (keyword?: string) => {
     const raw = keyword ?? searchTerm
     const trimmed = raw.trim()
-    const processed = extOptions.searchUsingSimplified
-      ? toSimplified(trimmed)
-      : trimmed
+    const processed = processKeyword(raw)
 
     if (!processed) {
       return
@@ -240,7 +243,7 @@ export function SearchForm({
       return (
         <NoUrlParserNotice
           onSearchInstead={() => {
-            setTitleSearchOf(searchTerm)
+            setTitleSearchOf(processKeyword(searchTerm))
             handleSearchSubmit(searchTerm)
           }}
         />

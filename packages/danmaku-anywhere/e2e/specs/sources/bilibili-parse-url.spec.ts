@@ -126,7 +126,7 @@ test('bilibili url paste: a title that looks like a link can be searched by titl
 
   const popup = await Popup.open(page, extensionId)
 
-  await popup.search.input.fill('Re.Zero/2')
+  await popup.search.input.fill('Re.Zero/2 ')
   await expect(popup.search.noSourceNotice).toBeVisible()
   await popup.search.searchInsteadButton.click()
 
