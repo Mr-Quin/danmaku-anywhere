@@ -61,14 +61,31 @@ export function getSourceError(
   return undefined
 }
 
-const HTTP_FAILURE = /\bHTTP \d{3}\b|Request failed with status \d{3}/
+const HTTP_FAILURE = /\bHTTP (\d{3})\b|Request failed with status (\d{3})/
 
+function httpStatusOf(error: Error): number | undefined {
+  if ('status' in error && typeof error.status === 'number') {
+    return error.status
+  }
+  const match = HTTP_FAILURE.exec(error.message)
+  if (match) {
+    return Number(match[1] ?? match[2])
+  }
+  return undefined
+}
+
+// A client error such as 403 or 404 reached the source, so its own message
+// says more than "couldn't reach".
 export function isUnreachableError(error: unknown): boolean {
   for (const current of errorChain(error)) {
-    if (current.name === 'HttpException') {
+    if (isNetworkError(current)) {
       return true
     }
-    if (isNetworkError(current) || HTTP_FAILURE.test(current.message)) {
+    const status = httpStatusOf(current)
+    if (status !== undefined) {
+      return status >= 500
+    }
+    if (current.name === 'HttpException') {
       return true
     }
   }

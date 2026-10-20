@@ -177,7 +177,7 @@ export const useLoadDanmaku = () => {
       result = await mount(episodes)
     } catch (error) {
       toast.error(describeMountError(error))
-      throw error
+      return
     }
     if (result.status !== 'mounted') {
       return
