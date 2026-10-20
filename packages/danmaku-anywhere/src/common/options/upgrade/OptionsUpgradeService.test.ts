@@ -1,6 +1,7 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { Container } from 'inversify'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { EXTENSION_VERSION } from '@/common/constants'
 import { LoggerSymbol } from '@/common/Logger'
 import {
   type IStoreService,
@@ -8,22 +9,18 @@ import {
   UpgradableOptionStores,
 } from '@/common/options/IStoreService'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
-import type { StoreSnapshot } from '@/common/options/OptionsService/types'
 import { OptionStoreDescriptors } from '@/common/options/optionStores'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
 import { silentLogger } from '@/tests/silentLogger'
 import { OptionsUpgradeService } from './OptionsUpgradeService'
-import {
-  UPGRADE_RUN_KEY,
-  UPGRADE_SNAPSHOT_KEY,
-  type UpgradeRun,
-} from './upgradeRun'
+import { UPGRADE_RUN_KEY, type UpgradeRun } from './upgradeRun'
 
 /**
  * OptionsUpgradeService runs the upgrade of every option store. Concurrent
- * requests share one run. A run is recorded as running while it is in flight,
- * as failed with its attempt count when it fails, and the record is removed
- * when it succeeds. ensureUpgraded checks storage, not this context's
+ * requests share one run. A run is recorded as running while it is in flight
+ * and as failed when it fails, stamped with this build and its attempt count,
+ * which starts again after attempts on an earlier build. The record is
+ * removed when a run succeeds. ensureUpgraded checks storage, not this context's
  * readiness: it skips current stores and a failed run whose retry delay has
  * not passed. upgrade always runs.
  */
@@ -34,18 +31,14 @@ interface Counter {
 
 const MINUTE = 60_000
 
-// Stores named in bumped get a version 3, standing for a later release that
-// adds a step reading the other stores.
-function setup(keys: string[], bumped: string[] = []) {
+function setup(keys: string[]) {
   const migrations: Record<string, number> = {}
-  const seenStores: StoreSnapshot[] = []
   const container = new Container({ defaultScope: 'Singleton' })
   container.bind(LoggerSymbol).toConstantValue(silentLogger)
   container.bind(ReadinessService).toSelf()
   container.bind(OptionsUpgradeService).toSelf()
   const descriptors = keys.map((key) => {
-    const latestVersion = bumped.includes(key) ? 3 : 2
-    return { key, area: 'local', latestVersion } as const
+    return { key, area: 'local', latestVersion: 2 } as const
   })
   container.bind(OptionStoreDescriptors).toConstantValue(descriptors)
   for (const descriptor of descriptors) {
@@ -65,14 +58,6 @@ function setup(keys: string[], bumped: string[] = []) {
           return { count: data.count + 1 }
         },
       })
-    if (descriptor.latestVersion === 3) {
-      options.version(3, {
-        upgrade: (data: Counter, context) => {
-          seenStores.push(context.stores)
-          return data
-        },
-      })
-    }
     container
       .bind<IStoreService>(StoreServiceSymbol)
       .toConstantValue({ name: key, descriptor, options })
@@ -84,7 +69,6 @@ function setup(keys: string[], bumped: string[] = []) {
     upgrader: container.get(OptionsUpgradeService),
     readiness: container.get(ReadinessService),
     migrations,
-    seenStores,
   }
 }
 
@@ -175,6 +159,7 @@ describe('OptionsUpgradeService', () => {
 
     expect(await readRaw(UPGRADE_RUN_KEY)).toMatchObject({
       status: 'failed',
+      build: EXTENSION_VERSION,
       attempts: 1,
       message: 'Failed to upgrade options: beta',
     })
@@ -261,86 +246,26 @@ describe('OptionsUpgradeService', () => {
     expect(await readRaw('alpha')).toEqual({ data: { count: 2 }, version: 2 })
   })
 
-  it('starts counting attempts again for a new build', async () => {
+  it('starts counting attempts again after failures on an earlier build', async () => {
     await storeV1('alpha', 1)
+    await fakeBrowser.storage.local.set({
+      [UPGRADE_RUN_KEY]: {
+        status: 'failed',
+        build: '0.0.1',
+        attempts: 5,
+        failedAt: Date.now(),
+        message: 'IO error',
+      } satisfies UpgradeRun,
+    })
     failWritesTo('alpha')
-    const { upgrader } = setup(['alpha'])
-    await expect(upgrader.upgrade()).rejects.toThrow()
-    await expect(upgrader.upgrade()).rejects.toThrow()
+    const { upgrader, migrations } = setup(['alpha'])
 
-    await expect(upgrader.upgradeForNewBuild()).rejects.toThrow()
+    await expect(upgrader.ensureUpgraded()).rejects.toThrow()
 
-    expect(await readRaw(UPGRADE_RUN_KEY)).toMatchObject({ attempts: 1 })
-  })
-
-  it('removes the snapshot and the run record in one call on success', async () => {
-    await storeV1('alpha', 1)
-    const { upgrader } = setup(['alpha'])
-    const remove = vi.spyOn(fakeBrowser.storage.local, 'remove')
-
-    await upgrader.upgrade()
-
-    expect(remove).toHaveBeenCalledWith(
-      expect.arrayContaining([UPGRADE_RUN_KEY, UPGRADE_SNAPSHOT_KEY])
-    )
-    expect(await readRaw(UPGRADE_SNAPSHOT_KEY)).toBeUndefined()
-  })
-
-  it('does not reuse a snapshot that no run record vouches for', async () => {
-    await storeV1('alpha', 1)
-    await fakeBrowser.storage.local.set({
-      beta: { data: { count: 5 }, version: 2 },
-      [UPGRADE_SNAPSHOT_KEY]: {
-        alpha: { stored: { data: { count: 1 }, version: 1 }, target: 3 },
-        beta: { stored: { data: { count: 0 }, version: 2 }, target: 3 },
-      },
-    })
-    const { upgrader, seenStores } = setup(['alpha', 'beta'], ['alpha', 'beta'])
-
-    await upgrader.upgrade()
-
-    expect(seenStores.at(-1)).toMatchObject({ beta: { count: 5 } })
-  })
-
-  it('does not hand a later release the snapshot of an earlier successful run', async () => {
-    await storeV1('alpha', 1)
-    await fakeBrowser.storage.local.set({
-      beta: { data: { count: 5 }, version: 2 },
-    })
-    vi.spyOn(fakeBrowser.storage.local, 'remove').mockRejectedValueOnce(
-      new Error('IO error')
-    )
-    const release = setup(['alpha', 'beta'])
-    await release.upgrader.upgrade()
-    expect(await readRaw(UPGRADE_SNAPSHOT_KEY)).toBeDefined()
-
-    await release.upgrader.ensureUpgraded()
-    const next = setup(['alpha', 'beta'], ['beta'])
-    await next.upgrader.upgradeForNewBuild()
-
-    expect(next.seenStores.at(-1)).toEqual({
-      alpha: { count: 2 },
-      beta: { count: 5 },
-    })
-  })
-
-  it('does not hand a later release the snapshot of a successful run even without a wake', async () => {
-    await storeV1('alpha', 1)
-    await fakeBrowser.storage.local.set({
-      beta: { data: { count: 5 }, version: 2 },
-    })
-    vi.spyOn(fakeBrowser.storage.local, 'remove').mockRejectedValueOnce(
-      new Error('IO error')
-    )
-    await setup(['alpha', 'beta']).upgrader.upgrade()
-    expect(await readRaw(UPGRADE_SNAPSHOT_KEY)).toBeDefined()
-
-    const next = setup(['alpha', 'beta'], ['beta'])
-    await next.upgrader.upgradeForNewBuild()
-
-    expect(next.seenStores.at(-1)).toEqual({
-      alpha: { count: 2 },
-      beta: { count: 5 },
+    expect(migrations.alpha).toBe(1)
+    expect(await readRaw(UPGRADE_RUN_KEY)).toMatchObject({
+      build: EXTENSION_VERSION,
+      attempts: 1,
     })
   })
 })

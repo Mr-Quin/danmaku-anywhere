@@ -62,8 +62,8 @@ describe('createBackgroundContainer', () => {
     expect(stores.map((store) => store.constructor)).toEqual([
       ExtensionOptionsService,
       DanmakuOptionsService,
-      IntegrationPolicyService,
       MountConfigService,
+      IntegrationPolicyService,
       ProviderConfigService,
       AiProviderConfigService,
       SearchHistoryService,

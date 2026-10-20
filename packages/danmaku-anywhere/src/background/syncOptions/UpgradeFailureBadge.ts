@@ -1,6 +1,6 @@
 import { injectable } from 'inversify'
 import {
-  settleRun,
+  failedOnThisBuild,
   UPGRADE_RUN_KEY,
   type UpgradeRun,
 } from '@/common/options/upgrade/upgradeRun'
@@ -41,8 +41,7 @@ export class UpgradeFailureBadge {
   }
 
   private async show(run: UpgradeRun | undefined) {
-    const failed =
-      run !== undefined && settleRun(run, Date.now()).status === 'failed'
+    const failed = failedOnThisBuild(run, Date.now()) !== undefined
     const wasShowing = this.showing
     this.showing = failed
     if (failed) {

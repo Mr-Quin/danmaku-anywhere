@@ -1,6 +1,7 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { describe, expect, it, vi } from 'vitest'
 import { IconService } from '@/background/services/IconService'
+import { EXTENSION_VERSION } from '@/common/constants'
 import { UPGRADE_RUN_KEY } from '@/common/options/upgrade/upgradeRun'
 import { UpgradeFailureBadge } from './UpgradeFailureBadge'
 
@@ -14,14 +15,16 @@ vi.mock('@/common/utils/utils', async (importOriginal) => {
 
 /**
  * UpgradeFailureBadge puts a badge on the toolbar icon, globally and on every
- * open tab, while the last options upgrade run is recorded as failed,
- * including one recorded before the worker started. It clears the badge when
- * a new run starts. While it shows, IconService leaves per-tab badge text
+ * open tab, while this build has a failed options upgrade recorded, including
+ * one recorded before the worker started. It clears the badge when an upgrade
+ * succeeds and removes the record, and ignores a failure from an earlier
+ * build. While it shows, IconService leaves per-tab badge text
  * alone, since that would hide the global badge on the tab.
  */
 
 const failedRun = {
   status: 'failed',
+  build: EXTENSION_VERSION,
   attempts: 1,
   failedAt: 0,
   message: 'IO error',
@@ -62,7 +65,7 @@ describe('UpgradeFailureBadge', () => {
     })
   })
 
-  it('shows the badge when a run fails and clears it when the next one starts', async () => {
+  it('shows the badge when a run fails and clears it once an upgrade succeeds', async () => {
     const tabId = await openTab()
     const texts = watchBadges()
     new UpgradeFailureBadge().setup()
@@ -72,16 +75,23 @@ describe('UpgradeFailureBadge', () => {
       expect([texts.get('global'), texts.get(tabId)]).toEqual(['!', '!'])
     })
 
-    await fakeBrowser.storage.local.set({
-      [UPGRADE_RUN_KEY]: {
-        status: 'running',
-        attempts: 2,
-        startedAt: Date.now(),
-      },
-    })
+    await fakeBrowser.storage.local.remove(UPGRADE_RUN_KEY)
     await vi.waitFor(() => {
       expect([texts.get('global'), texts.get(tabId)]).toEqual(['', ''])
     })
+  })
+
+  it('shows no badge for a failure from an earlier build', async () => {
+    await fakeBrowser.storage.local.set({
+      [UPGRADE_RUN_KEY]: { ...failedRun, build: '0.0.1' },
+    })
+    const badge = new UpgradeFailureBadge()
+    watchBadges()
+
+    badge.setup()
+    await new Promise((resolve) => setTimeout(resolve, 20))
+
+    expect(badge.isShowing()).toBe(false)
   })
 
   it('keeps per-tab comment counts from covering the badge', async () => {

@@ -18,8 +18,9 @@ import { UserAuthStore } from './userAuth/service'
 export function bindOptionStores({ bind }: ContainerModuleLoadOptions): void {
   bind(StoreServiceSymbol).toService(ExtensionOptionsService)
   bind(StoreServiceSymbol).toService(DanmakuOptionsService)
-  bind(StoreServiceSymbol).toService(IntegrationPolicyService)
+  // Mount configs read the integration policies from before their upgrade.
   bind(StoreServiceSymbol).toService(MountConfigService)
+  bind(StoreServiceSymbol).toService(IntegrationPolicyService)
   bind(StoreServiceSymbol).toService(ProviderConfigService)
   bind(StoreServiceSymbol).toService(AiProviderConfigService)
   bind(StoreServiceSymbol).toService(SearchHistoryService)

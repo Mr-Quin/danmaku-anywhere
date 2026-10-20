@@ -3,6 +3,7 @@ import { fakeBrowser } from '@webext-core/fake-browser'
 import { Suspense } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, expect, it, vi } from 'vitest'
+import { EXTENSION_VERSION } from '@/common/constants'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { OptionsUpgradeService } from '@/common/options/upgrade/OptionsUpgradeService'
@@ -64,6 +65,7 @@ it('shows pending, then the failure, then the upgraded configs after a retry', a
   await fakeBrowser.storage.local.set({
     [UPGRADE_RUN_KEY]: {
       status: 'failed',
+      build: EXTENSION_VERSION,
       attempts: 1,
       failedAt: 0,
       message: 'QUOTA_BYTES quota exceeded',

@@ -6,7 +6,11 @@ import {
   type OptionStoreDescriptor,
   OptionStoreDescriptors,
 } from '../optionStores'
-import { settleRun, staleAt, UPGRADE_RUN_KEY } from '../upgrade/upgradeRun'
+import {
+  failedOnThisBuild,
+  staleAt,
+  UPGRADE_RUN_KEY,
+} from '../upgrade/upgradeRun'
 import {
   type OptionStoresStatus,
   readOptionStoresStatus,
@@ -152,7 +156,7 @@ export class ReadinessService implements ReadinessGate {
   // it counts as failed is checked on a timer.
   private watchForStaleRun(status: OptionStoresStatus) {
     clearTimeout(this.staleRunTimer)
-    const deadline = status.run && staleAt(status.run)
+    const deadline = staleAt(status.run)
     if (status.current || deadline === undefined) {
       return
     }
@@ -186,8 +190,8 @@ function toState(status: OptionStoresStatus, now: number): ReadinessState {
   if (status.current) {
     return READY
   }
-  const run = status.run && settleRun(status.run, now)
-  if (run?.status === 'failed') {
+  const run = failedOnThisBuild(status.run, now)
+  if (run) {
     return { status: 'failed', message: run.message }
   }
   return PENDING

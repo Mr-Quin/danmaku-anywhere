@@ -45,7 +45,7 @@ export class OptionsManager {
   }
 
   private async onInstalled(details: chrome.runtime.InstalledDetails) {
-    this.upgradeService.upgradeForNewBuild().catch(() => undefined)
+    this.upgradeService.upgrade().catch(() => undefined)
 
     if (details.reason === 'update') {
       if (!import.meta.env.DEV) {

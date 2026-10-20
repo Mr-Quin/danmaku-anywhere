@@ -1,6 +1,7 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { Container } from 'inversify'
 import { describe, expect, it, vi } from 'vitest'
+import { EXTENSION_VERSION } from '@/common/constants'
 import { LoggerSymbol } from '@/common/Logger'
 import {
   type OptionStoreDescriptor,
@@ -12,10 +13,11 @@ import { ReadinessService } from './ReadinessService'
 
 /**
  * ReadinessService is ready once every option store is stored at its latest
- * version, whichever context wrote it. Until then it is failed while the last
- * upgrade run is recorded as failed or was cut off mid-way, and pending
- * otherwise, including while a run is in progress. Waiters keep waiting through a failure and resolve when
- * a retry succeeds. Ready is final for the context and ends all storage
+ * version, whichever context wrote it. Until then it is failed while this
+ * build has a failed upgrade recorded or a run of this build was cut off
+ * mid-way, and pending otherwise, including while a run is in progress or the
+ * only failure is from an earlier build. Waiters
+ * keep waiting through a failure and resolve when a retry succeeds. Ready is final for the context and ends all storage
  * listening. Reading the state does not touch storage, each evaluation reads
  * each storage area once, and a failed read is retried on its own.
  */
@@ -51,6 +53,7 @@ function recordRun(run: UpgradeRun) {
 
 const failedRun: UpgradeRun = {
   status: 'failed',
+  build: EXTENSION_VERSION,
   attempts: 1,
   failedAt: 0,
   message: 'QUOTA_BYTES quota exceeded',
@@ -115,7 +118,12 @@ describe('ReadinessService', () => {
     const readiness = createReadiness([alpha])
     expect((await settledState(readiness)).status).toBe('failed')
 
-    await recordRun({ status: 'running', attempts: 2, startedAt: Date.now() })
+    await recordRun({
+      status: 'running',
+      build: EXTENSION_VERSION,
+      attempts: 2,
+      startedAt: Date.now(),
+    })
 
     await vi.waitFor(() => {
       expect(readiness.getState()).toEqual({ status: 'pending' })
@@ -124,7 +132,12 @@ describe('ReadinessService', () => {
 
   it('reports a run still marked running long after it started as failed', async () => {
     await storeAt(alpha, 1)
-    await recordRun({ status: 'running', attempts: 1, startedAt: 0 })
+    await recordRun({
+      status: 'running',
+      build: EXTENSION_VERSION,
+      attempts: 1,
+      startedAt: 0,
+    })
     const readiness = createReadiness([alpha])
 
     expect((await settledState(readiness)).status).toBe('failed')
@@ -132,7 +145,12 @@ describe('ReadinessService', () => {
 
   it('stops reading once a cut-off run has been reported as failed', async () => {
     await storeAt(alpha, 1)
-    await recordRun({ status: 'running', attempts: 1, startedAt: 0 })
+    await recordRun({
+      status: 'running',
+      build: EXTENSION_VERSION,
+      attempts: 1,
+      startedAt: 0,
+    })
     const readiness = createReadiness([alpha])
     expect((await settledState(readiness)).status).toBe('failed')
     const localGet = vi.spyOn(fakeBrowser.storage.local, 'get')
@@ -147,6 +165,7 @@ describe('ReadinessService', () => {
     const fiveMinutes = 5 * 60_000
     await recordRun({
       status: 'running',
+      build: EXTENSION_VERSION,
       attempts: 1,
       startedAt: Date.now() - fiveMinutes + 100,
     })
@@ -160,6 +179,14 @@ describe('ReadinessService', () => {
     await new Promise((resolve) => setTimeout(resolve, 50))
 
     expect(localGet).not.toHaveBeenCalled()
+  })
+
+  it('stays pending when the only failure is from an earlier build', async () => {
+    await storeAt(alpha, 1)
+    await recordRun({ ...failedRun, build: '0.0.1' })
+    const readiness = createReadiness([alpha])
+
+    expect(await settledState(readiness)).toEqual({ status: 'pending' })
   })
 
   it('picks up a failure recorded by another context', async () => {

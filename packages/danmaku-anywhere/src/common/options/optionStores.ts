@@ -73,8 +73,8 @@ export const userAuthDescriptor = {
 export const OPTION_STORES: readonly OptionStoreDescriptor[] = [
   extensionOptionsDescriptor,
   danmakuOptionsDescriptor,
-  integrationPolicyDescriptor,
   mountConfigDescriptor,
+  integrationPolicyDescriptor,
   providerConfigDescriptor,
   aiProviderConfigDescriptor,
   searchHistoryDescriptor,

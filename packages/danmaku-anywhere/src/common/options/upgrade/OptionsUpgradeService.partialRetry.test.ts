@@ -4,11 +4,10 @@ import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
 import { OptionsUpgradeService } from './OptionsUpgradeService'
 
 /**
- * A retry after a partial upgrade migrates from the data the first attempt
- * started with. The mountConfig v5 step reads the integration policy store to
- * tell AI mounts from XPath ones. If the policy store was already upgraded
- * (which empties its options) when mountConfig failed, the retry must still
- * see useAI from before, or every AI mount turns into an XPath one.
+ * The mountConfig v5 step reads the integration policy store to tell AI mounts
+ * from XPath ones, and the policy upgrade drops useAI. When mountConfig fails,
+ * the upgrade stops before the policy store, so the retry still sees useAI
+ * and the AI mount stays an AI mount instead of turning into an XPath one.
  */
 
 const aiPolicy = {
@@ -41,7 +40,7 @@ async function readStored(area: 'sync' | 'local', key: string) {
 }
 
 describe('retrying a partial options upgrade', () => {
-  it('keeps an AI mount when the policy store was upgraded before mountConfig failed', async () => {
+  it('keeps an AI mount when mountConfig fails on the first attempt', async () => {
     await fakeBrowser.storage.local.set({
       xpathPolicy: { data: [aiPolicy], version: 3 },
     })
@@ -64,7 +63,7 @@ describe('retrying a partial options upgrade', () => {
         .upgrade()
     ).rejects.toThrow(/mountConfig/)
     expect(await readStored('local', 'xpathPolicy')).toMatchObject({
-      version: 4,
+      version: 3,
     })
     failing.mockRestore()
 

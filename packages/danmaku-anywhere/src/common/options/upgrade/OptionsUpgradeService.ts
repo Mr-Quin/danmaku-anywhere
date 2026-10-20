@@ -9,12 +9,12 @@ import {
   OptionStoreDescriptors,
 } from '../optionStores'
 import { readOptionStoresStatus } from '../ReadinessService/optionStoresStatus'
-import { type UpgradeSnapshot, upgradeStores } from '../upgradeStores'
+import { upgradeStores } from '../upgradeStores'
 import type { OptionsUpgrader } from './OptionsUpgrader'
 import {
   canRetryAutomatically,
+  startedRun,
   UPGRADE_RUN_KEY,
-  UPGRADE_SNAPSHOT_KEY,
   type UpgradeRun,
 } from './upgradeRun'
 
@@ -28,10 +28,6 @@ export class OptionsUpgradeService implements OptionsUpgrader {
   private readonly logger: ILogger
   private readonly runRecord = new ExtStorageService<UpgradeRun>(
     UPGRADE_RUN_KEY,
-    { storageType: 'local' }
-  )
-  private readonly snapshot = new ExtStorageService<UpgradeSnapshot>(
-    UPGRADE_SNAPSHOT_KEY,
     { storageType: 'local' }
   )
   private running?: Promise<void>
@@ -58,29 +54,18 @@ export class OptionsUpgradeService implements OptionsUpgrader {
       }
       return
     }
-    if (run && !canRetryAutomatically(run, Date.now())) {
+    if (!canRetryAutomatically(run, Date.now())) {
       return
     }
     return this.upgrade()
   }
 
   upgrade(): Promise<void> {
-    return this.start(false)
-  }
-
-  // A new build may fix what made the earlier attempts fail, so it starts
-  // counting attempts again. A snapshot from a partial earlier attempt is
-  // still the data from before the upgrade, so it is kept.
-  upgradeForNewBuild(): Promise<void> {
-    return this.start(true)
-  }
-
-  private start(newBuild: boolean): Promise<void> {
     // Two standalone tabs each have this service over the same localStorage,
     // so runs are serialized across tabs, not just within this one.
     this.running ??= navigator.locks
       .request('options-upgrade', () => {
-        return this.run(newBuild)
+        return this.run()
       })
       .finally(() => {
         this.running = undefined
@@ -88,27 +73,17 @@ export class OptionsUpgradeService implements OptionsUpgrader {
     return this.running
   }
 
-  private async run(newBuild: boolean): Promise<void> {
+  private async run(): Promise<void> {
     this.logger.debug('Starting upgrade')
-    const previous = await this.runRecord.read()
-    const attempts = (newBuild || !previous ? 0 : previous.attempts) + 1
-    // A snapshot only belongs to an attempt that has not succeeded yet.
-    const kept = previous ? await this.snapshot.read() : undefined
-    await this.runRecord.set({
-      status: 'running',
-      attempts,
-      startedAt: Date.now(),
-    })
+    const started = startedRun(await this.runRecord.read(), Date.now())
+    await this.runRecord.set(started)
 
     const [, error] = await tryCatch(() => {
-      return upgradeStores(this.stores, this.logger, {
-        kept,
-        save: (snapshot) => this.snapshot.set(snapshot),
-      })
+      return upgradeStores(this.stores, this.logger)
     })
     if (error) {
       this.logger.error('Options upgrade failed', error)
-      await this.recordFailure(attempts, error)
+      await this.recordFailure(started, error)
       throw error
     }
 
@@ -116,13 +91,10 @@ export class OptionsUpgradeService implements OptionsUpgrader {
     this.logger.debug('Upgrade complete')
   }
 
-  // One call, so the snapshot never outlives the record that says its
-  // attempt has not succeeded.
   private async clearRunState() {
     const [, error] = await tryCatch(() => {
       return getStorageArea('local').remove([
         UPGRADE_RUN_KEY,
-        UPGRADE_SNAPSHOT_KEY,
         LEGACY_VERSION_KEY,
       ])
     })
@@ -131,11 +103,12 @@ export class OptionsUpgradeService implements OptionsUpgrader {
     }
   }
 
-  private async recordFailure(attempts: number, error: Error) {
+  private async recordFailure(started: UpgradeRun, error: Error) {
     const [, recordError] = await tryCatch(() => {
       return this.runRecord.set({
         status: 'failed',
-        attempts,
+        build: started.build,
+        attempts: started.attempts,
         failedAt: Date.now(),
         message: error.message,
       })
