@@ -20,6 +20,15 @@ export class Toast {
     return this.page.locator(SELECTORS.snackbar)
   }
 
+  pile(): Locator {
+    return this.page.getByTestId('toast-pile')
+  }
+
+  // Stays the same when a keyed toast is replaced in place.
+  async keyOf(toast: Locator): Promise<string | null> {
+    return toast.getAttribute('data-toast-key')
+  }
+
   bySeverity(severity: Severity): Locator {
     return this.page.locator(SELECTORS.bySeverity(severity))
   }

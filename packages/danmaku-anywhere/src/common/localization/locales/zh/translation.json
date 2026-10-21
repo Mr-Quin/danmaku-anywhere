@@ -283,6 +283,10 @@
   "error": {
     "unknown": "出错啦！"
   },
+  "floatingButton": {
+    "label": "打开 Danmaku Anywhere",
+    "tooltip": "Danmaku Anywhere。右键打开快捷操作"
+  },
   "form": {
     "precision": {
       "alt": "Alt",
@@ -504,6 +508,7 @@
       "signUpSuccess": "注册成功"
     },
     "autoBookmark": "预加载下一集时自动关注番剧",
+    "autoBookmarkDesc": "一集看到一半时自动关注该番剧，以便预加载下一集的弹幕。",
     "backup": {
       "alert": {
         "exportSuccess": "成功导出备份",
@@ -617,7 +622,7 @@
     "player": {
       "inPlayerControls": "播放器内控制",
       "showDanmakuTimeline": "显示弹幕密度",
-      "showDanmakuTimelineDesc": "在进度条上方叠加弹幕密度时间轴。",
+      "showDanmakuTimelineDesc": "沿视频底部绘制弹幕密度图。",
       "showSkipButton": "显示跳过按钮（OP/ED）",
       "showSkipButtonDesc": "在片头和片尾显示一键跳过按钮。"
     },
@@ -837,6 +842,9 @@
     "noAnimeFound": "没有可供选择的内容",
     "selectAnime": "找到多个匹配项：{{name}}，请选择"
   },
+  "skipButton": {
+    "skipTo": "空降至 {{time}}"
+  },
   "stylePage": {
     "customCssDescription": "自定义 CSS 将应用到每条弹幕，并覆盖其他样式设置。",
     "distribution": "弹幕分布",
@@ -939,5 +947,8 @@
     "noSeasons": "没有可以映射的番剧",
     "title": "标题映射",
     "unmapped": "未映射"
+  },
+  "toast": {
+    "region": "通知"
   }
 }

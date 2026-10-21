@@ -1,7 +1,7 @@
 import { Suspense } from 'react'
 
 import { GlobalDialog } from '@/common/components/Dialog/GlobalDialog'
-import { Toast } from '@/common/components/Toast/Toast'
+import { DanmakuHotkeys } from '@/content/controller/common/components/DanmakuHotkeys'
 import { SwitchLanguage } from '@/content/controller/common/components/SwitchLanguage'
 import { ControllerRpcServer } from '@/content/controller/controllerRpc/ControllerRpcServer'
 import { FrameManager } from '@/content/controller/danmaku/frame/FrameManager'
@@ -10,6 +10,7 @@ import { IconManagerComponent } from '@/content/controller/iconManager/IconManag
 import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { PopupUi } from '@/content/controller/ui/PopupUi'
+import { ToastPile } from '@/content/controller/ui/toast/ToastPile'
 import { HIGHLIGHTER_PORTAL_ID } from './common/constants/rootId'
 
 export const Content = () => {
@@ -22,12 +23,13 @@ export const Content = () => {
         <IconManagerComponent />
         {isVisible && <RegisterIntegration />}
         <FrameManager />
+        <DanmakuHotkeys />
       </Suspense>
       <ControllerRpcServer />
       <Suspense fallback={null}>
         <PopupUi />
       </Suspense>
-      <Toast stackable disableCloseOnClickAway />
+      <ToastPile />
       <GlobalDialog />
       <SwitchLanguage />
       <div
