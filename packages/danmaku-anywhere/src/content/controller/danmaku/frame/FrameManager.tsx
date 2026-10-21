@@ -16,7 +16,8 @@ import { CONTROLLER_ROOT_ID } from '@/content/controller/common/constants/rootId
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import {
   CONTROLLER_SESSION,
-  sendUnmount,
+  syncFrame,
+  unmountQuietly,
 } from '@/content/controller/common/danmakuCommands'
 import { FrameRegistry } from '@/content/controller/danmaku/frame/FrameRegistry.service'
 import { selectBestFrame } from '@/content/controller/danmaku/frame/selectBestFrame'
@@ -88,10 +89,8 @@ export const FrameManager = () => {
   )
 
   const videoRemovedHandler = useEventCallback((frameId: number) => {
-    if (useStore.getState().frame.allFrames.get(frameId)?.mounted) {
-      sendUnmount(frameId).catch((error: unknown) => {
-        logger.debug('Failed to unmount danmaku for a removed video', error)
-      })
+    if (useStore.getState().danmaku.mountedFrameId === frameId) {
+      void unmountQuietly()
     }
     updateFrame(frameId, {
       hasVideo: false,
@@ -114,7 +113,11 @@ export const FrameManager = () => {
     if (frameId !== activeFrame?.frameId || !canLoadNext()) {
       return
     }
-    await preloadNext()
+    try {
+      await preloadNext()
+    } catch (error) {
+      logger.debug('Failed to preload the next episode', error)
+    }
   })
 
   const handleShowPopover = useEventCallback(() => {
@@ -144,6 +147,7 @@ export const FrameManager = () => {
             frameId,
           })
           updateFrame(frameId, { started: true })
+          await syncFrame(frameId)
         },
         'relay:event:playerUnload': async ({ frameId }) => {
           frameRegistry.unregisterFrame(frameId)

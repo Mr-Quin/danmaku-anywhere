@@ -1,5 +1,4 @@
 export interface EpisodeRun {
-  readonly generation: number
   // Aborts when a newer run starts or the integration stops watching the page.
   readonly signal: AbortSignal
   isCurrent: () => boolean
@@ -13,7 +12,6 @@ type RunListener = (current: EpisodeRun | undefined) => void
  * is still current before touching the player, the stores or the toast.
  */
 export class EpisodeRuns {
-  private generation = 0
   private active: { run: EpisodeRun; controller: AbortController } | undefined
   private readonly listeners = new Set<RunListener>()
 
@@ -21,7 +19,6 @@ export class EpisodeRuns {
     this.abortCurrent()
     const controller = new AbortController()
     const run: EpisodeRun = {
-      generation: ++this.generation,
       signal: controller.signal,
       isCurrent: () => !controller.signal.aborted,
     }

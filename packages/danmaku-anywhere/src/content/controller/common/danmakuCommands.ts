@@ -1,31 +1,82 @@
 import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
+import { Logger } from '@/common/Logger'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
+import type {
+  ControllerSession,
+  PlayerApplyCommand,
+} from '@/common/rpcClient/background/types'
 import { DanmakuMountError } from '@/content/controller/common/hooks/mountError'
 import { useStore } from '@/content/controller/store/store'
 
 export type MountResult = { status: 'mounted' } | { status: 'cancelled' }
 
 // Players take this from the start and controllerReady handshakes and only
-// apply commands carrying it.
-export const CONTROLLER_SESSION = crypto.randomUUID()
-
-function orderOf(command: number) {
-  return { session: CONTROLLER_SESSION, command }
+// apply commands from the newest controller they have seen.
+export const CONTROLLER_SESSION: ControllerSession = {
+  id: crypto.randomUUID(),
+  startedAt: Date.now(),
 }
 
-function activeFrameId(): number | undefined {
-  return useStore.getState().frame.getActiveFrame()?.frameId
+function commandFor(frameId: number, withContent: boolean): PlayerApplyCommand {
+  const { version, contentVersion, isVisible, mountedFrameId, comments } =
+    useStore.getState().danmaku
+  const command = {
+    session: CONTROLLER_SESSION.id,
+    version,
+    contentVersion,
+    visible: isVisible,
+  }
+  if (!withContent) {
+    return { ...command, content: { kind: 'keep' } }
+  }
+  if (frameId === mountedFrameId) {
+    return { ...command, content: { kind: 'mount', comments } }
+  }
+  return { ...command, content: { kind: 'unmount' } }
 }
 
-// The frame showing the danmaku, which can differ from the active frame
-// until the next mount moves them.
-function mountedOrActiveFrameId(): number | undefined {
-  return useStore.getState().danmaku.mountedFrameId ?? activeFrameId()
+// Every started frame is told, since an older mount can still be on its way
+// to a frame that no longer shows the danmaku. Frames that have not started
+// get the state in their handshake instead. Returns the delivery to `frameId`,
+// the only one a caller waits for.
+function broadcast(withContent: boolean, frameId?: number) {
+  let delivery: Promise<unknown> = Promise.resolve()
+  for (const frame of useStore.getState().frame.allFrames.values()) {
+    if (!frame.started) {
+      continue
+    }
+    const sent = playerRpcClient.player['relay:command:apply']({
+      frameId: frame.frameId,
+      data: commandFor(frame.frameId, withContent),
+    })
+    if (frame.frameId === frameId) {
+      delivery = sent
+    } else {
+      sent.catch((error: unknown) => {
+        Logger.debug('Failed to update a frame', error)
+      })
+    }
+  }
+  return delivery
 }
 
-// A caller that aborts gets 'cancelled' and nothing is recorded. If the player
-// already took the episodes and nothing newer was sent to that frame, they are
-// unmounted again.
+// Moving the danmaku to a new active frame mounts the same episodes again,
+// which keeps an earlier mount of them current.
+function isStillMounted(episodes: GenericEpisode[]) {
+  return useStore.getState().danmaku.episodes === episodes
+}
+
+export async function unmountQuietly() {
+  try {
+    await sendUnmount()
+  } catch (error) {
+    Logger.debug('Failed to unmount danmaku', error)
+  }
+}
+
+// The store records the episodes before the players are told, so whatever
+// is sent next carries them. A caller that aborts gets 'cancelled' and the
+// episodes are unmounted again unless something newer replaced them.
 export async function sendMount(
   episodes: GenericEpisode[],
   signal?: AbortSignal
@@ -33,7 +84,7 @@ export async function sendMount(
   if (signal?.aborted) {
     return { status: 'cancelled' }
   }
-  const frameId = activeFrameId()
+  const frameId = useStore.getState().frame.getActiveFrame()?.frameId
   if (frameId === undefined) {
     throw new DanmakuMountError(
       'noActiveFrame',
@@ -41,94 +92,44 @@ export async function sendMount(
     )
   }
 
-  const comments = episodes.flatMap((episode) => episode.comments)
-
-  const { issueCommand, isVisible } = useStore.getState().danmaku
-  const command = issueCommand(frameId)
-  const res = await playerRpcClient.player['relay:command:mount']({
-    frameId,
-    data: { comments, visible: isVisible, order: orderOf(command) },
-  })
-  // The player dropped it: it came from another controller session or a
-  // newer mount or unmount already reached the player.
-  if (!res.data) {
-    return { status: 'cancelled' }
+  useStore.getState().danmaku.setContent({ episodes, frameId })
+  let failure: { error: unknown } | undefined
+  try {
+    await broadcast(true, frameId)
+  } catch (error) {
+    failure = { error }
   }
 
-  const { commitMount, isLatestCommand } = useStore.getState().danmaku
+  if (!isStillMounted(episodes)) {
+    return { status: 'cancelled' }
+  }
   if (signal?.aborted) {
-    if (isLatestCommand(frameId, command)) {
-      await sendUnmount(frameId)
-    }
+    await unmountQuietly()
     return { status: 'cancelled' }
   }
-
-  const commit = commitMount(command, frameId, episodes)
-  if (commit === 'recorded') {
-    return { status: 'mounted' }
+  // After a move to another frame, this frame's answer no longer matters.
+  if (failure && useStore.getState().danmaku.mountedFrameId === frameId) {
+    await unmountQuietly()
+    throw failure.error
   }
-  // Nothing would track these danmaku, so take them down.
-  if (commit === 'superseded' && isLatestCommand(frameId, command)) {
-    await sendUnmount(frameId)
-  }
-  return { status: 'cancelled' }
+  return { status: 'mounted' }
 }
 
-export async function sendUnmount(frameId = mountedOrActiveFrameId()) {
-  if (frameId === undefined) {
-    throw new Error('Trying to unmount danmaku without an active frame')
-  }
-  const command = useStore.getState().danmaku.issueCommand(frameId)
-  const res = await playerRpcClient.player['relay:command:unmount']({
-    frameId,
-    data: { order: orderOf(command) },
-  })
-  if (res.data) {
-    useStore.getState().danmaku.commitUnmount(command, frameId)
-  }
+export async function sendUnmount() {
+  const { mountedFrameId, setContent } = useStore.getState().danmaku
+  setContent(undefined)
+  await broadcast(true, mountedFrameId)
 }
 
-// A user unmount also reaches a frame whose mount is still on its way, such
-// as one moving the danmaku to a new active frame, which would otherwise be
-// recorded after the unmount.
-export async function sendUnmountEverywhere() {
-  const targets = [...useStore.getState().frame.allFrames.values()]
-    .filter((frame) => {
-      return frame.mounted || frame.issuedCommand > frame.committedCommand
-    })
-    .map((frame) => frame.frameId)
-  if (targets.length === 0) {
-    await sendUnmount()
-    return
-  }
-  const mountedFrameId = useStore.getState().danmaku.mountedFrameId
-  const results = await Promise.allSettled(
-    targets.map((frameId) => {
-      return sendUnmount(frameId)
-    })
-  )
-  // Only the frame showing the danmaku decides whether the unmount worked.
-  results.forEach((result, index) => {
-    if (result.status === 'rejected' && targets[index] === mountedFrameId) {
-      throw result.reason
-    }
-  })
-}
-
-// The store holds what the user asked for, recorded before the players are
-// told, so a mount sent in the meantime or later carries it even if this
-// command never arrives. Every frame is told, since a mount can still be on
-// its way to a frame other than the one recorded as showing danmaku.
 export async function sendVisibility(visible: boolean) {
-  const { danmaku, frame } = useStore.getState()
-  danmaku.toggleVisible(visible)
-  const order = orderOf(danmaku.takeCommandNumber())
-  await Promise.allSettled(
-    [...frame.allFrames.keys()].map((frameId) => {
-      return playerRpcClient.player['relay:command:show']({
-        frameId,
-        data: { visible, order },
-      })
-    })
-  )
+  useStore.getState().danmaku.setVisible(visible)
+  await broadcast(false)
+}
+
+// For a frame that just started, which missed everything sent before.
+export async function syncFrame(frameId: number) {
+  await playerRpcClient.player['relay:command:apply']({
+    frameId,
+    data: commandFor(frameId, true),
+  })
 }

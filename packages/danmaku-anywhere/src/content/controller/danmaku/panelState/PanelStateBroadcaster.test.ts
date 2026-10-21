@@ -22,8 +22,7 @@ vi.mock('@/common/rpcClient/background/client', () => ({
   playerRpcClient: {
     player: {
       'relay:command:syncPanelState': syncPanelState,
-      'relay:command:mount': () => Promise.resolve({ data: true }),
-      'relay:command:unmount': () => Promise.resolve({ data: true }),
+      'relay:command:apply': () => Promise.resolve({ data: undefined }),
     },
   },
 }))

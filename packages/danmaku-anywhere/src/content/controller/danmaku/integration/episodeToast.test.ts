@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { EpisodeRuns } from './episodeRuns'
-import { EpisodeToast, toastStoreSink } from './episodeToast'
+import { EpisodeToast } from './episodeToast'
 
 /**
  * EpisodeToast shows what the current episode run is doing. Progress only
@@ -30,7 +30,7 @@ describe('EpisodeToast', () => {
     vi.useFakeTimers()
     useToast.setState({ notifications: [] })
     runs = new EpisodeRuns()
-    toast = new EpisodeToast(toastStoreSink, 1500)
+    toast = new EpisodeToast()
     toast.follow(runs)
   })
 
@@ -185,7 +185,7 @@ describe('EpisodeToast', () => {
   })
 
   it('drops pending progress once it stops following the runs', () => {
-    const unfollowed = new EpisodeToast(toastStoreSink, 1500)
+    const unfollowed = new EpisodeToast()
     const otherRuns = new EpisodeRuns()
     const stop = unfollowed.follow(otherRuns)
     const run = otherRuns.begin()

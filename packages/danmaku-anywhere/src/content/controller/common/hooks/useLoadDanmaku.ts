@@ -55,14 +55,22 @@ function providerConfigIdOf(request: DanmakuFetchDto) {
     : undefined
 }
 
-function followMountedEpisodes(signal: AbortSignal | undefined) {
+// Aborts once something other than this episode is mounted. The refresh's
+// own mount replaces the episode with the refreshed copy, which keeps it.
+function followMountedEpisode(
+  episode: Episode,
+  signal: AbortSignal | undefined
+) {
   const controller = new AbortController()
   const abort = () => {
     controller.abort()
   }
   signal?.addEventListener('abort', abort, { once: true })
   const unsubscribe = useStore.subscribe((state, prev) => {
-    if (state.danmaku.episodes !== prev.danmaku.episodes) {
+    if (
+      state.danmaku.episodes !== prev.danmaku.episodes &&
+      !isOnlyMounted(episode)
+    ) {
       abort()
     }
   })
@@ -119,6 +127,23 @@ export const useLoadDanmaku = () => {
     }
   )
 
+  const mountOutcome = useEventCallback(
+    async (
+      episode: GenericEpisode,
+      signal?: AbortSignal
+    ): Promise<LoadOutcome> => {
+      try {
+        const result = await mount([episode], { signal })
+        if (result.status === 'cancelled') {
+          return result
+        }
+      } catch (error) {
+        return { status: 'mountFailed', error }
+      }
+      return { status: 'mounted', episode }
+    }
+  )
+
   const loadMutation = useMutation({
     mutationKey: LOAD_MUTATION_KEY,
     mutationFn: async ({
@@ -129,6 +154,9 @@ export const useLoadDanmaku = () => {
       try {
         fetched = await fetchMutation.mutateAsync(request)
       } catch (error) {
+        if (signal?.aborted) {
+          return { status: 'cancelled' }
+        }
         return {
           status: 'fetchFailed',
           error,
@@ -142,15 +170,7 @@ export const useLoadDanmaku = () => {
       if (keptStored && isOnlyMounted(episode)) {
         return { status: 'unchanged', keptStored }
       }
-      try {
-        const result = await mount([episode], { signal })
-        if (result.status === 'cancelled') {
-          return { status: 'cancelled' }
-        }
-      } catch (error) {
-        return { status: 'mountFailed', error }
-      }
-      return { status: 'mounted', episode }
+      return mountOutcome(episode, signal)
     },
   })
 
@@ -233,7 +253,7 @@ export const useLoadDanmaku = () => {
         duration: null,
         loading: true,
       })
-      const refresh = followMountedEpisodes(signal)
+      const refresh = followMountedEpisode(episode, signal)
       try {
         const outcome = await loadMutation.mutateAsync({
           request: {
@@ -267,6 +287,7 @@ export const useLoadDanmaku = () => {
     refreshComments,
     canRefresh,
     mount,
+    mountOutcome,
     mountChosen,
   }
 }

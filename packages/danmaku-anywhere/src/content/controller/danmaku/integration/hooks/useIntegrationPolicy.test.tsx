@@ -64,9 +64,17 @@ vi.mock('@/common/rpcClient/background/client', () => ({
   },
   playerRpcClient: {
     player: {
-      'relay:command:mount': rpc.mount,
-      'relay:command:unmount': rpc.unmount,
-      'relay:command:show': () => Promise.resolve({ data: undefined }),
+      'relay:command:apply': (input: {
+        data: { content: { kind: string } }
+      }) => {
+        if (input.data.content.kind === 'mount') {
+          return rpc.mount(input)
+        }
+        if (input.data.content.kind === 'unmount') {
+          return rpc.unmount(input)
+        }
+        return Promise.resolve({ data: undefined })
+      },
     },
   },
 }))
@@ -104,7 +112,7 @@ vi.mock('@/content/controller/common/hooks/useDescribeSourceError', () => ({
       error: unknown
       describeFailure: (reason: string) => string
     }) => {
-      return { message: describeFailure(String(error)) }
+      return describeFailure(String(error))
     }
   },
 }))
@@ -194,11 +202,11 @@ function progressFor(title: string) {
 }
 
 function mountedState() {
-  const { danmaku, frame } = useStore.getState()
+  const { danmaku } = useStore.getState()
   return {
     isMounted: danmaku.isMounted,
     titles: danmaku.episodes?.map((e) => e.title),
-    frameMounted: frame.allFrames.get(0)?.mounted,
+    frameMounted: danmaku.mountedFrameId === 0,
   }
 }
 
@@ -312,6 +320,7 @@ beforeEach(() => {
   useStore.getState().frame.addFrame({ frameId: 0, url: 'https://a.test/' })
   useStore.getState().frame.setActiveFrame(0)
   useStore.getState().frame.updateFrame(0, {
+    started: true,
     hasVideo: true,
     videoChangeCount: 1,
   })
@@ -365,22 +374,6 @@ describe('useIntegrationPolicy', () => {
         message: 'Mounted Show A - Episode 1: 5 comments',
       },
     ])
-  })
-
-  it('clears the progress of a match whose mount the player turned down', async () => {
-    start()
-    const mountA = deferred<{ data: boolean }>()
-    rpc.mount.mockReturnValueOnce(mountA.promise)
-    rpc.episodeMatch.mockResolvedValueOnce(matched(localEpisode('Show A')))
-    showEpisode('Show A')
-    await waitForProgressDelay()
-    expect(openToasts()).toEqual([progressFor('Show A')])
-
-    mountA.resolve({ data: false })
-    await settle()
-
-    expect(mountedState()).toEqual(NOTHING_MOUNTED)
-    expect(openToasts()).toEqual([])
   })
 
   it('takes back a local mount that finishes after the observer is replaced', async () => {
@@ -784,6 +777,7 @@ describe('useIntegrationPolicy', () => {
     act(() => {
       useStore.getState().frame.addFrame({ frameId: 1, url: 'https://b.test/' })
       useStore.getState().frame.updateFrame(1, {
+        started: true,
         hasVideo: true,
         videoChangeCount: 1,
       })
@@ -814,10 +808,7 @@ describe('useIntegrationPolicy', () => {
     expect(rpc.unmount).toHaveBeenCalledWith(
       expect.objectContaining({ frameId: 0 })
     )
-    const { frame, danmaku } = useStore.getState()
-    expect(frame.allFrames.get(0)?.mounted).toBe(false)
-    expect(frame.allFrames.get(1)?.mounted).toBe(true)
-    expect(danmaku.mountedFrameId).toBe(1)
+    expect(useStore.getState().danmaku.mountedFrameId).toBe(1)
   })
 
   it('does not report a picked mount whose frame went away before it replied', async () => {
@@ -894,6 +885,22 @@ describe('useIntegrationPolicy', () => {
     expect(mountedState().titles).toEqual(['Picked'])
   })
 
+  it('drops an AI parse error that arrives after the user picked danmaku', async () => {
+    start()
+    reportParsing(true)
+
+    await act(async () => {
+      await user.mountChosen?.([localEpisode('Picked') as never])
+    })
+    reportError('quota exceeded')
+    reportParsing(false)
+    await settle()
+
+    expect(openToasts().map((toast) => toast.severity)).not.toContain('error')
+    expect(useStore.getState().integration.errorMessage).toBeUndefined()
+    expect(mountedState().titles).toEqual(['Picked'])
+  })
+
   it('keeps a newer refresh toast when an older refresh finishes late', async () => {
     start()
     await act(async () => {
@@ -948,6 +955,29 @@ describe('useIntegrationPolicy', () => {
       severity: 'info',
       message: 'Refreshing danmaku',
     })
+  })
+
+  it('shows no error for a refresh that fails after it was cut short', async () => {
+    start()
+    await act(async () => {
+      await user.mountChosen?.([sourceEpisode('Show A') as never])
+    })
+    const fetchA = deferred<unknown>()
+    rpc.episodeFetch.mockReturnValueOnce(fetchA.promise)
+    let refreshingA: Promise<void> | undefined
+    act(() => {
+      refreshingA = user.refresh?.()
+    })
+    await act(async () => {
+      await user.mountChosen?.([localEpisode('Show B') as never])
+    })
+
+    fetchA.reject(new Error('HTTP 500'))
+    await act(async () => {
+      await refreshingA
+    })
+
+    expect(openToasts().map((toast) => toast.severity)).not.toContain('error')
   })
 
   it('clears AI parsing progress when parsing ends without a show', async () => {

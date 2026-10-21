@@ -4,7 +4,7 @@ import { EpisodeRuns } from './episodeRuns'
 /**
  * EpisodeRuns hands out one run per episode the integration works on. Starting
  * a run or ending the session aborts the run before it, and nothing else does.
- * Asserts each run's signal, generation and the change notifications.
+ * Asserts each run's signal, whether it is current, and the change notifications.
  */
 
 describe('EpisodeRuns', () => {
@@ -18,7 +18,8 @@ describe('EpisodeRuns', () => {
     expect(first.isCurrent()).toBe(false)
     expect(first.signal.aborted).toBe(true)
     expect(second.isCurrent()).toBe(true)
-    expect(second.generation).toBeGreaterThan(first.generation)
+    expect(first.isCurrent()).toBe(false)
+    expect(second.isCurrent()).toBe(true)
   })
 
   it('aborts the current run when the session ends', () => {

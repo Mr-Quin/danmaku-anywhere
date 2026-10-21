@@ -3,7 +3,10 @@ import { uiContainer } from '@/common/ioc/uiIoc'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
-import type { PlayerRelayCommands } from '@/common/rpcClient/background/types'
+import type {
+  ControllerSession,
+  PlayerRelayCommands,
+} from '@/common/rpcClient/background/types'
 import { getRandomUUID } from '@/common/utils/utils'
 import { PlayerCommandHandler } from '@/content/player/PlayerCommandHandler.service'
 
@@ -75,7 +78,10 @@ export class PlayerScript {
     liteServer.listen(chrome.runtime.onMessage)
   }
 
-  private async createCommandHandler(query: string, session: string) {
+  private async createCommandHandler(
+    query: string,
+    session: ControllerSession
+  ) {
     const handler = uiContainer.get(PlayerCommandHandler)
     await handler.start({
       frameId: this.frameId,

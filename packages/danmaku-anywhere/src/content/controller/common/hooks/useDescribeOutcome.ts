@@ -78,7 +78,7 @@ export function useDescribeOutcome() {
             message: describeMountError(outcome.error),
           }
         case 'fetchFailed': {
-          const { message, ...action } = describeSourceError({
+          const message = describeSourceError({
             error: outcome.error,
             describeFailure: (reason) =>
               t(
@@ -88,10 +88,10 @@ export function useDescribeOutcome() {
               ),
             providerConfigId: outcome.providerConfigId,
           })
-          return { severity: 'error', message, action }
+          return { severity: 'error', message, action: searchAction() }
         }
         case 'matchFailed': {
-          const { message, ...action } = describeSourceError({
+          const message = describeSourceError({
             error: outcome.error,
             describeFailure: (reason) =>
               t(
@@ -100,7 +100,7 @@ export function useDescribeOutcome() {
                 { message: reason }
               ),
           })
-          return { severity: 'error', message, action }
+          return { severity: 'error', message, action: searchAction() }
         }
         case 'notFound':
           return {

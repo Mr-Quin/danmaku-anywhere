@@ -10,22 +10,12 @@ export const PROGRESS_DELAY_MS = 1500
 
 type ResultOptions = Pick<ToastOptions, 'actionFn' | 'actionLabel'>
 
-export interface ToastSink {
-  show: (severity: Severity, message: string, options: ToastOptions) => void
-  dismiss: (id: string) => void
-}
-
 // Progress only shows after a delay, so a fast match shows just its result,
 // which replaces the progress in place. Calls from a run that is no longer
 // current are ignored.
 export class EpisodeToast {
   private timer: ReturnType<typeof setTimeout> | undefined
   private showingProgress = false
-
-  constructor(
-    private readonly sink: ToastSink,
-    private readonly delayMs = PROGRESS_DELAY_MS
-  ) {}
 
   // Stopping drops any progress, since no run will finish it.
   follow(runs: EpisodeRuns) {
@@ -65,7 +55,7 @@ export class EpisodeToast {
     this.timer = setTimeout(() => {
       this.timer = undefined
       this.showProgress(message)
-    }, this.delayMs)
+    }, PROGRESS_DELAY_MS)
   }
 
   report(
@@ -79,7 +69,12 @@ export class EpisodeToast {
     }
     this.clearTimer()
     this.showingProgress = false
-    this.sink.show(severity, message, { ...options, id: EPISODE_TOAST_ID })
+    useToast.getState().enqueue({
+      ...options,
+      severity,
+      message,
+      id: EPISODE_TOAST_ID,
+    })
   }
 
   dismiss(run: EpisodeRun) {
@@ -92,12 +87,14 @@ export class EpisodeToast {
   private close() {
     this.clearTimer()
     this.showingProgress = false
-    this.sink.dismiss(EPISODE_TOAST_ID)
+    useToast.getState().toast.dismiss(EPISODE_TOAST_ID)
   }
 
   private showProgress(message: string) {
     this.showingProgress = true
-    this.sink.show('info', message, {
+    useToast.getState().enqueue({
+      severity: 'info',
+      message,
       id: EPISODE_TOAST_ID,
       duration: null,
       loading: true,
@@ -108,13 +105,4 @@ export class EpisodeToast {
     clearTimeout(this.timer)
     this.timer = undefined
   }
-}
-
-export const toastStoreSink: ToastSink = {
-  show: (severity, message, options) => {
-    useToast.getState().enqueue({ severity, message, ...options })
-  },
-  dismiss: (id) => {
-    useToast.getState().toast.dismiss(id)
-  },
 }

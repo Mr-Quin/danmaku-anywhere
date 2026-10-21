@@ -366,58 +366,46 @@ export interface PipelineEntry {
   provider?: DanmakuSourceType
 }
 
+export interface ControllerSession {
+  id: string
+  startedAt: number
+}
+
+export type PlayerContent =
+  | { kind: 'mount'; comments: CommentEntity[] }
+  | { kind: 'unmount' }
+  | { kind: 'keep' }
+
 /**
- * Where a mount, unmount or visibility command falls in the order the
- * controller sent them. `session` identifies that controller; a player only
- * applies commands from the session it took from the controller's handshake.
+ * The controller's desired state for one frame. `version` grows with every
+ * change and `contentVersion` is the version that last changed what is
+ * mounted, so a player can drop anything older than what it already applied.
  */
-export interface PlayerCommandOrder {
+export interface PlayerApplyCommand {
   session: string
-  command: number
-}
-
-export interface PlayerMountCommand {
-  comments: CommentEntity[]
+  version: number
+  contentVersion: number
+  content: PlayerContent
   visible: boolean
-  order: PlayerCommandOrder
-}
-
-export interface PlayerUnmountCommand {
-  order: PlayerCommandOrder
-}
-
-export interface PlayerVisibilityCommand {
-  visible: boolean
-  order: PlayerCommandOrder
 }
 
 // Controller -> Player communication
 // Here the frameId is used to identify the DESTINATION frame
 export type PlayerRelayCommands = {
-  'relay:command:mount': RPCDef<
-    InputWithFrameId<PlayerMountCommand>,
-    boolean,
-    FrameContext
-  >
-  'relay:command:unmount': RPCDef<
-    InputWithFrameId<PlayerUnmountCommand>,
-    boolean,
+  'relay:command:apply': RPCDef<
+    InputWithFrameId<PlayerApplyCommand>,
+    void,
     FrameContext
   >
   'relay:command:start': RPCDef<
-    InputWithFrameId<{ query: string; session: string }>,
+    InputWithFrameId<{ query: string; session: ControllerSession }>,
     void,
     FrameContext
   >
   'relay:command:seek': RPCDef<InputWithFrameId<number>, void, FrameContext>
   'relay:command:enterPip': RPCDef<InputWithFrameId<void>, void, FrameContext>
-  'relay:command:show': RPCDef<
-    InputWithFrameId<PlayerVisibilityCommand>,
-    void,
-    FrameContext
-  >
   'relay:command:controllerReady': RPCDef<
-    InputWithFrameId<{ session: string }>,
+    InputWithFrameId<{ session: ControllerSession }>,
     void,
     FrameContext
   >

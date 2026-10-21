@@ -6,15 +6,12 @@ import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
-import { sendUnmount } from '@/content/controller/common/danmakuCommands'
+import { unmountQuietly } from '@/content/controller/common/danmakuCommands'
 import {
   type EpisodeRun,
   EpisodeRuns,
 } from '@/content/controller/danmaku/integration/episodeRuns'
-import {
-  EpisodeToast,
-  toastStoreSink,
-} from '@/content/controller/danmaku/integration/episodeToast'
+import { EpisodeToast } from '@/content/controller/danmaku/integration/episodeToast'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import type { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { ObserverFactory } from '@/content/controller/danmaku/integration/observers/ObserverFactory'
@@ -48,7 +45,7 @@ export const useIntegrationPolicy = () => {
   } = useStore.use.integration()
 
   const [runs] = useState(() => new EpisodeRuns())
-  const [episodeToast] = useState(() => new EpisodeToast(toastStoreSink))
+  const [episodeToast] = useState(() => new EpisodeToast())
   const matchEpisode = useEpisodeMatching(episodeToast)
 
   const integrationPolicy = useActiveIntegration()
@@ -131,9 +128,7 @@ export const useIntegrationPolicy = () => {
         })
         const run = runs.begin()
         if (useStore.getState().danmaku.isMounted) {
-          sendUnmount().catch((error: unknown) => {
-            Logger.debug('Failed to unmount the previous episode', error)
-          })
+          void unmountQuietly()
         }
 
         setMediaInfo(state)
@@ -149,6 +144,10 @@ export const useIntegrationPolicy = () => {
       },
       error: (error: Error) => {
         getTrackingService().track('integrationPolicyError', { error })
+        if (parsingRun && !parsingRun.isCurrent()) {
+          parsingRun = undefined
+          return
+        }
         // The error does not invalidate work in flight: if the page recovers
         // to the same media, that run is still the right one.
         const run = runs.current() ?? runs.begin()

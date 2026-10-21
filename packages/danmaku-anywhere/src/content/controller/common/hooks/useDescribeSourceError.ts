@@ -4,7 +4,6 @@ import { useProviderConfig } from '@/common/options/providerConfig/useProviderCo
 import { findSourceName } from '@/common/options/providerConfig/utils'
 import { describeSourceError } from '@/common/providers/describeSourceError'
 import { isUnreachableError } from '@/common/providers/SourceError'
-import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 
 interface SourceErrorInput {
   error: unknown
@@ -14,41 +13,30 @@ interface SourceErrorInput {
 
 export function useDescribeSourceError() {
   const { t } = useTranslation()
-  const { open } = usePopup()
   const { configs } = useProviderConfig()
 
   return useEventCallback(
-    ({ error, describeFailure, providerConfigId }: SourceErrorInput) => {
-      const searchAction = {
-        actionFn: () => open({ tab: PopupTab.Search }),
-        actionLabel: t('integration.alert.openSearch', 'Open search page'),
-      }
-
+    ({
+      error,
+      describeFailure,
+      providerConfigId,
+    }: SourceErrorInput): string => {
       if (!isUnreachableError(error)) {
-        return {
-          message: describeFailure(describeSourceError(error)),
-          ...searchAction,
-        }
+        return describeFailure(describeSourceError(error))
       }
 
       const source = findSourceName(configs, providerConfigId)
       if (source === undefined) {
-        return {
-          message: t(
-            'integration.alert.sourceUnreachableUnnamed',
-            "Couldn't reach the danmaku source"
-          ),
-          ...searchAction,
-        }
+        return t(
+          'integration.alert.sourceUnreachableUnnamed',
+          "Couldn't reach the danmaku source"
+        )
       }
-      return {
-        message: t(
-          'integration.alert.sourceUnreachable',
-          "Couldn't reach {{source}}",
-          { source }
-        ),
-        ...searchAction,
-      }
+      return t(
+        'integration.alert.sourceUnreachable',
+        "Couldn't reach {{source}}",
+        { source }
+      )
     }
   )
 }

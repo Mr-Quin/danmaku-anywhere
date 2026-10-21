@@ -12,28 +12,22 @@ import { useMigrateDanmaku } from './useMigrateDanmaku'
 
 /**
  * Danmaku recorded as mounted in a frame other than the active one move to
- * the active frame without a toast, whether the active frame changed or a
- * mount replied after it did. Mocks the player RPC and asserts the player
- * commands, the controller store and the toast store.
+ * the active frame without a toast, whether the active frame changed after
+ * the mount or while it was being sent. Mocks the player RPC and asserts the
+ * player commands, the controller store and the toast store.
  */
 
-const rpc = vi.hoisted(() => ({
-  mount: vi.fn(),
-  unmount: vi.fn(),
-}))
+const rpc = vi.hoisted(() => ({ apply: vi.fn() }))
 
 vi.mock('@/common/rpcClient/background/client', () => ({
   chromeRpcClient: { remoteLog: () => Promise.resolve() },
   playerRpcClient: {
-    player: {
-      'relay:command:mount': rpc.mount,
-      'relay:command:unmount': rpc.unmount,
-    },
+    player: { 'relay:command:apply': rpc.apply },
   },
 }))
 
 vi.mock('@/content/controller/common/hooks/useDescribeSourceError', () => ({
-  useDescribeSourceError: () => () => ({ message: '' }),
+  useDescribeSourceError: () => () => '',
 }))
 
 function deferred<T>() {
@@ -65,8 +59,10 @@ async function settle() {
   })
 }
 
-function mountCallsTo(frameId: number) {
-  return rpc.mount.mock.calls.filter(([input]) => input.frameId === frameId)
+function contentSentTo(frameId: number) {
+  return rpc.apply.mock.calls
+    .filter(([input]) => input.frameId === frameId)
+    .map(([input]) => input.data.content.kind)
 }
 
 const initialStore = useStore.getState()
@@ -81,11 +77,12 @@ beforeEach(async () => {
       frameId,
       url: `https://a.test/${frameId}`,
     })
+    useStore.getState().frame.updateFrame(frameId, { started: true })
   }
   useStore.getState().frame.setActiveFrame(0)
-  rpc.mount.mockReset().mockResolvedValue({ data: true })
-  rpc.unmount.mockReset().mockResolvedValue({ data: true })
+  rpc.apply.mockReset().mockResolvedValue({ data: undefined })
   await sendMount([episode('Show A')])
+  rpc.apply.mockClear()
 
   root = createRoot(document.createElement('div'))
   act(() => {
@@ -109,38 +106,30 @@ describe('useMigrateDanmaku', () => {
     activate(1)
     await settle()
 
-    expect(rpc.unmount).toHaveBeenCalledWith(
-      expect.objectContaining({ frameId: 0 })
-    )
-    expect(mountCallsTo(1)).toHaveLength(1)
+    expect(contentSentTo(0)).toEqual(['unmount'])
+    expect(contentSentTo(1)).toEqual(['mount'])
     expect(useStore.getState().danmaku.mountedFrameId).toBe(1)
     expect(useToast.getState().notifications).toEqual([])
   })
 
-  it('moves danmaku whose mount replied after another frame became active', async () => {
-    await act(async () => {
-      await sendUnmount(0)
-    })
-    const mountB = deferred<{ data: boolean }>()
-    rpc.mount.mockReturnValueOnce(mountB.promise)
+  it('moves danmaku whose mount was still being sent when another frame became active', async () => {
+    const mountB = deferred<{ data: undefined }>()
+    rpc.apply.mockReturnValueOnce(mountB.promise)
     let mounting: Promise<unknown> | undefined
     act(() => {
       mounting = sendMount([episode('Show B')])
     })
     activate(1)
     await settle()
-    expect(mountCallsTo(1)).toHaveLength(0)
-
-    mountB.resolve({ data: true })
+    mountB.resolve({ data: undefined })
+    let result: unknown
     await act(async () => {
-      await mounting
+      result = await mounting
     })
-    await settle()
 
-    expect(rpc.unmount).toHaveBeenLastCalledWith(
-      expect.objectContaining({ frameId: 0 })
-    )
-    expect(mountCallsTo(1)).toHaveLength(1)
+    expect(result).toEqual({ status: 'mounted' })
+    expect(contentSentTo(0)).toEqual(['mount', 'unmount'])
+    expect(contentSentTo(1)).toEqual(['unmount', 'mount'])
     expect(useStore.getState().danmaku).toMatchObject({
       mountedFrameId: 1,
       episodes: [expect.objectContaining({ title: 'Show B' })],
@@ -149,13 +138,13 @@ describe('useMigrateDanmaku', () => {
 
   it('does nothing when nothing is mounted', async () => {
     await act(async () => {
-      await sendUnmount(0)
+      await sendUnmount()
     })
-    rpc.mount.mockClear()
+    rpc.apply.mockClear()
 
     activate(1)
     await settle()
 
-    expect(rpc.mount).not.toHaveBeenCalled()
+    expect(rpc.apply).not.toHaveBeenCalled()
   })
 })

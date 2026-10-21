@@ -7,7 +7,10 @@ import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { createRpcServer } from '@/common/rpc/server'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
-import type { PlayerRelayCommands } from '@/common/rpcClient/background/types'
+import type {
+  ControllerSession,
+  PlayerRelayCommands,
+} from '@/common/rpcClient/background/types'
 import { createPopoverRoot } from '@/content/common/host/createPopoverRoot'
 import { injectCss } from '@/content/common/injectCss'
 import danmakuComponentCss from '@/content/player/components/DanmakuComponent.css?inline'
@@ -21,8 +24,8 @@ import { InfoPanelService } from '@/content/player/infoPanel/InfoPanel.service'
 import { OcclusionEntryDeriver } from '@/content/player/infoPanel/occlusionEntry'
 import infoPanelCss from '@/content/player/infoPanel/PlayerInfoPanel.css?inline'
 import { buildSakuraCssVars } from '@/content/player/infoPanel/sakuraCssVars'
-import { OrderedPlayerCommands } from '@/content/player/orderedPlayerCommands'
 import { createPipWindow, moveElement } from '@/content/player/pipUtils'
+import { PlayerDanmakuState } from '@/content/player/playerDanmakuState'
 import { VideoEventService } from '@/content/player/videoEvent/VideoEvent.service'
 import { VideoNodeObserverService } from '@/content/player/videoObserver/VideoNodeObserver.service'
 import { VideoSkipService } from '@/content/player/videoSkip/VideoSkip.service'
@@ -31,7 +34,7 @@ import { reparentPopover } from '../common/reparentPopover'
 interface StartContext {
   frameId: number
   query: string
-  session: string
+  session: ControllerSession
   sendPlayerReady: () => void
 }
 
@@ -70,7 +73,7 @@ export class PlayerCommandHandler {
   async start(ctx: StartContext) {
     this.frameId = ctx.frameId
     this.sendPlayerReady = ctx.sendPlayerReady
-    this.ordered.adopt(ctx.session)
+    this.danmakuState.adopt(ctx.session)
 
     await this.setupDom()
     this.wireLifecycleEvents()
@@ -271,24 +274,20 @@ export class PlayerCommandHandler {
     const server = createRpcServer<PlayerRelayCommands>(
       {
         'relay:command:start': async ({ data: { query, session } }) => {
-          // Already started — idempotent
-          this.ordered.adopt(session)
-          this.manager.start(query)
+          if (this.danmakuState.adopt(session)) {
+            this.manager.start(query)
+          }
         },
-        'relay:command:mount': async ({ data }) => {
-          return this.ordered.mount(data)
-        },
-        'relay:command:unmount': async ({ data }) => {
-          return this.ordered.unmount(data)
+        'relay:command:apply': async ({ data }) => {
+          this.danmakuState.apply(data)
         },
         'relay:command:seek': async ({ data: time }) => {
           this.manager.seek(time)
         },
-        'relay:command:show': async ({ data }) => {
-          this.ordered.show(data)
-        },
         'relay:command:controllerReady': async ({ data: { session } }) => {
-          this.ordered.adopt(session)
+          if (!this.danmakuState.adopt(session)) {
+            return
+          }
           this.logger.debug('Controller ready, re-sending playerReady')
           this.sendPlayerReady()
         },
@@ -326,7 +325,7 @@ export class PlayerCommandHandler {
     server.listen(chrome.runtime.onMessage)
   }
 
-  private readonly ordered = new OrderedPlayerCommands({
+  private readonly danmakuState = new PlayerDanmakuState({
     mount: (comments) => {
       this.mount(comments)
     },

@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
-import { sendUnmountEverywhere } from '@/content/controller/common/danmakuCommands'
+import { sendUnmount } from '@/content/controller/common/danmakuCommands'
 import { preemptAutomatic } from '@/content/controller/store/automaticPreemption'
 
 // For an unmount the user asked for; it also stops automatic matching in
@@ -14,7 +14,7 @@ export const useUnmountDanmaku = () => {
   return useMutation({
     mutationFn: async () => {
       preemptAutomatic()
-      await sendUnmountEverywhere()
+      await sendUnmount()
       return true
     },
     onSuccess: () => {

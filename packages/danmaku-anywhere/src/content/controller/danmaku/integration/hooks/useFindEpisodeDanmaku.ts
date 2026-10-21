@@ -13,9 +13,12 @@ export type FindOutcome =
 
 // An episode the page has moved on from comes back as 'cancelled' with
 // nothing mounted.
-type Loader = Pick<ReturnType<typeof useLoadDanmaku>, 'loadMutation' | 'mount'>
+type Loader = Pick<
+  ReturnType<typeof useLoadDanmaku>,
+  'loadMutation' | 'mountOutcome'
+>
 
-export function useFindEpisodeDanmaku({ loadMutation, mount }: Loader) {
+export function useFindEpisodeDanmaku({ loadMutation, mountOutcome }: Loader) {
   return useEventCallback(
     async (
       run: EpisodeRun,
@@ -59,15 +62,7 @@ export function useFindEpisodeDanmaku({ loadMutation, mount }: Loader) {
           signal: run.signal,
         })
       }
-      try {
-        const result = await mount([episode], { signal: run.signal })
-        if (result.status === 'cancelled') {
-          return result
-        }
-      } catch (error) {
-        return { status: 'mountFailed', error }
-      }
-      return { status: 'mounted', episode }
+      return mountOutcome(episode, run.signal)
     }
   )
 }
