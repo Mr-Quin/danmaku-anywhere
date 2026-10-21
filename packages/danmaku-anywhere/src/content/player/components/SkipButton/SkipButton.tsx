@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { i18n } from '@/common/localization/i18n'
 import type { SkipTarget } from '@/content/player/videoSkip/SkipTarget'
 
 export interface SkipButtonProps {
@@ -34,15 +35,17 @@ export function SkipButton(props: SkipButtonProps) {
     <div className="da-skip-button-wrapper">
       <div className={alertClassName}>
         <button type="button" className="da-text-button" onClick={onClick}>
-          {`空降至 ${formatTimestamp(target.endTime)}`}
+          {i18n.t('skipButton.skipTo', 'Skip to {{time}}', {
+            time: formatTimestamp(target.endTime),
+          })}
         </button>
         <div className="da-actions">
           <button
             type="button"
             className="da-close-button"
             onClick={handleClose}
-            aria-label="Close"
-            title="Close"
+            aria-label={i18n.t('common.close', 'Close')}
+            title={i18n.t('common.close', 'Close')}
           >
             ×
           </button>

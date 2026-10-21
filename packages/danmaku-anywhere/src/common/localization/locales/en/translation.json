@@ -291,6 +291,10 @@
   "error": {
     "unknown": "Something went wrong."
   },
+  "floatingButton": {
+    "label": "Open Danmaku Anywhere",
+    "tooltip": "Danmaku Anywhere. Right-click for quick actions"
+  },
   "form": {
     "precision": {
       "alt": "Alt",
@@ -524,6 +528,7 @@
       "signUpSuccess": "Sign up successful"
     },
     "autoBookmark": "Follow automatically when preloading the next episode",
+    "autoBookmarkDesc": "Follow a show once you are halfway through an episode, so the next episode's danmaku is preloaded.",
     "backup": {
       "alert": {
         "exportSuccess": "Export success",
@@ -639,7 +644,7 @@
     "player": {
       "inPlayerControls": "In-player controls",
       "showDanmakuTimeline": "Show danmaku density",
-      "showDanmakuTimelineDesc": "Overlay a comment-density timeline above the scrubber.",
+      "showDanmakuTimelineDesc": "Draw a comment-density graph along the bottom edge of the video.",
       "showSkipButton": "Show skip button (OP/ED)",
       "showSkipButtonDesc": "Surface a one-tap skip during intro and outro segments."
     },
@@ -868,6 +873,9 @@
     "noAnimeFound": "Nothing to select from",
     "selectAnime": "Multiple matches found for {{name}}, please select"
   },
+  "skipButton": {
+    "skipTo": "Skip to {{time}}"
+  },
   "stylePage": {
     "customCssDescription": "Custom CSS rules applied to every danmaku. These override other style settings.",
     "distribution": "Distribution",
@@ -971,5 +979,8 @@
     "noSeasons": "No options for the selected source",
     "title": "Title Mappings",
     "unmapped": "Unmapped"
+  },
+  "toast": {
+    "region": "Notifications"
   }
 }

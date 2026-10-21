@@ -9,6 +9,8 @@ import {
   CONTROLLER_WINDOW_MIN_HEIGHT,
 } from '@/content/controller/ui/constants/size'
 
+const WINDOW_MAX_HEIGHT = 'calc(100vh - 16px)'
+
 interface WindowPaneLayoutProps {
   children: ReactNode
   paperProps?: PaperProps
@@ -33,13 +35,15 @@ export const WindowPaneLayout = (props: WindowPaneLayoutProps) => {
         position: 'relative',
         width: sm ? '100%' : width,
         maxWidth: sm ? '100%' : width,
-        minHeight: height,
+        minHeight: `min(${height}px, ${WINDOW_MAX_HEIGHT})`,
+        maxHeight: WINDOW_MAX_HEIGHT,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
         touchAction: 'manipulation',
       }}
       ref={ref}
+      data-testid="controller-window"
       {...props.paperProps}
     >
       {props.children}
