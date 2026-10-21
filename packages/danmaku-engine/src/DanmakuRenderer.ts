@@ -155,11 +155,7 @@ export class DanmakuRenderer {
     if (!this.media.paused) {
       manager.startPlaying()
     }
-    if (this.config.show) {
-      void manager.show()
-    } else {
-      void manager.hide()
-    }
+    this.applyVisibility()
 
     this.created = true
   }
@@ -182,6 +178,9 @@ export class DanmakuRenderer {
     }
     if (!deepEqual(prevConfig.area, this.config.area)) {
       this.setArea()
+    }
+    if (prevConfig.show !== this.config.show) {
+      this.applyVisibility()
     }
     this.updateOptions()
   }
@@ -292,12 +291,23 @@ export class DanmakuRenderer {
     this.created = false
   }
 
+  // Kept in the config so a manager created later starts in the same state.
   show(): void {
-    this.manager?.show()
+    this.config = { ...this.config, show: true }
+    this.applyVisibility()
   }
 
   hide(): void {
-    this.manager?.hide()
+    this.config = { ...this.config, show: false }
+    this.applyVisibility()
+  }
+
+  private applyVisibility(): void {
+    if (this.config.show) {
+      void this.manager?.show()
+    } else {
+      void this.manager?.hide()
+    }
   }
 
   clear(): void {
