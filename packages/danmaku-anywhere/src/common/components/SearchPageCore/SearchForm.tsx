@@ -29,6 +29,7 @@ import {
 } from '@/common/providers/useSourceCapabilities'
 import { seasonQueryKeys } from '@/common/queries/queryKeys'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
+import { isExplicitLink } from '@/common/utils/link'
 import { toSimplified } from '@/common/utils/utils'
 import { SearchInput } from './SearchInput'
 import { SearchMascot } from './SearchMascot'
@@ -199,7 +200,9 @@ export function SearchForm({
       .catch(() => undefined)
     if (answer?.kind === 'parseable') {
       handleParseSubmit(value)
-    } else if (answer?.kind !== 'unclaimed') {
+    } else if (answer?.kind === 'notLink') {
+      handleSearchSubmit(value)
+    } else if (answer === undefined && !isExplicitLink(value)) {
       handleSearchSubmit(value)
     }
   }

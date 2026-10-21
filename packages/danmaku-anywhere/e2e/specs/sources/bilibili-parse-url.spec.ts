@@ -8,8 +8,8 @@ import { applyProfile } from '../../setup/profile'
 /**
  * Pasting a Bilibili season URL switches the search box to Parse, shows the
  * parsed season and imports its danmaku with a success toast. A link no
- * installed source claims (source removed, unmatched path, with or without a
- * scheme) shows "no source can read this link" instead of searching. A title
+ * installed source claims (source removed, unmatched path, with a scheme or a
+ * leading "www.") shows "no source can read this link" instead of searching. A title
  * with a dot and a slash that no source reads is searched as a title.
  */
 
