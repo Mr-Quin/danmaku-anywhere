@@ -6,11 +6,11 @@ import { loadJsonFixture, loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
 
 /**
- * URL-detect path: pasting a Bilibili season URL into the search input
- * flips the form into Parse mode and surfaces the parsed result card.
- * Clicking Download Danmaku then runs the regular fetch flow and fires
- * the success toast. Asserts the parse-submit button appears, the
- * parsed season title renders, and the import success toast fires.
+ * Pasting a Bilibili season URL switches the search box to Parse, shows the
+ * parsed season and imports its danmaku with a success toast. A link no
+ * installed source claims (source removed, unmatched path, with a scheme or a
+ * leading "www.") shows "no source can read this link" instead of searching. A title
+ * with a dot and a slash that no source reads is searched as a title.
  */
 
 test('bilibili url paste: detect URL → parse → download danmaku', async ({
@@ -45,4 +45,86 @@ test('bilibili url paste: detect URL → parse → download danmaku', async ({
 
   await downloadDanmaku.click()
   await popup.toast.expectSuccess(/import|导入/i)
+})
+
+test('bilibili url paste: with Bilibili removed, no source reads the link', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, {
+    providers: { bilibili: { enabled: true } },
+  })
+  const configs = await da.providerConfig.list()
+  await da.providerConfig.set(
+    configs.filter((config) => config.id !== 'bilibili')
+  )
+
+  const popup = await Popup.open(page, extensionId)
+
+  await popup.search.submit('https://www.bilibili.com/bangumi/play/ss41410')
+  await expect(page.getByTestId('parse-no-source')).toBeVisible()
+  await expect(popup.search.parseButton).toBeDisabled()
+})
+
+test('bilibili url paste: a link on a path no manifest claims is not searched', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, {
+    providers: { bilibili: { enabled: true } },
+  })
+
+  const popup = await Popup.open(page, extensionId)
+
+  await popup.search.submit('https://www.bilibili.com/bangumi/media/md28229051')
+  await expect(page.getByTestId('parse-no-source')).toBeVisible()
+  await expect(popup.search.parseButton).toBeDisabled()
+  await expect(popup.search.resultCountSkeleton).toHaveCount(0)
+})
+
+test('bilibili url paste: an unclaimed link typed without a scheme is not searched', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, {
+    providers: { bilibili: { enabled: true } },
+  })
+
+  const popup = await Popup.open(page, extensionId)
+
+  await popup.search.submit('www.bilibili.com/bangumi/media/md28229051')
+  await expect(page.getByTestId('parse-no-source')).toBeVisible()
+  await expect(popup.search.parseButton).toBeDisabled()
+  await expect(popup.search.resultCountSkeleton).toHaveCount(0)
+})
+
+test('bilibili url paste: a title with a dot and a slash is searched as a title', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, {
+    providers: { bilibili: { enabled: true } },
+    network: mockBilibiliXml({
+      searchBangumi: loadJsonFixture('bilibili-search-bangumi.json'),
+      searchFt: loadJsonFixture('bilibili-search-ft.json'),
+      season: loadJsonFixture('bilibili-season.json'),
+      xml: loadTextFixture('bilibili-xml.xml'),
+    }),
+  })
+
+  const popup = await Popup.open(page, extensionId)
+
+  await popup.search.submit('Re.Zero/2')
+
+  await expect(popup.search.seasonCard('Bilibili')).toBeVisible()
+  await expect(popup.search.noSourceNotice).toHaveCount(0)
+  await expect(popup.search.parseButton).toHaveCount(0)
 })

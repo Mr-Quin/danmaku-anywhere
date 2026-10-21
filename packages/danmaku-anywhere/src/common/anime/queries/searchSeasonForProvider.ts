@@ -4,6 +4,7 @@ import type {
   SeasonInsert,
 } from '@danmaku-anywhere/danmaku-converter'
 import { Logger } from '@/common/Logger'
+import { describeSourceError } from '@/common/providers/describeSourceError'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { isNetworkError } from '@/common/utils/networkError'
@@ -32,7 +33,9 @@ export async function searchSeasonForProvider(
     if (isNetworkError(error)) {
       return { success: false, error: { kind: 'network' } }
     }
-    const message = error instanceof Error ? error.message : ''
-    return { success: false, error: { kind: 'other', message } }
+    return {
+      success: false,
+      error: { kind: 'other', message: describeSourceError(error) },
+    }
   }
 }

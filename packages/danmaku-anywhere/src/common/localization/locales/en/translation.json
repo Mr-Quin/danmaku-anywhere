@@ -58,6 +58,7 @@
     "refreshMetadata": "Refresh Metadata",
     "sourceRemoved": "Source removed",
     "sourceRemovedTooltip": "This source has been deleted.",
+    "sourceUnavailableTooltip": "This source can't be used right now.",
     "title": "Title"
   },
   "bookmark": {
@@ -778,8 +779,11 @@
       }
     },
     "error": {
+      "danmakuUnsupported": "{{name}} cannot fetch danmaku",
       "episodesUnsupported": "{{name}} cannot list episodes",
-      "refetchUnsupported": "{{name}} cannot fetch danmaku for saved episodes again"
+      "searchUnsupported": "{{name}} cannot search",
+      "seasonRefreshUnsupported": "{{name}} cannot refresh season details",
+      "sourceUnavailable": "{{name}} can't be used right now"
     },
     "filter": {
       "placeholder": "Filter sources"
