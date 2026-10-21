@@ -92,13 +92,10 @@ export const bindVideo =
       bumpCursor = binarySearchBumps(ctx.bumpEvents, video.currentTime - offset)
     }
 
-    // After a seek on a paused video, danmu must put the seek's danmaku on
-    // screen before it is frozen again: it drops a danmaku whose deferred
-    // frames have not run when freeze flips, and on a busy machine that takes
-    // far longer than a frame. Scrolling pushes wait in danmu's stash for its
-    // next render tick, so the settle waits for that tick, then for every
-    // danmaku danmu created to start moving or leave the screen. Pushes still
-    // in the stash survive a freeze, so they are not waited for.
+    // danmu drops a danmaku whose deferred frames have not run when freeze
+    // flips, which on a busy machine takes far longer than a frame. After a
+    // seek, wait for danmu's next render tick, then for each danmaku it created
+    // to start moving or leave. Pushes still in its stash survive a freeze.
     let settlingSeek = false
     let awaitingRender = false
     let inFlight = 0
@@ -343,7 +340,9 @@ export const bindVideo =
     // the seek's danmaku render; the settle pauses danmu itself if the video
     // is paused by then.
     const handlePause = () => {
-      if (settlingSeek) return
+      if (settlingSeek) {
+        return
+      }
       pauseDanmaku()
     }
 

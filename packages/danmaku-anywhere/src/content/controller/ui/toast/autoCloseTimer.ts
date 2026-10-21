@@ -1,4 +1,3 @@
-// Counts down a toast's display time, keeping what is left across pauses.
 export class AutoCloseTimer {
   private remaining: number
   private startedAt = 0

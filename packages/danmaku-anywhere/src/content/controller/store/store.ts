@@ -59,12 +59,6 @@ interface StoreState {
     filter: string
     setFilter: (filter: string) => void
 
-    /**
-     * Mount and unmount commands are numbered in the order they are sent, and
-     * their replies can arrive out of order. Each frame records its own
-     * replies; what is mounted only follows a reply newer than the one that
-     * last set it, whichever frame that was.
-     */
     lastCommand: number
     recordCommand: number
     mountedFrameId?: number

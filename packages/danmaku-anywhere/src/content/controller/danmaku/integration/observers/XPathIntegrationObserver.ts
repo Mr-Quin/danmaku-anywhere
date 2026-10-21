@@ -73,8 +73,7 @@ export class XPathIntegrationObserver extends MediaObserver {
     this.logger.debug('Creating observer')
   }
 
-  // There is no event for an element matching an XPath appearing, so poll
-  // once a second until the title element is present.
+  // No DOM event fires when an XPath match appears, so this polls.
   private discoverElements(
     policy: IntegrationPolicy,
     signal: AbortSignal

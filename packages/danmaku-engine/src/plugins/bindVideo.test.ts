@@ -6,15 +6,10 @@ import type { ParsedComment } from '../parser'
 import { type BindContext, bindVideo } from './bindVideo'
 
 /**
- * After a seek on a paused video the engine unfreezes danmu so the comments at
- * the new time render, then freezes again so they hold still. danmu drops a
- * danmaku whose deferred frames have not run when freeze flips, and on a busy
- * machine that can take well over 200 ms. Scrolling pushes wait in danmu's
- * stash for its next render tick, so the refreeze waits for that tick, then
- * for every danmaku danmu put on screen to start moving or leave. Pushes still
- * in the stash are kept by danmu across a freeze and are not waited for.
- * Drives the plugin with a fake video and a fake danmu manager whose render
- * ticks and danmaku the test controls.
+ * After a seek on a paused video, danmaku at the new time render and then hold
+ * still: the refreeze waits for danmu's next render tick and for each danmaku
+ * it created to start moving or leave. Drives the plugin with a fake video and
+ * a fake danmu manager whose render ticks and danmaku the test controls.
  */
 
 type Hook = (value: unknown) => void

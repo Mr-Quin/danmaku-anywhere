@@ -11,12 +11,8 @@ export type FindOutcome =
   | EpisodeOutcome
   | { status: 'ambiguous'; seasons: Season[] }
 
-/**
- * Matches the episode a run was started for and mounts its danmaku. Each step
- * checks the run first, and the run's signal goes with the mount to the
- * player, so an episode the page has moved on from comes back as 'cancelled'
- * without anything mounted.
- */
+// An episode the page has moved on from comes back as 'cancelled' with
+// nothing mounted.
 type Loader = Pick<ReturnType<typeof useLoadDanmaku>, 'loadMutation' | 'mount'>
 
 export function useFindEpisodeDanmaku({ loadMutation, mount }: Loader) {

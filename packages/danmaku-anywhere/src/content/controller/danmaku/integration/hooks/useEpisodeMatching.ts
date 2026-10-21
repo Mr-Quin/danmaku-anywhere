@@ -13,11 +13,6 @@ import {
   useFindEpisodeDanmaku,
 } from './useFindEpisodeDanmaku'
 
-/**
- * Works through one run of automatic matching: shows progress, finds and
- * mounts the episode, reports the outcome on the episode toast, and offers
- * seasons to pick from when the match was ambiguous.
- */
 export function useEpisodeMatching(toast: EpisodeToast) {
   const { t } = useTranslation()
 

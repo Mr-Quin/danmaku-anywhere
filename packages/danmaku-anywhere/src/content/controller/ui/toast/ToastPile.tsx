@@ -195,11 +195,6 @@ function PileToast({
   )
 }
 
-/**
- * In-page toasts, bottom-left. The newest toast sits in front with older ones
- * peeking out behind it; hovering or focusing the pile spreads it out and
- * pauses every timer.
- */
 export function ToastPile() {
   const { t } = useTranslation()
   const notifications = useToast((state) => state.notifications)

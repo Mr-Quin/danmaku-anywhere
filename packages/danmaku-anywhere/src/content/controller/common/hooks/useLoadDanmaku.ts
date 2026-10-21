@@ -54,7 +54,6 @@ function providerConfigIdOf(request: DanmakuFetchDto) {
     : undefined
 }
 
-// Aborts when the caller's signal does or when the mounted episodes change.
 function followMountedEpisodes(signal: AbortSignal | undefined) {
   const controller = new AbortController()
   const abort = () => {
@@ -91,17 +90,6 @@ export const useLoadDanmaku = () => {
 
   const fetchMutation = useFetchDanmaku()
   const fetchGenericMutation = useFetchGenericDanmaku()
-  const mountMutation = useMutation({
-    mutationFn: ({
-      episodes,
-      signal,
-    }: {
-      episodes: GenericEpisode[]
-      signal?: AbortSignal
-    }) => {
-      return sendMount(episodes, signal)
-    },
-  })
 
   const isLoading = useIsMutating({ mutationKey: LOAD_MUTATION_KEY }) > 0
 
@@ -113,7 +101,7 @@ export const useLoadDanmaku = () => {
       episodes: GenericEpisode[],
       { signal }: { signal?: AbortSignal } = {}
     ): Promise<MountResult> => {
-      return mountMutation.mutateAsync({ episodes, signal })
+      return sendMount(episodes, signal)
     }
   )
 
@@ -215,8 +203,6 @@ export const useLoadDanmaku = () => {
     },
   })
 
-  // Refetches the one mounted episode. It gives up when the caller's signal
-  // aborts or something else changes what is mounted first.
   const refreshComments = useEventCallback(
     async ({ signal }: RefreshOptions = {}) => {
       if (!canRefresh || signal?.aborted) {

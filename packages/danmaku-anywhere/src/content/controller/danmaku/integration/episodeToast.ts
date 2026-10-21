@@ -15,13 +15,9 @@ export interface ToastSink {
   dismiss: (id: string) => void
 }
 
-/**
- * The one toast that tells the user what automatic matching is doing for the
- * current episode run. Progress only shows once a run has worked for a while,
- * so a fast match shows nothing but its result; the result then replaces the
- * progress toast in place. Anything a run that is no longer current asks for
- * is ignored.
- */
+// Progress only shows after a delay, so a fast match shows just its result,
+// which replaces the progress in place. Calls from a run that is no longer
+// current are ignored.
 export class EpisodeToast {
   private timer: ReturnType<typeof setTimeout> | undefined
   private showingProgress = false
@@ -86,7 +82,6 @@ export class EpisodeToast {
     this.sink.show(severity, message, { ...options, id: EPISODE_TOAST_ID })
   }
 
-  // Closes the toast, for when the outcome is shown somewhere else.
   dismiss(run: EpisodeRun) {
     if (!run.isCurrent()) {
       return

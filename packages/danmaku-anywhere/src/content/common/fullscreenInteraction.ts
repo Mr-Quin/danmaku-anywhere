@@ -1,3 +1,5 @@
+import { canHoldPopover } from './reparentPopover'
+
 // The controller lives in a popover. Inside a fullscreen element it can only
 // take clicks after being moved into that element, which is impossible for a
 // <video> or <iframe> and skipped when the user turned the option off. In those
@@ -12,8 +14,5 @@ export function canInteractInFullscreen(
   if (!enableFullscreenInteraction) {
     return false
   }
-  return (
-    fullscreenElement.nodeName !== 'VIDEO' &&
-    fullscreenElement.nodeName !== 'IFRAME'
-  )
+  return canHoldPopover(fullscreenElement)
 }

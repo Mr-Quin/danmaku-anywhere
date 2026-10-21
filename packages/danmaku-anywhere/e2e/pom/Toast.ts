@@ -20,8 +20,6 @@ export class Toast {
     return this.page.locator(SELECTORS.snackbar)
   }
 
-  // The in-page toast container. Collapsed, the newest toast sits in front with
-  // older ones peeking out behind; hover or focus spreads them out.
   pile(): Locator {
     return this.page.getByTestId('toast-pile')
   }

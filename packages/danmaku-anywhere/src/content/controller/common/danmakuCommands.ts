@@ -1,9 +1,5 @@
-import type {
-  CommentEntity,
-  GenericEpisode,
-} from '@danmaku-anywhere/danmaku-converter'
+import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
-import { concatArr } from '@/common/utils/utils'
 import { DanmakuMountError } from '@/content/controller/common/hooks/mountError'
 import { useStore } from '@/content/controller/store/store'
 
@@ -27,13 +23,9 @@ function mountedOrActiveFrameId(): number | undefined {
   return useStore.getState().danmaku.mountedFrameId ?? activeFrameId()
 }
 
-/**
- * Mounts the episodes in the active frame's player. A caller that gives up
- * through the signal gets 'cancelled' and never has its episodes recorded; if
- * the player already took them and nothing newer has been sent to that frame,
- * they are unmounted again. Each command carries its number, so the player
- * also applies them in the order they were sent.
- */
+// A caller that aborts gets 'cancelled' and nothing is recorded. If the player
+// already took the episodes and nothing newer was sent to that frame, they are
+// unmounted again.
 export async function sendMount(
   episodes: GenericEpisode[],
   signal?: AbortSignal
@@ -49,10 +41,7 @@ export async function sendMount(
     )
   }
 
-  const comments: CommentEntity[] = []
-  episodes.forEach((episode) => {
-    concatArr(comments, episode.comments)
-  })
+  const comments = episodes.flatMap((episode) => episode.comments)
 
   const { issueCommand, isVisible } = useStore.getState().danmaku
   const command = issueCommand(frameId)

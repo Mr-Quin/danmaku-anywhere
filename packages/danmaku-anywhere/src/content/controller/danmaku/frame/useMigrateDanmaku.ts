@@ -4,11 +4,8 @@ import { sendUnmount } from '@/content/controller/common/danmakuCommands'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 import { useStore } from '@/content/controller/store/store'
 
-/**
- * Keeps the danmaku in the active frame: when the frame recorded as showing
- * them is not the active one, whether because the active frame changed or a
- * mount replied after it did, they move to the active frame.
- */
+// A mount that replies after the active frame changed also leaves the danmaku
+// in a frame that is no longer active.
 export const useMigrateDanmaku = () => {
   const activeFrameId = useStore((state) => state.frame.activeFrame?.frameId)
   const mountedFrameId = useStore((state) => state.danmaku.mountedFrameId)

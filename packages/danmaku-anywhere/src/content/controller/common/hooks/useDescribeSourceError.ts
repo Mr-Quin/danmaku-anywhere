@@ -8,8 +8,6 @@ import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
 
 interface SourceErrorInput {
   error: unknown
-  // Wraps the translated reason when the source was reached but the request
-  // still failed.
   describeFailure: (reason: string) => string
   providerConfigId?: string
 }

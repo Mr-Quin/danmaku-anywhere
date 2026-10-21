@@ -19,7 +19,7 @@ export function reparentPopover(
     return
   }
 
-  if (target.nodeName === 'VIDEO' || target.nodeName === 'IFRAME') {
+  if (!canHoldPopover(target)) {
     // Cannot reparent to these elements, hide and show so the popover will be visible on top of the video
     popover.hidePopover()
     popover.showPopover()
@@ -31,4 +31,9 @@ export function reparentPopover(
     popover.hidePopover()
     popover.showPopover()
   }
+}
+
+// A popover cannot be moved into a video or an iframe.
+export function canHoldPopover(element: Element): boolean {
+  return element.nodeName !== 'VIDEO' && element.nodeName !== 'IFRAME'
 }

@@ -22,14 +22,10 @@ export interface OutcomeMessage {
 
 interface DescribeOptions {
   refreshed?: boolean
-  // Names the mounted episode instead of its own title.
   name?: string
-  // Offered on a mounted episode that its source can refresh.
   onRefresh?: () => void
 }
 
-// Words what happened to a load, match or refresh for the user. Returns
-// nothing for an outcome that has nothing to say.
 export function useDescribeOutcome() {
   const { t } = useTranslation()
   const describeSourceError = useDescribeSourceError()

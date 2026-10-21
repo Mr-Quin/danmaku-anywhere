@@ -6,17 +6,16 @@ import { ContextMenuItem } from '@/content/controller/ui/floatingButton/componen
 
 type FabContextMenuProps = PopperProps
 
-export const FabContextMenu = (props: FabContextMenuProps) => {
+function FabMenuItems() {
   const menuItems = useDanmakuActions()
+  return menuItems.map((item, i) => <ContextMenuItem key={i} {...item} />)
+}
 
+export const FabContextMenu = (props: FabContextMenuProps) => {
   return (
     <Popper placement="top-end" {...props}>
       <Paper>
-        <MenuList dense>
-          {menuItems.map((item, i) => (
-            <ContextMenuItem key={i} {...item} />
-          ))}
-        </MenuList>
+        <MenuList dense>{props.open ? <FabMenuItems /> : null}</MenuList>
       </Paper>
     </Popper>
   )
