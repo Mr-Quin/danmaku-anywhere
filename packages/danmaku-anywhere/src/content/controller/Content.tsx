@@ -8,20 +8,18 @@ import { FrameManager } from '@/content/controller/danmaku/frame/FrameManager'
 import { RegisterIntegration } from '@/content/controller/danmaku/integration/RegisterIntegration'
 import { IconManagerComponent } from '@/content/controller/iconManager/IconManagerComponent'
 import { usePopup } from '@/content/controller/store/popupStore'
-import { useStore } from '@/content/controller/store/store'
 import { PopupUi } from '@/content/controller/ui/PopupUi'
 import { ToastPile } from '@/content/controller/ui/toast/ToastPile'
 import { HIGHLIGHTER_PORTAL_ID } from './common/constants/rootId'
 
 export const Content = () => {
-  const isVisible = useStore((state) => state.danmaku.isVisible)
   const setHighlighterPortal = usePopup.use.setHighlighterPortal()
 
   return (
     <>
       <Suspense fallback={null}>
         <IconManagerComponent />
-        {isVisible && <RegisterIntegration />}
+        <RegisterIntegration />
         <FrameManager />
         <DanmakuHotkeys />
       </Suspense>

@@ -3,7 +3,7 @@ import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDialog } from '@/common/components/Dialog/dialogStore'
 import { useDeleteEpisode } from '@/common/danmaku/queries/useDeleteEpisode'
-import { useFetchDanmaku } from '@/common/danmaku/queries/useFetchDanmaku'
+import { useFetchDanmakuWithToast } from '@/common/danmaku/queries/useFetchDanmaku'
 import { isSourceEpisode } from '@/common/danmaku/utils'
 import { useCanRefetchDanmaku } from '@/common/providers/useSourceCapabilities'
 import { useExportDanmaku } from '@/popup/hooks/useExportDanmaku'
@@ -21,7 +21,7 @@ export const EpisodeContextMenuContainer = ({
   itemId,
 }: EpisodeContextMenuContainerProps): ReactElement => {
   const { t } = useTranslation()
-  const { mutateAsync: load, isPending } = useFetchDanmaku()
+  const { mutate: load, isPending } = useFetchDanmakuWithToast()
   const exportDanmaku = useExportXml()
   const exportBackup = useExportDanmaku()
   const deleteDanmakuMutation = useDeleteEpisode()
@@ -31,12 +31,12 @@ export const EpisodeContextMenuContainer = ({
   const { setViewingDanmaku, contextMenu, setContextMenu } =
     useDanmakuTreeContext()
 
-  const handleFetchDanmaku = async () => {
+  const handleFetchDanmaku = () => {
     if (!isSourceEpisode(episode)) {
       return
     }
 
-    await load({
+    load({
       type: 'by-meta',
       meta: episode,
       options: {

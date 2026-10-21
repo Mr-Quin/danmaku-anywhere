@@ -10,7 +10,7 @@ export const CommentsPage = () => {
   const { comments, episodes } = useStore.use.danmaku()
   const seekToTime = useStore.use.seekToTime()
 
-  const { refreshComments, loadMutation, canRefresh } = useLoadDanmaku()
+  const { refreshComments, isLoading, canRefresh } = useLoadDanmaku()
 
   return (
     <Stack
@@ -24,9 +24,9 @@ export const CommentsPage = () => {
           comments={comments}
           onTimeClick={seekToTime}
           isTimeClickable={hasVideo()}
-          onRefresh={refreshComments}
+          onRefresh={() => refreshComments()}
           showRefresh={canRefresh}
-          isRefreshing={loadMutation.isPending}
+          isRefreshing={isLoading}
         />
       ) : (
         <NothingHere size={250} />
