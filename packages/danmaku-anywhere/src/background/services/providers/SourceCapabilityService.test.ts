@@ -62,10 +62,16 @@ function makeConfig(
   }
 }
 
+// A manifest whose lookup never settles, for sources that must not be asked.
+const NEVER_LOADS = 'never-loads'
+
 function build(configs: ProviderConfig[], runners: ManifestRunner[]) {
   const byId = new Map(runners.map((runner) => [runner.id, runner]))
-  const findRunner = vi.fn(async (manifestId: string) => {
-    return byId.get(manifestId)
+  const findRunner = vi.fn((manifestId: string) => {
+    if (manifestId === NEVER_LOADS) {
+      return new Promise<undefined>(() => undefined)
+    }
+    return Promise.resolve(byId.get(manifestId))
   })
   const getRunner = vi.fn(async (manifestId: string) => {
     const runner = byId.get(manifestId)
@@ -104,6 +110,15 @@ describe('SourceCapabilityService search matching', () => {
     )
 
     expect(await service.getFirstSearchMatchProvider()).toEqual(full)
+  })
+
+  it('stops at the first source that can match by search', async () => {
+    const full = makeConfig('full')
+    const service = build(
+      [full, makeConfig(NEVER_LOADS)],
+      [makeRunner('full', FULL)]
+    )
+
     expect(await service.getFirstSearchMatchProvider()).toEqual(full)
   })
 
