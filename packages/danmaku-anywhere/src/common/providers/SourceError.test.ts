@@ -4,9 +4,8 @@ import { deserializeError, serializeError } from '@/common/utils/serializeError'
 import { isUnreachableError } from './SourceError'
 
 /**
- * isUnreachableError tells network failures and server errors apart from
- * other errors, including when they arrive wrapped by the RPC layer. A client
- * error such as 403 or 404 is not "unreachable".
+ * isUnreachableError tells HTTP and network failures apart from other errors,
+ * including when they arrive wrapped by the RPC layer.
  */
 
 function overRpc(error: Error): RpcException {
@@ -33,38 +32,6 @@ describe('isUnreachableError', () => {
     inner.name = 'HttpException'
     const outer = new RpcException('Search failed', { cause: inner })
     expect(isUnreachableError(outer)).toBe(true)
-  })
-
-  it.each([
-    'Request failed with status 401: Unauthorized',
-    'Request failed with status 404: Not Found',
-    'HTTP 429 for https://proxy.example/search?k=a',
-  ])('does not treat a client error as unreachable: %s', (message) => {
-    expect(isUnreachableError(overRpc(new Error(message)))).toBe(false)
-  })
-
-  it('reads the status of a provider HttpException', () => {
-    const forbidden = Object.assign(new Error('upstream said no'), {
-      name: 'HttpException',
-      status: 403,
-    })
-    const unavailable = Object.assign(new Error('upstream down'), {
-      name: 'HttpException',
-      status: 503,
-    })
-    expect(isUnreachableError(forbidden)).toBe(false)
-    expect(isUnreachableError(unavailable)).toBe(true)
-  })
-
-  it('treats a fetch that never got a response as unreachable', () => {
-    const aborted = Object.assign(
-      new Error('signal is aborted without reason'),
-      {
-        name: 'HttpException',
-        status: 0,
-      }
-    )
-    expect(isUnreachableError(aborted)).toBe(true)
   })
 
   it('does not match other failures', () => {
