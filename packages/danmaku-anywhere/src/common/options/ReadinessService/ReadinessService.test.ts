@@ -12,14 +12,10 @@ import { UPGRADE_RUN_KEY, type UpgradeRun } from '../upgrade/upgradeRun'
 import { ReadinessService } from './ReadinessService'
 
 /**
- * ReadinessService is ready once every option store is stored at its latest
- * version, whichever context wrote it. Until then it is failed while this
- * build has a failed upgrade recorded or a run of this build was cut off
- * mid-way, and pending otherwise, including while a run is in progress or the
- * only failure is from an earlier build. Waiters
- * keep waiting through a failure and resolve when a retry succeeds. Ready is final for the context and ends all storage
- * listening. Reading the state does not touch storage, each evaluation reads
- * each storage area once, and a failed read is retried on its own.
+ * Ready once every store is at its latest version, whichever context wrote it.
+ * Failed while this build has a failed or cut-off run recorded, and pending
+ * otherwise. Waiters wait through a failure and resolve after a successful
+ * retry. Ready ends all storage listening, and a failed read is retried.
  */
 
 const alpha: OptionStoreDescriptor = {

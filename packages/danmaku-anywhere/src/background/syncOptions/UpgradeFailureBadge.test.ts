@@ -94,6 +94,28 @@ describe('UpgradeFailureBadge', () => {
     expect(badge.isShowing()).toBe(false)
   })
 
+  it('shows the badge once a run of this build goes stale', async () => {
+    const fiveMinutes = 5 * 60_000
+    await fakeBrowser.storage.local.set({
+      [UPGRADE_RUN_KEY]: {
+        status: 'running',
+        build: EXTENSION_VERSION,
+        attempts: 1,
+        startedAt: Date.now() - fiveMinutes + 100,
+      },
+    })
+    const texts = watchBadges()
+    const badge = new UpgradeFailureBadge()
+
+    badge.setup()
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(badge.isShowing()).toBe(false)
+
+    await vi.waitFor(() => {
+      expect(texts.get('global')).toBe('!')
+    })
+  })
+
   it('keeps per-tab comment counts from covering the badge', async () => {
     await fakeBrowser.storage.local.set({ [UPGRADE_RUN_KEY]: failedRun })
     const tabId = await openTab()

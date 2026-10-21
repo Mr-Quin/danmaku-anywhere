@@ -1,6 +1,7 @@
 import { injectable } from 'inversify'
 import {
   failedOnThisBuild,
+  staleAt,
   UPGRADE_RUN_KEY,
   type UpgradeRun,
 } from '@/common/options/upgrade/upgradeRun'
@@ -17,6 +18,7 @@ export class UpgradeFailureBadge {
     storageType: 'local',
   })
   private showing = false
+  private staleTimer?: ReturnType<typeof setTimeout>
 
   setup() {
     let changes = 0
@@ -41,6 +43,14 @@ export class UpgradeFailureBadge {
   }
 
   private async show(run: UpgradeRun | undefined) {
+    // A run cut off mid-way leaves no change event behind.
+    clearTimeout(this.staleTimer)
+    const deadline = staleAt(run)
+    if (deadline !== undefined && deadline > Date.now()) {
+      this.staleTimer = setTimeout(() => {
+        void this.show(run)
+      }, deadline - Date.now())
+    }
     const failed = failedOnThisBuild(run, Date.now()) !== undefined
     const wasShowing = this.showing
     this.showing = failed

@@ -3,7 +3,7 @@ import { Fab, Tooltip } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 
-// Stands in for the floating button while the options upgrade is failed. The
+// Stands in for the floating button while the options upgrade has failed. The
 // controller cannot work until it succeeds, and the popup is where to retry.
 export function OptionsUpgradeFailedButton() {
   const { t } = useTranslation()

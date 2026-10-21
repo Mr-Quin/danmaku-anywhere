@@ -31,10 +31,8 @@ const READY: ReadinessState = { status: 'ready' }
 const MAX_RETRY_DELAY_MS = 30_000
 
 /**
- * Whether the option stores can be read in their current shape. Every context
- * derives it from what is stored: ready once each store is at its latest
- * version, failed while the last upgrade attempt is recorded as failed, and
- * pending otherwise. Ready is final for the context.
+ * Whether the option stores can be read in their current shape, derived in
+ * every context from what is stored. Ready is final for the context.
  */
 @injectable('Singleton')
 export class ReadinessService implements ReadinessGate {

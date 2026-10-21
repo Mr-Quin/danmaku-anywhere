@@ -170,6 +170,26 @@ describe('OptionsUpgradeService', () => {
     expect(await readRaw('beta')).toEqual({ data: { count: 5 }, version: 1 })
   })
 
+  it('records a failure when the run record cannot be read', async () => {
+    await storeV1('alpha', 1)
+    const { upgrader, readiness } = setup(['alpha'])
+    vi.spyOn(fakeBrowser.storage.local, 'get').mockRejectedValueOnce(
+      new Error('IO error')
+    )
+
+    await expect(upgrader.upgrade()).rejects.toThrow('IO error')
+
+    expect(await readRaw(UPGRADE_RUN_KEY)).toMatchObject({
+      status: 'failed',
+      attempts: 1,
+      message: 'IO error',
+    })
+    readiness.subscribe(() => undefined)
+    await vi.waitFor(() => {
+      expect(readiness.getState()).toMatchObject({ status: 'failed' })
+    })
+  })
+
   it('counts attempts across failed runs and clears the record on success', async () => {
     await storeV1('alpha', 1)
     const failing = failWritesTo('alpha')

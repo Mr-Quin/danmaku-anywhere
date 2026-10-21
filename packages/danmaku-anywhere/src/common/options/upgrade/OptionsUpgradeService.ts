@@ -18,7 +18,6 @@ import {
   type UpgradeRun,
 } from './upgradeRun'
 
-// Builds before per-store readiness kept a version marker under this key.
 const LEGACY_VERSION_KEY = 'lastVersion'
 
 // Runs the option store upgrade in the context that owns the stores: the
@@ -57,14 +56,23 @@ export class OptionsUpgradeService implements OptionsUpgrader {
     if (!canRetryAutomatically(run, Date.now())) {
       return
     }
-    return this.upgrade()
+    return this.start(true)
   }
 
   upgrade(): Promise<void> {
+    return this.start(false)
+  }
+
+  private start(automatic: boolean): Promise<void> {
     // Two standalone tabs each have this service over the same localStorage,
-    // so runs are serialized across tabs, not just within this one.
+    // so runs are serialized across tabs, not just within this one. A tab
+    // that waited for the lock checks again, since the other tab's run may
+    // have upgraded the stores or counted a failure.
     this.running ??= navigator.locks
-      .request('options-upgrade', () => {
+      .request('options-upgrade', async () => {
+        if (automatic && !(await this.mayRunAutomatically())) {
+          return
+        }
         return this.run()
       })
       .finally(() => {
@@ -73,13 +81,18 @@ export class OptionsUpgradeService implements OptionsUpgrader {
     return this.running
   }
 
+  private async mayRunAutomatically(): Promise<boolean> {
+    const { current, run } = await readOptionStoresStatus(this.descriptors)
+    return !current && canRetryAutomatically(run, Date.now())
+  }
+
   private async run(): Promise<void> {
     this.logger.debug('Starting upgrade')
-    const started = startedRun(await this.runRecord.read(), Date.now())
-    await this.runRecord.set(started)
-
-    const [, error] = await tryCatch(() => {
-      return upgradeStores(this.stores, this.logger)
+    let started = startedRun(undefined, Date.now())
+    const [, error] = await tryCatch(async () => {
+      started = startedRun(await this.runRecord.read(), Date.now())
+      await this.runRecord.set(started)
+      await upgradeStores(this.stores, this.logger)
     })
     if (error) {
       this.logger.error('Options upgrade failed', error)
