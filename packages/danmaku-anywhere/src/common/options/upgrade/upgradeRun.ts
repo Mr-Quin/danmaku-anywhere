@@ -18,7 +18,7 @@ export const UPGRADE_RUN_KEY = 'optionsUpgradeRun'
 
 const MAX_AUTOMATIC_ATTEMPTS = 5
 const FIRST_RETRY_DELAY_MS = 60_000
-const STALE_RUN_MS = 5 * 60_000
+export const STALE_RUN_MS = 5 * 60_000
 
 function onThisBuild(run: UpgradeRun | undefined): UpgradeRun | undefined {
   return run?.build === EXTENSION_VERSION ? run : undefined
@@ -50,7 +50,10 @@ export function staleAt(run: UpgradeRun | undefined): number | undefined {
 // stops the worker every time still ends on the failure screen.
 function settleRun(run: UpgradeRun, now: number): UpgradeRun {
   const deadline = staleAt(run)
-  if (deadline === undefined || now < deadline) {
+  // A start time ahead of the clock means the clock went back, and how long
+  // the run has taken can no longer be told.
+  const clockWentBack = run.status === 'running' && run.startedAt > now
+  if (deadline === undefined || (now < deadline && !clockWentBack)) {
     return run
   }
   return {

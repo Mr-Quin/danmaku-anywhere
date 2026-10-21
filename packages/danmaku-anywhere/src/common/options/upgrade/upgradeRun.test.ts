@@ -47,6 +47,13 @@ describe('failedOnThisBuild', () => {
     expect(failedOnThisBuild(running(1), 5 * MINUTE - 1)).toBeUndefined()
   })
 
+  it('counts a run that started after the current time as failed', () => {
+    expect(failedOnThisBuild(running(1, 10 * MINUTE), 0)).toMatchObject({
+      status: 'failed',
+      attempts: 1,
+    })
+  })
+
   it('counts a run still running after five minutes as failed', () => {
     expect(failedOnThisBuild(running(2), 5 * MINUTE)).toMatchObject({
       status: 'failed',

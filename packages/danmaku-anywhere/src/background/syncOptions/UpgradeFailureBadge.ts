@@ -1,6 +1,7 @@
 import { injectable } from 'inversify'
 import {
   failedOnThisBuild,
+  STALE_RUN_MS,
   staleAt,
   UPGRADE_RUN_KEY,
   type UpgradeRun,
@@ -47,9 +48,12 @@ export class UpgradeFailureBadge {
     clearTimeout(this.staleTimer)
     const deadline = staleAt(run)
     if (deadline !== undefined && deadline > Date.now()) {
-      this.staleTimer = setTimeout(() => {
-        void this.show(run)
-      }, deadline - Date.now())
+      this.staleTimer = setTimeout(
+        () => {
+          void this.show(run)
+        },
+        Math.min(deadline - Date.now(), STALE_RUN_MS)
+      )
     }
     const failed = failedOnThisBuild(run, Date.now()) !== undefined
     const wasShowing = this.showing

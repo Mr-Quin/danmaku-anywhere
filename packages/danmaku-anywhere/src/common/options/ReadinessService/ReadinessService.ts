@@ -8,6 +8,7 @@ import {
 } from '../optionStores'
 import {
   failedOnThisBuild,
+  STALE_RUN_MS,
   staleAt,
   UPGRADE_RUN_KEY,
 } from '../upgrade/upgradeRun'
@@ -158,7 +159,7 @@ export class ReadinessService implements ReadinessGate {
     if (status.current || deadline === undefined) {
       return
     }
-    const delay = deadline - Date.now()
+    const delay = Math.min(deadline - Date.now(), STALE_RUN_MS)
     // Past the deadline the run already reads as failed, and nothing changes
     // until storage does.
     if (delay <= 0) {

@@ -46,14 +46,22 @@ export class OptionsUpgradeService implements OptionsUpgrader {
     if (this.running) {
       return this.running
     }
-    const { current, run } = await readOptionStoresStatus(this.descriptors)
-    if (current) {
-      if (run) {
+    const [status, error] = await tryCatch(() => {
+      return readOptionStoresStatus(this.descriptors)
+    })
+    // Without a status the run itself decides, and records a failure if
+    // storage stays unreadable, instead of leaving readiness pending.
+    if (error) {
+      this.logger.error('Failed to read the option stores', error)
+      return this.start(false)
+    }
+    if (status.current) {
+      if (status.run) {
         await this.clearRunState()
       }
       return
     }
-    if (!canRetryAutomatically(run, Date.now())) {
+    if (!canRetryAutomatically(status.run, Date.now())) {
       return
     }
     return this.start(true)
@@ -88,7 +96,7 @@ export class OptionsUpgradeService implements OptionsUpgrader {
 
   private async run(): Promise<void> {
     this.logger.debug('Starting upgrade')
-    let started = startedRun(undefined, Date.now())
+    let started: UpgradeRun | undefined
     const [, error] = await tryCatch(async () => {
       started = startedRun(await this.runRecord.read(), Date.now())
       await this.runRecord.set(started)
@@ -116,12 +124,16 @@ export class OptionsUpgradeService implements OptionsUpgrader {
     }
   }
 
-  private async recordFailure(started: UpgradeRun, error: Error) {
-    const [, recordError] = await tryCatch(() => {
+  // Without the running record of this attempt, its count comes from what is
+  // stored, so a read error does not restart the count at one.
+  private async recordFailure(started: UpgradeRun | undefined, error: Error) {
+    const [, recordError] = await tryCatch(async () => {
+      const attempt =
+        started ?? startedRun(await this.runRecord.read(), Date.now())
       return this.runRecord.set({
         status: 'failed',
-        build: started.build,
-        attempts: started.attempts,
+        build: attempt.build,
+        attempts: attempt.attempts,
         failedAt: Date.now(),
         message: error.message,
       })
