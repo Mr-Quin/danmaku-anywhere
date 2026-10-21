@@ -53,7 +53,7 @@ export class OptionsUpgradeService implements OptionsUpgrader {
     // storage stays unreadable, instead of leaving readiness pending.
     if (error) {
       this.logger.error('Failed to read the option stores', error)
-      return this.start(false)
+      return this.start(true)
     }
     if (status.current) {
       if (status.run) {
@@ -89,9 +89,20 @@ export class OptionsUpgradeService implements OptionsUpgrader {
     return this.running
   }
 
+  // When the stores cannot be read, the run record alone still applies the
+  // attempt cap and the backoff.
   private async mayRunAutomatically(): Promise<boolean> {
-    const { current, run } = await readOptionStoresStatus(this.descriptors)
-    return !current && canRetryAutomatically(run, Date.now())
+    const [status] = await tryCatch(() => {
+      return readOptionStoresStatus(this.descriptors)
+    })
+    if (status) {
+      return !status.current && canRetryAutomatically(status.run, Date.now())
+    }
+    const [run, error] = await tryCatch(() => this.runRecord.read())
+    if (error) {
+      return true
+    }
+    return canRetryAutomatically(run ?? undefined, Date.now())
   }
 
   private async run(): Promise<void> {

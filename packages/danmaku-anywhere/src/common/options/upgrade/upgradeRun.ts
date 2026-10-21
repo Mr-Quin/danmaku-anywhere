@@ -19,6 +19,7 @@ export const UPGRADE_RUN_KEY = 'optionsUpgradeRun'
 const MAX_AUTOMATIC_ATTEMPTS = 5
 const FIRST_RETRY_DELAY_MS = 60_000
 export const STALE_RUN_MS = 5 * 60_000
+const CLOCK_SLACK_MS = 60_000
 
 function onThisBuild(run: UpgradeRun | undefined): UpgradeRun | undefined {
   return run?.build === EXTENSION_VERSION ? run : undefined
@@ -50,9 +51,10 @@ export function staleAt(run: UpgradeRun | undefined): number | undefined {
 // stops the worker every time still ends on the failure screen.
 function settleRun(run: UpgradeRun, now: number): UpgradeRun {
   const deadline = staleAt(run)
-  // A start time ahead of the clock means the clock went back, and how long
-  // the run has taken can no longer be told.
-  const clockWentBack = run.status === 'running' && run.startedAt > now
+  // A start time well ahead of the clock means the clock went back, and how
+  // long the run has taken can no longer be told.
+  const clockWentBack =
+    run.status === 'running' && run.startedAt > now + CLOCK_SLACK_MS
   if (deadline === undefined || (now < deadline && !clockWentBack)) {
     return run
   }
@@ -60,7 +62,7 @@ function settleRun(run: UpgradeRun, now: number): UpgradeRun {
     status: 'failed',
     build: run.build,
     attempts: run.attempts,
-    failedAt: deadline,
+    failedAt: clockWentBack ? now : deadline,
     message: 'The options upgrade stopped before it finished',
   }
 }

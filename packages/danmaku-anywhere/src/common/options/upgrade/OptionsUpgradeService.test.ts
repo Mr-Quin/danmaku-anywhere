@@ -211,6 +211,31 @@ describe('OptionsUpgradeService', () => {
     expect(await readRaw(UPGRADE_RUN_KEY)).toMatchObject({ attempts: 4 })
   })
 
+  it('keeps the attempt cap when the stores cannot be read', async () => {
+    await storeV1('alpha', 1)
+    await fakeBrowser.storage.local.set({
+      [UPGRADE_RUN_KEY]: {
+        status: 'failed',
+        build: EXTENSION_VERSION,
+        attempts: 5,
+        failedAt: 0,
+        message: 'IO error',
+      } satisfies UpgradeRun,
+    })
+    const { upgrader, migrations } = setup(['alpha'])
+    const get = fakeBrowser.storage.local.get.bind(fakeBrowser.storage.local)
+    vi.spyOn(fakeBrowser.storage.local, 'get').mockImplementation((keys) => {
+      if (Array.isArray(keys) && (keys as string[]).includes('alpha')) {
+        return Promise.reject(new Error('IO error'))
+      }
+      return get(keys)
+    })
+
+    await upgrader.ensureUpgraded()
+
+    expect(migrations.alpha).toBe(0)
+  })
+
   it('still runs when the first status check cannot read storage', async () => {
     await storeV1('alpha', 1)
     const { upgrader } = setup(['alpha'])
