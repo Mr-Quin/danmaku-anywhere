@@ -28,10 +28,6 @@ export class SearchPage {
     return this.page.getByTestId('parse-no-source')
   }
 
-  get searchInsteadButton(): Locator {
-    return this.noSourceNotice.getByRole('button')
-  }
-
   // Enter, not click: the autocomplete dropdown can intercept the submit
   // button when open.
   async submit(term: string): Promise<void> {

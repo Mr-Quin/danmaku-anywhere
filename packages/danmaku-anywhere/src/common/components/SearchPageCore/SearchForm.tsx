@@ -93,17 +93,8 @@ export function SearchForm({
   const [parseSubmitToken, setParseSubmitToken] = useState(0)
   const [committedParseUrl, setCommittedParseUrl] = useState('')
 
-  const processKeyword = (raw: string): string => {
-    const trimmed = raw.trim()
-    return extOptions.searchUsingSimplified ? toSimplified(trimmed) : trimmed
-  }
-
-  // Text that looks like a link but that no source parses (such as
-  // "Re.Zero/2") can still be searched as a title when the user asks to.
-  const [titleSearchOf, setTitleSearchOf] = useState<string | null>(null)
   const urlAnswer = useUrlParseAnswer(searchTerm)
-  const isUrl =
-    urlAnswer.kind !== 'notLink' && processKeyword(searchTerm) !== titleSearchOf
+  const isUrl = urlAnswer.kind !== 'notLink'
 
   const activeProviderId =
     enabledProviders.find((p) => p.id === providerId)?.id ??
@@ -169,7 +160,9 @@ export function SearchForm({
   const handleSearchSubmit = (keyword?: string) => {
     const raw = keyword ?? searchTerm
     const trimmed = raw.trim()
-    const processed = processKeyword(raw)
+    const processed = extOptions.searchUsingSimplified
+      ? toSimplified(trimmed)
+      : trimmed
 
     if (!processed) {
       return
@@ -201,10 +194,6 @@ export function SearchForm({
   }
 
   const submit = async (value: string) => {
-    if (processKeyword(value) === titleSearchOf) {
-      handleSearchSubmit(value)
-      return
-    }
     const answer = await queryClient
       .fetchQuery(urlParseQuery(value))
       .catch(() => undefined)
@@ -240,14 +229,9 @@ export function SearchForm({
   }
 
   const renderBody = (): ReactNode => {
-    if (isUrl && urlAnswer.kind === 'unclaimed') {
+    if (urlAnswer.kind === 'unclaimed') {
       return (
-        <NoUrlParserNotice
-          onSearchInstead={() => {
-            setTitleSearchOf(processKeyword(searchTerm))
-            handleSearchSubmit(searchTerm)
-          }}
-        />
+        <NoUrlParserNotice onSearchInstead={() => onSearchTermChange('')} />
       )
     }
     if (isUrl) {

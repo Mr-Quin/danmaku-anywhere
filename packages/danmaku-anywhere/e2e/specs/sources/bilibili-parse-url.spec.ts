@@ -9,8 +9,8 @@ import { applyProfile } from '../../setup/profile'
  * Pasting a Bilibili season URL switches the search box to Parse, shows the
  * parsed season and imports its danmaku with a success toast. A link no
  * installed source claims (source removed, unmatched path, with or without a
- * scheme) shows "no source can read this link" instead of searching, and a
- * title that only looks like a link can still be searched from that notice.
+ * scheme) shows "no source can read this link" instead of searching. A title
+ * with a dot and a slash that no source reads is searched as a title.
  */
 
 test('bilibili url paste: detect URL → parse → download danmaku', async ({
@@ -104,7 +104,7 @@ test('bilibili url paste: an unclaimed link typed without a scheme is not search
   await expect(popup.search.resultCountSkeleton).toHaveCount(0)
 })
 
-test('bilibili url paste: a title that looks like a link can be searched by title', async ({
+test('bilibili url paste: a title with a dot and a slash is searched as a title', async ({
   context,
   page,
   extensionId,
@@ -122,17 +122,9 @@ test('bilibili url paste: a title that looks like a link can be searched by titl
 
   const popup = await Popup.open(page, extensionId)
 
-  await popup.search.input.fill('Re.Zero/2 ')
-  await expect(popup.search.noSourceNotice).toBeVisible()
-  await popup.search.searchInsteadButton.click()
+  await popup.search.submit('Re.Zero/2')
 
   await expect(popup.search.seasonCard('Bilibili')).toBeVisible()
-  await expect(popup.search.input).toHaveValue('Re.Zero/2')
   await expect(popup.search.noSourceNotice).toHaveCount(0)
-
-  await popup.search.input.press('End')
-  await popup.search.input.pressSequentially(' ')
-  await popup.search.input.press('Enter')
-  await expect(popup.search.noSourceNotice).toHaveCount(0)
-  await expect(popup.search.seasonCard('Bilibili')).toBeVisible()
+  await expect(popup.search.parseButton).toHaveCount(0)
 })

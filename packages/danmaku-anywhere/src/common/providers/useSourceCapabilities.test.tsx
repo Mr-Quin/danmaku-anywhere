@@ -185,6 +185,26 @@ describe('useUrlParseAnswer', () => {
     })
   })
 
+  it('treats text that only looks like a link as a title when no source reads it', async () => {
+    answerUrlSource({ kind: 'unclaimed' })
+    render(<UrlProbe text="Re.Zero/2" />)
+
+    await vi.waitFor(() => {
+      expect(rpc.mediaFindUrlSource).toHaveBeenCalled()
+    })
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(element.textContent).toBe('notLink')
+  })
+
+  it('names a scheme-less link a source reads', async () => {
+    answerUrlSource({ kind: 'parseable', sourceName: 'Tencent' })
+    render(<UrlProbe text="v.qq.com/x/cover/abc.html" />)
+
+    await vi.waitFor(() => {
+      expect(element.textContent).toBe('Tencent')
+    })
+  })
+
   it.each([
     '  ',
     'sousou no frieren',

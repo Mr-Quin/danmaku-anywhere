@@ -29,3 +29,12 @@ export function isLink(text: string): boolean {
   }
   return url.hostname.includes('.') && trimmed.includes('/')
 }
+
+// A link the user plainly meant as one. Other text that only looks like a link,
+// such as "Re.Zero/2", is a title unless a source reads it.
+export function isExplicitLink(text: string): boolean {
+  const trimmed = text.trim()
+  return (
+    isLink(trimmed) && (HTTP_SCHEME.test(trimmed) || /^www\./i.test(trimmed))
+  )
+}

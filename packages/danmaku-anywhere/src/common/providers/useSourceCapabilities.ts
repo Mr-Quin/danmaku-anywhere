@@ -10,7 +10,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { isSourceEpisode } from '@/common/danmaku/utils'
 import { sourceQueryKeys } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { isLink } from '@/common/utils/link'
+import { isExplicitLink, isLink } from '@/common/utils/link'
 import {
   capabilitiesOf,
   type SourceCapabilityAnswer,
@@ -94,6 +94,9 @@ export function urlParseQuery(text: string) {
         return NOT_A_LINK
       }
       const res = await chromeRpcClient.mediaFindUrlSource({ url })
+      if (res.data.kind === 'unclaimed' && !isExplicitLink(url)) {
+        return NOT_A_LINK
+      }
       return res.data
     },
   })
