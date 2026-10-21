@@ -6,15 +6,11 @@ import { loadJsonFixture, loadTextFixture } from '../../setup/fixtures-loader'
 import { applyProfile } from '../../setup/profile'
 
 /**
- * URL-detect path: pasting a Bilibili season URL into the search input
- * flips the form into Parse mode and surfaces the parsed result card.
- * Clicking Download Danmaku then runs the regular fetch flow and fires
- * the success toast. Asserts the parse-submit button appears, the
- * parsed season title renders, and the import success toast fires. A link
- * that no installed source claims, because Bilibili was removed or the path
- * matches no pattern, shows that no source can read it instead of searching,
- * with or without a scheme, and a title that only looks like a link can still
- * be searched from that notice.
+ * Pasting a Bilibili season URL switches the search box to Parse, shows the
+ * parsed season and imports its danmaku with a success toast. A link no
+ * installed source claims (source removed, unmatched path, with or without a
+ * scheme) shows "no source can read this link" instead of searching, and a
+ * title that only looks like a link can still be searched from that notice.
  */
 
 test('bilibili url paste: detect URL → parse → download danmaku', async ({

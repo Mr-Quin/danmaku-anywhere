@@ -8,7 +8,6 @@ export interface SourceCapabilities {
 
 export type SourceCapability = keyof SourceCapabilities
 
-// The reason is open text so the registry can say why it skipped a manifest.
 export const MANIFEST_MISSING = 'missing'
 
 export type SourceStatus =
@@ -65,10 +64,9 @@ export function capabilitiesOf(
   return answer.capabilities
 }
 
-// For lists that should not flicker while answers load, such as the search
-// chips: a pending answer counts as capable. Menus instead hide an action
-// until its answer arrives (seasonActions), and anything that would run the
-// operation waits for the answer or lets the background refuse.
+// A pending answer counts as capable, so lists such as the search chips do not
+// flicker while answers load. Anything that runs the operation still waits for
+// the answer or lets the background refuse.
 export function mayOffer(
   answer: SourceCapabilityAnswer | undefined,
   capability: SourceCapability
