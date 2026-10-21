@@ -101,11 +101,18 @@ export async function sendUnmountEverywhere() {
     await sendUnmount()
     return
   }
-  await Promise.all(
+  const mountedFrameId = useStore.getState().danmaku.mountedFrameId
+  const results = await Promise.allSettled(
     targets.map((frameId) => {
       return sendUnmount(frameId)
     })
   )
+  // Only the frame showing the danmaku decides whether the unmount worked.
+  results.forEach((result, index) => {
+    if (result.status === 'rejected' && targets[index] === mountedFrameId) {
+      throw result.reason
+    }
+  })
 }
 
 // The store holds what the user asked for, recorded before the players are

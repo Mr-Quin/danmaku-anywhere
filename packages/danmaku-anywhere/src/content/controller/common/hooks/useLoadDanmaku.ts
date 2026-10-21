@@ -94,6 +94,19 @@ export const useLoadDanmaku = () => {
   const fetchMutation = useFetchDanmaku()
   const fetchGenericMutation = useFetchGenericDanmaku()
 
+  // A mutation, so the floating button's loading indicator covers mounts.
+  const mountMutation = useMutation({
+    mutationFn: ({
+      episodes,
+      signal,
+    }: {
+      episodes: GenericEpisode[]
+      signal?: AbortSignal
+    }) => {
+      return sendMount(episodes, signal)
+    },
+  })
+
   const isLoading = useIsMutating({ mutationKey: LOAD_MUTATION_KEY }) > 0
 
   const canRefresh =
@@ -104,7 +117,7 @@ export const useLoadDanmaku = () => {
       episodes: GenericEpisode[],
       { signal }: { signal?: AbortSignal } = {}
     ): Promise<MountResult> => {
-      return sendMount(episodes, signal)
+      return mountMutation.mutateAsync({ episodes, signal })
     }
   )
 

@@ -33,7 +33,6 @@ export function reparentPopover(
   }
 }
 
-// A popover cannot be moved into a video or an iframe.
 export function canHoldPopover(element: Element): boolean {
   return element.nodeName !== 'VIDEO' && element.nodeName !== 'IFRAME'
 }

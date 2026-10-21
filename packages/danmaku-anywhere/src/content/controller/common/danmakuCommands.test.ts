@@ -224,6 +224,24 @@ describe('sendUnmountEverywhere', () => {
   })
 })
 
+describe('sendUnmountEverywhere with a frame that cannot be reached', () => {
+  it('succeeds when only a frame without danmaku fails to answer', async () => {
+    await sendMount([episode('A')])
+    activate(1)
+    rpc.mount.mockRejectedValueOnce(new Error('frame gone'))
+    await expect(sendMount([episode('A')])).rejects.toThrow('frame gone')
+    rpc.unmount.mockImplementation(async ({ frameId }: { frameId: number }) => {
+      if (frameId === 1) {
+        throw new Error('frame gone')
+      }
+      return { data: true }
+    })
+
+    await expect(sendUnmountEverywhere()).resolves.toBeUndefined()
+    expect(mountedState()).toEqual(NOTHING_MOUNTED)
+  })
+})
+
 describe('sendUnmount', () => {
   it('clears the store once the player has unmounted', async () => {
     await sendMount([episode('A')])
