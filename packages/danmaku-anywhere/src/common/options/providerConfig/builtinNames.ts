@@ -37,7 +37,7 @@ function isSeededName(manifestId: string, name: string): boolean {
 // edited follows the current language instead. A renamed built-in keeps the
 // user's name.
 export function builtinDisplayName(
-  config: ProviderConfig,
+  config: Pick<ProviderConfig, 'id' | 'manifestId' | 'name'>,
   language: string
 ): string {
   if (!isBuiltinConfig(config) || !isSeededName(config.id, config.name)) {

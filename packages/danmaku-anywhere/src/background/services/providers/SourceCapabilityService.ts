@@ -1,9 +1,10 @@
 import { inject, injectable } from 'inversify'
+import { AppError, type AppErrorCode } from '@/common/errors/AppError'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
+import { toSourceRef } from '@/common/options/providerConfig/utils'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
-import { SourceError, type SourceProblem } from '@/common/providers/SourceError'
 import {
   canMatchBySearch,
   canResolveMapping,
@@ -27,34 +28,38 @@ interface UrlParser {
   provider: SourceProvider
 }
 
-const UNSUPPORTED: Record<
-  SourceCapability,
-  { problem: SourceProblem; message: string }
-> = {
-  search: { problem: 'searchUnsupported', message: 'cannot search' },
-  episodes: { problem: 'episodesUnsupported', message: 'cannot list episodes' },
-  danmaku: { problem: 'danmakuUnsupported', message: 'cannot fetch danmaku' },
-  seasonRefresh: {
-    problem: 'seasonRefreshUnsupported',
-    message: 'cannot refresh season details',
-  },
-  parseUrl: { problem: 'noUrlParser', message: 'cannot parse links' },
-}
+const UNSUPPORTED = {
+  search: 'source.searchUnsupported',
+  episodes: 'source.episodesUnsupported',
+  danmaku: 'source.danmakuUnsupported',
+  seasonRefresh: 'source.seasonRefreshUnsupported',
+} as const satisfies Record<Exclude<SourceCapability, 'parseUrl'>, AppErrorCode>
 
 function unsupported(
-  sourceName: string,
+  config: ProviderConfig,
   status: SourceStatus,
   capability: SourceCapability
-): SourceError {
+): AppError {
+  const source = toSourceRef(config)
   if (status.status === 'unavailable') {
-    return new SourceError(
-      'sourceUnavailable',
-      `${sourceName} is unavailable: ${status.reason}`,
-      sourceName
+    return new AppError(
+      'source.unavailable',
+      { source },
+      { message: `${config.name} is unavailable: ${status.reason}` }
     )
   }
-  const { problem, message } = UNSUPPORTED[capability]
-  return new SourceError(problem, `${sourceName} ${message}`, sourceName)
+  if (capability === 'parseUrl') {
+    return new AppError(
+      'source.noUrlParser',
+      {},
+      { message: `${config.name} cannot parse links` }
+    )
+  }
+  return new AppError(
+    UNSUPPORTED[capability],
+    { source },
+    { message: `${config.name} cannot do ${capability}` }
+  )
 }
 
 @injectable('Singleton')
@@ -97,7 +102,7 @@ export class SourceCapabilityService {
     const provider = this.danmakuProviderFactory(config)
     const status = await this.require(config, provider, operation)
     if (provider.kind === 'searchOnly') {
-      throw unsupported(config.name, status, operation)
+      throw unsupported(config, status, operation)
     }
     return provider
   }
@@ -168,7 +173,7 @@ export class SourceCapabilityService {
   ): Promise<SourceStatus> {
     const status = await provider.getStatus()
     if (status.status !== 'available' || !status.capabilities[capability]) {
-      throw unsupported(config.name, status, capability)
+      throw unsupported(config, status, capability)
     }
     return status
   }

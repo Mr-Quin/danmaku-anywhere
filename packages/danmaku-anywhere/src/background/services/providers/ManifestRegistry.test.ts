@@ -221,7 +221,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
 
-    expect(await registry.update()).toBe('empty')
+    expect(await registry.update()).toEqual({ success: true, data: 'empty' })
   })
 
   it('update reports an index whose entries all fail the apiVersion check as empty', async () => {
@@ -236,7 +236,7 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     const result = await registry.update()
 
-    expect(result).toBe('empty')
+    expect(result).toEqual({ success: true, data: 'empty' })
     expect(fileFetches(fetchMock)).toEqual([])
   })
 
@@ -253,7 +253,7 @@ describe('ManifestRegistry', () => {
     const registry = new ManifestRegistry(silentLogger, store)
     const result = await registry.update()
 
-    expect(result).toBe('synced')
+    expect(result).toEqual({ success: true, data: 'synced' })
     const stored = await store.get('dandanplay')
     expect(stored?.kind).toBe('preinstalled')
     expect(stored?.manifest).toMatchObject({ version: '0.6.0' })
@@ -437,9 +437,9 @@ describe('ManifestRegistry', () => {
     const fetchMock = stubFetch(() => ({ status: 503, body: 'unavailable' }))
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await expect(settleIndexRetry(() => registry.update())).resolves.toBe(
-      'unreachable'
-    )
+    await expect(
+      settleIndexRetry(() => registry.update())
+    ).resolves.toMatchObject({ success: false })
 
     expect(fetchMock).toHaveBeenCalledTimes(2)
     expect(Object.keys(await store.getAll()).sort()).toEqual(
@@ -463,9 +463,10 @@ describe('ManifestRegistry', () => {
     })
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await expect(settleIndexRetry(() => registry.update())).resolves.toBe(
-      'synced'
-    )
+    await expect(settleIndexRetry(() => registry.update())).resolves.toEqual({
+      success: true,
+      data: 'synced',
+    })
 
     expect(indexCalls).toBe(2)
     expect(nonBundled(await registeredIds(registry))).toEqual(['one'])
@@ -479,9 +480,9 @@ describe('ManifestRegistry', () => {
     )
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
-    await expect(settleIndexRetry(() => registry.update())).resolves.toBe(
-      'unreachable'
-    )
+    await expect(
+      settleIndexRetry(() => registry.update())
+    ).resolves.toMatchObject({ success: false })
   })
 
   it('update skips a catalog file that fails schema validation', async () => {
@@ -561,7 +562,7 @@ describe('ManifestRegistry', () => {
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(logger, store)
 
-    expect(await registry.update()).toBe('synced')
+    expect(await registry.update()).toEqual({ success: true, data: 'synced' })
     expect(nonBundled(Object.keys(await store.getAll()))).toEqual([
       'good',
       'other',
@@ -685,7 +686,65 @@ describe('ManifestRegistry', () => {
 
     await expect(
       settleIndexRetry(() => registry.getPendingUpdates())
-    ).rejects.toThrow(/Failed to fetch the manifest catalog/)
+    ).rejects.toMatchObject({
+      code: 'http',
+      params: { status: 503, target: { kind: 'catalog' } },
+    })
+  })
+
+  it('codes an index that is not the catalog shape as a bad response', async () => {
+    stubFetch(() => ({ status: 200, body: { unexpected: true } }))
+    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+
+    await expect(
+      settleIndexRetry(() => registry.getPendingUpdates())
+    ).rejects.toMatchObject({
+      code: 'badResponse',
+      params: { target: { kind: 'catalog' } },
+    })
+  })
+
+  it('codes a body that stops arriving after the timeout as a timeout', async () => {
+    vi.spyOn(AbortSignal, 'timeout').mockImplementation(() => {
+      const controller = new AbortController()
+      controller.abort(new DOMException('signal timed out', 'TimeoutError'))
+      return controller.signal
+    })
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => ({
+        status: 200,
+        headers: { forEach: () => {} },
+        text: async () => {
+          throw new DOMException('aborted', 'AbortError')
+        },
+      }))
+    )
+    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+
+    await expect(
+      settleIndexRetry(() => registry.getPendingUpdates())
+    ).rejects.toMatchObject({
+      code: 'timeout',
+      params: { target: { kind: 'catalog' } },
+    })
+  })
+
+  it('codes an index fetch that never got a response as a network failure', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new TypeError('Failed to fetch')
+      })
+    )
+    const registry = new ManifestRegistry(silentLogger, new InMemoryStore())
+
+    await expect(
+      settleIndexRetry(() => registry.getPendingUpdates())
+    ).rejects.toMatchObject({
+      code: 'network',
+      params: { target: { kind: 'catalog' } },
+    })
   })
 
   it('applyUpdates replaces only the named ids and rebuilds their runners', async () => {
@@ -746,9 +805,10 @@ describe('ManifestRegistry', () => {
     })
     const registry = new ManifestRegistry(silentLogger, store)
 
-    await expect(registry.applyUpdates(['one'])).rejects.toThrow(
-      /Failed to apply updates/
-    )
+    await expect(registry.applyUpdates(['one'])).rejects.toMatchObject({
+      code: 'catalog.applyFailed',
+      params: { sources: [{ manifestId: 'one', name: expect.any(String) }] },
+    })
 
     expect((await store.get('one'))?.manifest).toMatchObject({
       version: '1.0.0',
@@ -764,7 +824,7 @@ describe('ManifestRegistry', () => {
 
     await expect(
       settleIndexRetry(() => registry.applyUpdates(['one']))
-    ).rejects.toThrow(/Failed to fetch the manifest catalog/)
+    ).rejects.toMatchObject({ code: 'http' })
   })
 
   it('update leaves a user import untouched even when the catalog lists the same id', async () => {
@@ -1086,7 +1146,7 @@ describe('ManifestRegistry bundled manifests', () => {
     const store = new InMemoryStore()
     const registry = new ManifestRegistry(silentLogger, store)
 
-    expect(await registry.update()).toBe('synced')
+    expect(await registry.update()).toEqual({ success: true, data: 'synced' })
     expect((await registry.getRunner('dandanplay')).manifest.id).toBe(
       'dandanplay'
     )
@@ -1169,7 +1229,7 @@ describe('ManifestRegistry change announcements', () => {
       })
     )
 
-    expect(await registry.update()).toBe('synced')
+    expect(await registry.update()).toEqual({ success: true, data: 'synced' })
 
     expect(publishDataChange).not.toHaveBeenCalled()
   })

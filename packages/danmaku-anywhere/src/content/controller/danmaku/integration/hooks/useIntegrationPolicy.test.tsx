@@ -103,20 +103,6 @@ vi.mock('./useWarnIncompleteConfig', () => ({
   useWarnIncompleteConfig: () => false,
 }))
 
-vi.mock('@/content/controller/common/hooks/useDescribeSourceError', () => ({
-  useDescribeSourceError: () => {
-    return ({
-      error,
-      describeFailure,
-    }: {
-      error: unknown
-      describeFailure: (reason: string) => string
-    }) => {
-      return describeFailure(String(error))
-    }
-  },
-}))
-
 class FakeObserver extends MediaObserver {
   constructor() {
     super()

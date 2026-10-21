@@ -1,12 +1,13 @@
 import { inject, injectable, multiInject } from 'inversify'
 import { prettifyError, type ZodType } from 'zod'
-import { BackupFileError } from '@/common/backup/BackupFileError'
 import type { BackupData, BackupRestoreResult } from '@/common/backup/dto'
 import {
   BACKUP_FORMAT_VERSION,
   backupDataSchema,
   type ParsedBackupData,
 } from '@/common/backup/schema'
+import { AppError } from '@/common/errors/AppError'
+import { errorMessage } from '@/common/errors/errorMessage'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import {
   type IStoreService,
@@ -31,10 +32,6 @@ type PayloadCheck =
 type EntriesCheck =
   | { ok: true; data: unknown[]; droppedEntries: number }
   | { ok: false; error: string }
-
-function describeError(error: unknown): string {
-  return error instanceof Error ? error.message : String(error)
-}
 
 @injectable('Singleton')
 export class ConfigStateService {
@@ -87,18 +84,22 @@ export class ConfigStateService {
     const parsed = backupDataSchema.safeParse(backup)
 
     if (!parsed.success) {
-      throw new BackupFileError(
-        'invalidFormat',
-        `Invalid backup format: ${prettifyError(parsed.error)}`
+      throw new AppError(
+        'backup.invalidFormat',
+        {},
+        { message: `Invalid backup format: ${prettifyError(parsed.error)}` }
       )
     }
 
     const { meta, services } = parsed.data
 
     if (meta.version !== BACKUP_FORMAT_VERSION) {
-      throw new BackupFileError(
-        'unsupportedVersion',
-        `Unsupported backup version ${meta.version}, this extension can only restore version ${BACKUP_FORMAT_VERSION} backups`
+      throw new AppError(
+        'backup.unsupportedVersion',
+        {},
+        {
+          message: `Unsupported backup version ${meta.version}, this extension can only restore version ${BACKUP_FORMAT_VERSION} backups`,
+        }
       )
     }
 
@@ -173,7 +174,7 @@ export class ConfigStateService {
         result.success = false
         result.details[service.name] = {
           success: false,
-          error: describeError(error),
+          error: errorMessage(error),
         }
       }
     }
@@ -193,7 +194,7 @@ export class ConfigStateService {
           result.success = false
           result.details[name] = {
             success: false,
-            error: describeError(error),
+            error: errorMessage(error),
           }
         }
       })
@@ -233,7 +234,7 @@ export class ConfigStateService {
     } catch (error) {
       return {
         ok: false,
-        error: `Could not migrate the restored data: ${describeError(error)}`,
+        error: `Could not migrate the restored data: ${errorMessage(error)}`,
       }
     }
 

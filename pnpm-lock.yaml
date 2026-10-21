@@ -355,8 +355,8 @@ importers:
         specifier: 0.10.18
         version: 0.10.18
       '@mr-quin/dango':
-        specifier: ^0.9.1
-        version: 0.9.1
+        specifier: ^0.10.0
+        version: 0.10.0
       '@mr-quin/dango-manifests':
         specifier: ^0.9.1
         version: 0.9.1
@@ -2777,8 +2777,8 @@ packages:
   '@mr-quin/dango-manifests@0.9.1':
     resolution: {integrity: sha512-8NvoEoJWH7OW6ukyOZkQf+UqKOvgbhXKQ4lC8Iyt+sMX3tPk7IgcmkNn4ZqC8rKAONVpCUGCeUNlM6XG14GcGA==}
 
-  '@mr-quin/dango@0.9.1':
-    resolution: {integrity: sha512-U2j2WKzkRsXas1LRyHPwXCJsMqab9VQngWOY7OcWrEeslBF9oViiXMDpQgzSZzTSeb4sbYlE6ps1L4GgmgUJZg==}
+  '@mr-quin/dango@0.10.0':
+    resolution: {integrity: sha512-yShzS/PgLlP9ABJRzaz54D1vIKjTdDZjqJUIEwyQeMNAS3Zlq6tLitNbRJGfWOdLRC3K8OK8tC6kr5rkQLkDfg==}
     engines: {node: '>=20'}
 
   '@mr-quin/danmu@0.20.0-rc.4':
@@ -10586,7 +10586,7 @@ snapshots:
 
   '@mr-quin/dango-manifests@0.9.1': {}
 
-  '@mr-quin/dango@0.9.1':
+  '@mr-quin/dango@0.10.0':
     dependencies:
       '@bufbuild/protobuf': 2.16.0
       fast-xml-parser: 4.5.7

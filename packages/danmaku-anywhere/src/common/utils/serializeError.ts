@@ -1,3 +1,6 @@
+import { type AppError, appErrorFromParts } from '@/common/errors/AppError'
+import { isErrorLike } from '@/common/errors/isErrorLike'
+
 export type ErrorJson =
   | {
       type: 'error'
@@ -21,7 +24,7 @@ export type ErrorJson =
     }
 
 export function serializeError(error: unknown): ErrorJson {
-  if (error instanceof Error) {
+  if (isErrorLike(error)) {
     return serializeErrorJson(error)
   }
   if (typeof error === 'string') {
@@ -65,8 +68,28 @@ export function serializeErrorJson(err: Error): ErrorJson {
   }
 }
 
+function deserializeAppError(
+  json: Extract<ErrorJson, { type: 'error' }>
+): AppError | undefined {
+  if (json.name !== 'AppError') {
+    return undefined
+  }
+  const error = appErrorFromParts(json.code, json.params, {
+    message: json.message,
+    cause: json.cause ? deserializeError(json.cause) : undefined,
+  })
+  if (error && json.stack) {
+    error.stack = json.stack
+  }
+  return error
+}
+
 export function deserializeError(json: ErrorJson): Error {
   if (json.type === 'error') {
+    const appError = deserializeAppError(json)
+    if (appError) {
+      return appError
+    }
     const errorJson = json
     const error = new Error(errorJson.message)
 

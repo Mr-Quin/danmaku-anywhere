@@ -27,9 +27,9 @@ import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
+import { describeError } from '@/common/errors/describeError'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { assertMacCmsConfig } from '@/common/options/providerConfig/utils'
-import { describeSourceError } from '@/common/providers/describeSourceError'
 import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
 
 function SourceEpisodeItem({ data }: { data: RenderEpisodeData }) {
@@ -144,7 +144,7 @@ export const SeasonDetailsPage = ({
       >
         <ErrorBoundary
           fallbackRender={({ error }) => (
-            <ErrorMessage message={describeSourceError(error)} />
+            <ErrorMessage message={describeError(error).message} />
           )}
         >
           <Suspense fallback={null}>

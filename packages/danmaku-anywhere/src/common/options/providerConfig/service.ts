@@ -1,5 +1,6 @@
 import { produce } from 'immer'
 import { inject, injectable } from 'inversify'
+import { AppError } from '@/common/errors/AppError'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { IStoreService } from '@/common/options/IStoreService'
 import {
@@ -123,7 +124,11 @@ export class ProviderConfigService implements IStoreService {
 
     const existingConfig = configs.find((item) => item.id === config.id)
     if (existingConfig) {
-      throw new Error(`Provider with ID "${config.id}" already exists`)
+      throw new AppError(
+        'config.duplicate',
+        {},
+        { message: `Provider with ID "${config.id}" already exists` }
+      )
     }
 
     await this.options.set([...configs, config])
@@ -139,8 +144,12 @@ export class ProviderConfigService implements IStoreService {
   async mustGet(id: string): Promise<ProviderConfig> {
     const config = await this.get(id)
     if (!config) {
-      throw new Error(
-        `Provider config with ID "${id}" not found, it might have been deleted.`
+      throw new AppError(
+        'config.notFound',
+        {},
+        {
+          message: `Provider config with ID "${id}" not found, it might have been deleted.`,
+        }
       )
     }
     return config
@@ -158,7 +167,11 @@ export class ProviderConfigService implements IStoreService {
     const prevConfig = configs.find((item) => item.id === id)
 
     if (!prevConfig) {
-      throw new Error(`Provider with ID "${id}" not found.`)
+      throw new AppError(
+        'config.notFound',
+        {},
+        { message: `Provider with ID "${id}" not found.` }
+      )
     }
 
     const nextConfig = { ...prevConfig, ...config } as T
@@ -190,7 +203,11 @@ export class ProviderConfigService implements IStoreService {
     const config = configs.find((item) => item.id === id)
 
     if (!config) {
-      throw new Error(`Provider not found: "${id}" when deleting`)
+      throw new AppError(
+        'config.notFound',
+        {},
+        { message: `Provider not found: "${id}" when deleting` }
+      )
     }
 
     const newData = produce(configs, (draft) => {
@@ -205,7 +222,11 @@ export class ProviderConfigService implements IStoreService {
     const config = await this.get(id)
 
     if (!config) {
-      throw new Error(`Provider not found: "${id}"`)
+      throw new AppError(
+        'config.notFound',
+        {},
+        { message: `Provider not found: "${id}"` }
+      )
     }
 
     return this.update(id, {

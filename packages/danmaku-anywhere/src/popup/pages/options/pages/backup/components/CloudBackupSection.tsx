@@ -5,6 +5,7 @@ import { useMutation, useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeError } from '@/common/errors/describeError'
 import { useAuthSession } from '@/common/hooks/user/useAuthSession'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import {
@@ -57,7 +58,7 @@ export function CloudBackupSection({
         t(
           'optionsPage.backup.cloudCreateError',
           'Cloud backup failed: {{message}}',
-          { message: error.message }
+          { message: describeError(error).message }
         )
       )
     },
@@ -76,7 +77,7 @@ export function CloudBackupSection({
         t(
           'optionsPage.backup.cloudDownloadError',
           'Failed to download cloud backup: {{message}}',
-          { message: error.message }
+          { message: describeError(error).message }
         )
       )
       onRestoringChange?.(false)

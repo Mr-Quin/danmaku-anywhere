@@ -56,7 +56,9 @@ test('loading shows a result-count skeleton, then the result count', async ({
 // HTTP 500 from both the worker and the popup.
 test.describe(() => {
   test.use({
-    expectedConsoleErrors: [/\[RpcManager\] Error in RPC handler.*HTTP 500/],
+    expectedConsoleErrors: [
+      /\[RpcManager\] Error in RPC handler.*message: http:/,
+    ],
   })
 
   test('retry on a failed search returns to the loading skeleton', async ({

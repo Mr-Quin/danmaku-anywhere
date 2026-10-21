@@ -2,6 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeError } from '@/common/errors/describeError'
 import { formatHotkeyCombo } from '@/common/options/extensionOptions/hotkeys'
 import { useHotkeyOptions } from '@/common/options/extensionOptions/useHotkeyOptions'
 import { getOS } from '@/common/utils/utils'
@@ -44,7 +45,7 @@ export const useShowDanmaku = () => {
       })
     },
     onError: (err) => {
-      toast.error(err.message)
+      toast.error(describeError(err).message)
     },
   })
 }

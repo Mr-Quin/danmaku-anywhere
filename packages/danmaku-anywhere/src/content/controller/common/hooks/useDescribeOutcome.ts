@@ -6,10 +6,10 @@ import type {
 } from '@/common/components/Toast/toastStore'
 import { describeKeptStored } from '@/common/danmaku/describeKeptStored'
 import { episodeToString, isSourceEpisode } from '@/common/danmaku/utils'
+import { describeCode, describeError } from '@/common/errors/describeError'
 import type { EpisodeOutcome } from '@/content/controller/common/outcomes'
-import { PopupTab, usePopup } from '@/content/controller/store/popupStore'
-import { describeMountError } from './mountError'
-import { useDescribeSourceError } from './useDescribeSourceError'
+import { mountFailedMessage } from './mountError'
+import { useErrorToastAction } from './useErrorToastAction'
 
 export interface OutcomeMessage {
   severity: Severity
@@ -25,14 +25,7 @@ interface DescribeOptions {
 
 export function useDescribeOutcome() {
   const { t } = useTranslation()
-  const describeSourceError = useDescribeSourceError()
-
-  const searchAction = () => {
-    return {
-      actionFn: () => usePopup.getState().open({ tab: PopupTab.Search }),
-      actionLabel: t('integration.alert.openSearch', 'Open search page'),
-    }
-  }
+  const toastAction = useErrorToastAction()
 
   return useEventCallback(
     (
@@ -75,42 +68,37 @@ export function useDescribeOutcome() {
         case 'mountFailed':
           return {
             severity: 'error',
-            message: describeMountError(outcome.error),
+            message: mountFailedMessage(outcome.error),
           }
         case 'fetchFailed': {
-          const message = describeSourceError({
-            error: outcome.error,
-            describeFailure: (reason) =>
-              t(
-                'danmaku.alert.fetchError',
-                'Failed to fetch danmaku: {{message}}',
-                { message: reason }
-              ),
-            providerConfigId: outcome.providerConfigId,
-          })
-          return { severity: 'error', message, action: searchAction() }
+          const { message } = describeError(outcome.error)
+          return {
+            severity: 'error',
+            message: t(
+              'danmaku.alert.fetchError',
+              'Failed to fetch danmaku: {{message}}',
+              { message }
+            ),
+            action: toastAction.forError(outcome.error),
+          }
         }
         case 'matchFailed': {
-          const message = describeSourceError({
-            error: outcome.error,
-            describeFailure: (reason) =>
-              t(
-                'integration.alert.matchError',
-                'Failed to match episode: {{message}}',
-                { message: reason }
-              ),
-          })
-          return { severity: 'error', message, action: searchAction() }
+          const { message } = describeError(outcome.error)
+          return {
+            severity: 'error',
+            message: t(
+              'integration.alert.matchError',
+              'Failed to match episode: {{message}}',
+              { message }
+            ),
+            action: toastAction.forError(outcome.error),
+          }
         }
         case 'notFound':
           return {
             severity: 'error',
-            message: t(
-              'integration.alert.noEpisodeFound',
-              'No episode found for {{title}}',
-              { title: outcome.title }
-            ),
-            action: searchAction(),
+            message: describeCode('match.notFound', { title: outcome.title }),
+            action: toastAction.openSearch(),
           }
       }
     }

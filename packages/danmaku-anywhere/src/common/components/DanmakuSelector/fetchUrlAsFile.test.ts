@@ -1,9 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import {
-  fetchUrlAsFile,
-  ImportFromUrlError,
-  validateImportUrl,
-} from './fetchUrlAsFile'
+import { AppError } from '@/common/errors/AppError'
+import { fetchUrlAsFile, validateImportUrl } from './fetchUrlAsFile'
 
 /**
  * Verifies the URL-to-File helper that powers "Import from URL".
@@ -20,55 +17,58 @@ afterEach(() => {
 
 describe('validateImportUrl', () => {
   it('rejects an empty string as invalidUrl', () => {
-    expect(validateImportUrl('')).toEqual({ ok: false, reason: 'invalidUrl' })
+    expect(validateImportUrl('')).toEqual({
+      ok: false,
+      reason: 'importUrl.invalidUrl',
+    })
   })
 
   it('rejects a malformed URL as invalidUrl', () => {
     expect(validateImportUrl('not a url')).toEqual({
       ok: false,
-      reason: 'invalidUrl',
+      reason: 'importUrl.invalidUrl',
     })
   })
 
   it('rejects file:// URLs as invalidScheme', () => {
     expect(validateImportUrl('file:///tmp/danmaku.xml')).toEqual({
       ok: false,
-      reason: 'invalidScheme',
+      reason: 'importUrl.invalidScheme',
     })
   })
 
   it('rejects data: URLs as invalidScheme', () => {
     expect(validateImportUrl('data:application/json,{}')).toEqual({
       ok: false,
-      reason: 'invalidScheme',
+      reason: 'importUrl.invalidScheme',
     })
   })
 
   it('rejects chrome-extension:// URLs as invalidScheme', () => {
     expect(validateImportUrl('chrome-extension://abc/file.xml')).toEqual({
       ok: false,
-      reason: 'invalidScheme',
+      reason: 'importUrl.invalidScheme',
     })
   })
 
   it('rejects URLs without a recognized extension', () => {
     expect(validateImportUrl('https://example.com/file.txt')).toEqual({
       ok: false,
-      reason: 'unsupportedExtension',
+      reason: 'importUrl.unsupportedExtension',
     })
   })
 
   it('rejects URLs whose basename is "."', () => {
     expect(validateImportUrl('https://example.com/some/path/.')).toEqual({
       ok: false,
-      reason: 'unsupportedExtension',
+      reason: 'importUrl.unsupportedExtension',
     })
   })
 
   it('rejects URLs whose basename is empty', () => {
     expect(validateImportUrl('https://example.com/')).toEqual({
       ok: false,
-      reason: 'unsupportedExtension',
+      reason: 'importUrl.unsupportedExtension',
     })
   })
 
@@ -146,18 +146,18 @@ describe('fetchUrlAsFile', () => {
     expect(bin.type).toBe('application/octet-stream')
   })
 
-  it('rejects httpError with status for a non-2xx response', async () => {
+  it('rejects http with status for a non-2xx response', async () => {
     mockFetchOnce(new Response('nope', { status: 404 }))
 
     const err = await fetchUrlAsFile('https://example.com/a.json').catch(
       (e) => e
     )
-    expect(err).toBeInstanceOf(ImportFromUrlError)
-    expect((err as ImportFromUrlError).code).toBe('httpError')
-    expect((err as ImportFromUrlError).params).toEqual({ status: 404 })
+    expect(err).toBeInstanceOf(AppError)
+    expect((err as AppError).code).toBe('http')
+    expect((err as AppError).params).toEqual({ status: 404 })
   })
 
-  it('rejects fetchFailed when fetch itself throws', async () => {
+  it('rejects network when fetch itself throws', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn().mockRejectedValueOnce(new TypeError('network down'))
@@ -166,8 +166,8 @@ describe('fetchUrlAsFile', () => {
     const err = await fetchUrlAsFile('https://example.com/a.json').catch(
       (e) => e
     )
-    expect(err).toBeInstanceOf(ImportFromUrlError)
-    expect((err as ImportFromUrlError).code).toBe('fetchFailed')
+    expect(err).toBeInstanceOf(AppError)
+    expect((err as AppError).code).toBe('network')
   })
 
   it('rejects aborted when the signal is aborted mid-fetch', async () => {
@@ -184,11 +184,11 @@ describe('fetchUrlAsFile', () => {
     const err = await fetchUrlAsFile('https://example.com/a.json', {
       signal: controller.signal,
     }).catch((e) => e)
-    expect(err).toBeInstanceOf(ImportFromUrlError)
-    expect((err as ImportFromUrlError).code).toBe('aborted')
+    expect(err).toBeInstanceOf(AppError)
+    expect((err as AppError).code).toBe('aborted')
   })
 
-  it('rejects sizeLimitExceeded and cancels the reader when body is too large', async () => {
+  it('rejects importUrl.tooLarge and cancels the reader when body is too large', async () => {
     const cancel = vi.fn().mockResolvedValue(undefined)
     const chunks = [new Uint8Array(8), new Uint8Array(8), new Uint8Array(8)]
     let i = 0
@@ -213,8 +213,8 @@ describe('fetchUrlAsFile', () => {
       maxBytes: 16,
     }).catch((e) => e)
 
-    expect(err).toBeInstanceOf(ImportFromUrlError)
-    expect((err as ImportFromUrlError).code).toBe('sizeLimitExceeded')
+    expect(err).toBeInstanceOf(AppError)
+    expect((err as AppError).code).toBe('importUrl.tooLarge')
     expect(cancel).toHaveBeenCalledTimes(1)
   })
 
@@ -223,8 +223,8 @@ describe('fetchUrlAsFile', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     const err = await fetchUrlAsFile('not a url').catch((e) => e)
-    expect(err).toBeInstanceOf(ImportFromUrlError)
-    expect((err as ImportFromUrlError).code).toBe('invalidUrl')
+    expect(err).toBeInstanceOf(AppError)
+    expect((err as AppError).code).toBe('importUrl.invalidUrl')
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
@@ -233,8 +233,8 @@ describe('fetchUrlAsFile', () => {
     vi.stubGlobal('fetch', fetchMock)
 
     const err = await fetchUrlAsFile('file:///etc/passwd.json').catch((e) => e)
-    expect(err).toBeInstanceOf(ImportFromUrlError)
-    expect((err as ImportFromUrlError).code).toBe('invalidScheme')
+    expect(err).toBeInstanceOf(AppError)
+    expect((err as AppError).code).toBe('importUrl.invalidScheme')
     expect(fetchMock).not.toHaveBeenCalled()
   })
 })
