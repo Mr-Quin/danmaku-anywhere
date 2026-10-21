@@ -129,4 +129,10 @@ test('bilibili url paste: a title that looks like a link can be searched by titl
   await expect(popup.search.seasonCard('Bilibili')).toBeVisible()
   await expect(popup.search.input).toHaveValue('Re.Zero/2')
   await expect(popup.search.noSourceNotice).toHaveCount(0)
+
+  await popup.search.input.press('End')
+  await popup.search.input.pressSequentially(' ')
+  await popup.search.input.press('Enter')
+  await expect(popup.search.noSourceNotice).toHaveCount(0)
+  await expect(popup.search.seasonCard('Bilibili')).toBeVisible()
 })

@@ -103,7 +103,7 @@ describe('SourceCapabilityService search matching', () => {
       [makeRunner('search-only', ['search']), makeRunner('full', FULL)]
     )
 
-    expect(await service.getSearchMatchProviders()).toEqual([full])
+    expect(await service.getFirstSearchMatchProvider()).toEqual(full)
     expect(await service.getFirstSearchMatchProvider()).toEqual(full)
   })
 
@@ -129,7 +129,7 @@ describe('SourceCapabilityService search matching', () => {
       [makeRunner('off', FULL), makeRunner('a', FULL), makeRunner('b', FULL)]
     )
 
-    expect(await service.getSearchMatchProviders()).toEqual([first, second])
+    expect(await service.getFirstSearchMatchProvider()).toEqual(first)
   })
 })
 
@@ -142,7 +142,7 @@ describe('SourceCapabilityService mapping resolution', () => {
     )
 
     expect(await service.getMappingProviders()).toEqual([noSearch])
-    expect(await service.getSearchMatchProviders()).toEqual([])
+    expect(await service.getFirstSearchMatchProvider()).toBeUndefined()
   })
 
   it('needs both episodes and danmaku', async () => {
@@ -176,7 +176,7 @@ describe('SourceCapabilityService with a config whose manifest is missing', () =
   it('still matches through the other sources', async () => {
     const service = build([broken, full], runners())
 
-    expect(await service.getSearchMatchProviders()).toEqual([full])
+    expect(await service.getFirstSearchMatchProvider()).toEqual(full)
     expect(await service.getMappingProviders()).toEqual([full])
   })
 

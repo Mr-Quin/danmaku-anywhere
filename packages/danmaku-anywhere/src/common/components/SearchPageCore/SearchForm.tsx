@@ -93,11 +93,17 @@ export function SearchForm({
   const [parseSubmitToken, setParseSubmitToken] = useState(0)
   const [committedParseUrl, setCommittedParseUrl] = useState('')
 
+  const processKeyword = (raw: string): string => {
+    const trimmed = raw.trim()
+    return extOptions.searchUsingSimplified ? toSimplified(trimmed) : trimmed
+  }
+
   // Text that looks like a link but that no source parses (such as
   // "Re.Zero/2") can still be searched as a title when the user asks to.
   const [titleSearchOf, setTitleSearchOf] = useState<string | null>(null)
   const urlAnswer = useUrlParseAnswer(searchTerm)
-  const isUrl = urlAnswer.kind !== 'notLink' && searchTerm !== titleSearchOf
+  const isUrl =
+    urlAnswer.kind !== 'notLink' && processKeyword(searchTerm) !== titleSearchOf
 
   const activeProviderId =
     enabledProviders.find((p) => p.id === providerId)?.id ??
@@ -160,11 +166,6 @@ export function SearchForm({
     return failure.message || t('error.unknown', 'Something went wrong.')
   }
 
-  const processKeyword = (raw: string): string => {
-    const trimmed = raw.trim()
-    return extOptions.searchUsingSimplified ? toSimplified(trimmed) : trimmed
-  }
-
   const handleSearchSubmit = (keyword?: string) => {
     const raw = keyword ?? searchTerm
     const trimmed = raw.trim()
@@ -200,7 +201,7 @@ export function SearchForm({
   }
 
   const submit = async (value: string) => {
-    if (value === titleSearchOf) {
+    if (processKeyword(value) === titleSearchOf) {
       handleSearchSubmit(value)
       return
     }

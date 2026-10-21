@@ -102,13 +102,18 @@ export class SourceCapabilityService {
     return provider
   }
 
-  async getSearchMatchProviders(): Promise<ProviderConfig[]> {
-    return this.enabledWhere(canMatchBySearch)
-  }
-
   async getFirstSearchMatchProvider(): Promise<ProviderConfig | undefined> {
-    const [first] = await this.getSearchMatchProviders()
-    return first
+    for (const config of await this.providerConfigService.getAll()) {
+      if (!config.enabled) {
+        continue
+      }
+      const provider = this.danmakuProviderFactory(config)
+      const capabilities = await this.capabilitiesOrNone(config, provider)
+      if (capabilities && canMatchBySearch(capabilities)) {
+        return config
+      }
+    }
+    return undefined
   }
 
   async getMappingProviders(): Promise<ProviderConfig[]> {
