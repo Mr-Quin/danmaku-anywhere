@@ -831,6 +831,22 @@ describe('useIntegrationPolicy', () => {
     ])
   })
 
+  it('reports a pick that fails to mount once, without rejecting', async () => {
+    start()
+    rpc.mount.mockRejectedValueOnce(new Error('The player went away'))
+
+    await act(async () => {
+      await expect(
+        user.mountChosen?.([localEpisode('Picked') as never])
+      ).resolves.toBeUndefined()
+    })
+
+    expect(mountedState().isMounted).toBe(false)
+    expect(openToasts()).toEqual([
+      { severity: 'error', message: expect.any(String) },
+    ])
+  })
+
   it('clears AI parsing progress when parsing ends without a show', async () => {
     start()
     reportParsing(true)
