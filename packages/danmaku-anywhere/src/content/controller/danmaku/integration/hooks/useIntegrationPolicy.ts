@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { isCustomEpisode } from '@/common/danmaku/utils'
 import { Logger } from '@/common/Logger'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
 import { useActiveConfig } from '@/content/controller/common/context/useActiveConfig'
 import { useActiveIntegration } from '@/content/controller/common/context/useActiveIntegration'
-import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
-import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'
-import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
+import { unmountQuietly } from '@/content/controller/common/danmakuCommands'
+import {
+  type EpisodeRun,
+  EpisodeRuns,
+} from '@/content/controller/danmaku/integration/episodeRuns'
+import { EpisodeToast } from '@/content/controller/danmaku/integration/episodeToast'
 import type { MediaInfo } from '@/content/controller/danmaku/integration/models/MediaInfo'
 import type { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { ObserverFactory } from '@/content/controller/danmaku/integration/observers/ObserverFactory'
+import { onPreemptAutomatic } from '@/content/controller/store/automaticPreemption'
 import { useStore } from '@/content/controller/store/store'
+import { useEpisodeMatching } from './useEpisodeMatching'
 import { useSyncIntegrationManualMode } from './useSyncIntegrationManualMode'
 import { useWarnIncompleteConfig } from './useWarnIncompleteConfig'
 
@@ -31,7 +35,6 @@ export const useIntegrationPolicy = () => {
     }
     return `${af.frameId}:${af.videoChangeCount}`
   })
-  const unmountDanmaku = useUnmountDanmaku()
   const {
     setMediaInfo,
     setErrorMessage,
@@ -41,14 +44,26 @@ export const useIntegrationPolicy = () => {
     resetIntegration,
   } = useStore.use.integration()
 
-  const matchEpisode = useMatchEpisode()
-  const { loadMutation, mountDanmaku } = useLoadDanmaku()
+  const [runs] = useState(() => new EpisodeRuns())
+  const [episodeToast] = useState(() => new EpisodeToast())
+  const matchEpisode = useEpisodeMatching(episodeToast)
 
   const integrationPolicy = useActiveIntegration()
   const activeConfig = useActiveConfig()
 
   const isManual = useSyncIntegrationManualMode()
   const isConfigIncomplete = useWarnIncompleteConfig()
+
+  useEffect(() => {
+    const unfollow = episodeToast.follow(runs)
+    const unpreempt = onPreemptAutomatic(() => {
+      runs.end()
+    })
+    return () => {
+      unfollow()
+      unpreempt()
+    }
+  }, [runs, episodeToast])
 
   useEffect(() => {
     if (isManual || isConfigIncomplete) {
@@ -82,94 +97,61 @@ export const useIntegrationPolicy = () => {
 
     activate()
 
+    let parsingRun: EpisodeRun | undefined
+
     newObserver.on({
-      statusChange: (status: string) => {
-        if (status === 'Extracting video info using AI...') {
-          toast.info(
+      parsingChange: (parsing: boolean) => {
+        if (parsing) {
+          parsingRun = runs.begin()
+          episodeToast.progress(
+            parsingRun,
             t('integration.alert.usingAI', 'Using AI to parse show information')
           )
+          return
         }
+        if (parsingRun?.isCurrent()) {
+          runs.end()
+        }
+        parsingRun = undefined
       },
       mediaChange: (state: MediaInfo) => {
+        // A parse the user overrode by picking or removing danmaku ended with
+        // its run, and its result must not replace what they chose.
+        if (parsingRun && !parsingRun.isCurrent()) {
+          parsingRun = undefined
+          return
+        }
+        parsingRun = undefined
         getTrackingService().track('integrationPolicyMediaChange', {
           mediaInfo: state.toJSON(),
           policy: integrationPolicy,
         })
-        if (activeConfig.mode === 'ai') {
-          toast.success(
-            t('integration.alert.AIResult', 'AI Parsing Result: {{title}}', {
-              title: state.toString(),
-            })
-          )
-        }
+        const run = runs.begin()
         if (useStore.getState().danmaku.isMounted) {
-          unmountDanmaku.mutate()
+          void unmountQuietly()
         }
 
         setMediaInfo(state)
         setErrorMessage()
 
-        const episodeMatchPayload = {
-          mapKey: state.getKey(),
-          title: state.title,
-          episodeNumber: state.episode,
-          originalTitle: state.originalTitle,
-        }
-
-        toast.info(
-          t('integration.alert.search', 'Searching for anime: {{title}}', {
-            title: state.toString(),
-          })
-        )
-
-        matchEpisode.mutate(episodeMatchPayload, {
-          onSuccess: (result) => {
-            if (result.data.status !== 'success') {
-              return
-            }
-            const matched = result.data.data
-            if (isCustomEpisode(matched)) {
-              toast.success(
-                t(
-                  'integration.alert.matchedLocalDanmaku',
-                  'Matched local danmaku'
-                )
-              )
-              void mountDanmaku([matched])
-            } else {
-              loadMutation.mutate(
-                {
-                  type: 'by-meta',
-                  meta: matched,
-                  options: {
-                    forceUpdate: false,
-                    automatic: true,
-                  },
-                },
-                {
-                  onError: () => {
-                    toast.error(
-                      t(
-                        'danmaku.alert.fetchError',
-                        'Failed to fetch danmaku: {{message}}',
-                        {
-                          message: episodeMatchPayload.title,
-                        }
-                      )
-                    )
-                  },
-                }
-              )
-            }
-          },
-        })
+        void matchEpisode(run, state)
       },
       mediaElementsChange: () => {
         setFoundElements(true)
       },
+      mediaCleared: () => {
+        runs.end()
+      },
       error: (error: Error) => {
         getTrackingService().track('integrationPolicyError', { error })
-        toast.error(error.message)
+        if (parsingRun && !parsingRun.isCurrent()) {
+          parsingRun = undefined
+          return
+        }
+        // The error does not invalidate work in flight: if the page recovers
+        // to the same media, that run is still the right one.
+        const run = runs.current() ?? runs.begin()
+        episodeToast.report(run, 'error', error.message)
         setErrorMessage(error.message)
       },
     })
@@ -178,6 +160,7 @@ export const useIntegrationPolicy = () => {
     setObserver(newObserver)
 
     return () => {
+      runs.end()
       newObserver.destroy()
       setObserver(null)
     }
@@ -187,6 +170,8 @@ export const useIntegrationPolicy = () => {
     if (!observer) {
       return
     }
+    // Whatever the integration was doing belonged to the previous video.
+    runs.end()
     if (activeFrameVideoKey !== undefined) {
       observer.run()
     } else {

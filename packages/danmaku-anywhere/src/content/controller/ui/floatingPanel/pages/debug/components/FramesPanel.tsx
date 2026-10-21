@@ -68,6 +68,9 @@ const FrameItem = ({
 }) => {
   const [expanded, setExpanded] = useState(isActive)
   const debugShowSkipButton = useStore.use.debugShowSkipButton()
+  const mounted = useStore(
+    (state) => state.danmaku.mountedFrameId === frame.frameId
+  )
 
   return (
     <FrameCard isActive={isActive}>
@@ -189,12 +192,12 @@ const FrameItem = ({
               <ExtensionIcon
                 sx={{
                   fontSize: 14,
-                  color: frame.mounted ? 'success.main' : 'text.disabled',
+                  color: mounted ? 'success.main' : 'text.disabled',
                 }}
               />
               <Typography
                 variant="caption"
-                color={frame.mounted ? 'text.primary' : 'text.secondary'}
+                color={mounted ? 'text.primary' : 'text.secondary'}
                 sx={{
                   fontSize: 10,
                 }}

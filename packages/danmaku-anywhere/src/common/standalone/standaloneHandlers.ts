@@ -171,12 +171,10 @@ export const standaloneControllerHandlers: StandaloneRpcHandlers<ControllerMetho
 
 export const standalonePlayerCommandHandlers: StandaloneRpcHandlers<PlayerRelayCommands> =
   {
-    'relay:command:mount': () => true,
-    'relay:command:unmount': () => true,
+    'relay:command:apply': () => undefined,
     'relay:command:start': () => undefined,
     'relay:command:seek': () => undefined,
     'relay:command:enterPip': () => undefined,
-    'relay:command:show': () => undefined,
     'relay:command:controllerReady': () => undefined,
     'relay:command:debugSkipButton': () => undefined,
     'relay:command:getSegmentationStats': () => ({

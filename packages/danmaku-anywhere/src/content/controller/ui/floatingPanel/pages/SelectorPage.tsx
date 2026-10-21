@@ -4,83 +4,18 @@ import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isPersistedSeason } from '@/common/anime/utils'
 import { SeasonGrid } from '@/common/components/Season/SeasonGrid'
-import { useToast } from '@/common/components/Toast/toastStore'
-import { isCustomEpisode, isCustomSeason } from '@/common/danmaku/utils'
-import { useLoadDanmaku } from '@/content/controller/common/hooks/useLoadDanmaku'
-import { useMatchEpisode } from '@/content/controller/danmaku/integration/hooks/useMatchEpisode'
-import { usePopup } from '@/content/controller/store/popupStore'
-import { useStore } from '@/content/controller/store/store'
+import { isCustomSeason } from '@/common/danmaku/utils'
+import {
+  type SeasonSelection,
+  usePopup,
+} from '@/content/controller/store/popupStore'
 
 export const SelectorPage = () => {
   const { t } = useTranslation()
-  const { toast } = useToast()
 
-  const selectorBoxRef = useRef<HTMLDivElement>(undefined)
-  const { animes, toggleOpen } = usePopup()
-  const { mediaInfo } = useStore.use.integration()
+  const selection = usePopup((state) => state.selection)
 
-  const [selectedSeason, setSelectedSeason] = useState<Season>()
-
-  const { loadMutation } = useLoadDanmaku()
-
-  const matchEpisode = useMatchEpisode()
-
-  const handleAnimeSelect = (anime: Season) => {
-    setSelectedSeason(anime)
-    selectorBoxRef.current?.scrollIntoView({
-      behavior: 'smooth',
-      block: 'end',
-    })
-  }
-
-  const handleApply = async () => {
-    if (!selectedSeason || !mediaInfo) return
-
-    const episodeMatchPayload = {
-      mapKey: mediaInfo.getKey(),
-      title: selectedSeason.title,
-      episodeNumber: mediaInfo.episode,
-      seasonId: selectedSeason.id,
-    }
-
-    matchEpisode.mutate(episodeMatchPayload, {
-      onSuccess: (result) => {
-        if (
-          result.data.status !== 'success' ||
-          isCustomEpisode(result.data.data) // shouldn't happen here
-        ) {
-          return
-        }
-        loadMutation.mutate(
-          {
-            type: 'by-meta',
-            meta: result.data.data,
-            options: {
-              forceUpdate: false,
-            },
-          },
-          {
-            onSettled: () => {
-              toggleOpen()
-            },
-            onError: () => {
-              toast.error(
-                t(
-                  'danmaku.alert.fetchError',
-                  'Failed to fetch danmaku: {{message}}',
-                  {
-                    message: selectedSeason.title,
-                  }
-                )
-              )
-            },
-          }
-        )
-      },
-    })
-  }
-
-  if (animes.length === 0) {
+  if (!selection || selection.seasons.length === 0) {
     return (
       <Box
         sx={{
@@ -92,6 +27,36 @@ export const SelectorPage = () => {
         </Typography>
       </Box>
     )
+  }
+
+  return <SeasonSelector key={selection.id} selection={selection} />
+}
+
+function SeasonSelector({ selection }: { selection: SeasonSelection }) {
+  const { t } = useTranslation()
+
+  const selectorBoxRef = useRef<HTMLDivElement>(undefined)
+  const [selectedSeason, setSelectedSeason] = useState<Season>()
+  const [applying, setApplying] = useState(false)
+
+  const handleSeasonSelect = (season: Season) => {
+    setSelectedSeason(season)
+    selectorBoxRef.current?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'end',
+    })
+  }
+
+  const handleApply = async () => {
+    if (!selectedSeason) {
+      return
+    }
+    setApplying(true)
+    try {
+      await selection.apply(selectedSeason)
+    } finally {
+      setApplying(false)
+    }
   }
 
   return (
@@ -109,18 +74,18 @@ export const SelectorPage = () => {
           {t(
             'selectorPage.selectAnime',
             'Multiple matches found for {{name}}, please select',
-            { name: mediaInfo?.toString() }
+            { name: selection.label }
           )}
         </Typography>
         <SeasonGrid
-          data={animes}
+          data={selection.seasons}
           onSelectionChange={([season]) => {
             if (!season) {
               setSelectedSeason(undefined)
               return
             }
             if (!isCustomSeason(season) && isPersistedSeason(season)) {
-              handleAnimeSelect(season)
+              handleSeasonSelect(season)
             }
           }}
           disableMenu
@@ -145,7 +110,7 @@ export const SelectorPage = () => {
         >
           <Button
             type="submit"
-            loading={loadMutation.isPending || matchEpisode.isPending}
+            loading={applying}
             variant="contained"
             size="small"
             onClick={handleApply}

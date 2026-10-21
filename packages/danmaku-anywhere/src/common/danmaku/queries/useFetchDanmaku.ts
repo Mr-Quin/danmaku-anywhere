@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeKeptStored } from '@/common/danmaku/describeKeptStored'
 import type { DanmakuFetchDto } from '@/common/danmaku/dto'
 import { describeSourceError } from '@/common/providers/describeSourceError'
 import {
@@ -10,6 +10,21 @@ import {
 } from '@/common/queries/queryKeys'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
+
+const fetchDanmakuOptions = {
+  mutationFn: async (data: DanmakuFetchDto) => {
+    getTrackingService().track('fetchDanmaku', data)
+    const res = await chromeRpcClient.episodeFetch(data)
+    return res.data
+  },
+  meta: {
+    invalidates: [
+      episodeQueryKeys.all(),
+      seasonQueryKeys.all(),
+      bookmarkQueryKeys.all(),
+    ],
+  },
+}
 
 /**
  * Fetches danmaku from cache or server
@@ -21,39 +36,27 @@ import { getTrackingService } from '@/common/telemetry/getTrackingService'
  * This is a mutation because it updates the cache
  */
 export const useFetchDanmaku = () => {
-  const { t } = useTranslation()
+  const mutation = useMutation(fetchDanmakuOptions)
+
+  return {
+    ...mutation,
+    fetch: mutation.mutateAsync,
+  }
+}
+
+// For callers that show nothing of their own: reports a kept-stored refetch
+// and any failure as toasts.
+export const useFetchDanmakuWithToast = () => {
   const toast = useToast.use.toast()
 
   const mutation = useMutation({
-    mutationFn: async (data: DanmakuFetchDto) => {
-      getTrackingService().track('fetchDanmaku', data)
-      const res = await chromeRpcClient.episodeFetch(data)
-      return res.data
-    },
-    meta: {
-      invalidates: [
-        episodeQueryKeys.all(),
-        seasonQueryKeys.all(),
-        bookmarkQueryKeys.all(),
-      ],
-    },
+    ...fetchDanmakuOptions,
     onSuccess: ({ keptStored }) => {
-      if (!keptStored) {
-        return
+      if (keptStored) {
+        toast.warn(describeKeptStored(keptStored))
       }
-      toast.warn(
-        t(
-          'danmaku.alert.refetchKeptStored',
-          'Fetched {{fetched}} comments, fewer than the {{stored}} already saved. Kept the saved danmaku.',
-          {
-            count: keptStored.fetchedCount,
-            fetched: keptStored.fetchedCount,
-            stored: keptStored.storedCount,
-          }
-        )
-      )
     },
-    onError: async (error) => {
+    onError: (error) => {
       toast.error(describeSourceError(error))
     },
   })

@@ -1,6 +1,5 @@
 import { Badge, Tab } from '@mui/material'
 import { useTranslation } from 'react-i18next'
-import { match } from 'ts-pattern'
 
 import { SidebarTabs } from '@/common/components/SidebarTabs'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
@@ -11,7 +10,7 @@ import { routes } from '@/content/controller/ui/router/routes'
 
 export const PanelTabs = () => {
   const { t } = useTranslation()
-  const { tab, setTab } = usePopup()
+  const { tab, setTab, selection } = usePopup()
   const { data: options } = useExtensionOptions()
   const activeConfig = useActiveConfig()
 
@@ -19,19 +18,15 @@ export const PanelTabs = () => {
     setTab(value)
   }
 
-  const tabs = match(tab)
-    .with(PopupTab.Selector, () => {
-      return routes.filter((route) => route.tab === PopupTab.Selector)
-    })
-    .otherwise(() => {
-      return routes.filter((route) => {
-        if (route.tab === PopupTab.Selector) return false
-        if (route.tab === PopupTab.Debug) {
-          return options.debug
-        }
-        return true
-      })
-    })
+  const tabs = routes.filter((route) => {
+    if (route.tab === PopupTab.Selector) {
+      return selection !== undefined
+    }
+    if (route.tab === PopupTab.Debug) {
+      return options.debug
+    }
+    return true
+  })
 
   const isIncomplete = isConfigIncomplete(activeConfig)
 

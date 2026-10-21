@@ -503,20 +503,14 @@ export class RpcManager {
 
     const rpcRelay = createRpcServer<PlayerRelayCommands & PlayerRelayEvents>(
       {
-        'relay:command:mount': passThrough(
-          relayFrameClient['relay:command:mount']
-        ),
-        'relay:command:unmount': passThrough(
-          relayFrameClient['relay:command:unmount']
+        'relay:command:apply': passThrough(
+          relayFrameClient['relay:command:apply']
         ),
         'relay:command:start': passThrough(
           relayFrameClient['relay:command:start']
         ),
         'relay:command:seek': passThrough(
           relayFrameClient['relay:command:seek']
-        ),
-        'relay:command:show': passThrough(
-          relayFrameClient['relay:command:show']
         ),
         'relay:command:enterPip': passThrough(
           relayFrameClient['relay:command:enterPip']

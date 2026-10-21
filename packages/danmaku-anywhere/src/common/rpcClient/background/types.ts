@@ -366,21 +366,46 @@ export interface PipelineEntry {
   provider?: DanmakuSourceType
 }
 
+export interface ControllerSession {
+  id: string
+  startedAt: number
+}
+
+export type PlayerContent =
+  | { kind: 'mount'; comments: CommentEntity[] }
+  | { kind: 'unmount' }
+  | { kind: 'keep' }
+
+/**
+ * The controller's desired state for one frame. `version` grows with every
+ * change and `contentVersion` is the version that last changed what is
+ * mounted, so a player can drop anything older than what it already applied.
+ */
+export interface PlayerApplyCommand {
+  session: string
+  version: number
+  contentVersion: number
+  content: PlayerContent
+  visible: boolean
+}
+
 // Controller -> Player communication
 // Here the frameId is used to identify the DESTINATION frame
 export type PlayerRelayCommands = {
-  'relay:command:mount': RPCDef<
-    InputWithFrameId<CommentEntity[]>,
-    boolean,
+  'relay:command:apply': RPCDef<
+    InputWithFrameId<PlayerApplyCommand>,
+    void,
     FrameContext
   >
-  'relay:command:unmount': RPCDef<InputWithFrameId<void>, boolean, FrameContext>
-  'relay:command:start': RPCDef<InputWithFrameId<string>, void, FrameContext>
+  'relay:command:start': RPCDef<
+    InputWithFrameId<{ query: string; session: ControllerSession }>,
+    void,
+    FrameContext
+  >
   'relay:command:seek': RPCDef<InputWithFrameId<number>, void, FrameContext>
   'relay:command:enterPip': RPCDef<InputWithFrameId<void>, void, FrameContext>
-  'relay:command:show': RPCDef<InputWithFrameId<boolean>, void, FrameContext>
   'relay:command:controllerReady': RPCDef<
-    InputWithFrameId<void>,
+    InputWithFrameId<{ session: ControllerSession }>,
     void,
     FrameContext
   >

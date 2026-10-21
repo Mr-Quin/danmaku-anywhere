@@ -13,7 +13,9 @@ interface IntegrationHandlers {
   episodeChange: (episode: number) => void
   mediaChange: (state: MediaInfo) => void
   mediaElementsChange: (elements: MediaElements) => void
-  statusChange: (status: string) => void
+  // The observer dropped the media it reported and is starting over.
+  mediaCleared: () => void
+  parsingChange: (parsing: boolean) => void
   error: (err: Error) => void
 }
 
@@ -25,8 +27,8 @@ export abstract class MediaObserver {
   public readonly name: string = 'MediaObserver'
 
   private subscriptions: Map<IntegrationEventKey, Set<Fn>>
+  private runController?: AbortController
   protected mediaInfo?: MediaInfo
-  protected status = ''
 
   protected constructor() {
     this.subscriptions = new Map()
@@ -38,20 +40,30 @@ export abstract class MediaObserver {
   abstract run(): void
   abstract reset(): void
 
+  // Work started for a run checks the signal after every await, so nothing
+  // from before a reset reaches the subscribers.
+  protected startRun(): AbortSignal {
+    this.stopRun()
+    this.runController = new AbortController()
+    return this.runController.signal
+  }
+
+  protected stopRun() {
+    if (!this.runController) {
+      return
+    }
+    this.runController.abort()
+    this.runController = undefined
+    this.mediaInfo = undefined
+    this.emit('mediaCleared')
+  }
+
   protected updateMediaInfo(mediaInfo: MediaInfo) {
     if (this.mediaInfo?.equals(mediaInfo)) {
       return
     }
     this.mediaInfo = mediaInfo
     this.emit('mediaChange', mediaInfo)
-  }
-
-  protected updateStatus(status: string) {
-    if (this.status === status) {
-      return
-    }
-    this.status = status
-    this.emit('statusChange', status)
   }
 
   on(handlers: Partial<IntegrationHandlers>) {
