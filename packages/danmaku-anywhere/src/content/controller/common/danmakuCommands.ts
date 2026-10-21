@@ -88,6 +88,26 @@ export async function sendUnmount(frameId = mountedOrActiveFrameId()) {
   }
 }
 
+// A user unmount also reaches a frame whose mount is still on its way, such
+// as one moving the danmaku to a new active frame, which would otherwise be
+// recorded after the unmount.
+export async function sendUnmountEverywhere() {
+  const targets = [...useStore.getState().frame.allFrames.values()]
+    .filter((frame) => {
+      return frame.mounted || frame.issuedCommand > frame.committedCommand
+    })
+    .map((frame) => frame.frameId)
+  if (targets.length === 0) {
+    await sendUnmount()
+    return
+  }
+  await Promise.all(
+    targets.map((frameId) => {
+      return sendUnmount(frameId)
+    })
+  )
+}
+
 // The store holds what the user asked for, recorded before the players are
 // told, so a mount sent in the meantime or later carries it even if this
 // command never arrives. Every frame is told, since a mount can still be on

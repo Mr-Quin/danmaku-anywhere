@@ -264,6 +264,32 @@ describe('bindVideo after a seek on a paused video', () => {
     expect(manager.freeze).not.toHaveBeenCalled()
   })
 
+  it('freezes after the settle when a playing video started buffering during it', () => {
+    bind([comment(9)], false)
+    seekTo(10)
+    video.dispatchEvent(new Event('waiting'))
+    expect(manager.freeze).not.toHaveBeenCalled()
+
+    const [danmaku] = renderTick(1)
+    emit('$beforeMove', danmaku)
+    vi.advanceTimersByTime(FRAME_MS)
+
+    expect(manager.freeze).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not freeze when playback resumed before the settle ended', () => {
+    bind([comment(9)], false)
+    seekTo(10)
+    video.dispatchEvent(new Event('waiting'))
+    video.dispatchEvent(new Event('play'))
+
+    const [danmaku] = renderTick(1)
+    emit('$beforeMove', danmaku)
+    vi.advanceTimersByTime(FRAME_MS)
+
+    expect(manager.freeze).not.toHaveBeenCalled()
+  })
+
   it('stops danmu playing as well when the video was paused during the settle', () => {
     bind([comment(9)])
     seekTo(10)

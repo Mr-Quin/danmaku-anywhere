@@ -97,6 +97,8 @@ export const bindVideo =
     // seek, wait for danmu's next render tick, then for each danmaku it created
     // to start moving or leave. Pushes still in its stash survive a freeze.
     let settlingSeek = false
+    // A pause or buffering stall that arrived while a seek settled.
+    let pauseDuringSettle = false
     let awaitingRender = false
     let inFlight = 0
     const seekDanmaku = new WeakSet<object>()
@@ -113,6 +115,7 @@ export const bindVideo =
 
     const stopSettling = () => {
       settlingSeek = false
+      pauseDuringSettle = false
       awaitingRender = false
       inFlight = 0
       if (settleFrame !== undefined) {
@@ -131,8 +134,9 @@ export const bindVideo =
     }
 
     const finishSettling = () => {
+      const pause = video.paused || pauseDuringSettle
       stopSettling()
-      if (video.paused) {
+      if (pause) {
         pauseDanmaku()
       }
     }
@@ -341,12 +345,14 @@ export const bindVideo =
     // is paused by then.
     const handlePause = () => {
       if (settlingSeek) {
+        pauseDuringSettle = true
         return
       }
       pauseDanmaku()
     }
 
     const handlePlay = () => {
+      pauseDuringSettle = false
       if (manager.isFreeze()) manager.unfreeze()
       manager.startPlaying()
       handleTimeupdate()

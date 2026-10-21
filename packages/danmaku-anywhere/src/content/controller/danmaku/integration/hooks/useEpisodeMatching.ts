@@ -42,6 +42,7 @@ export function useEpisodeMatching(toast: EpisodeToast) {
       },
     })
     if (!described) {
+      toast.dismiss(run)
       return
     }
     toast.report(run, described.severity, described.message, described.action)

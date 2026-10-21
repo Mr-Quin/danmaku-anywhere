@@ -217,12 +217,15 @@ async function waitForProgressDelay() {
 
 const user: {
   mountChosen?: (episodes: GenericEpisode[]) => Promise<void>
+  refresh?: () => Promise<void>
   unmount?: () => Promise<boolean>
 } = {}
 
 function Integration() {
   useIntegrationPolicy()
-  user.mountChosen = useLoadDanmaku().mountChosen
+  const loader = useLoadDanmaku()
+  user.mountChosen = loader.mountChosen
+  user.refresh = () => loader.refreshComments()
   user.unmount = useUnmountDanmaku().mutateAsync
   return null
 }
@@ -350,6 +353,22 @@ describe('useIntegrationPolicy', () => {
         message: 'Mounted Show A - Episode 1: 5 comments',
       },
     ])
+  })
+
+  it('clears the progress of a match whose mount the player turned down', async () => {
+    start()
+    const mountA = deferred<{ data: boolean }>()
+    rpc.mount.mockReturnValueOnce(mountA.promise)
+    rpc.episodeMatch.mockResolvedValueOnce(matched(localEpisode('Show A')))
+    showEpisode('Show A')
+    await waitForProgressDelay()
+    expect(openToasts()).toEqual([progressFor('Show A')])
+
+    mountA.resolve({ data: false })
+    await settle()
+
+    expect(mountedState()).toEqual(NOTHING_MOUNTED)
+    expect(openToasts()).toEqual([])
   })
 
   it('takes back a local mount that finishes after the observer is replaced', async () => {
@@ -845,6 +864,78 @@ describe('useIntegrationPolicy', () => {
     expect(openToasts()).toEqual([
       { severity: 'error', message: expect.any(String) },
     ])
+  })
+
+  it('drops an AI result that arrives after the user picked danmaku', async () => {
+    start()
+    reportParsing(true)
+
+    await act(async () => {
+      await user.mountChosen?.([localEpisode('Picked') as never])
+    })
+    showEpisode('Show A')
+    reportParsing(false)
+    await settle()
+
+    expect(rpc.episodeMatch).not.toHaveBeenCalled()
+    expect(rpc.unmount).not.toHaveBeenCalled()
+    expect(mountedState().titles).toEqual(['Picked'])
+  })
+
+  it('keeps a newer refresh toast when an older refresh finishes late', async () => {
+    start()
+    await act(async () => {
+      await user.mountChosen?.([sourceEpisode('Show A') as never])
+    })
+    const fetchA = deferred<unknown>()
+    rpc.episodeFetch.mockReturnValueOnce(fetchA.promise)
+    let refreshingA: Promise<void> | undefined
+    act(() => {
+      refreshingA = user.refresh?.()
+    })
+    await act(async () => {
+      await user.mountChosen?.([sourceEpisode('Show B') as never])
+    })
+    rpc.episodeFetch.mockReturnValueOnce(deferred<unknown>().promise)
+    act(() => {
+      void user.refresh?.()
+    })
+
+    fetchA.resolve(fetched('Show A'))
+    await act(async () => {
+      await refreshingA
+    })
+
+    expect(openToasts()).toContainEqual({
+      severity: 'info',
+      message: 'Refreshing danmaku',
+    })
+  })
+
+  it('clears the refresh toast when the refresh is cut short by a new mount', async () => {
+    start()
+    await act(async () => {
+      await user.mountChosen?.([sourceEpisode('Show A') as never])
+    })
+    const fetchA = deferred<unknown>()
+    rpc.episodeFetch.mockReturnValueOnce(fetchA.promise)
+    let refreshingA: Promise<void> | undefined
+    act(() => {
+      refreshingA = user.refresh?.()
+    })
+    await act(async () => {
+      await user.mountChosen?.([sourceEpisode('Show B') as never])
+    })
+
+    fetchA.resolve(fetched('Show A'))
+    await act(async () => {
+      await refreshingA
+    })
+
+    expect(openToasts()).not.toContainEqual({
+      severity: 'info',
+      message: 'Refreshing danmaku',
+    })
   })
 
   it('clears AI parsing progress when parsing ends without a show', async () => {

@@ -1,6 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useStore } from '@/content/controller/store/store'
-import { sendMount, sendUnmount, sendVisibility } from './danmakuCommands'
+import {
+  sendMount,
+  sendUnmount,
+  sendUnmountEverywhere,
+  sendVisibility,
+} from './danmakuCommands'
 
 /**
  * Mount, unmount and visibility commands go to a frame's player, and replies
@@ -188,6 +193,34 @@ describe('sendMount', () => {
       },
     })
     expect(rpc.show).not.toHaveBeenCalled()
+  })
+})
+
+describe('sendUnmountEverywhere', () => {
+  it('also takes down a mount still on its way to another frame', async () => {
+    await sendMount([episode('A')])
+    activate(1)
+    const moved = deferred<{ data: boolean }>()
+    rpc.mount.mockReturnValueOnce(moved.promise)
+    const unmounts: ((value: { data: boolean }) => void)[] = []
+    rpc.unmount.mockImplementation(() => {
+      const reply = deferred<{ data: boolean }>()
+      unmounts.push(reply.resolve)
+      return reply.promise
+    })
+
+    const moving = sendMount([episode('A')])
+    const unmounting = sendUnmountEverywhere()
+    moved.resolve({ data: true })
+    await moving
+    for (const resolve of unmounts) {
+      resolve({ data: true })
+    }
+    await unmounting
+
+    expect(mountedState()).toEqual(NOTHING_MOUNTED)
+    expect(frameMounted(0)).toBe(false)
+    expect(frameMounted(1)).toBe(false)
   })
 })
 

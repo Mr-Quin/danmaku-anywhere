@@ -28,6 +28,9 @@ import { describeMountError } from './mountError'
 import { type OutcomeMessage, useDescribeOutcome } from './useDescribeOutcome'
 
 const REFRESH_TOAST_ID = 'refresh-danmaku'
+// Every caller shares the refresh toast, so only the refresh started last may
+// update or dismiss it.
+let lastRefresh = 0
 const LOAD_MUTATION_KEY = ['danmaku', 'load']
 
 interface LoadDanmakuInput {
@@ -213,6 +216,7 @@ export const useLoadDanmaku = () => {
         return
       }
 
+      const refreshNumber = ++lastRefresh
       toast.info(t('danmaku.alert.refreshingDanmaku', 'Refreshing danmaku'), {
         id: REFRESH_TOAST_ID,
         duration: null,
@@ -228,6 +232,9 @@ export const useLoadDanmaku = () => {
           },
           signal: refresh.signal,
         })
+        if (refreshNumber !== lastRefresh) {
+          return
+        }
         show(describeOutcome(outcome, { refreshed: true }), {
           id: REFRESH_TOAST_ID,
         })

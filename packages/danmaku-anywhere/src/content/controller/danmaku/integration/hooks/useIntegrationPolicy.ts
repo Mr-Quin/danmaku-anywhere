@@ -115,8 +115,16 @@ export const useIntegrationPolicy = () => {
         if (parsingRun?.isCurrent()) {
           runs.end()
         }
+        parsingRun = undefined
       },
       mediaChange: (state: MediaInfo) => {
+        // A parse the user overrode by picking or removing danmaku ended with
+        // its run, and its result must not replace what they chose.
+        if (parsingRun && !parsingRun.isCurrent()) {
+          parsingRun = undefined
+          return
+        }
+        parsingRun = undefined
         getTrackingService().track('integrationPolicyMediaChange', {
           mediaInfo: state.toJSON(),
           policy: integrationPolicy,
