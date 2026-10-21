@@ -9,6 +9,7 @@ import { MountConfigTabReloader } from '@/background/scripting/MountConfigTabRel
 import { ScriptingManager } from '@/background/scripting/ScriptingManager'
 import { ProviderService } from '@/background/services/providers/ProviderService'
 import { OptionsManager } from '@/background/syncOptions/OptionsManager'
+import { UpgradeFailureBadge } from '@/background/syncOptions/UpgradeFailureBadge'
 import { deferredConfigureStore } from '@/background/utils/deferredConfigureStore'
 import { generateId } from '@/background/utils/generateId'
 import {
@@ -28,6 +29,7 @@ configureApiStore({
 })
 
 container.get(OptionsManager).setup()
+container.get(UpgradeFailureBadge).setup()
 container.get(ScriptingManager).setup()
 container.get(MountConfigTabReloader).setup()
 container.get(RpcManager).setup()

@@ -15,11 +15,13 @@ import {
   OptionsServiceFactory,
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import { integrationPolicyDescriptor } from '@/common/options/optionStores'
 import { LATEST_INTEGRATION_POLICY_VERSION } from './version'
 
 @injectable('Singleton')
 export class IntegrationPolicyService implements IStoreService {
   public readonly name = 'integrationPolicy'
+  public readonly descriptor = integrationPolicyDescriptor
   public readonly options: OptionsService<Integration[]>
   public readonly backupItemSchema = zIntegration
 
@@ -30,10 +32,10 @@ export class IntegrationPolicyService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory<Integration[]>(
-      'xpathPolicy',
+      integrationPolicyDescriptor.key,
       [],
       this.logger,
-      'local'
+      integrationPolicyDescriptor.area
     )
       .version(1, {
         upgrade: (data) => data,

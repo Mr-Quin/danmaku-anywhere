@@ -1,10 +1,10 @@
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import { type BrowserContext, expect, type TestInfo } from '@playwright/test'
-import packageJson from '../../package.json' with { type: 'json' }
+import type { BrowserContext, TestInfo } from '@playwright/test'
 import migrationConfig from '../migration.config.json' with { type: 'json' }
 import { mockCatalog } from '../network/catalog'
+import { OptionsUpgradeScreen } from '../pom/OptionsUpgradeScreen'
 import { attachConsoleWatcher, type ConsoleWatcher } from './console-watcher'
 import { MIGRATION_EXTENSION_ID } from './extensionKey'
 import {
@@ -76,39 +76,17 @@ export async function withPriorInstall(
 
 const POPUP_URL = `chrome-extension://${MIGRATION_EXTENSION_ID}/pages/popup.html`
 
-// v1.5.0 stores lastVersion '1.5.0', and until a release bumps package.json the
-// current build reports that same version. Its ReadinessService would then
-// count the upgrade as already done and let pages read stores the upgrade is
-// still rewriting. An older lastVersion makes the swapped build wait for its
-// upgrade like a real store update, and the upgrade writing the current
-// version is the signal that it finished.
+// The popup shows its pages only once every option store is at the version
+// the current build expects, so seeing them means the upgrade finished.
 export async function upgradeToCurrentBuild(
   context: BrowserContext,
   currentExt: string
 ): Promise<void> {
-  const legacy = await context.newPage()
-  await legacy.goto(POPUP_URL, { waitUntil: 'domcontentloaded' })
-  await legacy.evaluate(() => {
-    return chrome.storage.local.set({ lastVersion: { lastVersion: '0.0.0' } })
-  })
-  await legacy.close()
-
   await swapExtension(context, currentExt)
 
   const page = await context.newPage()
   await page.goto(POPUP_URL, { waitUntil: 'domcontentloaded' })
-  await expect
-    .poll(
-      async () => {
-        const stored = await page.evaluate(() => {
-          return chrome.storage.local.get('lastVersion')
-        })
-        const value = stored.lastVersion as { lastVersion?: string } | undefined
-        return value?.lastVersion
-      },
-      { message: 'the upgrade recorded the current version', timeout: 15_000 }
-    )
-    .toBe(packageJson.version)
+  await new OptionsUpgradeScreen(page).expectUpgraded({ timeout: 15_000 })
   await page.close()
 }
 

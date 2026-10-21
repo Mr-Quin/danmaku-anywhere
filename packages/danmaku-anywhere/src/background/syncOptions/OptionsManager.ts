@@ -2,24 +2,25 @@ import { inject, injectable } from 'inversify'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { DanmakuOptionsService } from '@/common/options/danmakuOptions/service'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
-import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
+import { OptionsUpgradeService } from '@/common/options/upgrade/OptionsUpgradeService'
+import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { tryCatch } from '@/common/utils/tryCatch'
-import { UpgradeService } from './UpgradeService/UpgradeService'
 
 @injectable()
 export class OptionsManager {
   private logger: ILogger
-  private upgrading?: Promise<void>
+  private readonly releaseNotesPending = new ExtStorageService<boolean>(
+    'releaseNotesPending',
+    { storageType: 'local' }
+  )
 
   constructor(
     @inject(ExtensionOptionsService)
     private extensionOptionsService: ExtensionOptionsService,
     @inject(DanmakuOptionsService)
     private danmakuOptionsService: DanmakuOptionsService,
-    @inject(UpgradeService)
-    private upgradeService: UpgradeService,
-    @inject(ReadinessService)
-    private readinessService: ReadinessService,
+    @inject(OptionsUpgradeService)
+    private upgradeService: OptionsUpgradeService,
     @inject(LoggerSymbol)
     logger: ILogger
   ) {
@@ -34,22 +35,22 @@ export class OptionsManager {
     })
 
     chrome.runtime.onStartup.addListener(() => {
-      void this.upgradeOnce()
+      this.ensureUpgraded()
     })
 
     // The worker can be killed mid-upgrade, and the next wake may be a popup or
     // a message rather than an install or startup event.
-    this.upgradeIfVersionChanged().catch((err) => {
-      this.logger.error('Upgrade check failed', err)
-    })
+    this.ensureUpgraded()
+    void this.showPendingReleaseNotes()
   }
 
   private async onInstalled(details: chrome.runtime.InstalledDetails) {
-    void this.upgradeOnce()
+    this.upgradeService.upgrade().catch(() => undefined)
 
     if (details.reason === 'update') {
       if (!import.meta.env.DEV) {
-        await this.extensionOptionsService.update({ showReleaseNotes: true })
+        await this.releaseNotesPending.set(true)
+        void this.showPendingReleaseNotes()
       }
       this.logger.info('Danmaku Anywhere Updated')
     } else {
@@ -75,25 +76,24 @@ export class OptionsManager {
     }
   }
 
-  private async upgradeIfVersionChanged() {
-    const [isCurrent, err] = await tryCatch(() =>
-      this.readinessService.isCurrentVersion()
-    )
-    if (err) {
-      this.logger.error('Failed to read last version, upgrading anyway', err)
-    } else if (isCurrent) {
-      return
+  // The flag lives in extensionOptions, which cannot be written until the
+  // upgrade succeeds. The request is kept outside it so a worker stopped
+  // before then still shows the release notes after a later wake.
+  private async showPendingReleaseNotes() {
+    const [, error] = await tryCatch(async () => {
+      if (!(await this.releaseNotesPending.read())) {
+        return
+      }
+      await this.extensionOptionsService.update({ showReleaseNotes: true })
+      await this.releaseNotesPending.delete()
+    })
+    if (error) {
+      this.logger.error('Failed to request the release notes', error)
     }
-    await this.upgradeOnce()
   }
 
-  // Shared by every event that asks for an upgrade. A failed run is dropped so
-  // the next event starts over instead of reusing the failure.
-  private upgradeOnce(): Promise<void> {
-    this.upgrading ??= this.upgradeService.upgrade().catch((err) => {
-      this.upgrading = undefined
-      this.logger.error('Options upgrade failed', err)
-    })
-    return this.upgrading
+  // The upgrade service logs the failure and readiness reports it.
+  private ensureUpgraded() {
+    this.upgradeService.ensureUpgraded().catch(() => undefined)
   }
 }

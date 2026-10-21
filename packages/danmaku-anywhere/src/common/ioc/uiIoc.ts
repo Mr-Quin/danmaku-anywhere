@@ -15,16 +15,21 @@ import {
 } from '@/content/player/occlusion/maskProviderFactory'
 import { type ILogger, Logger, LoggerSymbol } from '../Logger'
 import { i18n } from '../localization/i18n'
-import { AiProviderConfigService } from '../options/aiProviderConfig/service'
-import { DanmakuOptionsService } from '../options/danmakuOptions/service'
+import { isLanguage } from '../localization/language'
+import { bindOptionStores } from '../options/bindOptionStores'
 import { ExtensionOptionsService } from '../options/extensionOptions/service'
-import { StoreServiceSymbol } from '../options/IStoreService'
-import { IntegrationPolicyService } from '../options/integrationPolicyStore/service'
-import { NamingRuleService } from '../options/localMatchingRule/service'
-import { MountConfigService } from '../options/mountConfig/service'
-import { ProviderConfigService } from '../options/providerConfig/service'
+import { OPTION_STORES, OptionStoreDescriptors } from '../options/optionStores'
+import {
+  type OptionsUpgrader,
+  OptionsUpgraderSymbol,
+} from '../options/upgrade/OptionsUpgrader'
+import { OptionsUpgradeService } from '../options/upgrade/OptionsUpgradeService'
+import { RpcOptionsUpgrader } from '../options/upgrade/RpcOptionsUpgrader'
 
-export const uiContainerModule = new ContainerModule(({ bind }) => {
+export const uiContainerModule = new ContainerModule((options) => {
+  const { bind } = options
+  bind(OptionStoreDescriptors).toConstantValue(OPTION_STORES)
+
   bind<IOptionsServiceFactory>(OptionsServiceFactory).toFactory(
     optionsServiceFactory
   )
@@ -36,18 +41,16 @@ export const uiContainerModule = new ContainerModule(({ bind }) => {
 
   bind<ILogger>(LoggerSymbol).toConstantValue(Logger)
 
-  if (!IS_STANDALONE_RUNTIME) {
-    return
+  // The standalone build has no service worker, so the page upgrades its own
+  // stores.
+  if (IS_STANDALONE_RUNTIME) {
+    bindOptionStores(options)
+    bind<OptionsUpgrader>(OptionsUpgraderSymbol).toService(
+      OptionsUpgradeService
+    )
+  } else {
+    bind<OptionsUpgrader>(OptionsUpgraderSymbol).to(RpcOptionsUpgrader)
   }
-
-  // these bindings are needed in standalone mode for standalone storage setup
-  bind(StoreServiceSymbol).toService(ExtensionOptionsService)
-  bind(StoreServiceSymbol).toService(DanmakuOptionsService)
-  bind(StoreServiceSymbol).toService(IntegrationPolicyService)
-  bind(StoreServiceSymbol).toService(MountConfigService)
-  bind(StoreServiceSymbol).toService(ProviderConfigService)
-  bind(StoreServiceSymbol).toService(AiProviderConfigService)
-  bind(StoreServiceSymbol).toService(NamingRuleService)
 })
 
 export function createUiContainer(): Container {
@@ -66,16 +69,33 @@ export function bootstrapUiLanguage(container: Container): void {
   }
   bootstrappedContainers.add(container)
 
-  container
-    .get(ExtensionOptionsService)
-    .get()
-    .then((options) => {
-      void i18n.changeLanguage(options.lang)
-    })
+  const { options } = container.get(ExtensionOptionsService)
+  const applyLanguage = (stored: { lang?: unknown }) => {
+    if (isLanguage(stored.lang)) {
+      void i18n.changeLanguage(stored.lang)
+    }
+  }
+
+  // Read without waiting for the upgrade, so the screens shown while it runs
+  // or after it fails are in the user's language. A stored value without a
+  // valid lang is skipped, and the upgrade's own write arrives as a change.
+  options.onChange(applyLanguage)
+  options
+    .readUnblocked()
+    .then(applyLanguage)
     .catch(() => {
       Logger.error(
         'Failed to get language from extension options, fallback to default language'
       )
+    })
+}
+
+export function requestOptionsUpgrade(container: Container): void {
+  container
+    .get<OptionsUpgrader>(OptionsUpgraderSymbol)
+    .ensureUpgraded()
+    .catch((error) => {
+      Logger.debug('Options upgrade did not complete', error)
     })
 }
 

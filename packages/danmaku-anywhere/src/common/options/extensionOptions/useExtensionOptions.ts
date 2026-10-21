@@ -2,15 +2,12 @@ import type {
   ExtensionOptions,
   ExtensionOptionsOptions,
 } from '@/common/options/extensionOptions/schema'
-import { useSuspenseExtStorageQuery } from '@/common/storage/hooks/useSuspenseExtStorageQuery'
+import { extensionOptionsDescriptor } from '@/common/options/optionStores'
+import { useOptionStoreQuery } from '@/common/options/useOptionStoreQuery'
 
 export const useExtensionOptions = () => {
-  const store = useSuspenseExtStorageQuery<ExtensionOptionsOptions>(
-    'extensionOptions',
-    {
-      storageType: 'sync',
-      isOptionStore: true,
-    }
+  const store = useOptionStoreQuery<ExtensionOptionsOptions>(
+    extensionOptionsDescriptor
   )
 
   const partialUpdate = async (config: Partial<ExtensionOptions>) => {

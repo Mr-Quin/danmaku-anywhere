@@ -2,9 +2,10 @@ import type { ILogger } from '@/common/Logger'
 import type { IStoreService } from './IStoreService'
 import type { StoreSnapshot } from './OptionsService/types'
 
-// Tries every store even after one fails, then rejects naming each store that
-// did not persist. Callers record the version marker only when this resolves,
-// so a partial upgrade is retried from the start.
+// Steps that read other stores get every store's data as it was when the run
+// started. The run stops at the first store that fails, and bindOptionStores
+// runs a store that reads another before the store it reads, so a retry still
+// finds the data that reader needs.
 export async function upgradeStores(
   services: IStoreService[],
   logger: ILogger
@@ -17,22 +18,14 @@ export async function upgradeStores(
     }
   }
 
-  const errors: unknown[] = []
-  const failed: string[] = []
   for (const service of services) {
     try {
       await service.options.upgrade(stores)
     } catch (error) {
       logger.error(`Failed to upgrade ${service.options.key}`, error)
-      errors.push(error)
-      failed.push(service.options.key)
+      throw new Error(`Failed to upgrade options: ${service.options.key}`, {
+        cause: error,
+      })
     }
-  }
-
-  if (failed.length > 0) {
-    throw new AggregateError(
-      errors,
-      `Failed to upgrade options: ${failed.join(', ')}`
-    )
   }
 }
