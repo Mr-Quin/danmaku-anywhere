@@ -32,6 +32,7 @@ function usePreferredColorScheme(): 'dark' | 'light' {
   // TODO: for some reason, useMediaQuery crashes in Firefox so we wrap it in a try-catch
   // probably for the same reason as https://github.com/facebook/react/issues/16606
   const [prefersDarkMode] = tryCatchSync(() =>
+    // biome-ignore lint/correctness/useHookAtTopLevel: the wrapper calls it on every render, so the hook order never changes
     useMediaQuery('(prefers-color-scheme: dark)')
   )
   return (prefersDarkMode ?? true) ? 'dark' : 'light'

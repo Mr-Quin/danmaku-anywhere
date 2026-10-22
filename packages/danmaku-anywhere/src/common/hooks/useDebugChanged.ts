@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
 
 export function useDebugChanged(name: string, dependencies: unknown[]) {
-  if (import.meta.env.DEV) {
-    useEffect(() => {
+  useEffect(() => {
+    if (import.meta.env.DEV) {
       console.debug('[Debug][useDebugChanged]', name, dependencies)
-    }, dependencies)
-  }
+    }
+  }, dependencies)
 }

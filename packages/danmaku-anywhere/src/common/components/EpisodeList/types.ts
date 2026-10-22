@@ -6,14 +6,14 @@ import type {
 import type { MacCmsParsedPlayUrl } from '@danmaku-anywhere/danmaku-provider/maccms'
 import type { ReactNode } from 'react'
 
-type RenderEpisodeData = {
+export type RenderEpisodeData = {
   episode: WithSeason<EpisodeMeta>
   danmaku: WithSeason<EpisodeLite> | null
   isLoading: boolean
   index: number
 }
 
-type RenderCustomEpisodeData = {
+export type RenderCustomEpisodeData = {
   episode: MacCmsParsedPlayUrl
   index: number
 }
