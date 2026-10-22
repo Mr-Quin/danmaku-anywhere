@@ -89,6 +89,16 @@ export class IntegrationPage {
     }, text)
   }
 
+  async setTitleText(text: string): Promise<void> {
+    await this.page.evaluate((value) => {
+      const title = document.querySelector('[data-testid="da-title"]')
+      if (!title) {
+        throw new Error('IntegrationPage.setTitleText: no title node')
+      }
+      title.textContent = value
+    }, text)
+  }
+
   // Element fullscreen needs a user gesture, so this clicks a page button
   // that requests it rather than calling requestFullscreen from evaluate.
   async enterIframeFullscreen(): Promise<void> {
