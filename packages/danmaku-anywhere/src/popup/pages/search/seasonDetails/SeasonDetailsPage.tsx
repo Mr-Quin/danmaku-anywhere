@@ -18,16 +18,69 @@ import { BookmarkToggleButton } from '@/common/bookmark/components/BookmarkToggl
 import { BaseEpisodeListItem } from '@/common/components/EpisodeList/BaseEpisodeListItem'
 import { EpisodeSearchList } from '@/common/components/EpisodeList/EpisodeSearchList'
 import { MacCmsEpisodeListItem } from '@/common/components/EpisodeList/MacCmsEpisodeListItem'
+import type {
+  RenderCustomEpisodeData,
+  RenderEpisodeData,
+} from '@/common/components/EpisodeList/types'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useFetchDanmakuWithToast } from '@/common/danmaku/queries/useFetchDanmaku'
 import { useFetchGenericDanmaku } from '@/common/danmaku/queries/useFetchGenericDanmaku'
+import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { assertMacCmsConfig } from '@/common/options/providerConfig/utils'
 import { describeSourceError } from '@/common/providers/describeSourceError'
 import { useGoBack } from '@/popup/hooks/useGoBack'
 import { useStore } from '@/popup/store'
+
+function SourceEpisodeItem({ data }: { data: RenderEpisodeData }) {
+  const { mutate: load, isPending } = useFetchDanmakuWithToast()
+
+  const handleFetchDanmaku = (meta: WithSeason<EpisodeMeta>) => {
+    load({
+      type: 'by-meta',
+      meta,
+      options: { forceUpdate: true },
+    })
+  }
+
+  return (
+    <BaseEpisodeListItem
+      isLoading={isPending || data.isLoading}
+      episode={data.danmaku ?? data.episode}
+      index={data.index}
+      onClick={(meta) => handleFetchDanmaku(meta)}
+    />
+  )
+}
+
+function MacCmsEpisodeItem({
+  data,
+  provider,
+}: {
+  data: RenderCustomEpisodeData
+  provider: ProviderConfig
+}) {
+  const mutation = useFetchGenericDanmaku()
+
+  assertMacCmsConfig(provider)
+
+  return (
+    <MacCmsEpisodeListItem
+      onClick={() =>
+        mutation.mutate({
+          ...data.episode,
+          providerConfigId: provider.id,
+        })
+      }
+      isLoading={mutation.isPending}
+      episode={data.episode}
+      index={data.index}
+      danmaku={mutation.data}
+    />
+  )
+}
 
 export const SeasonDetailsPage = () => {
   const { t } = useTranslation()
@@ -96,46 +149,10 @@ export const SeasonDetailsPage = () => {
             <EpisodeSearchList
               season={season}
               filter={filter}
-              renderEpisode={(data) => {
-                const { mutate: load, isPending } = useFetchDanmakuWithToast()
-
-                const handleFetchDanmaku = (meta: WithSeason<EpisodeMeta>) => {
-                  load({
-                    type: 'by-meta',
-                    meta,
-                    options: { forceUpdate: true },
-                  })
-                }
-
-                return (
-                  <BaseEpisodeListItem
-                    isLoading={isPending || data.isLoading}
-                    episode={data.danmaku ?? data.episode}
-                    index={data.index}
-                    onClick={(meta) => handleFetchDanmaku(meta)}
-                  />
-                )
-              }}
-              renderCustomEpisode={(data) => {
-                const mutation = useFetchGenericDanmaku()
-
-                assertMacCmsConfig(provider)
-
-                return (
-                  <MacCmsEpisodeListItem
-                    onClick={() =>
-                      mutation.mutate({
-                        ...data.episode,
-                        providerConfigId: provider.id,
-                      })
-                    }
-                    isLoading={mutation.isPending}
-                    episode={data.episode}
-                    index={data.index}
-                    danmaku={mutation.data}
-                  />
-                )
-              }}
+              renderEpisode={(data) => <SourceEpisodeItem data={data} />}
+              renderCustomEpisode={(data) => (
+                <MacCmsEpisodeItem data={data} provider={provider} />
+              )}
             />
           </Suspense>
         </ErrorBoundary>

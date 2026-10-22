@@ -20,8 +20,8 @@ export const OptionsPageToolBar = ({
   sticky = false,
   onGoBack,
 }: OptionsToolbarProps) => {
-  // TODO: conditional use of hook
-  const goBack = onGoBack ?? useGoBack()
+  const defaultGoBack = useGoBack()
+  const goBack = onGoBack ?? defaultGoBack
   const { t } = useTranslation()
 
   const defaultLeftElement = (
