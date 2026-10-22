@@ -355,6 +355,30 @@ afterEach(() => {
 })
 
 describe('useIntegrationPolicy', () => {
+  it('puts a new show in the search box, but not another episode of it', async () => {
+    start()
+    rpc.episodeMatch.mockResolvedValue(matched(localEpisode('Show A')))
+    showEpisode('Show A')
+    await settle()
+    expect(usePopup.getState().searchTitle).toBe('Show A')
+
+    act(() => {
+      usePopup.getState().setSearchTitle('my own search')
+    })
+    act(() => {
+      currentObserver().emit(
+        'mediaChange',
+        new MediaInfo({ title: 'Show A', episode: 2 })
+      )
+    })
+    await settle()
+    expect(usePopup.getState().searchTitle).toBe('my own search')
+
+    showEpisode('Show B')
+    await settle()
+    expect(usePopup.getState().searchTitle).toBe('Show B')
+  })
+
   it('mounts the matched episode and reports it', async () => {
     start()
     rpc.episodeMatch.mockResolvedValueOnce(matched(sourceEpisode('Show A')))

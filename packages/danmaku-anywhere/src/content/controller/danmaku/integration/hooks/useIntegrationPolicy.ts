@@ -16,6 +16,7 @@ import type { MediaInfo } from '@/content/controller/danmaku/integration/models/
 import type { MediaObserver } from '@/content/controller/danmaku/integration/observers/MediaObserver'
 import { ObserverFactory } from '@/content/controller/danmaku/integration/observers/ObserverFactory'
 import { onPreemptAutomatic } from '@/content/controller/store/automaticPreemption'
+import { usePopup } from '@/content/controller/store/popupStore'
 import { useStore } from '@/content/controller/store/store'
 import { useEpisodeMatching } from './useEpisodeMatching'
 import { useSyncIntegrationManualMode } from './useSyncIntegrationManualMode'
@@ -131,6 +132,12 @@ export const useIntegrationPolicy = () => {
           void unmountQuietly()
         }
 
+        // Another episode of the same show keeps whatever the user searched.
+        if (
+          useStore.getState().integration.mediaInfo?.getKey() !== state.getKey()
+        ) {
+          usePopup.getState().setSearchTitle(state.title)
+        }
         setMediaInfo(state)
         setErrorMessage()
 
