@@ -68,7 +68,7 @@ describe('capabilitiesOf', () => {
   it('reads nothing from a removed or unavailable source', () => {
     expect(capabilitiesOf({ status: 'removed' })).toEqual(NO_CAPABILITIES)
     expect(
-      capabilitiesOf({ status: 'unavailable', reason: 'missing' })
+      capabilitiesOf({ status: 'unavailable', reason: 'not-registered' })
     ).toEqual(NO_CAPABILITIES)
     expect(capabilitiesOf(undefined)).toEqual(NO_CAPABILITIES)
   })

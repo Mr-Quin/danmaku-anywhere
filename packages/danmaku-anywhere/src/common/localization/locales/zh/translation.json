@@ -81,6 +81,17 @@
     "importUrlInvalid": "URL 格式不正确。",
     "importUrlScheme": "仅支持 http 和 https URL。",
     "importUrlTooLarge": "文件大小超过 {{limit}} 限制。",
+    "manifestBadOutput": "{{pipeline}} 的输出与扩展预期的格式不符：{{detail}}",
+    "manifestDuplicateId": "已安装 ID 相同的弹幕源。",
+    "manifestIdChanged": "清单的 ID 不能更改。请另存为新清单。",
+    "manifestInvalid": "该弹幕源已损坏，无法运行。请在“弹幕源”中重新安装或替换。",
+    "manifestNeedsNewerExtension": "该弹幕源需要更新版本的弹幕任何地方。",
+    "manifestNeedsNewerExtensionToSave": "此清单需要更新版本的弹幕任何地方。",
+    "manifestNotRegistered": "该弹幕源未安装。请在“弹幕源”中重新添加。",
+    "manifestNotReinstallable": "只能重新安装已损坏的内置弹幕源。",
+    "manifestNotUser": "只能修改或删除你添加的清单。",
+    "manifestRejected": "此清单无效。",
+    "manifestRejectedDetail": "此清单无效：{{detail}}",
     "matchNotFound": "未找到匹配的剧集：{{title}}",
     "mountFailed": "视频播放器没有响应。",
     "mountNoActiveFrame": "未检测到视频。",
@@ -91,8 +102,11 @@
     "searchUnsupported": "{{source}} 不支持搜索。",
     "seasonRefreshUnsupported": "{{source}} 不支持刷新番剧信息。",
     "shareCodeInvalid": "分享码无效。",
+    "sourceBadOutput": "{{source}} 返回的数据无法被当前版本读取，可能已发生变化。",
+    "sourceInvalidManifest": "{{source}} 已损坏，无法运行。请在“弹幕源”中重新安装或替换。",
+    "sourceNeedsNewerExtension": "{{source}} 需要更新版本的弹幕任何地方。",
+    "sourceNotRegistered": "{{source}} 未安装。请在“弹幕源”中重新添加。",
     "sourceRemoved": "该弹幕源已被删除。",
-    "sourceUnavailable": "{{source}} 暂时无法使用。",
     "target": {
       "catalog": "弹幕源目录",
       "cloud": "云备份服务",
@@ -100,7 +114,8 @@
     },
     "timeout": "等待{{target}}响应超时。",
     "unknown": "出错啦！",
-    "urlEpisodeNotFound": "已识别此链接，但找不到对应的剧集。"
+    "urlEpisodeNotFound": "已识别此链接，但找不到对应的剧集。",
+    "urlTitleNotFound": "{{source}}在此链接下没有找到作品，可能已下架或在你所在的地区不可用。"
   },
   "bookmark": {
     "add": "关注",
@@ -702,6 +717,7 @@
     "alert": {
       "created": "弹幕源已创建",
       "deleted": "弹幕源已删除",
+      "reinstalled": "弹幕源已重新安装",
       "updated": "弹幕源已更新"
     },
     "attention": {
@@ -755,6 +771,7 @@
       "specError": "加载弹幕源设置失败。部分字段缺失，此时保存会丢失这些字段。",
       "testRun": {
         "danmakuCount_other": "已获取 {{count}} 条弹幕",
+        "dropped_other": "已跳过 {{count}} 条无效数据，与保存后的弹幕源一致。第一条：{{issue}}",
         "episodes": "剧集（选择一集获取弹幕）",
         "keyword": "搜索关键词",
         "results": "结果（选择一部番剧）",
@@ -798,6 +815,13 @@
       "defaultName": "自建弹弹play"
     },
     "name": "弹幕源",
+    "unavailable": {
+      "fallback": "正在使用内置版本。已存储的版本：{{reason}}",
+      "invalid": "无法加载",
+      "needsNewerExtension": "需要更新扩展版本",
+      "notRegistered": "清单未安装",
+      "reinstall": "重新安装"
+    },
     "updates": {
       "failed": "更新失败",
       "title": "有可用更新",

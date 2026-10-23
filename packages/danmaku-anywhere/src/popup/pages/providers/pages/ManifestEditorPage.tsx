@@ -15,7 +15,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation } from 'react-router'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { describeLocalError } from '@/common/errors/describeError'
+import { describeCode, describeLocalError } from '@/common/errors/describeError'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import type { ManifestValidationIssue } from '@/common/rpcClient/background/types'
@@ -304,7 +304,11 @@ function ManifestEditor({
                 {issues.map((issue, index) => (
                   <li key={`${issue.path}:${issue.message}:${index}`}>
                     {issue.path ? `${issue.path}: ` : ''}
-                    {issue.message}
+                    {issue.needsNewerExtension
+                      ? describeCode('manifest.rejected', {
+                          reason: 'save-needs-newer-extension',
+                        })
+                      : issue.message}
                   </li>
                 ))}
               </Stack>

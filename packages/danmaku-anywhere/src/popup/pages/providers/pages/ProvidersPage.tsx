@@ -41,7 +41,10 @@ import { NeedsAttentionCallout } from '../components/NeedsAttentionCallout'
 import { ProviderAddMenu } from '../components/ProviderAddMenu'
 import { SectionHeader } from '../components/SectionHeader'
 import { UpdatesSection } from '../components/UpdatesSection'
-import { useDeleteUserManifest } from '../hooks/useManifestEditor'
+import {
+  useDeleteUserManifest,
+  useReinstallManifest,
+} from '../hooks/useManifestEditor'
 import { useManifestList } from '../hooks/useManifestList'
 import { ProviderEditor } from './ProviderEditor'
 
@@ -53,6 +56,7 @@ export const ProvidersPage = (): ReactElement => {
   const { configs } = useProviderConfig()
   const { create, remove } = useEditProviderConfig()
   const deleteManifest = useDeleteUserManifest()
+  const reinstallManifest = useReinstallManifest()
   const { data: manifestData } = useManifestList()
   const [mode, setMode] = useState<'add' | 'edit' | null>(null)
   const [filter, setFilter] = useState('')
@@ -198,6 +202,17 @@ export const ProvidersPage = (): ReactElement => {
     })
   }
 
+  const handleReinstallManifest = (manifestId: string) => {
+    reinstallManifest.mutate(manifestId, {
+      onSuccess: () => {
+        toast.success(t('providers.alert.reinstalled', 'Source reinstalled'))
+      },
+      onError: (error) => {
+        toast.error(describeError(error).message)
+      },
+    })
+  }
+
   return (
     <>
       <TabLayout>
@@ -219,6 +234,7 @@ export const ProvidersPage = (): ReactElement => {
             <InstalledList
               configs={configs}
               manifestById={manifestById}
+              manifestsLoaded={manifestData !== undefined}
               reorderMode
               filterActive={false}
               onEdit={handleEdit}
@@ -227,6 +243,7 @@ export const ProvidersPage = (): ReactElement => {
               onAddDefaultInstance={handleAddDefaultInstance}
               onViewSource={handleViewSource}
               onDeleteManifest={handleDeleteManifest}
+              onReinstallManifest={handleReinstallManifest}
             />
           ) : (
             <Stack direction="column" sx={{ pb: 1.5 }}>
@@ -279,6 +296,7 @@ export const ProvidersPage = (): ReactElement => {
               <InstalledList
                 configs={visibleConfigs}
                 manifestById={manifestById}
+                manifestsLoaded={manifestData !== undefined}
                 reorderMode={false}
                 filterActive={filterActive}
                 onEdit={handleEdit}
@@ -287,12 +305,14 @@ export const ProvidersPage = (): ReactElement => {
                 onAddDefaultInstance={handleAddDefaultInstance}
                 onViewSource={handleViewSource}
                 onDeleteManifest={handleDeleteManifest}
+                onReinstallManifest={handleReinstallManifest}
               />
               <CatalogSection
                 filter={filter}
                 installedManifestIds={installedManifestIds}
                 onImport={handleImport}
                 onDeleteManifest={handleDeleteManifest}
+                onReinstallManifest={handleReinstallManifest}
                 isImporting={create.isPending}
               />
             </Stack>

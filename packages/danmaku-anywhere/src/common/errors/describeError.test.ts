@@ -41,13 +41,26 @@ const PARAMS: { [C in keyof AppErrorParams]: AppErrorParams[C] } = {
   'source.removed': {},
   'source.noUrlParser': {},
   'source.urlEpisodeNotFound': {},
-  'source.unavailable': { source: BILIBILI },
+  'source.urlTitleNotFound': { source: BILIBILI },
+  'source.unavailable': { source: BILIBILI, reason: 'not-registered' },
   'source.searchUnsupported': { source: BILIBILI },
   'source.episodesUnsupported': { source: BILIBILI },
   'source.danmakuUnsupported': { source: BILIBILI },
   'source.seasonRefreshUnsupported': { source: BILIBILI },
   'source.noDanmaku': { title: 'Frieren' },
   badResponse: { target: SOURCE },
+  'manifest.unavailable': {
+    manifestId: 'bilibili',
+    reason: 'needs-newer-extension',
+  },
+  'manifest.badOutput': {
+    manifestId: 'bilibili',
+    pipeline: 'search',
+    reason: 'no-valid-rows',
+    detail: '[0] title: expected string',
+    source: BILIBILI,
+  },
+  'manifest.rejected': { reason: 'save-invalid' },
   'match.notFound': { title: 'Frieren' },
   'catalog.empty': {},
   'config.duplicate': {},
@@ -177,6 +190,20 @@ describe('describeError', () => {
     const [zh] = await messagesIn('zh', [error])
 
     expect(en).toContain('DanDanPlay')
+    expect(zh).toContain('弹弹play')
+  })
+
+  it('names a built-in source in the UI language when a link has no title', async () => {
+    const error = new AppError('source.urlTitleNotFound', {
+      source: {
+        providerConfigId: 'dandanplay',
+        manifestId: 'dandanplay',
+        name: 'DanDanPlay',
+      },
+    })
+
+    const [zh] = await messagesIn('zh', [error])
+
     expect(zh).toContain('弹弹play')
   })
 

@@ -9,6 +9,45 @@ const zSourceRef = z.object({
 
 export type SourceRef = z.infer<typeof zSourceRef>
 
+const zSourceUnavailableReason = z.enum([
+  'not-registered',
+  'needs-newer-extension',
+  'invalid-manifest',
+])
+
+export type SourceUnavailableReason = z.infer<typeof zSourceUnavailableReason>
+
+const zManifestPipeline = z.enum([
+  'search',
+  'season',
+  'episodes',
+  'parseUrl',
+  'danmaku',
+  'loginProbe',
+])
+
+export type ManifestPipeline = z.infer<typeof zManifestPipeline>
+
+const zManifestOutputFailure = z.enum([
+  'not-array',
+  'no-valid-rows',
+  'invalid-output',
+])
+
+export type ManifestOutputFailure = z.infer<typeof zManifestOutputFailure>
+
+const zManifestRejection = z.enum([
+  'save-invalid',
+  'save-needs-newer-extension',
+  'save-id-changed',
+  'save-duplicate-id',
+  'save-not-user',
+  'delete-not-user',
+  'reinstall-not-broken',
+])
+
+export type ManifestRejection = z.infer<typeof zManifestRejection>
+
 const zTarget = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('source'), ref: zSourceRef }),
   z.object({ kind: z.literal('catalog') }),
@@ -36,13 +75,30 @@ const PARAMS = {
   'source.removed': zNoParams,
   'source.noUrlParser': zNoParams,
   'source.urlEpisodeNotFound': zNoParams,
-  'source.unavailable': zSource,
+  'source.urlTitleNotFound': zSource,
+  'source.unavailable': zSource.extend({ reason: zSourceUnavailableReason }),
   'source.searchUnsupported': zSource,
   'source.episodesUnsupported': zSource,
   'source.danmakuUnsupported': zSource,
   'source.seasonRefreshUnsupported': zSource,
   'source.noDanmaku': zTitle,
   badResponse: zTransport,
+  'manifest.unavailable': z.object({
+    manifestId: z.string(),
+    reason: zSourceUnavailableReason,
+  }),
+  'manifest.badOutput': z.object({
+    manifestId: z.string(),
+    pipeline: zManifestPipeline,
+    reason: zManifestOutputFailure,
+    detail: z.string(),
+    // Absent for an unsaved manifest run from the editor.
+    source: zSourceRef.optional(),
+  }),
+  'manifest.rejected': z.object({
+    reason: zManifestRejection,
+    detail: z.string().optional(),
+  }),
   'match.notFound': zTitle,
   'catalog.empty': zNoParams,
   'config.duplicate': zNoParams,

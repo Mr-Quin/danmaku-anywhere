@@ -6,5 +6,12 @@
   },
   "javascript": {
     "globals": ["ExecutionContext", "Env", "Request"]
+  },
+  "linter": {
+    "rules": {
+      "correctness": {
+        "useHookAtTopLevel": "off"
+      }
+    }
   }
 }

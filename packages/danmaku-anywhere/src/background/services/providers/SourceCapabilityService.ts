@@ -44,7 +44,7 @@ function unsupported(
   if (status.status === 'unavailable') {
     return new AppError(
       'source.unavailable',
-      { source },
+      { source, reason: status.reason },
       { message: `${config.name} is unavailable: ${status.reason}` }
     )
   }

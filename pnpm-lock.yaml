@@ -358,8 +358,8 @@ importers:
         specifier: ^0.10.0
         version: 0.10.0
       '@mr-quin/dango-manifests':
-        specifier: ^0.9.1
-        version: 0.9.1
+        specifier: ^0.10.0
+        version: 0.10.0
       '@mui/icons-material':
         specifier: ^9.5.0
         version: 9.5.0(@mui/material@9.5.0(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@emotion/styled@11.14.1(@emotion/react@11.14.0(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react@19.3.0))(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(@types/react@19.3.0)(react@19.3.0)
@@ -2774,8 +2774,8 @@ packages:
       '@cfworker/json-schema':
         optional: true
 
-  '@mr-quin/dango-manifests@0.9.1':
-    resolution: {integrity: sha512-8NvoEoJWH7OW6ukyOZkQf+UqKOvgbhXKQ4lC8Iyt+sMX3tPk7IgcmkNn4ZqC8rKAONVpCUGCeUNlM6XG14GcGA==}
+  '@mr-quin/dango-manifests@0.10.0':
+    resolution: {integrity: sha512-Rm+ZiEew6i7rEL9eGy6fgaZpbdrlCV7inLWFfR8o9hKLU1QfHQypFZydk4vmL6HHDMt9Wu1mWIPXC66bPyU0/A==}
 
   '@mr-quin/dango@0.10.0':
     resolution: {integrity: sha512-yShzS/PgLlP9ABJRzaz54D1vIKjTdDZjqJUIEwyQeMNAS3Zlq6tLitNbRJGfWOdLRC3K8OK8tC6kr5rkQLkDfg==}
@@ -10584,7 +10584,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@mr-quin/dango-manifests@0.9.1': {}
+  '@mr-quin/dango-manifests@0.10.0': {}
 
   '@mr-quin/dango@0.10.0':
     dependencies:
