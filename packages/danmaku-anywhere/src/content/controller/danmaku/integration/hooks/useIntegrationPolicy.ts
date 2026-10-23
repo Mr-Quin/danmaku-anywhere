@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeLocalError } from '@/common/errors/describeError'
 import { Logger } from '@/common/Logger'
 import { isConfigPermissive } from '@/common/options/mountConfig/isPermissive'
 import { getTrackingService } from '@/common/telemetry/getTrackingService'
@@ -158,8 +159,9 @@ export const useIntegrationPolicy = () => {
         // The error does not invalidate work in flight: if the page recovers
         // to the same media, that run is still the right one.
         const run = runs.current() ?? runs.begin()
-        episodeToast.report(run, 'error', error.message)
-        setErrorMessage(error.message)
+        const message = describeLocalError(error)
+        episodeToast.report(run, 'error', message)
+        setErrorMessage(message)
       },
     })
 

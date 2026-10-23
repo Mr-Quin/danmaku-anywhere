@@ -31,7 +31,7 @@ export function offersSearch(error: unknown): boolean {
 
 export function useErrorToastAction() {
   const { t } = useTranslation()
-  const { open } = usePopup()
+  const open = usePopup.use.open()
 
   const openSearch = useEventCallback((): ToastAction => {
     return {

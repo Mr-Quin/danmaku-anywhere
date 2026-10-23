@@ -4,6 +4,8 @@ import { act, StrictMode } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { AppError } from '@/common/errors/AppError'
+import { describeCode } from '@/common/errors/describeError'
 import '@/common/localization/i18n'
 import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
 import type { IntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
@@ -744,6 +746,20 @@ describe('useIntegrationPolicy', () => {
     expect(openToasts()).toEqual([
       { severity: 'error', message: 'Policy not found' },
     ])
+  })
+
+  it('shows a coded observer error in words, not its code', () => {
+    start()
+    act(() => {
+      currentObserver().emit('error', new AppError('rpc.unreachable'))
+    })
+
+    expect(openToasts()).toEqual([
+      { severity: 'error', message: describeCode('rpc.unreachable') },
+    ])
+    expect(useStore.getState().integration.errorMessage).toBe(
+      describeCode('rpc.unreachable')
+    )
   })
 
   it('drops a match in flight when the observer clears its media', async () => {
