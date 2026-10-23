@@ -12,6 +12,7 @@ import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { TabLayout } from '@/common/components/layout/TabLayout'
 import { TabToolbar } from '@/common/components/layout/TabToolbar'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeLocalError } from '@/common/errors/describeError'
 import type {
   Integration,
   IntegrationInput,
@@ -88,7 +89,7 @@ export const IntegrationEditor = (): ReactElement => {
       toggleEditor()
     },
     onError: (error) => {
-      toast.error(error.message)
+      toast.error(describeLocalError(error))
     },
   })
 

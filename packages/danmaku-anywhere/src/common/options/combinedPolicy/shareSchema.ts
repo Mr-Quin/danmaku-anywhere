@@ -1,5 +1,6 @@
 import JSZip from 'jszip'
 import { z } from 'zod'
+import { AppError } from '@/common/errors/AppError'
 import { zIntegrationPolicy } from '@/common/options/integrationPolicyStore/schema'
 import { tryCatch, tryCatchSync } from '@/common/utils/tryCatch'
 
@@ -28,11 +29,12 @@ export const encodeShareConfig = async (
   return code
 }
 
-export class InvalidShareCodeError extends Error {
-  constructor(reason: string) {
-    super(`Invalid share code: ${reason}`)
-    this.name = 'InvalidShareCodeError'
-  }
+function invalidShareCode(reason: string, cause?: unknown): AppError {
+  return new AppError(
+    'shareCode.invalid',
+    {},
+    { message: `Invalid share code: ${reason}`, cause }
+  )
 }
 
 export const decodeShareConfig = async (
@@ -44,13 +46,13 @@ export const decodeShareConfig = async (
   )
 
   if (error) {
-    throw new InvalidShareCodeError(error.message)
+    throw invalidShareCode(error.message, error)
   }
 
   const file = loadedZip.file('config.json')
 
   if (!file) {
-    throw new InvalidShareCodeError('missing config.json')
+    throw invalidShareCode('missing config.json')
   }
 
   const text = await file.async('string')
@@ -58,12 +60,12 @@ export const decodeShareConfig = async (
   const [json, err] = tryCatchSync(() => JSON.parse(text))
 
   if (err) {
-    throw new InvalidShareCodeError(err.message)
+    throw invalidShareCode(err.message, err)
   }
 
-  const parsed = sharedMountConfigSchema.safeParse(json)
+  const parsed = await sharedMountConfigSchema.safeParseAsync(json)
   if (!parsed.success) {
-    throw new InvalidShareCodeError(parsed.error.message)
+    throw invalidShareCode('unexpected shape', parsed.error)
   }
   return parsed.data
 }

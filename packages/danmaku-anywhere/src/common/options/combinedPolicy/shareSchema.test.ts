@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import {
   decodeShareConfig,
   encodeShareConfig,
-  InvalidShareCodeError,
   type SharedMountConfig,
 } from './shareSchema'
 
@@ -11,7 +10,7 @@ import {
  * Share codes round-trip through encode and decode, tolerate surrounding
  * whitespace from a paste, and anything that is not a share code (bad
  * base64, a zip without the config, unparsable or wrong-shaped JSON) fails
- * with InvalidShareCodeError so the UI can tell it apart from other errors.
+ * with the shareCode.invalid code so the UI can tell it apart from other errors.
  */
 
 const emptyMatcher = { selector: [], regex: [] }
@@ -52,8 +51,8 @@ describe('decodeShareConfig', () => {
     ['unparsable JSON', () => zipBase64({ 'config.json': '{' })],
     ['JSON of the wrong shape', () => zipBase64({ 'config.json': '{"a":1}' })],
   ])('rejects %s as an invalid share code', async (_, makeCode) => {
-    await expect(decodeShareConfig(await makeCode())).rejects.toBeInstanceOf(
-      InvalidShareCodeError
-    )
+    await expect(decodeShareConfig(await makeCode())).rejects.toMatchObject({
+      code: 'shareCode.invalid',
+    })
   })
 })

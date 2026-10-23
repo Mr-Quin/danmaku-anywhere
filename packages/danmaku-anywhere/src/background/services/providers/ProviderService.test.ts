@@ -6,6 +6,7 @@ import {
   LEGACY_MACCMS_ID,
   type WithSeason,
 } from '@danmaku-anywhere/danmaku-converter'
+import { err, ok } from '@danmaku-anywhere/result'
 import type { ManifestRunner } from '@mr-quin/dango'
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { Dexie } from 'dexie'
@@ -15,6 +16,7 @@ import { BookmarkService } from '@/background/services/persistence/BookmarkServi
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { DANMAKU_DB_NAME, DanmakuAnywhereDb } from '@/common/db/db'
+import { AppError } from '@/common/errors/AppError'
 import { LoggerSymbol } from '@/common/Logger'
 import { Language } from '@/common/localization/language'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
@@ -38,6 +40,8 @@ import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
 import { ManifestRegistry } from './ManifestRegistry'
 import { DanmakuProviderFactory } from './ProviderFactory'
 import { ProviderService } from './ProviderService'
+
+const UNREACHABLE = new AppError('network', { target: { kind: 'catalog' } })
 
 /**
  * ProviderService keys legacy custom-danmaku behavior off the config's
@@ -311,9 +315,10 @@ describe('ProviderService legacy-maccms decoupling', () => {
       )
 
       await expect(service.fetchEpisodesBySeason(1)).rejects.toMatchObject({
-        name: 'SourceError',
-        problem: 'episodesUnsupported',
-        sourceName: LEGACY_MACCMS_ID,
+        code: 'source.episodesUnsupported',
+        params: {
+          source: expect.objectContaining({ name: LEGACY_MACCMS_ID }),
+        },
       })
     })
 
@@ -324,8 +329,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
       })
 
       await expect(service.fetchEpisodesBySeason(1)).rejects.toMatchObject({
-        name: 'SourceError',
-        problem: 'sourceRemoved',
+        code: 'source.removed',
       })
       expect(provider.getEpisodes).not.toHaveBeenCalled()
     })
@@ -443,7 +447,10 @@ describe('ProviderService legacy-maccms decoupling', () => {
           meta,
           options: { automatic: true },
         })
-      ).rejects.toThrow('No danmaku found')
+      ).rejects.toMatchObject({
+        code: 'source.noDanmaku',
+        params: { title: meta.title },
+      })
       expect(danmakuService.upsertUnlessFewer).not.toHaveBeenCalled()
     })
 
@@ -479,8 +486,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
       await expect(
         service.getDanmaku({ type: 'by-meta', meta: maccmsMeta, options: {} })
       ).rejects.toMatchObject({
-        name: 'SourceError',
-        problem: 'danmakuUnsupported',
+        code: 'source.danmakuUnsupported',
       })
     })
 
@@ -496,7 +502,7 @@ describe('ProviderService legacy-maccms decoupling', () => {
           meta,
           options: { forceUpdate: true },
         })
-      ).rejects.toMatchObject({ name: 'SourceError', problem: 'sourceRemoved' })
+      ).rejects.toMatchObject({ code: 'source.removed' })
       expect(provider.getDanmaku).not.toHaveBeenCalled()
     })
   })
@@ -515,8 +521,7 @@ describe('ProviderService capability gates', () => {
     await expect(
       service.searchSeason({ providerConfigId: config.id, keyword: 'a' })
     ).rejects.toMatchObject({
-      name: 'SourceError',
-      problem: 'searchUnsupported',
+      code: 'source.searchUnsupported',
     })
     expect(provider.search).not.toHaveBeenCalled()
   })
@@ -528,9 +533,8 @@ describe('ProviderService capability gates', () => {
     const { service } = build(config, provider)
 
     await expect(service.fetchEpisodesBySeason(1)).rejects.toMatchObject({
-      name: 'SourceError',
-      problem: 'episodesUnsupported',
-      sourceName: config.name,
+      code: 'source.episodesUnsupported',
+      params: { source: { name: config.name } },
     })
     expect(provider.getEpisodes).not.toHaveBeenCalled()
   })
@@ -554,8 +558,7 @@ describe('ProviderService capability gates', () => {
     await expect(
       service.getDanmaku({ type: 'by-meta', meta, options: {} })
     ).rejects.toMatchObject({
-      name: 'SourceError',
-      problem: 'danmakuUnsupported',
+      code: 'source.danmakuUnsupported',
     })
     expect(provider.getDanmaku).not.toHaveBeenCalled()
   })
@@ -580,8 +583,7 @@ describe('ProviderService capability gates', () => {
     await expect(
       service.refreshSeason({ id: season.id })
     ).rejects.toMatchObject({
-      name: 'SourceError',
-      problem: 'seasonRefreshUnsupported',
+      code: 'source.seasonRefreshUnsupported',
     })
     expect(getSeason).not.toHaveBeenCalled()
     expect(upsert).not.toHaveBeenCalled()
@@ -620,7 +622,7 @@ describe('ProviderService.parseUrl', () => {
 
     await expect(
       service.parseUrl('https://example.com/video/1')
-    ).rejects.toMatchObject({ name: 'SourceError', problem: 'noUrlParser' })
+    ).rejects.toMatchObject({ code: 'source.noUrlParser' })
   })
 })
 
@@ -811,7 +813,7 @@ describe('ProviderService.refreshCatalog', () => {
     const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
       async () => opts.pending
     )
-    const update = vi.fn<ManifestRegistry['update']>(async () => 'synced')
+    const update = vi.fn<ManifestRegistry['update']>(async () => ok('synced'))
     const listManifests = vi.fn<ManifestRegistry['listManifests']>(
       async () => []
     )
@@ -880,7 +882,7 @@ describe('ProviderService.refreshCatalog', () => {
     const callsInBatch: boolean[] = []
     registry.update.mockImplementation(async () => {
       callsInBatch.push(inBatch())
-      return 'synced'
+      return ok('synced')
     })
     registry.applyUpdates.mockImplementation(async () => {
       callsInBatch.push(inBatch())
@@ -939,7 +941,9 @@ describe('ProviderService.refreshCatalog', () => {
     const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
       async () => []
     )
-    const update = vi.fn<ManifestRegistry['update']>(async () => 'unreachable')
+    const update = vi.fn<ManifestRegistry['update']>(async () =>
+      err(UNREACHABLE)
+    )
     const listManifests = vi.fn<ManifestRegistry['listManifests']>(
       async () => []
     )
@@ -963,16 +967,14 @@ describe('ProviderService.refreshCatalog', () => {
       registry,
     })
 
-    await expect(service.refreshCatalog()).rejects.toThrow(
-      /Failed to fetch the manifest catalog/
-    )
+    await expect(service.refreshCatalog()).rejects.toBe(UNREACHABLE)
 
     expect(getPendingUpdates).not.toHaveBeenCalled()
     expect(recordChecked).not.toHaveBeenCalled()
   })
 
   it('throws a fetch-free error when the catalog answers with nothing usable', async () => {
-    const update = vi.fn<ManifestRegistry['update']>(async () => 'empty')
+    const update = vi.fn<ManifestRegistry['update']>(async () => ok('empty'))
     const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
       async () => []
     )
@@ -999,9 +1001,9 @@ describe('ProviderService.refreshCatalog', () => {
       registry,
     })
 
-    await expect(service.refreshCatalog()).rejects.toThrow(
-      /no sources this version can use/
-    )
+    await expect(service.refreshCatalog()).rejects.toMatchObject({
+      code: 'catalog.empty',
+    })
   })
 })
 
@@ -1067,9 +1069,10 @@ describe('ProviderService.seedDefaultProviders', () => {
     const recordChecked = vi.fn<ManifestRegistry['recordChecked']>(
       async () => {}
     )
-    const update = vi.fn<ManifestRegistry['update']>(
-      async () => opts.catalog ?? 'synced'
-    )
+    const update = vi.fn<ManifestRegistry['update']>(async () => {
+      const catalog = opts.catalog ?? 'synced'
+      return catalog === 'unreachable' ? err(UNREACHABLE) : ok(catalog)
+    })
     const getPendingUpdates = vi.fn<ManifestRegistry['getPendingUpdates']>(
       async () => []
     )
@@ -1229,7 +1232,7 @@ describe('ProviderService.seedDefaultProviders', () => {
       catalog: 'unreachable',
     })
 
-    await expect(service.syncCatalog()).resolves.toBe('unreachable')
+    await expect(service.syncCatalog()).resolves.toEqual(err(UNREACHABLE))
 
     expect(set).toHaveBeenCalledTimes(1)
     expect(set.mock.calls[0][0].map((c) => c.manifestId)).toEqual([
@@ -1568,6 +1571,6 @@ describe('ProviderService season resolution by config id', () => {
 
     await expect(
       service.fetchEpisodesBySeason(orphan.id)
-    ).rejects.toMatchObject({ name: 'SourceError', problem: 'sourceRemoved' })
+    ).rejects.toMatchObject({ code: 'source.removed' })
   })
 })

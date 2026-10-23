@@ -1,11 +1,11 @@
 import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
+import { AppError } from '@/common/errors/AppError'
 import { Logger } from '@/common/Logger'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type {
   ControllerSession,
   PlayerApplyCommand,
 } from '@/common/rpcClient/background/types'
-import { DanmakuMountError } from '@/content/controller/common/hooks/mountError'
 import { useStore } from '@/content/controller/store/store'
 
 export type MountResult = { status: 'mounted' } | { status: 'cancelled' }
@@ -86,9 +86,10 @@ export async function sendMount(
   }
   const frameId = useStore.getState().frame.getActiveFrame()?.frameId
   if (frameId === undefined) {
-    throw new DanmakuMountError(
-      'noActiveFrame',
-      'No active frame to mount danmaku'
+    throw new AppError(
+      'mount.noActiveFrame',
+      {},
+      { message: 'No active frame to mount danmaku' }
     )
   }
 
@@ -110,7 +111,7 @@ export async function sendMount(
   // After a move to another frame, this frame's answer no longer matters.
   if (failure && useStore.getState().danmaku.mountedFrameId === frameId) {
     await unmountQuietly()
-    throw failure.error
+    throw new AppError('mount.failed', {}, { cause: failure.error })
   }
   return { status: 'mounted' }
 }

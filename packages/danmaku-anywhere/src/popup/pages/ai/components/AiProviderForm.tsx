@@ -17,6 +17,7 @@ import { FormTextField } from '@/common/components/form/FormTextField'
 import { RecordEditor } from '@/common/components/form/RecordEditor'
 import { OutlineAccordion } from '@/common/components/OutlineAccordion'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeError } from '@/common/errors/describeError'
 import {
   AI_PROVIDER_LIST,
   localizedAiProviderType,
@@ -27,7 +28,6 @@ import {
   zAiProviderConfig,
 } from '@/common/options/aiProviderConfig/schema'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { serializeError } from '@/common/utils/serializeError'
 
 interface AiProviderFormProps {
   provider: AiProviderConfigInput
@@ -67,7 +67,7 @@ function useTestConnection() {
       // unexpected error
       toast.error(
         t('ai.testConnectionFailed', 'Connection failed: {{message}}', {
-          message: serializeError(e).message,
+          message: describeError(e).message,
         })
       )
     } finally {

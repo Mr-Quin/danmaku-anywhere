@@ -16,12 +16,14 @@ import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeError } from '@/common/errors/describeError'
 import { useInjectService } from '@/common/hooks/useInjectService'
 import {
   type CombinedPolicy,
   CombinedPolicyService,
 } from '@/common/options/combinedPolicy'
 import { configQueryKeys } from '@/common/queries/queryKeys'
+import { fetchOrThrow } from '@/common/utils/fetchOrThrow'
 import { PreFormat } from '@/popup/component/PreFormat'
 
 type MountConfigPreset = { config: CombinedPolicy; hash: string; file: string }
@@ -45,7 +47,10 @@ export const PresetsList = () => {
   } = useQuery({
     queryKey: configQueryKeys.presets(),
     queryFn: async (): Promise<ConfigPresets> => {
-      const res = await fetch('https://danmaku-config.weeblify.app/config.json')
+      const res = await fetchOrThrow(
+        fetch,
+        'https://danmaku-config.weeblify.app/config.json'
+      )
       return res.json()
     },
     select: (data) => {
@@ -90,7 +95,7 @@ export const PresetsList = () => {
   }
 
   if (isError) {
-    return <ErrorMessage message={error.message} />
+    return <ErrorMessage message={describeError(error).message} />
   }
 
   if (!presets || presets.length === 0) {

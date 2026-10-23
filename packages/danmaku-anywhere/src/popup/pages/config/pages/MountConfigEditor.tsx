@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { Navigate } from 'react-router'
 import { FullPageSpinner } from '@/common/components/FullPageSpinner'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { describeLocalError } from '@/common/errors/describeError'
 import { MountConfigAiSettingsForm } from '@/common/options/mountConfig/components/MountConfigAiSettingsForm'
 import { isPatternPermissive } from '@/common/options/mountConfig/isPermissive'
 import {
@@ -137,7 +138,7 @@ export const MountConfigEditor = ({
             goBack()
           },
           onError: (error) => {
-            toast.error(error.message)
+            toast.error(describeLocalError(error))
           },
         }
       )
@@ -148,7 +149,7 @@ export const MountConfigEditor = ({
         goBack()
       },
       onError: (error) => {
-        toast.error(error.message)
+        toast.error(describeLocalError(error))
       },
     })
   }

@@ -7,7 +7,7 @@ export type LoadOutcome =
   // already the one mounted.
   | { status: 'unchanged'; keptStored: KeptStored }
   | { status: 'cancelled' }
-  | { status: 'fetchFailed'; error: unknown; providerConfigId?: string }
+  | { status: 'fetchFailed'; error: unknown }
   | { status: 'mountFailed'; error: unknown }
 
 export type EpisodeOutcome =

@@ -11,12 +11,12 @@ import { useQueries, useQueryClient } from '@tanstack/react-query'
 import { type ReactNode, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  type ProviderSearchFailure,
   type ProviderSeasonResult,
   searchSeasonForProvider,
 } from '@/common/anime/queries/searchSeasonForProvider'
 import { ScrollBox } from '@/common/components/layout/ScrollBox'
 import { NothingHere } from '@/common/components/NothingHere'
+import { describeError } from '@/common/errors/describeError'
 import { useExtensionOptions } from '@/common/options/extensionOptions/useExtensionOptions'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
@@ -147,17 +147,6 @@ export function SearchForm({
     activeQuery?.data?.success === true && activeQuery.data.data.length === 0
   const signIn = useSignInPrompt(activeProvider, activeResultEmpty)
 
-  const describeFailure = (failure: ProviderSearchFailure): string => {
-    if (failure.kind === 'network') {
-      return t(
-        'searchPage.error.network',
-        "Couldn't reach {{name}}. Check your connection and try again.",
-        { name: activeProvider?.name ?? '' }
-      )
-    }
-    return failure.message || t('error.unknown', 'Something went wrong.')
-  }
-
   const handleSearchSubmit = (keyword?: string) => {
     const raw = keyword ?? searchTerm
     const trimmed = raw.trim()
@@ -276,7 +265,7 @@ export function SearchForm({
           data={activeQuery.data?.success ? activeQuery.data.data : null}
           error={
             activeQuery.data?.success === false
-              ? describeFailure(activeQuery.data.error)
+              ? describeError(activeQuery.data.error).message
               : undefined
           }
           signIn={

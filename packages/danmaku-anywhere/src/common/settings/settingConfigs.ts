@@ -1,3 +1,4 @@
+import { describeError } from '@/common/errors/describeError'
 import { i18n } from '@/common/localization/i18n'
 import { useToast } from '../components/Toast/toastStore'
 import { isInfoPanelEnabled } from '../options/extensionOptions/infoPanel'
@@ -59,7 +60,7 @@ const uploadDebugDataButton: AdvancedSettingConfig = {
       chromeRpcClient.exportDebugData()
     )
     if (error) {
-      useToast.getState().toast.error(error.message)
+      useToast.getState().toast.error(describeError(error).message)
     } else {
       useToast.getState().toast.success(
         i18n.t('optionsPage.uploadDebugDataSuccess', 'Submitted {{ id }}', {

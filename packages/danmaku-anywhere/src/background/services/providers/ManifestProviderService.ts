@@ -12,6 +12,11 @@ import {
 import type { ManifestRunner, RunOptions } from '@mr-quin/dango'
 import type { z } from 'zod'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
+import {
+  AppError,
+  type SourceRef,
+  sourceTarget,
+} from '@/common/errors/AppError'
 import type { ILogger } from '@/common/Logger'
 import {
   capabilitiesFromManifest,
@@ -27,6 +32,7 @@ import type {
 } from './IDanmakuProvider'
 import type { ManifestRegistry } from './ManifestRegistry'
 import { resolveManifestInputs } from './manifestInputs'
+import { fromDangoError } from './providerErrors'
 
 // Manifest output shapes: the canonical fields a search/episodes/danmaku
 // pipeline must emit. The host adds `manifestId` / `providerConfigId` /
@@ -98,8 +104,7 @@ function parseComments(rows: unknown[]): DanmakuParseResult {
 }
 
 export interface ManifestProviderConfig {
-  manifestId: string
-  providerConfigId: string
+  source: SourceRef
   configValues?: Record<string, unknown>
 }
 
@@ -125,14 +130,30 @@ export class ManifestProviderService implements SourceProvider {
     return {
       ...row,
       title: stripHtml(row.title),
-      manifestId: this.config.manifestId,
-      providerConfigId: this.config.providerConfigId,
+      manifestId: this.config.source.manifestId,
+      providerConfigId: this.config.source.providerConfigId,
       schemaVersion: SEASON_SCHEMA_VERSION,
     }
   }
 
   private getRunner(): Promise<ManifestRunner> {
-    return this.registry.getRunner(this.config.manifestId)
+    return this.registry.getRunner(this.config.source.manifestId)
+  }
+
+  private async run<T>(pipeline: () => Promise<T>): Promise<T> {
+    try {
+      return await pipeline()
+    } catch (e) {
+      throw fromDangoError(e, this.config.source)
+    }
+  }
+
+  private badResponse(message: string): AppError {
+    return new AppError(
+      'badResponse',
+      { target: sourceTarget(this.config.source) },
+      { message }
+    )
   }
 
   private resolveInputs(
@@ -149,7 +170,7 @@ export class ManifestProviderService implements SourceProvider {
   readonly kind = 'source'
 
   async getStatus(): Promise<SourceStatus> {
-    const runner = await this.registry.findRunner(this.config.manifestId)
+    const runner = await this.registry.findRunner(this.config.source.manifestId)
     if (!runner) {
       return { status: 'unavailable', reason: MANIFEST_MISSING }
     }
@@ -160,12 +181,15 @@ export class ManifestProviderService implements SourceProvider {
   }
 
   async search(params: SeasonSearchParams): Promise<SeasonInsert[]> {
-    this.logger.debug('Search via manifest', this.config.manifestId, params)
+    this.logger.debug(
+      'Search via manifest',
+      this.config.source.manifestId,
+      params
+    )
     const runner = await this.getRunner()
     const inputs = this.resolveInputs(runner, { q: params.keyword })
-    const rows = await runner.runSearch<ManifestSearchRow[]>(
-      inputs,
-      MANIFEST_RUN_OPTIONS
+    const rows = await this.run(() =>
+      runner.runSearch<ManifestSearchRow[]>(inputs, MANIFEST_RUN_OPTIONS)
     )
     return rows.map((row) => this.stampSeason(row))
   }
@@ -175,14 +199,13 @@ export class ManifestProviderService implements SourceProvider {
   ): Promise<SeasonInsert | null> {
     this.logger.debug(
       'Get season via manifest',
-      this.config.manifestId,
+      this.config.source.manifestId,
       seasonRemoteIds
     )
     const runner = await this.getRunner()
     const inputs = this.resolveInputs(runner, seasonRemoteIds)
-    const row = await runner.runSeason<ManifestSearchRow | null>(
-      inputs,
-      MANIFEST_RUN_OPTIONS
+    const row = await this.run(() =>
+      runner.runSeason<ManifestSearchRow | null>(inputs, MANIFEST_RUN_OPTIONS)
     )
     if (row === null) {
       return null
@@ -195,14 +218,13 @@ export class ManifestProviderService implements SourceProvider {
   ): Promise<OmitSeasonId<EpisodeMeta>[]> {
     this.logger.debug(
       'Get episodes via manifest',
-      this.config.manifestId,
+      this.config.source.manifestId,
       seasonRemoteIds
     )
     const runner = await this.getRunner()
     const inputs = this.resolveInputs(runner, seasonRemoteIds)
-    const rows = await runner.runEpisodes<ManifestEpisodeRow[]>(
-      inputs,
-      MANIFEST_RUN_OPTIONS
+    const rows = await this.run(() =>
+      runner.runEpisodes<ManifestEpisodeRow[]>(inputs, MANIFEST_RUN_OPTIONS)
     )
     const now = Date.now()
     return rows.map((row) => ({
@@ -217,7 +239,7 @@ export class ManifestProviderService implements SourceProvider {
     const { meta } = request
     this.logger.debug(
       'Get danmaku via manifest',
-      this.config.manifestId,
+      this.config.source.manifestId,
       meta.providerIds
     )
     const runner = await this.getRunner()
@@ -227,23 +249,25 @@ export class ManifestProviderService implements SourceProvider {
       ...meta.params,
       ...meta.providerIds,
     })
-    const output = await runner.runDanmaku<unknown>(inputs, DANMAKU_RUN_OPTIONS)
+    const output = await this.run(() =>
+      runner.runDanmaku<unknown>(inputs, DANMAKU_RUN_OPTIONS)
+    )
     if (!Array.isArray(output)) {
-      throw new Error(
-        `Danmaku output from manifest ${this.config.manifestId} is not an array, got ${describeType(output)}`
+      throw this.badResponse(
+        `Danmaku output from manifest ${this.config.source.manifestId} is not an array, got ${describeType(output)}`
       )
     }
     const { comments, dropped, firstIssue } = parseComments(output)
     if (dropped > 0) {
       this.logger.warn(
-        `Dropped ${dropped} malformed comment(s) from manifest ${this.config.manifestId}, first: ${firstIssue}`
+        `Dropped ${dropped} malformed comment(s) from manifest ${this.config.source.manifestId}, first: ${firstIssue}`
       )
     }
     // Rows in but nothing usable out means the pipeline itself is wrong, not
     // an episode that happens to have no danmaku.
     if (comments.length === 0 && output.length > 0) {
-      throw new Error(
-        `Every comment from manifest ${this.config.manifestId} was malformed, first: ${firstIssue}`
+      throw this.badResponse(
+        `Every comment from manifest ${this.config.source.manifestId} was malformed, first: ${firstIssue}`
       )
     }
     return comments
@@ -271,18 +295,28 @@ export class ManifestProviderService implements SourceProvider {
   }
 
   async parseUrl(url: string): Promise<ParseUrlResult | null> {
-    this.logger.debug('Parse URL via manifest', this.config.manifestId, url)
+    this.logger.debug(
+      'Parse URL via manifest',
+      this.config.source.manifestId,
+      url
+    )
     const runner = await this.getRunner()
-    const result = await runner.runParseUrl<ManifestParseUrlOutput>(
-      url,
-      undefined,
-      MANIFEST_RUN_OPTIONS
+    const result = await this.run(() =>
+      runner.runParseUrl<ManifestParseUrlOutput>(
+        url,
+        undefined,
+        MANIFEST_RUN_OPTIONS
+      )
     )
     if (result === null) {
       return null
     }
     if (result.episodeMeta === undefined) {
-      throw new Error(`Could not resolve episode for url: ${url}`)
+      throw new AppError(
+        'source.urlEpisodeNotFound',
+        {},
+        { message: `Could not resolve episode for url: ${url}` }
+      )
     }
     const now = Date.now()
     return {

@@ -22,7 +22,7 @@ import {
 import type { LoadOutcome } from '@/content/controller/common/outcomes'
 import { preemptAutomatic } from '@/content/controller/store/automaticPreemption'
 import { useStore } from '@/content/controller/store/store'
-import { describeMountError } from './mountError'
+import { mountFailedMessage } from './mountError'
 import { type OutcomeMessage, useDescribeOutcome } from './useDescribeOutcome'
 
 const REFRESH_TOAST_ID = 'refresh-danmaku'
@@ -47,12 +47,6 @@ function isOnlyMounted(episode: Episode): boolean {
   }
   const [mounted] = episodes
   return isSourceEpisode(mounted) && mounted.id === episode.id
-}
-
-function providerConfigIdOf(request: DanmakuFetchDto) {
-  return request.type === 'by-meta'
-    ? request.meta.season.providerConfigId
-    : undefined
 }
 
 // Aborts once something other than this episode is mounted. The refresh's
@@ -157,11 +151,7 @@ export const useLoadDanmaku = () => {
         if (signal?.aborted) {
           return { status: 'cancelled' }
         }
-        return {
-          status: 'fetchFailed',
-          error,
-          providerConfigId: providerConfigIdOf(request),
-        }
+        return { status: 'fetchFailed', error }
       }
       const { episode, keptStored } = fetched
       if (signal?.aborted) {
@@ -198,7 +188,7 @@ export const useLoadDanmaku = () => {
     try {
       result = await mount(episodes)
     } catch (error) {
-      toast.error(describeMountError(error))
+      toast.error(mountFailedMessage(error))
       return
     }
     if (result.status !== 'mounted') {

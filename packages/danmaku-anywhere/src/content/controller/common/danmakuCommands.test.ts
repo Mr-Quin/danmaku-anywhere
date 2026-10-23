@@ -216,16 +216,20 @@ describe('sendMount', () => {
     expectEveryOrderToSettle(0)
   })
 
-  it('takes the danmaku down and throws when the active frame cannot be reached', async () => {
+  it('takes the danmaku down and reports a player that did not answer', async () => {
     const pending = sendMount([episode('A')])
-    sentTo(0)[0].fail(new Error('The player went away'))
+    const goneAway = new Error('The player went away')
+    sentTo(0)[0].fail(goneAway)
     sentTo(1)[0].deliver()
     await vi.waitFor(() => {
       expect(sent).toHaveLength(4)
     })
     deliverAll()
 
-    await expect(pending).rejects.toThrow('The player went away')
+    await expect(pending).rejects.toMatchObject({
+      code: 'mount.failed',
+      cause: goneAway,
+    })
     expect(useStore.getState().danmaku.isMounted).toBe(false)
   })
 
