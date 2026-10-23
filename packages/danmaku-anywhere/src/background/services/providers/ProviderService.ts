@@ -24,9 +24,9 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
 import type {
+  ManifestSpecAnswer,
   ProviderLoginStatus,
   ProviderManifestList,
-  ProviderManifestSpec,
 } from '@/common/rpcClient/background/types'
 import { withUrlScheme } from '@/common/utils/link'
 import { invariant, isServiceWorker } from '@/common/utils/utils'
@@ -285,15 +285,13 @@ export class ProviderService {
   // the popup can render the warning without source-specific switches. A
   // source without a loginProbe is always considered ok.
   async getLoginStatus(manifestId: string): Promise<ProviderLoginStatus> {
-    let spec: ProviderManifestSpec
-    try {
-      spec = await this.getManifestSpec(manifestId)
-    } catch {
-      // No manifest registered for this id (e.g. legacy:maccms): nothing to
-      // probe, so report ok rather than rejecting the RPC.
+    const answer = await this.getManifestSpec(manifestId)
+    // A manifest that can't run here (or none, as for legacy:maccms) has
+    // nothing to probe, so report ok rather than rejecting the RPC.
+    if (answer.status !== 'ok') {
       return { hasLoginProbe: false, ok: true }
     }
-    const { hasLoginProbe, cookieSet } = spec
+    const { hasLoginProbe, cookieSet } = answer.spec
     if (!hasLoginProbe) {
       return { hasLoginProbe: false, cookieSet, ok: true }
     }
@@ -449,16 +447,23 @@ export class ProviderService {
   async getManifestSpec(
     manifestId: string,
     locale?: string
-  ): Promise<ProviderManifestSpec> {
-    const { manifest } = await this.manifestRegistry.getRunner(manifestId)
+  ): Promise<ManifestSpecAnswer> {
+    const lookup = await this.manifestRegistry.lookup(manifestId)
+    if (lookup.status === 'unavailable') {
+      return { status: 'unavailable', reason: lookup.reason }
+    }
+    const { manifest } = lookup.runner
     const display = getDisplayStrings(manifest, locale)
     return {
-      name: display.name,
-      hasLoginProbe: manifest.loginProbe !== undefined,
-      cookieSet: manifest.cookieSet
-        ? { url: manifest.cookieSet.url, title: display.cookieSet?.title }
-        : undefined,
-      configSchema: display.configSchema,
+      status: 'ok',
+      spec: {
+        name: display.name,
+        hasLoginProbe: manifest.loginProbe !== undefined,
+        cookieSet: manifest.cookieSet
+          ? { url: manifest.cookieSet.url, title: display.cookieSet?.title }
+          : undefined,
+        configSchema: display.configSchema,
+      },
     }
   }
 }

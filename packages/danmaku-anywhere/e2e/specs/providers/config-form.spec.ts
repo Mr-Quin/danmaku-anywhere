@@ -19,8 +19,9 @@ import { applyProfile } from '../../setup/profile'
  * The built-in DanDanPlay hides its server and credential fields behind a
  * note, which a built-in without a server field does not show, and its
  * editor fits the popup without a sideways scrollbar.
- * Finally, a provider whose manifest spec fails to load shows an error with a
- * retry action instead of a stripped name-only form that would drop its config.
+ * Finally, a provider whose manifest is not installed opens with its name
+ * editable and its settings shown read-only, and renaming it keeps the
+ * settings it had.
  */
 
 const customDdp: ProviderConfig = {
@@ -340,34 +341,30 @@ const orphanedProvider: ProviderConfig = {
   },
 }
 
-test.describe('manifest spec load failure', () => {
-  // Editing a provider whose manifest is unregistered rejects the spec RPC; the
-  // service worker logs that rejection.
-  test.use({
-    expectedConsoleErrors: [
-      /\[RpcManager\] Error in RPC handler.*no manifest registered/,
-    ],
-  })
+test('a provider whose manifest is not installed can be renamed and keeps its settings', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, { customProviders: [orphanedProvider] })
 
-  test('shows an error with retry instead of a stripped form', async ({
-    context,
-    page,
-    extensionId,
-    da,
-  }) => {
-    await applyProfile(context, da, { customProviders: [orphanedProvider] })
+  const popup = await Popup.open(page, extensionId, '/providers')
+  await popup.providers.edit('Orphaned Source')
 
-    const popup = await Popup.open(page, extensionId, '/providers')
-    await popup.providers.edit('Orphaned Source')
+  await expect(
+    page.getByText(/You can still rename it|仍可以重命名/)
+  ).toBeVisible()
+  await expect(popup.providers.field('baseUrl')).toHaveValue(
+    'https://orphaned.example.invalid'
+  )
+  await expect(popup.providers.field('baseUrl')).not.toBeEditable()
 
-    await expect(
-      page.getByText(/Failed to load provider settings|加载弹幕源设置失败/)
-    ).toBeVisible()
-    await expect(
-      page.getByRole('button', { name: /^(Retry|重试)$/ })
-    ).toBeVisible()
+  await popup.providers.nameField().fill('Renamed Source')
+  await popup.providers.save()
 
-    await expect(popup.providers.nameField()).toBeHidden()
-    await expect(popup.providers.saveButton()).toBeHidden()
-  })
+  await expect(popup.providers.row('Renamed Source')).toBeVisible()
+  const saved = await da.providerConfig.get(orphanedProvider.id)
+  expect(saved?.customName).toBe('Renamed Source')
+  expect(saved?.configValues).toEqual(orphanedProvider.configValues)
 })

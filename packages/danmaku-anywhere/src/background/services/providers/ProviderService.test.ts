@@ -257,13 +257,27 @@ describe('ProviderService.probeLogin', () => {
 
 describe('ProviderService.getManifestSpec', () => {
   function buildWithManifest(manifest: Record<string, unknown>) {
-    const getRunner = vi.fn<ManifestRegistry['getRunner']>(
-      async () => ({ manifest }) as ManifestRunner
-    )
+    const lookup = vi.fn<ManifestRegistry['lookup']>(async () => ({
+      status: 'ok',
+      runner: { manifest } as ManifestRunner,
+      fallback: false,
+    }))
     return buildService({
       factory: vi.fn(() => makeProvider()),
-      registry: { getRunner },
+      registry: { lookup },
     })
+  }
+
+  async function okSpec(
+    service: ReturnType<typeof buildWithManifest>,
+    manifestId: string,
+    locale?: string
+  ) {
+    const answer = await service.getManifestSpec(manifestId, locale)
+    if (answer.status !== 'ok') {
+      throw new Error(`expected a spec, got ${answer.reason}`)
+    }
+    return answer.spec
   }
 
   it('resolves name, configSchema, and cookieSet title into the locale', async () => {
@@ -284,7 +298,7 @@ describe('ProviderService.getManifestSpec', () => {
       },
     })
 
-    const spec = await service.getManifestSpec('dandanplay', 'zh-CN')
+    const spec = await okSpec(service, 'dandanplay', 'zh-CN')
 
     expect(spec.name).toBe('弹弹play')
     expect(spec.cookieSet).toEqual({
@@ -301,21 +315,29 @@ describe('ProviderService.getManifestSpec', () => {
       locales: { 'zh-CN': { name: '弹弹play' } },
     })
 
-    const spec = await service.getManifestSpec('dandanplay')
+    const spec = await okSpec(service, 'dandanplay')
 
     expect(spec.name).toBe('DanDanPlay')
   })
 
-  it('rejects when no manifest is registered for the id', async () => {
-    const getRunner = vi.fn<ManifestRegistry['getRunner']>(async () => {
-      throw new Error('no manifest registered with id: missing')
-    })
+  it.each([
+    'not-registered',
+    'needs-newer-extension',
+    'invalid-manifest',
+  ] as const)('answers why a manifest that cannot run has no spec (%s)', async (reason) => {
+    const lookup = vi.fn<ManifestRegistry['lookup']>(async () => ({
+      status: 'unavailable',
+      reason,
+    }))
     const service = buildService({
       factory: vi.fn(() => makeProvider()),
-      registry: { getRunner },
+      registry: { lookup },
     })
 
-    await expect(service.getManifestSpec('missing')).rejects.toThrow()
+    expect(await service.getManifestSpec('missing')).toEqual({
+      status: 'unavailable',
+      reason,
+    })
   })
 })
 

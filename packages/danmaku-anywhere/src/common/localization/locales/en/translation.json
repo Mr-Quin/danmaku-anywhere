@@ -809,6 +809,7 @@
       },
       "name": "Name",
       "nameDefaultHint": "Leave empty to use the default name",
+      "settingsLocked": "Its settings can't be changed until it can run here. You can still rename it.",
       "specError": "Failed to load source settings. Some fields are missing, saving now would drop them.",
       "testRun": {
         "danmakuCount_one": "{{count}} comment fetched",

@@ -11,6 +11,8 @@ import { FormProvider, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { useToast } from '@/common/components/Toast/toastStore'
+import type { SourceUnavailableReason } from '@/common/errors/AppError'
+import { describeCode } from '@/common/errors/describeError'
 import { lockedConfigKeys } from '@/common/options/providerConfig/builtin'
 import { configIssueMessage } from '@/common/options/providerConfig/issueText'
 import { useSourceNames } from '@/common/options/providerConfig/useSourceNames'
@@ -34,11 +36,19 @@ interface FormValues {
 
 interface ConfigFormProps extends ProviderFormProps {
   configSchema?: ConfigSchema
+  // Set when the source's manifest can't run here, so its settings can't be
+  // checked or edited and only the name can change.
+  unavailable?: SourceUnavailableReason
+}
+
+function settingText(value: unknown): string {
+  return typeof value === 'string' ? value : JSON.stringify(value)
 }
 
 function ConfigForm({
   provider,
   configSchema,
+  unavailable,
   onSubmit,
   onReset,
   isEdit,
@@ -119,6 +129,43 @@ function ConfigForm({
     onReset?.()
   }
 
+  const renderLockedSettings = (reason: SourceUnavailableReason) => {
+    const settings = Object.entries(provider.configValues).filter(([key]) => {
+      return !hiddenKeys.has(key)
+    })
+    return (
+      <>
+        <Alert severity="warning" sx={{ alignSelf: 'stretch' }}>
+          <Box>
+            {describeCode('manifest.unavailable', {
+              manifestId: provider.manifestId,
+              reason,
+            })}
+          </Box>
+          <Box>
+            {t(
+              'providers.editor.settingsLocked',
+              "Its settings can't be changed until it can run here. You can still rename it."
+            )}
+          </Box>
+        </Alert>
+        {settings.map(([key, value]) => (
+          <TextField
+            key={key}
+            label={key}
+            size="small"
+            value={settingText(value)}
+            slotProps={{
+              input: { readOnly: true },
+              inputLabel: { shrink: true },
+            }}
+            fullWidth
+          />
+        ))}
+      </>
+    )
+  }
+
   const hidesServer = getObjectFields(configSchema).some((field) =>
     hiddenKeys.has(field.key)
   )
@@ -157,6 +204,7 @@ function ConfigForm({
             )}
           </Alert>
         ) : null}
+        {unavailable ? renderLockedSettings(unavailable) : null}
         {configSchema ? (
           <SchemaObjectFields
             schema={configSchema}
@@ -210,5 +258,9 @@ export const ProviderConfigForm = (props: ProviderFormProps) => {
     )
   }
 
-  return <ConfigForm {...props} configSchema={data?.configSchema} />
+  if (data?.status === 'unavailable') {
+    return <ConfigForm {...props} unavailable={data.reason} />
+  }
+
+  return <ConfigForm {...props} configSchema={data?.spec.configSchema} />
 }

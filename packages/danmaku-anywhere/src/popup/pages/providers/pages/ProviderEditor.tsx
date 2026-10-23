@@ -36,7 +36,8 @@ export const ProviderEditor = ({
   const { data: spec } = useManifestSpec(provider.manifestId, {
     enabled: !isLegacyMacCms(provider),
   })
-  const configSchema = spec?.configSchema
+  const configSchema =
+    spec?.status === 'ok' ? spec.spec.configSchema : undefined
   const toast = useToast.use.toast()
 
   const isEdit = mode === 'edit'

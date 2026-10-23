@@ -127,6 +127,10 @@ export interface ProviderManifestSpec {
   configSchema?: ConfigSchema
 }
 
+export type ManifestSpecAnswer =
+  | { status: 'ok'; spec: ProviderManifestSpec }
+  | { status: 'unavailable'; reason: SourceUnavailableReason }
+
 // Why a stored manifest cannot run; a manifest that is not stored at all is
 // 'not-registered', which never appears in the list.
 export type ManifestUnavailableReason = Exclude<
@@ -273,7 +277,7 @@ export type BackgroundMethods = {
   >
   providerGetManifestSpec: RPCDef<
     { manifestId: string; locale?: string },
-    ProviderManifestSpec
+    ManifestSpecAnswer
   >
   providerListManifests: RPCDef<{ locale?: string }, ProviderManifestList>
   // Manifest names keyed by manifest id, resolved into the locale

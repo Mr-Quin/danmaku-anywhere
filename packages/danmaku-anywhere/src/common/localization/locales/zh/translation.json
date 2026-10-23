@@ -780,6 +780,7 @@
       },
       "name": "名称",
       "nameDefaultHint": "留空则使用默认名称",
+      "settingsLocked": "在它能在此运行之前，无法修改其设置，但仍可以重命名。",
       "specError": "加载弹幕源设置失败。部分字段缺失，此时保存会丢失这些字段。",
       "testRun": {
         "danmakuCount_other": "已获取 {{count}} 条弹幕",
