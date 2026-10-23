@@ -111,7 +111,7 @@ const MESSAGES: MessageTable = {
     return i18n.t(
       'appError.urlTitleNotFound',
       '{{source}} has nothing at this link. The title may have been removed or not be available in your region.',
-      { source: source.name }
+      { source: sourceName(source) }
     )
   },
   'source.urlEpisodeNotFound': () => {
@@ -138,7 +138,7 @@ const MESSAGES: MessageTable = {
       case 'invalid-manifest':
         return i18n.t(
           'appError.sourceInvalidManifest',
-          "{{source}} is damaged and can't run. Reinstall it from Sources.",
+          "{{source}} is damaged and can't run. Reinstall or replace it in Sources.",
           { source: name }
         )
     }
@@ -207,7 +207,7 @@ const MESSAGES: MessageTable = {
       case 'invalid-manifest':
         return i18n.t(
           'appError.manifestInvalid',
-          "This source is damaged and can't run. Reinstall it from Sources."
+          "This source is damaged and can't run. Reinstall or replace it in Sources."
         )
     }
   },

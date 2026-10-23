@@ -208,7 +208,7 @@ export const ProvidersPage = (): ReactElement => {
         toast.success(t('providers.alert.reinstalled', 'Source reinstalled'))
       },
       onError: (error) => {
-        toast.error(error.message)
+        toast.error(describeError(error).message)
       },
     })
   }

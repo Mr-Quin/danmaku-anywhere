@@ -193,6 +193,20 @@ describe('describeError', () => {
     expect(zh).toContain('弹弹play')
   })
 
+  it('names a built-in source in the UI language when a link has no title', async () => {
+    const error = new AppError('source.urlTitleNotFound', {
+      source: {
+        providerConfigId: 'dandanplay',
+        manifestId: 'dandanplay',
+        name: 'DanDanPlay',
+      },
+    })
+
+    const [zh] = await messagesIn('zh', [error])
+
+    expect(zh).toContain('弹弹play')
+  })
+
   it('keeps the name the user gave a source', async () => {
     const error = new AppError('network', {
       target: {
