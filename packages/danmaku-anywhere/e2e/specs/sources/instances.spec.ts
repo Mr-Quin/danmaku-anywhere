@@ -12,7 +12,7 @@ import { applyProfile } from '../../setup/profile'
 const homeServer: ProviderConfig = {
   id: 'home-ddp',
   manifestId: 'dandanplay',
-  name: 'Home NAS',
+  customName: 'Home NAS',
   enabled: true,
   configValues: {
     baseUrl: 'https://ddp.home.invalid',

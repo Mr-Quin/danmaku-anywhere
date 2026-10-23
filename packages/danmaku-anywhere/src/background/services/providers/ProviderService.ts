@@ -9,7 +9,6 @@ import type { Result } from '@danmaku-anywhere/result'
 import { getDisplayStrings } from '@mr-quin/dango'
 import { inject, injectable } from 'inversify'
 import { z } from 'zod'
-import { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import type { SeasonQueryFilter, SeasonSearchRequest } from '@/common/anime/dto'
@@ -20,13 +19,7 @@ import type {
 } from '@/common/danmaku/dto'
 import { AppError } from '@/common/errors/AppError'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
-import { toManifestLocale } from '@/common/localization/language'
-import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
-import {
-  AUTO_IMPORT_PROVIDERS,
-  autoImportToProviderConfig,
-} from '@/common/options/providerConfig/constant'
-import { localizeLegacyBuiltinNames } from '@/common/options/providerConfig/localizeLegacyNames'
+import { ProviderConfigWriter } from '@/common/options/providerConfig/ProviderConfigWriter'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'
@@ -58,7 +51,6 @@ function enrichEpisode(
 @injectable('Singleton')
 export class ProviderService {
   private readonly logger: ILogger
-  private seeding: Promise<void> | null = null
 
   constructor(
     @inject(DanmakuService)
@@ -66,13 +58,11 @@ export class ProviderService {
     @inject(SeasonService) private seasonService: SeasonService,
     @inject(ProviderConfigService)
     private providerConfigService: ProviderConfigService,
+    @inject(ProviderConfigWriter)
+    private providerConfigWriter: ProviderConfigWriter,
     @inject(ManifestRegistry)
     private manifestRegistry: ManifestRegistry,
-    @inject(BookmarkService)
-    private bookmarkService: BookmarkService,
     @inject(LoggerSymbol) logger: ILogger,
-    @inject(ExtensionOptionsService)
-    private extensionOptions: ExtensionOptionsService,
     @inject(SourceCapabilityService)
     private sourceCapabilities: SourceCapabilityService
   ) {
@@ -329,13 +319,7 @@ export class ProviderService {
         'Only user manifests can be deleted'
       )
     }
-    const configs = await this.providerConfigService.getAll()
-    for (const config of configs) {
-      if (config.manifestId === manifestId) {
-        await this.bookmarkService.deleteByProviderConfig(config.id)
-        await this.providerConfigService.deleteFromStorage(config.id)
-      }
-    }
+    await this.providerConfigWriter.deleteByManifest(manifestId)
     await this.manifestRegistry.unregister(manifestId)
   }
 
@@ -363,49 +347,25 @@ export class ProviderService {
   }
 
   private async onInstalled(reason: string): Promise<void> {
-    const lockedExistingInstall =
-      reason === 'update' && (await this.lockSeedForExistingInstall())
-    // The seed flag is already locked, so a sync failure here must not skip
-    // the one chance to rename.
-    try {
-      await this.syncCatalog()
-    } finally {
-      if (lockedExistingInstall) {
-        await this.localizeLegacyBuiltinNames()
-      }
+    if (reason === 'update') {
+      await this.lockSeedForExistingInstall()
     }
+    await this.syncCatalog()
   }
 
   // Lock the flag for an existing install so its configs are never re-seeded,
   // even if the user has deleted them all. An unset flag with no configs is a
   // different user: their first-run seed never happened, so leave them
-  // unlocked for the sync that follows to heal. Returns whether it locked.
-  private async lockSeedForExistingInstall(): Promise<boolean> {
+  // unlocked for the sync that follows to heal.
+  private async lockSeedForExistingInstall(): Promise<void> {
     if (await this.providerConfigService.hasSeeded()) {
-      return false
+      return
     }
     const configs = await this.providerConfigService.getAll()
     if (configs.length === 0) {
-      return false
+      return
     }
     await this.providerConfigService.markSeeded()
-    return true
-  }
-
-  // Only for configs that came from pre-manifest storage (the update that
-  // locked the seed flag, or a restored pre-manifest backup), so a name the
-  // user sets later is never touched.
-  async localizeLegacyBuiltinNames(): Promise<void> {
-    const { lang } = await this.extensionOptions.get()
-    const manifests = await this.manifestRegistry.listManifests(
-      toManifestLocale(lang)
-    )
-    const names = new Map(manifests.map((m) => [m.id, m.name]))
-    const configs = await this.providerConfigService.getAll()
-    const localized = localizeLegacyBuiltinNames(configs, names)
-    if (localized !== configs) {
-      await this.providerConfigService.options.set(localized)
-    }
   }
 
   // Throws on a catalog that produced no usable list so a user-driven refresh
@@ -463,47 +423,24 @@ export class ProviderService {
     })
   }
 
-  // syncCatalog can run concurrently (install, alarm, popup refresh) and the
-  // seeded flag is read asynchronously, so two in-flight seeds can both pass
-  // the check. Sharing the run keeps the write single.
-  seedDefaultProviders(): Promise<void> {
-    this.seeding ??= this.runSeedDefaultProviders().finally(() => {
-      this.seeding = null
-    })
-    return this.seeding
-  }
-
-  // Seed the preloaded configs once, after the registry is populated so each
-  // name comes from its manifest. Skips entirely until every preloaded manifest
-  // is present so a transient partial fetch never seeds a subset and then locks.
-  private async runSeedDefaultProviders(): Promise<void> {
+  // Seed the built-ins once. The flag and the configs share
+  // chrome.storage.sync, so on a signed-in profile the flag can still read as
+  // unset while the user's real configs are arriving. Any config at all means
+  // this is not a blank slate, and seeding over it would push the defaults out
+  // to every other device.
+  async seedDefaultProviders(): Promise<void> {
     if (await this.providerConfigService.hasSeeded()) {
       return
     }
-    // The flag and the configs share chrome.storage.sync, so on a signed-in
-    // profile the flag can still read as unset while the user's real configs
-    // are arriving. Any config at all means this is not a blank slate, and
-    // seeding over it would push the defaults out to every other device.
-    const existing = await this.providerConfigService.getAll()
-    if (existing.length > 0) {
-      await this.providerConfigService.markSeeded()
-      return
-    }
-    const { lang } = await this.extensionOptions.get()
-    const manifests = await this.manifestRegistry.listManifests(
-      toManifestLocale(lang)
-    )
-    const names = new Map(manifests.map((m) => [m.id, m.name]))
-    const configs: ProviderConfig[] = []
-    for (const entry of AUTO_IMPORT_PROVIDERS) {
-      const name = names.get(entry.manifestId)
-      if (name === undefined) {
-        return
-      }
-      configs.push(autoImportToProviderConfig(entry, name))
-    }
-    await this.providerConfigService.options.set(configs)
+    await this.providerConfigWriter.seedBuiltins()
     await this.providerConfigService.markSeeded()
+  }
+
+  async listManifestNames(locale?: string): Promise<Record<string, string>> {
+    const manifests = await this.manifestRegistry.listManifests(locale)
+    return Object.fromEntries(
+      manifests.map((manifest) => [manifest.id, manifest.name])
+    )
   }
 
   // Surfaces the host-relevant subset of a manifest so the popup can render

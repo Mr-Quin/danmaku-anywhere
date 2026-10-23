@@ -422,7 +422,7 @@ function assertUserOptions(snapshot: OptionsSnapshot): void {
 function assertProviderOrder(snapshot: OptionsSnapshot): void {
   const configs = (snapshot.providerConfig?.data ?? []) as Array<{
     id: string
-    name: string
+    customName: string | null
     enabled: boolean
   }>
   expect
@@ -442,7 +442,7 @@ function assertProviderOrder(snapshot: OptionsSnapshot): void {
     .filter((config) => {
       return !['bilibili', 'dandanplay', 'tencent'].includes(config.id)
     })
-    .map((config) => config.name)
+    .map((config) => config.customName)
   expect
     .soft(customNames, 'custom sources keep their names')
     .toEqual(['DanDanPlay', 'VOD', 'Danmu API'])

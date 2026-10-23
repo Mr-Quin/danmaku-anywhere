@@ -23,7 +23,7 @@ function cfg(
   return {
     id: 'a',
     manifestId: 'legacy:maccms',
-    name: 'VOD',
+    customName: 'VOD',
     enabled: true,
     // The runtime value can violate the type during the seeding race the
     // guard defends against, so the cast mirrors what actually reaches it.

@@ -1,6 +1,7 @@
 import { err, ok, type Result } from '@danmaku-anywhere/result'
 import {
   checkManifestCompatibility,
+  type FetchLike,
   getDisplayStrings,
   loadManifest,
   type Manifest,
@@ -17,10 +18,16 @@ import {
 } from '@/common/errors/AppError'
 import { classifyFetchRejection } from '@/common/errors/fetchFailure'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
+import { toManifestLocale } from '@/common/localization/language'
 import {
   type ManifestChange,
   publishDataChange,
 } from '@/common/messaging/dataChangeChannel'
+import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
+import {
+  bundledCatalogIndex,
+  bundledManifestRaw,
+} from '@/common/providers/bundledCatalog'
 import type {
   ManifestUnavailableReason,
   ManifestUpdate,
@@ -28,8 +35,7 @@ import type {
 } from '@/common/rpcClient/background/types'
 import { fetchChecked } from '@/common/utils/fetchOrThrow'
 import { sleep } from '@/common/utils/utils'
-import { bundledCatalogIndex, bundledManifestRaw } from './bundledCatalog'
-import { extensionFetchLike } from './extensionFetchLike'
+import { ManifestFetcherSymbol } from './extensionFetchLike'
 import {
   type IManifestStore,
   type ManifestEntry,
@@ -103,7 +109,8 @@ interface RegisteredManifest {
 }
 
 export type ManifestLookup =
-  | { status: 'ok'; runner: ManifestRunner }
+  // fallback: the bundled copy runs because the stored one cannot
+  | { status: 'ok'; runner: ManifestRunner; fallback: boolean }
   | { status: 'unavailable'; reason: SourceUnavailableReason }
 
 // A stored manifest this build cannot run. It stays in storage untouched, so
@@ -136,7 +143,10 @@ export class ManifestRegistry {
 
   constructor(
     @inject(LoggerSymbol) logger: ILogger,
-    @inject(ManifestStore) store: IManifestStore
+    @inject(ManifestStore) store: IManifestStore,
+    @inject(ManifestFetcherSymbol) private readonly fetcher: FetchLike,
+    @inject(ExtensionOptionsService)
+    private readonly extensionOptions: Pick<ExtensionOptionsService, 'get'>
   ) {
     this.log = logger.sub('[ManifestRegistry]')
     this.store = store
@@ -163,7 +173,11 @@ export class ManifestRegistry {
     await this.whenLoaded()
     const registered = this.runners.get(manifestId)
     if (registered) {
-      return { status: 'ok', runner: registered.runner }
+      return {
+        status: 'ok',
+        runner: registered.runner,
+        fallback: this.fallback.has(manifestId),
+      }
     }
     const reason = this.unavailable.get(manifestId)?.reason ?? 'not-registered'
     return { status: 'unavailable', reason }
@@ -195,6 +209,14 @@ export class ManifestRegistry {
       unavailable: entry.reason,
     }))
     return [...available, ...unavailable]
+  }
+
+  // Every name the extension shows for a manifest, including the ones in
+  // errors, comes from here: the listed name in the extension's language.
+  async displayNames(): Promise<Map<string, string>> {
+    const { lang } = await this.extensionOptions.get()
+    const manifests = await this.listManifests(toManifestLocale(lang))
+    return new Map(manifests.map((manifest) => [manifest.id, manifest.name]))
   }
 
   getLastCheckedAt(): Promise<number | null> {
@@ -239,7 +261,7 @@ export class ManifestRegistry {
       if (replacement === null) {
         throw new AppError(
           'catalog.applyFailed',
-          { sources: [this.unavailableLabel(manifestId, unavailable)] },
+          { sources: await this.sourceLabels([manifestId]) },
           {
             message: `No working copy of manifest ${manifestId} to reinstall; try again once the catalog is reachable`,
           }
@@ -390,7 +412,7 @@ export class ManifestRegistry {
           .filter((id) => !applied.includes(id))
         throw new AppError(
           'catalog.applyFailed',
-          { sources: failed.map((id) => this.sourceLabel(id)) },
+          { sources: await this.sourceLabels(failed) },
           { message: `Failed to apply updates: ${failed.join(', ')}` }
         )
       }
@@ -729,12 +751,7 @@ export class ManifestRegistry {
     timeoutMs: number
   ): Promise<Result<unknown, AppError>> {
     const signal = AbortSignal.timeout(timeoutMs)
-    const response = await fetchChecked(
-      extensionFetchLike,
-      url,
-      { signal },
-      CATALOG
-    )
+    const response = await fetchChecked(this.fetcher, url, { signal }, CATALOG)
     if (!response.success) {
       return response
     }
@@ -757,19 +774,13 @@ export class ManifestRegistry {
     }
   }
 
-  private unavailableLabel(
-    manifestId: string,
-    unavailable: UnavailableManifest
-  ): { manifestId: string; name: string } {
-    return { manifestId, name: unavailable.name }
-  }
-
-  private sourceLabel(manifestId: string): {
-    manifestId: string
-    name: string
-  } {
-    const name = this.runners.get(manifestId)?.runner.manifest.name
-    return { manifestId, name: name ?? manifestId }
+  private async sourceLabels(
+    manifestIds: string[]
+  ): Promise<{ manifestId: string; name: string }[]> {
+    const names = await this.displayNames()
+    return manifestIds.map((manifestId) => {
+      return { manifestId, name: names.get(manifestId) ?? manifestId }
+    })
   }
 
   // Per-manifest, and runner construction can throw past parsing, so one bad
@@ -824,6 +835,6 @@ export class ManifestRegistry {
   }
 
   private buildRunner(manifest: Manifest): ManifestRunner {
-    return new ManifestRunner(manifest, { fetcher: extensionFetchLike })
+    return new ManifestRunner(manifest, { fetcher: this.fetcher })
   }
 }

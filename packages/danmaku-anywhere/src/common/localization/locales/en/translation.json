@@ -70,6 +70,7 @@
     "catalogApplyFailed": "Couldn't update {{sources}}. Try again later.",
     "catalogEmpty": "The source catalog has no sources this version can use.",
     "configDuplicate": "An item with the same ID already exists.",
+    "configInvalid": "Some settings are not valid.",
     "configNotFound": "This item no longer exists. It may have been deleted.",
     "danmakuUnsupported": "{{source}} cannot fetch danmaku.",
     "episodesUnsupported": "{{source}} cannot list episodes.",
@@ -577,6 +578,7 @@
     "backup": {
       "alert": {
         "exportSuccess": "Export success",
+        "importMissing": "Backup imported. It had no {{stores}}, so those were left as they were.",
         "importPartial": "Some settings could not be restored: {{stores}}",
         "importSuccess": "Import success"
       },
@@ -590,6 +592,17 @@
       "cloudListError": "Failed to load cloud backups.",
       "cloudRevisions": "Revisions",
       "cloudSignInTitle": "Sign in to enable cloud backup",
+      "droppedEntries_one": "{{store}} ({{count}} entry skipped)",
+      "droppedEntries_other": "{{store}} ({{count}} entries skipped)",
+      "droppedEntriesWithReasons_one": "{{store}} ({{count}} entry skipped: {{reasons}})",
+      "droppedEntriesWithReasons_other": "{{store}} ({{count}} entries skipped: {{reasons}})",
+      "dropReason": {
+        "duplicateId": "another entry in the backup has the same id",
+        "invalidEntry": "the entry is damaged",
+        "invalidSettings": "its settings are not valid for its source",
+        "nameRequired": "it has no name",
+        "notMigrated": "it could not be converted from an older version"
+      },
       "export": "Export",
       "exportRowDesc": "Save settings to a JSON file",
       "exportToFile": "Save to File",
@@ -795,6 +808,7 @@
         "viewTitle": "Manifest source"
       },
       "name": "Name",
+      "nameDefaultHint": "Leave empty to use the default name",
       "specError": "Failed to load source settings. Some fields are missing, saving now would drop them.",
       "testRun": {
         "danmakuCount_one": "{{count}} comment fetched",
@@ -814,7 +828,9 @@
         "edit": "Edit Source: {{name}}"
       },
       "validation": {
+        "enum": "Pick one of the options",
         "integer": "Must be a whole number",
+        "invalid": "Not a valid value",
         "maximum": "Must be at most {{max}}",
         "maxLength": "Must be at most {{max}} characters",
         "minimum": "Must be at least {{min}}",
@@ -822,8 +838,17 @@
         "pattern": "Must match the pattern {{pattern}}",
         "required": "This field is required",
         "requiredAlternatives": "Fill in {{fields}}",
-        "url": "Not a valid URL"
+        "url": "Not a valid URL",
+        "urlScheme": "The URL must start with http:// or https://"
       }
+    },
+    "error": {
+      "duplicate": "This built-in source is already installed",
+      "nameRequired": "Give the source a name",
+      "nameTooLong": "A source name can be at most {{max}} characters",
+      "notBuiltin": "This source has no built-in instance",
+      "orderMismatch": "The source list changed. Try reordering again.",
+      "outdated": "Your sources are being updated to this version. Try again in a moment."
     },
     "filter": {
       "placeholder": "Filter sources"
@@ -840,9 +865,6 @@
       "reorder": "Reorder",
       "reorderDone": "Done",
       "title": "Installed"
-    },
-    "instance": {
-      "defaultName": "Self-hosted DanDanPlay"
     },
     "name": "Danmaku sources",
     "unavailable": {

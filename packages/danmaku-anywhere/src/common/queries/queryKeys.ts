@@ -78,6 +78,10 @@ export const sourceQueryKeys = {
   manifestList: (locale: string) =>
     [{ scope: 'source', kind: 'manifestList', locale }] as const,
   manifestLists: () => [{ scope: 'source', kind: 'manifestList' }] as const,
+  // Sits under the manifestList family, so whatever refreshes the lists also
+  // refreshes the names.
+  manifestNames: (locale: string) =>
+    [{ scope: 'source', kind: 'manifestList', locale, names: true }] as const,
   pendingUpdates: () => [{ scope: 'source', kind: 'pendingUpdates' }] as const,
   manifestSource: (manifestId: string) =>
     [{ scope: 'source', kind: 'manifestSource', manifestId }] as const,

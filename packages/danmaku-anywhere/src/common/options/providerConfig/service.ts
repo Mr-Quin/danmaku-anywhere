@@ -1,5 +1,5 @@
-import { produce } from 'immer'
 import { inject, injectable } from 'inversify'
+import { z } from 'zod'
 import { AppError } from '@/common/errors/AppError'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import type { IStoreService } from '@/common/options/IStoreService'
@@ -9,27 +9,51 @@ import {
 } from '@/common/options/OptionsService/OptionServiceFactory'
 import type { OptionsService } from '@/common/options/OptionsService/OptionsService'
 import { providerConfigDescriptor } from '@/common/options/optionStores'
-import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
-import { isServiceWorker } from '@/common/utils/utils'
+import { withoutLockedValues } from './builtin'
+import { normalizeCustomName } from './customName'
 import {
-  defaultProviderConfigs,
   ensureBuiltinProviders,
+  legacyDefaultProviderConfigs,
   migrateBuiltinPrefixedProviderIds,
   migrateDanDanPlayApiBaseUrl,
   migrateDropDeadProviderFields,
   migrateProviderConfigsToFlat,
+  migrateToCustomNames,
 } from './migration'
-import type { ProviderConfig } from './schema'
-import { providerConfigSchema } from './schema'
+import { type ProviderConfig, providerConfigSchema } from './schema'
 import { LATEST_PROVIDER_CONFIG_VERSION } from './version'
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+// A restored entry gets the same normalization a write would apply: a tidy
+// name and no settings the extension owns on a built-in.
+const restoredConfigSchema = z
+  .preprocess((entry) => {
+    if (!isRecord(entry) || typeof entry.manifestId !== 'string') {
+      return entry
+    }
+    return {
+      ...entry,
+      customName: normalizeCustomName({
+        manifestId: entry.manifestId,
+        customName: entry.customName,
+        configValues: entry.configValues,
+      }),
+    }
+  }, providerConfigSchema)
+  .transform((config) => withoutLockedValues(config))
+
+// Reads and migrations. Every write goes through ProviderConfigWriter, which
+// checks it and serializes it with the store's other writes.
 @injectable('Singleton')
 export class ProviderConfigService implements IStoreService {
   public readonly name = 'providerConfig'
   public readonly descriptor = providerConfigDescriptor
   public readonly options: OptionsService<ProviderConfig[]>
-  public readonly backupItemSchema = providerConfigSchema
+  public readonly backupItemSchema = restoredConfigSchema
 
   // Stored in sync alongside the configs so a second signed-in device reads the
   // same flag and does not re-seed the shared store.
@@ -60,7 +84,7 @@ export class ProviderConfigService implements IStoreService {
               '[providerConfig] migration failed, falling back to defaults:',
               error
             )
-            return [...defaultProviderConfigs]
+            return [...legacyDefaultProviderConfigs]
           }
         },
       })
@@ -73,7 +97,7 @@ export class ProviderConfigService implements IStoreService {
               '[providerConfig] builtin-prefix migration failed, falling back to defaults:',
               error
             )
-            return [...defaultProviderConfigs]
+            return [...legacyDefaultProviderConfigs]
           }
         },
       })
@@ -92,7 +116,7 @@ export class ProviderConfigService implements IStoreService {
           }
         },
       })
-      .version(LATEST_PROVIDER_CONFIG_VERSION, {
+      .version(5, {
         upgrade: (data) => {
           try {
             return migrateDropDeadProviderFields(data)
@@ -107,6 +131,20 @@ export class ProviderConfigService implements IStoreService {
           }
         },
       })
+      .version(LATEST_PROVIDER_CONFIG_VERSION, {
+        upgrade: (data) => {
+          try {
+            return migrateToCustomNames(data)
+          } catch (error) {
+            // Keep the configs; a failed step must not cost the user them.
+            console.error(
+              '[providerConfig] custom-name migration failed, leaving configs unchanged:',
+              error
+            )
+            return data
+          }
+        },
+      })
   }
 
   async hasSeeded(): Promise<boolean> {
@@ -115,25 +153,6 @@ export class ProviderConfigService implements IStoreService {
 
   async markSeeded(): Promise<void> {
     await this.seededFlag.set(true)
-  }
-
-  async create(input: unknown) {
-    const config = await providerConfigSchema.parseAsync(input)
-
-    const configs = await this.options.get()
-
-    const existingConfig = configs.find((item) => item.id === config.id)
-    if (existingConfig) {
-      throw new AppError(
-        'config.duplicate',
-        {},
-        { message: `Provider with ID "${config.id}" already exists` }
-      )
-    }
-
-    await this.options.set([...configs, config])
-
-    return config
   }
 
   async get(id: string): Promise<ProviderConfig | undefined> {
@@ -157,109 +176,5 @@ export class ProviderConfigService implements IStoreService {
 
   async getAll() {
     return this.options.get()
-  }
-
-  async update<T extends ProviderConfig>(
-    id: string,
-    config: Partial<T>
-  ): Promise<T> {
-    const configs = await this.options.get()
-    const prevConfig = configs.find((item) => item.id === id)
-
-    if (!prevConfig) {
-      throw new AppError(
-        'config.notFound',
-        {},
-        { message: `Provider with ID "${id}" not found.` }
-      )
-    }
-
-    const nextConfig = { ...prevConfig, ...config } as T
-
-    if (config.id && config.id !== id) {
-      throw new Error('Provider ID cannot be changed.')
-    }
-
-    const newConfigs = produce(configs, (draft) => {
-      const index = draft.findIndex((item) => item.id === id)
-      draft[index] = nextConfig
-    })
-
-    await this.options.set(newConfigs)
-
-    return nextConfig
-  }
-
-  async delete(id: string) {
-    await chromeRpcClient.providerConfigDelete(id)
-  }
-
-  async deleteFromStorage(id: string) {
-    if (!isServiceWorker()) {
-      throw new Error('Must called from background script.')
-    }
-
-    const configs = await this.options.get()
-    const config = configs.find((item) => item.id === id)
-
-    if (!config) {
-      throw new AppError(
-        'config.notFound',
-        {},
-        { message: `Provider not found: "${id}" when deleting` }
-      )
-    }
-
-    const newData = produce(configs, (draft) => {
-      const index = draft.findIndex((item) => item.id === id)
-      draft.splice(index, 1)
-    })
-
-    await this.options.set(newData)
-  }
-
-  async toggle(id: string, enabled?: boolean) {
-    const config = await this.get(id)
-
-    if (!config) {
-      throw new AppError(
-        'config.notFound',
-        {},
-        { message: `Provider not found: "${id}"` }
-      )
-    }
-
-    return this.update(id, {
-      enabled: enabled ?? !config.enabled,
-    })
-  }
-
-  async reorder(sourceIndex: number, destinationIndex: number) {
-    const configs = await this.options.get()
-
-    const newData = produce(configs, (draft) => {
-      const [removed] = draft.splice(sourceIndex, 1)
-      draft.splice(destinationIndex, 0, removed)
-    })
-
-    await this.options.set(newData)
-  }
-
-  // Persist an explicit ordering. Used when the displayed list groups configs
-  // (instances), so a single drag moves a block that index math can't express.
-  async setOrder(orderedIds: string[]) {
-    const configs = await this.options.get()
-    const byId = new Map(configs.map((config) => [config.id, config]))
-    const ordered = orderedIds
-      .map((id) => byId.get(id))
-      .filter((config): config is ProviderConfig => config !== undefined)
-    if (
-      orderedIds.length !== configs.length ||
-      ordered.length !== configs.length ||
-      new Set(orderedIds).size !== configs.length
-    ) {
-      throw new Error('setOrder must list every provider config exactly once')
-    }
-    await this.options.set(ordered)
   }
 }

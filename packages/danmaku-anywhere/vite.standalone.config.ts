@@ -14,9 +14,15 @@ export default defineConfig({
   plugins: [react({}), dropOcclusionRuntimes()],
   publicDir: path.resolve('public'),
   resolve: {
-    alias: {
-      '@': path.resolve('src'),
-    },
+    alias: [
+      {
+        find: '@/common/standalone/loadStandaloneBackend',
+        replacement: path.resolve(
+          'src/common/standalone/loadStandaloneBackend.standalone.ts'
+        ),
+      },
+      { find: '@', replacement: path.resolve('src') },
+    ],
   },
   server: {
     strictPort: true,
@@ -36,6 +42,16 @@ export default defineConfig({
     rolldownOptions: {
       input: {
         index: 'index.html',
+      },
+      output: {
+        // The lazily loaded standalone backend shares modules with the page,
+        // which pulled reflect-metadata into a shared chunk. Pinned to its own
+        // chunk it loads first, as in the extension build.
+        manualChunks: (id) => {
+          if (id.includes('node_modules/reflect-metadata')) {
+            return 'vendor'
+          }
+        },
       },
     },
     outDir: './build-standalone',

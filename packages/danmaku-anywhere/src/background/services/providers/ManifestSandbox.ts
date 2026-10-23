@@ -1,12 +1,13 @@
 import { zCommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import {
+  type FetchLike,
   loadManifest,
   ManifestRunner,
   type RunOptions,
   zEpisodeRow,
   zSearchRow,
 } from '@mr-quin/dango'
-import { injectable } from 'inversify'
+import { inject, injectable } from 'inversify'
 import type { ManifestPipeline } from '@/common/errors/AppError'
 import { errorMessage } from '@/common/errors/errorMessage'
 import type {
@@ -20,7 +21,7 @@ import type {
   ManifestTestSearchRow,
   ManifestValidationResult,
 } from '@/common/rpcClient/background/types'
-import { extensionFetchLike } from './extensionFetchLike'
+import { ManifestFetcherSymbol } from './extensionFetchLike'
 import { manifestRejected } from './manifestErrors'
 import { resolveManifestInputs } from './manifestInputs'
 import {
@@ -60,6 +61,10 @@ function toTestDropped(
 // drops and rejects exactly what the source would.
 @injectable('Singleton')
 export class ManifestSandbox {
+  constructor(
+    @inject(ManifestFetcherSymbol) private readonly fetcher: FetchLike
+  ) {}
+
   validate(manifest: unknown): ManifestValidationResult {
     const loaded = loadManifest(manifest)
     if (loaded.status === 'ok') {
@@ -150,9 +155,7 @@ export class ManifestSandbox {
       throw manifestRejected('save-invalid', 'Cannot run an invalid manifest')
     }
     try {
-      return new ManifestRunner(loaded.manifest, {
-        fetcher: extensionFetchLike,
-      })
+      return new ManifestRunner(loaded.manifest, { fetcher: this.fetcher })
     } catch (e) {
       const reason = errorMessage(e)
       throw new Error(`Failed to build manifest runner: ${reason}`)

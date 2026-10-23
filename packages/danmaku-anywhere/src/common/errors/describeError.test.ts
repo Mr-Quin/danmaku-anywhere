@@ -65,6 +65,20 @@ const PARAMS: { [C in keyof AppErrorParams]: AppErrorParams[C] } = {
   'catalog.empty': {},
   'config.duplicate': {},
   'config.notFound': {},
+  'config.invalid': {
+    issues: [
+      {
+        path: ['baseUrl'],
+        code: 'format',
+        message: 'Must be a URL',
+      },
+    ],
+  },
+  'config.nameRequired': {},
+  'config.nameTooLong': { max: 64 },
+  'config.notBuiltin': { manifestId: 'iqiyi' },
+  'config.orderMismatch': {},
+  'options.outdated': { store: 'providerConfig', version: 5, expected: 6 },
   'catalog.applyFailed': {
     sources: [
       { manifestId: 'bilibili', name: 'Bilibili' },
@@ -174,39 +188,6 @@ describe('describeError', () => {
     }
   })
 
-  it('names a built-in source in the active language', async () => {
-    const error = new AppError('network', {
-      target: {
-        kind: 'source',
-        ref: {
-          providerConfigId: 'dandanplay',
-          manifestId: 'dandanplay',
-          name: 'DanDanPlay',
-        },
-      },
-    })
-
-    const [en] = await messagesIn('en', [error])
-    const [zh] = await messagesIn('zh', [error])
-
-    expect(en).toContain('DanDanPlay')
-    expect(zh).toContain('弹弹play')
-  })
-
-  it('names a built-in source in the UI language when a link has no title', async () => {
-    const error = new AppError('source.urlTitleNotFound', {
-      source: {
-        providerConfigId: 'dandanplay',
-        manifestId: 'dandanplay',
-        name: 'DanDanPlay',
-      },
-    })
-
-    const [zh] = await messagesIn('zh', [error])
-
-    expect(zh).toContain('弹弹play')
-  })
-
   it('keeps the name the user gave a source', async () => {
     const error = new AppError('network', {
       target: {
@@ -229,7 +210,8 @@ describe('describeError', () => {
     const [zh] = await messagesIn('zh', [errorFor('catalog.applyFailed')])
 
     expect(en).toBe("Couldn't update Bilibili and iQIYI. Try again later.")
-    expect(zh).toContain('B站')
+    expect(zh).toContain('Bilibili')
+    expect(zh).toContain('iQIYI')
   })
 
   it('describes a code without building an error', async () => {

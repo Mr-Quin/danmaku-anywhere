@@ -7,7 +7,11 @@ import {
   searchMacCmsVod,
 } from '@danmaku-anywhere/danmaku-provider/maccms'
 import type { DanmakuService } from '@/background/services/persistence/DanmakuService'
-import { type ErrorTarget, sourceTarget } from '@/common/errors/AppError'
+import {
+  type ErrorTarget,
+  type SourceRef,
+  sourceTarget,
+} from '@/common/errors/AppError'
 import type { ILogger } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { ProviderConfigService } from '@/common/options/providerConfig/service'
@@ -28,6 +32,7 @@ export class MacCmsProviderService implements SearchOnlyProvider {
 
   constructor(
     private config: ProviderConfig,
+    private source: SourceRef,
     logger: ILogger
   ) {
     this.logger = logger.sub('[MacCmsProviderService]')
@@ -52,7 +57,7 @@ export class MacCmsProviderService implements SearchOnlyProvider {
       this.configValues.danmakuBaseUrl,
       params.keyword,
       this.logger,
-      sourceTarget(toSourceRef(this.config))
+      sourceTarget(this.source)
     )
   }
 
@@ -123,9 +128,13 @@ export class MacCmsProviderService implements SearchOnlyProvider {
     )
 
     if (!commentsResult.success) {
+      // A MacCMS config always has a custom name, as it has no manifest to
+      // take a default one from.
       throw fromProviderApiError(
         commentsResult.error,
-        sourceTarget(toSourceRef(config))
+        sourceTarget(
+          toSourceRef(config, config.customName ?? config.manifestId)
+        )
       )
     }
 

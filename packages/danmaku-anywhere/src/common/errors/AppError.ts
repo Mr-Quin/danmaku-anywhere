@@ -61,6 +61,17 @@ export function sourceTarget(ref: SourceRef): ErrorTarget {
 }
 
 const zNoParams = z.object({})
+
+// dango's ConfigIssue. The code stays a string so an issue code a newer
+// engine adds still rehydrates.
+const zConfigIssue = z.object({
+  path: z.array(z.union([z.string(), z.number()])),
+  code: z.string(),
+  message: z.string(),
+  params: z.record(z.string(), z.unknown()).optional(),
+})
+
+export type AppConfigIssue = z.infer<typeof zConfigIssue>
 const zTransport = z.object({ target: zTarget.optional() })
 const zSource = z.object({ source: zSourceRef })
 const zTitle = z.object({ title: z.string() })
@@ -101,8 +112,18 @@ const PARAMS = {
   }),
   'match.notFound': zTitle,
   'catalog.empty': zNoParams,
-  'config.duplicate': zNoParams,
-  'config.notFound': zNoParams,
+  'config.duplicate': z.object({ manifestId: z.string().optional() }),
+  'config.notFound': z.object({ id: z.string().optional() }),
+  'config.invalid': z.object({ issues: z.array(zConfigIssue) }),
+  'config.nameRequired': zNoParams,
+  'config.nameTooLong': z.object({ max: z.number() }),
+  'config.notBuiltin': z.object({ manifestId: z.string() }),
+  'config.orderMismatch': zNoParams,
+  'options.outdated': z.object({
+    store: z.string(),
+    version: z.number(),
+    expected: z.number(),
+  }),
   'catalog.applyFailed': z.object({
     sources: z.array(z.object({ manifestId: z.string(), name: z.string() })),
   }),

@@ -1,7 +1,6 @@
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { describe, expect, it, vi } from 'vitest'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
-import { PROXY_DDP_BASE_URL } from '@/common/options/providerConfig/constant'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { ReadinessService } from '@/common/options/ReadinessService/ReadinessService'
@@ -55,21 +54,21 @@ const derivedBuiltins: ProviderConfig[] = [
   {
     id: 'dandanplay',
     manifestId: 'dandanplay',
-    name: 'DanDanPlay',
+    customName: null,
     enabled: false,
-    configValues: { baseUrl: PROXY_DDP_BASE_URL, chConvert: 2 },
+    configValues: { chConvert: 2 },
   },
   {
     id: 'bilibili',
     manifestId: 'bilibili',
-    name: 'Bilibili',
+    customName: null,
     enabled: true,
     configValues: { danmakuFormat: 'protobuf' },
   },
   {
     id: 'tencent',
     manifestId: 'tencent',
-    name: 'Tencent',
+    customName: null,
     enabled: true,
     configValues: {},
   },
@@ -118,8 +117,8 @@ describe('startup upgrade of a profile that predates providerConfig', () => {
   it('stores the derived providers at the current providerConfig version', async () => {
     const service = await upgradeLegacyProfile(unconfiguredCustom)
 
-    expect((await readStoredProviders()).version).toBe(5)
-    expect(service.options.latestVersion).toBe(5)
+    expect((await readStoredProviders()).version).toBe(6)
+    expect(service.options.latestVersion).toBe(6)
   })
 
   it('appends a MacCMS source when the legacy custom source was configured', async () => {
@@ -133,7 +132,7 @@ describe('startup upgrade of a profile that predates providerConfig', () => {
     expect((await readStoredProviders()).data.at(-1)).toEqual({
       id: 'legacy:maccms',
       manifestId: 'legacy:maccms',
-      name: 'VOD',
+      customName: 'VOD',
       enabled: true,
       configValues: {
         danmakuBaseUrl: 'https://vod.example/danmaku',
@@ -194,7 +193,7 @@ describe('startup upgrade of a profile that predates providerConfig', () => {
       .upgrade()
 
     expect(providersAtLatestExtensionOptions).toEqual({
-      version: 5,
+      version: 6,
       data: derivedBuiltins,
     })
   })

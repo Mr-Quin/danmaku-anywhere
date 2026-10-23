@@ -17,10 +17,14 @@ import type { DAMenuItemConfig } from '@/common/components/Menu/DAMenuItemConfig
 import { DrilldownMenu } from '@/common/components/Menu/DrilldownMenu'
 import { NothingHere } from '@/common/components/NothingHere'
 import { useToast } from '@/common/components/Toast/toastStore'
-import { describeLocalError } from '@/common/errors/describeError'
-import { isBuiltinConfig } from '@/common/options/providerConfig/displayName'
+import {
+  effectiveConfigValues,
+  isBuiltinConfig,
+} from '@/common/options/providerConfig/builtin'
+import { describeProviderConfigError } from '@/common/options/providerConfig/issueText'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useEditProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import { useSourceNames } from '@/common/options/providerConfig/useSourceNames'
 import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { groupInstalled, supportsInstances } from '../catalog'
 import { ManifestKindChip } from './ManifestKindChip'
@@ -75,7 +79,8 @@ export const InstalledList = ({
 }: InstalledListProps) => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
-  const { toggle, reorderAll } = useEditProviderConfig()
+  const { setEnabled, setOrder } = useEditProviderConfig()
+  const { nameOf } = useSourceNames()
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
   const stateLabel = useManifestStateLabel()
 
@@ -103,10 +108,11 @@ export const InstalledList = ({
     icon: <Autorenew />,
   })
 
+  // Marks the built-in among the user's own instances of the same source
   const displayName = (config: ProviderConfig) =>
     supportsInstances(config.manifestId) && isBuiltinConfig(config)
-      ? `${config.name} (${t('providers.installed.builtIn', 'Built-in')})`
-      : config.name
+      ? `${nameOf(config)} (${t('providers.installed.builtIn', 'Built-in')})`
+      : nameOf(config)
 
   if (configs.length === 0) {
     return (
@@ -126,23 +132,23 @@ export const InstalledList = ({
       <DraggableList
         items={configs}
         onReorder={(source, destination) => {
-          reorderAll.mutate(
+          setOrder.mutate(
             arrayMove(configs, source, destination).map((c) => c.id),
             {
               onError: (error) => {
-                toast.error(describeLocalError(error))
+                toast.error(describeProviderConfigError(error))
               },
             }
           )
         }}
         renderLeading={(config) => (
           <Box sx={{ mr: 1.5, display: 'flex' }}>
-            <HashAvatar seed={config.manifestId} label={config.name} />
+            <HashAvatar seed={config.manifestId} label={nameOf(config)} />
           </Box>
         )}
         renderPrimary={(config) => displayName(config)}
         renderSecondary={(config) =>
-          (config.configValues?.baseUrl as string) ?? subtitle(config)
+          (effectiveConfigValues(config).baseUrl as string) ?? subtitle(config)
         }
       />
     )
@@ -190,8 +196,10 @@ export const InstalledList = ({
     <Switch
       size="small"
       checked={config.enabled}
-      disabled={toggle.isPending}
-      onChange={() => toggle.mutate({ id: config.id })}
+      disabled={setEnabled.isPending}
+      onChange={() =>
+        setEnabled.mutate({ id: config.id, enabled: !config.enabled })
+      }
     />
   )
 
@@ -314,7 +322,9 @@ export const InstalledList = ({
                     key={config.id}
                     dense
                     primary={displayName(config)}
-                    secondary={(config.configValues?.baseUrl as string) ?? ''}
+                    secondary={
+                      (effectiveConfigValues(config).baseUrl as string) ?? ''
+                    }
                     mono
                     onClick={() => onEdit(config)}
                     action={

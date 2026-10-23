@@ -1,3 +1,4 @@
+import { arrayMove } from '@dnd-kit/sortable'
 import { Box, Stack, Switch, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { DraggableList } from '@/common/components/DraggableList'
@@ -6,6 +7,7 @@ import {
   useEditProviderConfig,
   useProviderConfig,
 } from '@/common/options/providerConfig/useProviderConfig'
+import { useSourceNames } from '@/common/options/providerConfig/useSourceNames'
 
 interface SearchSettingsProps {
   dragOverlayPortal?: HTMLElement | null
@@ -14,7 +16,8 @@ interface SearchSettingsProps {
 export const SearchSettings = ({ dragOverlayPortal }: SearchSettingsProps) => {
   const { t } = useTranslation()
   const { configs } = useProviderConfig()
-  const { reorder, toggle } = useEditProviderConfig()
+  const { setOrder, setEnabled } = useEditProviderConfig()
+  const { nameOf } = useSourceNames()
   const { data: extOptions, partialUpdate } = useExtensionOptions()
 
   return (
@@ -79,10 +82,9 @@ export const SearchSettings = ({ dragOverlayPortal }: SearchSettingsProps) => {
             clickable={false}
             items={configs}
             onReorder={(oldIndex, newIndex) =>
-              reorder.mutate({
-                sourceIndex: oldIndex,
-                destinationIndex: newIndex,
-              })
+              setOrder.mutate(
+                arrayMove(configs, oldIndex, newIndex).map((c) => c.id)
+              )
             }
             renderPrimary={(config) => (
               <Stack
@@ -93,7 +95,7 @@ export const SearchSettings = ({ dragOverlayPortal }: SearchSettingsProps) => {
                 }}
               >
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {config.name}
+                  {nameOf(config)}
                 </Typography>
               </Stack>
             )}
@@ -102,7 +104,7 @@ export const SearchSettings = ({ dragOverlayPortal }: SearchSettingsProps) => {
                 edge="end"
                 checked={config.enabled}
                 onChange={() =>
-                  toggle.mutate({ id: config.id, enabled: !config.enabled })
+                  setEnabled.mutate({ id: config.id, enabled: !config.enabled })
                 }
               />
             )}
