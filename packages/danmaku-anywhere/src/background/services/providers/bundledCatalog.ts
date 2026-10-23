@@ -1,4 +1,4 @@
-import { SUPPORTED_API_VERSIONS, zManifest } from '@mr-quin/dango'
+import { zManifest } from '@mr-quin/dango'
 
 export interface BundledCatalogEntry {
   id: string
@@ -32,9 +32,6 @@ for (const raw of Object.values(rawModules)) {
     continue
   }
   const manifest = parsed.data
-  if (!SUPPORTED_API_VERSIONS.has(manifest.apiVersion)) {
-    continue
-  }
   bundledById.set(manifest.id, {
     id: manifest.id,
     apiVersion: manifest.apiVersion,

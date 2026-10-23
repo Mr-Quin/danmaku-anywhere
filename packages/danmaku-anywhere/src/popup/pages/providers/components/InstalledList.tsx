@@ -1,6 +1,7 @@
 import { arrayMove } from '@dnd-kit/sortable'
 import {
   Add,
+  Autorenew,
   Code,
   Delete,
   ExpandLess,
@@ -24,10 +25,16 @@ import type { ProviderManifestInfo } from '@/common/rpcClient/background/types'
 import { groupInstalled, supportsInstances } from '../catalog'
 import { ManifestKindChip } from './ManifestKindChip'
 import { ProviderRow, sourceCardSx } from './ProviderRow'
+import {
+  canReinstall,
+  manifestStateOf,
+  useManifestStateLabel,
+} from './useManifestStateLabel'
 
 interface InstalledListProps {
   configs: ProviderConfig[]
   manifestById: Map<string, ProviderManifestInfo>
+  manifestsLoaded: boolean
   reorderMode: boolean
   filterActive: boolean
   onEdit: (config: ProviderConfig) => void
@@ -36,6 +43,7 @@ interface InstalledListProps {
   onAddDefaultInstance: (manifestId: string) => void
   onViewSource: (manifestId: string) => void
   onDeleteManifest: (manifestId: string) => void
+  onReinstallManifest: (manifestId: string) => void
 }
 
 export function versionSubtitle(
@@ -54,6 +62,7 @@ export function versionSubtitle(
 export const InstalledList = ({
   configs,
   manifestById,
+  manifestsLoaded,
   reorderMode,
   filterActive,
   onEdit,
@@ -62,11 +71,37 @@ export const InstalledList = ({
   onAddDefaultInstance,
   onViewSource,
   onDeleteManifest,
+  onReinstallManifest,
 }: InstalledListProps) => {
   const { t } = useTranslation()
   const toast = useToast.use.toast()
   const { toggle, reorderAll } = useEditProviderConfig()
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const stateLabel = useManifestStateLabel()
+
+  const stateOf = (manifestId: string) =>
+    manifestStateOf(manifestId, manifestById, manifestsLoaded)
+
+  const withState = (text: string, manifestId: string) => {
+    const state = stateOf(manifestId)
+    const label = state ? stateLabel(state) : undefined
+    if (label === undefined) {
+      return text
+    }
+    return text === '' ? label : `${text} · ${label}`
+  }
+
+  const subtitle = (config: ProviderConfig) => {
+    const manifest = manifestById.get(config.manifestId)
+    return withState(versionSubtitle(config, manifest), config.manifestId)
+  }
+
+  const reinstallItem = (manifestId: string): DAMenuItemConfig => ({
+    id: 'reinstall',
+    label: t('providers.unavailable.reinstall', 'Reinstall'),
+    onClick: () => onReinstallManifest(manifestId),
+    icon: <Autorenew />,
+  })
 
   const displayName = (config: ProviderConfig) =>
     supportsInstances(config.manifestId) && isBuiltinConfig(config)
@@ -107,8 +142,7 @@ export const InstalledList = ({
         )}
         renderPrimary={(config) => displayName(config)}
         renderSecondary={(config) =>
-          (config.configValues?.baseUrl as string) ??
-          versionSubtitle(config, manifestById.get(config.manifestId))
+          (config.configValues?.baseUrl as string) ?? subtitle(config)
         }
       />
     )
@@ -126,6 +160,9 @@ export const InstalledList = ({
         onClick: () => onViewSource(config.manifestId),
         icon: <Code />,
       })
+    }
+    if (manifestLevel && canReinstall(manifestById.get(config.manifestId))) {
+      items.push(reinstallItem(config.manifestId))
     }
     const deletesManifest =
       manifestLevel && manifestById.get(config.manifestId)?.kind === 'user'
@@ -158,6 +195,12 @@ export const InstalledList = ({
     />
   )
 
+  const groupSubtitle = (manifestId: string, count: string) => {
+    const manifest = manifestById.get(manifestId)
+    const text = manifest ? `${count} · v${manifest.version}` : count
+    return withState(text, manifestId)
+  }
+
   const toggleCollapsed = (id: string) => {
     setCollapsed((prev) => {
       const next = new Set(prev)
@@ -185,10 +228,7 @@ export const InstalledList = ({
                     kind={manifestById.get(config.manifestId)?.kind}
                   />
                 }
-                secondary={versionSubtitle(
-                  config,
-                  manifestById.get(config.manifestId)
-                )}
+                secondary={subtitle(config)}
                 onClick={() => onEdit(config)}
                 action={
                   <>
@@ -211,14 +251,19 @@ export const InstalledList = ({
           }
         )
         const isOpen = !collapsed.has(unit.id)
-        const menuItems: DAMenuItemConfig[] = [
-          {
+        const runs = stateOf(unit.manifestId)?.unavailable === undefined
+        const menuItems: DAMenuItemConfig[] = []
+        if (runs) {
+          menuItems.push({
             id: 'add-instance',
             label: t('providers.installed.addInstance', 'Add instance'),
             onClick: () => onAddInstance(unit.manifestId),
             icon: <Add />,
-          },
-        ]
+          })
+        }
+        if (canReinstall(manifest)) {
+          menuItems.push(reinstallItem(unit.manifestId))
+        }
         if (manifestById.has(unit.manifestId)) {
           menuItems.push({
             id: 'view-source',
@@ -227,7 +272,7 @@ export const InstalledList = ({
             icon: <Code />,
           })
         }
-        if (!unit.configs.some(isBuiltinConfig)) {
+        if (runs && !unit.configs.some(isBuiltinConfig)) {
           menuItems.push({
             id: 'add-default',
             label: t(
@@ -244,7 +289,7 @@ export const InstalledList = ({
               avatarSeed={unit.manifestId}
               primary={name}
               titleChip={<ManifestKindChip kind={manifest?.kind} />}
-              secondary={manifest ? `${count} · v${manifest.version}` : count}
+              secondary={groupSubtitle(unit.manifestId, count)}
               onClick={() => toggleCollapsed(unit.id)}
               action={
                 <Stack direction="row" sx={{ alignItems: 'center', gap: 0.5 }}>

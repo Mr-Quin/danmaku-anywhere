@@ -34,9 +34,12 @@ function makeRunner(returns: Record<string, unknown>): ManifestRunner {
     runSearch: vi.fn(async () => returns.search ?? []),
     runEpisodes: vi.fn(async () => returns.episodes ?? []),
     runDanmaku: vi.fn(async () => returns.danmaku ?? []),
-    runSeason: vi.fn(async () => returns.season ?? null),
-    runParseUrl: vi.fn(async () => returns.parseUrl ?? null),
+    runSeason: vi.fn(async () => ('season' in returns ? returns.season : null)),
+    runParseUrl: vi.fn(async () =>
+      'parseUrl' in returns ? returns.parseUrl : null
+    ),
     hasSeason: vi.fn(() => 'season' in returns),
+    canParse: vi.fn(() => returns.canParse ?? true),
     configDefaults: vi.fn(
       () => (returns.configDefaults as Record<string, unknown>) ?? {}
     ),
@@ -47,6 +50,35 @@ function makeRegistry(runner: ManifestRunner): ManifestRegistry {
   return {
     getRunner: vi.fn<ManifestRegistry['getRunner']>(async () => runner),
   } as unknown as ManifestRegistry // lint-specs-allow-cast: ManifestRegistry has private fields; double only implements getRunner
+}
+
+function makeService(returns: Record<string, unknown>): {
+  svc: ManifestProviderService
+  warn: ReturnType<typeof vi.fn>
+} {
+  const warn = vi.fn()
+  const logger = { ...silentLogger, warn } satisfies ILogger
+  const svc = new ManifestProviderService(
+    {
+      source: { manifestId: 'acme', providerConfigId: 'acme-1', name: 'Acme' },
+    },
+    makeRegistry(makeRunner(returns)),
+    logger
+  )
+  return { svc, warn }
+}
+
+const seasonRow = {
+  providerIds: { seasonId: 1 },
+  indexedId: '1',
+  title: 'Season',
+  type: 'tv',
+}
+
+const episodeRow = {
+  providerIds: { cid: 2 },
+  indexedId: '2',
+  title: 'Episode',
 }
 
 describe('ManifestProviderService.search', () => {
@@ -120,6 +152,72 @@ describe('ManifestProviderService.search', () => {
   })
 })
 
+describe('ManifestProviderService.search output validation', () => {
+  it('drops a row with a numeric indexedId and keeps the rest', async () => {
+    const { svc, warn } = makeService({
+      search: [seasonRow, { ...seasonRow, indexedId: 123 }],
+    })
+
+    const result = await svc.search({ keyword: 'x' })
+
+    expect(result).toHaveLength(1)
+    expect(result[0]).toMatchObject({ indexedId: '1' })
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /^Dropped 1 of 2 search row\(s\) from manifest acme, first: \[1\] indexedId: /
+      )
+    )
+  })
+
+  it('fails when every row is invalid', async () => {
+    const { svc } = makeService({
+      search: [{ ...seasonRow, indexedId: 123 }],
+    })
+
+    await expect(svc.search({ keyword: 'x' })).rejects.toEqual(
+      expect.objectContaining({ code: 'manifest.badOutput' })
+    )
+    await expect(svc.search({ keyword: 'x' })).rejects.toThrow(
+      /^manifest\.badOutput: Manifest acme search output has no valid rows \(1 invalid\), first: \[0\] indexedId: /
+    )
+  })
+
+  it('fails when the output is not an array', async () => {
+    const { svc } = makeService({ search: { rows: [] } })
+
+    await expect(svc.search({ keyword: 'x' })).rejects.toThrow(
+      'Manifest acme search output is not an array, got object'
+    )
+  })
+
+  it('leaves out a type the row does not have', async () => {
+    const { type: _type, ...untyped } = seasonRow
+    const { svc } = makeService({ search: [untyped] })
+
+    const [season] = await svc.search({ keyword: 'x' })
+
+    expect(season).not.toHaveProperty('type')
+  })
+
+  it('copies only the season fields the host stores', async () => {
+    const { svc } = makeService({
+      search: [{ ...seasonRow, id: 5, imageUrl: undefined, extra: 'x' }],
+    })
+
+    const [season] = await svc.search({ keyword: 'x' })
+
+    expect(season).toEqual({
+      providerIds: { seasonId: 1 },
+      indexedId: '1',
+      title: 'Season',
+      type: 'tv',
+      manifestId: 'acme',
+      providerConfigId: 'acme-1',
+      schemaVersion: SEASON_SCHEMA_VERSION,
+    })
+  })
+})
+
 describe('ManifestProviderService.getSeason', () => {
   it('returns null when the manifest does not declare a season pipeline', async () => {
     const runner = makeRunner({})
@@ -170,6 +268,29 @@ describe('ManifestProviderService.getSeason', () => {
     expect(runner.runSeason).toHaveBeenCalledWith({ seasonId: 41410 }, RUN_OPTS)
   })
 
+  it('returns null when the season pipeline yields nothing', async () => {
+    const { svc } = makeService({ season: undefined })
+
+    expect(await svc.getSeason({ seasonId: 999 })).toBeNull()
+  })
+
+  it('fails on a season row that breaks the contract', async () => {
+    const { svc } = makeService({ season: { ...seasonRow, providerIds: 1 } })
+
+    await expect(svc.getSeason({ seasonId: 1 })).rejects.toMatchObject({
+      code: 'manifest.badOutput',
+      params: {
+        reason: 'invalid-output',
+        manifestId: 'acme',
+        pipeline: 'season',
+        source: { providerConfigId: 'acme-1' },
+      },
+    })
+    await expect(svc.getSeason({ seasonId: 1 })).rejects.toThrow(
+      /^manifest\.badOutput: Manifest acme season output is invalid, providerIds: /
+    )
+  })
+
   it('returns null when the season pipeline yields null', async () => {
     const runner = makeRunner({ season: null })
     const svc = new ManifestProviderService(
@@ -210,16 +331,64 @@ describe('ManifestProviderService.getEpisodes', () => {
       silentLogger
     )
 
-    const result = await svc.getEpisodes({ seasonId: 123 })
+    const { episodes, partial } = await svc.getEpisodes({ seasonId: 123 })
 
-    expect(result).toHaveLength(1)
-    expect(result[0]).toMatchObject({
+    expect(partial).toBe(false)
+    expect(episodes).toHaveLength(1)
+    expect(episodes[0]).toMatchObject({
       providerIds: { cid: 555 },
       title: 'Episode 1',
       schemaVersion: EPISODE_SCHEMA_VERSION,
     })
-    expect(typeof result[0].lastChecked).toBe('number')
+    expect(typeof episodes[0].lastChecked).toBe('number')
     expect(runner.runEpisodes).toHaveBeenCalledWith({ seasonId: 123 }, RUN_OPTS)
+  })
+})
+
+describe('ManifestProviderService.getEpisodes output validation', () => {
+  it('drops an episode without a title and keeps the rest', async () => {
+    const { title: _title, ...untitled } = episodeRow
+    const { svc, warn } = makeService({ episodes: [episodeRow, untitled] })
+
+    const { episodes, partial } = await svc.getEpisodes({ seasonId: 1 })
+
+    expect(episodes).toHaveLength(1)
+    expect(partial).toBe(true)
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /^Dropped 1 of 2 episodes row\(s\) from manifest acme, first: \[1\] title: /
+      )
+    )
+  })
+
+  it('copies only the episode fields the host stores', async () => {
+    const { svc } = makeService({
+      episodes: [{ ...episodeRow, id: 5, seasonId: 9, episodeNumber: 3 }],
+    })
+
+    const {
+      episodes: [episode],
+    } = await svc.getEpisodes({ seasonId: 1 })
+
+    expect(episode).not.toHaveProperty('id')
+    expect(episode).not.toHaveProperty('seasonId')
+    expect(episode).toMatchObject({ indexedId: '2', episodeNumber: 3 })
+  })
+
+  it('fails when every episode is invalid', async () => {
+    const { svc } = makeService({ episodes: [{ ...episodeRow, indexedId: 2 }] })
+
+    await expect(svc.getEpisodes({ seasonId: 1 })).rejects.toEqual(
+      expect.objectContaining({ code: 'manifest.badOutput' })
+    )
+  })
+
+  it('fails when the output is not an array', async () => {
+    const { svc } = makeService({ episodes: 'none' })
+
+    await expect(svc.getEpisodes({ seasonId: 1 })).rejects.toThrow(
+      'Manifest acme episodes output is not an array, got string'
+    )
   })
 })
 
@@ -299,7 +468,9 @@ describe('ManifestProviderService.getDanmaku', () => {
       { p: '3,1,16777215', m: 'bye' },
     ])
     expect(warn).toHaveBeenCalledWith(
-      expect.stringMatching(/Dropped 1 malformed comment\(s\).*m: /)
+      expect.stringMatching(
+        /^Dropped 1 of 3 danmaku row\(s\) from manifest dandanplay, first: \[1\] m: /
+      )
     )
   })
 
@@ -326,22 +497,9 @@ describe('ManifestProviderService.getDanmaku', () => {
 
     await expect(
       svc.getDanmaku(makeRequest({ episodeId: 42 }))
-    ).rejects.toMatchObject({
-      code: 'badResponse',
-      params: {
-        target: {
-          kind: 'source',
-          ref: {
-            providerConfigId: 'dandanplay',
-            manifestId: 'dandanplay',
-            name: 'Test Source',
-          },
-        },
-      },
-      message: expect.stringContaining(
-        'Danmaku output from manifest dandanplay is not an array, got object'
-      ),
-    })
+    ).rejects.toThrow(
+      'Manifest dandanplay danmaku output is not an array, got object'
+    )
   })
 
   it('throws when every comment in a non-empty batch is malformed', async () => {
@@ -349,12 +507,9 @@ describe('ManifestProviderService.getDanmaku', () => {
 
     await expect(
       svc.getDanmaku(makeRequest({ episodeId: 42 }))
-    ).rejects.toMatchObject({
-      code: 'badResponse',
-      message: expect.stringMatching(
-        /Every comment from manifest dandanplay was malformed/
-      ),
-    })
+    ).rejects.toThrow(
+      /^manifest\.badOutput: Manifest dandanplay danmaku output has no valid rows \(2 invalid\)/
+    )
   })
 
   it('only the danmaku run tolerates a failed segment', () => {
@@ -404,6 +559,61 @@ describe('ManifestProviderService.parseUrl', () => {
       manifestId: 'dandanplay',
       providerConfigId: 'custom-ddp-1',
     })
+  })
+
+  it('returns null when no URL pattern of the manifest matched', async () => {
+    const { svc } = makeService({ canParse: false })
+
+    expect(await svc.parseUrl('https://acme.example/v/1')).toBeNull()
+  })
+
+  it('fails on a season that breaks the contract', async () => {
+    const { svc } = makeService({
+      parseUrl: {
+        seasonInsert: { ...seasonRow, indexedId: 1 },
+        episodeMeta: episodeRow,
+      },
+    })
+
+    await expect(svc.parseUrl('https://acme.example/v/1')).rejects.toThrow(
+      /^manifest\.badOutput: Manifest acme parseUrl output is invalid, seasonInsert\.indexedId: /
+    )
+  })
+
+  it('fails on an episode that breaks the contract', async () => {
+    const { svc } = makeService({
+      parseUrl: {
+        seasonInsert: seasonRow,
+        episodeMeta: { ...episodeRow, providerIds: null },
+      },
+    })
+
+    await expect(svc.parseUrl('https://acme.example/v/1')).rejects.toEqual(
+      expect.objectContaining({ code: 'manifest.badOutput' })
+    )
+  })
+
+  it.each([
+    ['nothing', undefined],
+    ['null', null],
+    ['a season with no identity', { seasonInsert: { providerIds: {} } }],
+  ])('says the title is not found when a matched URL yields %s', async (_, parseUrl) => {
+    const { svc } = makeService({ parseUrl })
+
+    await expect(svc.parseUrl('https://acme.example/v/1')).rejects.toEqual(
+      expect.objectContaining({
+        code: 'source.urlTitleNotFound',
+        params: { source: expect.objectContaining({ manifestId: 'acme' }) },
+      })
+    )
+  })
+
+  it('fails when the season resolves but the episode does not', async () => {
+    const { svc } = makeService({ parseUrl: { seasonInsert: seasonRow } })
+
+    await expect(svc.parseUrl('https://acme.example/v/1')).rejects.toThrow(
+      'Could not resolve episode for url: https://acme.example/v/1'
+    )
   })
 })
 

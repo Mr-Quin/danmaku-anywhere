@@ -81,6 +81,17 @@
     "importUrlInvalid": "Not a valid URL.",
     "importUrlScheme": "Only http and https URLs are supported.",
     "importUrlTooLarge": "File is larger than the {{limit}} limit.",
+    "manifestBadOutput": "The {{pipeline}} output does not match what the extension expects: {{detail}}",
+    "manifestDuplicateId": "A source with this id is already installed.",
+    "manifestIdChanged": "A manifest's id cannot be changed. Save it as a new manifest instead.",
+    "manifestInvalid": "This source is damaged and can't run. Reinstall it from Sources.",
+    "manifestNeedsNewerExtension": "This source needs a newer version of Danmaku Anywhere.",
+    "manifestNeedsNewerExtensionToSave": "This manifest needs a newer version of Danmaku Anywhere.",
+    "manifestNotRegistered": "This source isn't installed. Add it again from Sources.",
+    "manifestNotReinstallable": "Only a damaged built-in source can be reinstalled.",
+    "manifestNotUser": "Only manifests you added can be changed or deleted.",
+    "manifestRejected": "This manifest is not valid.",
+    "manifestRejectedDetail": "This manifest is not valid: {{detail}}",
     "matchNotFound": "No episode found for {{title}}",
     "mountFailed": "The video player did not respond.",
     "mountNoActiveFrame": "Video is not detected.",
@@ -91,8 +102,11 @@
     "searchUnsupported": "{{source}} cannot search.",
     "seasonRefreshUnsupported": "{{source}} cannot refresh season details.",
     "shareCodeInvalid": "This share code is not valid.",
+    "sourceBadOutput": "{{source}} sent data this version can't read. It may have changed.",
+    "sourceInvalidManifest": "{{source}} is damaged and can't run. Reinstall it from Sources.",
+    "sourceNeedsNewerExtension": "{{source}} needs a newer version of Danmaku Anywhere.",
+    "sourceNotRegistered": "{{source}} isn't installed. Add it again from Sources.",
     "sourceRemoved": "This source has been deleted.",
-    "sourceUnavailable": "{{source}} can't be used right now.",
     "target": {
       "catalog": "the source catalog",
       "cloud": "the cloud backup service",
@@ -100,7 +114,8 @@
     },
     "timeout": "Timed out waiting for {{target}}.",
     "unknown": "Something went wrong.",
-    "urlEpisodeNotFound": "The link was recognized, but its episode could not be found."
+    "urlEpisodeNotFound": "The link was recognized, but its episode could not be found.",
+    "urlTitleNotFound": "{{source}} has nothing at this link. The title may have been removed or not be available in your region."
   },
   "bookmark": {
     "add": "Follow",
@@ -726,6 +741,7 @@
     "alert": {
       "created": "Source created",
       "deleted": "Source deleted",
+      "reinstalled": "Source reinstalled",
       "updated": "Source updated"
     },
     "attention": {
@@ -783,6 +799,8 @@
       "testRun": {
         "danmakuCount_one": "{{count}} comment fetched",
         "danmakuCount_other": "{{count}} comments fetched",
+        "dropped_one": "{{count}} invalid row skipped, as the saved source would. First: {{issue}}",
+        "dropped_other": "{{count}} invalid rows skipped, as the saved source would. First: {{issue}}",
         "episodes": "Episodes (pick one for danmaku)",
         "keyword": "Search keyword",
         "results": "Results (pick a season)",
@@ -827,6 +845,13 @@
       "defaultName": "Self-hosted DanDanPlay"
     },
     "name": "Danmaku sources",
+    "unavailable": {
+      "fallback": "Running the built-in copy. Stored copy: {{reason}}",
+      "invalid": "Cannot be loaded",
+      "needsNewerExtension": "Needs a newer version of the extension",
+      "notRegistered": "Manifest not installed",
+      "reinstall": "Reinstall"
+    },
     "updates": {
       "failed": "Update failed",
       "title": "Updates available",

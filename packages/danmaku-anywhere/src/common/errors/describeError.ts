@@ -107,20 +107,41 @@ const MESSAGES: MessageTable = {
   'source.noUrlParser': () => {
     return i18n.t('appError.noUrlParser', 'No source can read this link.')
   },
+  'source.urlTitleNotFound': ({ source }) => {
+    return i18n.t(
+      'appError.urlTitleNotFound',
+      '{{source}} has nothing at this link. The title may have been removed or not be available in your region.',
+      { source: source.name }
+    )
+  },
   'source.urlEpisodeNotFound': () => {
     return i18n.t(
       'appError.urlEpisodeNotFound',
       'The link was recognized, but its episode could not be found.'
     )
   },
-  'source.unavailable': ({ source }) => {
-    return i18n.t(
-      'appError.sourceUnavailable',
-      "{{source}} can't be used right now.",
-      {
-        source: sourceName(source),
-      }
-    )
+  'source.unavailable': ({ source, reason }) => {
+    const name = sourceName(source)
+    switch (reason) {
+      case 'not-registered':
+        return i18n.t(
+          'appError.sourceNotRegistered',
+          "{{source}} isn't installed. Add it again from Sources.",
+          { source: name }
+        )
+      case 'needs-newer-extension':
+        return i18n.t(
+          'appError.sourceNeedsNewerExtension',
+          '{{source}} needs a newer version of Danmaku Anywhere.',
+          { source: name }
+        )
+      case 'invalid-manifest':
+        return i18n.t(
+          'appError.sourceInvalidManifest',
+          "{{source}} is damaged and can't run. Reinstall it from Sources.",
+          { source: name }
+        )
+    }
   },
   'source.searchUnsupported': ({ source }) => {
     return i18n.t('appError.searchUnsupported', '{{source}} cannot search.', {
@@ -170,6 +191,81 @@ const MESSAGES: MessageTable = {
       "Couldn't read the data from {{target}}. It may have changed.",
       { target: targetName(target) }
     )
+  },
+  'manifest.unavailable': ({ reason }) => {
+    switch (reason) {
+      case 'not-registered':
+        return i18n.t(
+          'appError.manifestNotRegistered',
+          "This source isn't installed. Add it again from Sources."
+        )
+      case 'needs-newer-extension':
+        return i18n.t(
+          'appError.manifestNeedsNewerExtension',
+          'This source needs a newer version of Danmaku Anywhere.'
+        )
+      case 'invalid-manifest':
+        return i18n.t(
+          'appError.manifestInvalid',
+          "This source is damaged and can't run. Reinstall it from Sources."
+        )
+    }
+  },
+  'manifest.badOutput': ({ source, pipeline, detail }) => {
+    if (source) {
+      return i18n.t(
+        'appError.sourceBadOutput',
+        "{{source}} sent data this version can't read. It may have changed.",
+        { source: sourceName(source) }
+      )
+    }
+    return i18n.t(
+      'appError.manifestBadOutput',
+      'The {{pipeline}} output does not match what the extension expects: {{detail}}',
+      { pipeline, detail }
+    )
+  },
+  'manifest.rejected': ({ reason, detail }) => {
+    switch (reason) {
+      case 'save-needs-newer-extension':
+        return i18n.t(
+          'appError.manifestNeedsNewerExtensionToSave',
+          'This manifest needs a newer version of Danmaku Anywhere.'
+        )
+      case 'save-id-changed':
+        return i18n.t(
+          'appError.manifestIdChanged',
+          "A manifest's id cannot be changed. Save it as a new manifest instead."
+        )
+      case 'save-duplicate-id':
+        return i18n.t(
+          'appError.manifestDuplicateId',
+          'A source with this id is already installed.'
+        )
+      case 'save-not-user':
+      case 'delete-not-user':
+        return i18n.t(
+          'appError.manifestNotUser',
+          'Only manifests you added can be changed or deleted.'
+        )
+      case 'reinstall-not-broken':
+        return i18n.t(
+          'appError.manifestNotReinstallable',
+          'Only a damaged built-in source can be reinstalled.'
+        )
+      case 'save-invalid':
+        if (detail) {
+          return i18n.t(
+            'appError.manifestRejectedDetail',
+            'This manifest is not valid: {{detail}}',
+            { detail }
+          )
+        }
+        return i18n.t(
+          'appError.manifestRejected',
+          'This manifest is not valid.'
+        )
+    }
   },
   'catalog.empty': () => {
     return i18n.t(

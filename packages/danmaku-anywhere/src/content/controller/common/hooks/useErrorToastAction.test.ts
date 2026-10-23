@@ -16,9 +16,11 @@ describe('offersSearch', () => {
     expect(
       offersSearch(new AppError('source.searchUnsupported', { source }))
     ).toBe(true)
-    expect(offersSearch(new AppError('source.unavailable', { source }))).toBe(
-      true
-    )
+    expect(
+      offersSearch(
+        new AppError('source.unavailable', { source, reason: 'not-registered' })
+      )
+    ).toBe(true)
   })
 
   it('does not offer it where another source would not help', () => {

@@ -5,13 +5,10 @@ import { backgroundContainerModule } from '@/background/ioc'
 import { LoggerSymbol } from '@/common/Logger'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
-import {
-  LEGACY_MACCMS_CAPABILITIES,
-  MANIFEST_MISSING,
-} from '@/common/providers/sourceCapabilities'
+import { LEGACY_MACCMS_CAPABILITIES } from '@/common/providers/sourceCapabilities'
 import { createTestContainer } from '@/tests/createTestContainer'
 import { silentLogger } from '@/tests/silentLogger'
-import { ManifestRegistry } from './ManifestRegistry'
+import { type ManifestLookup, ManifestRegistry } from './ManifestRegistry'
 import { SourceCapabilityService } from './SourceCapabilityService'
 
 /**
@@ -67,11 +64,18 @@ const NEVER_LOADS = 'never-loads'
 
 function build(configs: ProviderConfig[], runners: ManifestRunner[]) {
   const byId = new Map(runners.map((runner) => [runner.id, runner]))
-  const findRunner = vi.fn((manifestId: string) => {
+  const lookup = vi.fn((manifestId: string): Promise<ManifestLookup> => {
     if (manifestId === NEVER_LOADS) {
-      return new Promise<undefined>(() => undefined)
+      return new Promise<ManifestLookup>(() => undefined)
     }
-    return Promise.resolve(byId.get(manifestId))
+    const runner = byId.get(manifestId)
+    if (!runner) {
+      return Promise.resolve({
+        status: 'unavailable',
+        reason: 'not-registered',
+      })
+    }
+    return Promise.resolve({ status: 'ok', runner })
   })
   const getRunner = vi.fn(async (manifestId: string) => {
     const runner = byId.get(manifestId)
@@ -89,7 +93,7 @@ function build(configs: ProviderConfig[], runners: ManifestRunner[]) {
     [
       {
         identifier: ManifestRegistry,
-        value: { findRunner, getRunner },
+        value: { lookup, getRunner },
       },
       { identifier: ProviderConfigService, value: providerConfigService },
       { identifier: LoggerSymbol, value: silentLogger },
@@ -184,7 +188,7 @@ describe('SourceCapabilityService with a config whose manifest is missing', () =
 
     expect(await service.forProviderConfig(broken.id)).toEqual({
       status: 'unavailable',
-      reason: MANIFEST_MISSING,
+      reason: 'not-registered',
     })
   })
 
@@ -211,7 +215,7 @@ describe('SourceCapabilityService with a config whose manifest is missing', () =
       service.sourceProvider(broken, 'danmaku')
     ).rejects.toMatchObject({
       code: 'source.unavailable',
-      params: { source: { name: 'Gone' } },
+      params: { source: { name: 'Gone' }, reason: 'not-registered' },
     })
   })
 })

@@ -404,6 +404,10 @@ export class RpcManager {
         await this.providerService.deleteUserManifest(manifestId)
         void invalidateContentScriptData(sender.tab?.id)
       },
+      providerReinstallManifest: async ({ manifestId }, sender) => {
+        await this.providerService.reinstallManifest(manifestId)
+        void invalidateContentScriptData(sender.tab?.id)
+      },
       backupExport: async () => {
         return this.backupService.getBackupData()
       },

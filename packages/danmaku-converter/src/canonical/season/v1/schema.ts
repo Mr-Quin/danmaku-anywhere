@@ -3,7 +3,7 @@ import type { DbEntity } from '../../provider/provider.js'
 
 export const zBaseSeasonV1 = z.object({
   title: z.string(),
-  type: z.string(),
+  type: z.string().optional(),
   imageUrl: z.string().optional(),
   externalLink: z.string().optional(),
   alternativeTitles: z.array(z.string()).optional(),

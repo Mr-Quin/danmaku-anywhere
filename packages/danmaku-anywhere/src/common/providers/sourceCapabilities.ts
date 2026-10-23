@@ -1,3 +1,5 @@
+import type { SourceUnavailableReason } from '@/common/errors/AppError'
+
 export interface SourceCapabilities {
   search: boolean
   episodes: boolean
@@ -8,13 +10,15 @@ export interface SourceCapabilities {
 
 export type SourceCapability = keyof SourceCapabilities
 
-export const MANIFEST_MISSING = 'missing'
-
 export type SourceStatus =
   | { status: 'available'; capabilities: SourceCapabilities }
-  | { status: 'unavailable'; reason: string }
+  | { status: 'unavailable'; reason: SourceUnavailableReason }
 
-export type SourceCapabilityAnswer = SourceStatus | { status: 'removed' }
+// The standalone page has no background to ask, so it answers 'standalone'.
+export type SourceCapabilityAnswer =
+  | SourceStatus
+  | { status: 'removed' }
+  | { status: 'unavailable'; reason: 'standalone' }
 
 export type UrlSourceAnswer =
   | { kind: 'parseable'; sourceName: string }
