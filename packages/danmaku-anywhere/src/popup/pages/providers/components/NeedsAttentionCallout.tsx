@@ -1,6 +1,7 @@
 import { Box, Button } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import { useSourceNames } from '@/common/options/providerConfig/useSourceNames'
 import { matchesQuery } from '../catalog'
 import { useNeedsAttention } from '../hooks/useNeedsAttention'
 import { ProviderRow } from './ProviderRow'
@@ -16,8 +17,9 @@ export const NeedsAttentionCallout = ({
   filter,
 }: NeedsAttentionCalloutProps) => {
   const { t } = useTranslation()
+  const { nameOf } = useSourceNames()
   const attention = useNeedsAttention(configs).filter((item) =>
-    matchesQuery(filter, item.config.name, item.config.manifestId)
+    matchesQuery(filter, nameOf(item.config), item.config.manifestId)
   )
 
   if (attention.length === 0) {
@@ -46,7 +48,7 @@ export const NeedsAttentionCallout = ({
             <ProviderRow
               key={item.config.id}
               avatarSeed={item.config.manifestId}
-              primary={item.config.name}
+              primary={nameOf(item.config)}
               secondary={t(
                 'providers.attention.signInHint',
                 'Sign in for complete danmaku'

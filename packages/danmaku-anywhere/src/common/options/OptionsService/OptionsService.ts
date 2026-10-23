@@ -1,3 +1,4 @@
+import { AppError } from '@/common/errors/AppError'
 import type { ILogger } from '@/common/Logger'
 import type { ExtStorageType } from '@/common/storage/getStorageArea'
 import { ExtStorageService } from '../../storage/ExtStorageService'
@@ -170,6 +171,41 @@ export class OptionsService<T extends OptionsSchema> {
       const options = await this.get()
       const mergedData = { ...options, ...data }
       return this.setInternal(mergedData)
+    })
+  }
+
+  // Reads, changes and writes in one queued step, so no other write from this
+  // context lands between the read and the write. Returning the data unchanged
+  // skips the write. Data an older build tagged with an older version is left
+  // for the next upgrade to migrate rather than changed under the wrong tag.
+  async transform(change: (data: T) => T | Promise<T>): Promise<T> {
+    await this.readinessService.waitUntilReady()
+
+    return this.queueOperation(async () => {
+      const stored = await this.storageService.read()
+      if (!stored) {
+        throw new Error('Cannot transform options without existing options')
+      }
+      if (stored.version !== this.latestVersion) {
+        // A change written now would keep the older version's tag, and the
+        // next upgrade would migrate data that is already in the new shape.
+        throw new AppError(
+          'options.outdated',
+          {
+            store: this.key,
+            version: stored.version,
+            expected: this.latestVersion,
+          },
+          {
+            message: `Cannot change ${this.key} stored at version ${stored.version}, expected ${this.latestVersion}`,
+          }
+        )
+      }
+      const next = await change(stored.data)
+      if (next !== stored.data) {
+        await this.storageService.set({ data: next, version: stored.version })
+      }
+      return next
     })
   }
 

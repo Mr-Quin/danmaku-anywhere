@@ -8,6 +8,9 @@ export interface IStoreService {
   name: string
   descriptor: OptionStoreDescriptor
   shouldBackup?: boolean
+  // The first release whose backups carry this store. A backup from an older
+  // release leaves it out by design, which is not worth reporting.
+  backupSince?: string
   /**
    * Validates a restored payload once it has been migrated to the store's
    * latest version. A payload that fails is not written. What gets written is

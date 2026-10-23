@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { describeRestoreProblems } from './backupImportMessages'
+import {
+  describeMissingStores,
+  describeRestoreProblems,
+} from './backupImportMessages'
 
 /**
  * Messages shown after a settings restore. A partial restore names the failed
@@ -18,8 +21,38 @@ describe('describeRestoreProblems', () => {
       },
     })
 
-    expect(message).toMatch(/^tabs\.style.+configPage\.name$/)
+    expect(message).toMatch(
+      /^tabs\.style.+optionsPage\.backup\.droppedEntries$/
+    )
     expect(message).not.toMatch(/danmakuOptions|mountConfig|providerConfig/)
+  })
+
+  it('says how many entries of a store were skipped and why', () => {
+    const message = describeRestoreProblems({
+      success: false,
+      details: {
+        providerConfig: {
+          success: true,
+          droppedEntries: 2,
+          dropped: [
+            { id: 'home', label: 'Home', reason: 'invalidSettings' },
+            { reason: 'notMigrated' },
+          ],
+        },
+      },
+    })
+
+    expect(message).toBe('optionsPage.backup.droppedEntriesWithReasons')
+  })
+
+  it('names the settings a backup did not include', () => {
+    expect(
+      describeMissingStores({
+        success: true,
+        details: {},
+        missing: ['localMatchingRule'],
+      })
+    ).toBe('optionsPage.backup.store.localMatchingRule')
   })
 
   it('falls back to the id for a store it does not know', () => {

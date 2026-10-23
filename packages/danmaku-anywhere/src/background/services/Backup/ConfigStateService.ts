@@ -1,6 +1,10 @@
-import { inject, injectable, multiInject } from 'inversify'
+import { inject, injectable, multiInject, optional } from 'inversify'
 import { prettifyError, type ZodType } from 'zod'
-import type { BackupData, BackupRestoreResult } from '@/common/backup/dto'
+import type {
+  BackupData,
+  BackupRestoreResult,
+  DroppedEntry,
+} from '@/common/backup/dto'
 import {
   BACKUP_FORMAT_VERSION,
   backupDataSchema,
@@ -17,6 +21,10 @@ import type {
   DeferredWrite,
   StoreSnapshot,
 } from '@/common/options/OptionsService/types'
+import {
+  type IRestoreListCheck,
+  RestoreListCheckSymbol,
+} from '@/common/options/RestoreListCheck'
 
 type ServiceBackup = ParsedBackupData['services'][string]
 
@@ -24,14 +32,47 @@ type PayloadCheck =
   | {
       ok: true
       data: unknown
-      droppedEntries: number
+      dropped: DroppedEntry[]
       deferred: DeferredWrite[]
     }
   | { ok: false; error: string }
 
 type EntriesCheck =
-  | { ok: true; data: unknown[]; droppedEntries: number }
+  | { ok: true; data: unknown[]; dropped: DroppedEntry[] }
   | { ok: false; error: string }
+
+function stringField(entry: unknown, key: string): string | undefined {
+  if (typeof entry !== 'object' || entry === null || !(key in entry)) {
+    return undefined
+  }
+  const value: unknown = Reflect.get(entry, key)
+  return typeof value === 'string' && value !== '' ? value : undefined
+}
+
+function isOlderVersion(version: string, than: string): boolean {
+  const a = version.split('.').map(Number)
+  const b = than.split('.').map(Number)
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const diff = (a[i] ?? 0) - (b[i] ?? 0)
+    if (diff !== 0) {
+      return diff < 0
+    }
+  }
+  return false
+}
+
+function droppedEntry(
+  entry: unknown,
+  reason: DroppedEntry['reason'],
+  detail: string
+): DroppedEntry {
+  return {
+    id: stringField(entry, 'id'),
+    label: stringField(entry, 'name') ?? stringField(entry, 'customName'),
+    reason,
+    detail,
+  }
+}
 
 @injectable('Singleton')
 export class ConfigStateService {
@@ -40,7 +81,10 @@ export class ConfigStateService {
   constructor(
     @multiInject(StoreServiceSymbol)
     private services: IStoreService[],
-    @inject(LoggerSymbol) logger: ILogger
+    @inject(LoggerSymbol) logger: ILogger,
+    @multiInject(RestoreListCheckSymbol)
+    @optional()
+    private listChecks: IRestoreListCheck[] = []
   ) {
     this.logger = logger.sub('[ConfigStateService]')
   }
@@ -113,7 +157,9 @@ export class ConfigStateService {
       .map((service) => {
         return { service, backupData: services[service.name] }
       })
-      .filter((candidate) => candidate.backupData !== undefined)
+    const present = candidates.flatMap(({ service, backupData }) => {
+      return backupData === undefined ? [] : [{ service, backupData }]
+    })
 
     const stores: StoreSnapshot = Object.fromEntries(
       await Promise.all(
@@ -128,7 +174,7 @@ export class ConfigStateService {
     )
 
     const validated = await Promise.all(
-      candidates.map(async ({ service, backupData }) => {
+      present.map(async ({ service, backupData }) => {
         const check = await this.checkPayload(service, backupData, stores)
         if (!check.ok) {
           this.logger.error(
@@ -149,10 +195,11 @@ export class ConfigStateService {
         .filter(({ check }) => check.ok)
         .map(({ service }) => service.options.key)
     )
+    const derivedStores = new Set<string>()
     const accepted: {
       service: IStoreService
       data: unknown
-      dropped: number
+      dropped: DroppedEntry[]
     }[] = []
     for (const { service, check } of validated) {
       if (!check.ok) {
@@ -162,12 +209,13 @@ export class ConfigStateService {
         for (const write of check.deferred) {
           if (!restoredStores.has(write.store)) {
             await write.run()
+            derivedStores.add(write.store)
           }
         }
         accepted.push({
           service,
           data: check.data,
-          dropped: check.droppedEntries,
+          dropped: check.dropped,
         })
       } catch (error) {
         this.logger.error(`Failed to restore ${service.name}`, error)
@@ -185,8 +233,12 @@ export class ConfigStateService {
         try {
           this.logger.debug(`Restoring ${name}...`)
           await service.options.set(data, service.options.latestVersion)
-          result.details[name] = { success: true, droppedEntries: dropped }
-          if (dropped > 0) {
+          result.details[name] =
+            dropped.length > 0
+              ? { success: true, droppedEntries: dropped.length, dropped }
+              : { success: true, droppedEntries: 0 }
+          if (dropped.length > 0) {
+            this.logger.warn(`Dropped restored ${name} entries`, dropped)
             result.success = false
           }
         } catch (error) {
@@ -199,6 +251,31 @@ export class ConfigStateService {
         }
       })
     )
+
+    // A store an older backup did not carry may have been derived from one
+    // it did, such as the sources a v1.5.0 backup kept in its settings.
+    const missing = candidates
+      .filter(({ service, backupData }) => {
+        if (
+          backupData !== undefined ||
+          derivedStores.has(service.options.key)
+        ) {
+          return false
+        }
+        if (service.backupSince === undefined) {
+          return true
+        }
+        // Backups made before 1.6.0 do not record the release that made them.
+        const { extensionVersion } = meta
+        return (
+          extensionVersion !== undefined &&
+          !isOlderVersion(extensionVersion, service.backupSince)
+        )
+      })
+      .map(({ service }) => service.name)
+    if (missing.length > 0) {
+      result.missing = missing
+    }
 
     return result
   }
@@ -240,6 +317,7 @@ export class ConfigStateService {
 
     if (backupItemSchema) {
       const entries = await this.checkEntries(
+        service,
         backupItemSchema,
         backupData.data,
         migrated
@@ -251,7 +329,7 @@ export class ConfigStateService {
     }
 
     if (!backupSchema) {
-      return { ok: true, data: migrated, droppedEntries: 0, deferred }
+      return { ok: true, data: migrated, dropped: [], deferred }
     }
 
     const parsed = await backupSchema.safeParseAsync(migrated)
@@ -260,10 +338,11 @@ export class ConfigStateService {
       return { ok: false, error: prettifyError(parsed.error) }
     }
 
-    return { ok: true, data: parsed.data, droppedEntries: 0, deferred }
+    return { ok: true, data: parsed.data, dropped: [], deferred }
   }
 
   private async checkEntries(
+    service: IStoreService,
     itemSchema: ZodType,
     original: unknown,
     migrated: unknown
@@ -272,14 +351,33 @@ export class ConfigStateService {
       return { ok: false, error: 'Expected a list of entries' }
     }
 
-    const checked = await Promise.all(
-      migrated.map((entry) => {
-        return itemSchema.safeParseAsync(entry)
+    const passed: unknown[] = []
+    const dropped: DroppedEntry[] = []
+    for (const entry of migrated) {
+      const parsed = await itemSchema.safeParseAsync(entry)
+      if (parsed.success) {
+        passed.push(parsed.data)
+      } else {
+        dropped.push(
+          droppedEntry(entry, 'invalidEntry', prettifyError(parsed.error))
+        )
+      }
+    }
+
+    let kept = passed
+    for (const check of this.listChecks) {
+      if (check.store !== service.name) {
+        continue
+      }
+      const refusals = await check.check(kept)
+      kept.forEach((entry, index) => {
+        const refusal = refusals[index]
+        if (refusal !== undefined) {
+          dropped.push(droppedEntry(entry, refusal.reason, refusal.detail))
+        }
       })
-    )
-    const kept = checked.flatMap((entry) => {
-      return entry.success ? [entry.data] : []
-    })
+      kept = kept.filter((_, index) => refusals[index] === undefined)
+    }
 
     // Writing an empty list would wipe the store, so a payload where nothing
     // survives migration and validation is a failure rather than an empty
@@ -291,10 +389,10 @@ export class ConfigStateService {
       }
     }
 
-    return {
-      ok: true,
-      data: kept,
-      droppedEntries: Math.max(0, original.length - kept.length),
+    const lost = original.length - migrated.length
+    for (let i = 0; i < lost; i++) {
+      dropped.push({ reason: 'notMigrated', detail: 'Could not be migrated' })
     }
+    return { ok: true, data: kept, dropped }
   }
 }

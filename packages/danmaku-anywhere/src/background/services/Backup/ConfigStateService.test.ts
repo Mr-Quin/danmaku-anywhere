@@ -145,6 +145,16 @@ describe('ConfigStateService', () => {
       expect(mockMountConfigService.options.set).not.toHaveBeenCalled()
     })
 
+    it('should list the stores the backup does not carry', async () => {
+      const result = await service.restoreState(validBackup)
+
+      expect(result.missing).toEqual([
+        'mountConfig',
+        'providerConfig',
+        'integrationPolicy',
+      ])
+    })
+
     it('should handle failures gracefully (fail-safe)', async () => {
       // simulate danmaku options failing
       mockDanmakuOptionsService.options.set.mockRejectedValue(
@@ -273,9 +283,10 @@ describe('ConfigStateService', () => {
         [{ name: 'good' }, { name: 'also good' }],
         3
       )
-      expect(result.details.mountConfig).toEqual({
+      expect(result.details.mountConfig).toMatchObject({
         success: true,
         droppedEntries: 1,
+        dropped: [{ reason: expect.any(String) }],
       })
       expect(result.success).toBe(false)
     })
@@ -409,7 +420,7 @@ describe('ConfigStateService', () => {
         },
       })
 
-      expect(result.details.mountConfig).toEqual({
+      expect(result.details.mountConfig).toMatchObject({
         success: true,
         droppedEntries: 1,
       })

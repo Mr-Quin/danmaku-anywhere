@@ -17,7 +17,7 @@ const CUSTOM_BASE_URL = 'https://compat.example.invalid'
 const customConfig: ProviderConfig = {
   id: 'custom-ddp-1',
   manifestId: 'dandanplay',
-  name: 'CustomDdp',
+  customName: 'CustomDdp',
   enabled: true,
   configValues: {
     baseUrl: CUSTOM_BASE_URL,

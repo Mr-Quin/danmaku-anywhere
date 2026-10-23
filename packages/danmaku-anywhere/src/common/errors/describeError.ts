@@ -2,14 +2,12 @@ import { z } from 'zod'
 import { Logger } from '@/common/Logger'
 import { formatList } from '@/common/localization/formatList'
 import { i18n } from '@/common/localization/i18n'
-import { builtinDisplayName } from '@/common/options/providerConfig/builtinNames'
 import {
   AppError,
   type AppErrorCode,
   type AppErrorParams,
   type AppErrorParamsArg,
   type ErrorTarget,
-  type SourceRef,
 } from './AppError'
 import { errorMessage } from './errorMessage'
 import { isErrorLike } from './isErrorLike'
@@ -22,24 +20,13 @@ type MessageTable = {
   [C in AppErrorCode]: (params: AppErrorParams[C]) => string
 }
 
-function sourceName(source: SourceRef): string {
-  return builtinDisplayName(
-    {
-      id: source.providerConfigId,
-      manifestId: source.manifestId,
-      name: source.name,
-    },
-    i18n.language
-  )
-}
-
 function targetName(target: ErrorTarget | undefined): string {
   if (target === undefined) {
     return i18n.t('appError.target.server', 'the server')
   }
   switch (target.kind) {
     case 'source':
-      return sourceName(target.ref)
+      return target.ref.name
     case 'catalog':
       return i18n.t('appError.target.catalog', 'the source catalog')
     case 'cloud':
@@ -92,7 +79,7 @@ const MESSAGES: MessageTable = {
     return i18n.t(
       'appError.hostNotAllowed',
       '{{source}} tried to reach a site it is not allowed to use.',
-      { source: sourceName(source) }
+      { source: source.name }
     )
   },
   'rpc.unreachable': () => {
@@ -111,7 +98,7 @@ const MESSAGES: MessageTable = {
     return i18n.t(
       'appError.urlTitleNotFound',
       '{{source}} has nothing at this link. The title may have been removed or not be available in your region.',
-      { source: sourceName(source) }
+      { source: source.name }
     )
   },
   'source.urlEpisodeNotFound': () => {
@@ -121,7 +108,7 @@ const MESSAGES: MessageTable = {
     )
   },
   'source.unavailable': ({ source, reason }) => {
-    const name = sourceName(source)
+    const name = source.name
     switch (reason) {
       case 'not-registered':
         return i18n.t(
@@ -145,34 +132,28 @@ const MESSAGES: MessageTable = {
   },
   'source.searchUnsupported': ({ source }) => {
     return i18n.t('appError.searchUnsupported', '{{source}} cannot search.', {
-      source: sourceName(source),
+      source: source.name,
     })
   },
   'source.episodesUnsupported': ({ source }) => {
     return i18n.t(
       'appError.episodesUnsupported',
       '{{source}} cannot list episodes.',
-      {
-        source: sourceName(source),
-      }
+      { source: source.name }
     )
   },
   'source.danmakuUnsupported': ({ source }) => {
     return i18n.t(
       'appError.danmakuUnsupported',
       '{{source}} cannot fetch danmaku.',
-      {
-        source: sourceName(source),
-      }
+      { source: source.name }
     )
   },
   'source.seasonRefreshUnsupported': ({ source }) => {
     return i18n.t(
       'appError.seasonRefreshUnsupported',
       '{{source}} cannot refresh season details.',
-      {
-        source: sourceName(source),
-      }
+      { source: source.name }
     )
   },
   'source.noDanmaku': ({ title }) => {
@@ -216,7 +197,7 @@ const MESSAGES: MessageTable = {
       return i18n.t(
         'appError.sourceBadOutput',
         "{{source}} sent data this version can't read. It may have changed.",
-        { source: sourceName(source) }
+        { source: source.name }
       )
     }
     return i18n.t(
@@ -274,16 +255,19 @@ const MESSAGES: MessageTable = {
     )
   },
   'catalog.applyFailed': ({ sources }) => {
-    const names = sources.map((source) => {
-      return sourceName({ providerConfigId: source.manifestId, ...source })
-    })
     return i18n.t(
       'appError.catalogApplyFailed',
       "Couldn't update {{sources}}. Try again later.",
-      { sources: formatList(names) }
+      { sources: formatList(sources.map((source) => source.name)) }
     )
   },
-  'config.duplicate': () => {
+  'config.duplicate': ({ manifestId }) => {
+    if (manifestId !== undefined) {
+      return i18n.t(
+        'providers.error.duplicate',
+        'This built-in source is already installed'
+      )
+    }
     return i18n.t(
       'appError.configDuplicate',
       'An item with the same ID already exists.'
@@ -293,6 +277,37 @@ const MESSAGES: MessageTable = {
     return i18n.t(
       'appError.configNotFound',
       'This item no longer exists. It may have been deleted.'
+    )
+  },
+  'config.invalid': () => {
+    return i18n.t('appError.configInvalid', 'Some settings are not valid.')
+  },
+  'config.nameRequired': () => {
+    return i18n.t('providers.error.nameRequired', 'Give the source a name')
+  },
+  'config.nameTooLong': ({ max }) => {
+    return i18n.t(
+      'providers.error.nameTooLong',
+      'A source name can be at most {{max}} characters',
+      { max }
+    )
+  },
+  'config.notBuiltin': () => {
+    return i18n.t(
+      'providers.error.notBuiltin',
+      'This source has no built-in instance'
+    )
+  },
+  'config.orderMismatch': () => {
+    return i18n.t(
+      'providers.error.orderMismatch',
+      'The source list changed. Try reordering again.'
+    )
+  },
+  'options.outdated': () => {
+    return i18n.t(
+      'providers.error.outdated',
+      'Your sources are being updated to this version. Try again in a moment.'
     )
   },
   'backup.notJson': () => {

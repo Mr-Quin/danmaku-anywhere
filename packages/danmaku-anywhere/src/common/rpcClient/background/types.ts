@@ -69,6 +69,11 @@ import type {
   MountConfigAiConfig,
 } from '@/common/options/mountConfig/schema'
 import type {
+  ProviderConfig,
+  ProviderConfigDraft,
+  ProviderConfigEdit,
+} from '@/common/options/providerConfig/schema'
+import type {
   SourceCapabilityAnswer,
   UrlSourceAnswer,
 } from '@/common/providers/sourceCapabilities'
@@ -121,6 +126,10 @@ export interface ProviderManifestSpec {
   cookieSet?: ProviderCookieSet
   configSchema?: ConfigSchema
 }
+
+export type ManifestSpecAnswer =
+  | { status: 'ok'; spec: ProviderManifestSpec }
+  | { status: 'unavailable'; reason: SourceUnavailableReason }
 
 // Why a stored manifest cannot run; a manifest that is not stored at all is
 // 'not-registered', which never appears in the list.
@@ -268,9 +277,11 @@ export type BackgroundMethods = {
   >
   providerGetManifestSpec: RPCDef<
     { manifestId: string; locale?: string },
-    ProviderManifestSpec
+    ManifestSpecAnswer
   >
   providerListManifests: RPCDef<{ locale?: string }, ProviderManifestList>
+  // Manifest names keyed by manifest id, resolved into the locale
+  providerListManifestNames: RPCDef<{ locale?: string }, Record<string, string>>
   providerRefreshCatalog: RPCDef<{ locale?: string }, ProviderManifestList>
   providerGetPendingUpdates: RPCDef<void, ManifestUpdate[]>
   providerApplyUpdates: RPCDef<{ manifestIds: string[] }, void>
@@ -330,6 +341,17 @@ export type BackgroundMethods = {
   openPopupInNewTab: RPCDef<{ path: string; tabId?: number }, void>
   getConfigMacCms: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
   getConfigDanmuIcu: RPCDef<{ force?: boolean } | void, BaseUrlConfig>
+  providerConfigCreate: RPCDef<ProviderConfigDraft, ProviderConfig>
+  providerConfigAddBuiltin: RPCDef<{ manifestId: string }, ProviderConfig>
+  providerConfigUpdate: RPCDef<
+    { id: string; edit: ProviderConfigEdit },
+    ProviderConfig
+  >
+  providerConfigSetEnabled: RPCDef<
+    { id: string; enabled: boolean },
+    ProviderConfig
+  >
+  providerConfigSetOrder: RPCDef<{ ids: string[] }, void>
   providerConfigDelete: RPCDef<string, void>
   testAiProvider: RPCDef<AiProviderConfigInput, TestAiProviderResponse>
   backupExport: RPCDef<void, BackupData>

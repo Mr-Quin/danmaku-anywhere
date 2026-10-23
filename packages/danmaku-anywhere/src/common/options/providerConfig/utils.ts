@@ -15,10 +15,10 @@ export function assertMacCmsConfig(config: ProviderConfig): void {
   }
 }
 
-export function toSourceRef(config: ProviderConfig): SourceRef {
+export function toSourceRef(config: ProviderConfig, name: string): SourceRef {
   return {
     providerConfigId: config.id,
     manifestId: config.manifestId,
-    name: config.name,
+    name,
   }
 }

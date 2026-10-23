@@ -11,14 +11,15 @@ import { applyProfile } from '../../setup/profile'
  * carry the same name, here in an English UI where the built-in shows as
  * DanDanPlay. Seeds one season under each and asserts their tree
  * chips read differently: the built-in keeps its name, the self-hosted one
- * adds its server host. A new instance also starts with its own default name,
- * and a user's mirror of the hosted proxy URL is not labelled built-in.
+ * adds its server host. A new instance starts on the default name and is told
+ * apart the same way, and a user's mirror of the hosted proxy URL is not
+ * labelled built-in.
  */
 
 const homeServer: ProviderConfig = {
   id: 'home-ddp',
   manifestId: 'dandanplay',
-  name: 'DanDanPlay',
+  customName: 'DanDanPlay',
   enabled: true,
   configValues: {
     baseUrl: 'https://ddp.home.invalid',
@@ -80,7 +81,7 @@ test('seasons of two same-named dandanplay instances get distinct chips', async 
   ).toBeVisible()
 })
 
-test('a new dandanplay instance does not default to the built-in name', async ({
+test('a new dandanplay instance on the default name is told apart by its server', async ({
   context,
   page,
   extensionId,
@@ -88,14 +89,24 @@ test('a new dandanplay instance does not default to the built-in name', async ({
 }) => {
   await applyProfile(context, da, {
     providers: { dandanplay: { enabled: true } },
+    extensionOptions: { lang: Language.en },
   })
 
   const popup = await Popup.open(page, extensionId, '/providers')
   await popup.providers.addDanDanPlayProvider()
-
-  await expect(popup.providers.nameField()).toHaveValue(
-    /^(Self-hosted DanDanPlay|自建弹弹play)$/
+  await expect(popup.providers.nameField()).toHaveValue('')
+  await expect(popup.providers.nameField()).toHaveAttribute(
+    'placeholder',
+    'DanDanPlay'
   )
+  await popup.providers.fillField('Base URL', 'https://ddp.new.invalid')
+  await popup.providers.save()
+  await popup.toast.expectSuccess('Source created')
+
+  await expect(
+    popup.providers.row('DanDanPlay (ddp.new.invalid)')
+  ).toBeVisible()
+  await expect(popup.providers.row('DanDanPlay (Built-in)')).toBeVisible()
 })
 
 test('a self-hosted mirror of the proxy URL is not labelled built-in', async ({
@@ -110,7 +121,7 @@ test('a self-hosted mirror of the proxy URL is not labelled built-in', async ({
       {
         ...homeServer,
         id: 'mirror-ddp',
-        name: 'My DDP Mirror',
+        customName: 'My DDP Mirror',
         configValues: {
           baseUrl: 'https://api.danmaku.test/ddp',
           auth: { enabled: false, headers: [] },

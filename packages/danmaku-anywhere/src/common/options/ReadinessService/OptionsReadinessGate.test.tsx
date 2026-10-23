@@ -4,8 +4,8 @@ import { Suspense } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, expect, it, vi } from 'vitest'
 import { EXTENSION_VERSION } from '@/common/constants'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useProviderConfig } from '@/common/options/providerConfig/useProviderConfig'
+import { LATEST_PROVIDER_CONFIG_VERSION } from '@/common/options/providerConfig/version'
 import { OptionsUpgradeService } from '@/common/options/upgrade/OptionsUpgradeService'
 import { UPGRADE_RUN_KEY } from '@/common/options/upgrade/upgradeRun'
 import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
@@ -18,19 +18,21 @@ import { OptionsReadinessGate } from './OptionsReadinessGate'
  * records a failed run, and the configs once a retry there succeeds.
  */
 
-function config(name: string): ProviderConfig {
+// A self-hosted DanDanPlay stored before version 6, which keeps its name as
+// the custom name.
+function storedConfig(name: string) {
   return {
-    id: 'dandanplay',
+    id: 'mine',
     manifestId: 'dandanplay',
     name,
     enabled: true,
-    configValues: {},
+    configValues: { baseUrl: 'https://ddp.mine.example' },
   }
 }
 
 function ConfigNames() {
   const { configs } = useProviderConfig()
-  return <span>{configs.map((c) => c.name).join(',')}</span>
+  return <span>{configs.map((c) => c.customName).join(',')}</span>
 }
 
 let root: Root | undefined
@@ -42,7 +44,7 @@ afterEach(() => {
 
 it('shows pending, then the failure, then the upgraded configs after a retry', async () => {
   await fakeBrowser.storage.sync.set({
-    providerConfig: { data: [config('stored config')], version: 4 },
+    providerConfig: { data: [storedConfig('stored config')], version: 4 },
   })
   const element = document.createElement('div')
   root = createRoot(element)
@@ -83,5 +85,7 @@ it('shows pending, then the failure, then the upgraded configs after a retry', a
     expect(element.textContent).toBe('stored config')
   })
   const stored = await fakeBrowser.storage.sync.get('providerConfig')
-  expect(stored.providerConfig).toMatchObject({ version: 5 })
+  expect(stored.providerConfig).toMatchObject({
+    version: LATEST_PROVIDER_CONFIG_VERSION,
+  })
 })

@@ -70,6 +70,7 @@
     "catalogApplyFailed": "无法更新 {{sources}}，请稍后重试。",
     "catalogEmpty": "弹幕源目录中没有当前版本可用的弹幕源。",
     "configDuplicate": "已存在相同 ID 的项目。",
+    "configInvalid": "部分设置无效。",
     "configNotFound": "该项已不存在，可能已被删除。",
     "danmakuUnsupported": "{{source}} 不支持获取弹幕。",
     "episodesUnsupported": "{{source}} 不支持获取剧集列表。",
@@ -557,6 +558,7 @@
     "backup": {
       "alert": {
         "exportSuccess": "成功导出备份",
+        "importMissing": "备份已导入。备份中没有{{stores}}，这些设置保持不变。",
         "importPartial": "部分设置未能恢复：{{stores}}",
         "importSuccess": "成功导入备份"
       },
@@ -570,6 +572,15 @@
       "cloudListError": "加载云备份失败。",
       "cloudRevisions": "历史版本",
       "cloudSignInTitle": "登录以启用云备份",
+      "droppedEntries_other": "{{store}}（跳过 {{count}} 项）",
+      "droppedEntriesWithReasons_other": "{{store}}（跳过 {{count}} 项：{{reasons}}）",
+      "dropReason": {
+        "duplicateId": "备份中另有一个 ID 相同的条目",
+        "invalidEntry": "条目已损坏",
+        "invalidSettings": "其设置对所属弹幕源无效",
+        "nameRequired": "缺少名称",
+        "notMigrated": "无法从旧版本转换"
+      },
       "export": "导出",
       "exportRowDesc": "将设置保存为 JSON 文件",
       "exportToFile": "保存到文件",
@@ -768,6 +779,8 @@
         "viewTitle": "清单源码"
       },
       "name": "名称",
+      "nameDefaultHint": "留空则使用默认名称",
+      "settingsLocked": "在它能在此运行之前，无法修改其设置，但仍可以重命名。",
       "specError": "加载弹幕源设置失败。部分字段缺失，此时保存会丢失这些字段。",
       "testRun": {
         "danmakuCount_other": "已获取 {{count}} 条弹幕",
@@ -785,7 +798,9 @@
         "edit": "编辑弹幕源：{{name}}"
       },
       "validation": {
+        "enum": "请从选项中选择",
         "integer": "必须是整数",
+        "invalid": "值无效",
         "maximum": "不能大于 {{max}}",
         "maxLength": "不能超过 {{max}} 个字符",
         "minimum": "不能小于 {{min}}",
@@ -793,8 +808,17 @@
         "pattern": "必须匹配模式 {{pattern}}",
         "required": "此项为必填项",
         "requiredAlternatives": "请填写{{fields}}",
-        "url": "不是有效的 URL"
+        "url": "不是有效的 URL",
+        "urlScheme": "URL 必须以 http:// 或 https:// 开头"
       }
+    },
+    "error": {
+      "duplicate": "这个内置弹幕源已经安装",
+      "nameRequired": "请为弹幕源命名",
+      "nameTooLong": "弹幕源名称不能超过 {{max}} 个字符",
+      "notBuiltin": "这个弹幕源没有内置实例",
+      "orderMismatch": "弹幕源列表已变化，请重新排序。",
+      "outdated": "弹幕源正在更新到当前版本，请稍后再试。"
     },
     "filter": {
       "placeholder": "筛选弹幕源"
@@ -810,9 +834,6 @@
       "reorder": "排序",
       "reorderDone": "完成",
       "title": "已安装"
-    },
-    "instance": {
-      "defaultName": "自建弹弹play"
     },
     "name": "弹幕源",
     "unavailable": {

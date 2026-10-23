@@ -3,7 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { describeError } from '@/common/errors/describeError'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'
-import { describeRestoreProblems } from './backupImportMessages'
+import {
+  describeMissingStores,
+  describeRestoreProblems,
+} from './backupImportMessages'
 
 export function useBackupImport(options?: { onSettled?: () => void }) {
   const { t } = useTranslation()
@@ -12,6 +15,16 @@ export function useBackupImport(options?: { onSettled?: () => void }) {
   return useMutation({
     mutationFn: async (data: unknown) => chromeRpcClient.backupImport(data),
     onSuccess: ({ data: result }) => {
+      if (result.success && (result.missing ?? []).length > 0) {
+        toast.warn(
+          t(
+            'optionsPage.backup.alert.importMissing',
+            'Backup imported. It had no {{stores}}, so those were left as they were.',
+            { stores: describeMissingStores(result) }
+          )
+        )
+        return
+      }
       if (result.success) {
         toast.success(
           t(

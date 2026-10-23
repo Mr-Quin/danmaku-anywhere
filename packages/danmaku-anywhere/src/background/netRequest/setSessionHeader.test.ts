@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
-import { container } from '../ioc'
 import { setSessionHeader } from './setSessionHeader'
+
+const OPTIONS = { restrictInitiatorDomain: true }
 
 describe('setSessionHeader', () => {
   let rules: any[] = []
@@ -34,10 +34,6 @@ describe('setSessionHeader', () => {
         getURL: vi.fn().mockReturnValue('chrome-extension://test'),
       },
     })
-
-    container.rebindSync(ExtensionOptionsService).toConstantValue({
-      get: vi.fn().mockResolvedValue({}),
-    } as any)
   })
 
   afterEach(() => {
@@ -45,9 +41,13 @@ describe('setSessionHeader', () => {
   })
 
   it('should set session header and return remove function', async () => {
-    const removeCall = await setSessionHeader('https://example.com', {
-      'X-Test': '1',
-    })
+    const removeCall = await setSessionHeader(
+      'https://example.com',
+      {
+        'X-Test': '1',
+      },
+      OPTIONS
+    )
     expect(rules).toHaveLength(1)
     // Counter is module-scoped; just assert positive.
     expect(typeof rules[0].id).toBe('number')
@@ -60,9 +60,13 @@ describe('setSessionHeader', () => {
 
   it('should remove the rule when going out of scope', async () => {
     {
-      await using _ = await setSessionHeader('https://example.com', {
-        'X-Test': '1',
-      })
+      await using _ = await setSessionHeader(
+        'https://example.com',
+        {
+          'X-Test': '1',
+        },
+        OPTIONS
+      )
       // rule added
       expect(
         chrome.declarativeNetRequest.updateSessionRules
@@ -86,7 +90,11 @@ describe('setSessionHeader', () => {
     // Without the mutex, they would all try to set the same ID
     for (let i = 0; i < iterations; i++) {
       promises.push(
-        setSessionHeader(`https://example.com/${i}`, { 'X-Test': `${i}` })
+        setSessionHeader(
+          `https://example.com/${i}`,
+          { 'X-Test': `${i}` },
+          OPTIONS
+        )
       )
     }
 
@@ -106,26 +114,20 @@ describe('setSessionHeader', () => {
     }
   })
 
-  it('should respect useInitiatorDomains option', async () => {
-    // Test default/true
+  it('restricts the initiator domain only when asked to', async () => {
     {
-      container.rebindSync(ExtensionOptionsService).toConstantValue({
-        get: vi.fn().mockResolvedValue({}),
-      } as any)
-
-      const res = await setSessionHeader('https://example.com', {})
+      const res = await setSessionHeader('https://example.com', {}, OPTIONS)
       expect(rules).toHaveLength(1)
       expect(rules[0].condition.initiatorDomains).toEqual(['test'])
       await res.removeRule()
     }
 
-    // Test false
     {
-      container.rebindSync(ExtensionOptionsService).toConstantValue({
-        get: vi.fn().mockResolvedValue({ restrictInitiatorDomain: false }),
-      } as any)
-
-      const res = await setSessionHeader('https://example.com', {})
+      const res = await setSessionHeader(
+        'https://example.com',
+        {},
+        { restrictInitiatorDomain: false }
+      )
       expect(rules).toHaveLength(1)
       expect(rules[0].condition.initiatorDomains).toBeUndefined()
       await res.removeRule()

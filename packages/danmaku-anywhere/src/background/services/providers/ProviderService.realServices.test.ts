@@ -13,18 +13,18 @@ import { makeProviderConfig, makeSeasonInsert } from '@/tests/factories'
 import { ManifestRegistry } from './ManifestRegistry'
 import { ProviderService } from './ProviderService'
 
-const dandanplay = makeProviderConfig({ id: 'dandanplay', name: 'DDP' })
+const dandanplay = makeProviderConfig({ id: 'dandanplay', customName: 'DDP' })
 const bilibili = makeProviderConfig({
   id: 'bilibili',
   manifestId: 'bilibili',
-  name: 'Bilibili',
+  customName: 'Bilibili',
 })
 
 async function seedProviders(
   ...configs: ReturnType<typeof makeProviderConfig>[]
 ) {
   await fakeBrowser.storage.sync.set({
-    providerConfig: { version: 5, data: configs },
+    providerConfig: { version: 6, data: configs },
   })
 }
 
@@ -255,5 +255,42 @@ describe('ProviderService storing manifest output over real storage', () => {
     expect(
       await db.episode.get({ seasonId: season.id, indexedId: 'a' })
     ).toMatchObject({ commentCount: 2 })
+  })
+})
+
+describe('ProviderService seeding over real storage', () => {
+  it('writes the built-ins once when two seeds run at the same time', async () => {
+    await seedProviders()
+    const container = createUpgradeContainer()
+    const service = container.get(ProviderService)
+    const store = container.get(ProviderConfigService)
+
+    await Promise.all([
+      service.seedDefaultProviders(),
+      service.seedDefaultProviders(),
+    ])
+
+    expect((await store.getAll()).map((config) => config.id)).toEqual([
+      'dandanplay',
+      'bilibili',
+      'tencent',
+    ])
+    expect(await store.hasSeeded()).toBe(true)
+  })
+
+  it('locks the flag without writing over configs that already arrived', async () => {
+    const mine = makeProviderConfig({
+      id: 'mine',
+      customName: 'Mine',
+      configValues: { baseUrl: 'https://ddp.mine.example' },
+    })
+    await seedProviders(mine)
+    const container = createUpgradeContainer()
+    const store = container.get(ProviderConfigService)
+
+    await container.get(ProviderService).seedDefaultProviders()
+
+    expect(await store.getAll()).toEqual([mine])
+    expect(await store.hasSeeded()).toBe(true)
   })
 })

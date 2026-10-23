@@ -11,16 +11,21 @@ import { FormProvider, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { useToast } from '@/common/components/Toast/toastStore'
-import type { ProviderConfig } from '@/common/options/providerConfig/schema'
+import type { SourceUnavailableReason } from '@/common/errors/AppError'
+import { describeCode } from '@/common/errors/describeError'
+import { lockedConfigKeys } from '@/common/options/providerConfig/builtin'
+import { configIssueMessage } from '@/common/options/providerConfig/issueText'
+import { useSourceNames } from '@/common/options/providerConfig/useSourceNames'
+import { checkProviderConfig } from '@/common/options/providerConfig/validation'
 import { useManifestSpec } from '../../hooks/useManifestSpec'
 import { FormActions } from './FormActions'
 import { SchemaObjectFields } from './SchemaFields'
 import {
   buildDefaultValues,
   getObjectFields,
-  hiddenConfigFields,
+  issueFieldPath,
   mergeConfigValues,
-  validateConfigValues,
+  omitKeys,
 } from './schemaForm'
 import type { ProviderFormProps } from './types'
 
@@ -31,11 +36,19 @@ interface FormValues {
 
 interface ConfigFormProps extends ProviderFormProps {
   configSchema?: ConfigSchema
+  // Set when the source's manifest can't run here, so its settings can't be
+  // checked or edited and only the name can change.
+  unavailable?: SourceUnavailableReason
+}
+
+function settingText(value: unknown): string {
+  return typeof value === 'string' ? value : JSON.stringify(value)
 }
 
 function ConfigForm({
   provider,
   configSchema,
+  unavailable,
   onSubmit,
   onReset,
   isEdit,
@@ -43,11 +56,12 @@ function ConfigForm({
   const { t } = useTranslation()
   const toast = useToast.use.toast()
 
-  const hiddenKeys = hiddenConfigFields(provider)
+  const { defaultNameOf } = useSourceNames()
+  const hiddenKeys = lockedConfigKeys(provider)
 
   const methods = useForm<FormValues>({
     defaultValues: {
-      name: provider.name,
+      name: provider.customName ?? '',
       config: buildDefaultValues(configSchema, provider.configValues),
     },
   })
@@ -61,35 +75,95 @@ function ConfigForm({
   } = methods
 
   const handleFormSubmit = handleSubmit(async (data) => {
-    const configValues = mergeConfigValues(provider.configValues, data.config)
-    const configErrors = validateConfigValues(configSchema, configValues)
-    if (configErrors.length > 0) {
-      for (const error of configErrors) {
-        setError(`config.${error.path}`, { message: error.message })
+    const configValues = mergeConfigValues(
+      provider.configValues,
+      omitKeys(data.config, hiddenKeys)
+    )
+    const customName = data.name.trim() === '' ? null : data.name.trim()
+    const issues = checkProviderConfig({
+      config: { ...provider, customName, configValues },
+      configSchema,
+    })
+    const messages: string[] = []
+    let nameInvalid = false
+    for (const issue of issues) {
+      if (issue.kind === 'nameTooLong') {
+        setError('name', {
+          message: t(
+            'providers.editor.validation.maxLength',
+            'Must be at most {{max}} characters',
+            { max: issue.max }
+          ),
+        })
+        nameInvalid = true
+        continue
       }
-      // Rendered fields are already validated by their own rules, so an error
-      // here usually sits on a field the form does not render. Toast it so the
-      // blocked save is never silent, naming the field when it has no inline
-      // label to show the error next to.
-      const [first] = configErrors
-      const [topKey] = first.path.split('.')
+      if (issue.kind !== 'config') {
+        continue
+      }
+      const message = configIssueMessage(issue.issue, configSchema)
+      const fieldPath = issueFieldPath(issue.issue)
+      const path = fieldPath.join('.')
+      setError(path === '' ? 'config' : `config.${path}`, { message })
+      // Rendered fields show their own error, so only an error on a field the
+      // form does not render needs the toast, named since it has no label to
+      // sit next to.
+      const [topKey] = fieldPath
       const rendered =
+        typeof topKey === 'string' &&
         configSchema?.properties?.[topKey] !== undefined &&
         !hiddenKeys.has(topKey)
-      toast.error(rendered ? first.message : `${first.path}: ${first.message}`)
+      messages.push(rendered || path === '' ? message : `${path}: ${message}`)
+    }
+    if (messages.length > 0) {
+      toast.error(messages[0])
+    }
+    if (messages.length > 0 || nameInvalid) {
       return
     }
-    const next: ProviderConfig = {
-      ...provider,
-      name: data.name,
-      configValues,
-    }
-    await onSubmit(next)
+    await onSubmit({ customName, configValues })
   })
 
   const handleReset = () => {
     reset()
     onReset?.()
+  }
+
+  const renderLockedSettings = (reason: SourceUnavailableReason) => {
+    const settings = Object.entries(provider.configValues).filter(([key]) => {
+      return !hiddenKeys.has(key)
+    })
+    return (
+      <>
+        <Alert severity="warning" sx={{ alignSelf: 'stretch' }}>
+          <Box>
+            {describeCode('manifest.unavailable', {
+              manifestId: provider.manifestId,
+              reason,
+            })}
+          </Box>
+          <Box>
+            {t(
+              'providers.editor.settingsLocked',
+              "Its settings can't be changed until it can run here. You can still rename it."
+            )}
+          </Box>
+        </Alert>
+        {settings.map(([key, value]) => (
+          <TextField
+            key={key}
+            label={key}
+            size="small"
+            value={settingText(value)}
+            slotProps={{
+              input: { readOnly: true },
+              inputLabel: { shrink: true },
+            }}
+            fullWidth
+          />
+        ))}
+      </>
+    )
   }
 
   const hidesServer = getObjectFields(configSchema).some((field) =>
@@ -109,11 +183,18 @@ function ConfigForm({
         <TextField
           label={t('providers.editor.name', 'Name')}
           size="small"
+          placeholder={defaultNameOf(provider)}
           error={!!errors.name}
-          helperText={errors.name?.message}
-          {...register('name', { required: true })}
+          helperText={
+            errors.name?.message ??
+            t(
+              'providers.editor.nameDefaultHint',
+              'Leave empty to use the default name'
+            )
+          }
+          slotProps={{ inputLabel: { shrink: true } }}
+          {...register('name')}
           fullWidth
-          required
         />
         {hidesServer ? (
           <Alert severity="info" sx={{ alignSelf: 'stretch' }}>
@@ -123,6 +204,7 @@ function ConfigForm({
             )}
           </Alert>
         ) : null}
+        {unavailable ? renderLockedSettings(unavailable) : null}
         {configSchema ? (
           <SchemaObjectFields
             schema={configSchema}
@@ -176,5 +258,9 @@ export const ProviderConfigForm = (props: ProviderFormProps) => {
     )
   }
 
-  return <ConfigForm {...props} configSchema={data?.configSchema} />
+  if (data?.status === 'unavailable') {
+    return <ConfigForm {...props} unavailable={data.reason} />
+  }
+
+  return <ConfigForm {...props} configSchema={data?.spec.configSchema} />
 }
