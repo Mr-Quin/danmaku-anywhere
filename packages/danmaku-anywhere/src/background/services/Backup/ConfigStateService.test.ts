@@ -626,7 +626,7 @@ describe('ConfigStateService over chrome.storage', () => {
     expect(result.details.alpha).toEqual({
       success: false,
       error: expect.stringContaining('QUOTA_BYTES_PER_ITEM quota exceeded'),
-      storageProblem: 'options.itemTooLarge',
+      code: 'options.itemTooLarge',
     })
     expect(result.details.beta).toEqual({ success: true, droppedEntries: 0 })
     expect(await readStored('alpha')).toEqual({

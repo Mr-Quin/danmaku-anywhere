@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { Logger } from '@/common/Logger'
 import { formatList } from '@/common/localization/formatList'
 import { i18n } from '@/common/localization/i18n'
+import { localizedStoreName } from '@/common/options/storeMessages'
 import {
   AppError,
   type AppErrorCode,
@@ -302,6 +303,45 @@ const MESSAGES: MessageTable = {
     return i18n.t(
       'providers.error.orderMismatch',
       'The source list changed. Try reordering again.'
+    )
+  },
+  'options.itemTooLarge': ({ store }) => {
+    return i18n.t(
+      'appError.optionsItemTooLarge',
+      "{{name}}: It is too large for the browser's synced storage.",
+      { name: localizedStoreName(store) }
+    )
+  },
+  'options.storeFull': ({ store }) => {
+    return i18n.t(
+      'appError.optionsStoreFull',
+      "{{name}}: The browser's storage for this extension's settings is full.",
+      { name: localizedStoreName(store) }
+    )
+  },
+  'options.writeRateLimited': ({ store }) => {
+    return i18n.t(
+      'appError.optionsWriteRateLimited',
+      '{{name}}: It was saved too many times in a short while. Try again in a minute.',
+      { name: localizedStoreName(store) }
+    )
+  },
+  'options.incomplete': ({ store }) => {
+    return i18n.t(
+      'appError.optionsIncomplete',
+      '{{name}}: The stored copy is incomplete, possibly because it is still syncing from another device. Try again in a moment.',
+      { name: localizedStoreName(store) }
+    )
+  },
+  'options.upgradeFailed': ({ stores }) => {
+    return i18n.t(
+      'appError.optionsUpgradeFailed',
+      'These settings could not be updated for this version and have been kept as they were: {{stores}}.',
+      {
+        stores: formatList(
+          stores.map(({ store }) => localizedStoreName(store))
+        ),
+      }
     )
   },
   'options.outdated': () => {

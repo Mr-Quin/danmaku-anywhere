@@ -1,5 +1,5 @@
 import { getStorageArea } from '@/common/storage/getStorageArea'
-import { OptionsStorageError } from '../OptionsService/OptionsStorageError'
+import { storageProblemOf } from '../OptionsService/storageProblem'
 import { isStoredAtVersion } from '../OptionsService/storedVersion'
 import { decodeEnvelope, layoutItems } from '../OptionsService/storeLayout'
 import type { OptionStoreDescriptor } from '../optionStores'
@@ -34,7 +34,7 @@ export async function readOptionStoresStatus(
       const envelope = decodeEnvelope(store, layoutItems(store, items))
       return isStoredAtVersion(envelope, store.latestVersion)
     } catch (error) {
-      if (!(error instanceof OptionsStorageError)) {
+      if (storageProblemOf(error) === undefined) {
         throw error
       }
       incomplete.push(store.key)

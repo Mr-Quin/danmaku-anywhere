@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { AppError } from '@/common/errors/AppError'
 import { chromeItemBytes } from '@/tests/syncQuota'
-import { OptionsStorageError } from './OptionsStorageError'
 import {
   chunkKey,
   decodeEnvelope,
@@ -49,10 +49,10 @@ function expectIncomplete(read: () => unknown) {
   } catch (caught) {
     error = caught
   }
-  expect(error).toBeInstanceOf(OptionsStorageError)
+  expect(error).toBeInstanceOf(AppError)
   expect(error).toMatchObject({
-    problem: 'options.incomplete',
-    store: 'store',
+    code: 'options.incomplete',
+    params: { store: 'store' },
   })
 }
 

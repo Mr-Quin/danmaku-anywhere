@@ -161,7 +161,7 @@ describe('OptionsUpgradeService', () => {
       status: 'failed',
       build: EXTENSION_VERSION,
       attempts: 1,
-      message: 'Failed to upgrade options: beta',
+      message: 'options.upgradeFailed: Failed to upgrade options: beta',
     })
     readiness.subscribe(() => undefined)
     await vi.waitFor(() => {

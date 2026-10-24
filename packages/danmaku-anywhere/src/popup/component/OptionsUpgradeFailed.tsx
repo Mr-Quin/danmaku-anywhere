@@ -2,16 +2,29 @@ import { Box, Button, Typography } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
+import { describeCode } from '@/common/errors/describeError'
 import { useInjectService } from '@/common/hooks/useInjectService'
+import { i18n } from '@/common/localization/i18n'
 import { useOptionsReadiness } from '@/common/options/ReadinessService/useOptionsReadiness'
-import {
-  describeOptionsProblem,
-  localizedStoreName,
-} from '@/common/options/storeMessages'
+import { localizedStoreName } from '@/common/options/storeMessages'
 import {
   type OptionsUpgrader,
   OptionsUpgraderSymbol,
 } from '@/common/options/upgrade/OptionsUpgrader'
+import type { StoreFailure } from '@/common/options/upgrade/upgradeFailure'
+
+function describeFailure({ store, problem }: StoreFailure): string {
+  if (problem === 'unknown') {
+    return i18n.t(
+      'optionsUpgrade.storeFailed',
+      '{{name}}: It could not be updated.',
+      {
+        name: localizedStoreName(store),
+      }
+    )
+  }
+  return describeCode(problem, { store })
+}
 
 export function OptionsUpgradeFailed() {
   const { t } = useTranslation()
@@ -47,9 +60,7 @@ export function OptionsUpgradeFailed() {
                     data-testid="options-upgrade-failed-store"
                     data-store={failure.store}
                   >
-                    <strong>{localizedStoreName(failure.store)}</strong>
-                    {': '}
-                    {describeOptionsProblem(failure.problem)}
+                    {describeFailure(failure)}
                   </Typography>
                 ))}
               </Box>

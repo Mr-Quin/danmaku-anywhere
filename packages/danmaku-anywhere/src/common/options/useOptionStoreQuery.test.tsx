@@ -142,7 +142,7 @@ it('shows an error toast when the sync quota refuses a danmaku options write', a
 
   expect(useToast.getState().notifications.at(-1)).toMatchObject({
     severity: 'error',
-    message: 'optionsStorage.saveFailed',
+    message: 'appError.optionsStoreFull',
   })
   expect(element.textContent).toBe('0')
 })

@@ -4,7 +4,7 @@ import {
   storedItemBytes,
   utf8Bytes,
 } from '@/common/storage/syncQuota'
-import { OptionsStorageError } from './OptionsStorageError'
+import { optionsStorageError } from './storageProblem'
 import type { Options } from './types'
 
 // How a store is laid out in storage. A store is one item holding its
@@ -113,7 +113,7 @@ export function decodeEnvelope(
   }
   const manifest = readManifest(stored)
   if (!manifest || !isRecord(stored.data)) {
-    throw new OptionsStorageError('options.incomplete', layout.key)
+    throw optionsStorageError('options.incomplete', layout.key)
   }
   const data: Record<string, unknown> = { ...stored.data }
   for (const [part, { chunks, hash }] of Object.entries(manifest)) {
@@ -121,12 +121,12 @@ export function decodeEnvelope(
     for (let index = 0; index < chunks; index++) {
       const chunk = items[chunkKey(layout.key, part, index)]
       if (typeof chunk !== 'string') {
-        throw new OptionsStorageError('options.incomplete', layout.key)
+        throw optionsStorageError('options.incomplete', layout.key)
       }
       json += chunk
     }
     if (hashString(json) !== hash) {
-      throw new OptionsStorageError('options.incomplete', layout.key)
+      throw optionsStorageError('options.incomplete', layout.key)
     }
     data[part] = JSON.parse(json)
   }

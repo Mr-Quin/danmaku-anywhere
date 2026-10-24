@@ -6,10 +6,7 @@ import {
   QUOTA_BYTES_PER_ITEM,
   storedItemBytes,
 } from '@/common/storage/syncQuota'
-import {
-  classifyStorageFailure,
-  OptionsStorageError,
-} from './OptionsStorageError'
+import { classifyStorageFailure, optionsStorageError } from './storageProblem'
 import {
   decodeEnvelope,
   encodeEnvelope,
@@ -26,7 +23,7 @@ export interface OptionsStorageLocation extends StoreLayout {
 }
 
 // Reads and writes one option store's envelope, whatever items its layout
-// spreads it over. Storage quota failures reject with OptionsStorageError.
+// spreads it over. Storage quota failures reject with the AppError code for the problem.
 export class OptionsStorage<T> {
   private readonly layout: StoreLayout
   private readonly watchers = new Set<(changes: StorageChanges) => void>()
@@ -55,7 +52,7 @@ export class OptionsStorage<T> {
     if (this.location.area === 'sync') {
       for (const [key, value] of Object.entries(items)) {
         if (storedItemBytes(key, value) > QUOTA_BYTES_PER_ITEM) {
-          throw new OptionsStorageError('options.itemTooLarge', this.key)
+          throw optionsStorageError('options.itemTooLarge', this.key)
         }
       }
     }
@@ -64,7 +61,7 @@ export class OptionsStorage<T> {
     } catch (error) {
       const problem = classifyStorageFailure(error)
       if (problem) {
-        throw new OptionsStorageError(problem, this.key, { cause: error })
+        throw optionsStorageError(problem, this.key, error)
       }
       throw error
     }

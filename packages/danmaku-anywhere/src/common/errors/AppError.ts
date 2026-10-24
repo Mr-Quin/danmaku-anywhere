@@ -48,6 +48,30 @@ const zManifestRejection = z.enum([
 
 export type ManifestRejection = z.infer<typeof zManifestRejection>
 
+// These names are also stored, in the upgrade run record, so renaming one
+// strands the records already written.
+const zOptionsStorageProblem = z.enum([
+  // One stored item would pass the browser's per-item limit
+  'options.itemTooLarge',
+  // The storage area is out of bytes or items
+  'options.storeFull',
+  'options.writeRateLimited',
+  // A store split over several items is missing some of them or they do not
+  // match, as while another device's write is still syncing in
+  'options.incomplete',
+])
+
+export type OptionsStorageProblem = z.infer<typeof zOptionsStorageProblem>
+
+export const zUpgradeProblem = z.union([
+  zOptionsStorageProblem,
+  z.literal('unknown'),
+])
+
+export type UpgradeProblem = z.infer<typeof zUpgradeProblem>
+
+export const OPTIONS_STORAGE_PROBLEMS = zOptionsStorageProblem.options
+
 const zTarget = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('source'), ref: zSourceRef }),
   z.object({ kind: z.literal('catalog') }),
@@ -74,6 +98,8 @@ const zConfigIssue = z.object({
 export type AppConfigIssue = z.infer<typeof zConfigIssue>
 const zTransport = z.object({ target: zTarget.optional() })
 const zSource = z.object({ source: zSourceRef })
+// An option store by its storage key
+const zStore = z.object({ store: z.string() })
 const zTitle = z.object({ title: z.string() })
 
 const PARAMS = {
@@ -119,6 +145,13 @@ const PARAMS = {
   'config.nameTooLong': z.object({ max: z.number() }),
   'config.notBuiltin': z.object({ manifestId: z.string() }),
   'config.orderMismatch': zNoParams,
+  'options.itemTooLarge': zStore,
+  'options.storeFull': zStore,
+  'options.writeRateLimited': zStore,
+  'options.incomplete': zStore,
+  'options.upgradeFailed': z.object({
+    stores: z.array(z.object({ store: z.string(), problem: zUpgradeProblem })),
+  }),
   'options.outdated': z.object({
     store: z.string(),
     version: z.number(),
