@@ -32,10 +32,9 @@ export class IntegrationPolicyService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory<Integration[]>(
-      integrationPolicyDescriptor.key,
+      integrationPolicyDescriptor,
       [],
-      this.logger,
-      integrationPolicyDescriptor.area
+      this.logger
     )
       .version(1, {
         upgrade: (data) => data,

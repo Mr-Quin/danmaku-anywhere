@@ -1,12 +1,9 @@
-import type {
-  ExtensionOptions,
-  ExtensionOptionsOptions,
-} from '@/common/options/extensionOptions/schema'
+import type { ExtensionOptions } from '@/common/options/extensionOptions/schema'
 import { extensionOptionsDescriptor } from '@/common/options/optionStores'
 import { useOptionStoreQuery } from '@/common/options/useOptionStoreQuery'
 
 export const useExtensionOptions = () => {
-  const store = useOptionStoreQuery<ExtensionOptionsOptions>(
+  const store = useOptionStoreQuery<ExtensionOptions>(
     extensionOptionsDescriptor
   )
 

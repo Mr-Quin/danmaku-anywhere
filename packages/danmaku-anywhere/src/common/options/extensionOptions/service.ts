@@ -37,10 +37,9 @@ export class ExtensionOptionsService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory(
-      extensionOptionsDescriptor.key,
+      extensionOptionsDescriptor,
       defaultExtensionOptions,
-      this.logger,
-      extensionOptionsDescriptor.area
+      this.logger
     )
       .version(1, {
         upgrade: (data) => data,

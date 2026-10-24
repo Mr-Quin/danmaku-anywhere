@@ -21,18 +21,21 @@ import { NamingRuleService } from '@/common/options/localMatchingRule/service'
 import { MountConfigService } from '@/common/options/mountConfig/service'
 import type { IOptionsServiceFactory } from '@/common/options/OptionsService/OptionServiceFactory'
 import { OptionsService } from '@/common/options/OptionsService/OptionsService'
+import type { OptionsStorageLocation } from '@/common/options/OptionsService/OptionsStorage'
 import type { OptionsSchema } from '@/common/options/OptionsService/types'
 import { ProviderConfigWriter } from '@/common/options/providerConfig/ProviderConfigWriter'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
 import { silentLogger } from '@/tests/silentLogger'
+import { enforceSyncQuota } from '@/tests/syncQuota'
 import { ConfigStateService } from './ConfigStateService'
 
 /**
  * Restores real backups through the real option stores: one this build just
  * exported, the v1.5.0 backup file the migration e2e ships, and old payloads
  * that fail to migrate. Guards against validation stricter than what the
- * extension writes, and checks a failed store keeps its pre-restore data.
+ * extension writes, and checks a failed store keeps its pre-restore data. A
+ * block list far larger than one sync item restores under Chrome's quotas.
  */
 
 describe('backup round trip', () => {
@@ -58,17 +61,15 @@ describe('backup round trip', () => {
     const readinessService = { waitUntilReady: () => Promise.resolve() }
 
     const factory: IOptionsServiceFactory = <T extends OptionsSchema>(
-      key: string,
+      location: OptionsStorageLocation,
       defaultOptions: T,
-      optionsLogger: ILogger,
-      storageType?: 'local' | 'sync' | 'session'
+      optionsLogger: ILogger
     ) => {
       return new OptionsService<T>(
         readinessService,
-        key,
+        location,
         defaultOptions,
-        optionsLogger,
-        storageType
+        optionsLogger
       )
     }
 
@@ -204,6 +205,30 @@ describe('backup round trip', () => {
     expect((await extensionOptionsService.get()).infoPanel).toEqual({
       enabled: false,
     })
+  })
+
+  it('restores a block list and custom CSS too large for one sync item into a fresh profile', async () => {
+    const filters = Array.from({ length: 800 }, (_, index) => {
+      return { type: 'text' as const, value: `剧透 ${index}`, enabled: true }
+    })
+    const customCss = '.da-danmaku { font-weight: 800; }\n'.repeat(400)
+    await danmakuOptionsService.update({ filters, customCss })
+    const backup = JSON.parse(
+      JSON.stringify(await configStateService.getState())
+    )
+    await fakeBrowser.storage.sync.clear()
+    await Promise.all(stores.map((store) => store.options.upgrade()))
+    enforceSyncQuota()
+
+    const result = await configStateService.restoreState(backup)
+
+    expect(result.details.danmakuOptions).toEqual({
+      success: true,
+      droppedEntries: 0,
+    })
+    const restored = await danmakuOptionsService.get()
+    expect(restored.filters).toEqual(filters)
+    expect(restored.customCss).toBe(customCss)
   })
 
   it('restores default state with no user data seeded', async () => {

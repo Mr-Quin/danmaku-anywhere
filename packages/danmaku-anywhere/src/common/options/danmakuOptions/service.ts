@@ -30,10 +30,9 @@ export class DanmakuOptionsService implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory(
-      danmakuOptionsDescriptor.key,
+      danmakuOptionsDescriptor,
       defaultDanmakuOptions,
-      this.logger,
-      danmakuOptionsDescriptor.area
+      this.logger
     )
       .version(1, {
         upgrade: (data) => data,

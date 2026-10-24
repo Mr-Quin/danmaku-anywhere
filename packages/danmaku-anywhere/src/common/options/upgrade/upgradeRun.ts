@@ -1,4 +1,9 @@
 import { EXTENSION_VERSION } from '@/common/constants'
+import {
+  isRepeatingFailure,
+  parseStoreFailures,
+  type StoreFailure,
+} from './upgradeFailure'
 
 // The last upgrade attempt, kept in storage.local so every context sees it,
 // and removed when an attempt succeeds. attempts counts the attempts this
@@ -12,6 +17,7 @@ export type UpgradeRun =
       attempts: number
       failedAt: number
       message: string
+      stores?: StoreFailure[]
     }
 
 export const UPGRADE_RUN_KEY = 'optionsUpgradeRun'
@@ -80,8 +86,8 @@ export function failedOnThisBuild(
 }
 
 // Startup and worker wakes retry a failed upgrade on their own only a few
-// times, with a growing delay. Retry in the UI and an extension update always
-// run.
+// times, with a growing delay, and never one that would fail the same way
+// again. Retry in the UI and an extension update always run.
 export function canRetryAutomatically(
   run: UpgradeRun | undefined,
   now: number
@@ -96,6 +102,9 @@ export function canRetryAutomatically(
   }
   if (settled.status === 'running') {
     return true
+  }
+  if (isRepeatingFailure(parseStoreFailures(settled.stores))) {
+    return false
   }
   const delay = FIRST_RETRY_DELAY_MS * 4 ** (settled.attempts - 1)
   return now - settled.failedAt >= delay

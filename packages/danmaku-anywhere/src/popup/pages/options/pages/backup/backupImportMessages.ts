@@ -5,33 +5,10 @@ import type {
 } from '@/common/backup/dto'
 import { formatList } from '@/common/localization/formatList'
 import { i18n } from '@/common/localization/i18n'
-
-export function localizedBackupStoreName(name: string): string {
-  switch (name) {
-    case 'extensionOptions':
-      return i18n.t(
-        'optionsPage.backup.store.extensionOptions',
-        'General settings'
-      )
-    case 'danmakuOptions':
-      return i18n.t('tabs.style', 'Danmaku Settings')
-    case 'mountConfig':
-      return i18n.t('configPage.name', 'Configs')
-    case 'providerConfig':
-      return i18n.t('tabs.providers', 'Sources')
-    case 'aiProviderConfig':
-      return i18n.t('tabs.aiProviders', 'AI Providers')
-    case 'integrationPolicy':
-      return i18n.t('integrationPolicyPage.name', 'Integration Policy')
-    case 'localMatchingRule':
-      return i18n.t(
-        'optionsPage.backup.store.localMatchingRule',
-        'Naming rules'
-      )
-    default:
-      return name
-  }
-}
+import {
+  describeSaveFailure,
+  localizedStoreName,
+} from '@/common/options/storeMessages'
 
 const SHOWN_REASONS = 3
 
@@ -74,7 +51,7 @@ function describeDropped(
   name: string,
   detail: BackupRestoreResult['details'][string]
 ): string {
-  const store = localizedBackupStoreName(name)
+  const store = localizedStoreName(name)
   const count = detail.droppedEntries ?? 0
   if (detail.success === false || count === 0) {
     return store
@@ -95,7 +72,7 @@ function describeDropped(
 }
 
 function listStores(names: string[]): string {
-  return formatList(names.map(localizedBackupStoreName))
+  return formatList(names.map(localizedStoreName))
 }
 
 // Settings the backup did not include, which the restore left as they were
@@ -110,4 +87,17 @@ export function describeRestoreProblems(result: BackupRestoreResult): string {
     })
     .map(([name, detail]) => describeDropped(name, detail))
   return formatList(problems)
+}
+
+// Why the browser refused the stores it refused, as sentences to follow
+// the list of stores.
+export function describeRestoreStorageProblems(
+  result: BackupRestoreResult
+): string[] {
+  return Object.entries(result.details).flatMap(([name, detail]) => {
+    if (!detail.storageProblem) {
+      return []
+    }
+    return [describeSaveFailure(detail.storageProblem, name)]
+  })
 }

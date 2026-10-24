@@ -6,6 +6,7 @@ import { chromeRpcClient } from '@/common/rpcClient/background/client'
 import {
   describeMissingStores,
   describeRestoreProblems,
+  describeRestoreStorageProblems,
 } from './backupImportMessages'
 
 export function useBackupImport(options?: { onSettled?: () => void }) {
@@ -35,12 +36,13 @@ export function useBackupImport(options?: { onSettled?: () => void }) {
         return
       }
 
+      const partial = t(
+        'optionsPage.backup.alert.importPartial',
+        'Some settings could not be restored: {{stores}}',
+        { stores: describeRestoreProblems(result) }
+      )
       toast.error(
-        t(
-          'optionsPage.backup.alert.importPartial',
-          'Some settings could not be restored: {{stores}}',
-          { stores: describeRestoreProblems(result) }
-        )
+        [partial, ...describeRestoreStorageProblems(result)].join(' ')
       )
     },
     onError: (error) => {

@@ -11,6 +11,7 @@ import {
 import { readOptionStoresStatus } from '../ReadinessService/optionStoresStatus'
 import { upgradeStores } from '../upgradeStores'
 import type { OptionsUpgrader } from './OptionsUpgrader'
+import { storeFailuresOf } from './upgradeFailure'
 import {
   canRetryAutomatically,
   startedRun,
@@ -147,6 +148,7 @@ export class OptionsUpgradeService implements OptionsUpgrader {
         attempts: attempt.attempts,
         failedAt: Date.now(),
         message: error.message,
+        stores: storeFailuresOf(error),
       })
     })
     if (recordError) {

@@ -14,6 +14,9 @@ export interface OptionStoreDescriptor {
   readonly key: string
   readonly area: 'sync' | 'local'
   readonly latestVersion: number
+  // Top-level fields of an object store that move to chunked items of their
+  // own once the store outgrows one sync item (see storeLayout)
+  readonly parts?: readonly string[]
 }
 
 export const extensionOptionsDescriptor = {
@@ -22,10 +25,13 @@ export const extensionOptionsDescriptor = {
   latestVersion: LATEST_EXTENSION_OPTIONS_VERSION,
 } as const satisfies OptionStoreDescriptor
 
+// The fields a user can grow without bound. Kept in the store's own item they
+// could push it past the 8 KB sync item limit, and every write would fail.
 export const danmakuOptionsDescriptor = {
   key: 'danmakuOptions',
   area: 'sync',
   latestVersion: LATEST_DANMAKU_OPTIONS_VERSION,
+  parts: ['filters', 'customCss', 'collapse'],
 } as const satisfies OptionStoreDescriptor
 
 export const integrationPolicyDescriptor = {

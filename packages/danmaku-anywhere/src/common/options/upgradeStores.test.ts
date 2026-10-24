@@ -4,13 +4,15 @@ import { silentLogger } from '@/tests/silentLogger'
 import type { IStoreService } from './IStoreService'
 import { OptionsService } from './OptionsService/OptionsService'
 import type { StoreSnapshot } from './OptionsService/types'
+import { storeFailuresOf } from './upgrade/upgradeFailure'
 import { upgradeStores } from './upgradeStores'
 
 /**
  * upgradeStores migrates the stores in order, handing every step the data all
  * stores had when the run started. It stops at the first store that fails and
- * rejects naming it, so the stores after it keep their old data for a retry.
- * A read error rejects before anything is written.
+ * rejects naming it and the storage problem behind it, so the stores after it
+ * keep their old data for a retry. A read error rejects before anything is
+ * written.
  */
 
 interface Value {
@@ -20,10 +22,9 @@ interface Value {
 function createStore(key: string, onMigrate?: (stores: StoreSnapshot) => void) {
   const options = new OptionsService<Value>(
     { waitUntilReady: () => Promise.resolve() },
-    key,
+    { key, area: 'local' },
     { value: 'default' },
-    silentLogger,
-    'local'
+    silentLogger
   )
     .version(1, { upgrade: (data) => data })
     .version(2, {
@@ -107,6 +108,20 @@ describe('upgradeStores', () => {
     expect(await readRaw('beta')).toEqual({ data: { value: 'b' }, version: 1 })
   })
 
+  it('tells which storage problem stopped the failed store', async () => {
+    await storeAt('alpha', 'a', 1)
+    failWritesTo('alpha')
+
+    const error = await upgradeStores(
+      [createStore('alpha')],
+      silentLogger
+    ).catch((reason: unknown) => reason)
+
+    expect(storeFailuresOf(error)).toEqual([
+      { store: 'alpha', problem: 'options.storeFull' },
+    ])
+  })
+
   it('hands a reader that failed the original data of a later store on retry', async () => {
     await storeAt('reader', 'r', 1)
     await storeAt('read', 'original', 1)
@@ -137,10 +152,14 @@ describe('upgradeStores', () => {
       new Error('IO error')
     )
 
-    await expect(
-      upgradeStores([createStore('alpha')], silentLogger)
-    ).rejects.toThrow('IO error')
+    const error = await upgradeStores(
+      [createStore('alpha')],
+      silentLogger
+    ).catch((reason: unknown) => reason)
 
+    expect(storeFailuresOf(error)).toEqual([
+      { store: 'alpha', problem: 'unknown' },
+    ])
     expect(await readRaw('alpha')).toEqual({ data: { value: 'a' }, version: 1 })
   })
 })

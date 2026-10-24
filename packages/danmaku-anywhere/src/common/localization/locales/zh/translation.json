@@ -712,6 +712,20 @@
     "uploadDebugDataDesc": "上传诊断数据并复制参考 ID。",
     "uploadDebugDataSuccess": "提交成功 {{ id }}"
   },
+  "optionsStorage": {
+    "problem": {
+      "incomplete": "已存储的副本不完整，可能仍在从其他设备同步。请稍后再试。",
+      "itemTooLarge": "内容太大，无法放入浏览器的同步存储。",
+      "storeFull": "浏览器为本扩展设置提供的存储空间已满。",
+      "unknown": "未能更新。",
+      "writeRateLimited": "短时间内保存次数过多。请一分钟后再试。"
+    },
+    "saveFailed": "未能保存{{name}}。{{reason}}"
+  },
+  "optionsStore": {
+    "searchHistory": "搜索历史",
+    "userAuth": "账号登录"
+  },
   "optionsUpgrade": {
     "failed": "你的设置未能更新到此版本，原有设置已保留。",
     "openToRetry": "弹幕任何地方未能更新设置，点击打开后重试。"

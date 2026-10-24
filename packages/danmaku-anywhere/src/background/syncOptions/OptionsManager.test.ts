@@ -90,7 +90,7 @@ describe('OptionsManager', () => {
       danmakuOptions: { data: defaultDanmakuOptions, version: 1 },
     })
     vi.spyOn(fakeBrowser.storage.sync, 'set').mockRejectedValueOnce(
-      new Error('QUOTA_BYTES quota exceeded')
+      new Error('IO error')
     )
     const container = createBackgroundContainer()
     const readiness = container.get(ReadinessService)

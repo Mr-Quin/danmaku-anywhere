@@ -2,6 +2,7 @@ import type { Locator, Page } from '@playwright/test'
 import { AppBarPage } from './AppBarPage'
 import { BackupPage } from './BackupPage'
 import { ConfirmDialog } from './ConfirmDialog'
+import { DanmakuSettingsPage } from './DanmakuSettingsPage'
 import { DanmakuViewerPage } from './DanmakuViewerPage'
 import { ImportResultDialog } from './ImportResultDialog'
 import { MountConfigPage } from './MountConfigPage'
@@ -18,6 +19,7 @@ export class Popup {
   readonly appBar: AppBarPage
   readonly mount: MountPage
   readonly danmakuViewer: DanmakuViewerPage
+  readonly danmakuSettings: DanmakuSettingsPage
   readonly config: MountConfigPage
   readonly search: SearchPage
   readonly seasonDetails: SeasonDetailsPage
@@ -34,6 +36,7 @@ export class Popup {
     this.appBar = new AppBarPage(page)
     this.mount = new MountPage(page)
     this.danmakuViewer = new DanmakuViewerPage(page)
+    this.danmakuSettings = new DanmakuSettingsPage(page)
     this.config = new MountConfigPage(page)
     this.search = new SearchPage(page)
     this.seasonDetails = new SeasonDetailsPage(page)

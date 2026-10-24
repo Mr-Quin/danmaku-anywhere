@@ -24,10 +24,9 @@ export class UserAuthStore implements IStoreService {
     private readonly optionServiceFactory: IOptionsServiceFactory
   ) {
     this.options = this.optionServiceFactory<UserAuthState>(
-      userAuthDescriptor.key,
+      userAuthDescriptor,
       defaultUserAuthState,
-      this.logger,
-      userAuthDescriptor.area
+      this.logger
     ).version(LATEST_USER_AUTH_VERSION, {
       upgrade: (data) => data,
     })

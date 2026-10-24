@@ -10,11 +10,13 @@ import {
 /**
  * canRetryAutomatically lets a startup or wake retry a failed upgrade after a
  * delay that grows four times per attempt, starting at one minute, and stops
- * after five attempts. A run still marked running five minutes after it
- * started was cut off: it counts as a failed attempt, so a worker that keeps
- * dying mid-run ends on the failure screen and cannot retry forever. Only this
- * build's attempts count: a record left by an earlier build allows a retry at
- * once, and startedRun counts from one again.
+ * after five attempts. A failure that every attempt would repeat, a full
+ * storage area or an item over the size limit, is not retried at all. A run
+ * still marked running five minutes after it started was cut off: it counts as
+ * a failed attempt, so a worker that keeps dying mid-run ends on the failure
+ * screen and cannot retry forever. Only this build's attempts count: a record
+ * left by an earlier build allows a retry at once, and startedRun counts from
+ * one again.
  */
 
 const MINUTE = 60_000
@@ -90,6 +92,30 @@ describe('canRetryAutomatically', () => {
   it('applies the retry delay to a cut-off run from when it went stale', () => {
     expect(canRetryAutomatically(running(1), 6 * MINUTE - 1)).toBe(false)
     expect(canRetryAutomatically(running(1), 6 * MINUTE)).toBe(true)
+  })
+
+  it('does not retry a failure where every store would fail the same way again', () => {
+    const run: UpgradeRun = {
+      ...failed(1),
+      stores: [
+        { store: 'danmakuOptions', problem: 'options.itemTooLarge' },
+        { store: 'mountConfig', problem: 'options.storeFull' },
+      ],
+    }
+
+    expect(canRetryAutomatically(run, 1000 * MINUTE)).toBe(false)
+  })
+
+  it('retries a failure where some store may pass next time', () => {
+    const run: UpgradeRun = {
+      ...failed(1),
+      stores: [
+        { store: 'danmakuOptions', problem: 'options.storeFull' },
+        { store: 'mountConfig', problem: 'options.writeRateLimited' },
+      ],
+    }
+
+    expect(canRetryAutomatically(run, MINUTE)).toBe(true)
   })
 
   it('stops retrying a worker that keeps dying mid-run', () => {

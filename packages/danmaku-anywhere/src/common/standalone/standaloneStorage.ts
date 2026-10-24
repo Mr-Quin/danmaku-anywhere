@@ -109,13 +109,23 @@ const createStandaloneStorageArea = (areaName: string): StorageAreaLike => {
       }
       return { [keys]: getStorageValue(keys) }
     },
+    // chrome.storage applies a set as a whole, and option stores split over
+    // several keys rely on that, so a quota error part way through puts back
+    // the keys already written.
     async set(items: Record<string, unknown>) {
       const changes: Record<string, chrome.storage.StorageChange> = {}
-      Object.entries(items).forEach(([key, value]) => {
-        const oldValue = getStorageValue(key)
-        setStorageValue(key, value)
-        changes[key] = { oldValue, newValue: value }
-      })
+      try {
+        for (const [key, value] of Object.entries(items)) {
+          const oldValue = getStorageValue(key)
+          changes[key] = { oldValue, newValue: value }
+          setStorageValue(key, value)
+        }
+      } catch (error) {
+        for (const [key, { oldValue }] of Object.entries(changes)) {
+          setStorageValue(key, oldValue)
+        }
+        throw error
+      }
       emitChanges(changes)
     },
     // biome-ignore lint/suspicious/noExplicitAny: match chrome signature

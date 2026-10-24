@@ -1,15 +1,14 @@
 import type { ResolutionContext } from 'inversify'
 import type { ILogger } from '@/common/Logger'
-import type { ExtStorageType } from '@/common/storage/getStorageArea'
 import { ReadinessService } from '../ReadinessService/ReadinessService'
 import { OptionsService } from './OptionsService'
+import type { OptionsStorageLocation } from './OptionsStorage'
 import type { OptionsSchema } from './types'
 
 export type IOptionsServiceFactory = <T extends OptionsSchema>(
-  key: string,
+  location: OptionsStorageLocation,
   defaultOptions: T,
-  logger: ILogger,
-  storageType?: ExtStorageType
+  logger: ILogger
 ) => OptionsService<T>
 
 export const OptionsServiceFactory = Symbol.for('OptionsServiceFactory')
@@ -18,18 +17,16 @@ export function optionsServiceFactory(
   context: ResolutionContext
 ): IOptionsServiceFactory {
   return <T extends OptionsSchema>(
-    key: string,
+    location: OptionsStorageLocation,
     defaultOptions: T,
-    logger: ILogger,
-    storageType?: ExtStorageType
+    logger: ILogger
   ) => {
     const readinessService = context.get<ReadinessService>(ReadinessService)
     return new OptionsService<T>(
       readinessService,
-      key,
+      location,
       defaultOptions,
-      logger,
-      storageType
+      logger
     )
   }
 }

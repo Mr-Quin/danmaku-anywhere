@@ -8,14 +8,16 @@ import {
   OptionStoreDescriptors,
 } from '@/common/options/optionStores'
 import { silentLogger } from '@/tests/silentLogger'
+import { encodeEnvelope } from '../OptionsService/storeLayout'
 import { UPGRADE_RUN_KEY, type UpgradeRun } from '../upgrade/upgradeRun'
 import { ReadinessService } from './ReadinessService'
 
 /**
  * Ready once every store is at its latest version, whichever context wrote it.
- * Failed while this build has a failed or cut-off run recorded, and pending
- * otherwise. Waiters wait through a failure and resolve after a successful
- * retry. Ready ends all storage listening, and a failed read is retried.
+ * Failed while this build has a failed or cut-off run recorded, or while a
+ * store split over several items does not add up, and pending otherwise.
+ * Waiters wait through a failure and resolve after a successful retry. Ready
+ * ends all storage listening, and a failed read is retried.
  */
 
 const alpha: OptionStoreDescriptor = {
@@ -105,6 +107,56 @@ describe('ReadinessService', () => {
     expect(await settledState(readiness)).toEqual({
       status: 'failed',
       message: 'QUOTA_BYTES quota exceeded',
+      stores: [],
+    })
+  })
+
+  it('reports which stores the failed run could not upgrade and why', async () => {
+    await storeAt(alpha, 1)
+    await recordRun({
+      ...failedRun,
+      stores: [
+        { store: 'alpha', problem: 'options.storeFull' },
+        { store: 'beta', problem: 'noSuchProblem' },
+        'garbage',
+      ] as never,
+    })
+    const readiness = createReadiness([alpha])
+
+    expect(await settledState(readiness)).toMatchObject({
+      status: 'failed',
+      stores: [
+        { store: 'alpha', problem: 'options.storeFull' },
+        { store: 'beta', problem: 'unknown' },
+      ],
+    })
+  })
+
+  it('reports a split store whose chunks do not add up as incomplete, and ready once they do', async () => {
+    const split: OptionStoreDescriptor = {
+      key: 'split',
+      area: 'sync',
+      latestVersion: 2,
+      parts: ['list'],
+    }
+    const items = encodeEnvelope(
+      split,
+      { data: { list: 'x'.repeat(9000) }, version: 2 },
+      {}
+    )
+    const lastChunk = 'split.list.1'
+    await fakeBrowser.storage.sync.set({ ...items, [lastChunk]: 'torn' })
+    const readiness = createReadiness([split])
+
+    expect(await settledState(readiness)).toMatchObject({
+      status: 'failed',
+      stores: [{ store: 'split', problem: 'options.incomplete' }],
+    })
+
+    await fakeBrowser.storage.sync.set({ [lastChunk]: items[lastChunk] })
+
+    await vi.waitFor(() => {
+      expect(readiness.getState()).toEqual({ status: 'ready' })
     })
   })
 
