@@ -1,6 +1,7 @@
 // What an option store held when the user chose to reset it. Copies are kept
-// in storage.local under OPTIONS_RECOVERY_KEY, oldest first, and never
-// replaced, so a reset that runs twice keeps the data from before the first.
+// in storage.local under OPTIONS_RECOVERY_KEY, oldest first. A new copy never
+// replaces an earlier one, so a reset that runs twice keeps the data from
+// before the first, until MAX_RECOVERY_COPIES newer copies push it out.
 export interface OptionsRecoveryCopy {
   id: string
   store: string

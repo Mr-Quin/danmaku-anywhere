@@ -420,15 +420,17 @@ describe('OptionsUpgradeService', () => {
     await expect(readiness.waitUntilReady()).resolves.toBeUndefined()
   })
 
-  it('refuses to reset a store without a saved recovery copy', async () => {
+  it('refuses to reset a store without a saved recovery copy of it', async () => {
+    await storeCorrupt('alpha')
     await storeCorrupt('beta')
-    const { upgrader } = setup(['beta'])
+    const { upgrader } = setup(['alpha', 'beta'])
     await expect(upgrader.upgrade()).rejects.toThrow()
-    const other = await upgrader.saveRecoveryCopy('beta')
+    const betaCopy = await upgrader.saveRecoveryCopy('beta')
 
     await expect(upgrader.resetStore('beta', 'not-saved')).rejects.toThrow()
-    await expect(upgrader.resetStore('alpha', other.id)).rejects.toThrow()
+    await expect(upgrader.resetStore('alpha', betaCopy.id)).rejects.toThrow()
 
+    expect(await readRaw('alpha')).toEqual(CORRUPT)
     expect(await readRaw('beta')).toEqual(CORRUPT)
   })
 

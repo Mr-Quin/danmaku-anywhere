@@ -100,7 +100,9 @@ export class MountConfigService implements IStoreService {
       .version(5, {
         // Add automation mode, either manual, xpath, or ai
         upgrade: (data, context) =>
-          migrateMountConfigV4V5(data, context.stores),
+          upgradeConfigs(data, (config) =>
+            migrateMountConfigV4V5(config, context.stores)
+          ),
       })
       .version(LATEST_MOUNT_CONFIG_VERSION, {
         // add ai config

@@ -73,6 +73,21 @@ describe('mountConfig upgrade chain (v1 to latest)', () => {
     expect(b.name).toBe('plex')
   })
 
+  it('drops an entry that is not an object from a store at v4', () => {
+    const config = {
+      id: 'a',
+      patterns: ['https://a.example.com/*'],
+      mediaQuery: 'video',
+      name: 'A',
+      enabled: true,
+    }
+
+    const result = upgrade([config, null, 'junk'], 4)
+
+    expect(result.data).toHaveLength(1)
+    expect(result.data[0]).toMatchObject({ name: 'A', mode: 'manual' })
+  })
+
   it('throws when the stored value is not a list, so the upgrade keeps it', () => {
     expect(() => upgrade(null, 1)).toThrow()
     expect(() => upgrade('corrupted', 1)).toThrow()
@@ -101,9 +116,9 @@ describe('migrateMountConfigV4V5', () => {
       integration: 'policy-1',
     }
 
-    expect(migrateMountConfigV4V5([config], {})).toEqual([config])
-    expect(migrateMountConfigV4V5([config], {})).toEqual(
-      migrateMountConfigV4V5([config], { xpathPolicy: [] })
+    expect(migrateMountConfigV4V5(config, {})).toEqual(config)
+    expect(migrateMountConfigV4V5(config, {})).toEqual(
+      migrateMountConfigV4V5(config, { xpathPolicy: [] })
     )
   })
 })

@@ -29,7 +29,8 @@ export type ReadinessState =
       status: 'failed'
       message: string
       stores: StoreFailure[]
-      // Upgrade attempts that failed in a row, 0 when none was recorded
+      // Upgrade attempts of this build that failed in a row, 0 when none was
+      // recorded
       attempts: number
     }
 
