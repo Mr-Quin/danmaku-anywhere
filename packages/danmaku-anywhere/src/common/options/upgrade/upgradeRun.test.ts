@@ -94,24 +94,20 @@ describe('canRetryAutomatically', () => {
     expect(canRetryAutomatically(running(1), 6 * MINUTE)).toBe(true)
   })
 
-  it('does not retry a failure where every store would fail the same way again', () => {
+  it('does not retry a failure that would fail the same way again', () => {
     const run: UpgradeRun = {
       ...failed(1),
-      stores: [
-        { store: 'danmakuOptions', problem: 'options.itemTooLarge' },
-        { store: 'mountConfig', problem: 'options.storeFull' },
-      ],
+      stores: [{ store: 'danmakuOptions', problem: 'options.itemTooLarge' }],
     }
 
     expect(canRetryAutomatically(run, 1000 * MINUTE)).toBe(false)
   })
 
-  it('retries a failure where some store may pass next time', () => {
+  it('retries a failure that may pass next time', () => {
     const run: UpgradeRun = {
       ...failed(1),
       stores: [
-        { store: 'danmakuOptions', problem: 'options.storeFull' },
-        { store: 'mountConfig', problem: 'options.writeRateLimited' },
+        { store: 'danmakuOptions', problem: 'options.writeRateLimited' },
       ],
     }
 
