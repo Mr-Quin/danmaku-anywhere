@@ -122,6 +122,22 @@ describe('upgradeStores', () => {
     ])
   })
 
+  it('reports a store whose migration throws as a migration failure and keeps it', async () => {
+    await storeAt('alpha', 'a', 1)
+    const throwing = createStore('alpha', () => {
+      throw new Error('bad data')
+    })
+
+    const error = await upgradeStores([throwing], silentLogger).catch(
+      (reason: unknown) => reason
+    )
+
+    expect(storeFailuresOf(error)).toEqual([
+      { store: 'alpha', problem: 'options.migration' },
+    ])
+    expect(await readRaw('alpha')).toEqual({ data: { value: 'a' }, version: 1 })
+  })
+
   it('hands a reader that failed the original data of a later store on retry', async () => {
     await storeAt('reader', 'r', 1)
     await storeAt('read', 'original', 1)

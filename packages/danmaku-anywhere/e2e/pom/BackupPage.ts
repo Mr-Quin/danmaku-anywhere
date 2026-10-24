@@ -30,6 +30,16 @@ export class BackupPage {
     await this.dialog.confirm()
   }
 
+  async exportRecoveryCopy(store: string): Promise<Download> {
+    const button = this.page.locator(
+      `[data-testid="recovery-copy-download"][data-store="${store}"]`
+    )
+    await waitForSlideIn(button.first())
+    const download = this.page.waitForEvent('download')
+    await button.first().click()
+    return download
+  }
+
   async exportToFile(): Promise<Download> {
     const button = this.page.locator(SELECTORS.exportButton)
     await waitForSlideIn(button)

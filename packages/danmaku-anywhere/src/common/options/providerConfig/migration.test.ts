@@ -580,20 +580,20 @@ describe('migrateProviderConfigsToFlat', () => {
     expect(flat[0].configValues).toEqual({})
   })
 
-  it('returns empty array if data is not an array', () => {
-    expect(
-      migrateProviderConfigsToFlat(
-        null as unknown as never[] // lint-specs-allow-cast: deliberately invalid input to exercise the catch/fallback path
+  it('throws when the stored value is not a list', () => {
+    expect(() => {
+      return migrateProviderConfigsToFlat(
+        null as unknown as never[] // lint-specs-allow-cast: deliberately invalid input
       )
-    ).toEqual([])
-    expect(
-      migrateProviderConfigsToFlat(
-        { foo: 'bar' } as unknown as never[] // lint-specs-allow-cast: deliberately invalid input to exercise the catch/fallback path
+    }).toThrow()
+    expect(() => {
+      return migrateProviderConfigsToFlat(
+        { foo: 'bar' } as unknown as never[] // lint-specs-allow-cast: deliberately invalid input
       )
-    ).toEqual([])
+    }).toThrow()
   })
 
-  it('drops corrupted records with unknown type', () => {
+  it('throws on a record with a type v1.5.0 never wrote', () => {
     const legacy = [
       {
         id: 'builtin:dandanplay',
@@ -604,7 +604,6 @@ describe('migrateProviderConfigsToFlat', () => {
         isBuiltIn: true,
         options: { chConvert: DanDanChConvert.None },
       },
-      // corrupted record with no manifestId and unknown type
       {
         id: 'garbage',
         type: 'SomethingUnknown',
@@ -613,11 +612,23 @@ describe('migrateProviderConfigsToFlat', () => {
       },
     ]
 
-    const flat = migrateProviderConfigsToFlat(legacy)
+    expect(() => migrateProviderConfigsToFlat(legacy)).toThrow(
+      /SomethingUnknown/
+    )
+  })
 
-    // Corrupted record dropped, valid record preserved
-    expect(flat).toHaveLength(1)
-    expect(flat[0].id).toBe('builtin:dandanplay')
+  it('throws on an already-flat record that fails the schema', () => {
+    const flat = [
+      {
+        id: 'custom-1',
+        manifestId: 'dandanplay',
+        name: '',
+        enabled: true,
+        configValues: {},
+      },
+    ]
+
+    expect(() => migrateProviderConfigsToFlat(flat)).toThrow(/schema/)
   })
 })
 

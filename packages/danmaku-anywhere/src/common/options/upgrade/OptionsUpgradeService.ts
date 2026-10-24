@@ -3,6 +3,7 @@ import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtStorageService } from '@/common/storage/ExtStorageService'
 import { getStorageArea } from '@/common/storage/getStorageArea'
 import { tryCatch } from '@/common/utils/tryCatch'
+import { getRandomUUID } from '@/common/utils/utils'
 import { type IStoreService, UpgradableOptionStores } from '../IStoreService'
 import {
   type OptionStoreDescriptor,
@@ -11,6 +12,11 @@ import {
 import { readOptionStoresStatus } from '../ReadinessService/optionStoresStatus'
 import { upgradeStores } from '../upgradeStores'
 import type { OptionsUpgrader } from './OptionsUpgrader'
+import {
+  MAX_RECOVERY_COPIES,
+  OPTIONS_RECOVERY_KEY,
+  type OptionsRecoveryCopy,
+} from './recoveryCopy'
 import { storeFailuresOf } from './upgradeFailure'
 import {
   canRetryAutomatically,
@@ -28,6 +34,10 @@ export class OptionsUpgradeService implements OptionsUpgrader {
   private readonly logger: ILogger
   private readonly runRecord = new ExtStorageService<UpgradeRun>(
     UPGRADE_RUN_KEY,
+    { storageType: 'local' }
+  )
+  private readonly recovery = new ExtStorageService<OptionsRecoveryCopy[]>(
+    OPTIONS_RECOVERY_KEY,
     { storageType: 'local' }
   )
   private running?: Promise<void>
@@ -70,6 +80,71 @@ export class OptionsUpgradeService implements OptionsUpgrader {
 
   upgrade(): Promise<void> {
     return this.start(false)
+  }
+
+  saveRecoveryCopy(key: string): Promise<OptionsRecoveryCopy> {
+    const service = this.findStore(key)
+    return navigator.locks.request('options-upgrade', () => {
+      return this.saveCopy(service)
+    })
+  }
+
+  // Refuses unless the copy saved for this reset is still kept, so a store
+  // is never reset without its data being saved first.
+  async resetStore(key: string, copyId: string): Promise<void> {
+    const service = this.findStore(key)
+    await navigator.locks.request('options-upgrade', async () => {
+      const copies = (await this.recovery.read()) ?? []
+      const saved = copies.some((copy) => {
+        return copy.id === copyId && copy.store === key
+      })
+      if (!saved) {
+        throw new Error(`No recovery copy ${copyId} of ${key} to reset from`)
+      }
+      await this.reset(service)
+    })
+    const [, error] = await tryCatch(() => this.upgrade())
+    if (error) {
+      this.logger.debug('The upgrade still fails after the reset', error)
+    }
+  }
+
+  private findStore(key: string): IStoreService {
+    const service = this.stores.find((store) => store.options.key === key)
+    if (!service) {
+      throw new Error(`Unknown option store: ${key}`)
+    }
+    return service
+  }
+
+  // A store split over items that do not add up cannot be read as one
+  // envelope, so its raw items are kept instead.
+  private async saveCopy(service: IStoreService): Promise<OptionsRecoveryCopy> {
+    const { options } = service
+    const savedAt = Date.now()
+    const copy: OptionsRecoveryCopy = {
+      id: `${options.key}-${savedAt}-${getRandomUUID()}`,
+      store: options.key,
+      savedAt,
+    }
+    const [envelope, readError] = await tryCatch(() => {
+      return options.readStoredUnblocked()
+    })
+    if (readError) {
+      copy.items = await options.readRawUnblocked()
+    } else {
+      copy.envelope = envelope
+    }
+    const copies = (await this.recovery.read()) ?? []
+    await this.recovery.set([...copies, copy].slice(-MAX_RECOVERY_COPIES))
+    return copy
+  }
+
+  private async reset(service: IStoreService): Promise<void> {
+    const { options } = service
+    this.logger.debug(`Resetting ${options.key}`)
+    await options.resetUnblocked()
+    await service.afterReset?.()
   }
 
   private start(automatic: boolean): Promise<void> {

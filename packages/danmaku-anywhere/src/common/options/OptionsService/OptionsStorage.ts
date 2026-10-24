@@ -45,6 +45,14 @@ export class OptionsStorage<T> {
     return decodeEnvelope(this.layout, items) as Options<T> | undefined
   }
 
+  // The store's items exactly as stored, without the ones it does not hold
+  async readRaw(): Promise<Record<string, unknown>> {
+    const items = await this.readItems()
+    return Object.fromEntries(
+      Object.entries(items).filter(([, value]) => value !== undefined)
+    )
+  }
+
   async write(envelope: Options<T>): Promise<void> {
     const area = getStorageArea(this.location.area)
     const existing = this.splittable ? await this.readItems() : {}

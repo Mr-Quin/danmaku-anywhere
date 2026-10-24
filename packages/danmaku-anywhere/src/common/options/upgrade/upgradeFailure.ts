@@ -18,6 +18,7 @@ export interface StoreFailure {
 const REPEATING_PROBLEMS: readonly UpgradeProblem[] = [
   'options.itemTooLarge',
   'options.storeFull',
+  'options.migration',
 ]
 
 // The error of each store goes in the cause, for the log.
@@ -36,6 +37,9 @@ export function upgradeFailedError(
 }
 
 export function toStoreFailure(store: string, error: unknown): StoreFailure {
+  if (error instanceof AppError && error.code === 'options.migration') {
+    return { store, problem: 'options.migration' }
+  }
   return { store, problem: storageProblemOf(error) ?? 'unknown' }
 }
 

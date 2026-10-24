@@ -101,6 +101,7 @@
     "noUrlParser": "No source can read this link.",
     "optionsIncomplete": "{{name}}: The stored copy is incomplete, possibly because it is still syncing from another device. Try again in a moment.",
     "optionsItemTooLarge": "{{name}}: It is too large for the browser's synced storage. {{advice}}",
+    "optionsMigration": "{{name}}: The saved data is damaged or in a shape this version cannot convert.",
     "optionsStoreFull": "{{name}}: The browser's storage for this extension's settings is full. Remove some sources, configs or block rules to make room.",
     "optionsUpgradeFailed": "These settings could not be updated for this version and have been kept as they were: {{stores}}.",
     "optionsWriteRateLimited": "{{name}}: It was saved too many times in a short while. Try again in a minute.",
@@ -618,6 +619,8 @@
       "latestRevision": "Latest",
       "localBackup": "Local Backup",
       "noCloudBackups": "No cloud backups yet. Create one to get started.",
+      "recoveryCopies": "Recovery copies",
+      "recoveryCopySaved": "Saved before a reset on {{date}}",
       "restoreConfirmDesc": "Restoring this backup will overwrite your current settings. Are you sure you want to proceed?",
       "restoreConfirmTitle": "Restore Settings?",
       "store": {
@@ -757,6 +760,13 @@
   "optionsUpgrade": {
     "failed": "Your settings could not be updated for this version. They have been kept as they were.",
     "openToRetry": "Danmaku Anywhere could not update its settings. Open it to try again.",
+    "reset": {
+      "button": "Reset",
+      "confirm": "Reset",
+      "description": "What is saved in {{name}} now is kept as a recovery copy and downloaded as a file. Then {{name}} goes back to the defaults.",
+      "failed": "The reset did not finish. Try again.",
+      "title": "Reset {{name}}?"
+    },
     "storeFailed": "{{name}}: It could not be updated."
   },
   "providers": {

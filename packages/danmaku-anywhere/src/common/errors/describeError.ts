@@ -336,6 +336,13 @@ const MESSAGES: MessageTable = {
       { name: localizedStoreName(store) }
     )
   },
+  'options.migration': ({ store }) => {
+    return i18n.t(
+      'appError.optionsMigration',
+      '{{name}}: The saved data is damaged or in a shape this version cannot convert.',
+      { name: localizedStoreName(store) }
+    )
+  },
   'options.upgradeFailed': ({ stores }) => {
     return i18n.t(
       'appError.optionsUpgradeFailed',

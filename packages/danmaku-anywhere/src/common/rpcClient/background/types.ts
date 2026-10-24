@@ -73,6 +73,7 @@ import type {
   ProviderConfigDraft,
   ProviderConfigEdit,
 } from '@/common/options/providerConfig/schema'
+import type { OptionsRecoveryCopy } from '@/common/options/upgrade/recoveryCopy'
 import type {
   SourceCapabilityAnswer,
   UrlSourceAnswer,
@@ -362,6 +363,8 @@ export type BackgroundMethods = {
   dataWipeDanmaku: RPCDef<{ includeCustomEpisodes: boolean }, void>
   optionsEnsureUpgraded: RPCDef<void, void>
   optionsUpgrade: RPCDef<void, void>
+  optionsSaveRecoveryCopy: RPCDef<string, OptionsRecoveryCopy>
+  optionsResetStore: RPCDef<{ store: string; copyId: string }, void>
   bookmarkAdd: RPCDef<BookmarkAddInput, Bookmark>
   bookmarkDelete: RPCDef<BookmarkDeleteInput, void>
   bookmarkDeleteBySeason: RPCDef<BookmarkDeleteBySeasonInput, void>

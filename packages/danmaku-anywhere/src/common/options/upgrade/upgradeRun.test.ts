@@ -11,12 +11,12 @@ import {
  * canRetryAutomatically lets a startup or wake retry a failed upgrade after a
  * delay that grows four times per attempt, starting at one minute, and stops
  * after five attempts. A failure that every attempt would repeat, a full
- * storage area or an item over the size limit, is not retried at all. A run
- * still marked running five minutes after it started was cut off: it counts as
- * a failed attempt, so a worker that keeps dying mid-run ends on the failure
- * screen and cannot retry forever. Only this build's attempts count: a record
- * left by an earlier build allows a retry at once, and startedRun counts from
- * one again.
+ * storage area, an item over the size limit or data a migration cannot
+ * handle, is not retried at all. A run still marked running five minutes
+ * after it started was cut off: it counts as a failed attempt, so a worker
+ * that keeps dying mid-run ends on the failure screen and cannot retry
+ * forever. Only this build's attempts count: a record left by an earlier
+ * build allows a retry at once, and startedRun counts from one again.
  */
 
 const MINUTE = 60_000
@@ -94,10 +94,14 @@ describe('canRetryAutomatically', () => {
     expect(canRetryAutomatically(running(1), 6 * MINUTE)).toBe(true)
   })
 
-  it('does not retry a failure that would fail the same way again', () => {
+  it.each([
+    'options.itemTooLarge',
+    'options.storeFull',
+    'options.migration',
+  ] as const)('does not retry a failure that would fail the same way again (%s)', (problem) => {
     const run: UpgradeRun = {
       ...failed(1),
-      stores: [{ store: 'danmakuOptions', problem: 'options.itemTooLarge' }],
+      stores: [{ store: 'danmakuOptions', problem }],
     }
 
     expect(canRetryAutomatically(run, 1000 * MINUTE)).toBe(false)

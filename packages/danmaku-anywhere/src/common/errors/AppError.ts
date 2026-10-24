@@ -65,6 +65,7 @@ export type OptionsStorageProblem = z.infer<typeof zOptionsStorageProblem>
 
 export const zUpgradeProblem = z.union([
   zOptionsStorageProblem,
+  z.literal('options.migration'),
   z.literal('unknown'),
 ])
 
@@ -149,6 +150,7 @@ const PARAMS = {
   'options.storeFull': zStore,
   'options.writeRateLimited': zStore,
   'options.incomplete': zStore,
+  'options.migration': zStore,
   'options.upgradeFailed': z.object({
     stores: z.array(z.object({ store: z.string(), problem: zUpgradeProblem })),
   }),

@@ -13,9 +13,10 @@ import { MountConfigService } from './service'
 
 /**
  * Drives the real mountConfig upgrade chain (defined inline in
- * MountConfigService) against corrupted/non-array stored shapes, to prove
- * that one bad record no longer costs the user every mount config. The v4 to
- * v5 step treats an absent integration policy store as an empty one.
+ * MountConfigService) against corrupted stored shapes. An entry that is not an
+ * object is dropped, while a stored value that is not a list throws so the
+ * upgrade fails and keeps it. The v4 to v5 step treats an absent integration
+ * policy store as an empty one.
  */
 
 // Resolving the real MountConfigService registers its .version(n, ...) upgrade
@@ -43,7 +44,7 @@ function upgrade(data: PrevOptions, fromVersion: number) {
 }
 
 describe('mountConfig upgrade chain (v1 to latest)', () => {
-  it('migrates valid configs while dropping a corrupted record instead of throwing', () => {
+  it('migrates valid configs and drops an entry that is not an object', () => {
     const validA = {
       patterns: ['https://a.example.com/*'],
       mediaQuery: 'video',
@@ -72,14 +73,10 @@ describe('mountConfig upgrade chain (v1 to latest)', () => {
     expect(b.name).toBe('plex')
   })
 
-  it('does not throw and yields an empty list when the stored value is not an array', () => {
-    expect(() => upgrade(null, 1)).not.toThrow()
-    expect(() => upgrade('corrupted', 1)).not.toThrow()
-    expect(() => upgrade({ not: 'an array' }, 1)).not.toThrow()
-
-    expect(upgrade(null, 1).data).toEqual([])
-    expect(upgrade('corrupted', 1).data).toEqual([])
-    expect(upgrade({ not: 'an array' }, 1).data).toEqual([])
+  it('throws when the stored value is not a list, so the upgrade keeps it', () => {
+    expect(() => upgrade(null, 1)).toThrow()
+    expect(() => upgrade('corrupted', 1)).toThrow()
+    expect(() => upgrade({ not: 'an array' }, 1)).toThrow()
   })
 
   it('preserves a fully valid list end to end', () => {

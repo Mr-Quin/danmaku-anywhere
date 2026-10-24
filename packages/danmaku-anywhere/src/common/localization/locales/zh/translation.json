@@ -101,6 +101,7 @@
     "noUrlParser": "没有弹幕源能解析此链接。",
     "optionsIncomplete": "{{name}}：已存储的副本不完整，可能仍在从其他设备同步。请稍后再试。",
     "optionsItemTooLarge": "{{name}}：内容太大，无法放入浏览器的同步存储。{{advice}}",
+    "optionsMigration": "{{name}}：已保存的数据已损坏，或其格式无法被此版本转换。",
     "optionsStoreFull": "{{name}}：浏览器为本扩展设置提供的存储空间已满。请删除部分弹幕源、配置或屏蔽规则以腾出空间。",
     "optionsUpgradeFailed": "以下设置未能更新到此版本，已按原样保留：{{stores}}。",
     "optionsWriteRateLimited": "{{name}}：短时间内保存次数过多。请一分钟后再试。",
@@ -596,6 +597,8 @@
       "latestRevision": "最新",
       "localBackup": "本地备份",
       "noCloudBackups": "暂无云备份。创建一个开始使用。",
+      "recoveryCopies": "恢复副本",
+      "recoveryCopySaved": "{{date}} 重置前保存",
       "restoreConfirmDesc": "恢复此备份将覆盖你当前的设置。确定要继续吗？",
       "restoreConfirmTitle": "恢复设置？",
       "store": {
@@ -731,6 +734,13 @@
   "optionsUpgrade": {
     "failed": "你的设置未能更新到此版本，原有设置已保留。",
     "openToRetry": "弹幕任何地方未能更新设置，点击打开后重试。",
+    "reset": {
+      "button": "重置",
+      "confirm": "重置",
+      "description": "{{name}}当前保存的内容会先保留为恢复副本并下载为文件，然后{{name}}将恢复为默认值。",
+      "failed": "重置未完成，请重试。",
+      "title": "重置{{name}}？"
+    },
     "storeFailed": "{{name}}：未能更新。"
   },
   "providers": {

@@ -82,10 +82,11 @@ const PARAMS: { [C in keyof AppErrorParams]: AppErrorParams[C] } = {
   'options.storeFull': { store: 'danmakuOptions' },
   'options.writeRateLimited': { store: 'danmakuOptions' },
   'options.incomplete': { store: 'danmakuOptions' },
+  'options.migration': { store: 'providerConfig' },
   'options.upgradeFailed': {
     stores: [
       { store: 'danmakuOptions', problem: 'options.itemTooLarge' },
-      { store: 'mountConfig', problem: 'options.storeFull' },
+      { store: 'providerConfig', problem: 'options.migration' },
     ],
   },
   'options.outdated': { store: 'providerConfig', version: 5, expected: 6 },

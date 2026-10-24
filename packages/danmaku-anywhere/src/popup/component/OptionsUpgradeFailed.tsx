@@ -1,6 +1,8 @@
-import { Box, Button, Typography } from '@mui/material'
+import { Box, Button, Stack, Typography } from '@mui/material'
 import { useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { useDialog } from '@/common/components/Dialog/dialogStore'
+import { GlobalDialog } from '@/common/components/Dialog/GlobalDialog'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { describeCode } from '@/common/errors/describeError'
 import { useInjectService } from '@/common/hooks/useInjectService'
@@ -11,7 +13,23 @@ import {
   type OptionsUpgrader,
   OptionsUpgraderSymbol,
 } from '@/common/options/upgrade/OptionsUpgrader'
-import type { StoreFailure } from '@/common/options/upgrade/upgradeFailure'
+import type {
+  StoreFailure,
+  UpgradeProblem,
+} from '@/common/options/upgrade/upgradeFailure'
+import { downloadRecoveryCopy } from './downloadRecoveryCopy'
+
+// Failures the user has no other way out of. One that can pass on its own
+// gets Retry only.
+const RESETTABLE_PROBLEMS: readonly UpgradeProblem[] = [
+  'options.migration',
+  'options.itemTooLarge',
+  'options.storeFull',
+]
+
+function canReset(problem: UpgradeProblem): boolean {
+  return RESETTABLE_PROBLEMS.includes(problem)
+}
 
 function describeFailure({ store, problem }: StoreFailure): string {
   if (problem === 'unknown') {
@@ -28,18 +46,43 @@ function describeFailure({ store, problem }: StoreFailure): string {
 
 export function OptionsUpgradeFailed() {
   const { t } = useTranslation()
+  const dialog = useDialog()
   const readiness = useOptionsReadiness()
   const failures = readiness.status === 'failed' ? readiness.stores : []
   const upgrader = useInjectService<OptionsUpgrader>(OptionsUpgraderSymbol)
   const retry = useMutation({
     mutationFn: () => upgrader.upgrade(),
   })
+  const reset = useMutation({
+    mutationFn: async (store: string) => {
+      const copy = await upgrader.saveRecoveryCopy(store)
+      await downloadRecoveryCopy(copy)
+      await upgrader.resetStore(store, copy.id)
+    },
+  })
+
+  function confirmReset(store: string) {
+    const name = localizedStoreName(store)
+    dialog.confirm({
+      title: t('optionsUpgrade.reset.title', 'Reset {{name}}?', { name }),
+      content: t(
+        'optionsUpgrade.reset.description',
+        'What is saved in {{name}} now is kept as a recovery copy and downloaded as a file. Then {{name}} goes back to the defaults.',
+        { name }
+      ),
+      confirmText: t('optionsUpgrade.reset.confirm', 'Reset'),
+      onConfirm: async () => {
+        await reset.mutateAsync(store)
+      },
+    })
+  }
 
   return (
     <Box
       data-testid="options-upgrade-failed"
       sx={{ height: 1, px: 4, textAlign: 'center' }}
     >
+      <GlobalDialog />
       <ErrorMessage
         message={t(
           'optionsUpgrade.failed',
@@ -48,22 +91,44 @@ export function OptionsUpgradeFailed() {
         action={
           <>
             {failures.length > 0 && (
-              <Box
-                component="ul"
-                sx={{ m: 0, mt: 1, pl: 2, textAlign: 'left' }}
-              >
+              <Stack component="ul" spacing={1} sx={{ m: 0, mt: 1, p: 0 }}>
                 {failures.map((failure) => (
-                  <Typography
+                  <Stack
                     component="li"
-                    variant="body2"
+                    direction="row"
+                    spacing={1}
                     key={failure.store}
                     data-testid="options-upgrade-failed-store"
                     data-store={failure.store}
+                    sx={{ alignItems: 'center', listStyle: 'none' }}
                   >
-                    {describeFailure(failure)}
-                  </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{ flex: 1, textAlign: 'left' }}
+                    >
+                      {describeFailure(failure)}
+                    </Typography>
+                    {canReset(failure.problem) && (
+                      <Button
+                        size="small"
+                        color="warning"
+                        disabled={reset.isPending}
+                        onClick={() => confirmReset(failure.store)}
+                      >
+                        {t('optionsUpgrade.reset.button', 'Reset')}
+                      </Button>
+                    )}
+                  </Stack>
                 ))}
-              </Box>
+              </Stack>
+            )}
+            {reset.isError && (
+              <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                {t(
+                  'optionsUpgrade.reset.failed',
+                  'The reset did not finish. Try again.'
+                )}
+              </Typography>
             )}
             <Button
               variant="contained"

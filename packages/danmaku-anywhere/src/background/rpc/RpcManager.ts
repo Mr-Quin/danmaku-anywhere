@@ -34,6 +34,7 @@ import type { EpisodeFetchBySeasonParams } from '@/common/danmaku/dto'
 import { type ILogger, LoggerSymbol } from '@/common/Logger'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'
 import { MountConfigService } from '@/common/options/mountConfig/service'
+import { providerConfigDescriptor } from '@/common/options/optionStores'
 import { ProviderConfigWriter } from '@/common/options/providerConfig/ProviderConfigWriter'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { OptionsUpgradeService } from '@/common/options/upgrade/OptionsUpgradeService'
@@ -453,6 +454,19 @@ export class RpcManager {
       },
       optionsUpgrade: async () => {
         return this.optionsUpgradeService.upgrade()
+      },
+      optionsSaveRecoveryCopy: async (key) => {
+        return this.optionsUpgradeService.saveRecoveryCopy(key)
+      },
+      optionsResetStore: async ({ store, copyId }) => {
+        await this.optionsUpgradeService.resetStore(store, copyId)
+        // Seeding waits until every store is upgraded, so it is not awaited:
+        // the reset may leave another store still failing.
+        if (store === providerConfigDescriptor.key) {
+          void this.providerService.seedDefaultProviders().catch((error) => {
+            this.logger.error('Failed to seed sources after a reset', error)
+          })
+        }
       },
       bookmarkGetAll: async () => {
         return this.bookmarkService.getAll()
