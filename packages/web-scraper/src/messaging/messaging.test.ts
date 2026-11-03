@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { setRequestHeaderRule } from './messaging.js'
+import { removeRequestHeaderRule, setRequestHeaderRule } from './messaging.js'
 
 const getSessionRules = vi.fn()
 const updateSessionRules = vi.fn()
@@ -103,6 +103,39 @@ describe('setRequestHeaderRule', () => {
       await setRequestHeaderRule(rule, 1)
 
       expect(rules.map((r) => r.condition.tabIds)).toEqual([[2], [1]])
+    })
+
+    it('returns the id of the rule it installed', async () => {
+      const ruleId = await setRequestHeaderRule(rule, 1)
+
+      expect(rules.map((r) => r.id)).toEqual([ruleId])
+    })
+
+    it('removes the rule it installed for the same tab', async () => {
+      const ruleId = await setRequestHeaderRule(rule, 1)
+
+      await removeRequestHeaderRule(ruleId, 1)
+
+      expect(rules).toHaveLength(0)
+    })
+
+    it('leaves a rule another tab installed in place', async () => {
+      const ruleId = await setRequestHeaderRule(rule, 1)
+
+      await removeRequestHeaderRule(ruleId, 2)
+
+      expect(rules).toHaveLength(1)
+    })
+
+    it('ignores an id whose rule was already replaced', async () => {
+      const firstId = await setRequestHeaderRule(rule, 1)
+      const secondId = await setRequestHeaderRule(rule, 1)
+      updateSessionRules.mockClear()
+
+      await removeRequestHeaderRule(firstId, 1)
+
+      expect(updateSessionRules).not.toHaveBeenCalled()
+      expect(rules.map((r) => r.id)).toEqual([secondId])
     })
 
     it('still installs rules after updateSessionRules rejects', async () => {

@@ -133,7 +133,8 @@ export const standaloneBackgroundHandlers: StandaloneRpcHandlers<BackgroundMetho
     genericVodSearch: () => [],
     genericFetchDanmakuForUrl: () =>
       null as unknown as BackgroundMethods['genericFetchDanmakuForUrl']['output'],
-    setHeaders: () => undefined,
+    setHeaders: () => 0,
+    removeHeaders: () => undefined,
     extractTitle: () => {
       return {
         isShow: true,

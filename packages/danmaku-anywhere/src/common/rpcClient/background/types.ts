@@ -284,7 +284,8 @@ export type BackgroundMethods = {
   kazumiGetChapters: RPCDef<KazumiChapterPayload, KazumiChapterResult[][]>
   genericVodSearch: RPCDef<GenericVodSearchData, CustomSeason[]>
   genericFetchDanmakuForUrl: RPCDef<MacCMSFetchData, CustomEpisode>
-  setHeaders: RPCDef<SetHeaderRule, void>
+  setHeaders: RPCDef<SetHeaderRule, number>
+  removeHeaders: RPCDef<{ ruleId: number }, void>
   extractTitle: RPCDef<
     {
       text: string

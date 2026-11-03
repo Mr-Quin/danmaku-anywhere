@@ -5,7 +5,7 @@ import { defineConfig } from 'astro/config'
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://danmaku.weeblify.app',
+  site: 'https://docs.danmaku.weeblify.app',
 
   integrations: [
     react(),
