@@ -25,6 +25,14 @@ export interface CacheOptions {
    * Custom cache key generator function. If not provided, uses default logic
    */
   getCacheKey?: (c: Context) => Promise<Request | null>
+  /**
+   * Minimum seconds between forced refreshes of one cache key. A request
+   * carrying no-cache, max-age=0 or no-store reaches the handler at most once
+   * per interval; inside the interval it is served from the cache like any
+   * other request, and its response is always stored. Unset lets every such
+   * request through.
+   */
+  minRefreshInterval?: number
 }
 
 interface RequestCacheControl {
@@ -59,6 +67,23 @@ const defaultGetCacheKey = async (c: Context, methods: string[]) => {
   return null
 }
 
+// Lives under a path no route serves, so a client cannot plant one by hand.
+function refreshMarkerKey(cacheKey: Request): Request {
+  const url = new URL(cacheKey.url)
+  url.pathname = `/__cache/refresh-floor${url.pathname}`
+  return new Request(url.toString())
+}
+
+// Miniflare treats a request's own no-cache as a miss on match(); the real
+// Cache API ignores it. Strip it so a floored request reads the same entry
+// in both.
+function readKeyFor(cacheKey: Request): Request {
+  const headers = new Headers(cacheKey.headers)
+  headers.delete('Cache-Control')
+  headers.delete('Pragma')
+  return new Request(cacheKey.url, { method: cacheKey.method, headers })
+}
+
 function parseCacheControl(header?: string): RequestCacheControl {
   if (!header) return {}
 
@@ -82,7 +107,12 @@ function parseCacheControl(header?: string): RequestCacheControl {
 }
 
 export const useCache = (options: CacheOptions = {}) => {
-  const { methods = ['GET'], maxAge, getCacheKey: customGetCacheKey } = options
+  const {
+    methods = ['GET'],
+    maxAge,
+    getCacheKey: customGetCacheKey,
+    minRefreshInterval,
+  } = options
 
   return factory.createMiddleware(async (c: Context, next) => {
     // Check if method should be cached
@@ -92,8 +122,9 @@ export const useCache = (options: CacheOptions = {}) => {
 
     const cacheControlHeader = c.req.header('Cache-Control')
     const directives = parseCacheControl(cacheControlHeader)
+    const forcedRefresh = Boolean(directives.noStore || directives.noCache)
 
-    if (directives.noStore) {
+    if (directives.noStore && minRefreshInterval === undefined) {
       return await next()
     }
 
@@ -105,13 +136,21 @@ export const useCache = (options: CacheOptions = {}) => {
       return await next()
     }
 
-    const noCache = directives.noCache
-
     const cache = caches.default
 
-    if (!noCache) {
-      // Attempt to read from cache unless no-cache is set
-      const cachedResponse = await cache.match(cacheKey)
+    let skipRead = directives.noCache
+    let markRefresh = false
+
+    if (forcedRefresh && minRefreshInterval !== undefined) {
+      const recentlyRefreshed = await cache.match(refreshMarkerKey(cacheKey))
+      skipRead = !recentlyRefreshed
+      markRefresh = !recentlyRefreshed
+    }
+
+    if (!skipRead) {
+      const cachedResponse = await cache.match(
+        forcedRefresh ? readKeyFor(cacheKey) : cacheKey
+      )
 
       if (cachedResponse) {
         const clientETag = c.req.header('If-None-Match')
@@ -137,6 +176,13 @@ export const useCache = (options: CacheOptions = {}) => {
     }
 
     await next()
+
+    if (markRefresh && minRefreshInterval !== undefined) {
+      const marker = new Response('1', {
+        headers: { 'Cache-Control': `max-age=${minRefreshInterval}` },
+      })
+      c.executionCtx.waitUntil(cache.put(refreshMarkerKey(cacheKey), marker))
+    }
 
     // Cache the response if it's successful
     const response = c.res
