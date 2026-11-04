@@ -26,19 +26,24 @@ export const commentsToXml = (comments: CommentEntity[]) => {
 
         const uid = rest[0] || '0'
 
+        const attributes: Record<string, string> = {
+          p: [
+            Number.parseInt(time, 10),
+            mode,
+            '25', // font size
+            color,
+            uid,
+            '0', // unknown, but needed for compatibility
+            '0', // unknown
+            '0', // unknown
+          ].join(','),
+        }
+        if (comment.s) {
+          attributes.s = comment.s
+        }
+
         return {
-          _attributes: {
-            p: [
-              Number.parseInt(time, 10),
-              mode,
-              '25', // font size
-              color,
-              uid,
-              '0', // unknown, but needed for compatibility
-              '0', // unknown
-              '0', // unknown
-            ].join(','),
-          },
+          _attributes: attributes,
           _text: comment.m,
         }
       }),
