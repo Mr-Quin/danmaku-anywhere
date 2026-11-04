@@ -26,7 +26,7 @@ export const commentsToXml = (comments: CommentEntity[]) => {
 
         const uid = rest[0] || '0'
 
-        const attributes: Record<string, string> = {
+        const attributes: { p: string; s?: string } = {
           p: [
             Number.parseInt(time, 10),
             mode,
