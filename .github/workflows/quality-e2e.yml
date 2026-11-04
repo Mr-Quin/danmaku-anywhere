@@ -20,7 +20,9 @@ permissions:
 
 jobs:
   e2e:
-    runs-on: ubuntu-latest
+    # ubuntu-latest is Ubuntu 26.04 now, which the Playwright in the lockfile
+    # cannot install Chromium on. Lift the pin once Playwright is 1.64 or later.
+    runs-on: ubuntu-24.04
     strategy:
       matrix:
         node-version: [26.x]
