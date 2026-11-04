@@ -11,8 +11,8 @@ import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { createTestContainer } from '@/tests/createTestContainer'
 import { silentLogger } from '@/tests/silentLogger'
 import {
-  MANIFEST_RUN_OPTIONS,
   ManifestProviderService,
+  manifestRunOptions,
 } from './ManifestProviderService'
 import { ManifestRegistry } from './ManifestRegistry'
 import {
@@ -27,10 +27,11 @@ import {
  * manifestId (built-in or catalog) resolves to a ManifestProviderService
  * whose provider tag is derived from the manifestId. Custom DanDanPlay servers
  * share the `dandanplay` manifest and thread their baseUrl/auth through
- * configValues; there is no DDP-compat special case.
+ * configValues; there is no DDP-compat special case. A config's
+ * `allowLocalOrigins` is the only thing that lifts the private-host block.
  */
 
-const RUN_OPTS = MANIFEST_RUN_OPTIONS
+const RUN_OPTS = manifestRunOptions()
 
 const mockRunner = {
   runSearch: vi.fn(async () => []),
@@ -146,6 +147,23 @@ describe('ProviderFactory dispatch', () => {
         auth: { enabled: true, headers: [{ key: 'X-A', value: '1' }] },
       },
       RUN_OPTS
+    )
+  })
+
+  it('lifts the private-host block only for a config that allows local origins', async () => {
+    const factory = buildFactory()
+    const lan = customDdp({ baseUrl: 'http://192.168.1.10:8080' })
+
+    await factory({ ...lan, allowLocalOrigins: true }).search({ keyword: 'x' })
+    expect(mockRunner.runSearch).toHaveBeenLastCalledWith(
+      { q: 'x', baseUrl: 'http://192.168.1.10:8080' },
+      { allowPrivateHosts: true }
+    )
+
+    await factory(lan).search({ keyword: 'x' })
+    expect(mockRunner.runSearch).toHaveBeenLastCalledWith(
+      { q: 'x', baseUrl: 'http://192.168.1.10:8080' },
+      {}
     )
   })
 

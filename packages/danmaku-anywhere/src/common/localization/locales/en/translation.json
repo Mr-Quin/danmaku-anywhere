@@ -736,6 +736,10 @@
     },
     "editor": {
       "addItem": "Add",
+      "allowLocalOrigins": {
+        "helper": "Lets this source reach private and loopback addresses, such as a self-hosted server on your LAN. Keep it off unless the server address above is one.",
+        "label": "Allow local network servers"
+      },
       "builtinServerLocked": "The server of a built-in source cannot be changed. To use another server, add an instance instead.",
       "manifest": {
         "beta": "Beta",

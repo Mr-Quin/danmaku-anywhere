@@ -27,6 +27,7 @@ function createDanmakuProvider(
       manifestId: config.manifestId,
       providerConfigId: config.id,
       configValues: config.configValues,
+      allowLocalOrigins: config.allowLocalOrigins,
     },
     registry,
     logger

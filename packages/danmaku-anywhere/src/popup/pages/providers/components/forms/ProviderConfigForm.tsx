@@ -3,14 +3,23 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   CircularProgress,
+  FormControlLabel,
+  FormHelperText,
   Stack,
   TextField,
 } from '@mui/material'
-import { FormProvider, useForm } from 'react-hook-form'
+import {
+  Controller,
+  FormProvider,
+  useForm,
+  useFormContext,
+} from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { ErrorMessage } from '@/common/components/ErrorMessage'
 import { useToast } from '@/common/components/Toast/toastStore'
+import { isBuiltinConfig } from '@/common/options/providerConfig/displayName'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import { useManifestSpec } from '../../hooks/useManifestSpec'
 import { FormActions } from './FormActions'
@@ -27,6 +36,42 @@ import type { ProviderFormProps } from './types'
 interface FormValues {
   name: string
   config: Record<string, unknown>
+  allowLocalOrigins: boolean
+}
+
+function LocalOriginsToggle() {
+  const { t } = useTranslation()
+  const { control } = useFormContext<FormValues>()
+  return (
+    <Box sx={{ width: '100%' }}>
+      <FormControlLabel
+        control={
+          <Controller
+            name="allowLocalOrigins"
+            control={control}
+            render={({ field: { value, ref, ...field } }) => (
+              <Checkbox
+                {...field}
+                slotProps={{ input: { ref } }}
+                checked={value}
+              />
+            )}
+          />
+        }
+        label={t(
+          'providers.editor.allowLocalOrigins.label',
+          'Allow local network servers'
+        )}
+        sx={{ color: 'text.secondary' }}
+      />
+      <FormHelperText sx={{ mt: 0 }}>
+        {t(
+          'providers.editor.allowLocalOrigins.helper',
+          'Lets this source reach private and loopback addresses, such as a self-hosted server on your LAN. Keep it off unless the server address above is one.'
+        )}
+      </FormHelperText>
+    </Box>
+  )
 }
 
 interface ConfigFormProps extends ProviderFormProps {
@@ -44,11 +89,13 @@ function ConfigForm({
   const toast = useToast.use.toast()
 
   const hiddenKeys = hiddenConfigFields(provider)
+  const isBuiltin = isBuiltinConfig(provider)
 
   const methods = useForm<FormValues>({
     defaultValues: {
       name: provider.name,
       config: buildDefaultValues(configSchema, provider.configValues),
+      allowLocalOrigins: provider.allowLocalOrigins ?? false,
     },
   })
 
@@ -83,6 +130,7 @@ function ConfigForm({
       ...provider,
       name: data.name,
       configValues,
+      allowLocalOrigins: data.allowLocalOrigins,
     }
     await onSubmit(next)
   })
@@ -130,6 +178,7 @@ function ConfigForm({
             hiddenKeys={hiddenKeys}
           />
         ) : null}
+        {isBuiltin ? null : <LocalOriginsToggle />}
         <FormActions
           isEdit={isEdit}
           isSubmitting={isSubmitting}
