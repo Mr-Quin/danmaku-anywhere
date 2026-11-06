@@ -5,6 +5,7 @@ import type {
   ControllerSession,
   PlayerApplyCommand,
 } from '@/common/rpcClient/background/types'
+import { getRandomUUID } from '@/common/utils/utils'
 import { DanmakuMountError } from '@/content/controller/common/hooks/mountError'
 import { useStore } from '@/content/controller/store/store'
 
@@ -13,7 +14,7 @@ export type MountResult = { status: 'mounted' } | { status: 'cancelled' }
 // Players take this from the start and controllerReady handshakes and only
 // apply commands from the newest controller they have seen.
 export const CONTROLLER_SESSION: ControllerSession = {
-  id: crypto.randomUUID(),
+  id: getRandomUUID(),
   startedAt: Date.now(),
 }
 
