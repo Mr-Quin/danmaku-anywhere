@@ -517,6 +517,11 @@ export class DanmakuService {
       `Purged ${deleteCount} episodes not updated since ${new Date(threshold).toLocaleString()}`
     )
 
+    const seasonCount = await this.seasonService.deleteEmpty({
+      updatedBefore: threshold,
+    })
+    this.logger.log(`Purged ${seasonCount} seasons left without episodes`)
+
     return deleteCount
   }
 }

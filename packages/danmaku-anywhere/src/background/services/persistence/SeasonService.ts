@@ -119,23 +119,59 @@ export class SeasonService {
       this.db.seasonMap,
       this.db.bookmark,
       async () => {
-        await this.db.bookmark.where({ seasonId: id }).delete()
-        await this.db.episode
-          .where({
-            seasonId: id,
-          })
-          .delete()
-        await this.db.season.delete(id)
-        await this.db.seasonMap
-          .where('seasonIds')
-          .equals(id)
-          .modify((val) => {
-            const updated = SeasonMap.fromSnapshot(val).withoutSeasonId(id)
-            const snapshot = updated.toSnapshot()
-            val.seasonIds = snapshot.seasonIds
-            val.seasons = snapshot.seasons
-          })
+        await this.deleteRows(id)
       }
     )
+  }
+
+  /**
+   * Deletes seasons that have no episodes. Bookmarked seasons are kept because
+   * a bookmark lists episodes that were never downloaded. Seasons updated at
+   * or after `updatedBefore` are kept because an episode fetch may be in flight.
+   */
+  async deleteEmpty(options: { updatedBefore: number }): Promise<number> {
+    return this.db.transaction(
+      'rw',
+      this.db.episode,
+      this.db.season,
+      this.db.seasonMap,
+      this.db.bookmark,
+      async () => {
+        const keep = new Set<number>()
+        await this.db.episode.orderBy('seasonId').eachKey((key) => {
+          keep.add(key as number)
+        })
+        await this.db.bookmark.orderBy('seasonId').eachKey((key) => {
+          keep.add(key as number)
+        })
+
+        const emptyIds = await this.db.season
+          .filter(
+            (season) =>
+              !keep.has(season.id) && season.timeUpdated < options.updatedBefore
+          )
+          .primaryKeys()
+
+        for (const id of emptyIds) {
+          await this.deleteRows(id)
+        }
+        return emptyIds.length
+      }
+    )
+  }
+
+  private async deleteRows(id: number) {
+    await this.db.bookmark.where({ seasonId: id }).delete()
+    await this.db.episode.where({ seasonId: id }).delete()
+    await this.db.season.delete(id)
+    await this.db.seasonMap
+      .where('seasonIds')
+      .equals(id)
+      .modify((val) => {
+        const updated = SeasonMap.fromSnapshot(val).withoutSeasonId(id)
+        const snapshot = updated.toSnapshot()
+        val.seasonIds = snapshot.seasonIds
+        val.seasons = snapshot.seasons
+      })
   }
 }
