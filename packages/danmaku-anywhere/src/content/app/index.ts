@@ -175,6 +175,9 @@ window.addEventListener(
       case 'setRequestHeaders': {
         return wrapRpc(() => chromeRpcClient.setHeaders(request.data))
       }
+      case 'removeRequestHeaders': {
+        return wrapRpc(() => chromeRpcClient.removeHeaders(request.data))
+      }
     }
   }
 )
