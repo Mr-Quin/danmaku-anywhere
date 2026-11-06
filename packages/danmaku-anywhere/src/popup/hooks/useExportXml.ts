@@ -7,6 +7,7 @@ const xmlFormatter: ExportFormatter = {
     const formattedComments = episode.comments.map((comment) => ({
       p: comment.p,
       m: comment.m,
+      s: comment.s,
     }))
 
     const xmlContent = commentsToXml(formattedComments)

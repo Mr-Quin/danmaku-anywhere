@@ -36,6 +36,25 @@ describe('commentsToXml', () => {
     })
   })
 
+  it('writes the gradient as the s attribute and reads it back', async () => {
+    const comments = [
+      { p: '1.0,1,16777215', m: 'gradient', s: '16777215,255' },
+      { p: '2.0,1,16777215', m: 'plain' },
+    ]
+
+    const result = commentsToXml(comments)
+
+    expect(result).toContain(
+      '<d p="1,1,25,16777215,0,0,0,0" s="16777215,255">gradient</d>'
+    )
+    expect(result).toContain('<d p="2,1,25,16777215,0,0,0,0">plain</d>')
+
+    const parsed = await zGenericXml.parseAsync(result)
+
+    expect(parsed[0]).toMatchObject({ m: 'gradient', s: '16777215,255' })
+    expect(parsed[1].s).toBeUndefined()
+  })
+
   it('should escape XML special characters', () => {
     const comments = [
       {
