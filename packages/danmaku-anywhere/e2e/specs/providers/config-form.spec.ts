@@ -18,7 +18,9 @@ import { applyProfile } from '../../setup/profile'
  * A labelled enum (oneOf const/title) lists its titles, not the raw values.
  * The built-in DanDanPlay hides its server and credential fields behind a
  * note, which a built-in without a server field does not show, and its
- * editor fits the popup without a sideways scrollbar.
+ * editor fits the popup without a sideways scrollbar. A custom source gets a
+ * local-network toggle, off by default, that persists on the config; built-ins
+ * do not show it.
  * Finally, a provider whose manifest spec fails to load shows an error with a
  * retry action instead of a stripped name-only form that would drop its config.
  */
@@ -169,6 +171,7 @@ test('hides the server and credential fields of the built-in DanDanPlay', async 
     await expect(popup.providers.field(hidden)).toHaveCount(0)
   }
   await expect(page.getByText(/^(Headers|请求头)$/)).toHaveCount(0)
+  await expect(popup.providers.localOriginsToggle()).toHaveCount(0)
 })
 
 test('the built-in DanDanPlay editor does not scroll sideways', async ({
@@ -193,6 +196,37 @@ test('the built-in DanDanPlay editor does not scroll sideways', async ({
     }).length
   })
   expect(sidewaysScrollers).toBe(0)
+})
+
+test('a custom source opts into local network servers per config', async ({
+  context,
+  page,
+  extensionId,
+  da,
+}) => {
+  await applyProfile(context, da, {
+    customProviders: [
+      {
+        ...customDdp,
+        configValues: {
+          ...customDdp.configValues,
+          baseUrl: 'http://192.168.1.10:8080',
+        },
+      },
+    ],
+  })
+
+  const popup = await Popup.open(page, extensionId, '/providers')
+  await popup.providers.edit('My DDP Server')
+
+  await expect(popup.providers.localOriginsToggle()).not.toBeChecked()
+  await popup.providers.localOriginsToggle().check()
+  await popup.providers.save()
+
+  await popup.toast.expectSuccess(/Source updated|弹幕源已更新/)
+
+  const saved = await da.providerConfig.get('custom-ddp-form')
+  expect(saved?.allowLocalOrigins).toBe(true)
 })
 
 const labelledManifest = {
