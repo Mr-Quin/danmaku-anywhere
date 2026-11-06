@@ -15,6 +15,17 @@ const filePattern = /^src\/manifests\/[\w.-]+\.json$/
 
 const cacheMaxAge = 15 * 60
 
+// Anyone can send no-cache to these public routes, and each forced refresh is
+// an unmetered request to raw.githubusercontent.com. Cap them per resource so
+// a flood cannot trip GitHub's limits and take the catalog down for everyone.
+const minRefreshInterval = 60
+
+// biome-ignore lint/correctness/useHookAtTopLevel: a Hono middleware factory, not a React hook
+const manifestCache = useCache({
+  maxAge: cacheMaxAge,
+  minRefreshInterval,
+})
+
 manifestRouter.get(
   '/',
   describeRoute({
@@ -43,9 +54,7 @@ manifestRouter.get(
       },
     },
   }),
-  useCache({
-    maxAge: cacheMaxAge,
-  }),
+  manifestCache,
   async (c) => {
     return await fetch(`${dangoBaseUrl}/catalog.json`)
   }
@@ -72,9 +81,7 @@ manifestRouter.get(
       },
     },
   }),
-  useCache({
-    maxAge: cacheMaxAge,
-  }),
+  manifestCache,
   async (c) => {
     const { file } = c.req.valid('query')
     return await fetch(`${dangoBaseUrl}/${file}`)
