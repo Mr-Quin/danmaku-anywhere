@@ -10,12 +10,14 @@ AppImage. Windows also ships as an NSIS installer plus a portable executable
 (no in-app self-update on Windows, so its build produces no updater artifacts
 and needs no signing key). The portable file is the plain `release-manager.exe`
 from the build renamed; it uses the same `~/.da-release-manager` data dir as
-the installed app and, unlike the installer, does not bootstrap WebView2. macOS
-ships an Apple Silicon `.dmg` and self-updates like Linux. It is ad-hoc signed
-(`signingIdentity: "-"`), not signed with a Developer ID or notarized, so the
-first launch of a downloaded copy is blocked by Gatekeeper until the user
-allows it under System Settings > Privacy & Security. Updates the app downloads
-itself are not quarantined and skip that prompt. The core is cross-platform; the unix-only bits (config file mode, the
+the installed app and, unlike the installer, does not bootstrap WebView2.
+
+macOS ships an Apple Silicon `.dmg` and self-updates like Linux. It is ad-hoc
+signed (`signingIdentity: "-"`), with no Developer ID or notarization, so
+Gatekeeper blocks the first launch of a downloaded copy until it is allowed
+under System Settings > Privacy & Security.
+
+The core is cross-platform; the unix-only bits (config file mode, the
 libwayland trampoline) are `cfg`-gated.
 
 It is versioned and released independently of the extension, with its own
