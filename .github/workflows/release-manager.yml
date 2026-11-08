@@ -8,15 +8,16 @@ name: Release Manager App
 # Flow:
 #   1. Push a release-manager-v<version> tag (or run manually) -> the build job compiles,
 #      signs, and creates a DRAFT GitHub release with the AppImage, its signature, and a
-#      latest.json updater manifest. A second job adds a Windows NSIS installer and a
-#      portable executable to the same draft (no self-update on Windows, so no updater
-#      artifacts or signing).
+#      latest.json updater manifest. A macOS job then adds an Apple Silicon .dmg and the
+#      signed .app.tar.gz updater bundle, merging its darwin-aarch64 entry into that
+#      latest.json. A Windows job adds an NSIS installer and a portable executable to
+#      the same draft (no self-update on Windows, so no updater artifacts or signing).
 #      Nothing is published automatically. A manual run builds the same bundles
 #      without releasing and uploads them as workflow artifacts for download.
 #   2. A human reviews and PUBLISHES that draft release.
 #   3. Publishing fires the promote job, which copies latest.json onto the floating
 #      release-manager-latest release. That is the stable URL the in-app updater polls,
-#      so updates only go live after the versioned AppImage is public. The Windows
+#      so updates only go live after the versioned bundles are public. The Windows
 #      installer has no self-update; Windows users re-download to update.
 
 on:
@@ -87,6 +88,56 @@ jobs:
         with:
           name: release-manager-linux-appimage
           path: app/release-manager/src-tauri/target/release/bundle/appimage/*.AppImage
+          if-no-files-found: error
+
+  build-macos:
+    if: github.event_name != 'release'
+    # tauri-action merges into the latest.json already on the draft, so this has to
+    # run after the Linux job uploads it, or one job's platform entry is lost.
+    needs: build
+    runs-on: macos-latest
+    environment: release-manager-signing
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/release-manager/src-tauri -> target
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build, sign, and add to draft release
+        uses: tauri-apps/tauri-action@v0.6.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: app/release-manager
+          tagName: ${{ github.event_name == 'push' && 'release-manager-v__VERSION__' || '' }}
+          releaseName: ${{ github.event_name == 'push' && 'Release Manager v__VERSION__' || '' }}
+          releaseDraft: true
+          prerelease: false
+          uploadUpdaterJson: true
+          args: '--bundles app,dmg'
+
+      - name: Upload dmg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-manager-macos-dmg
+          path: app/release-manager/src-tauri/target/release/bundle/dmg/*.dmg
           if-no-files-found: error
 
   build-windows:

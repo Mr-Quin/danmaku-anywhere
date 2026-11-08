@@ -10,7 +10,14 @@ AppImage. Windows also ships as an NSIS installer plus a portable executable
 (no in-app self-update on Windows, so its build produces no updater artifacts
 and needs no signing key). The portable file is the plain `release-manager.exe`
 from the build renamed; it uses the same `~/.da-release-manager` data dir as
-the installed app and, unlike the installer, does not bootstrap WebView2. The core is cross-platform; the unix-only bits (config file mode, the
+the installed app and, unlike the installer, does not bootstrap WebView2.
+
+macOS ships an Apple Silicon `.dmg` and self-updates like Linux. It is ad-hoc
+signed (`signingIdentity: "-"`), with no Developer ID or notarization, so
+Gatekeeper blocks the first launch of a downloaded copy until it is allowed
+under System Settings > Privacy & Security.
+
+The core is cross-platform; the unix-only bits (config file mode, the
 libwayland trampoline) are `cfg`-gated.
 
 It is versioned and released independently of the extension, with its own
@@ -137,13 +144,14 @@ a directory link fails with access denied.
 ## Release flow
 
 Push a `release-manager-v<version>` tag (or run the workflow manually). CI builds
-and signs the AppImage and creates a draft release with `latest.json`. A human
+and signs the AppImage and creates a draft release with `latest.json`, then adds
+the signed macOS bundle and its `darwin-aarch64` entry to it. A human
 publishes the draft; publishing promotes `latest.json` onto the floating
 `release-manager-latest` release that the updater polls. A manual run creates no
-release but uploads the AppImage, the Windows installer and the portable
-executable as workflow artifacts, which is the way to get a CI-built build to
+release but uploads the AppImage, the macOS dmg, the Windows installer and the
+portable executable as workflow artifacts, which is the way to get a CI-built build to
 try without tagging. Bump the version in `tauri.conf.json`, `package.json` and
 `src-tauri/Cargo.toml` before tagging; the tag must equal
-`release-manager-v<that version>` or the two jobs target different releases. The first
-install is manual (download the AppImage from the release); self-update covers
+`release-manager-v<that version>` or the jobs target different releases. The first
+install is manual (download the AppImage or dmg from the release); self-update covers
 every version after that.

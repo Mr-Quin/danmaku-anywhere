@@ -1,6 +1,6 @@
 {
   "productName": "Release Manager",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "identifier": "fish.quin.danmaku-anywhere.release-manager",
   "build": {
     "frontendDist": "../dist",
@@ -24,6 +24,9 @@
     "active": true,
     "targets": ["appimage"],
     "createUpdaterArtifacts": true,
+    "macOS": {
+      "signingIdentity": "-"
+    },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
