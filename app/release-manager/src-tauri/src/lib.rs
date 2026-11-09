@@ -50,6 +50,7 @@ pub fn run() {
             commands::download_build,
             commands::set_active,
             commands::remove_build,
+            commands::open_extensions_page,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application")

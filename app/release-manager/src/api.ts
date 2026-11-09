@@ -32,3 +32,7 @@ export async function setActive(tag: string): Promise<PublicState> {
 export async function removeBuild(tag: string): Promise<PublicState> {
   return invoke<PublicState>('remove_build', { tag }).catch(unwrapError)
 }
+
+export async function openExtensionsPage(): Promise<void> {
+  return invoke<void>('open_extensions_page').catch(unwrapError)
+}

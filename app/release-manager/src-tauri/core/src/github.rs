@@ -18,6 +18,8 @@ struct RawRelease {
     prerelease: bool,
     published_at: String,
     assets: Vec<RawAsset>,
+    #[serde(default)]
+    body: Option<String>,
 }
 
 fn preview_subtype_from_tag(tag: &str) -> PreviewSubtype {
@@ -41,6 +43,21 @@ fn version_from_asset_name(name: &str) -> String {
     } else {
         base.to_string()
     }
+}
+
+fn notes_from_body(body: &str) -> Vec<String> {
+    body.lines()
+        .filter_map(|line| {
+            let line = line.trim();
+            let item = line.strip_prefix("* ").or_else(|| line.strip_prefix("- "))?;
+            let item = match item.find(" by @") {
+                Some(i) => &item[..i],
+                None => item,
+            };
+            Some(item.trim().to_string())
+        })
+        .filter(|item| !item.is_empty())
+        .collect()
 }
 
 fn to_release_asset(raw: &RawRelease) -> Option<ReleaseAsset> {
@@ -67,6 +84,7 @@ fn to_release_asset(raw: &RawRelease) -> Option<ReleaseAsset> {
         preview_subtype,
         published_at: raw.published_at.clone(),
         asset_url: asset.url.clone(),
+        notes: raw.body.as_deref().map(notes_from_body).unwrap_or_default(),
     })
 }
 
@@ -181,6 +199,21 @@ mod tests {
         let generic = releases.iter().find(|r| r.tag == "latest-preview").unwrap();
         assert!(matches!(generic.channel, Channel::Preview));
         assert!(matches!(generic.preview_subtype, Some(PreviewSubtype::Generic)));
+    }
+
+    #[test]
+    fn extracts_release_notes_from_body() {
+        let releases = parse_releases(&fixture());
+        let notes_of = |tag: &str| releases.iter().find(|r| r.tag == tag).unwrap().notes.clone();
+        assert_eq!(
+            notes_of("nightly-123456"),
+            vec![
+                "(extension) make the controller load on plain-http pages [DA-759]",
+                "(chore) ship a macOS build [DA-760]",
+            ]
+        );
+        assert_eq!(notes_of("v1.2.0"), vec!["支持配置自定义 LLM", "新增设置备份与恢复功能"]);
+        assert!(notes_of("preview-pr-460").is_empty());
     }
 
     #[test]
