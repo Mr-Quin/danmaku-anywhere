@@ -234,7 +234,8 @@ export function App() {
         <BuildList
           builds={builds}
           selectedTag={selected?.tag}
-          busyTag={busy?.tag}
+          busy={busy}
+          locked={busy !== undefined}
           query={query}
           filter={filter}
           searchRef={searchRef}
@@ -244,6 +245,9 @@ export function App() {
           onQueryChange={setQuery}
           onFilterChange={setFilter}
           onSelect={setSelectedTag}
+          onUse={(tag) => {
+            void handleUse(tag)
+          }}
           onLoadMore={() => {
             void handleLoadMore()
           }}
@@ -251,7 +255,7 @@ export function App() {
             void handleRefresh()
           }}
         />
-        <Box sx={{ flex: 1, overflow: 'auto', p: 4 }}>
+        <Box sx={{ flex: 1, overflow: 'auto', px: 4, py: 3 }}>
           {globalError ? (
             <Alert
               severity="error"

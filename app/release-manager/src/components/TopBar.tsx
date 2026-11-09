@@ -61,7 +61,8 @@ export function TopBar({
     <Box
       sx={{
         px: 2,
-        py: 1.5,
+        pt: 1.5,
+        pb: 2,
         borderBottom: 1,
         borderColor: 'divider',
         bgcolor: 'background.paper',
@@ -70,11 +71,11 @@ export function TopBar({
     >
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography variant="caption" color="text.secondary">
+          <Typography variant="overline" color="text.secondary">
             Active build
           </Typography>
           {active ? (
-            <Typography variant="h6" component="div" noWrap>
+            <Typography variant="h2" component="div" noWrap>
               {active.title}{' '}
               <Typography
                 component="span"
@@ -111,7 +112,7 @@ export function TopBar({
         </Button>
       </Box>
       {activePath ? (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1.5 }}>
           <ButtonBase
             onClick={copyPath}
             title="Copy folder path"
@@ -121,8 +122,8 @@ export function TopBar({
               display: 'flex',
               alignItems: 'center',
               gap: 1,
-              px: 1.25,
-              py: 0.75,
+              px: 1.5,
+              py: 1,
               border: 1,
               borderColor: 'divider',
               borderRadius: 1,
@@ -151,7 +152,7 @@ export function TopBar({
               {copied ? 'Copied' : 'Copy'}
             </Typography>
           </ButtonBase>
-          <Button size="small" onClick={onShowFolder}>
+          <Button variant="outlined" onClick={onShowFolder}>
             Show folder
           </Button>
         </Box>
@@ -161,7 +162,7 @@ export function TopBar({
           severity="warning"
           icon={<RefreshIcon />}
           onClose={onDismissReload}
-          sx={{ mt: 1, py: 0 }}
+          sx={{ mt: 1.5 }}
         >
           Switched. Press reload on Danmaku Anywhere in the extensions page to
           run it. First time: turn on Developer mode, click Load unpacked and

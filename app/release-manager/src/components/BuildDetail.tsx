@@ -4,6 +4,7 @@ import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Chip from '@mui/material/Chip'
+import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 import type { Build } from '../builds.js'
 import { KIND_LABEL } from '../builds.js'
@@ -21,7 +22,7 @@ interface BuildDetailProps {
   onRemove: (tag: string) => void
 }
 
-const BUSY_LABEL: Record<BusyAction, string> = {
+export const BUSY_LABEL: Record<BusyAction, string> = {
   downloading: 'Downloading…',
   activating: 'Switching…',
   removing: 'Deleting…',
@@ -40,12 +41,10 @@ export function BuildDetail({
 
   return (
     <Box sx={{ maxWidth: 640 }}>
-      <Typography variant="caption" color="text.secondary">
+      <Typography variant="overline" color="text.secondary">
         {KIND_LABEL[build.kind]} · {status}
       </Typography>
-      <Typography variant="h5" component="h1" sx={{ fontWeight: 700 }}>
-        {build.title}
-      </Typography>
+      <Typography variant="h1">{build.title}</Typography>
       <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
         Version {build.version}
         {build.publishedAt ? (
@@ -57,7 +56,7 @@ export function BuildDetail({
         {build.title !== build.tag ? ` · ${build.tag}` : ''}
       </Typography>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 3 }}>
         <PrimaryAction
           build={build}
           busy={busy}
@@ -85,9 +84,9 @@ export function BuildDetail({
             Delete
           </Button>
         ) : null}
-        {busy ? (
+        {busy === 'removing' ? (
           <Typography variant="body2" color="text.secondary">
-            {BUSY_LABEL[busy]}
+            {BUSY_LABEL.removing}
           </Typography>
         ) : null}
       </Box>
@@ -100,11 +99,11 @@ export function BuildDetail({
 
       {build.notes.length > 0 ? (
         <Box sx={{ mt: 4 }}>
-          <Typography variant="subtitle2">What's in it</Typography>
-          <Box component="ul" sx={{ mt: 1, pl: 2.5 }}>
+          <Typography variant="h3">What's in it</Typography>
+          <Box component="ul" sx={{ mt: 1.5, pl: 2.5, '& li': { mb: 0.75 } }}>
             {build.notes.map((note) => (
               <li key={note}>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body1" color="text.secondary">
                   {note}
                 </Typography>
               </li>
@@ -129,12 +128,21 @@ function PrimaryAction({ build, busy, locked, onUse }: PrimaryActionProps) {
       <Chip icon={<CheckCircleOutlineIcon />} label="In use" color="success" />
     )
   }
+  if (busy === 'downloading' || busy === 'activating') {
+    return (
+      <Button
+        variant="contained"
+        disabled
+        startIcon={<CircularProgress size={14} color="primary" />}
+      >
+        {BUSY_LABEL[busy]}
+      </Button>
+    )
+  }
   return (
     <Button
       variant="contained"
       startIcon={build.installed ? undefined : <DownloadIcon />}
-      loading={busy === 'downloading' || busy === 'activating'}
-      loadingPosition="start"
       disabled={locked}
       onClick={() => {
         onUse(build.tag)

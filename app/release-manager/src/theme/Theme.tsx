@@ -18,8 +18,6 @@ interface ThemeProps {
   children: ReactNode
 }
 
-const globalStyles = { 'html, body, #root': { height: '100%' } }
-
 export function Theme({ children }: ThemeProps) {
   const [mode, setMode] = useState<'light' | 'dark'>(getPreferredMode)
 
@@ -39,7 +37,22 @@ export function Theme({ children }: ThemeProps) {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <GlobalStyles styles={globalStyles} />
+      <GlobalStyles
+        styles={{
+          'html, body, #root': { height: '100%' },
+          '*::-webkit-scrollbar': { width: 10, height: 10 },
+          '*::-webkit-scrollbar-track': { background: 'transparent' },
+          '*::-webkit-scrollbar-thumb': {
+            backgroundColor: theme.palette.divider,
+            backgroundClip: 'padding-box',
+            border: '2px solid transparent',
+            borderRadius: 8,
+          },
+          '*::-webkit-scrollbar-thumb:hover': {
+            backgroundColor: theme.palette.text.disabled,
+          },
+        }}
+      />
       {children}
     </ThemeProvider>
   )
