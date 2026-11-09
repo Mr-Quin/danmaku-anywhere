@@ -156,7 +156,10 @@ export function BuildList({
           <ToggleButton value="pr">PRs</ToggleButton>
         </ToggleButtonGroup>
       </Box>
-      <List disablePadding sx={{ flex: 1, overflow: 'auto', px: 1, pb: 2 }}>
+      <List
+        disablePadding
+        sx={{ flex: 1, overflow: 'auto', px: 1, pb: 2, scrollPaddingTop: 32 }}
+      >
         {groups.map(([name, items]) => {
           if (items.length === 0) {
             return null
