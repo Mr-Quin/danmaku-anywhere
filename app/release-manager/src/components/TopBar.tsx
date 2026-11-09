@@ -22,6 +22,8 @@ interface TopBarProps {
   onOpenExtensions: () => void
   onInstallAppUpdate: () => void
   onDismissReload: () => void
+  onShowFolder: () => void
+  onError: (error: unknown) => void
 }
 
 export function TopBar({
@@ -33,6 +35,8 @@ export function TopBar({
   onOpenExtensions,
   onInstallAppUpdate,
   onDismissReload,
+  onShowFolder,
+  onError,
 }: TopBarProps) {
   const [copied, setCopied] = useState(false)
 
@@ -40,12 +44,15 @@ export function TopBar({
     if (!activePath) {
       return
     }
-    void navigator.clipboard.writeText(activePath).then(() => {
-      setCopied(true)
-      setTimeout(() => {
-        setCopied(false)
-      }, 1500)
-    })
+    navigator.clipboard
+      .writeText(activePath)
+      .then(() => {
+        setCopied(true)
+        setTimeout(() => {
+          setCopied(false)
+        }, 1500)
+      })
+      .catch(onError)
   }
 
   const date = active?.publishedAt ?? active?.downloadedAt
@@ -104,45 +111,50 @@ export function TopBar({
         </Button>
       </Box>
       {activePath ? (
-        <ButtonBase
-          onClick={copyPath}
-          title="Copy folder path"
-          sx={{
-            mt: 1,
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1,
-            px: 1.25,
-            py: 0.75,
-            border: 1,
-            borderColor: 'divider',
-            borderRadius: 1,
-            justifyContent: 'flex-start',
-            '&:hover': { borderColor: 'text.secondary' },
-          }}
-        >
-          <FolderOutlinedIcon fontSize="small" color="action" />
-          <Typography
-            variant="body2"
-            noWrap
-            sx={{ flex: 1, fontFamily: 'monospace', textAlign: 'left' }}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+          <ButtonBase
+            onClick={copyPath}
+            title="Copy folder path"
+            sx={{
+              flex: 1,
+              minWidth: 0,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 1,
+              px: 1.25,
+              py: 0.75,
+              border: 1,
+              borderColor: 'divider',
+              borderRadius: 1,
+              justifyContent: 'flex-start',
+              '&:hover': { borderColor: 'text.secondary' },
+            }}
           >
-            {activePath}
-          </Typography>
-          <Typography
-            variant="caption"
-            color="primary"
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-          >
-            {copied ? (
-              <CheckIcon fontSize="inherit" />
-            ) : (
-              <ContentCopyIcon fontSize="inherit" />
-            )}
-            {copied ? 'Copied' : 'Copy'}
-          </Typography>
-        </ButtonBase>
+            <FolderOutlinedIcon fontSize="small" color="action" />
+            <Typography
+              variant="body2"
+              noWrap
+              sx={{ flex: 1, fontFamily: 'monospace', textAlign: 'left' }}
+            >
+              {activePath}
+            </Typography>
+            <Typography
+              variant="caption"
+              color="primary"
+              sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+            >
+              {copied ? (
+                <CheckIcon fontSize="inherit" />
+              ) : (
+                <ContentCopyIcon fontSize="inherit" />
+              )}
+              {copied ? 'Copied' : 'Copy'}
+            </Typography>
+          </ButtonBase>
+          <Button size="small" onClick={onShowFolder}>
+            Show folder
+          </Button>
+        </Box>
       ) : null}
       {reloadNeeded ? (
         <Alert

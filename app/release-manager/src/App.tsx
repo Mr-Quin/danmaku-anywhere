@@ -9,6 +9,7 @@ import { BuildDetail } from './components/BuildDetail.js'
 import type { KindFilter } from './components/BuildList.js'
 import { BuildList } from './components/BuildList.js'
 import { TopBar } from './components/TopBar.js'
+import { openFolder } from './shell.js'
 import type { PublicState, ReleaseAsset } from './types.js'
 import type { Update } from './updater.js'
 import { checkForUpdate, installUpdate, relaunchApp } from './updater.js'
@@ -24,7 +25,7 @@ export function App() {
   const [releases, setReleases] = useState<ReleaseAsset[]>([])
   const [globalError, setGlobalError] = useState<string | undefined>()
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [busy, setBusy] = useState<Record<string, BusyAction>>({})
+  const [busy, setBusy] = useState<{ tag: string; action: BusyAction }>()
   const [selectedTag, setSelectedTag] = useState<string>()
   const [reloadNeeded, setReloadNeeded] = useState(false)
   const [query, setQuery] = useState('')
@@ -62,7 +63,7 @@ export function App() {
     void loadReleases()
   }, [refreshState, loadReleases])
 
-  // The update feed can be unreachable, so a failed check on startup stays silent.
+  // The update feed can be unreachable, so a failed check stays silent.
   useEffect(() => {
     void checkForUpdate()
       .then(setPendingUpdate)
@@ -98,32 +99,31 @@ export function App() {
   const selected =
     builds.find((b) => b.tag === selectedTag) ?? active ?? builds[0]
 
-  const runAction = useCallback(
-    async (tag: string, steps: [BusyAction, () => Promise<PublicState>][]) => {
-      setErrors((prev) => {
-        const next = { ...prev }
-        delete next[tag]
-        return next
-      })
-      try {
-        for (const [action, run] of steps) {
-          setBusy((prev) => ({ ...prev, [tag]: action }))
-          setState(await run())
-        }
-        return true
-      } catch (error) {
-        setErrors((prev) => ({ ...prev, [tag]: errorMessage(error) }))
-        return false
-      } finally {
-        setBusy((prev) => {
-          const next = { ...prev }
-          delete next[tag]
-          return next
-        })
+  async function runAction(
+    tag: string,
+    steps: [BusyAction, () => Promise<PublicState>][]
+  ): Promise<boolean> {
+    if (busy) {
+      return false
+    }
+    setErrors((prev) => {
+      const next = { ...prev }
+      delete next[tag]
+      return next
+    })
+    try {
+      for (const [action, run] of steps) {
+        setBusy({ tag, action })
+        setState(await run())
       }
-    },
-    []
-  )
+      return true
+    } catch (error) {
+      setErrors((prev) => ({ ...prev, [tag]: errorMessage(error) }))
+      return false
+    } finally {
+      setBusy(undefined)
+    }
+  }
 
   async function handleUse(tag: string) {
     const installed = state?.builds.some((b) => b.tag === tag) ?? false
@@ -145,10 +145,12 @@ export function App() {
     void runAction(tag, [['removing', () => api.removeBuild(tag)]])
   }
 
+  function showError(error: unknown) {
+    setGlobalError(errorMessage(error))
+  }
+
   function handleOpenExtensions() {
-    api.openExtensionsPage().catch((error: unknown) => {
-      setGlobalError(errorMessage(error))
-    })
+    api.openExtensionsPage().catch(showError)
   }
 
   async function handleInstallUpdate() {
@@ -215,6 +217,12 @@ export function App() {
         appUpdateVersion={pendingUpdate?.version}
         appUpdateBusy={updateBusy}
         onOpenExtensions={handleOpenExtensions}
+        onShowFolder={() => {
+          if (state.activePath) {
+            openFolder(state.activePath).catch(showError)
+          }
+        }}
+        onError={showError}
         onDismissReload={() => {
           setReloadNeeded(false)
         }}
@@ -226,7 +234,7 @@ export function App() {
         <BuildList
           builds={builds}
           selectedTag={selected?.tag}
-          busyTags={new Set(Object.keys(busy))}
+          busyTag={busy?.tag}
           query={query}
           filter={filter}
           searchRef={searchRef}
@@ -258,7 +266,8 @@ export function App() {
           {selected ? (
             <BuildDetail
               build={selected}
-              busy={busy[selected.tag]}
+              busy={busy?.tag === selected.tag ? busy.action : undefined}
+              locked={busy !== undefined}
               error={errors[selected.tag]}
               onUse={(tag) => {
                 void handleUse(tag)

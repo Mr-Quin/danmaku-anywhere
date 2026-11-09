@@ -14,6 +14,7 @@ export type BusyAction = 'downloading' | 'activating' | 'removing'
 interface BuildDetailProps {
   build: Build
   busy?: BusyAction
+  locked: boolean
   error?: string
   onUse: (tag: string) => void
   onDownload: (tag: string) => void
@@ -29,6 +30,7 @@ const BUSY_LABEL: Record<BusyAction, string> = {
 export function BuildDetail({
   build,
   busy,
+  locked,
   error,
   onUse,
   onDownload,
@@ -56,10 +58,15 @@ export function BuildDetail({
       </Typography>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2.5 }}>
-        <PrimaryAction build={build} busy={busy} onUse={onUse} />
+        <PrimaryAction
+          build={build}
+          busy={busy}
+          locked={locked}
+          onUse={onUse}
+        />
         {!build.installed ? (
           <Button
-            disabled={busy !== undefined}
+            disabled={locked}
             onClick={() => {
               onDownload(build.tag)
             }}
@@ -70,7 +77,7 @@ export function BuildDetail({
         {build.installed && !build.active ? (
           <Button
             color="error"
-            disabled={busy !== undefined}
+            disabled={locked}
             onClick={() => {
               onRemove(build.tag)
             }}
@@ -112,10 +119,11 @@ export function BuildDetail({
 interface PrimaryActionProps {
   build: Build
   busy?: BusyAction
+  locked: boolean
   onUse: (tag: string) => void
 }
 
-function PrimaryAction({ build, busy, onUse }: PrimaryActionProps) {
+function PrimaryAction({ build, busy, locked, onUse }: PrimaryActionProps) {
   if (build.active) {
     return (
       <Chip icon={<CheckCircleOutlineIcon />} label="In use" color="success" />
@@ -127,7 +135,7 @@ function PrimaryAction({ build, busy, onUse }: PrimaryActionProps) {
       startIcon={build.installed ? undefined : <DownloadIcon />}
       loading={busy === 'downloading' || busy === 'activating'}
       loadingPosition="start"
-      disabled={busy === 'removing'}
+      disabled={locked}
       onClick={() => {
         onUse(build.tag)
       }}

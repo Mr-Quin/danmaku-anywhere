@@ -25,7 +25,7 @@ export type KindFilter = 'all' | Extract<BuildKind, 'stable' | 'nightly' | 'pr'>
 interface BuildListProps {
   builds: Build[]
   selectedTag?: string
-  busyTags: Set<string>
+  busyTag?: string
   query: string
   filter: KindFilter
   searchRef: Ref<HTMLInputElement>
@@ -42,7 +42,7 @@ interface BuildListProps {
 export function BuildList({
   builds,
   selectedTag,
-  busyTags,
+  busyTag,
   query,
   filter,
   searchRef,
@@ -162,7 +162,7 @@ export function BuildList({
                     key={build.tag}
                     build={build}
                     selected={build.tag === selectedTag}
-                    busy={busyTags.has(build.tag)}
+                    busy={build.tag === busyTag}
                     onSelect={onSelect}
                   />
                 ))}

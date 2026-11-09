@@ -70,12 +70,21 @@ pub fn open_extensions_page() -> Result<(), RmError> {
         }
     }
 
-    // google-chrome keeps running when it starts a new browser, so don't wait on it.
+    // The AppImage preloads its own libwayland into this process; Chrome must not
+    // inherit that. Reap the child on a thread so it doesn't linger as a zombie.
     #[cfg(target_os = "linux")]
-    std::process::Command::new("google-chrome")
-        .arg(EXTENSIONS_PAGE)
-        .spawn()
-        .map_err(not_found)?;
+    {
+        let mut child = std::process::Command::new("google-chrome")
+            .arg(EXTENSIONS_PAGE)
+            .env_remove("LD_PRELOAD")
+            .env_remove("LD_LIBRARY_PATH")
+            .env_remove("RM_HOST_WAYLAND")
+            .stdout(std::process::Stdio::null())
+            .stderr(std::process::Stdio::null())
+            .spawn()
+            .map_err(not_found)?;
+        std::thread::spawn(move || child.wait());
+    }
 
     Ok(())
 }

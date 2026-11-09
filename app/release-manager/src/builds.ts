@@ -1,4 +1,4 @@
-import type { CachedBuild, PublicState, ReleaseAsset } from './types.js'
+import type { Channel, PublicState, ReleaseAsset } from './types.js'
 
 export type BuildKind =
   | 'stable'
@@ -29,50 +29,36 @@ export const KIND_LABEL: Record<BuildKind, string> = {
   other: 'Preview',
 }
 
-function kindOf(release: ReleaseAsset | CachedBuild): BuildKind {
-  if (release.channel === 'stable') {
-    return 'stable'
-  }
-  const subtype =
-    'previewSubtype' in release ? release.previewSubtype : undefined
-  if (subtype === 'nightly' || release.tag.startsWith('nightly-')) {
-    return 'nightly'
-  }
-  if (subtype === 'pr' || release.tag.startsWith('preview-pr-')) {
-    return 'pr'
-  }
-  if (subtype === 'manual' || release.tag.startsWith('preview-manual-')) {
-    return 'manual'
-  }
-  if (subtype === 'branch' || release.tag.startsWith('preview-branch-')) {
-    return 'branch'
-  }
-  return 'other'
-}
-
 function buildNumber(version: string): string {
   const parts = version.split('.')
   return parts[parts.length - 1]
 }
 
-// Nightly tags are CI run ids, so name previews by the build number in the version.
-export function buildTitle(
+// Nightly tags are CI run ids, so name builds by the version's last segment.
+function describe(
   tag: string,
   version: string,
-  kind: BuildKind
-): string {
-  switch (kind) {
-    case 'nightly':
-      return `Nightly #${buildNumber(version)}`
-    case 'pr':
-      return `PR #${tag.replace('preview-pr-', '')}`
-    case 'manual':
-      return `Manual build #${buildNumber(version)}`
-    case 'branch':
-      return `Branch ${tag.replace('preview-branch-', '')}`
-    default:
-      return tag
+  channel: Channel
+): { kind: BuildKind; title: string } {
+  if (channel === 'stable') {
+    return { kind: 'stable', title: tag }
   }
+  if (tag.startsWith('nightly-')) {
+    return { kind: 'nightly', title: `Nightly #${buildNumber(version)}` }
+  }
+  if (tag.startsWith('preview-pr-')) {
+    return { kind: 'pr', title: `PR #${tag.slice('preview-pr-'.length)}` }
+  }
+  if (tag.startsWith('preview-manual-')) {
+    return { kind: 'manual', title: `Manual build #${buildNumber(version)}` }
+  }
+  if (tag.startsWith('preview-branch-')) {
+    return {
+      kind: 'branch',
+      title: `Branch ${tag.slice('preview-branch-'.length)}`,
+    }
+  }
+  return { kind: 'other', title: tag }
 }
 
 export function toBuilds(
@@ -80,37 +66,31 @@ export function toBuilds(
   state: PublicState
 ): Build[] {
   const cached = new Map(state.builds.map((b) => [b.tag, b]))
-  const fromReleases = releases.map((r) => {
-    const kind = kindOf(r)
-    return {
+  const listed = new Set(releases.map((r) => r.tag))
+  const onlyCached = state.builds.filter((b) => !listed.has(b.tag))
+
+  const builds: Build[] = [
+    ...releases.map((r) => ({
+      ...describe(r.tag, r.version, r.channel),
       tag: r.tag,
       version: r.version,
-      kind,
-      title: buildTitle(r.tag, r.version, kind),
       publishedAt: r.publishedAt,
       downloadedAt: cached.get(r.tag)?.downloadedAt,
       notes: r.notes,
       installed: cached.has(r.tag),
       active: state.activeTag === r.tag,
-    }
-  })
-  const listed = new Set(releases.map((r) => r.tag))
-  const onlyCached = state.builds
-    .filter((b) => !listed.has(b.tag))
-    .map((b) => {
-      const kind = kindOf(b)
-      return {
-        tag: b.tag,
-        version: b.version,
-        kind,
-        title: buildTitle(b.tag, b.version, kind),
-        downloadedAt: b.downloadedAt,
-        notes: [],
-        installed: true,
-        active: state.activeTag === b.tag,
-      }
-    })
-  return [...fromReleases, ...onlyCached].sort((a, b) => {
+    })),
+    ...onlyCached.map((b) => ({
+      ...describe(b.tag, b.version, b.channel),
+      tag: b.tag,
+      version: b.version,
+      downloadedAt: b.downloadedAt,
+      notes: [],
+      installed: true,
+      active: state.activeTag === b.tag,
+    })),
+  ]
+  return builds.sort((a, b) => {
     return sortDate(b).localeCompare(sortDate(a))
   })
 }
