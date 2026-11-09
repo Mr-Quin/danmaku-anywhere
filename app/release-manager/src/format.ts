@@ -27,3 +27,13 @@ export function formatRelative(iso: string): string {
   }
   return formatAbsolute(iso)
 }
+
+export function formatDay(iso: string): string {
+  const date = new Date(iso)
+  const sameYear = date.getFullYear() === new Date().getFullYear()
+  return date.toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: sameYear ? undefined : 'numeric',
+  })
+}

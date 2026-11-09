@@ -9,6 +9,7 @@ export interface ReleaseAsset {
   previewSubtype?: PreviewSubtype
   publishedAt: string
   assetUrl: string
+  notes: string[]
 }
 
 export interface CachedBuild {
@@ -23,12 +24,4 @@ export interface PublicState {
   activePath?: string
   dataDir: string
   builds: CachedBuild[]
-}
-
-export interface Row {
-  tag: string
-  version: string
-  channel: Channel
-  previewSubtype?: PreviewSubtype
-  publishedAt?: string
 }

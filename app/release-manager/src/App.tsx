@@ -1,51 +1,47 @@
-import ClearIcon from '@mui/icons-material/Clear'
-import RefreshIcon from '@mui/icons-material/Refresh'
-import SearchIcon from '@mui/icons-material/Search'
-import SystemUpdateAltIcon from '@mui/icons-material/SystemUpdateAlt'
 import Alert from '@mui/material/Alert'
-import Badge from '@mui/material/Badge'
 import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
 import CircularProgress from '@mui/material/CircularProgress'
-import IconButton from '@mui/material/IconButton'
-import InputAdornment from '@mui/material/InputAdornment'
-import Stack from '@mui/material/Stack'
-import TextField from '@mui/material/TextField'
-import Tooltip from '@mui/material/Tooltip'
-import Typography from '@mui/material/Typography'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import * as api from './api.js'
-import { ActiveBanner } from './components/ActiveBanner.js'
-import { BrowseCard } from './components/BrowseCard.js'
-import { InstalledCard } from './components/InstalledCard.js'
-import { openFolder } from './shell.js'
-import type { PublicState, ReleaseAsset, Row } from './types.js'
+import { toBuilds } from './builds.js'
+import type { BusyAction } from './components/BuildDetail.js'
+import { BuildDetail } from './components/BuildDetail.js'
+import type { KindFilter } from './components/BuildList.js'
+import { BuildList } from './components/BuildList.js'
+import { TopBar } from './components/TopBar.js'
+import type { PublicState, ReleaseAsset } from './types.js'
 import type { Update } from './updater.js'
 import { checkForUpdate, installUpdate, relaunchApp } from './updater.js'
 
 const PAGE_SIZE = 100
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error)
+}
+
 export function App() {
   const [state, setState] = useState<PublicState | null>(null)
   const [releases, setReleases] = useState<ReleaseAsset[]>([])
   const [globalError, setGlobalError] = useState<string | undefined>()
-  const [rowErrors, setRowErrors] = useState<Record<string, string>>({})
-  const [busyTag, setBusyTag] = useState<string | undefined>()
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [busy, setBusy] = useState<Record<string, BusyAction>>({})
+  const [selectedTag, setSelectedTag] = useState<string>()
+  const [reloadNeeded, setReloadNeeded] = useState(false)
+  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState<KindFilter>('all')
   const [releasePage, setReleasePage] = useState(1)
   const [hasMoreReleases, setHasMoreReleases] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
-  const [pendingUpdate, setPendingUpdate] = useState<Update | null>(null)
-  const [updateError, setUpdateError] = useState<string | undefined>()
-  const [updateBusy, setUpdateBusy] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
-  const [query, setQuery] = useState('')
+  const [pendingUpdate, setPendingUpdate] = useState<Update | null>(null)
+  const [updateBusy, setUpdateBusy] = useState(false)
   const searchRef = useRef<HTMLInputElement>(null)
 
   const refreshState = useCallback(async () => {
     try {
       setState(await api.getState())
     } catch (error) {
-      setGlobalError(error instanceof Error ? error.message : String(error))
+      setGlobalError(errorMessage(error))
     }
   }, [])
 
@@ -57,7 +53,7 @@ export function App() {
       setReleasePage(1)
       setHasMoreReleases(page1.length === PAGE_SIZE)
     } catch (error) {
-      setGlobalError(error instanceof Error ? error.message : String(error))
+      setGlobalError(errorMessage(error))
     }
   }, [])
 
@@ -66,13 +62,10 @@ export function App() {
     void loadReleases()
   }, [refreshState, loadReleases])
 
-  // Check once on mount. The endpoint 404s until the update feed is published,
-  // so errors are swallowed here. The manual button surfaces them.
+  // The update feed can be unreachable, so a failed check on startup stays silent.
   useEffect(() => {
     void checkForUpdate()
-      .then((u) => {
-        setPendingUpdate(u)
-      })
+      .then(setPendingUpdate)
       .catch((_err: unknown) => {
         return undefined
       })
@@ -94,80 +87,68 @@ export function App() {
     }
   }, [])
 
-  const runRowAction = useCallback(
-    async (tag: string, action: () => Promise<PublicState>) => {
-      setBusyTag(tag)
-      setRowErrors((prev) => {
+  const builds = useMemo(() => {
+    if (!state) {
+      return []
+    }
+    return toBuilds(releases, state)
+  }, [releases, state])
+
+  const active = builds.find((b) => b.active)
+  const selected =
+    builds.find((b) => b.tag === selectedTag) ?? active ?? builds[0]
+
+  const runAction = useCallback(
+    async (tag: string, steps: [BusyAction, () => Promise<PublicState>][]) => {
+      setErrors((prev) => {
         const next = { ...prev }
         delete next[tag]
         return next
       })
       try {
-        setState(await action())
+        for (const [action, run] of steps) {
+          setBusy((prev) => ({ ...prev, [tag]: action }))
+          setState(await run())
+        }
+        return true
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
-        setRowErrors((prev) => ({ ...prev, [tag]: message }))
+        setErrors((prev) => ({ ...prev, [tag]: errorMessage(error) }))
+        return false
       } finally {
-        setBusyTag(undefined)
+        setBusy((prev) => {
+          const next = { ...prev }
+          delete next[tag]
+          return next
+        })
       }
     },
     []
   )
 
-  const onDownload = useCallback(
-    (tag: string) => {
-      void runRowAction(tag, () => api.downloadBuild(tag))
-    },
-    [runRowAction]
-  )
-  const onSetActive = useCallback(
-    (tag: string) => {
-      void runRowAction(tag, () => api.setActive(tag))
-    },
-    [runRowAction]
-  )
-  const onRemove = useCallback(
-    (tag: string) => {
-      void runRowAction(tag, () => api.removeBuild(tag))
-    },
-    [runRowAction]
-  )
-
-  const installedBuilds = useMemo(() => {
-    if (!state) {
-      return []
+  async function handleUse(tag: string) {
+    const installed = state?.builds.some((b) => b.tag === tag) ?? false
+    const steps: [BusyAction, () => Promise<PublicState>][] = []
+    if (!installed) {
+      steps.push(['downloading', () => api.downloadBuild(tag)])
     }
-    return [...state.builds].sort((a, b) =>
-      b.downloadedAt.localeCompare(a.downloadedAt)
-    )
-  }, [state])
-
-  const { stable, previews } = useMemo(() => {
-    const rows: Row[] = releases.map((r) => ({
-      tag: r.tag,
-      version: r.version,
-      channel: r.channel,
-      previewSubtype: r.previewSubtype,
-      publishedAt: r.publishedAt,
-    }))
-    const byDate = (a: Row, b: Row) =>
-      (b.publishedAt ?? '').localeCompare(a.publishedAt ?? '')
-    return {
-      stable: rows.filter((r) => r.channel === 'stable').sort(byDate),
-      previews: rows.filter((r) => r.channel === 'preview').sort(byDate),
+    steps.push(['activating', () => api.setActive(tag)])
+    if (await runAction(tag, steps)) {
+      setReloadNeeded(true)
     }
-  }, [releases])
+  }
 
-  async function handleCheckUpdate() {
-    setUpdateBusy(true)
-    setUpdateError(undefined)
-    try {
-      setPendingUpdate(await checkForUpdate())
-    } catch (error) {
-      setUpdateError(error instanceof Error ? error.message : String(error))
-    } finally {
-      setUpdateBusy(false)
-    }
+  function handleDownload(tag: string) {
+    void runAction(tag, [['downloading', () => api.downloadBuild(tag)]])
+  }
+
+  function handleRemove(tag: string) {
+    void runAction(tag, [['removing', () => api.removeBuild(tag)]])
+  }
+
+  function handleOpenExtensions() {
+    api.openExtensionsPage().catch((error: unknown) => {
+      setGlobalError(errorMessage(error))
+    })
   }
 
   async function handleInstallUpdate() {
@@ -175,25 +156,12 @@ export function App() {
       return
     }
     setUpdateBusy(true)
-    setUpdateError(undefined)
     try {
       await installUpdate(pendingUpdate)
       await relaunchApp()
     } catch (error) {
-      setUpdateError(error instanceof Error ? error.message : String(error))
+      setGlobalError(errorMessage(error))
       setUpdateBusy(false)
-    }
-  }
-
-  function copyActivePath() {
-    if (state?.activePath) {
-      void navigator.clipboard.writeText(state.activePath)
-    }
-  }
-
-  function openActivePath() {
-    if (state?.activePath) {
-      void openFolder(state.activePath)
     }
   }
 
@@ -205,13 +173,12 @@ export function App() {
       const more = await api.getReleases(nextPage)
       setReleases((prev) => {
         const seen = new Set(prev.map((r) => r.tag))
-        const fresh = more.filter((r) => !seen.has(r.tag))
-        return [...prev, ...fresh]
+        return [...prev, ...more.filter((r) => !seen.has(r.tag))]
       })
       setReleasePage(nextPage)
       setHasMoreReleases(more.length === PAGE_SIZE)
     } catch (error) {
-      setGlobalError(error instanceof Error ? error.message : String(error))
+      setGlobalError(errorMessage(error))
     } finally {
       setLoadingMore(false)
     }
@@ -227,166 +194,80 @@ export function App() {
     }
   }
 
+  if (state === null) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', pt: 8 }}>
+        {globalError ? (
+          <Alert severity="error">{globalError}</Alert>
+        ) : (
+          <CircularProgress />
+        )}
+      </Box>
+    )
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <Box
-        sx={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center',
-          gap: 1,
-          px: 1,
-          py: 0.75,
-          minHeight: 44,
-          borderBottom: 1,
-          borderColor: 'divider',
-          flexShrink: 0,
+      <TopBar
+        active={active}
+        activePath={state.activePath}
+        reloadNeeded={reloadNeeded}
+        appUpdateVersion={pendingUpdate?.version}
+        appUpdateBusy={updateBusy}
+        onOpenExtensions={handleOpenExtensions}
+        onDismissReload={() => {
+          setReloadNeeded(false)
         }}
-      >
-        <TextField
-          inputRef={searchRef}
-          value={query}
-          onChange={(e) => {
-            setQuery(e.target.value)
+        onInstallAppUpdate={() => {
+          void handleInstallUpdate()
+        }}
+      />
+      <Box sx={{ flex: 1, display: 'flex', minHeight: 0 }}>
+        <BuildList
+          builds={builds}
+          selectedTag={selected?.tag}
+          busyTags={new Set(Object.keys(busy))}
+          query={query}
+          filter={filter}
+          searchRef={searchRef}
+          hasMore={hasMoreReleases}
+          loadingMore={loadingMore}
+          refreshing={refreshing}
+          onQueryChange={setQuery}
+          onFilterChange={setFilter}
+          onSelect={setSelectedTag}
+          onLoadMore={() => {
+            void handleLoadMore()
           }}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') {
-              setQuery('')
-            }
-          }}
-          placeholder="Search releases"
-          sx={{ flex: 1 }}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-              endAdornment: query ? (
-                <InputAdornment position="end">
-                  <IconButton
-                    size="small"
-                    aria-label="Clear search"
-                    onClick={() => {
-                      setQuery('')
-                    }}
-                  >
-                    <ClearIcon fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ) : null,
-            },
+          onRefresh={() => {
+            void handleRefresh()
           }}
         />
-        <Tooltip title="Check for updates">
-          <span>
-            <IconButton
-              disabled={updateBusy}
-              onClick={() => {
-                void handleCheckUpdate()
+        <Box sx={{ flex: 1, overflow: 'auto', p: 4 }}>
+          {globalError ? (
+            <Alert
+              severity="error"
+              sx={{ mb: 3 }}
+              onClose={() => {
+                setGlobalError(undefined)
               }}
             >
-              <Badge
-                variant="dot"
-                color="success"
-                invisible={pendingUpdate === null}
-              >
-                <SystemUpdateAltIcon />
-              </Badge>
-            </IconButton>
-          </span>
-        </Tooltip>
-        <Tooltip title="Reload">
-          <span>
-            <IconButton
-              disabled={state === null || refreshing}
-              onClick={() => {
-                void handleRefresh()
+              {globalError}
+            </Alert>
+          ) : null}
+          {selected ? (
+            <BuildDetail
+              build={selected}
+              busy={busy[selected.tag]}
+              error={errors[selected.tag]}
+              onUse={(tag) => {
+                void handleUse(tag)
               }}
-            >
-              <RefreshIcon />
-            </IconButton>
-          </span>
-        </Tooltip>
-      </Box>
-      <Box sx={{ flex: 1, overflow: 'auto', p: 3 }}>
-        <Stack spacing={2} sx={{ maxWidth: 760, mx: 'auto' }}>
-          {state === null ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <>
-              {globalError ? (
-                <Alert
-                  severity="error"
-                  onClose={() => {
-                    setGlobalError(undefined)
-                  }}
-                >
-                  {globalError}
-                </Alert>
-              ) : null}
-              {pendingUpdate ? (
-                <Alert
-                  severity="success"
-                  action={
-                    <Button
-                      color="inherit"
-                      size="small"
-                      loading={updateBusy}
-                      onClick={() => {
-                        void handleInstallUpdate()
-                      }}
-                    >
-                      Install and restart
-                    </Button>
-                  }
-                >
-                  Version {pendingUpdate.version} is available
-                </Alert>
-              ) : null}
-              {updateError ? (
-                <Alert severity="error">{updateError}</Alert>
-              ) : null}
-              <ActiveBanner
-                state={state}
-                onCopyPath={copyActivePath}
-                onOpenPath={openActivePath}
-              />
-              <InstalledCard
-                builds={installedBuilds}
-                activeTag={state.activeTag}
-                busyTag={busyTag}
-                query={query}
-                rowErrors={rowErrors}
-                onSetActive={onSetActive}
-                onRemove={onRemove}
-              />
-              <BrowseCard
-                stable={stable}
-                previews={previews}
-                state={state}
-                busyTag={busyTag}
-                query={query}
-                rowErrors={rowErrors}
-                hasMore={hasMoreReleases}
-                loadingMore={loadingMore}
-                onDownload={onDownload}
-                onLoadMore={handleLoadMore}
-              />
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  Data dir:{' '}
-                  <Box component="span" sx={{ fontFamily: 'monospace' }}>
-                    {state.dataDir}
-                  </Box>
-                </Typography>
-              </Box>
-            </>
-          )}
-        </Stack>
+              onDownload={handleDownload}
+              onRemove={handleRemove}
+            />
+          ) : null}
+        </Box>
       </Box>
     </Box>
   )

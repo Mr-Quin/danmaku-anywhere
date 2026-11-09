@@ -10,6 +10,7 @@ pub struct ReleaseAsset {
     pub preview_subtype: Option<PreviewSubtype>,
     pub published_at: String,
     pub asset_url: String,
+    pub notes: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
