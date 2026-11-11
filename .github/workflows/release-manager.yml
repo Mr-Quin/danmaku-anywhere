@@ -236,3 +236,11 @@ jobs:
               --notes 'Auto-updated pointer consumed by the in-app updater. Do not edit or publish manually.' \
               --latest=false
           gh release upload release-manager-latest latest.json --repo "$GITHUB_REPOSITORY" --clobber
+
+      # Publishing a draft makes it the repo's latest release even when asked not
+      # to, which points /releases/latest at this app instead of the extension.
+      - name: Keep the extension as the latest release
+        run: |
+          tag=$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --exclude-pre-releases --limit 100 \
+            --json tagName --jq '[.[] | select(.tagName | startswith("v"))][0].tagName')
+          gh release edit "$tag" --repo "$GITHUB_REPOSITORY" --latest
