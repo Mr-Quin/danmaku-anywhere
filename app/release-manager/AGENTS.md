@@ -147,7 +147,9 @@ Push a `release-manager-v<version>` tag (or run the workflow manually). CI build
 and signs the AppImage and creates a draft release with `latest.json`, then adds
 the signed macOS bundle and its `darwin-aarch64` entry to it. A human
 publishes the draft; publishing promotes `latest.json` onto the floating
-`release-manager-latest` release that the updater polls. A manual run creates no
+`release-manager-latest` release that the updater polls. Releases are published as
+prereleases, so GitHub never makes one the repo's latest release and the docs
+changelog sync skips them. A manual run creates no
 release but uploads the AppImage, the macOS dmg, the Windows installer and the
 portable executable as workflow artifacts, which is the way to get a CI-built build to
 try without tagging. Bump the version in `tauri.conf.json`, `package.json` and

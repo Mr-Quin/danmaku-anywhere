@@ -14,7 +14,9 @@ name: Release Manager App
 #      the same draft (no self-update on Windows, so no updater artifacts or signing).
 #      Nothing is published automatically. A manual run builds the same bundles
 #      without releasing and uploads them as workflow artifacts for download.
-#   2. A human reviews and PUBLISHES that draft release.
+#   2. A human reviews and PUBLISHES that draft release. All releases here are
+#      prereleases: GitHub never makes a prerelease the repo's latest release, and the
+#      docs changelog sync skips them, so the extension keeps both.
 #   3. Publishing fires the promote job, which copies latest.json onto the floating
 #      release-manager-latest release. That is the stable URL the in-app updater polls,
 #      so updates only go live after the versioned bundles are public. The Windows
@@ -78,7 +80,7 @@ jobs:
           tagName: ${{ github.event_name == 'push' && 'release-manager-v__VERSION__' || '' }}
           releaseName: ${{ github.event_name == 'push' && 'Release Manager v__VERSION__' || '' }}
           releaseDraft: true
-          prerelease: false
+          prerelease: true
           generateReleaseNotes: true
           uploadUpdaterJson: true
           args: '--bundles appimage'
@@ -129,7 +131,7 @@ jobs:
           tagName: ${{ github.event_name == 'push' && 'release-manager-v__VERSION__' || '' }}
           releaseName: ${{ github.event_name == 'push' && 'Release Manager v__VERSION__' || '' }}
           releaseDraft: true
-          prerelease: false
+          prerelease: true
           uploadUpdaterJson: true
           args: '--bundles app,dmg'
 
@@ -176,7 +178,7 @@ jobs:
           tagName: ${{ github.event_name == 'push' && 'release-manager-v__VERSION__' || '' }}
           releaseName: ${{ github.event_name == 'push' && 'Release Manager v__VERSION__' || '' }}
           releaseDraft: true
-          prerelease: false
+          prerelease: true
           # Installer only: no updater artifacts (disabled via the config override),
           # so this job needs no signing key. Windows has no in-app self-update.
           args: '--bundles nsis --config src-tauri/tauri.windows.conf.json'
@@ -234,5 +236,5 @@ jobs:
             gh release create release-manager-latest --repo "$GITHUB_REPOSITORY" \
               --title 'Release Manager (updater manifest)' \
               --notes 'Auto-updated pointer consumed by the in-app updater. Do not edit or publish manually.' \
-              --latest=false
+              --prerelease
           gh release upload release-manager-latest latest.json --repo "$GITHUB_REPOSITORY" --clobber
