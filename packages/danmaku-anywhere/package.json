@@ -5,7 +5,7 @@
   "description": "Browser extension for danmaku-anywhere",
   "keywords": [],
   "author": "Mr-Quin",
-  "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
+  "repository": "https://github.com/Danmaku-Anywhere/danmaku-anywhere",
   "license": "AGPL-3.0",
   "type": "module",
   "scripts": {

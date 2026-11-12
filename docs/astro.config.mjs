@@ -23,13 +23,13 @@ export default defineConfig({
       lastUpdated: false,
       editLink: {
         baseUrl:
-          'https://github.com/Mr-Quin/danmaku-anywhere/edit/master/docs/',
+          'https://github.com/Danmaku-Anywhere/danmaku-anywhere/edit/master/docs/',
       },
       social: [
         {
           icon: 'github',
           label: 'GitHub',
-          href: 'https://github.com/Mr-Quin/danmaku-anywhere',
+          href: 'https://github.com/Danmaku-Anywhere/danmaku-anywhere',
         },
       ],
       sidebar: [

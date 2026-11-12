@@ -37,7 +37,7 @@ body:
       label: 网络请求与日志
       description: |
         请供网络请求与日志信息
-        参考[获取方法](https://github.com/Mr-Quin/danmaku-anywhere/discussions/60)获得日志文件后在此上传
+        参考[获取方法](https://github.com/Danmaku-Anywhere/danmaku-anywhere/discussions/60)获得日志文件后在此上传
 
   - type: markdown
     attributes:

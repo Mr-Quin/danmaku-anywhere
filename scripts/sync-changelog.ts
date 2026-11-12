@@ -154,7 +154,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       'Usage: node --experimental-strip-types sync-changelog.ts <repository> <output-path>'
     )
     console.error(
-      'Example: node --experimental-strip-types sync-changelog.ts Mr-Quin/danmaku-anywhere docs/src/content/docs/change-log.mdx'
+      'Example: node --experimental-strip-types sync-changelog.ts Danmaku-Anywhere/danmaku-anywhere docs/src/content/docs/change-log.mdx'
     )
     process.exit(1)
   }

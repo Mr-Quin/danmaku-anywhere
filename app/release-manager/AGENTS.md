@@ -3,7 +3,7 @@
 ## Purpose
 
 A standalone, self-updating desktop app (Tauri 2) that downloads extension
-release/preview builds from the `Mr-Quin/danmaku-anywhere` GitHub releases and
+release/preview builds from the `Danmaku-Anywhere/danmaku-anywhere` GitHub releases and
 manages which cached build is the "active" unpacked folder loaded into
 `chrome://extensions`. Primary target is Linux, shipped as a self-updating
 AppImage. Windows also ships as an NSIS installer plus a portable executable

@@ -2,7 +2,7 @@
 
 Angular web application for Danmaku Anywhere. Provides a Kazumi-style video aggregation experience in the browser.
 
-**Requires the [Danmaku Anywhere](https://github.com/Mr-Quin/danmaku-anywhere) browser extension to function.**
+**Requires the [Danmaku Anywhere](https://github.com/Danmaku-Anywhere/danmaku-anywhere) browser extension to function.**
 
 ## Tech Stack
 

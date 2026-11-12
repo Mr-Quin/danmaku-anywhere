@@ -6,14 +6,14 @@
     "assets": [
       {
         "name": "danmaku-anywhere-1.2.0-firefox.zip",
-        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/1"
+        "url": "https://api.github.com/repos/Danmaku-Anywhere/danmaku-anywhere/releases/assets/1"
       },
       {
         "name": "danmaku-anywhere-1.2.0-chrome.zip",
-        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/2"
+        "url": "https://api.github.com/repos/Danmaku-Anywhere/danmaku-anywhere/releases/assets/2"
       }
     ],
-    "body": "## 特性\r\n\r\n- 支持配置自定义 LLM\r\n- 新增设置备份与恢复功能\r\n\r\n**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/v1.1.0...v1.2.0"
+    "body": "## 特性\r\n\r\n- 支持配置自定义 LLM\r\n- 新增设置备份与恢复功能\r\n\r\n**Full Changelog**: https://github.com/Danmaku-Anywhere/danmaku-anywhere/compare/v1.1.0...v1.2.0"
   },
   {
     "tag_name": "nightly-123456",
@@ -22,10 +22,10 @@
     "assets": [
       {
         "name": "danmaku-anywhere-1.2.1-123-chrome.zip",
-        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/3"
+        "url": "https://api.github.com/repos/Danmaku-Anywhere/danmaku-anywhere/releases/assets/3"
       }
     ],
-    "body": "Preview build generated from run 1779\n## What's Changed\n* (extension) make the controller load on plain-http pages [DA-759] by @Mr-Quin in https://github.com/Mr-Quin/danmaku-anywhere/pull/618\n* (chore) ship a macOS build [DA-760] by @Mr-Quin in https://github.com/Mr-Quin/danmaku-anywhere/pull/619\n\n\n*\n**Full Changelog**: https://github.com/Mr-Quin/danmaku-anywhere/compare/a...b"
+    "body": "Preview build generated from run 1779\n## What's Changed\n* (extension) make the controller load on plain-http pages [DA-759] by @Mr-Quin in https://github.com/Danmaku-Anywhere/danmaku-anywhere/pull/618\n* (chore) ship a macOS build [DA-760] by @Mr-Quin in https://github.com/Danmaku-Anywhere/danmaku-anywhere/pull/619\n\n\n*\n**Full Changelog**: https://github.com/Danmaku-Anywhere/danmaku-anywhere/compare/a...b"
   },
   {
     "tag_name": "preview-pr-460",
@@ -34,7 +34,7 @@
     "assets": [
       {
         "name": "danmaku-anywhere-1.2.1-9-chrome.zip",
-        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/4"
+        "url": "https://api.github.com/repos/Danmaku-Anywhere/danmaku-anywhere/releases/assets/4"
       }
     ]
   },
@@ -45,7 +45,7 @@
     "assets": [
       {
         "name": "danmaku-anywhere-1.2.1-10-chrome.zip",
-        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/5"
+        "url": "https://api.github.com/repos/Danmaku-Anywhere/danmaku-anywhere/releases/assets/5"
       }
     ]
   },
@@ -56,7 +56,7 @@
     "assets": [
       {
         "name": "danmaku-anywhere-1.2.1-11-chrome.zip",
-        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/6"
+        "url": "https://api.github.com/repos/Danmaku-Anywhere/danmaku-anywhere/releases/assets/6"
       }
     ]
   },
@@ -67,7 +67,7 @@
     "assets": [
       {
         "name": "danmaku-anywhere-1.2.1-12-chrome.zip",
-        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/7"
+        "url": "https://api.github.com/repos/Danmaku-Anywhere/danmaku-anywhere/releases/assets/7"
       }
     ]
   },
@@ -78,7 +78,7 @@
     "assets": [
       {
         "name": "danmaku-anywhere-1.1.0-firefox.zip",
-        "url": "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/8"
+        "url": "https://api.github.com/repos/Danmaku-Anywhere/danmaku-anywhere/releases/assets/8"
       }
     ]
   }

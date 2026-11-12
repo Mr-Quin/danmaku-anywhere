@@ -10,7 +10,7 @@
     "danmaku",
     "user script"
   ],
-  "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
+  "repository": "https://github.com/Danmaku-Anywhere/danmaku-anywhere",
   "scripts": {
     "dev:web-app": "pnpm -r -F \"./app/web\" start",
     "dev:extension": "pnpm -r -F \"./packages/danmaku-anywhere\" dev",
@@ -23,7 +23,7 @@
     "lint:ci": "pnpm -r lint:ci",
     "test": "pnpm -r test",
     "type-check": "pnpm -r type-check",
-    "sync-changelog": "node --experimental-strip-types scripts/sync-changelog.ts Mr-Quin/danmaku-anywhere docs/src/content/docs/change-log.mdx",
+    "sync-changelog": "node --experimental-strip-types scripts/sync-changelog.ts Danmaku-Anywhere/danmaku-anywhere docs/src/content/docs/change-log.mdx",
     "knip": "knip",
     "prepare": "lefthook install"
   },
