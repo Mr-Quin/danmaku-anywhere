@@ -1,3 +1,5 @@
+/// <reference types="chrome" preserve="true" />
+
 export const Logger = console
 
 const waitForTabNavigation = async (

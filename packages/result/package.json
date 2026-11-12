@@ -1,14 +1,32 @@
 {
   "name": "@danmaku-anywhere/result",
   "version": "0.1.0",
-  "private": true,
   "description": "Cheap copy of neverthrow",
   "author": "Mr-Quin",
-  "repository": "https://github.com/Danmaku-Anywhere/danmaku-anywhere",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Danmaku-Anywhere/danmaku-anywhere",
+    "directory": "packages/result"
+  },
   "license": "MIT",
   "type": "module",
+  "files": [
+    "dist",
+    "!dist/tsconfig.tsbuildinfo"
+  ],
   "main": "src/index.js",
   "types": "src/index.d.ts",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "main": "dist/src/index.js",
+    "types": "dist/src/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/src/index.d.ts",
+        "default": "./dist/src/index.js"
+      }
+    }
+  },
   "scripts": {
     "build": "tsgo",
     "lint": "biome check --fix",
