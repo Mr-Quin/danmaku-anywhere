@@ -10,7 +10,7 @@ export const zKazumaManifest = z.object({
 
 export type KazumaManifest = z.output<typeof zKazumaManifest>
 
-export const zKazumiPolicy = z.object({
+export const zKazumiPolicy = z.looseObject({
   api: z.string(),
   type: z.string(),
   name: z.string().min(1),
@@ -22,12 +22,12 @@ export const zKazumiPolicy = z.object({
   useLegacyParser: z.boolean().prefault(false),
   userAgent: z.string().prefault(''),
   baseURL: z.string().min(1),
-  searchURL: z.string().min(1),
-  searchList: z.string().min(1),
-  searchName: z.string().min(1),
-  searchResult: z.string().min(1),
-  chapterRoads: z.string().min(1),
-  chapterResult: z.string().min(1),
+  searchURL: z.string().prefault(''),
+  searchList: z.string().prefault(''),
+  searchName: z.string().prefault(''),
+  searchResult: z.string().prefault(''),
+  chapterRoads: z.string().prefault(''),
+  chapterResult: z.string().prefault(''),
   referer: z.string().prefault(''),
 })
 
