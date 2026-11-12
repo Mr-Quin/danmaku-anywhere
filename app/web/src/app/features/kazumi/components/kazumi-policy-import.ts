@@ -47,6 +47,12 @@ import { KazumiService } from '../services/kazumi.service'
         </p-button>
       </div>
 
+      @if (kazumiService.$importError()) {
+        <div class="alert alert-error">
+          <p>{{ kazumiService.$importError() }}</p>
+        </div>
+      }
+
       @if (kazumiService.manifestsQuery.isPending()) {
         <div class="flex justify-center items-center p-8">
           <span class="loading loading-spinner loading-lg"></span>

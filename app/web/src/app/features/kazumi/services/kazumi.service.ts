@@ -95,6 +95,9 @@ export class KazumiService {
   private readonly $_inProgressImports = signal(new Set<string>())
   readonly $inProgressImports = this.$_inProgressImports.asReadonly()
 
+  private readonly $_importError = signal<string | null>(null)
+  readonly $importError = this.$_importError.asReadonly()
+
   // determine if a tab should load its query
   private readonly $_visitedTabs = signal(new Map<string, boolean>())
   readonly $visitedTabs = this.$_visitedTabs.asReadonly()
@@ -198,7 +201,12 @@ export class KazumiService {
       return name
     },
     onMutate: (name) => {
+      this.$_importError.set(null)
       this.$_inProgressImports.update((s) => new Set(s).add(name))
+    },
+    onError: (error, name) => {
+      const reason = error instanceof Error ? error.message : String(error)
+      this.$_importError.set(`无法导入规则 "${name}"：${reason}`)
     },
     onSettled: (_, __, name) => {
       this.$_inProgressImports.update((s) => {
