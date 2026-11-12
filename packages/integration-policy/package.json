@@ -4,7 +4,7 @@
   "private": true,
   "description": "Integration policy",
   "author": "Mr-Quin",
-  "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
+  "repository": "https://github.com/Danmaku-Anywhere/danmaku-anywhere",
   "license": "MIT",
   "type": "module",
   "main": "src/index.ts",

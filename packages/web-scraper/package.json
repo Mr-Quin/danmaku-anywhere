@@ -4,7 +4,7 @@
   "private": true,
   "description": "Scrape websites from browser extension context",
   "author": "Mr-Quin",
-  "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
+  "repository": "https://github.com/Danmaku-Anywhere/danmaku-anywhere",
   "license": "MIT",
   "type": "module",
   "main": "dist/src/index.js",

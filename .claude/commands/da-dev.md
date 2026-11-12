@@ -139,7 +139,7 @@ gh pr create --title "(type) description [DA-XXX]" --body "$(cat <<'EOF'
 ## Screenshots
 | Before | After |
 |---|---|
-| ![<what master shows>](https://raw.githubusercontent.com/Mr-Quin/danmaku-anywhere/pr-media/pr-<N>/01-before-<name>.png) | ![<what the branch shows>](https://raw.githubusercontent.com/Mr-Quin/danmaku-anywhere/pr-media/pr-<N>/01-after-<name>.png) |
+| ![<what master shows>](https://raw.githubusercontent.com/Danmaku-Anywhere/danmaku-anywhere/pr-media/pr-<N>/01-before-<name>.png) | ![<what the branch shows>](https://raw.githubusercontent.com/Danmaku-Anywhere/danmaku-anywhere/pr-media/pr-<N>/01-after-<name>.png) |
 
 ## Test plan
 - Verified: lint <result> · tests <scope -> result> · e2e <specs ran / skipped + why> (the step 4 verify summary)
@@ -163,7 +163,7 @@ EOF
 
 - Capture before from a master build and after from the branch build, with the same profile, size and steps so the pair lines up. Drive the extension with Playwright (`browser-verify`, or a script that reuses the e2e harness fixtures); the popup is `chrome-extension://<id>/pages/popup.html` at its real 500x600 size. Show zh as well when the change touches copy.
 - Clips: record with Playwright `recordVideo`, then convert to a GIF of 3-10 s, at most 800 px wide and 3 MB: `ffmpeg -i in.webm -vf "fps=12,scale=800:-1:flags=lanczos,split[a][b];[a]palettegen[p];[b][p]paletteuse" out.gif`. GitHub only plays video that was uploaded through its web UI, so use GIFs.
-- Host the files on the `pr-media` orphan branch under `pr-<N>/` (`git worktree add ../da-pr-media pr-media`, commit, push) and embed them with `raw.githubusercontent.com/Mr-Quin/danmaku-anywhere/pr-media/pr-<N>/<file>` URLs. Say in the PR when a capture uses anything injected into the test page (labels, a fake cursor).
+- Host the files on the `pr-media` orphan branch under `pr-<N>/` (`git worktree add ../da-pr-media pr-media`, commit, push) and embed them with `raw.githubusercontent.com/Danmaku-Anywhere/danmaku-anywhere/pr-media/pr-<N>/<file>` URLs. Say in the PR when a capture uses anything injected into the test page (labels, a fake cursor).
 - Include the media when opening the PR. If the branch changes what is shown later, replace the files and update the section.
 
 **Keep the PR body in sync as the branch evolves.** Use `gh pr edit <N> --body ...` (same HEREDOC pattern as creation) whenever new commits change scope, add/remove behavior, or invalidate a claim in the original body. Stale bodies mislead reviewers.

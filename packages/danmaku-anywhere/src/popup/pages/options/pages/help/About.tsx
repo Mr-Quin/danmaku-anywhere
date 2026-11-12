@@ -61,7 +61,7 @@ const resources = [
         'Source code and contributions'
       ),
     link: (ctx: ResourceLinkContext) =>
-      'https://github.com/Mr-Quin/danmaku-anywhere',
+      'https://github.com/Danmaku-Anywhere/danmaku-anywhere',
   },
   {
     id: 'reportBug',

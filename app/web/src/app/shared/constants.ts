@@ -1,6 +1,7 @@
 export const PAGE_TITLE = 'Danmaku Anywhere'
 
-export const GITHUB_REPO_URL = 'https://github.com/Mr-Quin/danmaku-anywhere'
+export const GITHUB_REPO_URL =
+  'https://github.com/Danmaku-Anywhere/danmaku-anywhere'
 export const CHROME_STORE_URL =
   'https://chromewebstore.google.com/detail/danmaku-anywhere/jnflbkkmffognjjhibkjnomjedogmdpo?hl=zh'
 export const FIREFOX_STORE_URL =

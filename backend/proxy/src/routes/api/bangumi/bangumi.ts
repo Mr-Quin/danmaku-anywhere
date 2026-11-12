@@ -3,7 +3,7 @@ import z from 'zod'
 import { factory } from '@/factory'
 
 const USER_AGENT =
-  'danmaku-anywhere (https://github.com/Mr-Quin/danmaku-anywhere)'
+  'danmaku-anywhere (https://github.com/Danmaku-Anywhere/danmaku-anywhere)'
 
 // Bangumi only serves public data, so we forward a minimal anonymous header
 // set. Dropping auth/cookie keeps every upstream call identical across users,

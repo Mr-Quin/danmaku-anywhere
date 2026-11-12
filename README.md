@@ -5,11 +5,11 @@
   </h1>
   <p><em>Danmaku Anywhere</em></p>
   <p align="center">
-    <a href="https://github.com/Mr-Quin/danmaku-anywhere/releases">
-      <img alt="GitHub Release" src="https://img.shields.io/github/v/release/Mr-Quin/danmaku-anywhere?style=flat-square&logo=github">
+    <a href="https://github.com/Danmaku-Anywhere/danmaku-anywhere/releases">
+      <img alt="GitHub Release" src="https://img.shields.io/github/v/release/Danmaku-Anywhere/danmaku-anywhere?style=flat-square&logo=github">
     </a>
-    <a href="https://github.com/Mr-Quin/danmaku-anywhere/actions">
-      <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Mr-Quin/danmaku-anywhere/release.yml?style=flat-square&logo=github">
+    <a href="https://github.com/Danmaku-Anywhere/danmaku-anywhere/actions">
+      <img alt="GitHub Actions Workflow Status" src="https://img.shields.io/github/actions/workflow/status/Danmaku-Anywhere/danmaku-anywhere/release.yml?style=flat-square&logo=github">
     </a>
     <a href="https://chromewebstore.google.com/detail/danmaku-anywhere/jnflbkkmffognjjhibkjnomjedogmdpo?hl=zh">
       <img alt="Chrome Web Store Rating" src="https://img.shields.io/chrome-web-store/rating/jnflbkkmffognjjhibkjnomjedogmdpo?style=flat-square&logo=googlechrome&logoColor=yellow">
@@ -66,10 +66,10 @@
 
 | 系统        | 浏览器                     | 安装方式                                                                                                                                        |
 | :---------- | :------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Android** | Kiwi / Lemur / Edge Canary | [下载 .crx/.zip](https://docs.danmaku.weeblify.app/downloads/) 或 [GitHub Release](https://github.com/Mr-Quin/danmaku-anywhere/releases/latest) |
+| **Android** | Kiwi / Lemur / Edge Canary | [下载 .crx/.zip](https://docs.danmaku.weeblify.app/downloads/) 或 [GitHub Release](https://github.com/Danmaku-Anywhere/danmaku-anywhere/releases/latest) |
 | **iOS**     | Safari / Chrome            | **不支持** (受限于 🍎)                                                                                                                          |
 
-> **预览版**: 想要尝鲜未发布的最新版本，可以在 [下载页面](https://docs.danmaku.weeblify.app/downloads/) 或 [GitHub Release](https://github.com/Mr-Quin/danmaku-anywhere/releases) 下载安装预览版 (pre-release)。
+> **预览版**: 想要尝鲜未发布的最新版本，可以在 [下载页面](https://docs.danmaku.weeblify.app/downloads/) 或 [GitHub Release](https://github.com/Danmaku-Anywhere/danmaku-anywhere/releases) 下载安装预览版 (pre-release)。
 
 <a id="extension"></a>
 

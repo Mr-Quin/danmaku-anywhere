@@ -229,7 +229,7 @@ mod tests {
         assert_eq!(stable.version, "1.2.0");
         assert_eq!(
             stable.asset_url,
-            "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/assets/2"
+            "https://api.github.com/repos/Danmaku-Anywhere/danmaku-anywhere/releases/assets/2"
         );
     }
 }

@@ -12,10 +12,10 @@ export function useReleases() {
       try {
         const [latestRes, listRes] = await Promise.all([
           fetch(
-            'https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/latest'
+            'https://api.github.com/repos/Danmaku-Anywhere/danmaku-anywhere/releases/latest'
           ),
           fetch(
-            'https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases?per_page=15'
+            'https://api.github.com/repos/Danmaku-Anywhere/danmaku-anywhere/releases?per_page=15'
           ),
         ])
 
@@ -28,7 +28,7 @@ export function useReleases() {
             ? 'GitHub API 访问频率受限，请稍后重试。'
             : '访问 GitHub 发布信息时被拒绝（HTTP 403）。'
           const moreInfo =
-            ' 你可以稍后重试，或直接访问发布页面： https://github.com/Mr-Quin/danmaku-anywhere/releases'
+            ' 你可以稍后重试，或直接访问发布页面： https://github.com/Danmaku-Anywhere/danmaku-anywhere/releases'
           setError(baseMessage + moreInfo)
           return
         }

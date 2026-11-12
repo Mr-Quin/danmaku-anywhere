@@ -11,7 +11,7 @@ use crate::store::ConfigStore;
 use crate::types::{Config, PublicState, ReleaseAsset};
 
 const GITHUB_RELEASES_URL: &str =
-    "https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases";
+    "https://api.github.com/repos/Danmaku-Anywhere/danmaku-anywhere/releases";
 
 pub(crate) fn validate_tag(tag: &str) -> Result<(), RmError> {
     if tag.is_empty()

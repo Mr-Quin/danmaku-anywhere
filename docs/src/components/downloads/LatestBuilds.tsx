@@ -149,7 +149,7 @@ const ReleaseBadge = ({ buildInfo }: { buildInfo: BuildInfo }) => {
   if (buildInfo.label === 'PR') {
     return (
       <a
-        href={`https://github.com/Mr-Quin/danmaku-anywhere/pull/${buildInfo.prNumber}`}
+        href={`https://github.com/Danmaku-Anywhere/danmaku-anywhere/pull/${buildInfo.prNumber}`}
         target="_blank"
         rel="noopener"
         className={`daisy-badge daisy-badge-xs ${buildInfo.color}`}
