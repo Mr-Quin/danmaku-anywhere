@@ -57,5 +57,13 @@ jobs:
         with:
           commit_message: "(chore) apply lint autofix"
 
+      - name: Checkout the docs site
+        uses: actions/checkout@v4
+        with:
+          repository: Danmaku-Anywhere/docs
+          path: .ci/docs
+
       - name: Test (changed packages only)
         run: pnpm --filter '...[${{ github.event.pull_request.base.sha }}]' test
+        env:
+          DA_DOCS_DIR: ${{ github.workspace }}/.ci/docs
