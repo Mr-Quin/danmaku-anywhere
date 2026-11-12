@@ -27,7 +27,7 @@ app/
   web/                  # Angular web app
 backend/
   proxy/                # Cloudflare Workers backend
-docs/                   # Astro-based documentation site
+architecture/           # Design notes for the extension
 ```
 
 ## Quick reference
@@ -142,4 +142,5 @@ Lefthook runs Biome check on staged files before each commit (auto-fixes formatt
 - The web app requires the browser extension to be installed for scraping features
 - `pnpm-lock.yaml` is in `.cursorignore` — don't try to read it
 - The project uses `pnpm@10.11.0` — do not use npm or yarn
-- Release Manager lives in `Danmaku-Anywhere/release-manager` now. Never delete the `release-manager-latest` release or its tag here: copies older than 0.5.0 still update through it.
+- Danmaku Builds (the release manager) lives in `Danmaku-Anywhere/release-manager` now. Never delete the `release-manager-latest` release or its tag here: copies older than 0.5.0 still update through it.
+- The documentation site lives in `Danmaku-Anywhere/docs` now. Its changelog page is regenerated daily from this repo's published releases, so release notes are the place to fix changelog text.

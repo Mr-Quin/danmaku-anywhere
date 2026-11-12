@@ -2,7 +2,7 @@ import type { KnipConfig } from 'knip'
 
 const config: KnipConfig = {
   // docs and legacy are not pnpm workspaces
-  ignore: ['docs/**', 'legacy/**'],
+  ignore: ['legacy/**'],
   workspaces: {
     '.': {
       entry: ['scripts/*.{ts,cjs}'],
