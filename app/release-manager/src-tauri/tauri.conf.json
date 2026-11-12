@@ -1,6 +1,6 @@
 {
   "productName": "Release Manager",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "identifier": "fish.quin.danmaku-anywhere.release-manager",
   "build": {
     "frontendDist": "../dist",
@@ -37,9 +37,9 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVCODdCRThGOTlBRUM3NzIKUldSeXg2NlpqNzZIVys5Y1Y4QnhxaVB0OG94RTZPNWllT1Y3M0hZb1JLMDJKQUxYNDNXNGVNRkkK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEM5MzNDODlGQTE2QjAyMjAKUldRZ0FtdWhuOGd6eVZpMGpzUCsyZ05WK1I2dXlXaXh5V1h4a2dMVE4xc1A2Ujc4OVVDZGtzWlYK",
       "endpoints": [
-        "https://github.com/Danmaku-Anywhere/danmaku-anywhere/releases/download/release-manager-latest/latest.json"
+        "https://github.com/Danmaku-Anywhere/release-manager/releases/latest/download/latest.json"
       ]
     }
   }
