@@ -28,3 +28,4 @@ Angular web application for Danmaku Anywhere. Provides a Kazumi-style video aggr
 - `@danmaku-anywhere/web-scraper` — Scraping from extension context
 
 API base URL is configured via `configureApiStore({ baseUrl })` in `main.ts` and `environment.apiRoot`.
+

@@ -28,3 +28,4 @@ Browser extension that adds danmaku (bullet comments) to video sites (Plex, Jell
 ## License
 
 AGPL-3.0
+
