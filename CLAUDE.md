@@ -142,3 +142,4 @@ Lefthook runs Biome check on staged files before each commit (auto-fixes formatt
 - The web app requires the browser extension to be installed for scraping features
 - `pnpm-lock.yaml` is in `.cursorignore` — don't try to read it
 - The project uses `pnpm@10.11.0` — do not use npm or yarn
+- Release Manager lives in `Danmaku-Anywhere/release-manager` now. Never delete the `release-manager-latest` release or its tag here: copies older than 0.5.0 still update through it.
