@@ -9,9 +9,9 @@ import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { ILogger } from '@/common/Logger'
 import { silentLogger } from '@/tests/silentLogger'
 import {
-  DANMAKU_RUN_OPTIONS,
-  MANIFEST_RUN_OPTIONS,
+  danmakuRunOptions,
   ManifestProviderService,
+  manifestRunOptions,
 } from './ManifestProviderService'
 import type { ManifestRegistry } from './ManifestRegistry'
 
@@ -20,9 +20,12 @@ import type { ManifestRegistry } from './ManifestRegistry'
  * `stripHtml` + canonical provider fields to search/episodes output and
  * validating danmaku pipeline output against the comment schema before it
  * reaches the caller. Input precedence is exercised via the configValues path.
+ * Run options keep the engine's private-host block unless the config opted
+ * into local origins.
  */
 
-const RUN_OPTS = MANIFEST_RUN_OPTIONS
+const RUN_OPTS = manifestRunOptions()
+const DANMAKU_RUN_OPTIONS = danmakuRunOptions()
 
 function makeRunner(returns: Record<string, unknown>): ManifestRunner {
   return {
@@ -312,12 +315,82 @@ describe('ManifestProviderService.getDanmaku', () => {
 
   it('only the danmaku run tolerates a failed segment', () => {
     expect(DANMAKU_RUN_OPTIONS.continueOnError).toBe(true)
-    expect(MANIFEST_RUN_OPTIONS).not.toHaveProperty('continueOnError')
+    expect(RUN_OPTS).not.toHaveProperty('continueOnError')
+  })
+})
+
+describe('ManifestProviderService run options', () => {
+  it('withholds the private-host opt-in unless the config allows local origins', () => {
+    expect(manifestRunOptions()).not.toHaveProperty('allowPrivateHosts')
+    expect(manifestRunOptions(false)).not.toHaveProperty('allowPrivateHosts')
+    expect(danmakuRunOptions()).not.toHaveProperty('allowPrivateHosts')
+    expect(manifestRunOptions(true)).toEqual({ allowPrivateHosts: true })
+    expect(danmakuRunOptions(true)).toEqual({
+      allowPrivateHosts: true,
+      continueOnError: true,
+    })
+  })
+
+  it('runs every pipeline of an opted-in config with the private-host opt-in', async () => {
+    const runner = makeRunner({ search: [], episodes: [], danmaku: [] })
+    const svc = new ManifestProviderService(
+      {
+        manifestId: 'dandanplay',
+        providerConfigId: 'lan-ddp',
+        configValues: { baseUrl: 'http://192.168.1.10:8080' },
+        allowLocalOrigins: true,
+      },
+      makeRegistry(runner),
+      silentLogger
+    )
+
+    await svc.search({ keyword: 'x' })
+    await svc.getEpisodes({ animeId: 1 })
+    await svc.getDanmaku({
+      type: 'by-meta',
+      meta: {
+        season: {} as DanmakuFetchByMeta['meta']['season'],
+        providerIds: { episodeId: 2 },
+        title: 'x',
+        indexedId: 'x',
+        seasonId: 1,
+        schemaVersion: EPISODE_SCHEMA_VERSION,
+        lastChecked: 0,
+      },
+    })
+
+    expect(runner.runSearch).toHaveBeenCalledWith(expect.anything(), {
+      allowPrivateHosts: true,
+    })
+    expect(runner.runEpisodes).toHaveBeenCalledWith(expect.anything(), {
+      allowPrivateHosts: true,
+    })
+    expect(runner.runDanmaku).toHaveBeenCalledWith(expect.anything(), {
+      allowPrivateHosts: true,
+      continueOnError: true,
+    })
+  })
+
+  it('keeps the private-host block for a config that did not opt in', async () => {
+    const runner = makeRunner({ search: [] })
+    const svc = new ManifestProviderService(
+      {
+        manifestId: 'dandanplay',
+        providerConfigId: 'lan-ddp',
+        configValues: { baseUrl: 'http://192.168.1.10:8080' },
+      },
+      makeRegistry(runner),
+      silentLogger
+    )
+
+    await svc.search({ keyword: 'x' })
+
+    expect(runner.runSearch).toHaveBeenCalledWith(expect.anything(), {})
   })
 })
 
 describe('ManifestProviderService.parseUrl', () => {
-  it('passes the private-host opt-in to the parseUrl pipeline', async () => {
+  it('passes the run options to the parseUrl pipeline', async () => {
     const runner = makeRunner({
       parseUrl: {
         seasonInsert: {

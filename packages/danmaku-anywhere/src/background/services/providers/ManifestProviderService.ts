@@ -101,25 +101,37 @@ export interface ManifestProviderConfig {
   manifestId: string
   providerConfigId: string
   configValues?: Record<string, unknown>
+  allowLocalOrigins?: boolean
 }
 
-// Permit requests to private/loopback hosts so a config pointed at a
-// self-hosted local server resolves instead of being blocked.
-export const MANIFEST_RUN_OPTIONS: RunOptions = { allowPrivateHosts: true }
+// The engine blocks private and loopback hosts unless told otherwise. Only a
+// config the user explicitly opted in lifts that block, and only for its own
+// runs; the manifest's hosts allowlist still applies either way.
+export function manifestRunOptions(allowLocalOrigins?: boolean): RunOptions {
+  if (allowLocalOrigins === true) {
+    return { allowPrivateHosts: true }
+  }
+  return {}
+}
 
 // A danmaku run fans out across segments; tolerate a failed segment so one
 // missing segment doesn't drop the whole overlay.
-export const DANMAKU_RUN_OPTIONS: RunOptions = {
-  ...MANIFEST_RUN_OPTIONS,
-  continueOnError: true,
+export function danmakuRunOptions(allowLocalOrigins?: boolean): RunOptions {
+  return { ...manifestRunOptions(allowLocalOrigins), continueOnError: true }
 }
 
 export class ManifestProviderService implements SourceProvider {
+  private readonly runOptions: RunOptions
+  private readonly danmakuRunOptions: RunOptions
+
   constructor(
     private readonly config: ManifestProviderConfig,
     private readonly registry: ManifestRegistry,
     private readonly logger: ILogger
-  ) {}
+  ) {
+    this.runOptions = manifestRunOptions(config.allowLocalOrigins)
+    this.danmakuRunOptions = danmakuRunOptions(config.allowLocalOrigins)
+  }
 
   private stampSeason(row: ManifestSearchRow): SeasonInsert {
     return {
@@ -165,7 +177,7 @@ export class ManifestProviderService implements SourceProvider {
     const inputs = this.resolveInputs(runner, { q: params.keyword })
     const rows = await runner.runSearch<ManifestSearchRow[]>(
       inputs,
-      MANIFEST_RUN_OPTIONS
+      this.runOptions
     )
     return rows.map((row) => this.stampSeason(row))
   }
@@ -182,7 +194,7 @@ export class ManifestProviderService implements SourceProvider {
     const inputs = this.resolveInputs(runner, seasonRemoteIds)
     const row = await runner.runSeason<ManifestSearchRow | null>(
       inputs,
-      MANIFEST_RUN_OPTIONS
+      this.runOptions
     )
     if (row === null) {
       return null
@@ -202,7 +214,7 @@ export class ManifestProviderService implements SourceProvider {
     const inputs = this.resolveInputs(runner, seasonRemoteIds)
     const rows = await runner.runEpisodes<ManifestEpisodeRow[]>(
       inputs,
-      MANIFEST_RUN_OPTIONS
+      this.runOptions
     )
     const now = Date.now()
     return rows.map((row) => ({
@@ -227,7 +239,10 @@ export class ManifestProviderService implements SourceProvider {
       ...meta.params,
       ...meta.providerIds,
     })
-    const output = await runner.runDanmaku<unknown>(inputs, DANMAKU_RUN_OPTIONS)
+    const output = await runner.runDanmaku<unknown>(
+      inputs,
+      this.danmakuRunOptions
+    )
     if (!Array.isArray(output)) {
       throw new Error(
         `Danmaku output from manifest ${this.config.manifestId} is not an array, got ${describeType(output)}`
@@ -276,7 +291,7 @@ export class ManifestProviderService implements SourceProvider {
     const result = await runner.runParseUrl<ManifestParseUrlOutput>(
       url,
       undefined,
-      MANIFEST_RUN_OPTIONS
+      this.runOptions
     )
     if (result === null) {
       return null

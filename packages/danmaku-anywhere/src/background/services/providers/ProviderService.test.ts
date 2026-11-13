@@ -34,7 +34,6 @@ import { createUpgradeContainer } from '@/tests/createUpgradeContainer'
 import { makeSeason, makeSeasonInsert } from '@/tests/factories'
 import { silentLogger } from '@/tests/silentLogger'
 import type { SourceProvider } from './IDanmakuProvider'
-import { MANIFEST_RUN_OPTIONS } from './ManifestProviderService'
 import { ManifestRegistry } from './ManifestRegistry'
 import { DanmakuProviderFactory } from './ProviderFactory'
 import { ProviderService } from './ProviderService'
@@ -206,21 +205,44 @@ function build(
 }
 
 describe('ProviderService.probeLogin', () => {
-  it('runs the login probe with the private-host opt-in', async () => {
+  function buildProbe(configs: ProviderConfig[]) {
     const runLoginProbe = vi.fn(async () => true)
     // runLoginProbe<T = unknown> is generic, so a vi.fn double can't satisfy
     // ManifestRunner's real signature without an unsafe cast.
     const getRunner = vi.fn<ManifestRegistry['getRunner']>(
       async () => ({ runLoginProbe }) as unknown as ManifestRunner // lint-specs-allow-cast: generic method signature, see comment above
     )
+    const getAll = vi.fn<ProviderConfigService['getAll']>(async () => configs)
     const service = buildService({
       factory: vi.fn(() => makeProvider()),
       registry: { getRunner },
+      providerConfigService: { getAll },
     })
+    return { service, runLoginProbe }
+  }
+
+  it('keeps the private-host block when no config of the manifest opted in', async () => {
+    const { service, runLoginProbe } = buildProbe([
+      makeConfig('dandanplay'),
+      { ...makeConfig('bilibili'), allowLocalOrigins: true },
+    ])
 
     await service.probeLogin('dandanplay')
 
-    expect(runLoginProbe).toHaveBeenCalledWith(undefined, MANIFEST_RUN_OPTIONS)
+    expect(runLoginProbe).toHaveBeenCalledWith(undefined, {})
+  })
+
+  it('lifts the private-host block when a config of the manifest opted in', async () => {
+    const { service, runLoginProbe } = buildProbe([
+      makeConfig('dandanplay'),
+      { ...makeConfig('dandanplay'), id: 'lan-ddp', allowLocalOrigins: true },
+    ])
+
+    await service.probeLogin('dandanplay')
+
+    expect(runLoginProbe).toHaveBeenCalledWith(undefined, {
+      allowPrivateHosts: true,
+    })
   })
 })
 

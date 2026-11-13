@@ -101,6 +101,12 @@ export class ProvidersPage {
     return this.page.getByLabel(/Name|名称/)
   }
 
+  localOriginsToggle(): Locator {
+    return this.page.getByRole('checkbox', {
+      name: /Allow local network servers|允许访问本地网络/,
+    })
+  }
+
   async expectFieldVisible(label: string | RegExp): Promise<void> {
     await expect(this.field(label)).toBeVisible()
   }

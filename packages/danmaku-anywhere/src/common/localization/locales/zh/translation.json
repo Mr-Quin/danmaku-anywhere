@@ -709,6 +709,10 @@
     },
     "editor": {
       "addItem": "添加",
+      "allowLocalOrigins": {
+        "helper": "允许此弹幕源访问局域网和本机地址，例如自建的本地服务器。除非上方的服务器地址就是这类地址，否则请保持关闭。",
+        "label": "允许访问本地网络"
+      },
       "builtinServerLocked": "内置弹幕源的服务器设置不能修改。如需使用其他服务器，请添加实例。",
       "manifest": {
         "beta": "测试版",
