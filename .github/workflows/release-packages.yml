@@ -6,7 +6,6 @@ on:
       - master
     paths:
       - '.changeset/**'
-      - 'packages/result/**'
       - 'packages/danmaku-converter/**'
       - 'packages/danmaku-provider/**'
       - 'packages/web-scraper/**'
@@ -47,7 +46,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build libraries
-        run: pnpm --filter '@danmaku-anywhere/web-scraper...' --filter '@danmaku-anywhere/result' build
+        run: pnpm --filter '@danmaku-anywhere/web-scraper...' build
 
       - name: Version PR or publish
         uses: changesets/action@v1

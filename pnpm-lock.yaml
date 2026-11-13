@@ -497,9 +497,6 @@ importers:
       '@danmaku-anywhere/danmaku-converter':
         specifier: workspace:^
         version: link:../danmaku-converter
-      '@danmaku-anywhere/result':
-        specifier: workspace:^
-        version: link:../result
       protobufjs:
         specifier: ^8.8.0
         version: 8.8.0

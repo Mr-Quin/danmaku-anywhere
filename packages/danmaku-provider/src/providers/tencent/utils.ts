@@ -1,4 +1,4 @@
-import { err, ok, type Result } from '@danmaku-anywhere/result'
+import { err, ok, type Result } from '../../result.js'
 import { TencentApiException } from './exceptions.js'
 import type { TencentApiResponseBase } from './schema.js'
 
