@@ -40,7 +40,6 @@ export class DaImage {
       this.$currentSrc.set(IMAGE_PLACEHOLDER_DATA)
       return
     }
-    const separator = source.includes('?') ? '&' : '?'
-    this.$currentSrc.set(`${source}${separator}daRetry=1`)
+    this.$currentSrc.set(`${source}#daRetry=1`)
   }
 }
