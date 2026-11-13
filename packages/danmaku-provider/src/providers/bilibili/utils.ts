@@ -1,5 +1,5 @@
-import { err, ok, type Result } from '@danmaku-anywhere/result'
 import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
+import { err, ok, type Result } from '../../result.js'
 import { BiliBiliApiException } from './exceptions.js'
 import type { BilibiliApiResponseBase } from './schema.js'
 

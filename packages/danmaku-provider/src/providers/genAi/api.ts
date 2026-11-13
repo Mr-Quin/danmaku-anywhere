@@ -1,5 +1,5 @@
-import { err, ok, type Result } from '@danmaku-anywhere/result'
 import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
+import { err, ok, type Result } from '../../result.js'
 import { getApiStore } from '../../shared/store.js'
 import { fetchData } from '../utils/fetchData.js'
 import type { ExtractTitleResponse } from './schema.js'

@@ -1,6 +1,6 @@
-import { err, ok, type Result } from '@danmaku-anywhere/result'
 import { ZodError } from 'zod'
 import { ResponseParseException } from '../../exceptions/ResponseParseException.js'
+import { err, ok, type Result } from '../../result.js'
 
 export const handleParseResponse = <T>(
   parser: () => T,

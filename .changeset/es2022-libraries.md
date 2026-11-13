@@ -1,5 +1,4 @@
 ---
-'@danmaku-anywhere/result': patch
 '@danmaku-anywhere/danmaku-converter': patch
 '@danmaku-anywhere/danmaku-provider': patch
 ---

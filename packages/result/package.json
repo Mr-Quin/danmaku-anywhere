@@ -1,6 +1,7 @@
 {
   "name": "@danmaku-anywhere/result",
   "version": "0.2.0",
+  "private": true,
   "description": "Cheap copy of neverthrow",
   "author": "Mr-Quin",
   "repository": {
@@ -10,23 +11,8 @@
   },
   "license": "MIT",
   "type": "module",
-  "files": [
-    "dist",
-    "!dist/tsconfig.tsbuildinfo"
-  ],
   "main": "src/index.js",
   "types": "src/index.d.ts",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "main": "dist/src/index.js",
-    "types": "dist/src/index.d.ts",
-    "exports": {
-      ".": {
-        "types": "./dist/src/index.d.ts",
-        "default": "./dist/src/index.js"
-      }
-    }
-  },
   "scripts": {
     "build": "tsgo",
     "lint": "biome check --fix",

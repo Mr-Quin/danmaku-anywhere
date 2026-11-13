@@ -1,6 +1,6 @@
 import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-import { ok, type Result } from '@danmaku-anywhere/result'
 import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
+import { ok, type Result } from '../../result.js'
 import { createThrottle } from '../utils/createThrottle.js'
 import { fetchData } from '../utils/fetchData.js'
 
