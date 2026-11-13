@@ -28,6 +28,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
+    "@changesets/cli": "^3.0.3",
     "@typescript/native-preview": "7.0.0-dev.20260521.1",
     "knip": "6.41.0",
     "lefthook": "^2.2.1",
