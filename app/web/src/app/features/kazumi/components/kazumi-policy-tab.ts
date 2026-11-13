@@ -23,7 +23,7 @@ import { KazumiService } from '../services/kazumi.service'
         'bg-yellow-600': searchQuery.isFetching(),
         'bg-green-600': searchQuery.isSuccess(),
         'bg-red-600': searchQuery.isError(),
-        'bg-gray-600': !keyword() || !isVisited()
+        'bg-gray-600': !keyword()
         }"
       ></p-badge>
     </div>
@@ -33,13 +33,12 @@ export class KazumiPolicyTab {
   policy = input.required<KazumiPolicy>()
   keyword = input.required<string>()
   isActive = input(false)
-  isVisited = input(false)
 
   private kazumiService = inject(KazumiService)
 
   // same query as the search result
   protected searchQuery = injectQuery(() => ({
     ...this.kazumiService.getSearchQueryOptions(this.keyword(), this.policy()),
-    enabled: !!this.keyword().trim() && this.isVisited(),
+    enabled: !!this.keyword().trim(),
   }))
 }

@@ -82,13 +82,12 @@ export class SearchResultsComponent {
   policy = input.required<KazumiPolicy>()
   keyword = input('')
   isActive = input(false)
-  isVisited = input(false)
   itemClick = output<{ name: string; url: string }>()
 
   private kazumiService = inject(KazumiService)
 
   protected searchQuery = injectQuery(() => ({
     ...this.kazumiService.getSearchQueryOptions(this.keyword(), this.policy()),
-    enabled: !!this.keyword().trim() && this.isVisited(),
+    enabled: !!this.keyword().trim(),
   }))
 }

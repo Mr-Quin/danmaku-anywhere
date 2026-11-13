@@ -102,10 +102,6 @@ export class KazumiService {
   private readonly $_importErrors = signal(new Map<string, string>())
   readonly $importErrors = this.$_importErrors.asReadonly()
 
-  // determine if a tab should load its query
-  private readonly $_visitedTabs = signal(new Map<string, boolean>())
-  readonly $visitedTabs = this.$_visitedTabs.asReadonly()
-
   // the search result to load episodes for
   private readonly $_mediaSearchDetails = signal<MediaSearchDetails | null>(
     null
@@ -305,20 +301,26 @@ export class KazumiService {
       }
     })
 
-    // update visitedTabs when _activePolicy changes
+    // search every imported rule as soon as the query changes
     effect(() => {
-      const activePolicy = this.$_activePolicy()
-      // skip if there is no query
-      if (!activePolicy || !this.$_searchQuery()) return
-      this.$_visitedTabs.update((m) => {
-        m.set(activePolicy.name, true)
-        return m
-      })
+      const keyword = this.$_searchQuery().trim()
+      const policies = this.localPoliciesQuery.data()
+      if (!keyword || !policies?.length) {
+        return
+      }
+      void Promise.allSettled(
+        policies.map((policy) =>
+          this.queryClient.prefetchQuery(
+            this.searchQueryOptions(keyword, policy)
+          )
+        )
+      )
     })
   }
 
-  getSearchQueryOptions(keyword: string, policy: KazumiPolicy) {
-    return queryOptions({
+  private searchQueryOptions(keyword: string, policy: KazumiPolicy) {
+    return {
+      queryKey: queryKeys.kazumi.search(policy.name, keyword),
       queryFn: async () => {
         return lastValueFrom(
           this.extensionMessagingService.single('kazumiSearch', {
@@ -327,9 +329,14 @@ export class KazumiService {
           })
         )
       },
-      queryKey: queryKeys.kazumi.search(policy.name, keyword),
-      enabled: !!keyword.trim(),
       staleTime: Number.POSITIVE_INFINITY,
+    }
+  }
+
+  getSearchQueryOptions(keyword: string, policy: KazumiPolicy) {
+    return queryOptions({
+      ...this.searchQueryOptions(keyword, policy),
+      enabled: !!keyword.trim(),
     })
   }
 
