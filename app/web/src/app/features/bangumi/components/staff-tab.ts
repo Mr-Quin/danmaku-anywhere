@@ -1,4 +1,4 @@
-import { CommonModule, NgOptimizedImage } from '@angular/common'
+import { CommonModule } from '@angular/common'
 import {
   ChangeDetectionStrategy,
   Component,
@@ -9,12 +9,14 @@ import { injectQuery } from '@tanstack/angular-query-experimental'
 import { Card } from 'primeng/card'
 import { ProgressSpinner } from 'primeng/progressspinner'
 import { Tag } from 'primeng/tag'
+import { DaImage } from '../../../shared/components/da-image'
 import { BangumiService } from '../services/bangumi.service'
+import { preferredThumbnail } from '../utils/subject-images'
 
 @Component({
   selector: 'da-staff-tab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ProgressSpinner, Card, Tag, NgOptimizedImage],
+  imports: [CommonModule, ProgressSpinner, Card, Tag, DaImage],
   template: `
     @if (staffQuery.isPending()) {
       <div class="flex justify-center py-8">
@@ -26,13 +28,13 @@ import { BangumiService } from '../services/bangumi.service'
         <div class="grid grid-cols-2 gap-4">
           @for (staffMember of response.data; track staffMember.staff.id) {
             <div class="flex gap-4">
-              @if (staffMember.staff.images?.medium) {
-                <img
-                  [ngSrc]="staffMember.staff.images!.medium!"
+              @if (preferredThumbnail(staffMember.staff.images); as src) {
+                <da-image
+                  [src]="src"
                   [width]="64"
                   [height]="64"
                   [alt]="staffMember.staff.name"
-                  class="w-24 h-24 object-cover rounded"
+                  styleClass="w-24 h-24 object-cover rounded"
                 />
               } @else {
                 <div class="w-24 h-24 bg-surface-800 rounded"></div>
@@ -73,6 +75,7 @@ import { BangumiService } from '../services/bangumi.service'
 export class StaffTab {
   subjectId = input.required<number>()
   visited = input<boolean>(false)
+  protected readonly preferredThumbnail = preferredThumbnail
 
   private bangumiService = inject(BangumiService)
 

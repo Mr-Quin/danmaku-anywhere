@@ -9,13 +9,22 @@ import { RouterLink } from '@angular/router'
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { Card } from 'primeng/card'
 import { Tag } from 'primeng/tag'
+import { DaImage } from '../../../shared/components/da-image'
 import { BangumiService } from '../services/bangumi.service'
+import { preferredThumbnail } from '../utils/subject-images'
 import { HorizontalCardSkeletonGrid } from './horizontal-card-skeleton-grid'
 
 @Component({
   selector: 'da-relations-tab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterLink, Card, HorizontalCardSkeletonGrid, Tag],
+  imports: [
+    CommonModule,
+    RouterLink,
+    Card,
+    HorizontalCardSkeletonGrid,
+    Tag,
+    DaImage,
+  ],
   template: `
     @if (relationsQuery.isPending()) {
       <da-horizontal-card-skeleton-grid [count]="5" />
@@ -25,10 +34,10 @@ import { HorizontalCardSkeletonGrid } from './horizontal-card-skeleton-grid'
         <div class="grid gap-4">
           @for (relation of response.data; track relation.subject.id) {
             <div class="flex gap-4">
-              <img
-                [src]="relation.subject.images?.medium"
+              <da-image
+                [src]="preferredThumbnail(relation.subject.images)"
                 [alt]="relation.subject.name"
-                class="w-20 h-28 object-cover rounded"
+                styleClass="w-20 h-28 object-cover rounded"
               />
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-2">
@@ -71,6 +80,7 @@ import { HorizontalCardSkeletonGrid } from './horizontal-card-skeleton-grid'
 export class RelationsTab {
   subjectId = input.required<number>()
   visited = input<boolean>(false)
+  protected readonly preferredThumbnail = preferredThumbnail
 
   private bangumiService = inject(BangumiService)
 
