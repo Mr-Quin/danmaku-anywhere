@@ -364,6 +364,11 @@ const checks = [
 const run = async ({ core, github, context }) => {
   const runtimeContext = buildContext({ core, github, context })
 
+  if (runtimeContext.branchName.startsWith('changeset-release/')) {
+    core.info('Changesets version PR; skipping title checks.')
+    return
+  }
+
   for (const check of checks) {
     const result = await check.run(runtimeContext)
     if (result?.status === 'fail') {
