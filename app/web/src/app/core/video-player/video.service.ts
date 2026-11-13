@@ -190,6 +190,8 @@ export class VideoService {
       aspectRatio: true,
       fullscreen: true,
       fullscreenWeb: true,
+      // Global shortcuts own the keyboard, so Artplayer must not bind its own
+      hotkey: false,
       subtitleOffset: true,
       miniProgressBar: true,
       mutex: true,

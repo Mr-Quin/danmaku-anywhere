@@ -10,6 +10,7 @@ import { Dialog } from 'primeng/dialog'
 import { MaterialIcon } from '../../shared/components/material-icon'
 import { KazumiPolicyImport } from '../kazumi/components/kazumi-policy-import'
 import { KazumiPolicyManage } from '../kazumi/components/kazumi-policy-manage'
+import { GeneralSettings } from './components/general-settings'
 import { type SettingsRoute, SettingsService } from './settings.service'
 
 @Component({
@@ -21,6 +22,7 @@ import { type SettingsRoute, SettingsService } from './settings.service'
     MaterialIcon,
     KazumiPolicyManage,
     KazumiPolicyImport,
+    GeneralSettings,
   ],
   template: `
     <p-dialog
@@ -118,10 +120,7 @@ import { type SettingsRoute, SettingsService } from './settings.service'
                 </div>
               }
               @default {
-                <div class="p-6">
-                  <h2 class="text-xl font-semibold mb-4">通用设置</h2>
-                  <p class="text-surface-600">通用设置将在这里显示。</p>
-                </div>
+                <da-general-settings />
               }
             }
           }
