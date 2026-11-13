@@ -112,7 +112,6 @@ temp/
 *.zip
 
 # Documentation build
-docs/dist/
 
 # Generated files
 *.d.ts.map
