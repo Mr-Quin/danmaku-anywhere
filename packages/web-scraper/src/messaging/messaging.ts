@@ -89,7 +89,9 @@ export type ExtAction = {
   >
   episodeGetAll: ExtActionDef<void, GenericEpisodeLite[]>
   danmakuGet: ExtActionDef<GenericEpisodeLite, CommentEntity[]>
-  setRequestHeaders: ExtActionDef<SetHeaderRule, void>
+  // Extensions from before the removal path existed answer with no rule id.
+  setRequestHeaders: ExtActionDef<SetHeaderRule, number | undefined>
+  removeRequestHeaders: ExtActionDef<{ ruleId: number }, void>
 }
 
 type ExtRequestBase<T extends ExtActionType> = {
@@ -180,16 +182,34 @@ function targetsSameTab(
 export const setRequestHeaderRule = async (
   headerRule: SetHeaderRule,
   tabId?: number
-) => {
+): Promise<number> => {
   return headerRuleMutex.runExclusive(() => {
     return installHeaderRule(headerRule, tabId)
+  })
+}
+
+// Removes a rule returned by setRequestHeaderRule. A rule another tab asked for
+// is left alone, as is an id that has already been replaced or removed.
+export const removeRequestHeaderRule = async (
+  ruleId: number,
+  tabId?: number
+): Promise<void> => {
+  return headerRuleMutex.runExclusive(async () => {
+    const existingRules = await chrome.declarativeNetRequest.getSessionRules()
+    const rule = existingRules.find((r) => r.id === ruleId)
+    if (!rule || !targetsSameTab(rule, tabId)) {
+      return
+    }
+    await chrome.declarativeNetRequest.updateSessionRules({
+      removeRuleIds: [ruleId],
+    })
   })
 }
 
 async function installHeaderRule(
   headerRule: SetHeaderRule,
   tabId: number | undefined
-): Promise<void> {
+): Promise<number> {
   const existingRules = await chrome.declarativeNetRequest.getSessionRules()
 
   const prevRule = existingRules.find((rule) => {
@@ -293,4 +313,6 @@ async function installHeaderRule(
     ],
     removeRuleIds: prevRule ? [prevRule.id] : [],
   })
+
+  return ruleId
 }

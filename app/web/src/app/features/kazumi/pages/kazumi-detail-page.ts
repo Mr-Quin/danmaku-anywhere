@@ -7,6 +7,7 @@ import {
   inject,
   input,
   linkedSignal,
+  type OnDestroy,
   signal,
   untracked,
 } from '@angular/core'
@@ -23,6 +24,7 @@ import { Select } from 'primeng/select'
 import { Skeleton } from 'primeng/skeleton'
 import { Tag } from 'primeng/tag'
 import { defer, type Subscription, tap } from 'rxjs'
+import { ExtensionMessagingService } from '../../../core/extension/extension-messaging.service'
 import { TrackingService } from '../../../core/tracking.service'
 import { VideoPlayer } from '../../../core/video-player/video-player'
 import { MaterialIcon } from '../../../shared/components/material-icon'
@@ -30,6 +32,7 @@ import { UnescapePipePipe } from '../../../shared/pipes/UrlDecodePipe'
 import { CommentsTab } from '../../bangumi/components/comments-tab'
 import { BangumiService } from '../../bangumi/services/bangumi.service'
 import { KazumiService } from '../services/kazumi.service'
+import { MediaHeaderRules } from '../services/media-header-rules'
 
 interface Episode {
   name: string
@@ -230,12 +233,15 @@ interface Episode {
     </div>
   `,
 })
-export class KazumiDetailPage {
+export class KazumiDetailPage implements OnDestroy {
   private kazumiService = inject(KazumiService)
   private bangumiService = inject(BangumiService)
   private router = inject(Router)
   private route = inject(ActivatedRoute)
   private readonly trackingService = inject(TrackingService)
+  private readonly headerRules = new MediaHeaderRules(
+    inject(ExtensionMessagingService)
+  )
 
   // query params
   readonly id = input<number>()
@@ -449,7 +455,13 @@ export class KazumiDetailPage {
     this.$mediaList.set([])
     // set url to empty string to unload the current video
     this.$videoUrl.set('')
+    void this.headerRules.releaseAll()
     this.subscribeMediaStream(episode.url)
+  }
+
+  ngOnDestroy() {
+    this.mediaSubscription?.unsubscribe()
+    void this.headerRules.releaseAll()
   }
 
   private updateUrlParams(params: { p?: number; e?: number }) {
@@ -496,6 +508,9 @@ export class KazumiDetailPage {
             episode: this.$selectedEpisode(),
             show: this.$searchDetails(),
           })
+          for (const media of mediaInfo) {
+            void this.headerRules.ensure(url, media)
+          }
           // if no video is available yet, set it to the first one found
           if (mediaInfo[0] && !this.$videoUrl()) {
             this.$videoUrl.set(mediaInfo[0].src)

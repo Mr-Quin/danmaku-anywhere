@@ -11,7 +11,7 @@ import {
   getPolicy,
   type KazumiPolicy,
 } from '@danmaku-anywhere/danmaku-provider/kazumi'
-import type { MediaInfo, SetHeaderRule } from '@danmaku-anywhere/web-scraper'
+import type { MediaInfo } from '@danmaku-anywhere/web-scraper'
 import {
   injectMutation,
   injectQuery,
@@ -26,7 +26,6 @@ import {
   scan,
   shareReplay,
   startWith,
-  tap,
 } from 'rxjs'
 import { ExtensionMessagingService } from '../../../core/extension/extension-messaging.service'
 import { queryKeys } from '../../../shared/query/queryKeys'
@@ -261,13 +260,6 @@ export class KazumiService {
     },
   }))
 
-  readonly setHeadersMutation = injectMutation(() => ({
-    mutationFn: (headerRule: SetHeaderRule) =>
-      lastValueFrom(
-        this.extensionMessagingService.single('setRequestHeaders', headerRule)
-      ),
-  }))
-
   constructor() {
     // set active policy when allPoliciesQuery resolves
     effect(() => {
@@ -352,16 +344,6 @@ export class KazumiService {
     const newStream$ = this.extensionMessagingService
       .stream('extractMedia', { url })
       .pipe(
-        tap(async (info: MediaInfo) => {
-          // update net request rules to set headers
-          const origin = new URL(url).origin
-          const videoUrl = new URL(info.src)
-          await this.setHeadersMutation.mutateAsync({
-            url: videoUrl.origin,
-            referer: origin,
-            origin,
-          })
-        }),
         // convert stream to emit an array
         scan((acc, value) => [...acc, value], [] as MediaInfo[]),
         startWith([]),

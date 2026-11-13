@@ -2,7 +2,10 @@ import {
   getDanmuicuConfig,
   getMaccmsConfig,
 } from '@danmaku-anywhere/danmaku-provider/config'
-import { setRequestHeaderRule } from '@danmaku-anywhere/web-scraper'
+import {
+  removeRequestHeaderRule,
+  setRequestHeaderRule,
+} from '@danmaku-anywhere/web-scraper'
 import { inject, injectable } from 'inversify'
 import { match } from 'ts-pattern'
 import { removeSessionRule } from '@/background/netRequest/sessionRules'
@@ -364,7 +367,13 @@ export class RpcManager {
         if (sender.tab?.id === undefined) {
           throw new RpcException('No tab id found')
         }
-        await setRequestHeaderRule(rule, sender.tab.id)
+        return setRequestHeaderRule(rule, sender.tab.id)
+      },
+      removeHeaders: async ({ ruleId }, sender) => {
+        if (sender.tab?.id === undefined) {
+          throw new RpcException('No tab id found')
+        }
+        await removeRequestHeaderRule(ruleId, sender.tab.id)
       },
       openPopupInNewWindow: async ({ path, tabId, width, height }) => {
         void chrome.windows.create({
