@@ -126,6 +126,94 @@ describe('Cache Middleware', () => {
     expect(handlerSpy).toHaveBeenCalledTimes(2)
   })
 
+  describe('minRefreshInterval', () => {
+    const forced = (path: string, cacheControl = 'no-cache') =>
+      makeUnitTestRequest(
+        new Request(`http://example.com${path}`, {
+          headers: { 'Cache-Control': cacheControl },
+        }),
+        { app }
+      )
+
+    it('lets one forced refresh through per interval and serves the rest from cache', async () => {
+      createTestApp({ maxAge: 60, minRefreshInterval: 60 })
+      const path = `/${Math.random()}`
+
+      await makeUnitTestRequest(new Request(`http://example.com${path}`), {
+        app,
+      })
+      expect(handlerSpy).toHaveBeenCalledTimes(1)
+
+      const res2 = await forced(path)
+      expect(res2.status).toBe(200)
+      expect(handlerSpy).toHaveBeenCalledTimes(2)
+
+      const res3 = await forced(path)
+      expect(res3.status).toBe(200)
+      expect(handlerSpy).toHaveBeenCalledTimes(2)
+      expect(await res3.json()).toEqual(await res2.json())
+
+      const res4 = await forced(path, 'max-age=0')
+      expect(res4.status).toBe(200)
+      expect(handlerSpy).toHaveBeenCalledTimes(2)
+    })
+
+    it('counts no-store as a forced refresh and stores its response', async () => {
+      createTestApp({ maxAge: 60, minRefreshInterval: 60 })
+      const path = `/${Math.random()}`
+
+      const res1 = await forced(path, 'no-store')
+      expect(res1.status).toBe(200)
+      expect(handlerSpy).toHaveBeenCalledTimes(1)
+
+      const res2 = await forced(path, 'no-store')
+      expect(res2.status).toBe(200)
+      expect(handlerSpy).toHaveBeenCalledTimes(1)
+      expect(await res2.json()).toEqual(await res1.json())
+
+      await makeUnitTestRequest(new Request(`http://example.com${path}`), {
+        app,
+      })
+      expect(handlerSpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('still runs the handler on a floored request when nothing is cached', async () => {
+      // A failing upstream marks the interval without storing a response.
+      const failingApp = factory.createApp()
+      failingApp.use('*', useCache({ maxAge: 60, minRefreshInterval: 60 }))
+      failingApp.get('/:id', (c) => c.text('upstream down', 502))
+      const path = `/${Math.random()}`
+
+      const res1 = await makeUnitTestRequest(
+        new Request(`http://example.com${path}`, {
+          headers: { 'Cache-Control': 'no-cache' },
+        }),
+        { app: failingApp }
+      )
+      expect(res1.status).toBe(502)
+
+      createTestApp({ maxAge: 60, minRefreshInterval: 60 })
+      const res2 = await forced(path)
+      expect(res2.status).toBe(200)
+      expect(handlerSpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('lets a forced refresh through again once the interval has passed', async () => {
+      createTestApp({ maxAge: 60, minRefreshInterval: 1 })
+      const path = `/${Math.random()}`
+
+      await forced(path)
+      expect(handlerSpy).toHaveBeenCalledTimes(1)
+      await forced(path)
+      expect(handlerSpy).toHaveBeenCalledTimes(1)
+
+      await new Promise((resolve) => setTimeout(resolve, 2100))
+
+      await forced(path)
+      expect(handlerSpy).toHaveBeenCalledTimes(2)
+    })
+  })
+
   it('sets ETag header on response', async () => {
     createTestApp({ maxAge: 60 })
     const path = `/${Math.random()}`

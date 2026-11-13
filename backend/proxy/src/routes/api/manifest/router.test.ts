@@ -68,6 +68,35 @@ describe('Manifest API', () => {
     expect(content.id).toBe('builtin:bilibili')
   })
 
+  it('fetches upstream for at most one forced refresh per interval (GET /file)', async () => {
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ id: 'builtin:floored' }), {
+        status: 200,
+      })
+    )
+
+    const forced = () =>
+      makeUnitTestRequest(
+        new Request(
+          createTestUrl('/manifest/file', {
+            query: { file: 'src/manifests/builtin-floored.json' },
+          }),
+          { headers: { 'Cache-Control': 'no-cache' } }
+        )
+      )
+
+    const res1 = await forced()
+    expect(res1.status).toBe(200)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+
+    const res2 = await forced()
+    expect(res2.status).toBe(200)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+
+    const content: any = await res2.json()
+    expect(content.id).toBe('builtin:floored')
+  })
+
   it('returns 400 when file parameter is missing (GET /file)', async () => {
     const request = new Request(createTestUrl('/manifest/file'))
     const response = await makeUnitTestRequest(request)
