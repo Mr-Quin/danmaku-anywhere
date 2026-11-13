@@ -1,5 +1,11 @@
 # @danmaku-anywhere/danmaku-converter
 
+## 0.2.1
+
+### Patch Changes
+
+- 67414d9: Compiled for ES2022, so class fields stay native instead of becoming `Object.defineProperty` calls. Behavior is unchanged.
+
 ## 0.2.0
 
 ### Minor Changes
