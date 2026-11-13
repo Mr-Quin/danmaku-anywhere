@@ -2,10 +2,22 @@ import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
 import type { KazumiChapterResult, KazumiSearchResult } from '../types.js'
 import { createJob, createTab, Logger } from '../utils.js'
 
+// The scraper drives a real tab and reads it with XPath. Rules whose search
+// or chapter step goes through an API have no page to open.
+export function isXPathPolicy(policy: KazumiPolicy): boolean {
+  return policy.searchMode === 'xpath' && policy.chapterMode === 'xpath'
+}
+
 export const kazumiSearch = async (
   keyword: string,
   policy: KazumiPolicy
 ): Promise<KazumiSearchResult[]> => {
+  if (policy.searchMode !== 'xpath') {
+    throw new Error(
+      `Rule "${policy.name}" searches through an API, which is not supported`
+    )
+  }
+
   // Replace @keyword in the search URL with the actual keyword
   const searchUrl = policy.searchURL.replace(
     '@keyword',
@@ -102,6 +114,12 @@ export const kazumiGetChapters = async (
   contentUrl: string,
   policy: KazumiPolicy
 ): Promise<KazumiChapterResult[][]> => {
+  if (policy.chapterMode !== 'xpath') {
+    throw new Error(
+      `Rule "${policy.name}" lists chapters through an API, which is not supported`
+    )
+  }
+
   await using tabResource = await createTab(contentUrl)
 
   const { tabId } = tabResource
