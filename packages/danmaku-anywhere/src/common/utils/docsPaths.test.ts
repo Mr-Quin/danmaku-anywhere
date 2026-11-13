@@ -6,9 +6,17 @@ import { DOCS_PATHS } from './docsPaths'
 /**
  * Every docs path the extension links to resolves to a page in the docs site
  * source, and a path with an anchor points at a heading on that page.
+ * The docs live in Danmaku-Anywhere/docs: point DA_DOCS_DIR at a clone of it.
+ * CI always sets it; locally the check is skipped without it.
  */
 
-const DOCS_CONTENT = resolve(__dirname, '../../../../../docs/src/content/docs')
+const DOCS_DIR = process.env.DA_DOCS_DIR
+
+if (!DOCS_DIR && process.env.CI) {
+  throw new Error(
+    'DA_DOCS_DIR must point at a Danmaku-Anywhere/docs clone in CI'
+  )
+}
 
 function headingSlug(heading: string): string {
   return heading
@@ -18,10 +26,14 @@ function headingSlug(heading: string): string {
     .replace(/\s+/g, '-')
 }
 
-describe('DOCS_PATHS', () => {
+describe.skipIf(!DOCS_DIR)('DOCS_PATHS', () => {
   it.each(Object.entries(DOCS_PATHS))('%s resolves to a page', (_, path) => {
     const [page, anchor] = path.split('#')
-    const file = resolve(DOCS_CONTENT, `${page.replace(/\/$/, '')}.mdx`)
+    const file = resolve(
+      DOCS_DIR ?? '',
+      'src/content/docs',
+      `${page.replace(/\/$/, '')}.mdx`
+    )
     expect(existsSync(file)).toBe(true)
 
     if (anchor !== undefined) {

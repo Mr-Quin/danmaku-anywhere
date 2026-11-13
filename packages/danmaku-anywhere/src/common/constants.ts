@@ -33,7 +33,8 @@ export const EXTENSION_VERSION = import.meta.env.VERSION
 
 export const DEV_BRANCH = import.meta.env.VITE_DA_BRANCH
 
-export const EXTENSION_REPO = 'https://github.com/Mr-Quin/danmaku-anywhere'
+export const EXTENSION_REPO =
+  'https://github.com/Danmaku-Anywhere/danmaku-anywhere'
 
 export const BUG_FORM =
   'https://forms.clickup.com/90131020449/f/2ky3men1-933/ULQ3OZ8QYRXIJ5HACI'

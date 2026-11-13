@@ -1,8 +1,8 @@
-import { err, ok, type Result } from '@danmaku-anywhere/result'
 import type { ZodType, z } from 'zod'
 import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
 import { HttpException } from '../../exceptions/HttpException.js'
 import { ResponseParseException } from '../../exceptions/ResponseParseException.js'
+import { err, ok, type Result } from '../../result.js'
 import { getApiStore } from '../../shared/store.js'
 import { tryCatch } from './tryCatch.js'
 

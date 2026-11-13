@@ -1,12 +1,20 @@
 {
   "name": "@danmaku-anywhere/danmaku-provider",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.2.0",
   "description": "",
   "author": "Mr-Quin",
-  "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Danmaku-Anywhere/danmaku-anywhere",
+    "directory": "packages/danmaku-provider"
+  },
   "license": "MIT",
   "type": "module",
+  "files": [
+    "dist",
+    "!dist/tsconfig.tsbuildinfo",
+    "!dist/src/providers/utils/testUtils.*"
+  ],
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "exports": {
@@ -55,10 +63,61 @@
       "default": "./src/providers/backup/index.js"
     }
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "main": "dist/src/index.js",
+    "types": "dist/src/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/src/index.d.ts",
+        "default": "./dist/src/index.js"
+      },
+      "./ddp": {
+        "types": "./dist/src/providers/ddp/index.d.ts",
+        "default": "./dist/src/providers/ddp/index.js"
+      },
+      "./bilibili": {
+        "types": "./dist/src/providers/bilibili/index.d.ts",
+        "default": "./dist/src/providers/bilibili/index.js"
+      },
+      "./bilibili-proto": {
+        "types": "./dist/src/protobuf/protobuf.d.ts",
+        "default": "./dist/src/protobuf/protobuf.js"
+      },
+      "./tencent": {
+        "types": "./dist/src/providers/tencent/index.d.ts",
+        "default": "./dist/src/providers/tencent/index.js"
+      },
+      "./maccms": {
+        "types": "./dist/src/providers/macCms/index.d.ts",
+        "default": "./dist/src/providers/macCms/index.js"
+      },
+      "./genAi": {
+        "types": "./dist/src/providers/genAi/index.d.ts",
+        "default": "./dist/src/providers/genAi/index.js"
+      },
+      "./kazumi": {
+        "types": "./dist/src/providers/kazumi/index.d.ts",
+        "default": "./dist/src/providers/kazumi/index.js"
+      },
+      "./config": {
+        "types": "./dist/src/providers/config/index.d.ts",
+        "default": "./dist/src/providers/config/index.js"
+      },
+      "./files": {
+        "types": "./dist/src/providers/files/index.d.ts",
+        "default": "./dist/src/providers/files/index.js"
+      },
+      "./backup": {
+        "types": "./dist/src/providers/backup/index.d.ts",
+        "default": "./dist/src/providers/backup/index.js"
+      }
+    }
+  },
   "scripts": {
     "test": "vitest run",
     "protobuf:compile": "pbjs -t static-module -w es6 -o src/protobuf/protobuf.js src/protobuf/definition/bilibili.dm.proto && pbts -o src/protobuf/protobuf.d.ts src/protobuf/protobuf.js",
-    "build": "pnpm protobuf:compile && tsgo",
+    "build": "pnpm protobuf:compile && tsgo && copyfiles src/protobuf/protobuf.js src/protobuf/protobuf.d.ts dist",
     "lint": "tsgo && biome check --fix",
     "lint:ci": "biome ci",
     "type-check": "tsgo --noEmit",
@@ -66,8 +125,7 @@
     "openapi-ts": "openapi-ts"
   },
   "dependencies": {
-    "@danmaku-anywhere/danmaku-converter": "workspace:*",
-    "@danmaku-anywhere/result": "workspace:*",
+    "@danmaku-anywhere/danmaku-converter": "workspace:^",
     "protobufjs": "^8.8.0",
     "zod": "^4.6.5"
   },

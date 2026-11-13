@@ -9,7 +9,7 @@ export const manifestRouter = factory.createApp()
 // is redeployed.
 const dangoRef = 'v0.10.0'
 
-const dangoBaseUrl = `https://raw.githubusercontent.com/Mr-Quin/dango/${dangoRef}/packages/dango-manifests`
+const dangoBaseUrl = `https://raw.githubusercontent.com/Danmaku-Anywhere/dango/${dangoRef}/packages/dango-manifests`
 
 const filePattern = /^src\/manifests\/[\w.-]+\.json$/
 

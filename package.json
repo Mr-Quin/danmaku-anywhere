@@ -10,25 +10,24 @@
     "danmaku",
     "user script"
   ],
-  "repository": "https://github.com/Mr-Quin/danmaku-anywhere",
+  "repository": "https://github.com/Danmaku-Anywhere/danmaku-anywhere",
   "scripts": {
     "dev:web-app": "pnpm -r -F \"./app/web\" start",
     "dev:extension": "pnpm -r -F \"./packages/danmaku-anywhere\" dev",
     "dev:extension:standalone": "pnpm -r -F \"./packages/danmaku-anywhere\" standalone:dev",
     "build": "pnpm -r build",
-    "release-manager": "pnpm --filter @danmaku-anywhere/release-manager dev",
     "build:packages": "pnpm -r -F \"./packages/**\" build",
     "format": "pnpm -r -F \"./packages/**\" format",
     "lint": "pnpm -r -F \"./packages/**\" lint",
     "lint:ci": "pnpm -r lint:ci",
     "test": "pnpm -r test",
     "type-check": "pnpm -r type-check",
-    "sync-changelog": "node --experimental-strip-types scripts/sync-changelog.ts Mr-Quin/danmaku-anywhere docs/src/content/docs/change-log.mdx",
     "knip": "knip",
     "prepare": "lefthook install"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.15",
+    "@changesets/cli": "^3.0.3",
     "@typescript/native-preview": "7.0.0-dev.20260521.1",
     "knip": "6.41.0",
     "lefthook": "^2.2.1",

@@ -2,12 +2,12 @@ import {
   type CommentEntity,
   zGenericXml,
 } from '@danmaku-anywhere/danmaku-converter'
-import { err, ok, type Result } from '@danmaku-anywhere/result'
 import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
 import { HttpException } from '../../exceptions/HttpException.js'
 import { InputError } from '../../exceptions/InputError.js'
 import { ResponseParseException } from '../../exceptions/ResponseParseException.js'
 import { bilibili as bilibiliProto } from '../../protobuf/protobuf.js'
+import { err, ok, type Result } from '../../result.js'
 import { createThrottle } from '../utils/createThrottle.js'
 import { fetchData } from '../utils/fetchData.js'
 import type {

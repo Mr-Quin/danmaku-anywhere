@@ -1,14 +1,33 @@
 {
   "name": "@danmaku-anywhere/danmaku-converter",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.2.0",
   "description": "",
   "author": "Mr-Quin",
-  "repository": "https://github.com/Mr-Quin/danmaku-conveter",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Danmaku-Anywhere/danmaku-anywhere",
+    "directory": "packages/danmaku-converter"
+  },
   "license": "MIT",
   "type": "module",
+  "files": [
+    "dist",
+    "!dist/tsconfig.tsbuildinfo",
+    "!dist/src/**/test-data"
+  ],
   "main": "src/index.js",
   "types": "src/index.d.ts",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "main": "dist/src/index.js",
+    "types": "dist/src/index.d.ts",
+    "exports": {
+      ".": {
+        "types": "./dist/src/index.d.ts",
+        "default": "./dist/src/index.js"
+      }
+    }
+  },
   "scripts": {
     "test": "vitest run",
     "build": "tsgo",

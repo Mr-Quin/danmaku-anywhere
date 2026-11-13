@@ -12,7 +12,7 @@
     "type-check": "tsgo --noEmit",
     "wrangler": "wrangler"
   },
-  "private": false,
+  "private": true,
   "dependencies": {
     "@angular/animations": "^21.2.25",
     "@angular/cdk": "^21.2.14",

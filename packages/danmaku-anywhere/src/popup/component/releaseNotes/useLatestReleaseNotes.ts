@@ -21,7 +21,7 @@ export const useLatestReleaseNotes = () => {
         version = '1.2.0' // Special case versions
       }
       const res = await fetch(
-        `https://api.github.com/repos/Mr-Quin/danmaku-anywhere/releases/tags/v${version}`
+        `https://api.github.com/repos/Danmaku-Anywhere/danmaku-anywhere/releases/tags/v${version}`
       )
 
       if (res.status !== 200) {
