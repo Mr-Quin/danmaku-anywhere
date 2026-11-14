@@ -6,6 +6,15 @@ export interface SubjectImageSet {
   grid?: string
 }
 
+// Detail headers and video posters render up to 224px wide, so they keep the
+// largest variant. Cards render smaller and load many at once, so they take
+// the 400px cover and only fall back to larger ones.
+export function preferredPoster(
+  images: SubjectImageSet | null | undefined
+): string {
+  return images?.large || images?.common || images?.medium || ''
+}
+
 export function preferredCover(
   images: SubjectImageSet | null | undefined
 ): string {

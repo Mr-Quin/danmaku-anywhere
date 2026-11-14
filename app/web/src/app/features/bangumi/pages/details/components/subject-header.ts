@@ -12,7 +12,7 @@ import { DaImage } from '../../../../../shared/components/da-image'
 import { MaterialIcon } from '../../../../../shared/components/material-icon'
 import { RatingDistributionComponent } from '../../../../../shared/components/rating-distribution.component'
 import type { BgmSubject } from '../../../types/bangumi.types'
-import { preferredCover } from '../../../utils/subject-images'
+import { preferredPoster } from '../../../utils/subject-images'
 
 @Component({
   selector: 'da-subject-header',
@@ -32,7 +32,7 @@ import { preferredCover } from '../../../utils/subject-images'
       <div class="flex flex-col lg:flex-row gap-6">
         <div class="flex-shrink-0">
           <da-image
-            [src]="preferredCover(subjectData.images)"
+            [src]="preferredPoster(subjectData.images)"
             [alt]="subjectData.name"
             loading="eager"
             styleClass="w-48 lg:w-56 aspect-[2/3] object-cover rounded-lg shadow-lg"
@@ -167,7 +167,7 @@ import { preferredCover } from '../../../utils/subject-images'
 export class SubjectHeader {
   subject = input.required<BgmSubject>()
   protected tagsExpanded = signal(false)
-  protected readonly preferredCover = preferredCover
+  protected readonly preferredPoster = preferredPoster
 
   protected toggleTagsExpanded() {
     this.tagsExpanded.update((expanded) => !expanded)

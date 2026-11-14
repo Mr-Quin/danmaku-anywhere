@@ -1,9 +1,14 @@
-import { preferredCover, preferredThumbnail } from './subject-images'
+import {
+  preferredCover,
+  preferredPoster,
+  preferredThumbnail,
+} from './subject-images'
 
 /**
- * Cards and thumbnails must request a size-appropriate Bangumi image instead
- * of the full-size cover. These helpers also keep a missing image set from
- * producing a broken URL.
+ * Each surface asks for the smallest Bangumi variant that still looks sharp
+ * at the size it renders: posters keep the largest cover, cards take the
+ * 400px one, thumbnails take the grid crop. These helpers also keep a missing
+ * image set from producing a broken URL.
  */
 
 const images = {
@@ -15,6 +20,10 @@ const images = {
 }
 
 describe('subject image variants', () => {
+  it('keeps the full-size cover for detail posters', () => {
+    expect(preferredPoster(images)).toBe('https://lain.bgm.tv/large.jpg')
+  })
+
   it('prefers the 400px cover for cards', () => {
     expect(preferredCover(images)).toBe('https://lain.bgm.tv/common.jpg')
   })
@@ -28,7 +37,14 @@ describe('subject image variants', () => {
     expect(preferredThumbnail({ medium: images.medium })).toBe(images.medium)
   })
 
+  it('falls back to a smaller variant when the poster cover is missing', () => {
+    expect(preferredPoster({ common: images.common })).toBe(images.common)
+    expect(preferredPoster({ medium: images.medium })).toBe(images.medium)
+  })
+
   it('returns an empty string for a missing image set', () => {
+    expect(preferredPoster(undefined)).toBe('')
+    expect(preferredPoster(null)).toBe('')
     expect(preferredCover(undefined)).toBe('')
     expect(preferredCover(null)).toBe('')
     expect(preferredThumbnail(undefined)).toBe('')

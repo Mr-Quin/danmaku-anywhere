@@ -29,7 +29,7 @@ import { MaterialIcon } from '../../../shared/components/material-icon'
 import { UnescapePipePipe } from '../../../shared/pipes/UrlDecodePipe'
 import { CommentsTab } from '../../bangumi/components/comments-tab'
 import { BangumiService } from '../../bangumi/services/bangumi.service'
-import { preferredCover } from '../../bangumi/utils/subject-images'
+import { preferredPoster } from '../../bangumi/utils/subject-images'
 import { KazumiService } from '../services/kazumi.service'
 
 interface Episode {
@@ -305,7 +305,7 @@ export class KazumiDetailPage {
   protected $posterUrl = computed(() => {
     const type = this.type()
     if (type === 'bangumi' && this.bangumiSubjectQuery.isSuccess()) {
-      return preferredCover(this.bangumiSubjectQuery.data()?.images)
+      return preferredPoster(this.bangumiSubjectQuery.data()?.images)
     }
     return ''
   })
