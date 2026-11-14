@@ -1,13 +1,9 @@
-import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
-import type { KazumiChapterResult, KazumiSearchResult } from '../types.js'
+import type {
+  KazumiChapterResult,
+  KazumiPolicy,
+  KazumiSearchResult,
+} from '@danmaku-anywhere/extension-protocol'
 import { createJob, createTab, Logger } from '../utils.js'
-
-// The scraper drives a real tab and reads it with XPath. Rules whose search
-// or chapter step goes through an API have no page to open. Rules stored
-// before the mode fields existed have no mode at all, and are xpath rules.
-export function isXPathPolicy(policy: KazumiPolicy): boolean {
-  return policy.searchMode !== 'api' && policy.chapterMode !== 'api'
-}
 
 export const kazumiSearch = async (
   keyword: string,

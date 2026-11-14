@@ -1,13 +1,6 @@
+import type { MediaInfo } from '@danmaku-anywhere/extension-protocol'
 import { getVideoUrlFromResponse } from './cat-catch.js'
-import type { HTTPHeader } from './types.js'
 import { createTab, Logger } from './utils.js'
-
-export type MediaInfo = {
-  src: string
-  contentType: string
-  type: 'video' | 'audio'
-  headers?: HTTPHeader[]
-}
 
 export type MediaExtractionOptions = {
   onMediaFound: (mediaInfo: MediaInfo) => void

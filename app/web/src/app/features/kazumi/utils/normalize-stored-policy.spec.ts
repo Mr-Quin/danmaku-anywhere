@@ -1,4 +1,4 @@
-import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
+import type { KazumiPolicy } from '@danmaku-anywhere/extension-protocol'
 import { describe, expect, it } from 'vitest'
 import { normalizeStoredPolicy } from './normalize-stored-policy'
 

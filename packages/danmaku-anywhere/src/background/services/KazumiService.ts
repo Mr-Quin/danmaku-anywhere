@@ -1,10 +1,9 @@
-import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
-import {
-  type KazumiChapterResult,
-  type KazumiSearchResult,
-  kazumiGetChapters,
-  kazumiSearch,
-} from '@danmaku-anywhere/web-scraper'
+import type {
+  KazumiChapterResult,
+  KazumiPolicy,
+  KazumiSearchResult,
+} from '@danmaku-anywhere/extension-protocol'
+import { kazumiGetChapters, kazumiSearch } from '@danmaku-anywhere/web-scraper'
 import { injectable } from 'inversify'
 
 @injectable('Singleton')

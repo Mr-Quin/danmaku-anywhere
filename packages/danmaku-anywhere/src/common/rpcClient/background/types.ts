@@ -19,7 +19,7 @@ import type {
   KazumiSearchPayload,
   KazumiSearchResult,
   SetHeaderRule,
-} from '@danmaku-anywhere/web-scraper'
+} from '@danmaku-anywhere/extension-protocol'
 import type { ConfigSchema } from '@mr-quin/dango'
 import type {
   GenericVodSearchData,

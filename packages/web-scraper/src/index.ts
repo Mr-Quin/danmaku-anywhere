@@ -1,5 +1,4 @@
 export * from './extractMedia.js'
 export * from './kazumi/index.js'
 export * from './messaging/index.js'
-export * from './types.js'
 export * from './utils.js'

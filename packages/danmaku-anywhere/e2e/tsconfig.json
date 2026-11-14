@@ -9,7 +9,7 @@
         "../../danmaku-provider/src/providers/ddp"
       ],
       "@danmaku-anywhere/danmaku-converter": ["../../danmaku-converter/src"],
-      "@danmaku-anywhere/result": ["../../result/src"],
+      "@danmaku-anywhere/extension-protocol": ["../../extension-protocol/src"],
       "@danmaku-anywhere/web-scraper": ["../../web-scraper/src"]
     }
   },

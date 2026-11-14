@@ -12,7 +12,7 @@ import {
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { ActivatedRoute, Router } from '@angular/router'
-import type { MediaInfo } from '@danmaku-anywhere/web-scraper'
+import type { MediaInfo } from '@danmaku-anywhere/extension-protocol'
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'

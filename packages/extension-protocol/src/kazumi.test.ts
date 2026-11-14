@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { zKazumiPolicy } from './schema'
+import { isXPathPolicy, type KazumiPolicy, zKazumiPolicy } from './kazumi.js'
 
 /**
  * Published Kazumi rules come in two shapes: the classic xpath rules, and
@@ -147,5 +147,23 @@ describe('zKazumiPolicy', () => {
     expect(zKazumiPolicy.safeParse({ ...xpathRule, name: '' }).success).toBe(
       false
     )
+  })
+})
+
+describe('isXPathPolicy', () => {
+  it('is true only when both steps use xpath', () => {
+    expect(isXPathPolicy(zKazumiPolicy.parse(xpathRule))).toBe(true)
+    expect(isXPathPolicy(zKazumiPolicy.parse(apiRule))).toBe(false)
+    expect(isXPathPolicy(zKazumiPolicy.parse(mixedRule))).toBe(false)
+  })
+
+  it('treats a rule stored before modes existed as xpath', () => {
+    const {
+      searchMode: _,
+      chapterMode: __,
+      ...stored
+    } = zKazumiPolicy.parse(xpathRule)
+
+    expect(isXPathPolicy(stored as KazumiPolicy)).toBe(true)
   })
 })

@@ -70,3 +70,11 @@ export const zKazumiPolicy = z
   })
 
 export type KazumiPolicy = z.output<typeof zKazumiPolicy>
+
+// Whether the extension's scraper can run a rule: it opens a real tab and
+// reads it with XPath, so a step that goes through an API has no page to
+// open. Rules stored before the mode fields existed have no mode at all, and
+// are xpath rules.
+export function isXPathPolicy(policy: KazumiPolicy): boolean {
+  return policy.searchMode !== 'api' && policy.chapterMode !== 'api'
+}

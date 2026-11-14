@@ -46,10 +46,6 @@
       "types": "./src/providers/genAi/index.d.ts",
       "default": "./src/providers/genAi/index.js"
     },
-    "./kazumi": {
-      "types": "./src/providers/kazumi/index.d.ts",
-      "default": "./src/providers/kazumi/index.js"
-    },
     "./config": {
       "types": "./src/providers/config/index.d.ts",
       "default": "./src/providers/config/index.js"
@@ -95,10 +91,6 @@
       "./genAi": {
         "types": "./dist/src/providers/genAi/index.d.ts",
         "default": "./dist/src/providers/genAi/index.js"
-      },
-      "./kazumi": {
-        "types": "./dist/src/providers/kazumi/index.d.ts",
-        "default": "./dist/src/providers/kazumi/index.js"
       },
       "./config": {
         "types": "./dist/src/providers/config/index.d.ts",

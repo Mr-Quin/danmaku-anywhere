@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Fetch danmaku from various backend APIs. Each provider is a separate subpath export (e.g., `./ddp`, `./bilibili`, `./tencent`, `./maccms`, `./kazumi`, `./config`, `./files`).
+Fetch danmaku from various backend APIs. Each provider is a separate subpath export (e.g., `./ddp`, `./bilibili`, `./tencent`, `./maccms`, `./config`, `./files`).
 
 ## Gotchas
 

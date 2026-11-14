@@ -1,7 +1,7 @@
 import {
   type KazumiPolicy,
   zKazumiPolicy,
-} from '@danmaku-anywhere/danmaku-provider/kazumi'
+} from '@danmaku-anywhere/extension-protocol'
 
 // Policies are stored as they were parsed at import time, so older ones lack
 // fields the schema has gained since, such as searchMode and chapterMode.

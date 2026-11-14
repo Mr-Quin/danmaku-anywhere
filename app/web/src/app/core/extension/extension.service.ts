@@ -1,5 +1,5 @@
 import { computed, effect, Injectable, inject, signal } from '@angular/core'
-import { getExtensionAttr } from '@danmaku-anywhere/web-scraper'
+import { getExtensionAttr } from '@danmaku-anywhere/extension-protocol'
 import { TrackingService } from '../tracking.service'
 import { compareVersion } from './compareVersion'
 import { LATEST_EXTENSION_VERSION } from './latestExtensionVersion'

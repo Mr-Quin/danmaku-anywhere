@@ -1,0 +1,42 @@
+{
+  "name": "@danmaku-anywhere/extension-protocol",
+  "version": "0.1.0",
+  "description": "Messages exchanged between the Danmaku Anywhere extension and the pages it talks to",
+  "author": "Mr-Quin",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Danmaku-Anywhere/danmaku-anywhere",
+    "directory": "packages/extension-protocol"
+  },
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "!dist/tsconfig.tsbuildinfo"
+  ],
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com",
+    "exports": {
+      ".": {
+        "types": "./dist/src/index.d.ts",
+        "default": "./dist/src/index.js"
+      }
+    }
+  },
+  "scripts": {
+    "build": "tsgo",
+    "lint": "biome check --fix",
+    "type-check": "tsgo --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@danmaku-anywhere/danmaku-converter": "workspace:^",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.3"
+  }
+}

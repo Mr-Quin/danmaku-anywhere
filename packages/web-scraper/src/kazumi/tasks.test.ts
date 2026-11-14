@@ -1,7 +1,7 @@
-import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
+import type { KazumiPolicy } from '@danmaku-anywhere/extension-protocol'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createTab } from '../utils.js'
-import { isXPathPolicy, kazumiGetChapters, kazumiSearch } from './tasks.js'
+import { kazumiGetChapters, kazumiSearch } from './tasks.js'
 
 /**
  * The scraper only knows how to read a page with XPath. A rule whose search
@@ -56,14 +56,6 @@ const apiChapterPolicy: KazumiPolicy = {
   chapterResult: '',
 }
 
-describe('isXPathPolicy', () => {
-  it('is true only when both steps use xpath', () => {
-    expect(isXPathPolicy(xpathPolicy)).toBe(true)
-    expect(isXPathPolicy(apiSearchPolicy)).toBe(false)
-    expect(isXPathPolicy(apiChapterPolicy)).toBe(false)
-  })
-})
-
 describe('api mode refusal', () => {
   beforeEach(() => {
     vi.mocked(createTab).mockReset()
@@ -100,10 +92,6 @@ describe('rules stored before modes existed', () => {
   beforeEach(() => {
     vi.mocked(createTab).mockReset()
     vi.mocked(createTab).mockRejectedValue(new Error('tab opened'))
-  })
-
-  it('isXPathPolicy treats a missing mode as xpath', () => {
-    expect(isXPathPolicy(storedPolicy)).toBe(true)
   })
 
   it('kazumiSearch still opens the search page', async () => {
