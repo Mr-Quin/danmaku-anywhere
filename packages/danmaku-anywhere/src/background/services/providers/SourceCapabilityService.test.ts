@@ -1,4 +1,4 @@
-import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
+import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-model'
 import { ManifestRunner, zManifest } from '@mr-quin/dango'
 import { describe, expect, it, vi } from 'vitest'
 import { backgroundContainerModule } from '@/background/ioc'

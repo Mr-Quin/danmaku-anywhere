@@ -1,4 +1,4 @@
-import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
+import type { GenericEpisode } from '@danmaku-anywhere/danmaku-model'
 import { Logger } from '@/common/Logger'
 import { playerRpcClient } from '@/common/rpcClient/background/client'
 import type {

@@ -3,7 +3,7 @@ import {
   type GenericEpisodeLite,
   providerTypeFromManifestId,
   resolveBuiltinManifestId,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 
 // Source label rendered under an episode. A custom episode has no season; a
 // non-builtin (catalog) manifest labels as its own id because

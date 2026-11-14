@@ -1,4 +1,4 @@
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
+import type { Season } from '@danmaku-anywhere/danmaku-model'
 import type { MatchEpisodeInput, MatchEpisodeResult } from '@/common/anime/dto'
 import { Logger } from '@/common/Logger'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'

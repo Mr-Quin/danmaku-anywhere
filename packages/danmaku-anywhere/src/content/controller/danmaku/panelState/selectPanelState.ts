@@ -1,7 +1,7 @@
 import type {
   DanmakuSourceType,
   GenericEpisode,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import type {
   PanelMediaInfo,
   PanelSubstate,

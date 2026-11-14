@@ -2,7 +2,7 @@ import {
   DanmakuSourceType,
   LEGACY_MACCMS_ID,
   PROVIDER_TO_BUILTIN_ID,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { getRandomUUID } from '@/common/utils/utils'
 import type { ProviderConfig } from './schema'

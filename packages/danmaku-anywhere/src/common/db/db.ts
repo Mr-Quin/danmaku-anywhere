@@ -13,7 +13,7 @@ import {
   stripBuiltinPrefix,
   stripHtml,
   type TencentDanmakuInsertV3,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { Dexie } from 'dexie'
 import { injectable } from 'inversify'
 import type { SeasonMapSnapshot } from '@/common/seasonMap/SeasonMap'
@@ -22,7 +22,7 @@ export const DANMAKU_DB_NAME = 'danmaku-anywhere'
 
 type WithoutId<T> = Omit<T, 'id'>
 
-// Keep this independent of the shared converter: v10 looks seasons up by
+// Keep this independent of danmaku-model: v10 looks seasons up by
 // provider and v12 derives providerConfigId from it.
 function extractSeasonV10(
   item:

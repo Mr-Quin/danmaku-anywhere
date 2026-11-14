@@ -2,7 +2,7 @@ import {
   type CommentEntity,
   parseCommentEntityP,
   parseCommentGradient,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 
 import type { CollapseAnnotation } from './collapse/types'
 import type { DanmakuFilter } from './options'

@@ -1,4 +1,4 @@
-import type { CustomEpisode } from '@danmaku-anywhere/danmaku-converter'
+import type { CustomEpisode } from '@danmaku-anywhere/danmaku-model'
 import type { MacCmsParsedPlayUrl } from '@danmaku-anywhere/danmaku-provider/maccms'
 import { Check, Download } from '@mui/icons-material'
 import {

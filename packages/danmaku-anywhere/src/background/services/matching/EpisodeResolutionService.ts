@@ -2,7 +2,7 @@ import type {
   EpisodeMeta,
   Season,
   WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { inject, injectable } from 'inversify'
 import { ProviderConfigService } from '@/common/options/providerConfig/service'
 import { resolveSeasonConfig } from '@/common/providers/resolveSeasonConfig'

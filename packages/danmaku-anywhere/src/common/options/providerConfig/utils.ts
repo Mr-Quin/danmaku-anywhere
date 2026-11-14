@@ -1,4 +1,4 @@
-import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
+import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-model'
 import type { ProviderConfig } from './schema'
 
 export function isLegacyMacCms(config: { manifestId: string }): boolean {

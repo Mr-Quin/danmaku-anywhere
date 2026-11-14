@@ -1,4 +1,4 @@
-import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
+import type { GenericEpisode } from '@danmaku-anywhere/danmaku-model'
 import type { KeptStored } from '@/common/danmaku/dto'
 
 export type LoadOutcome =

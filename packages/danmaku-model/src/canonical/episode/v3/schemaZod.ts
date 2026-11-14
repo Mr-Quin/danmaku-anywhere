@@ -1,25 +1,36 @@
 import { z } from 'zod'
-import { BiliBiliMediaType, DanDanChConvert } from '../../../utils/index.js'
+import { BilibiliMediaType, DanDanChConvert } from '../../../utils/index.js'
 import { zCommentImport } from '../../comment/index.js'
+import { DanmakuSourceType } from '../../provider/provider.js'
 
-const zBaseEpisodeV2 = z.object({
-  provider: z.union([
-    z.literal(0), // custom
-    z.literal(1), // dandanplay
-    z.literal(2), // bilibili
-    z.literal(3), // tencent
-  ]),
+const zBaseEpisodeV3 = z.object({
+  provider: z.enum(DanmakuSourceType),
   comments: z.array(zCommentImport),
   commentCount: z.number(),
   version: z.number(),
   timeUpdated: z.number(),
-  schemaVersion: z.literal(2),
+  schemaVersion: z.union([
+    z.literal(2), // some export data may have schemaVersion 2
+    z.literal(3),
+  ]),
 })
 
 const schema = {
+  custom: z.discriminatedUnion('provider', [
+    zBaseEpisodeV3.extend({
+      provider: z.literal(DanmakuSourceType.MacCMS),
+      meta: z.object({
+        provider: z.literal(DanmakuSourceType.MacCMS),
+        seasonTitle: z.string(),
+        episodeTitle: z.string(),
+      }),
+      episodeTitle: z.string(),
+      seasonTitle: z.string(),
+    }),
+  ]),
   dandanPlay: z.discriminatedUnion('provider', [
-    zBaseEpisodeV2.extend({
-      provider: z.literal(1),
+    zBaseEpisodeV3.extend({
+      provider: z.literal(DanmakuSourceType.DanDanPlay),
       params: z
         .object({
           chConvert: z.enum(DanDanChConvert).optional(),
@@ -28,7 +39,7 @@ const schema = {
         })
         .optional(),
       meta: z.object({
-        provider: z.literal(1),
+        provider: z.literal(DanmakuSourceType.DanDanPlay),
         episodeId: z.number(),
         animeId: z.number(),
         episodeTitle: z.string(),
@@ -41,17 +52,17 @@ const schema = {
     }),
   ]),
   bilibili: z.discriminatedUnion('provider', [
-    zBaseEpisodeV2.extend({
-      provider: z.literal(2),
+    zBaseEpisodeV3.extend({
+      provider: z.literal(DanmakuSourceType.Bilibili),
       meta: z.object({
-        provider: z.literal(2),
+        provider: z.literal(DanmakuSourceType.Bilibili),
         cid: z.number(),
         bvid: z.string().optional(),
         aid: z.number(),
         seasonId: z.number(),
         title: z.string(),
         seasonTitle: z.string(),
-        mediaType: z.enum(BiliBiliMediaType),
+        mediaType: z.enum(BilibiliMediaType),
       }),
       episodeId: z.number(),
       seasonId: z.number(),
@@ -60,10 +71,10 @@ const schema = {
     }),
   ]),
   tencent: z.discriminatedUnion('provider', [
-    zBaseEpisodeV2.extend({
-      provider: z.literal(3),
+    zBaseEpisodeV3.extend({
+      provider: z.literal(DanmakuSourceType.Tencent),
       meta: z.object({
-        provider: z.literal(3),
+        provider: z.literal(DanmakuSourceType.Tencent),
         vid: z.string(),
         cid: z.string(),
         episodeTitle: z.string(),
@@ -75,23 +86,11 @@ const schema = {
       seasonTitle: z.string(),
     }),
   ]),
-  custom: z.discriminatedUnion('provider', [
-    zBaseEpisodeV2.extend({
-      provider: z.literal(0),
-      meta: z.object({
-        provider: z.literal(0),
-        seasonTitle: z.string(),
-        episodeTitle: z.string(),
-      }),
-      episodeTitle: z.string(),
-      seasonTitle: z.string(),
-    }),
-  ]),
 }
 
-export const zEpisodeImportV2 = z.discriminatedUnion('provider', [
-  ...schema.dandanPlay.options,
+export const zEpisodeImportV3 = z.discriminatedUnion('provider', [
   ...schema.custom.options,
+  ...schema.dandanPlay.options,
   ...schema.bilibili.options,
   ...schema.tencent.options,
 ])

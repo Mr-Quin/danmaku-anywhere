@@ -1,4 +1,4 @@
-import { CommentMode, hexToRgb888 } from '@danmaku-anywhere/danmaku-converter'
+import { CommentMode, hexToRgb888 } from '@danmaku-anywhere/danmaku-model'
 import { z } from 'zod'
 
 const zTencentApiResponseBase = z.object({

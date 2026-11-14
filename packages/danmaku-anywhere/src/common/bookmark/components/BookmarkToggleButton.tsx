@@ -1,4 +1,4 @@
-import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
+import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-model'
 import { Favorite, FavoriteBorder } from '@mui/icons-material'
 import { Button, CircularProgress, Tooltip } from '@mui/material'
 import type { ReactElement } from 'react'

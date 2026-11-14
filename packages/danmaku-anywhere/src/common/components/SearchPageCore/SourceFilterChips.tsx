@@ -1,4 +1,4 @@
-import { providerTypeFromManifestId } from '@danmaku-anywhere/danmaku-converter'
+import { providerTypeFromManifestId } from '@danmaku-anywhere/danmaku-model'
 import { Box, ButtonBase, CircularProgress, styled } from '@mui/material'
 import {
   type ReactNode,

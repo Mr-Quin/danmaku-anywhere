@@ -1,4 +1,4 @@
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-model'
 import { describe, expect, it } from 'vitest'
 import { computeDensityBins } from '@/content/player/densityPlot/computeDensityBins'
 

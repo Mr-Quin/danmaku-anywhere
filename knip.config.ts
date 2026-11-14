@@ -9,7 +9,7 @@ const config: KnipConfig = {
     },
     'packages/integration-policy': {},
     'packages/bangumi-api': {},
-    'packages/danmaku-converter': {},
+    'packages/danmaku-model': {},
     'packages/danmaku-engine': {},
     'packages/danmaku-provider': {
       entry: ['src/index.ts', 'src/providers/*/index.ts'],

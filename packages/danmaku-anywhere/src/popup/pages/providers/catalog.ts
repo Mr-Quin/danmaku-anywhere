@@ -1,4 +1,4 @@
-import { PROVIDER_TO_BUILTIN_ID } from '@danmaku-anywhere/danmaku-converter'
+import { PROVIDER_TO_BUILTIN_ID } from '@danmaku-anywhere/danmaku-model'
 import type { ConfigSchema } from '@mr-quin/dango'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'

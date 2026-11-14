@@ -1,4 +1,4 @@
-import type { Bookmark, EpisodeStub } from '@danmaku-anywhere/danmaku-converter'
+import type { Bookmark, EpisodeStub } from '@danmaku-anywhere/danmaku-model'
 import { inject, injectable } from 'inversify'
 import { BookmarkService } from '@/background/services/persistence/BookmarkService'
 import { DanmakuAnywhereDb } from '@/common/db/db'

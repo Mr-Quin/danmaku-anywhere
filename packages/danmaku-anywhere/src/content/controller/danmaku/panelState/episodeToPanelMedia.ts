@@ -1,4 +1,4 @@
-import type { GenericEpisode } from '@danmaku-anywhere/danmaku-converter'
+import type { GenericEpisode } from '@danmaku-anywhere/danmaku-model'
 import { isSourceEpisode } from '@/common/danmaku/utils'
 import type { PanelMediaInfo } from '@/common/rpcClient/background/types'
 

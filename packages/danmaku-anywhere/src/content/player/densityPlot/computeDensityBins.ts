@@ -1,4 +1,4 @@
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-model'
 import type { DensityPoint } from '@/content/player/densityPlot/types'
 
 export function computeDensityBins(

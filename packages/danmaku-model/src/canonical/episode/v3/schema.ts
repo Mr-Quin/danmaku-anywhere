@@ -1,4 +1,4 @@
-import type { BiliBiliMediaType } from '../../../utils/index.js'
+import type { BilibiliMediaType } from '../../../utils/index.js'
 import type { CommentEntity } from '../../comment/index.js'
 import type { DanmakuSourceType } from '../../provider/provider.js'
 
@@ -43,7 +43,7 @@ interface BiliBiliMeta extends BaseDanmakuMeta {
 
   title: string
   seasonTitle: string
-  mediaType: BiliBiliMediaType
+  mediaType: BilibiliMediaType
 }
 
 /**

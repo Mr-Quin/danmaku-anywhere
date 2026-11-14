@@ -1,4 +1,4 @@
-import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
+import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-model'
 import { Favorite, Folder } from '@mui/icons-material'
 import {
   Chip,

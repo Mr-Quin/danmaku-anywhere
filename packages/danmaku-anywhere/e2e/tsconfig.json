@@ -8,7 +8,7 @@
       "@danmaku-anywhere/danmaku-provider/ddp": [
         "../../danmaku-provider/src/providers/ddp"
       ],
-      "@danmaku-anywhere/danmaku-converter": ["../../danmaku-converter/src"],
+      "@danmaku-anywhere/danmaku-model": ["../../danmaku-model/src"],
       "@danmaku-anywhere/extension-protocol": ["../../extension-protocol/src"],
       "@danmaku-anywhere/web-scraper": ["../../web-scraper/src"]
     }

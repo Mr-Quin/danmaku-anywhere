@@ -1,7 +1,7 @@
 import type {
   CommentEntity,
   EpisodeStub,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { mockLoginProbes } from '../../network/loginProbes'
 import { Popup } from '../../pom/Popup'
 import {

@@ -1,4 +1,4 @@
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-model'
 import { create, type Manager } from '@mr-quin/danmu'
 import { compile, createGroupStore } from './collapse/compile'
 import type {

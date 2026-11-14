@@ -33,7 +33,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@danmaku-anywhere/danmaku-converter": "workspace:^",
+    "@danmaku-anywhere/danmaku-model": "workspace:^",
     "zod": "^4.6.5"
   },
   "devDependencies": {

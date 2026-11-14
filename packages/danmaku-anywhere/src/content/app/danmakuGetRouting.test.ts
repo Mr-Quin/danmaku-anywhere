@@ -1,4 +1,4 @@
-import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
+import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-model'
 import { describe, expect, it } from 'vitest'
 import { isCustomDanmakuGetPayload } from './danmakuGetRouting'
 

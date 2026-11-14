@@ -7,7 +7,7 @@ import {
   type Season,
   type SeasonInsert,
   type WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 
 type AnyEpisode =
   | GenericEpisode

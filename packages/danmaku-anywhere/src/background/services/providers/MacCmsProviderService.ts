@@ -1,7 +1,7 @@
 import {
   type CustomSeason,
   LEGACY_MACCMS_ID,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import {
   fetchDanmuIcuComments,
   searchMacCmsVod,

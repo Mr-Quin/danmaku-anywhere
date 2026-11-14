@@ -1,6 +1,6 @@
-# @danmaku-anywhere/danmaku-converter
+# @danmaku-anywhere/danmaku-model
 
-Utilities for converting between danmaku formats (e.g. XML to internal format).
+The shared danmaku data model: comment, episode, season, bookmark and provider schemas, migrations between their stored versions, backup parsing, and conversion to and from XML.
 
 ## Usage
 

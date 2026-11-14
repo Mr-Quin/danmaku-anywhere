@@ -4,7 +4,7 @@ import {
   hexToRgb888,
   zHex,
   zTime,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { z } from 'zod'
 
 export const zDanmuIcuDanmaku = z

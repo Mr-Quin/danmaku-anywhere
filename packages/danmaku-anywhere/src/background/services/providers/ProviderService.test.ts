@@ -5,7 +5,7 @@ import {
   type EpisodeMeta,
   LEGACY_MACCMS_ID,
   type WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import type { ManifestRunner } from '@mr-quin/dango'
 import { fakeBrowser } from '@webext-core/fake-browser'
 import { Dexie } from 'dexie'

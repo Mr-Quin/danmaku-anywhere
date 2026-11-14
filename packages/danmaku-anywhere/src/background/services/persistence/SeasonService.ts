@@ -1,4 +1,4 @@
-import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
+import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-model'
 import { inject, injectable } from 'inversify'
 import type { SeasonGetAllRequest, SeasonQueryFilter } from '@/common/anime/dto'
 import { DanmakuAnywhereDb } from '@/common/db/db'

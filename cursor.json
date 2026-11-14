@@ -65,11 +65,7 @@
     "biomeConfig": "biome.json"
   },
   "testing": {
-    "frameworks": [
-      "vitest",
-      "jasmine",
-      "karma"
-    ],
+    "frameworks": ["vitest", "jasmine", "karma"],
     "testPatterns": [
       "**/*.test.ts",
       "**/*.test.tsx",
@@ -90,7 +86,7 @@
   "workspaces": {
     "packages": [
       "packages/danmaku-anywhere",
-      "packages/danmaku-converter",
+      "packages/danmaku-model",
       "packages/danmaku-engine",
       "packages/danmaku-provider",
       "packages/web-scraper",
@@ -158,4 +154,4 @@
     ],
     "commitMessageFormat": "conventional"
   }
-} 
+}

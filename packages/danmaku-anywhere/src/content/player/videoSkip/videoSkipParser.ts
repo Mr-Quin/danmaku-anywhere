@@ -1,4 +1,4 @@
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-model'
 import { matchTimeStamp } from '@/content/player/videoSkip/matchTimeStamp'
 import { SkipTarget } from '@/content/player/videoSkip/SkipTarget'
 

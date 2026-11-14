@@ -1,7 +1,7 @@
 import type {
   DanmakuSourceType,
   GenericEpisodeLite,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { CloudDownload, UploadFile } from '@mui/icons-material'
 import type { ReactElement } from 'react'
 import { useMemo, useRef, useState } from 'react'

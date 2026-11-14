@@ -1,4 +1,4 @@
-export enum BiliBiliMediaType {
+export enum BilibiliMediaType {
   Bangumi = 1,
   Movie = 2,
   Documentary = 3,

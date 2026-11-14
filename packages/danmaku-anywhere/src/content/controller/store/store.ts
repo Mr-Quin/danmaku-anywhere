@@ -1,7 +1,7 @@
 import type {
   CommentEntity,
   GenericEpisode,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { type Draft, enableMapSet } from 'immer'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'

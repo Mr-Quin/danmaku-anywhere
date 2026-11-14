@@ -1,4 +1,4 @@
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
+import type { Season } from '@danmaku-anywhere/danmaku-model'
 import {
   Autocomplete,
   Box,

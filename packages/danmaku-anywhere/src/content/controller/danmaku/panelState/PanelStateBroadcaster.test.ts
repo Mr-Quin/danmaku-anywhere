@@ -1,4 +1,4 @@
-import type { CustomEpisode } from '@danmaku-anywhere/danmaku-converter'
+import type { CustomEpisode } from '@danmaku-anywhere/danmaku-model'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DanmakuSourceType } from '@/common/danmaku/enums'
 import {

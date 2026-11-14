@@ -1,4 +1,4 @@
-import type { EpisodeStub } from '@danmaku-anywhere/danmaku-converter'
+import type { EpisodeStub } from '@danmaku-anywhere/danmaku-model'
 import { describe, expect, it } from 'vitest'
 import { findNextStub } from './findNextStub'
 

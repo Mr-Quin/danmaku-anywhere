@@ -1,4 +1,4 @@
-import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
+import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-model'
 import type { RefObject } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDeleteSeason } from '@/common/anime/queries/useDeleteSeason'

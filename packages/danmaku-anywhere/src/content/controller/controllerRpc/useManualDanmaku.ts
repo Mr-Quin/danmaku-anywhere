@@ -1,4 +1,4 @@
-import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
+import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-model'
 import { useEventCallback } from '@mui/material'
 import { Logger } from '@/common/Logger'
 import { useUnmountDanmaku } from '@/content/controller/common/hooks/useUnmountDanmaku'

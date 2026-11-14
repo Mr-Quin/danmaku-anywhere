@@ -12,7 +12,7 @@
   "exclude": ["**/*.test.ts", "**/test", "**/code-gen"],
   "references": [
     {
-      "path": "../danmaku-converter"
+      "path": "../danmaku-model"
     }
   ]
 }

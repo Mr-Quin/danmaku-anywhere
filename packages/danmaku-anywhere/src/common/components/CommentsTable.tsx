@@ -1,10 +1,10 @@
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
-import { parseCommentEntityP } from '@danmaku-anywhere/danmaku-converter'
 import {
   compile,
   type Decision,
   STAGE_DURATION_MS,
 } from '@danmaku-anywhere/danmaku-engine'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-model'
+import { parseCommentEntityP } from '@danmaku-anywhere/danmaku-model'
 import { ContentCopy, FilterList, Sync } from '@mui/icons-material'
 import {
   Box,

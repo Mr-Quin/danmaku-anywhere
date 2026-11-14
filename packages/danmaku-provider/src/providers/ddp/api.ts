@@ -1,7 +1,7 @@
 import {
   commentOptionsToString,
   parseCommentEntityP,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import type { output, ZodType } from 'zod'
 import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
 import { InputError } from '../../exceptions/InputError.js'

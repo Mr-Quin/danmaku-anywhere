@@ -1,4 +1,4 @@
-import { commentsToXml } from '@danmaku-anywhere/danmaku-converter'
+import { commentsToXml } from '@danmaku-anywhere/danmaku-model'
 import { i18n } from '@/common/localization/i18n'
 import { type ExportFormatter, useExportWithFormat } from './useExportBase'
 

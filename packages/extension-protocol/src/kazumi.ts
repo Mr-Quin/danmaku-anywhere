@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const zKazumaManifest = z.object({
+export const zKazumiManifest = z.object({
   name: z.string(),
   version: z.string(),
   useNativePlayer: z.boolean(),
@@ -8,7 +8,7 @@ export const zKazumaManifest = z.object({
   lastUpdate: z.number(),
 })
 
-export type KazumaManifest = z.output<typeof zKazumaManifest>
+export type KazumiManifest = z.output<typeof zKazumiManifest>
 
 const zKazumiRuleMode = z.enum(['xpath', 'api']).prefault('xpath')
 

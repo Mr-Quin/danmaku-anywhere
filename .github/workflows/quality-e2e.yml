@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - 'packages/danmaku-anywhere/**'
-      - 'packages/danmaku-converter/**'
+      - 'packages/danmaku-model/**'
       - 'packages/danmaku-engine/**'
       - 'packages/danmaku-provider/**'
       - 'packages/extension-protocol/**'

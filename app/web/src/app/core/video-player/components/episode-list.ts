@@ -3,7 +3,7 @@ import type {
   CustomEpisodeLite,
   EpisodeLite,
   GenericEpisodeLite,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { DanmakuService } from '../../danmaku/danmaku.service'
 import { episodeSourceLabel } from '../episode-source-label'
 

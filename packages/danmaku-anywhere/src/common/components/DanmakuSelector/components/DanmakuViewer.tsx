@@ -1,7 +1,7 @@
 import type {
   GenericEpisode,
   GenericEpisodeLite,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { ArrowBack } from '@mui/icons-material'
 import { Box, IconButton, Stack, Typography } from '@mui/material'
 import type { ReactElement } from 'react'

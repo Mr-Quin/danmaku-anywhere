@@ -1,4 +1,4 @@
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
+import type { Season } from '@danmaku-anywhere/danmaku-model'
 import { inject, injectable } from 'inversify'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { TitleMappingService } from '@/background/services/persistence/TitleMappingService'

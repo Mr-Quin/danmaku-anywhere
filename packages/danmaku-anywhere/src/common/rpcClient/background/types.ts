@@ -11,7 +11,7 @@ import type {
   Season,
   SeasonInsert,
   WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import type { ExtractTitleResponse } from '@danmaku-anywhere/danmaku-provider/genAi'
 import type {
   KazumiChapterPayload,

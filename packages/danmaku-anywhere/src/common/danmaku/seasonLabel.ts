@@ -2,7 +2,7 @@ import type {
   CustomSeason,
   Season,
   SeasonInsert,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 
 // Buckets a season by source manifest; custom seasons share `unknown`. Callers
 // needing uniqueness append id/indexedId.

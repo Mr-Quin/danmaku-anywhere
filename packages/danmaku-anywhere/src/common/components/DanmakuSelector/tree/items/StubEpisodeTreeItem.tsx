@@ -1,4 +1,4 @@
-import type { EpisodeStub, Season } from '@danmaku-anywhere/danmaku-converter'
+import type { EpisodeStub, Season } from '@danmaku-anywhere/danmaku-model'
 import { CloudDownload } from '@mui/icons-material'
 import { CircularProgress, Stack, Typography } from '@mui/material'
 import type { ReactElement } from 'react'

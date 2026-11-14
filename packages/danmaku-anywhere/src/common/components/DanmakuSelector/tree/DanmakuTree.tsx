@@ -4,7 +4,7 @@ import type {
   EpisodeLite,
   GenericEpisodeLite,
   Season,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { useEventCallback } from '@mui/material'
 import { useRichTreeViewApiRef } from '@mui/x-tree-view/hooks'
 import { RichTreeView } from '@mui/x-tree-view/RichTreeView'

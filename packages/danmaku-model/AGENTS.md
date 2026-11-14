@@ -1,8 +1,8 @@
-# Agent context: packages/danmaku-converter
+# Agent context: packages/danmaku-model
 
 ## Purpose
 
-Parse and normalize danmaku from various formats (XML, protobuf, etc.) into a common canonical format used across the project. The canonical format (`src/canonical/`) is the shared data contract between packages.
+The shared data model. The canonical schemas in `src/canonical/` (comments, episodes, seasons, bookmarks, providers) are the data contract between packages; `src/schema/` and `src/utils/` hold XML parsing and conversion.
 
 ## Gotchas
 

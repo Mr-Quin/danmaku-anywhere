@@ -1,4 +1,4 @@
-import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
+import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-model'
 import type { SearchEpisodesQuery } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { create } from 'zustand'
 import { immer } from 'zustand/middleware/immer'

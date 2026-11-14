@@ -17,7 +17,7 @@ export const zDanDanPlayProviderOptions = z.object({
     .optional(),
 })
 
-export type DanDanDanPlayProviderOptions = z.infer<
+export type DanDanPlayProviderOptions = z.infer<
   typeof zDanDanPlayProviderOptions
 >
 

@@ -50,7 +50,7 @@ export const zTime = z.coerce.number<string>().min(0)
 /**
  * Copied from danmaku-provider
  */
-export enum BiliBiliMediaType {
+export enum BilibiliMediaType {
   Bangumi = 1,
   Movie = 2,
   Documentary = 3,

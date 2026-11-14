@@ -1,4 +1,4 @@
-import type { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import type { DanmakuSourceType } from '@danmaku-anywhere/danmaku-model'
 import { Box, Button, Checkbox, Collapse } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { FilterButton } from '@/common/components/FilterButton'

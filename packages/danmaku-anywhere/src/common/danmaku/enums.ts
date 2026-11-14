@@ -1,7 +1,7 @@
 import {
   DanmakuSourceType,
   type RemoteDanmakuSourceType,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { i18n } from '../localization/i18n'
 import { createLocalizationMap } from '../utils/createLocalizationMap'
 

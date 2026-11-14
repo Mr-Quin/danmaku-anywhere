@@ -2,7 +2,7 @@ import type {
   CommentEntity,
   EpisodeInsert,
   SeasonInsert,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 
 // Canonical Bilibili season for mount-tree specs. providerIds/indexedId line
 // up with e2e/fixtures/bilibili-season.json so upstream calls mocked with that

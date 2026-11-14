@@ -1,7 +1,4 @@
-import type {
-  Episode,
-  GenericEpisode,
-} from '@danmaku-anywhere/danmaku-converter'
+import type { Episode, GenericEpisode } from '@danmaku-anywhere/danmaku-model'
 import { useEventCallback } from '@mui/material'
 import { useIsMutating, useMutation } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'

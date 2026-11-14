@@ -1,4 +1,4 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-model'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import { describe, expect, it } from 'vitest'
 import type { DanmakuSources } from '@/common/options/extensionOptions/schema'

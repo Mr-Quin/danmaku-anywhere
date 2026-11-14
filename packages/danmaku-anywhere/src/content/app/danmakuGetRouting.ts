@@ -1,4 +1,4 @@
-import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
+import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-model'
 import { isCustomEpisode } from '@/common/danmaku/utils'
 
 // Stored episodes no longer carry a provider tag, so discriminate custom
