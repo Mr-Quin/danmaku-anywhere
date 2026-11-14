@@ -13,15 +13,19 @@ interface EpisodeHandlers {
   next: () => void
 }
 
-function isEditableTarget(target: EventTarget | null): boolean {
+// Space and Enter belong to whatever control has focus, so a focused button,
+// link or PrimeNG widget keeps its own keyboard behaviour.
+const INTERACTIVE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'])
+
+function keepsOwnKeys(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) {
     return false
   }
+  if (target.isContentEditable || INTERACTIVE_TAGS.has(target.tagName)) {
+    return true
+  }
   return (
-    target.isContentEditable ||
-    target.tagName === 'INPUT' ||
-    target.tagName === 'TEXTAREA' ||
-    target.tagName === 'SELECT'
+    target.closest('[role="dialog"], [role="menu"], [role="listbox"]') !== null
   )
 }
 
@@ -67,13 +71,15 @@ export class ShortcutService {
     if (
       !this.$_enabled() ||
       event.defaultPrevented ||
-      isEditableTarget(event.target)
+      keepsOwnKeys(event.target)
     ) {
       return false
     }
 
     const key = event.key.toLowerCase()
 
+    // Opening search works everywhere; the player keys only act while a
+    // player is mounted, so they never swallow a key on another page.
     if ((event.ctrlKey || event.metaKey) && key === 'k') {
       event.preventDefault()
       this.searchService.open()

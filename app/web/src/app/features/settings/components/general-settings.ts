@@ -10,7 +10,7 @@ import { ShortcutService } from '../../../core/shortcuts/shortcut.service'
       <div>
         <h2 class="text-xl font-semibold mb-2">通用设置</h2>
         <p class="text-surface-600 text-sm">
-          快捷键在输入框、文本框等可编辑区域中不会触发。
+          快捷键在输入框、按钮和弹窗中不会触发；播放器快捷键只在播放页生效。
         </p>
       </div>
 
