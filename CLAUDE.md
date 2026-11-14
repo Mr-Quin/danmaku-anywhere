@@ -21,7 +21,6 @@ packages/
   danmaku-provider/     # Fetch danmaku from APIs
   web-scraper/          # Scrape video/page metadata from sites
   bangumi-api/          # Typed Bangumi API schemas
-  result/               # Result<T, E> type for error handling
   integration-policy/   # Schema for site/feature integration policies
 app/
   web/                  # Angular web app
@@ -103,7 +102,7 @@ Always prefer scripts defined in `package.json` over ad-hoc commands. Run `pnpm 
 
 ## Error handling
 
-- Use the `Result` type from `@danmaku-anywhere/result` for explicit error handling
+- For expected failures, return a `{ success: true, data } | { success: false, error }` result, the shape `danmaku-provider` APIs already return
 - Avoid throwing exceptions for expected error paths
 
 ## Model selection
