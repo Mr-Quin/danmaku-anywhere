@@ -12,7 +12,6 @@
   ],
   "repository": "https://github.com/Danmaku-Anywhere/danmaku-anywhere",
   "scripts": {
-    "dev:web-app": "pnpm -r -F \"./app/web\" start",
     "dev:extension": "pnpm -r -F \"./packages/danmaku-anywhere\" dev",
     "dev:extension:standalone": "pnpm -r -F \"./packages/danmaku-anywhere\" standalone:dev",
     "build": "pnpm -r build",

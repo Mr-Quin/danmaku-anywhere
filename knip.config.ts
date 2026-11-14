@@ -8,7 +8,6 @@ const config: KnipConfig = {
       entry: ['scripts/*.{ts,cjs}'],
     },
     'packages/integration-policy': {},
-    'packages/bangumi-api': {},
     'packages/danmaku-model': {},
     'packages/danmaku-engine': {},
     'packages/danmaku-provider': {
@@ -29,7 +28,6 @@ const config: KnipConfig = {
       playwright: false,
       vite: false,
     },
-    'app/web': {},
     'backend/proxy': {
       ignoreDependencies: [
         // cloudflare:test is a virtual module provided by the Workers runtime

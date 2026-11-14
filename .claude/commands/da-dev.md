@@ -65,7 +65,6 @@ Make the changes. Apply these in order:
 | Area          | Verify command                                     | Manual verification                               |
 | ------------- | -------------------------------------------------- | ------------------------------------------------- |
 | Extension     | See `packages/danmaku-anywhere/AGENTS.md`          | **Open dev browser** at start of work (see below) |
-| Web app       | See `app/web/AGENTS.md`                            | **CF preview URL** from PR deploy comment         |
 | Backend       | See `backend/proxy/AGENTS.md`                      | N/A                                               |
 | Packages      | `pnpm --filter <package> test`                     | N/A                                               |
 | Cross-cutting | `pnpm lint && pnpm --filter '...[origin/master]' test` | Depends on areas touched                          |
@@ -100,10 +99,6 @@ Skip for trivial changes (config-only, types, docs).
 For any change with runtime behavior, the verification that counts is **a spec that went red before it went green** (see `e2e-spec`). Writing it is the verification; there is no separate "I looked at it in a browser" step to report.
 
 When you don't yet know what to assert, explore first with the `browser-verify` skill and lift selectors with `generate-locator` instead of retyping them. To exercise an already-published preview build (reproducing against build N, bisecting nightlies), use `preview-build`.
-
-#### Web app: Cloudflare preview
-
-After the PR is created, Cloudflare posts a preview URL. Include it when alerting the human.
 
 ### 5. Commit and Self-Review
 
