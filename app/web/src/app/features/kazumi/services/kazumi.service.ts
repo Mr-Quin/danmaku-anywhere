@@ -36,6 +36,7 @@ import { ExtensionMessagingService } from '../../../core/extension/extension-mes
 import { queryKeys } from '../../../shared/query/queryKeys'
 import { sortArrayByOrder } from '../../../shared/utils/utils'
 import { withTimeout } from '../../../shared/utils/withTimeout'
+import { normalizeStoredPolicy } from '../utils/normalize-stored-policy'
 
 interface Setting<T> {
   key: string
@@ -140,7 +141,9 @@ export class KazumiService {
 
   private readonly localPoliciesOptions = queryOptions({
     queryFn: async () => {
-      const policies = await this.db.policies.toArray()
+      const policies = (await this.db.policies.toArray()).map(
+        normalizeStoredPolicy
+      )
       const orderSetting = await this.db.getOrders()
 
       return sortArrayByOrder(policies, orderSetting, (p) => p.name)

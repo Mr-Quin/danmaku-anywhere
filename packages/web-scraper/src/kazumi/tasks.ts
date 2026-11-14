@@ -3,16 +3,17 @@ import type { KazumiChapterResult, KazumiSearchResult } from '../types.js'
 import { createJob, createTab, Logger } from '../utils.js'
 
 // The scraper drives a real tab and reads it with XPath. Rules whose search
-// or chapter step goes through an API have no page to open.
+// or chapter step goes through an API have no page to open. Rules stored
+// before the mode fields existed have no mode at all, and are xpath rules.
 export function isXPathPolicy(policy: KazumiPolicy): boolean {
-  return policy.searchMode === 'xpath' && policy.chapterMode === 'xpath'
+  return policy.searchMode !== 'api' && policy.chapterMode !== 'api'
 }
 
 export const kazumiSearch = async (
   keyword: string,
   policy: KazumiPolicy
 ): Promise<KazumiSearchResult[]> => {
-  if (policy.searchMode !== 'xpath') {
+  if (policy.searchMode === 'api') {
     throw new Error(
       `Rule "${policy.name}" searches through an API, which is not supported`
     )
@@ -114,7 +115,7 @@ export const kazumiGetChapters = async (
   contentUrl: string,
   policy: KazumiPolicy
 ): Promise<KazumiChapterResult[][]> => {
-  if (policy.chapterMode !== 'xpath') {
+  if (policy.chapterMode === 'api') {
     throw new Error(
       `Rule "${policy.name}" lists chapters through an API, which is not supported`
     )

@@ -92,3 +92,31 @@ describe('api mode refusal', () => {
     expect(createTab).toHaveBeenCalledWith('https://example.com/show')
   })
 })
+
+describe('rules stored before modes existed', () => {
+  const { searchMode: _, chapterMode: __, ...withoutModes } = xpathPolicy
+  const storedPolicy = withoutModes as KazumiPolicy
+
+  beforeEach(() => {
+    vi.mocked(createTab).mockReset()
+    vi.mocked(createTab).mockRejectedValue(new Error('tab opened'))
+  })
+
+  it('isXPathPolicy treats a missing mode as xpath', () => {
+    expect(isXPathPolicy(storedPolicy)).toBe(true)
+  })
+
+  it('kazumiSearch still opens the search page', async () => {
+    await expect(kazumiSearch('keyword', storedPolicy)).rejects.toThrow(
+      'tab opened'
+    )
+    expect(createTab).toHaveBeenCalledTimes(1)
+  })
+
+  it('kazumiGetChapters still opens the content page', async () => {
+    await expect(
+      kazumiGetChapters('https://example.com/show', storedPolicy)
+    ).rejects.toThrow('tab opened')
+    expect(createTab).toHaveBeenCalledWith('https://example.com/show')
+  })
+})
