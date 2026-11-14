@@ -1,0 +1,352 @@
+import { TestBed } from '@angular/core/testing'
+import { provideRouter } from '@angular/router'
+import {
+  provideQueryClient,
+  QueryClient,
+} from '@tanstack/angular-query-experimental'
+import { MessageService } from 'primeng/api'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { SearchService } from '../../features/search/search.service'
+import { SettingsService } from '../../features/settings/settings.service'
+import { VideoService } from '../video-player/video.service'
+import { ShortcutService } from './shortcut.service'
+
+/**
+ * Shortcuts drive the player only while one is mounted, and they leave keys
+ * to whatever control owns them: text fields, focused buttons and open
+ * dialogs. Ctrl/Cmd+K opens search from anywhere.
+ */
+
+function fakePlayer() {
+  return {
+    fullscreen: false,
+    fullscreenWeb: false,
+    muted: false,
+    volume: 0.5,
+    backward: 0,
+    forward: 0,
+    toggle: vi.fn(),
+  }
+}
+
+type FakePlayer = ReturnType<typeof fakePlayer>
+
+// The player is exposed as a readonly signal, so the test drives the signal
+// it reads from instead of stubbing the getter.
+function mountPlayer(player: FakePlayer | null) {
+  const videoService = TestBed.inject(VideoService) as unknown as {
+    $player: { set(value: FakePlayer | null): void }
+  }
+  videoService.$player.set(player)
+}
+
+function keydown(key: string, init: KeyboardEventInit = {}) {
+  return new KeyboardEvent('keydown', { key, cancelable: true, ...init })
+}
+
+// A KeyboardEvent only carries a target once it is dispatched at an element.
+function keydownFrom(
+  target: Element,
+  key: string,
+  init: KeyboardEventInit = {}
+) {
+  const event = keydown(key, init)
+  target.dispatchEvent(event)
+  return event
+}
+
+function configureTestBed() {
+  TestBed.configureTestingModule({
+    providers: [
+      provideRouter([]),
+      provideQueryClient(new QueryClient()),
+      MessageService,
+    ],
+  })
+}
+
+describe('ShortcutService', () => {
+  let service: ShortcutService
+  let searchService: SearchService
+  let settingsService: SettingsService
+
+  beforeEach(() => {
+    localStorage.clear()
+    configureTestBed()
+    service = TestBed.inject(ShortcutService)
+    searchService = TestBed.inject(SearchService)
+    settingsService = TestBed.inject(SettingsService)
+  })
+
+  it('opens search on ctrl+k or meta+k even without a player', () => {
+    const open = vi
+      .spyOn(searchService, 'open')
+      .mockImplementation(() => undefined)
+
+    for (const init of [{ ctrlKey: true }, { metaKey: true }]) {
+      const event = keydown('k', init)
+
+      expect(service.handleKeydown(event)).toBe(true)
+      expect(event.defaultPrevented).toBe(true)
+    }
+    expect(open).toHaveBeenCalledTimes(2)
+  })
+
+  it('opens search from focused controls and open dialogs', () => {
+    const open = vi
+      .spyOn(searchService, 'open')
+      .mockImplementation(() => undefined)
+    const button = document.createElement('button')
+    const input = document.createElement('input')
+    const dialog = document.createElement('div')
+    dialog.setAttribute('role', 'dialog')
+    const inner = document.createElement('span')
+    dialog.appendChild(inner)
+
+    const targets = [button, input, inner]
+    for (const target of targets) {
+      const event = keydownFrom(target, 'k', { ctrlKey: true })
+
+      expect(service.handleKeydown(event)).toBe(true)
+      expect(event.defaultPrevented).toBe(true)
+    }
+    expect(open).toHaveBeenCalledTimes(targets.length)
+  })
+
+  it('leaves player keys alone when no player is mounted', () => {
+    const event = keydown(' ')
+
+    expect(service.handleKeydown(event)).toBe(false)
+    expect(event.defaultPrevented).toBe(false)
+  })
+
+  it('toggles playback and seeks while a player is mounted', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+
+    expect(service.handleKeydown(keydown(' '))).toBe(true)
+    expect(player.toggle).toHaveBeenCalled()
+
+    expect(service.handleKeydown(keydown('ArrowRight'))).toBe(true)
+    expect(player.forward).toBe(5)
+
+    expect(service.handleKeydown(keydown('ArrowLeft'))).toBe(true)
+    expect(player.backward).toBe(5)
+  })
+
+  it('clamps volume to the player range', () => {
+    const player = fakePlayer()
+    player.volume = 0.95
+    mountPlayer(player)
+
+    service.handleKeydown(keydown('ArrowUp'))
+    expect(player.volume).toBe(1)
+
+    player.volume = 0.05
+    service.handleKeydown(keydown('ArrowDown'))
+    expect(player.volume).toBe(0)
+  })
+
+  it('navigates episodes only while the player registered handlers', () => {
+    const previous = vi.fn()
+    const next = vi.fn()
+
+    expect(service.handleKeydown(keydown('['))).toBe(false)
+
+    service.registerEpisodeNavigation({ previous, next })
+    expect(service.handleKeydown(keydown('['))).toBe(true)
+    expect(previous).toHaveBeenCalled()
+    expect(service.handleKeydown(keydown(']'))).toBe(true)
+    expect(next).toHaveBeenCalled()
+
+    service.registerEpisodeNavigation(null)
+    expect(service.handleKeydown(keydown(']'))).toBe(false)
+    expect(next).toHaveBeenCalledTimes(1)
+  })
+
+  it('opens settings on ?', () => {
+    const show = vi
+      .spyOn(settingsService, 'show')
+      .mockImplementation(() => undefined)
+
+    expect(service.handleKeydown(keydown('?'))).toBe(true)
+    expect(show).toHaveBeenCalledWith('general')
+  })
+
+  it('ignores keys aimed at editable fields', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+    const input = document.createElement('input')
+
+    expect(service.handleKeydown(keydownFrom(input, ' '))).toBe(false)
+    expect(player.toggle).not.toHaveBeenCalled()
+  })
+
+  it('ignores textareas and selects', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+
+    for (const field of [
+      document.createElement('textarea'),
+      document.createElement('select'),
+    ]) {
+      expect(service.handleKeydown(keydownFrom(field, 'm'))).toBe(false)
+    }
+    expect(player.muted).toBe(false)
+  })
+
+  it('leaves keys to widgets you type into, like a PrimeNG select', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+
+    for (const role of [
+      'combobox',
+      'textbox',
+      'searchbox',
+      'spinbutton',
+      'slider',
+    ]) {
+      const widget = document.createElement('span')
+      widget.setAttribute('role', role)
+      const inner = document.createElement('span')
+      widget.append(inner)
+      expect(service.handleKeydown(keydownFrom(widget, 'm'))).toBe(false)
+      expect(service.handleKeydown(keydownFrom(inner, 'm'))).toBe(false)
+    }
+    expect(player.muted).toBe(false)
+  })
+
+  it('ignores typing in a field inside a shadow root', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+    const host = document.createElement('div')
+    const input = document.createElement('input')
+    host.attachShadow({ mode: 'open' }).append(input)
+    document.body.append(host)
+
+    // The document listener sees the event retargeted to the shadow host, and
+    // the browser clears the path once dispatch ends, so handle it in flight.
+    let handled: boolean | undefined
+    const listener = (event: Event) => {
+      handled = service.handleKeydown(event as KeyboardEvent)
+    }
+    document.addEventListener('keydown', listener)
+    input.dispatchEvent(keydown('m', { bubbles: true, composed: true }))
+    document.removeEventListener('keydown', listener)
+    host.remove()
+
+    expect(handled).toBe(false)
+    expect(player.muted).toBe(false)
+  })
+
+  it('leaves space and enter to a focused button', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+    const button = document.createElement('button')
+
+    expect(service.handleKeydown(keydownFrom(button, ' '))).toBe(false)
+    expect(player.toggle).not.toHaveBeenCalled()
+  })
+
+  it('stays out of an open dialog', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+    const dialog = document.createElement('div')
+    dialog.setAttribute('role', 'dialog')
+    const inner = document.createElement('span')
+    dialog.appendChild(inner)
+
+    expect(service.handleKeydown(keydownFrom(inner, 'f'))).toBe(false)
+    expect(player.fullscreen).toBe(false)
+  })
+
+  it('ignores keys another handler already consumed', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+    const event = keydown(' ')
+    event.preventDefault()
+
+    expect(service.handleKeydown(event)).toBe(false)
+    expect(player.toggle).not.toHaveBeenCalled()
+  })
+
+  it('leaves browser combinations alone', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+
+    expect(service.handleKeydown(keydown('f', { ctrlKey: true }))).toBe(false)
+    expect(service.handleKeydown(keydown('m', { altKey: true }))).toBe(false)
+    expect(player.toggle).not.toHaveBeenCalled()
+  })
+
+  it('leaves shift with a letter to the extension and other handlers', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+
+    expect(service.handleKeydown(keydown('M', { shiftKey: true }))).toBe(false)
+    expect(service.handleKeydown(keydown('K', { shiftKey: true }))).toBe(false)
+    expect(service.handleKeydown(keydown('F', { shiftKey: true }))).toBe(false)
+    expect(player.muted).toBe(false)
+    expect(player.toggle).not.toHaveBeenCalled()
+    expect(player.fullscreen).toBe(false)
+  })
+
+  it('still opens settings on ?, which is typed with shift', () => {
+    const show = vi
+      .spyOn(settingsService, 'show')
+      .mockImplementation(() => undefined)
+
+    expect(service.handleKeydown(keydown('?', { shiftKey: true }))).toBe(true)
+    expect(show).toHaveBeenCalledWith('general')
+  })
+
+  it('exits web fullscreen on escape', () => {
+    const player = fakePlayer()
+    player.fullscreenWeb = true
+    mountPlayer(player)
+
+    const event = keydown('Escape')
+
+    expect(service.handleKeydown(event)).toBe(true)
+    expect(player.fullscreenWeb).toBe(false)
+    expect(event.defaultPrevented).toBe(true)
+  })
+
+  it('leaves escape alone outside web fullscreen', () => {
+    mountPlayer(fakePlayer())
+
+    const event = keydown('Escape')
+
+    expect(service.handleKeydown(event)).toBe(false)
+    expect(event.defaultPrevented).toBe(false)
+  })
+
+  it('ignores auto-repeat while a key is held down', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+
+    expect(service.handleKeydown(keydown(' ', { repeat: true }))).toBe(false)
+    expect(player.toggle).not.toHaveBeenCalled()
+  })
+
+  it('does nothing while disabled', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+
+    service.setEnabled(false)
+    expect(service.$enabled()).toBe(false)
+    expect(service.handleKeydown(keydown(' '))).toBe(false)
+
+    service.setEnabled(true)
+    expect(service.handleKeydown(keydown(' '))).toBe(true)
+  })
+
+  it('remembers the choice across service instances', () => {
+    service.setEnabled(false)
+
+    TestBed.resetTestingModule()
+    configureTestBed()
+
+    expect(TestBed.inject(ShortcutService).$enabled()).toBe(false)
+  })
+})

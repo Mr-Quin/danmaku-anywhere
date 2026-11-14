@@ -9,8 +9,8 @@ import { ConfirmDialog } from 'primeng/confirmdialog'
 import { ScrollTop } from 'primeng/scrolltop'
 import { Toast } from 'primeng/toast'
 import { PlatformService } from '../../core/services/platform.service'
+import { ShortcutService } from '../../core/shortcuts/shortcut.service'
 import { NoExtensionPage } from '../../features/no-extension/no-extension-page'
-import { SearchService } from '../../features/search/search.service'
 import { SearchDialogComponent } from '../../features/search/search-dialog.component'
 import { Settings } from '../../features/settings/settings.component'
 import { LayoutService } from '../layout.service'
@@ -64,14 +64,10 @@ import { UpdateBanner } from './update-banner.component'
 export class Layout {
   readonly platformService = inject(PlatformService)
   readonly layoutService = inject(LayoutService)
-  private readonly searchService = inject(SearchService)
+  private readonly shortcutService = inject(ShortcutService)
 
   @HostListener('document:keydown', ['$event'])
   onGlobalKeydown(event: KeyboardEvent) {
-    const isK = event.key.toLowerCase() === 'k'
-    if ((event.ctrlKey || event.metaKey) && isK) {
-      event.preventDefault()
-      this.searchService.open()
-    }
+    this.shortcutService.handleKeydown(event)
   }
 }

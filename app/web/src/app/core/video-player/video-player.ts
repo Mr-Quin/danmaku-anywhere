@@ -20,6 +20,7 @@ import {
   viewChild,
 } from '@angular/core'
 import type Artplayer from 'artplayer'
+import { ShortcutService } from '../shortcuts/shortcut.service'
 import { SubtitleButton } from './components/subtitle-button'
 import {
   type SubtitleTrack,
@@ -90,6 +91,7 @@ import { NEXT_EPISODE_ICON, PREV_EPISODE_ICON } from './video-icon.const'
 })
 export class VideoPlayer implements AfterViewInit, OnDestroy {
   private readonly videoService = inject(VideoService)
+  private readonly shortcutService = inject(ShortcutService)
   private readonly envInjector = inject(EnvironmentInjector)
   private readonly appRef = inject(ApplicationRef)
 
@@ -186,6 +188,11 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
         this.removeNextEpisodeControl()
       }
     })
+
+    this.shortcutService.registerEpisodeNavigation({
+      previous: () => this.previousEpisode.emit(),
+      next: () => this.nextEpisode.emit(),
+    })
   }
 
   ngAfterViewInit() {
@@ -195,6 +202,7 @@ export class VideoPlayer implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    this.shortcutService.registerEpisodeNavigation(null)
     this.clearTimers()
     this.clearMediaSession()
     if (this.subtitleButtonRef) {
