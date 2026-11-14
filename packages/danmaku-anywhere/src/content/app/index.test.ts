@@ -1,9 +1,9 @@
-import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
+import type { KazumiPolicy } from '@danmaku-anywhere/extension-protocol'
 import {
   createExtRequest,
   DA_EXT_SOURCE_APP,
   type ExtRequest,
-} from '@danmaku-anywhere/web-scraper'
+} from '@danmaku-anywhere/extension-protocol'
 import {
   afterEach,
   beforeAll,

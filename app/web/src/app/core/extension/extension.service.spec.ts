@@ -1,10 +1,10 @@
 import { TestBed } from '@angular/core/testing'
-import { getExtensionAttr } from '@danmaku-anywhere/web-scraper'
+import { getExtensionAttr } from '@danmaku-anywhere/extension-protocol'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ExtensionService } from './extension.service'
 import { LATEST_EXTENSION_VERSION } from './latestExtensionVersion'
 
-vi.mock('@danmaku-anywhere/web-scraper', async (importOriginal) => {
+vi.mock('@danmaku-anywhere/extension-protocol', async (importOriginal) => {
   const original = await importOriginal<object>()
   return {
     ...original,

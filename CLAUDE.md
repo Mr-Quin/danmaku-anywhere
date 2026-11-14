@@ -20,6 +20,7 @@ packages/
   danmaku-engine/       # Render danmaku on video containers
   danmaku-provider/     # Fetch danmaku from APIs
   web-scraper/          # Scrape video/page metadata from sites
+  extension-protocol/   # Messages between the extension and the web app
   bangumi-api/          # Typed Bangumi API schemas
   integration-policy/   # Schema for site/feature integration policies
 app/

@@ -49,6 +49,7 @@
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "@danmaku-anywhere/danmaku-engine": "workspace:*",
     "@danmaku-anywhere/danmaku-provider": "workspace:*",
+    "@danmaku-anywhere/extension-protocol": "workspace:*",
     "@danmaku-anywhere/integration-policy": "workspace:*",
     "@danmaku-anywhere/web-scraper": "workspace:*",
     "@dnd-kit/core": "^6.3.1",

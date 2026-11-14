@@ -12,7 +12,7 @@
   "exclude": ["**/*.test.ts", "**/test"],
   "references": [
     {
-      "path": "../danmaku-converter"
+      "path": "../extension-protocol"
     }
   ]
 }

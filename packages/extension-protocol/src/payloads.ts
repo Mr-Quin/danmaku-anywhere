@@ -1,5 +1,4 @@
-import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
-import type { MediaInfo } from './extractMedia.js'
+import type { KazumiPolicy } from './kazumi.js'
 
 export interface KazumiSearchResult {
   name: string
@@ -30,3 +29,10 @@ export type ExtractMediaPayload = {
 }
 
 export type HTTPHeader = { name: string; value?: string }
+
+export type MediaInfo = {
+  src: string
+  contentType: string
+  type: 'video' | 'audio'
+  headers?: HTTPHeader[]
+}

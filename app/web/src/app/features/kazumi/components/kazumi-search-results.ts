@@ -6,7 +6,7 @@ import {
   input,
   output,
 } from '@angular/core'
-import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
+import type { KazumiPolicy } from '@danmaku-anywhere/extension-protocol'
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { Button, ButtonDirective } from 'primeng/button'
 import { Divider } from 'primeng/divider'

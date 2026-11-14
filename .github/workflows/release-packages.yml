@@ -37,7 +37,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build libraries
-        run: pnpm --filter '@danmaku-anywhere/web-scraper...' build
+        run: pnpm --filter '@danmaku-anywhere/danmaku-converter...' --filter '@danmaku-anywhere/danmaku-provider...' --filter '@danmaku-anywhere/web-scraper...' --filter '@danmaku-anywhere/extension-protocol...' build
 
       - name: Version PR or publish
         uses: changesets/action@v1

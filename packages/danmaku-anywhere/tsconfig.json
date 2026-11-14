@@ -14,6 +14,7 @@
       "@danmaku-anywhere/danmaku-engine": ["../danmaku-engine/src"],
       "@danmaku-anywhere/danmaku-provider": ["../danmaku-provider/src"],
       "@danmaku-anywhere/danmaku-converter": ["../danmaku-converter/src"],
+      "@danmaku-anywhere/extension-protocol": ["../extension-protocol/src"],
       "@danmaku-anywhere/web-scraper": ["../web-scraper/src"]
     }
   },
@@ -23,6 +24,7 @@
     { "path": "../danmaku-engine" },
     { "path": "../danmaku-provider" },
     { "path": "../danmaku-converter" },
+    { "path": "../extension-protocol" },
     { "path": "../web-scraper" }
   ]
 }

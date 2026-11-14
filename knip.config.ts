@@ -15,6 +15,7 @@ const config: KnipConfig = {
       entry: ['src/index.ts', 'src/providers/*/index.ts'],
     },
     'packages/web-scraper': {},
+    'packages/extension-protocol': {},
     'packages/danmaku-anywhere': {
       entry: [
         'src/background/index.ts',

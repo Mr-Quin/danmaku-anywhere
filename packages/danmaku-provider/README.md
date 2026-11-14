@@ -19,4 +19,4 @@ Danmaku data providers and API client configuration. Supplies danmaku from multi
 
 ## Dependencies
 
-- `@danmaku-anywhere/danmaku-converter`, `protobufjs`, `zod`
+- `@danmaku-anywhere/danmaku-converter`, `@danmaku-anywhere/extension-protocol`, `protobufjs`, `zod`

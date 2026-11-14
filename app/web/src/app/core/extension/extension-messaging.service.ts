@@ -7,7 +7,7 @@ import {
   type ExtActionType,
   type ExtMessage,
   type ExtResponse,
-} from '@danmaku-anywhere/web-scraper'
+} from '@danmaku-anywhere/extension-protocol'
 import {
   defer,
   filter,
