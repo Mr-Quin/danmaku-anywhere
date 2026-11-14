@@ -222,6 +222,27 @@ describe('ShortcutService', () => {
     expect(player.toggle).not.toHaveBeenCalled()
   })
 
+  it('leaves shift with a letter to the extension and other handlers', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+
+    expect(service.handleKeydown(keydown('M', { shiftKey: true }))).toBe(false)
+    expect(service.handleKeydown(keydown('K', { shiftKey: true }))).toBe(false)
+    expect(service.handleKeydown(keydown('F', { shiftKey: true }))).toBe(false)
+    expect(player.muted).toBe(false)
+    expect(player.toggle).not.toHaveBeenCalled()
+    expect(player.fullscreen).toBe(false)
+  })
+
+  it('still opens settings on ?, which is typed with shift', () => {
+    const show = vi
+      .spyOn(settingsService, 'show')
+      .mockImplementation(() => undefined)
+
+    expect(service.handleKeydown(keydown('?', { shiftKey: true }))).toBe(true)
+    expect(show).toHaveBeenCalledWith('general')
+  })
+
   it('exits web fullscreen on escape', () => {
     const player = fakePlayer()
     player.fullscreenWeb = true

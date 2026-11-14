@@ -88,6 +88,11 @@ export class ShortcutService {
     if (event.ctrlKey || event.metaKey || event.altKey) {
       return false
     }
+    // The extension's own hotkeys are Shift and Alt combinations on letters,
+    // and its content script runs on this page too. `?` still needs Shift.
+    if (event.shiftKey && /^[a-z]$/.test(key)) {
+      return false
+    }
 
     const action = resolveAction(key)
     if (!action || !this.perform(action)) {
