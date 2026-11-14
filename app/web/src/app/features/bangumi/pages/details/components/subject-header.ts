@@ -8,9 +8,11 @@ import {
 import { RouterLink } from '@angular/router'
 import { Button } from 'primeng/button'
 import { Tag } from 'primeng/tag'
+import { DaImage } from '../../../../../shared/components/da-image'
 import { MaterialIcon } from '../../../../../shared/components/material-icon'
 import { RatingDistributionComponent } from '../../../../../shared/components/rating-distribution.component'
 import type { BgmSubject } from '../../../types/bangumi.types'
+import { preferredPoster } from '../../../utils/subject-images'
 
 @Component({
   selector: 'da-subject-header',
@@ -22,16 +24,18 @@ import type { BgmSubject } from '../../../types/bangumi.types'
     Tag,
     MaterialIcon,
     RatingDistributionComponent,
+    DaImage,
   ],
   template: `
     @let subjectData = subject();
     <div class="mb-6">
       <div class="flex flex-col lg:flex-row gap-6">
         <div class="flex-shrink-0">
-          <img
-            [src]="subjectData.images?.large || subjectData.images?.common"
+          <da-image
+            [src]="preferredPoster(subjectData.images)"
             [alt]="subjectData.name"
-            class="w-48 lg:w-56 aspect-[2/3] object-cover rounded-lg shadow-lg"
+            loading="eager"
+            styleClass="w-48 lg:w-56 aspect-[2/3] object-cover rounded-lg shadow-lg"
           />
         </div>
 
@@ -163,6 +167,7 @@ import type { BgmSubject } from '../../../types/bangumi.types'
 export class SubjectHeader {
   subject = input.required<BgmSubject>()
   protected tagsExpanded = signal(false)
+  protected readonly preferredPoster = preferredPoster
 
   protected toggleTagsExpanded() {
     this.tagsExpanded.update((expanded) => !expanded)

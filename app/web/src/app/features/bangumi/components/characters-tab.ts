@@ -9,12 +9,14 @@ import {
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { Card } from 'primeng/card'
 import { ProgressSpinner } from 'primeng/progressspinner'
+import { DaImage } from '../../../shared/components/da-image'
 import { BangumiService } from '../services/bangumi.service'
+import { preferredThumbnail } from '../utils/subject-images'
 
 @Component({
   selector: 'da-characters-tab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, ProgressSpinner, Card],
+  imports: [CommonModule, ProgressSpinner, Card, DaImage],
   template: `
     @if (charactersQuery.isPending()) {
       <div class="flex justify-center py-8">
@@ -26,10 +28,10 @@ import { BangumiService } from '../services/bangumi.service'
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           @for (character of response.data; track character.character.id) {
             <div class="flex gap-4">
-              <img
-                [src]="character.character.images?.medium"
+              <da-image
+                [src]="preferredThumbnail(character.character.images)"
                 [alt]="character.character.name"
-                class="w-16 h-16 object-cover rounded"
+                styleClass="w-16 h-16 object-cover rounded"
               />
               <div class="flex-1">
                 <h4 class="font-semibold">{{ character.character.nameCN || character.character.name }}</h4>
@@ -60,6 +62,7 @@ import { BangumiService } from '../services/bangumi.service'
 export class CharactersTab {
   subjectId = input.required<number>()
   visited = input<boolean>(false)
+  protected readonly preferredThumbnail = preferredThumbnail
 
   private bangumiService = inject(BangumiService)
 

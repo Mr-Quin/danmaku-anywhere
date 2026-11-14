@@ -8,13 +8,21 @@ import {
 import { RouterLink } from '@angular/router'
 import { injectQuery } from '@tanstack/angular-query-experimental'
 import { Card } from 'primeng/card'
+import { DaImage } from '../../../shared/components/da-image'
 import { BangumiService } from '../services/bangumi.service'
+import { preferredThumbnail } from '../utils/subject-images'
 import { HorizontalCardSkeletonGrid } from './horizontal-card-skeleton-grid'
 
 @Component({
   selector: 'da-recommendations-tab',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, RouterLink, Card, HorizontalCardSkeletonGrid],
+  imports: [
+    CommonModule,
+    RouterLink,
+    Card,
+    HorizontalCardSkeletonGrid,
+    DaImage,
+  ],
   template: `
     @if (recommendationsQuery.isPending()) {
       <da-horizontal-card-skeleton-grid [count]="5" />
@@ -24,10 +32,10 @@ import { HorizontalCardSkeletonGrid } from './horizontal-card-skeleton-grid'
         <div class="grid gap-4">
           @for (recommendation of response.data; track recommendation.subject.id) {
             <div class="flex gap-4">
-              <img
-                [src]="recommendation.subject.images?.medium || 'assets/cover_fallback.webp'"
+              <da-image
+                [src]="preferredThumbnail(recommendation.subject.images)"
                 [alt]="recommendation.subject.name"
-                class="w-20 h-28 object-cover rounded"
+                styleClass="w-20 h-28 object-cover rounded"
               />
               <div class="flex-1">
                 <div class="flex items-center gap-2 mb-2">
@@ -70,6 +78,7 @@ import { HorizontalCardSkeletonGrid } from './horizontal-card-skeleton-grid'
 export class RecommendationsTab {
   subjectId = input.required<number>()
   visited = input<boolean>(false)
+  protected readonly preferredThumbnail = preferredThumbnail
 
   private bangumiService = inject(BangumiService)
 

@@ -1,22 +1,22 @@
-import { CommonModule, NgOptimizedImage } from '@angular/common'
+import { CommonModule } from '@angular/common'
 import { ChangeDetectionStrategy, Component, input } from '@angular/core'
+import { DaImage } from '../../../shared/components/da-image'
 
 export type AvatarSize = 'small' | 'medium' | 'large'
 
 @Component({
   selector: 'da-user-avatar',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, NgOptimizedImage],
+  imports: [CommonModule, DaImage],
   template: `
     @let src = imageUrl();
     @if (src) {
-      <img
-        [ngSrc]="src"
+      <da-image
+        [src]="src"
         [width]="sizeInPixels()"
         [height]="sizeInPixels()"
-        [alt]="altText()"
-        class="rounded-full object-cover"
-        [class]="sizeClass()"
+        [alt]="altText() ?? ''"
+        [styleClass]="imageClass()"
       />
     } @else {
       <div class="rounded-full" [class]="sizeClass()"></div>
@@ -40,6 +40,10 @@ export class UserAvatar {
       default:
         return 40
     }
+  }
+
+  protected imageClass(): string {
+    return `${this.sizeClass()} rounded-full object-cover`
   }
 
   protected sizeClass(): string {

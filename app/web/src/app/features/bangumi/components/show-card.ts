@@ -1,4 +1,4 @@
-import { CommonModule, NgOptimizedImage } from '@angular/common'
+import { CommonModule } from '@angular/common'
 import {
   booleanAttribute,
   ChangeDetectionStrategy,
@@ -11,8 +11,8 @@ import { Button } from 'primeng/button'
 import { Card } from 'primeng/card'
 import { Tag } from 'primeng/tag'
 import { TrackingService } from '../../../core/tracking.service'
+import { DaImage } from '../../../shared/components/da-image'
 import { MaterialIcon } from '../../../shared/components/material-icon'
-import { IMAGE_PLACEHOLDER_DATA } from '../../../shared/placeholder-data'
 
 export interface ShowCardData {
   id: number
@@ -32,26 +32,18 @@ export interface ShowCardData {
 @Component({
   selector: 'da-show-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    RouterLink,
-    Card,
-    Button,
-    Tag,
-    MaterialIcon,
-    NgOptimizedImage,
-  ],
+  imports: [CommonModule, RouterLink, Card, Button, Tag, MaterialIcon, DaImage],
   template: `
     <p-card styleClass="overflow-hidden">
       @let showData = show();
       <ng-template #header>
         <div class="relative aspect-[17/24] contain-strict overflow-hidden">
-          <img
-            [ngSrc]="showData.cover ?? ''"
+          <da-image
+            [src]="showData.cover ?? ''"
             [alt]="showData.altTitle"
-            class="object-cover cursor-pointer hover:opacity-80 transition-opacity"
-            width="340"
-            height="480"
+            [width]="340"
+            [height]="480"
+            styleClass="object-cover cursor-pointer hover:opacity-80 transition-opacity"
             (click)="navigateToDetails(showData.id, 'image')" />
           @if (showData.rating?.score !== undefined) {
             <div class="absolute top-2 right-2">
@@ -139,6 +131,4 @@ export class ShowCard {
   onWatchClick(showData: ShowCardData): void {
     this.trackingService.track('clickShowCardWatch', { showData })
   }
-
-  protected readonly IMAGE_PLACEHOLDER_DATA = IMAGE_PLACEHOLDER_DATA
 }

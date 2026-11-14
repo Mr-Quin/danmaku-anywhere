@@ -8,24 +8,25 @@ import {
   output,
 } from '@angular/core'
 import { Tag } from 'primeng/tag'
+import { DaImage } from '../../../shared/components/da-image'
 import type { LegacyBgmSubject } from '../../bangumi/types/bangumi.types'
 import { SearchListItem } from '../search-list-item.component'
 
 @Component({
   selector: 'da-bangumi-search-result-list-item',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CommonModule, Tag, SearchListItem],
+  imports: [CommonModule, Tag, SearchListItem, DaImage],
   template: `
     @let item = subject();
     <da-search-list-item (select)="onSelect.emit()">
       <div class="flex gap-3">
         <div class="w-16 h-24 shrink-0 overflow-hidden rounded-md bg-surface-700">
-          <img
+          <da-image
             [src]="$imageSrc()"
             [alt]="$primaryName()"
-            class="object-cover w-full h-full"
-            width="160"
-            height="240"
+            [width]="160"
+            [height]="240"
+            styleClass="object-cover w-full h-full"
           />
         </div>
         <div class="min-w-0 flex-1">
