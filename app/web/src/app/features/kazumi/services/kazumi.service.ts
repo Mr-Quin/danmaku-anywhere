@@ -31,6 +31,7 @@ import {
 import { environment } from '../../../../environments/environment'
 import { ExtensionMessagingService } from '../../../core/extension/extension-messaging.service'
 import { queryKeys } from '../../../shared/query/queryKeys'
+import { mapWithConcurrency } from '../../../shared/utils/mapWithConcurrency'
 import { sortArrayByOrder } from '../../../shared/utils/utils'
 import { withTimeout } from '../../../shared/utils/withTimeout'
 import { normalizeStoredPolicy } from '../utils/normalize-stored-policy'
@@ -43,6 +44,10 @@ interface Setting<T> {
 
 type PolicyOrder = string[]
 const POLICY_ORDER_KEY = 'policyOrder'
+
+// Each rule search opens its own browser window in the extension, so only a
+// few run at a time.
+const SEARCH_CONCURRENCY = 3
 
 class KazumiDb extends Dexie {
   policies!: Table<KazumiPolicy, string>
@@ -301,19 +306,16 @@ export class KazumiService {
       }
     })
 
-    // search every imported rule as soon as the query changes
+    // search every rule the scraper can run as soon as the query changes
     effect(() => {
       const keyword = this.$_searchQuery().trim()
       const policies = this.localPoliciesQuery.data()
       if (!keyword || !policies?.length) {
         return
       }
-      void Promise.allSettled(
-        policies.map((policy) =>
-          this.queryClient.prefetchQuery(
-            this.searchQueryOptions(keyword, policy)
-          )
-        )
+      const searchable = policies.filter(isXPathPolicy)
+      void mapWithConcurrency(searchable, SEARCH_CONCURRENCY, (policy) =>
+        this.queryClient.prefetchQuery(this.searchQueryOptions(keyword, policy))
       )
     })
   }
@@ -336,7 +338,7 @@ export class KazumiService {
   getSearchQueryOptions(keyword: string, policy: KazumiPolicy) {
     return queryOptions({
       ...this.searchQueryOptions(keyword, policy),
-      enabled: !!keyword.trim(),
+      enabled: !!keyword.trim() && isXPathPolicy(policy),
     })
   }
 

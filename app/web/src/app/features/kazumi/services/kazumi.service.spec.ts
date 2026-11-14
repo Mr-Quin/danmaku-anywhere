@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing'
+import { zKazumiPolicy } from '@danmaku-anywhere/extension-protocol'
 import {
   provideQueryClient,
   QueryClient,
@@ -111,5 +112,48 @@ describe('KazumiService.addPolicyMutation', () => {
     })
 
     expect(service.$importErrors().has('xfdmnext')).toBe(false)
+  })
+})
+
+describe('KazumiService.getSearchQueryOptions', () => {
+  let service: KazumiService
+
+  const xpathRule = zKazumiPolicy.parse({
+    ...brokenXPathRule,
+    name: '7sefun',
+    searchURL: 'https://example.com/search?wd=@keyword',
+    searchList: '//div',
+    searchName: '//a',
+    searchResult: '//a',
+    chapterRoads: '//div',
+    chapterResult: '//a',
+  })
+  const parsedApiRule = zKazumiPolicy.parse(apiRule)
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideQueryClient(
+          new QueryClient({ defaultOptions: { queries: { retry: false } } })
+        ),
+      ],
+    })
+    service = TestBed.inject(KazumiService)
+  })
+
+  it('searches an xpath rule once there is a keyword', () => {
+    expect(service.getSearchQueryOptions('frieren', xpathRule).enabled).toBe(
+      true
+    )
+  })
+
+  it('never searches a rule the scraper cannot run', () => {
+    expect(
+      service.getSearchQueryOptions('frieren', parsedApiRule).enabled
+    ).toBe(false)
+  })
+
+  it('waits for a keyword', () => {
+    expect(service.getSearchQueryOptions('   ', xpathRule).enabled).toBe(false)
   })
 })

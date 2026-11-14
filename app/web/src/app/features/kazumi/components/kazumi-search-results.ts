@@ -86,8 +86,7 @@ export class SearchResultsComponent {
 
   private kazumiService = inject(KazumiService)
 
-  protected searchQuery = injectQuery(() => ({
-    ...this.kazumiService.getSearchQueryOptions(this.keyword(), this.policy()),
-    enabled: !!this.keyword().trim(),
-  }))
+  protected searchQuery = injectQuery(() =>
+    this.kazumiService.getSearchQueryOptions(this.keyword(), this.policy())
+  )
 }

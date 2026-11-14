@@ -37,8 +37,7 @@ export class KazumiPolicyTab {
   private kazumiService = inject(KazumiService)
 
   // same query as the search result
-  protected searchQuery = injectQuery(() => ({
-    ...this.kazumiService.getSearchQueryOptions(this.keyword(), this.policy()),
-    enabled: !!this.keyword().trim(),
-  }))
+  protected searchQuery = injectQuery(() =>
+    this.kazumiService.getSearchQueryOptions(this.keyword(), this.policy())
+  )
 }
