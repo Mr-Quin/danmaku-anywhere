@@ -46,10 +46,7 @@
         "esbenp.prettier-vscode",
         "biomejs.biome",
 
-        // Angular
-        "Angular.ng-template",
         "ms-vscode.vscode-json",
-        "nrwl.angular-console",
 
         // React
         "ms-vscode.vscode-react-refactor",
@@ -111,8 +108,6 @@
   // Forward ports for development servers
   "forwardPorts": [
     3000, // React dev server
-    4200, // Angular dev server
-    4321, // Astro dev server
     8787, // Cloudflare Workers dev server
     8080, // General purpose
     9000 // General purpose
@@ -121,14 +116,6 @@
   "portsAttributes": {
     "3000": {
       "label": "React Extension App",
-      "onAutoForward": "notify"
-    },
-    "4200": {
-      "label": "Angular Web App",
-      "onAutoForward": "notify"
-    },
-    "4321": {
-      "label": "Astro Documentation",
       "onAutoForward": "notify"
     },
     "8787": {

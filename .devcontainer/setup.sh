@@ -15,14 +15,6 @@ pnpm --version
 echo "📥 Installing dependencies..."
 pnpm install
 
-# Install Angular CLI globally for development
-echo "🅰️ Installing Angular CLI..."
-pnpm add -g @angular/cli@latest
-
-# Install Astro CLI globally for documentation development  
-echo "🚀 Installing Astro CLI..."
-pnpm add -g astro@latest
-
 # Install Cloudflare Wrangler for Workers development
 echo "☁️ Installing Wrangler..."
 pnpm add -g wrangler@latest
@@ -49,11 +41,6 @@ alias ptest="pnpm run test"
 alias plint="pnpm run lint"
 alias pformat="pnpm run format"
 
-# Angular specific
-alias ng-dev="cd app/web && pnpm run dev"
-alias ng-build="cd app/web && pnpm run build"
-alias ng-test="cd app/web && pnpm run test"
-
 # Extension specific  
 alias ext-dev="cd packages/danmaku-anywhere && pnpm run dev"
 alias ext-build="cd packages/danmaku-anywhere && pnpm run build"
@@ -61,10 +48,6 @@ alias ext-build="cd packages/danmaku-anywhere && pnpm run build"
 # Backend specific
 alias backend-dev="cd backend/proxy && pnpm run dev"
 alias backend-deploy="cd backend/proxy && pnpm run deploy"
-
-# Documentation specific
-alias docs-dev="cd docs && pnpm run dev"
-alias docs-build="cd docs && pnpm run build"
 
 # Workspace management
 alias workspace-clean="pnpm run clean"
@@ -83,13 +66,10 @@ echo "✅ Development environment setup complete!"
 echo ""
 echo "🔗 Available commands:"
 echo "  pdev      - Run development server"
-echo "  ng-dev    - Run Angular app development server"
 echo "  ext-dev   - Run extension development server"
-echo "  docs-dev  - Run documentation development server"
 echo "  backend-dev - Run backend development server"
 echo ""
 echo "📂 Project structure:"
-echo "  app/web/                  - Angular web application"
 echo "  packages/danmaku-anywhere/ - Browser extension (React)"
 echo "  backend/proxy/            - Cloudflare Workers backend"
 echo "  packages/                 - Core TypeScript packages"

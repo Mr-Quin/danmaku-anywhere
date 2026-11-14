@@ -1,28 +1,19 @@
 {
   "projectName": "danmaku-anywhere",
-  "description": "A browser extension and web application for displaying danmaku (bullet comments) on various video platforms",
+  "description": "A browser extension for displaying danmaku (bullet comments) on various video platforms",
   "defaultLanguage": "typescript",
-  "frameworks": [
-    "angular",
-    "react",
-    "typescript",
-    "vite",
-    "tailwindcss",
-    "primeng",
-    "material-ui"
-  ],
+  "frameworks": ["react", "typescript", "vite", "tailwindcss", "material-ui"],
   "ai": {
     "model": "claude-3.5-sonnet",
     "temperature": 0.1,
     "maxTokens": 4000,
     "contextWindow": 200000,
-    "systemPrompt": "You are an expert TypeScript developer working on the Danmaku Anywhere project. This is a monorepo with Angular, React, and TypeScript packages. Follow the coding standards and patterns established in the project. Always use strict TypeScript, follow the existing code style, and respect the framework-specific best practices outlined in the .cursor/rules files.",
+    "systemPrompt": "You are an expert TypeScript developer working on the Danmaku Anywhere project. This is a monorepo with React and TypeScript packages. Follow the coding standards and patterns established in the project. Always use strict TypeScript, follow the existing code style, and respect the framework-specific best practices outlined in the .cursor/rules files.",
     "includeFiles": [
       "package.json",
       "pnpm-workspace.yaml",
       "biome.json",
       "tsconfig.base.json",
-      "app/web/package.json",
       "packages/danmaku-anywhere/package.json"
     ],
     "excludeFiles": [
@@ -65,7 +56,7 @@
     "biomeConfig": "biome.json"
   },
   "testing": {
-    "frameworks": ["vitest", "jasmine", "karma"],
+    "frameworks": ["vitest"],
     "testPatterns": [
       "**/*.test.ts",
       "**/*.test.tsx",
@@ -91,15 +82,12 @@
       "packages/danmaku-provider",
       "packages/web-scraper",
       "packages/shared-ui",
-      "app/web",
-      "backend/proxy",
-      "docs"
+      "backend/proxy"
     ]
   },
   "recommendations": {
     "extensions": [
       "biomejs.biome",
-      "angular.ng-template",
       "bradlc.vscode-tailwindcss",
       "esbenp.prettier-vscode",
       "ms-vscode.vscode-typescript-next",
