@@ -18,7 +18,9 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
+    "registry": "https://registry.npmjs.org/",
+    "access": "public",
+    "provenance": true,
     "main": "dist/src/index.js",
     "types": "dist/src/index.d.ts",
     "exports": {

@@ -14,7 +14,7 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-      packages: write
+      id-token: write
 
     steps:
       - name: Checkout
@@ -30,8 +30,7 @@ jobs:
         with:
           node-version: 26.x
           cache: 'pnpm'
-          registry-url: 'https://npm.pkg.github.com'
-          scope: '@danmaku-anywhere'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -49,4 +48,4 @@ jobs:
           createGithubReleases: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
