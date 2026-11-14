@@ -23,7 +23,7 @@ Browser extension that adds danmaku (bullet comments) to video sites (Plex, Jell
 ## Workspace Dependencies
 
 - `@danmaku-anywhere/danmaku-converter`, `@danmaku-anywhere/danmaku-engine`, `@danmaku-anywhere/danmaku-provider`
-- `@danmaku-anywhere/integration-policy`, `@danmaku-anywhere/result`, `@danmaku-anywhere/web-scraper`
+- `@danmaku-anywhere/extension-protocol`, `@danmaku-anywhere/integration-policy`, `@danmaku-anywhere/result`, `@danmaku-anywhere/web-scraper`
 
 ## License
 

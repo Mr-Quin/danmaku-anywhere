@@ -27,7 +27,7 @@
     "@danmaku-anywhere/bangumi-api": "workspace:*",
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
     "@danmaku-anywhere/danmaku-provider": "workspace:*",
-    "@danmaku-anywhere/web-scraper": "workspace:*",
+    "@danmaku-anywhere/extension-protocol": "workspace:*",
     "@ffmpeg/core": "^0.12.10",
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@ffmpeg/util": "^0.12.2",

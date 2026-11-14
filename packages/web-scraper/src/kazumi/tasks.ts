@@ -1,5 +1,8 @@
-import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
-import type { KazumiChapterResult, KazumiSearchResult } from '../types.js'
+import type {
+  KazumiChapterResult,
+  KazumiPolicy,
+  KazumiSearchResult,
+} from '@danmaku-anywhere/extension-protocol'
 import { createJob, createTab, Logger } from '../utils.js'
 
 export const kazumiSearch = async (

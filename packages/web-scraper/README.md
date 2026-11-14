@@ -4,7 +4,7 @@ Scraping utilities intended to run in the browser extension context (content/bac
 
 ## Usage
 
-Used by the extension and the Angular web app (with extension present). Depends on `danmaku-converter` and `danmaku-provider`.
+Used by the extension. The message types it shares with the web app live in `extension-protocol`.
 
 ## Scripts
 
@@ -16,4 +16,4 @@ Used by the extension and the Angular web app (with extension present). Depends 
 
 ## Dependencies
 
-- `@danmaku-anywhere/danmaku-converter`, `@danmaku-anywhere/danmaku-provider`, `zod`
+- `@danmaku-anywhere/extension-protocol`, `async-mutex`

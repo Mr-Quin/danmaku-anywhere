@@ -6,7 +6,7 @@ import {
   type ExtRequest,
   type ExtResponse,
   setExtensionAttr,
-} from '@danmaku-anywhere/web-scraper'
+} from '@danmaku-anywhere/extension-protocol'
 import { EXTENSION_VERSION } from '@/common/constants'
 import { uiContainer } from '@/common/ioc/uiIoc'
 import { ExtensionOptionsService } from '@/common/options/extensionOptions/service'

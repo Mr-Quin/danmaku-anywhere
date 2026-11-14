@@ -8,7 +8,7 @@ import {
 } from '@angular/cdk/drag-drop'
 import { CommonModule } from '@angular/common'
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
-import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
+import type { KazumiPolicy } from '@danmaku-anywhere/extension-protocol'
 import { Button } from 'primeng/button'
 import { Tag } from 'primeng/tag'
 import { MaterialIcon } from '../../../shared/components/material-icon'

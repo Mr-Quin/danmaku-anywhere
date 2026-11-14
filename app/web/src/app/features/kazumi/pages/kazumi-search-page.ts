@@ -11,7 +11,7 @@ import {
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
 import { ActivatedRoute, Router } from '@angular/router'
-import type { KazumiPolicy } from '@danmaku-anywhere/danmaku-provider/kazumi'
+import type { KazumiPolicy } from '@danmaku-anywhere/extension-protocol'
 import { injectInfiniteQuery } from '@tanstack/angular-query-experimental'
 import { AutoCompleteModule } from 'primeng/autocomplete'
 import { AutoFocus } from 'primeng/autofocus'

@@ -9,9 +9,12 @@ import {
 import {
   getManifest,
   getPolicy,
-  type KazumiPolicy,
 } from '@danmaku-anywhere/danmaku-provider/kazumi'
-import type { MediaInfo, SetHeaderRule } from '@danmaku-anywhere/web-scraper'
+import type {
+  KazumiPolicy,
+  MediaInfo,
+  SetHeaderRule,
+} from '@danmaku-anywhere/extension-protocol'
 import {
   injectMutation,
   injectQuery,
