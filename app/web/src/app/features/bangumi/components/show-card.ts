@@ -32,15 +32,7 @@ export interface ShowCardData {
 @Component({
   selector: 'da-show-card',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [
-    CommonModule,
-    RouterLink,
-    Card,
-    Button,
-    Tag,
-    MaterialIcon,
-    DaImage,
-  ],
+  imports: [CommonModule, RouterLink, Card, Button, Tag, MaterialIcon, DaImage],
   template: `
     <p-card styleClass="overflow-hidden">
       @let showData = show();
