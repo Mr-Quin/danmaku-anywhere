@@ -1,15 +1,6 @@
 name: Release Shared Libraries
 
 on:
-  push:
-    branches:
-      - master
-    paths:
-      - '.changeset/**'
-      - 'packages/danmaku-converter/**'
-      - 'packages/danmaku-provider/**'
-      - 'packages/web-scraper/**'
-      - '.github/workflows/release-packages.yml'
   workflow_dispatch:
 
 concurrency:
