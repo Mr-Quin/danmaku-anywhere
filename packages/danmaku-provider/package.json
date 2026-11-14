@@ -46,10 +46,6 @@
       "types": "./src/providers/genAi/index.d.ts",
       "default": "./src/providers/genAi/index.js"
     },
-    "./kazumi": {
-      "types": "./src/providers/kazumi/index.d.ts",
-      "default": "./src/providers/kazumi/index.js"
-    },
     "./config": {
       "types": "./src/providers/config/index.d.ts",
       "default": "./src/providers/config/index.js"
@@ -96,10 +92,6 @@
         "types": "./dist/src/providers/genAi/index.d.ts",
         "default": "./dist/src/providers/genAi/index.js"
       },
-      "./kazumi": {
-        "types": "./dist/src/providers/kazumi/index.d.ts",
-        "default": "./dist/src/providers/kazumi/index.js"
-      },
       "./config": {
         "types": "./dist/src/providers/config/index.d.ts",
         "default": "./dist/src/providers/config/index.js"
@@ -126,7 +118,6 @@
   },
   "dependencies": {
     "@danmaku-anywhere/danmaku-converter": "workspace:^",
-    "@danmaku-anywhere/extension-protocol": "workspace:^",
     "protobufjs": "^8.8.0",
     "zod": "^4.6.5"
   },

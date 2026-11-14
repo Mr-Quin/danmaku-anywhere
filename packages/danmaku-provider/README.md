@@ -1,11 +1,11 @@
 # @danmaku-anywhere/danmaku-provider
 
-Danmaku data providers and API client configuration. Supplies danmaku from multiple backends (DDP, Bilibili, Tencent, MacCMS, Kazumi, etc.) and shared store for API base URL.
+Danmaku data providers and API client configuration. Supplies danmaku from multiple backends (DDP, Bilibili, Tencent, MacCMS, etc.) and shared store for API base URL.
 
 ## Exports
 
 - **`.`** — Core exports: exceptions, `configureApiStore`
-- **`./ddp`**, **`./bilibili`**, **`./tencent`**, **`./maccms`**, **`./genAi`**, **`./kazumi`** — Provider-specific APIs
+- **`./ddp`**, **`./bilibili`**, **`./tencent`**, **`./maccms`**, **`./genAi`** — Provider-specific APIs
 - **`./config`**, **`./files`** — Config and file-based providers
 
 ## Scripts
@@ -19,4 +19,4 @@ Danmaku data providers and API client configuration. Supplies danmaku from multi
 
 ## Dependencies
 
-- `@danmaku-anywhere/danmaku-converter`, `@danmaku-anywhere/extension-protocol`, `protobufjs`, `zod`
+- `@danmaku-anywhere/danmaku-converter`, `protobufjs`, `zod`

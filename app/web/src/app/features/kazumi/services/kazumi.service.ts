@@ -6,10 +6,6 @@ import {
   signal,
   untracked,
 } from '@angular/core'
-import {
-  getManifest,
-  getPolicy,
-} from '@danmaku-anywhere/danmaku-provider/kazumi'
 import type {
   KazumiPolicy,
   MediaInfo,
@@ -31,10 +27,12 @@ import {
   startWith,
   tap,
 } from 'rxjs'
+import { environment } from '../../../../environments/environment'
 import { ExtensionMessagingService } from '../../../core/extension/extension-messaging.service'
 import { queryKeys } from '../../../shared/query/queryKeys'
 import { sortArrayByOrder } from '../../../shared/utils/utils'
 import { withTimeout } from '../../../shared/utils/withTimeout'
+import { getManifest, getPolicy } from './kazumi-api'
 
 interface Setting<T> {
   key: string
@@ -145,7 +143,7 @@ export class KazumiService {
 
   private readonly manifestsOptions = queryOptions({
     queryFn: async () => {
-      const result = await withTimeout(getManifest(), 5000)
+      const result = await withTimeout(getManifest(environment.apiRoot), 5000)
       if (!result.success) throw result.error
       return result.data
     },
@@ -177,7 +175,10 @@ export class KazumiService {
   readonly addPolicyMutation = injectMutation(() => ({
     mutationKey: queryKeys.kazumi.local.all(),
     mutationFn: async (name: string) => {
-      const policy = await withTimeout(getPolicy(`${name}.json`), 5000)
+      const policy = await withTimeout(
+        getPolicy(environment.apiRoot, `${name}.json`),
+        5000
+      )
       if (!policy.success) throw policy.error
       const policyData = policy.data
 
