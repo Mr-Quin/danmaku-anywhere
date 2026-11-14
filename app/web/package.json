@@ -26,7 +26,6 @@
     "@angular/service-worker": "^21.2.25",
     "@danmaku-anywhere/bangumi-api": "workspace:*",
     "@danmaku-anywhere/danmaku-converter": "workspace:*",
-    "@danmaku-anywhere/danmaku-provider": "workspace:*",
     "@danmaku-anywhere/extension-protocol": "workspace:*",
     "@ffmpeg/core": "^0.12.10",
     "@ffmpeg/ffmpeg": "^0.12.15",
@@ -50,7 +49,8 @@
     "tailwindcss": "^4.3.3",
     "tailwindcss-primeui": "^0.6.1",
     "tslib": "^2.8.1",
-    "ua-parser-js": "^2.0.10"
+    "ua-parser-js": "^2.0.10",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@angular/build": "^21.2.26",

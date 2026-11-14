@@ -65,9 +65,6 @@ importers:
       '@danmaku-anywhere/danmaku-converter':
         specifier: workspace:*
         version: link:../../packages/danmaku-converter
-      '@danmaku-anywhere/danmaku-provider':
-        specifier: workspace:*
-        version: link:../../packages/danmaku-provider
       '@danmaku-anywhere/extension-protocol':
         specifier: workspace:*
         version: link:../../packages/extension-protocol
@@ -140,6 +137,9 @@ importers:
       ua-parser-js:
         specifier: ^2.0.10
         version: 2.0.10
+      zod:
+        specifier: ^4.6.5
+        version: 4.6.5
     devDependencies:
       '@angular/build':
         specifier: ^21.2.26
@@ -497,9 +497,6 @@ importers:
       '@danmaku-anywhere/danmaku-converter':
         specifier: workspace:^
         version: link:../danmaku-converter
-      '@danmaku-anywhere/extension-protocol':
-        specifier: workspace:^
-        version: link:../extension-protocol
       protobufjs:
         specifier: ^8.8.0
         version: 8.8.0
