@@ -1,4 +1,4 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-model'
 import type { BrowserContext, Page } from '@playwright/test'
 import { IntegrationPage } from '../../pom/IntegrationPage'
 import { getDaClient } from '../../setup/da-client'

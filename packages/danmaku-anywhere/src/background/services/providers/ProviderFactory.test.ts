@@ -2,7 +2,7 @@ import {
   DanmakuSourceType,
   LEGACY_MACCMS_ID,
   PROVIDER_TO_BUILTIN_ID,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import type { ManifestRunner } from '@mr-quin/dango'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { backgroundContainerModule } from '@/background/ioc'

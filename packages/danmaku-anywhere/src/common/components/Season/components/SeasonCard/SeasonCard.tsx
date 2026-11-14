@@ -3,7 +3,7 @@ import {
   providerTypeFromManifestId,
   type Season,
   type SeasonInsert,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import {
   Delete,
   FavoriteBorder,

@@ -1,6 +1,6 @@
-import { CommentMode, zRgb888 } from '@danmaku-anywhere/danmaku-converter'
+import { CommentMode, zRgb888 } from '@danmaku-anywhere/danmaku-model'
 import { z } from 'zod'
-import { BiliBiliMediaType } from './enums.js'
+import { BilibiliMediaType } from './enums.js'
 
 const zBilibiliApiResponseBase = z.object({
   code: z.number(),
@@ -22,7 +22,7 @@ const zBilibiliSearchMedia = z.object({
   media_id: z.number(), // mdid
   season_id: z.number(), // ssid
   title: z.string(),
-  media_type: z.enum(BiliBiliMediaType),
+  media_type: z.enum(BilibiliMediaType),
   cover: z.url(),
   season_type_name: z.string(),
   season_type: z.number(),
@@ -78,7 +78,7 @@ export const zBilibiliBangumiInfoResponse = zBilibiliApiResponseBase.extend({
         })
       }),
       title: z.string(),
-      type: z.enum(BiliBiliMediaType),
+      type: z.enum(BilibiliMediaType),
       media_id: z.number(),
       season_id: z.number(),
       cover: z.string(),

@@ -1,7 +1,7 @@
 import {
   zEpisodeInsertV4,
   zSeasonInsertV1,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { describe, expect, it } from 'vitest'
 import { providerConfigSchema } from '@/common/options/providerConfig/schema'
 import {

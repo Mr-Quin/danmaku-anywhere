@@ -1,4 +1,4 @@
-import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-converter'
+import { LEGACY_MACCMS_ID } from '@danmaku-anywhere/danmaku-model'
 import { describe, expect, it } from 'vitest'
 import type { ProviderConfig } from './schema'
 import { findSourceName } from './utils'

@@ -3,7 +3,7 @@ import {
   LEGACY_MACCMS_ID,
   PROVIDER_TO_BUILTIN_ID,
   stripBuiltinPrefix,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { DanDanChConvert } from '@danmaku-anywhere/danmaku-provider/ddp'
 import {
   AUTO_IMPORT_PROVIDERS,

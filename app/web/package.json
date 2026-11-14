@@ -25,7 +25,7 @@
     "@angular/router": "^21.2.25",
     "@angular/service-worker": "^21.2.25",
     "@danmaku-anywhere/bangumi-api": "workspace:*",
-    "@danmaku-anywhere/danmaku-converter": "workspace:*",
+    "@danmaku-anywhere/danmaku-model": "workspace:*",
     "@danmaku-anywhere/extension-protocol": "workspace:*",
     "@ffmpeg/core": "^0.12.10",
     "@ffmpeg/ffmpeg": "^0.12.15",

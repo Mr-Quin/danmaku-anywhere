@@ -10,7 +10,7 @@
   "include": ["./src"],
   "references": [
     {
-      "path": "../danmaku-converter"
+      "path": "../danmaku-model"
     }
   ],
   "exclude": ["**/*.test.ts"]

@@ -3,7 +3,7 @@ import type {
   CustomEpisodeInsert,
   Episode,
   EpisodeInsert,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { inject, injectable } from 'inversify'
 import { DanmakuService } from '@/background/services/persistence/DanmakuService'
 import { DanmakuAnywhereDb } from '@/common/db/db'

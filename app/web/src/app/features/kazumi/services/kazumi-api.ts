@@ -1,7 +1,7 @@
 import {
-  type KazumaManifest,
+  type KazumiManifest,
   type KazumiPolicy,
-  zKazumaManifest,
+  zKazumiManifest,
   zKazumiPolicy,
 } from '@danmaku-anywhere/extension-protocol'
 import { type ZodType, z } from 'zod'
@@ -100,8 +100,8 @@ async function getJson<S extends ZodType>(
 
 export function getManifest(
   baseUrl: string
-): Promise<KazumiApiResult<KazumaManifest[]>> {
-  return getJson(`${baseUrl}/kazumi/rules`, z.array(zKazumaManifest))
+): Promise<KazumiApiResult<KazumiManifest[]>> {
+  return getJson(`${baseUrl}/kazumi/rules`, z.array(zKazumiManifest))
 }
 
 export function getPolicy(

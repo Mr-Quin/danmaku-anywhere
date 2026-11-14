@@ -1,4 +1,4 @@
-import type { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import type { DanmakuSourceType } from '@danmaku-anywhere/danmaku-model'
 import { danmakuSourceTypeList } from '@/common/danmaku/enums'
 
 export type LibraryViewState = 'tree' | 'empty' | 'noMatch'

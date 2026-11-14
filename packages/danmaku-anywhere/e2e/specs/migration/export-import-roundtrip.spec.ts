@@ -1,4 +1,4 @@
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-model'
 import { ImportPage } from '../../pom/ImportPage'
 import { Popup } from '../../pom/Popup'
 import {

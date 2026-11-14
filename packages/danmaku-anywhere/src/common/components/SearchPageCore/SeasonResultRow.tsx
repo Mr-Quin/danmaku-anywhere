@@ -2,7 +2,7 @@ import type {
   CustomSeason,
   Season,
   SeasonInsert,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { Check } from '@mui/icons-material'
 import { Box, ButtonBase, Skeleton, Stack, Typography } from '@mui/material'
 import { useTranslation } from 'react-i18next'

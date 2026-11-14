@@ -1,7 +1,7 @@
 import type {
   CommentEntity,
   GenericEpisodeLite,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import type { KazumiPolicy } from './kazumi.js'
 import type { HTTPHeader, MediaInfo } from './payloads.js'
 

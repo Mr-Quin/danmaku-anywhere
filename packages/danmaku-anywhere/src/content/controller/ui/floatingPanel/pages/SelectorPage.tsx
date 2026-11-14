@@ -1,4 +1,4 @@
-import type { Season } from '@danmaku-anywhere/danmaku-converter'
+import type { Season } from '@danmaku-anywhere/danmaku-model'
 import { Box, Button, Divider, Stack, Typography } from '@mui/material'
 import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'

@@ -1,4 +1,4 @@
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-model'
 import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
 import { ok, type Result } from '../../result.js'
 import { createThrottle } from '../utils/createThrottle.js'

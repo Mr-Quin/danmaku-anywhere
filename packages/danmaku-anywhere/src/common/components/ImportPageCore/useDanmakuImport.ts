@@ -1,4 +1,4 @@
-import { xmlToJSON } from '@danmaku-anywhere/danmaku-converter'
+import { xmlToJSON } from '@danmaku-anywhere/danmaku-model'
 import { useMutation } from '@tanstack/react-query'
 import { decodeBilibiliDanmakuProto } from '@/common/components/ImportPageCore/decodeBilibiliDanmakuProto'
 

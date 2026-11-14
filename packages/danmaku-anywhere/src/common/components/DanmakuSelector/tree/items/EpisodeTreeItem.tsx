@@ -1,4 +1,4 @@
-import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-converter'
+import type { GenericEpisodeLite } from '@danmaku-anywhere/danmaku-model'
 import { ChatBubbleOutlined, InsertDriveFile } from '@mui/icons-material'
 import { Stack, styled, Typography } from '@mui/material'
 import type { ReactElement } from 'react'

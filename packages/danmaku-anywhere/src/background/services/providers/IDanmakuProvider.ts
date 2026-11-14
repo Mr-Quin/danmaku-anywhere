@@ -5,7 +5,7 @@ import type {
   Season,
   SeasonInsert,
   WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'
 import type { SourceStatus } from '@/common/providers/sourceCapabilities'
 

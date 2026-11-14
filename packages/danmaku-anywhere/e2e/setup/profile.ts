@@ -1,4 +1,4 @@
-import { DanDanChConvert } from '@danmaku-anywhere/danmaku-converter'
+import { DanDanChConvert } from '@danmaku-anywhere/danmaku-model'
 import type { BrowserContext, Route } from '@playwright/test'
 import type { ExtensionOptions } from '../../src/common/options/extensionOptions/schema'
 import type { ProviderConfig } from '../../src/common/options/providerConfig/schema'

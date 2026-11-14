@@ -1,12 +1,12 @@
 {
-  "name": "@danmaku-anywhere/danmaku-converter",
+  "name": "@danmaku-anywhere/danmaku-model",
   "version": "0.2.0",
-  "description": "",
+  "description": "Shared danmaku data model and XML conversion",
   "author": "Mr-Quin",
   "repository": {
     "type": "git",
     "url": "https://github.com/Danmaku-Anywhere/danmaku-anywhere",
-    "directory": "packages/danmaku-converter"
+    "directory": "packages/danmaku-model"
   },
   "license": "MIT",
   "type": "module",

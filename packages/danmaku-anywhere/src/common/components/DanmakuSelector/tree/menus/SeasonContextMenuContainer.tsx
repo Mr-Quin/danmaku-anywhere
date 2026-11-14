@@ -1,4 +1,4 @@
-import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-converter'
+import type { CustomSeason, Season } from '@danmaku-anywhere/danmaku-model'
 import type { ReactElement } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useDeleteSeason } from '@/common/anime/queries/useDeleteSeason'

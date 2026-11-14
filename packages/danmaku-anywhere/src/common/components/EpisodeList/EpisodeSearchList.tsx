@@ -3,7 +3,7 @@ import type {
   EpisodeLite,
   Season,
   WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import type { MacCmsParsedPlayUrl } from '@danmaku-anywhere/danmaku-provider/maccms'
 import { Box, Skeleton, Stack } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'

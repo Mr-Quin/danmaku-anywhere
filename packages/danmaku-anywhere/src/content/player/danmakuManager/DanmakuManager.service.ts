@@ -1,5 +1,5 @@
-import type { CommentEntity } from '@danmaku-anywhere/danmaku-converter'
 import { DanmakuRenderer } from '@danmaku-anywhere/danmaku-engine'
+import type { CommentEntity } from '@danmaku-anywhere/danmaku-model'
 import { inject, injectable } from 'inversify'
 import { createElement } from 'react'
 import ReactDOM from 'react-dom/client'

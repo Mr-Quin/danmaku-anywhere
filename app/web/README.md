@@ -23,7 +23,7 @@ Angular web application for Danmaku Anywhere. Provides a Kazumi-style video aggr
 ## Workspace Dependencies
 
 - `@danmaku-anywhere/bangumi-api` — Bangumi API types
-- `@danmaku-anywhere/danmaku-converter` — Danmaku format conversion
+- `@danmaku-anywhere/danmaku-model`: shared episode and comment types
 - `@danmaku-anywhere/extension-protocol`: messages exchanged with the extension
 
 The backend base URL is `environment.apiRoot`. The Kazumi rule list and rule files are fetched from it by `features/kazumi/services/kazumi-api.ts`.

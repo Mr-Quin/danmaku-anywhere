@@ -4,7 +4,7 @@ Rendering engine for danmaku overlay. Uses `@mr-quin/danmu` for rendering.
 
 ## Usage
 
-Consumed by the browser extension (`packages/danmaku-anywhere`). Depends on `@danmaku-anywhere/danmaku-converter` for format conversion.
+Consumed by the browser extension (`packages/danmaku-anywhere`). Depends on `@danmaku-anywhere/danmaku-model` for the comment types.
 
 ## Scripts
 
@@ -16,4 +16,4 @@ Consumed by the browser extension (`packages/danmaku-anywhere`). Depends on `@da
 
 ## Dependencies
 
-- `@danmaku-anywhere/danmaku-converter`, `@mr-quin/danmu`
+- `@danmaku-anywhere/danmaku-model`, `@mr-quin/danmu`

@@ -4,7 +4,7 @@ import type {
   Season,
   SeasonInsert,
   WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { Settings } from '@mui/icons-material'
 import { IconButton } from '@mui/material'
 import type { RefObject } from 'react'

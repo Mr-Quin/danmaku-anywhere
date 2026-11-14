@@ -1,7 +1,7 @@
 import {
   type CommentEntity,
   zGenericXml,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import type { DanmakuProviderError } from '../../exceptions/BaseError.js'
 import { HttpException } from '../../exceptions/HttpException.js'
 import { InputError } from '../../exceptions/InputError.js'

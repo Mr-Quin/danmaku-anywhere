@@ -1,7 +1,4 @@
-import type {
-  EpisodeMeta,
-  WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+import type { EpisodeMeta, WithSeason } from '@danmaku-anywhere/danmaku-model'
 import { Search } from '@mui/icons-material'
 import {
   Chip,

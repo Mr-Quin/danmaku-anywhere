@@ -16,7 +16,7 @@ Danmaku Anywhere is an open-source project for overlaying danmaku (bullet commen
 ```
 packages/
   danmaku-anywhere/     # Browser extension
-  danmaku-converter/    # Parse/normalize danmaku formats
+  danmaku-model/        # Shared data model (comments, episodes, seasons) and XML conversion
   danmaku-engine/       # Render danmaku on video containers
   danmaku-provider/     # Fetch danmaku from APIs
   web-scraper/          # Scrape video/page metadata from sites

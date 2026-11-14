@@ -3,7 +3,7 @@ import {
   DanmakuSourceType,
   type GenericEpisode,
   type Season,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { describe, expect, it } from 'vitest'
 import {
   episodeProviderType,

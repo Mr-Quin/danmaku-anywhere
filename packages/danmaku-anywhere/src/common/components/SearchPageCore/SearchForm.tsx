@@ -4,7 +4,7 @@ import type {
   Season,
   SeasonInsert,
   WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { Download, Search } from '@mui/icons-material'
 import { Box, Button, Skeleton, Stack, Typography } from '@mui/material'
 import { useQueries, useQueryClient } from '@tanstack/react-query'

@@ -1,4 +1,4 @@
-import type { EpisodeMeta } from '@danmaku-anywhere/danmaku-converter'
+import type { EpisodeMeta } from '@danmaku-anywhere/danmaku-model'
 import { chineseToNumber } from '@/content/controller/danmaku/integration/xPathPolicyOps/chineseToNumber'
 import { mediaRegexMatcher } from '@/content/controller/danmaku/integration/xPathPolicyOps/mediaRegexMatcher'
 import type { OmitSeasonId } from '../IDanmakuProvider'

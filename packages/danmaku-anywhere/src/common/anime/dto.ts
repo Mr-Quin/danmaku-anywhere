@@ -3,7 +3,7 @@ import type {
   EpisodeMeta,
   Season,
   WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import type { ProviderConfig } from '@/common/options/providerConfig/schema'
 import type { MatchingStrategyType } from './MatchingStrategyType'
 

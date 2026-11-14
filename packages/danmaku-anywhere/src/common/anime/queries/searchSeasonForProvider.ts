@@ -2,7 +2,7 @@ import type {
   CustomSeason,
   Season,
   SeasonInsert,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { Logger } from '@/common/Logger'
 import { describeSourceError } from '@/common/providers/describeSourceError'
 import { chromeRpcClient } from '@/common/rpcClient/background/client'

@@ -1,4 +1,4 @@
-import { PROVIDER_TO_BUILTIN_ID } from '@danmaku-anywhere/danmaku-converter'
+import { PROVIDER_TO_BUILTIN_ID } from '@danmaku-anywhere/danmaku-model'
 import { Box } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'

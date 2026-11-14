@@ -7,7 +7,7 @@ import type {
   EpisodeStub,
   Season,
   SeasonInsert,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import type { BrowserContext, Worker } from '@playwright/test'
 import type { ExtensionOptions } from '../../src/common/options/extensionOptions/schema'
 import type { ProviderConfig } from '../../src/common/options/providerConfig/schema'

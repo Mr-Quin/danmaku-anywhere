@@ -3,7 +3,7 @@ import type {
   EpisodeMeta,
   EpisodeStub,
   WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { inject, injectable } from 'inversify'
 import { findNextStub } from '@/background/services/providers/common/findNextStub'
 import type { ProviderService } from '@/background/services/providers/ProviderService'

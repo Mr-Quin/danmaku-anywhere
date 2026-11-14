@@ -1,4 +1,4 @@
-import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-converter'
+import { DanmakuSourceType } from '@danmaku-anywhere/danmaku-model'
 import type { BrowserContext } from '@playwright/test'
 import { IntegrationPage } from '../../pom/IntegrationPage'
 import { Toast } from '../../pom/Toast'

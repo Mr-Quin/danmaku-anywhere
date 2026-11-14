@@ -2,7 +2,7 @@ import {
   type CommentEntity,
   EPISODE_SCHEMA_VERSION,
   SEASON_SCHEMA_VERSION,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import type { ManifestRunner } from '@mr-quin/dango'
 import { describe, expect, it, vi } from 'vitest'
 import type { DanmakuFetchByMeta } from '@/common/danmaku/dto'

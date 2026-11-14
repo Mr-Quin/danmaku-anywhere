@@ -1,4 +1,4 @@
-import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-converter'
+import type { Season, SeasonInsert } from '@danmaku-anywhere/danmaku-model'
 import { inject, injectable } from 'inversify'
 import { SeasonService } from '@/background/services/persistence/SeasonService'
 import { type AnyMethodDef, type DevNamespace, defineMethod } from '../registry'

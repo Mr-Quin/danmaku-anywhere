@@ -5,7 +5,7 @@ import type {
   EpisodeStub,
   SeasonInsert,
   WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { Dexie } from 'dexie'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ProviderService } from '@/background/services/providers/ProviderService'

@@ -3,7 +3,7 @@ import type {
   CustomEpisodeLite,
   EpisodeLite,
   GenericEpisodeLite,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { Button } from 'primeng/button'
 import { Popover } from 'primeng/popover'
 import { ScrollPanel } from 'primeng/scrollpanel'

@@ -1,4 +1,4 @@
-import type { EpisodeStub } from '@danmaku-anywhere/danmaku-converter'
+import type { EpisodeStub } from '@danmaku-anywhere/danmaku-model'
 
 function toEpisodeNumber(value: number | string | undefined): number | null {
   if (typeof value === 'number') {

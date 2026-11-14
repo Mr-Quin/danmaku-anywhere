@@ -3,7 +3,7 @@ import type {
   EpisodeLite,
   EpisodeMeta,
   WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import { Check, Download } from '@mui/icons-material'
 import {
   Box,

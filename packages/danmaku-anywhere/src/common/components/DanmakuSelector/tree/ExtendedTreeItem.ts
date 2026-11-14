@@ -3,7 +3,7 @@ import type {
   EpisodeStub,
   GenericEpisodeLite,
   Season,
-} from '@danmaku-anywhere/danmaku-converter'
+} from '@danmaku-anywhere/danmaku-model'
 import type { TreeViewDefaultItemModelProperties } from '@mui/x-tree-view/models'
 
 interface SeasonTreeItem extends TreeViewDefaultItemModelProperties {

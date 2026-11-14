@@ -1,4 +1,4 @@
-import type { Episode, WithSeason } from '@danmaku-anywhere/danmaku-converter'
+import type { Episode, WithSeason } from '@danmaku-anywhere/danmaku-model'
 import { CheckCircle, Download, ErrorOutlined, Info } from '@mui/icons-material'
 import {
   alpha,

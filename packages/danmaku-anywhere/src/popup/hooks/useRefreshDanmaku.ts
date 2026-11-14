@@ -1,7 +1,4 @@
-import type {
-  EpisodeMeta,
-  WithSeason,
-} from '@danmaku-anywhere/danmaku-converter'
+import type { EpisodeMeta, WithSeason } from '@danmaku-anywhere/danmaku-model'
 import { useTranslation } from 'react-i18next'
 import { useToast } from '@/common/components/Toast/toastStore'
 import { useFetchDanmakuWithToast } from '@/common/danmaku/queries/useFetchDanmaku'
