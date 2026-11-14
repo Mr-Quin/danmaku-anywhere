@@ -1,6 +1,7 @@
 {
   "name": "@danmaku-anywhere/web-scraper",
   "version": "0.2.0",
+  "private": true,
   "description": "Scrape websites from browser extension context",
   "author": "Mr-Quin",
   "repository": {
@@ -10,21 +11,8 @@
   },
   "license": "MIT",
   "type": "module",
-  "files": [
-    "dist",
-    "!dist/tsconfig.tsbuildinfo"
-  ],
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
-  "publishConfig": {
-    "registry": "https://npm.pkg.github.com",
-    "exports": {
-      ".": {
-        "types": "./dist/src/index.d.ts",
-        "default": "./dist/src/index.js"
-      }
-    }
-  },
   "scripts": {
     "build": "tsgo",
     "lint": "biome check --fix",
