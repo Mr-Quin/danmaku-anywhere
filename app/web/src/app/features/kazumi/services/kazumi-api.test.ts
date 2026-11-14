@@ -85,6 +85,8 @@ describe('kazumi-api', () => {
         useLegacyParser: false,
         userAgent: '',
         referer: '',
+        searchMode: 'xpath',
+        chapterMode: 'xpath',
       },
     })
   })

@@ -76,12 +76,16 @@ import { KazumiService } from '../services/kazumi.service'
               @for (manifest of filteredManifests(); track manifest.name) {
                 @let isImported = isPolicyImported(manifest.name);
                 @let isImporting = kazumiService.$inProgressImports().has(manifest.name);
+                @let importError = kazumiService.$importErrors().get(manifest.name);
                 <div
                   class="p-4 border border-surface-200 dark:border-surface-700 rounded-lg flex justify-between items-center">
                   <div class="flex gap-3 items-start">
                     <div>
                       <div class="font-medium">{{ manifest.name }}</div>
                       <div class="text-sm text-surface-600">版本 {{ manifest.version }}</div>
+                      @if (importError) {
+                        <div class="text-sm text-red-500 mt-1">无法导入：{{ importError }}</div>
+                      }
                     </div>
                   </div>
                   <div class="flex gap-2">

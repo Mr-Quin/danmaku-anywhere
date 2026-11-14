@@ -12,5 +12,6 @@
     {
       "path": "../danmaku-converter"
     }
-  ]
+  ],
+  "exclude": ["**/*.test.ts"]
 }

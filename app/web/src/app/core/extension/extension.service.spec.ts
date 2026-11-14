@@ -1,26 +1,20 @@
 import { TestBed } from '@angular/core/testing'
-import { getExtensionAttr } from '@danmaku-anywhere/extension-protocol'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ExtensionService } from './extension.service'
 import { LATEST_EXTENSION_VERSION } from './latestExtensionVersion'
 
-vi.mock('@danmaku-anywhere/extension-protocol', async (importOriginal) => {
-  const original = await importOriginal<object>()
-  return {
-    ...original,
-    getExtensionAttr: vi.fn(() => ({})),
-  }
-})
-
-const getExtensionAttrMock = vi.mocked(getExtensionAttr)
+function announceExtension(id: string, version: string) {
+  document.documentElement.setAttribute('da-ext-id', id)
+  document.documentElement.setAttribute('da-ext-version', version)
+}
 
 describe('ExtensionService', () => {
   let service: ExtensionService
 
   beforeEach(() => {
     vi.useFakeTimers()
-    getExtensionAttrMock.mockReset()
-    getExtensionAttrMock.mockReturnValue({})
+    document.documentElement.removeAttribute('da-ext-id')
+    document.documentElement.removeAttribute('da-ext-version')
     TestBed.configureTestingModule({})
     service = TestBed.inject(ExtensionService)
   })
@@ -46,7 +40,7 @@ describe('ExtensionService', () => {
   })
 
   it('detects an outdated extension version', async () => {
-    getExtensionAttrMock.mockReturnValue({ id: 'ext-id', version: '0.0.1' })
+    announceExtension('ext-id', '0.0.1')
 
     const init = service.init()
     await vi.advanceTimersByTimeAsync(100)
@@ -60,10 +54,7 @@ describe('ExtensionService', () => {
   })
 
   it('does not flag the latest extension version as outdated', async () => {
-    getExtensionAttrMock.mockReturnValue({
-      id: 'ext-id',
-      version: LATEST_EXTENSION_VERSION,
-    })
+    announceExtension('ext-id', LATEST_EXTENSION_VERSION)
 
     const init = service.init()
     await vi.advanceTimersByTimeAsync(100)

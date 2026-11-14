@@ -9,6 +9,12 @@ export const kazumiSearch = async (
   keyword: string,
   policy: KazumiPolicy
 ): Promise<KazumiSearchResult[]> => {
+  if (policy.searchMode === 'api') {
+    throw new Error(
+      `Rule "${policy.name}" searches through an API, which is not supported`
+    )
+  }
+
   // Replace @keyword in the search URL with the actual keyword
   const searchUrl = policy.searchURL.replace(
     '@keyword',
@@ -105,6 +111,12 @@ export const kazumiGetChapters = async (
   contentUrl: string,
   policy: KazumiPolicy
 ): Promise<KazumiChapterResult[][]> => {
+  if (policy.chapterMode === 'api') {
+    throw new Error(
+      `Rule "${policy.name}" lists chapters through an API, which is not supported`
+    )
+  }
+
   await using tabResource = await createTab(contentUrl)
 
   const { tabId } = tabResource

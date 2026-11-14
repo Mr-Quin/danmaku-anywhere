@@ -68,6 +68,7 @@ import { KazumiService } from '../services/kazumi.service'
             @for (policy of kazumiService.localPoliciesQuery.data(); track policy.name; ) {
               @let importing = kazumiService.$inProgressImports().has(policy.name);
               @let hasNew = hasNewVersion(policy);
+              @let updateError = kazumiService.$importErrors().get(policy.name);
               <li class="p-4 border border-surface-200 dark:border-surface-700 rounded-lg flex gap-3" cdkDrag
                   [cdkDragDisabled]="$count === 1">
                 @if ($count > 1) {
@@ -79,6 +80,9 @@ import { KazumiService } from '../services/kazumi.service'
                     <div>
                       <div class="font-medium">{{ policy.name }}</div>
                       <div class="text-sm text-surface-600">版本 {{ policy.version }}</div>
+                      @if (updateError) {
+                        <div class="text-sm text-red-500 mt-1">无法更新：{{ updateError }}</div>
+                      }
                     </div>
                     @if (hasNew) {
                       <p-tag severity="warn" value="新版本" />

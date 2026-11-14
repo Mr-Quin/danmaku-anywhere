@@ -29,10 +29,14 @@
   "scripts": {
     "build": "tsgo",
     "lint": "biome check --fix",
-    "type-check": "tsgo --noEmit"
+    "type-check": "tsgo --noEmit",
+    "test": "vitest run"
   },
   "dependencies": {
     "@danmaku-anywhere/danmaku-converter": "workspace:^",
     "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "vitest": "^5.0.3"
   }
 }

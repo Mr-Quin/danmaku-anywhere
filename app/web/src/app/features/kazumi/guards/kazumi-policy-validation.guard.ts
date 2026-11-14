@@ -64,11 +64,12 @@ export const validateKazumiPolicy: CanActivateFn = async (
         life: 3000,
       })
       return true
-    } catch (_) {
+    } catch (e) {
+      const reason = e instanceof Error ? e.message : '规则可能不存在'
       messageService.add({
         severity: 'error',
         summary: '规则添加失败',
-        detail: `无法添加规则 "${policyName}"，规则可能不存在`,
+        detail: `无法添加规则 "${policyName}"：${reason}`,
         life: 3000,
       })
       return redirect

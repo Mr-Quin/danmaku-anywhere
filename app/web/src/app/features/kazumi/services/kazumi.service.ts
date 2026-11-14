@@ -6,10 +6,11 @@ import {
   signal,
   untracked,
 } from '@angular/core'
-import type {
-  KazumiPolicy,
-  MediaInfo,
-  SetHeaderRule,
+import {
+  isXPathPolicy,
+  type KazumiPolicy,
+  type MediaInfo,
+  type SetHeaderRule,
 } from '@danmaku-anywhere/extension-protocol'
 import {
   injectMutation,
@@ -32,6 +33,7 @@ import { ExtensionMessagingService } from '../../../core/extension/extension-mes
 import { queryKeys } from '../../../shared/query/queryKeys'
 import { sortArrayByOrder } from '../../../shared/utils/utils'
 import { withTimeout } from '../../../shared/utils/withTimeout'
+import { normalizeStoredPolicy } from '../utils/normalize-stored-policy'
 import { getManifest, getPolicy } from './kazumi-api'
 
 interface Setting<T> {
@@ -96,6 +98,10 @@ export class KazumiService {
   private readonly $_inProgressImports = signal(new Set<string>())
   readonly $inProgressImports = this.$_inProgressImports.asReadonly()
 
+  // why the last import of each policy failed, keyed by policy name
+  private readonly $_importErrors = signal(new Map<string, string>())
+  readonly $importErrors = this.$_importErrors.asReadonly()
+
   // determine if a tab should load its query
   private readonly $_visitedTabs = signal(new Map<string, boolean>())
   readonly $visitedTabs = this.$_visitedTabs.asReadonly()
@@ -133,7 +139,9 @@ export class KazumiService {
 
   private readonly localPoliciesOptions = queryOptions({
     queryFn: async () => {
-      const policies = await this.db.policies.toArray()
+      const policies = (await this.db.policies.toArray()).map(
+        normalizeStoredPolicy
+      )
       const orderSetting = await this.db.getOrders()
 
       return sortArrayByOrder(policies, orderSetting, (p) => p.name)
@@ -182,6 +190,10 @@ export class KazumiService {
       if (!policy.success) throw policy.error
       const policyData = policy.data
 
+      if (!isXPathPolicy(policyData)) {
+        throw new Error('该规则使用 API 模式，当前版本暂不支持')
+      }
+
       await this.db.transaction(
         'rw',
         this.db.policies,
@@ -202,7 +214,16 @@ export class KazumiService {
       return name
     },
     onMutate: (name) => {
+      this.$_importErrors.update((errors) => {
+        const next = new Map(errors)
+        next.delete(name)
+        return next
+      })
       this.$_inProgressImports.update((s) => new Set(s).add(name))
+    },
+    onError: (error, name) => {
+      const reason = error instanceof Error ? error.message : String(error)
+      this.$_importErrors.update((errors) => new Map(errors).set(name, reason))
     },
     onSettled: (_, __, name) => {
       this.$_inProgressImports.update((s) => {
