@@ -7,7 +7,6 @@ const config: KnipConfig = {
     '.': {
       entry: ['scripts/*.{ts,cjs}'],
     },
-    'packages/result': {},
     'packages/integration-policy': {},
     'packages/bangumi-api': {},
     'packages/danmaku-converter': {},

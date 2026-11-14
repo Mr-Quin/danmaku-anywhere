@@ -9,7 +9,6 @@ on:
       - 'packages/danmaku-provider/**'
       - 'packages/extension-protocol/**'
       - 'packages/integration-policy/**'
-      - 'packages/result/**'
       - 'packages/web-scraper/**'
       - 'pnpm-lock.yaml'
       - 'pnpm-workspace.yaml'
