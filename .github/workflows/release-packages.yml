@@ -9,6 +9,7 @@ concurrency:
 
 jobs:
   release:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
 
     permissions:
@@ -49,10 +50,15 @@ jobs:
           for dir in packages/danmaku-model packages/extension-protocol; do
             name=$(jq -r .name "$dir/package.json")
             version=$(jq -r .version "$dir/package.json")
-            if npm view "$name@$version" version >/dev/null 2>&1; then
+            if lookup=$(npm view "$name@$version" version 2>&1); then
               echo "$name@$version is already on npm"
               continue
             fi
-            tarball=$(cd "$dir" && pnpm pack --pack-destination "$out" | tail -n 1)
+            if ! grep -q E404 <<<"$lookup"; then
+              echo "$lookup"
+              exit 1
+            fi
+            tarball="$out/$(basename "$dir").tgz"
+            (cd "$dir" && pnpm pack --out "$tarball")
             npm publish "$tarball" --access public
           done
