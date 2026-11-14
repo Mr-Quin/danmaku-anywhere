@@ -136,6 +136,6 @@ Lefthook runs Biome check on staged files before each commit (auto-fixes formatt
 - Always run `pnpm build:packages` before running the extension in dev mode, since it imports from workspace packages
 - The extension uses `@crxjs/vite-plugin` which has its own HMR behavior — don't confuse with standard Vite
 - `pnpm-lock.yaml` is in `.cursorignore` — don't try to read it
-- The project uses `pnpm@10.11.0` — do not use npm or yarn
+- The project uses `pnpm@11.2.2` — do not use npm or yarn
 - Danmaku Builds (the release manager) lives in `Danmaku-Anywhere/release-manager` now. Never delete the `release-manager-latest` release or its tag here: copies older than 0.5.0 still update through it.
 - The documentation site lives in `Danmaku-Anywhere/docs` now. Its changelog page is regenerated daily from this repo's published releases, so release notes are the place to fix changelog text.

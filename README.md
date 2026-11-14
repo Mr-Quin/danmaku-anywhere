@@ -132,6 +132,8 @@
 ## 🧩 Web 应用
 
 > [https://danmaku.weeblify.app/](https://danmaku.weeblify.app/)
+>
+> 源码位于 [Danmaku-Anywhere/web](https://github.com/Danmaku-Anywhere/web)。
 
 这是一个**实验性项目**，旨在在浏览器中提供类似 Kazumi 的功能。**需要安装*弹幕任何地方*扩展后才可使用**。
 

@@ -1,6 +1,6 @@
 ---
 description: Update AGENTS.md when adding conventions or gotchas to a package
-globs: "app/**/*,packages/**/*,backend/**/*"
+globs: "packages/**/*,backend/**/*"
 alwaysApply: false
 ---
 

@@ -81,7 +81,6 @@
       "packages/danmaku-engine",
       "packages/danmaku-provider",
       "packages/web-scraper",
-      "packages/shared-ui",
       "backend/proxy"
     ]
   },
