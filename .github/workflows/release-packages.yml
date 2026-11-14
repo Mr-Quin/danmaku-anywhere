@@ -12,15 +12,12 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
-      pull-requests: write
+      contents: read
       id-token: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -32,20 +29,30 @@ jobs:
           cache: 'pnpm'
           registry-url: 'https://registry.npmjs.org'
 
+      # Trusted publishing needs npm 11.5.1 or later.
+      - name: Update npm
+        run: npm install -g npm@latest
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Build libraries
         run: pnpm --filter '@danmaku-anywhere/danmaku-model...' --filter '@danmaku-anywhere/extension-protocol...' build
 
-      - name: Version PR or publish
-        uses: changesets/action@v1
-        with:
-          version: pnpm changeset version
-          publish: pnpm changeset publish
-          title: '(chore) version the shared libraries'
-          commit: '(chore) version the shared libraries'
-          createGithubReleases: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # pnpm pack turns workspace:^ into a real version range and applies
+      # publishConfig; npm publish then authenticates through OIDC.
+      - name: Publish versions missing from npm
+        run: |
+          set -euo pipefail
+          out="$RUNNER_TEMP/packs"
+          mkdir -p "$out"
+          for dir in packages/danmaku-model packages/extension-protocol; do
+            name=$(jq -r .name "$dir/package.json")
+            version=$(jq -r .version "$dir/package.json")
+            if npm view "$name@$version" version >/dev/null 2>&1; then
+              echo "$name@$version is already on npm"
+              continue
+            fi
+            tarball=$(cd "$dir" && pnpm pack --pack-destination "$out" | tail -n 1)
+            npm publish "$tarball" --access public
+          done
