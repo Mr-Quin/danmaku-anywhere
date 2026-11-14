@@ -68,22 +68,22 @@ export class ShortcutService {
   }
 
   handleKeydown(event: KeyboardEvent): boolean {
-    if (
-      !this.$_enabled() ||
-      event.defaultPrevented ||
-      keepsOwnKeys(event.target)
-    ) {
+    if (!this.$_enabled() || event.defaultPrevented || event.repeat) {
       return false
     }
 
     const key = event.key.toLowerCase()
 
-    // Opening search works everywhere; the player keys only act while a
-    // player is mounted, so they never swallow a key on another page.
+    // Opening search is a global accelerator, so it fires even while a
+    // control or overlay has focus. The player keys only act while a player
+    // is mounted, so they never swallow a key on another page.
     if ((event.ctrlKey || event.metaKey) && key === 'k') {
       event.preventDefault()
       this.searchService.open()
       return true
+    }
+    if (keepsOwnKeys(event.target)) {
+      return false
     }
     if (event.ctrlKey || event.metaKey || event.altKey) {
       return false
@@ -149,6 +149,12 @@ export class ShortcutService {
       case 'toggleMute':
         player.muted = !player.muted
         return true
+      case 'exitWebFullscreen':
+        if (!player.fullscreenWeb) {
+          return false
+        }
+        player.fullscreenWeb = false
+        return true
       default:
         return false
     }
@@ -174,6 +180,8 @@ function resolveAction(key: string): ShortcutAction | null {
       return 'volumeDown'
     case 'm':
       return 'toggleMute'
+    case 'escape':
+      return 'exitWebFullscreen'
     case '[':
     case 'pageup':
       return 'previousEpisode'

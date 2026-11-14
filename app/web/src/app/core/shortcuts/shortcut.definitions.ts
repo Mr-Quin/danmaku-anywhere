@@ -8,6 +8,7 @@ export type ShortcutAction =
   | 'volumeUp'
   | 'volumeDown'
   | 'toggleMute'
+  | 'exitWebFullscreen'
   | 'previousEpisode'
   | 'nextEpisode'
 
@@ -33,6 +34,7 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { action: 'volumeUp', keys: ['↑'], label: '音量 +10%' },
       { action: 'volumeDown', keys: ['↓'], label: '音量 -10%' },
       { action: 'toggleMute', keys: ['M'], label: '静音 / 取消静音' },
+      { action: 'exitWebFullscreen', keys: ['Esc'], label: '退出网页全屏' },
     ],
   },
   {
