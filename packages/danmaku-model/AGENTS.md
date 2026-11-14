@@ -7,5 +7,6 @@ The shared data model. The canonical schemas in `src/canonical/` (comments, epis
 ## Gotchas
 
 - Changes to the canonical schema affect all downstream consumers (engine, provider, extension, web app)
-- Published to GitHub Packages. In-repo consumers read the top-level `main`/`types`, which point at source; the published package reads `publishConfig`, which points at `dist`. Keep both in sync, and add a changeset (`pnpm changeset`) for changes consumers will see
+- Published, so the web app can install it from outside this repo. In this repo `main`/`types` point at `src/index.ts`; the published package gets `dist` through `publishConfig`. Run `pnpm pack` and check the packed `package.json` after changing either. Add a changeset (`pnpm changeset`) for changes consumers will see
+- `zod` is a peer dependency because the exported schemas are zod objects, so it has to resolve to the same copy the consumer uses
 - See `package.json` for available scripts and dependencies
