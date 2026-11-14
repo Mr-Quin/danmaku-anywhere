@@ -31,7 +31,7 @@ import {
 import { environment } from '../../../../environments/environment'
 import { ExtensionMessagingService } from '../../../core/extension/extension-messaging.service'
 import { queryKeys } from '../../../shared/query/queryKeys'
-import { mapWithConcurrency } from '../../../shared/utils/mapWithConcurrency'
+import { createLimiter } from '../../../shared/utils/createLimiter'
 import { sortArrayByOrder } from '../../../shared/utils/utils'
 import { withTimeout } from '../../../shared/utils/withTimeout'
 import { normalizeStoredPolicy } from '../utils/normalize-stored-policy'
@@ -45,8 +45,9 @@ interface Setting<T> {
 type PolicyOrder = string[]
 const POLICY_ORDER_KEY = 'policyOrder'
 
-// Each rule search opens its own browser window in the extension, so only a
-// few run at a time.
+// Each rule search opens its own browser window in the extension, so searches
+// share one slot pool no matter who starts them or which keyword they belong
+// to.
 const SEARCH_CONCURRENCY = 3
 
 class KazumiDb extends Dexie {
@@ -90,6 +91,7 @@ export class KazumiService {
   private readonly db = new KazumiDb()
   private readonly extensionMessagingService = inject(ExtensionMessagingService)
   private readonly queryClient = inject(QueryClient)
+  private readonly searchSlots = createLimiter(SEARCH_CONCURRENCY)
 
   // active policy for tab
   private readonly $_activePolicy = signal<KazumiPolicy | null>(null)
@@ -314,21 +316,28 @@ export class KazumiService {
         return
       }
       const searchable = policies.filter(isXPathPolicy)
-      void mapWithConcurrency(searchable, SEARCH_CONCURRENCY, (policy) =>
-        this.queryClient.prefetchQuery(this.searchQueryOptions(keyword, policy))
+      void Promise.allSettled(
+        searchable.map((policy) =>
+          this.queryClient.prefetchQuery(
+            this.searchQueryOptions(keyword, policy)
+          )
+        )
       )
     })
   }
 
   private searchQueryOptions(keyword: string, policy: KazumiPolicy) {
+    const trimmedKeyword = keyword.trim()
     return {
-      queryKey: queryKeys.kazumi.search(policy.name, keyword),
+      queryKey: queryKeys.kazumi.search(policy.name, trimmedKeyword),
       queryFn: async () => {
-        return lastValueFrom(
-          this.extensionMessagingService.single('kazumiSearch', {
-            keyword,
-            policy,
-          })
+        return this.searchSlots(() =>
+          lastValueFrom(
+            this.extensionMessagingService.single('kazumiSearch', {
+              keyword: trimmedKeyword,
+              policy,
+            })
+          )
         )
       },
       staleTime: Number.POSITIVE_INFINITY,
