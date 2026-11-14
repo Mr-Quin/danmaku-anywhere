@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Types and small helpers shared by the extension and the pages that message it (the web app). Published, because the web app lives in its own repo.
+Types and small helpers shared by the extension and the pages that message it (the web app). Meant to be published so the web app can use it from outside this repo.
 
 ## Gotchas
 

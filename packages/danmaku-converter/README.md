@@ -4,7 +4,7 @@ Utilities for converting between danmaku formats (e.g. XML to internal format).
 
 ## Usage
 
-Consumed by `danmaku-engine`, `danmaku-provider`, and `web-scraper`. Main entry: `src/index.js` / `src/index.d.ts`.
+Consumed by `danmaku-engine`, `danmaku-provider`, `extension-protocol`, the extension and the web app. Main entry: `src/index.js` / `src/index.d.ts`.
 
 ## Scripts
 
