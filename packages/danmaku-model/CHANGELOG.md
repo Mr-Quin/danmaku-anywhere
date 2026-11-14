@@ -1,7 +1,7 @@
-# @danmaku-anywhere/danmaku-converter
+# @danmaku-anywhere/danmaku-model
 
 ## 0.2.0
 
 ### Minor Changes
 
-- 403182a: First release on GitHub Packages, built to `dist` with type declarations.
+- First release under this name. Earlier versions were published to GitHub Packages as `@danmaku-anywhere/danmaku-converter`.
