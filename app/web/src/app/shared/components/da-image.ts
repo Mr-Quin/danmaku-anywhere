@@ -40,6 +40,14 @@ export class DaImage {
       this.$currentSrc.set(IMAGE_PLACEHOLDER_DATA)
       return
     }
-    this.$currentSrc.set(`${source}#daRetry=1`)
+    this.$currentSrc.set(this.retrySource(source))
+  }
+
+  // A fragment never reaches the server, so it keeps the cached failure. The
+  // query parameter gives the retry its own cache key and a fresh request.
+  private retrySource(source: string): string {
+    const [withoutFragment] = source.split('#')
+    const separator = withoutFragment.includes('?') ? '&' : '?'
+    return `${withoutFragment}${separator}daRetry=1`
   }
 }
