@@ -182,6 +182,63 @@ describe('ShortcutService', () => {
     expect(player.toggle).not.toHaveBeenCalled()
   })
 
+  it('ignores textareas and selects', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+
+    for (const field of [
+      document.createElement('textarea'),
+      document.createElement('select'),
+    ]) {
+      expect(service.handleKeydown(keydownFrom(field, 'm'))).toBe(false)
+    }
+    expect(player.muted).toBe(false)
+  })
+
+  it('leaves keys to widgets you type into, like a PrimeNG select', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+
+    for (const role of [
+      'combobox',
+      'textbox',
+      'searchbox',
+      'spinbutton',
+      'slider',
+    ]) {
+      const widget = document.createElement('span')
+      widget.setAttribute('role', role)
+      const inner = document.createElement('span')
+      widget.append(inner)
+      expect(service.handleKeydown(keydownFrom(widget, 'm'))).toBe(false)
+      expect(service.handleKeydown(keydownFrom(inner, 'm'))).toBe(false)
+    }
+    expect(player.muted).toBe(false)
+  })
+
+  it('ignores typing in a field inside a shadow root', () => {
+    const player = fakePlayer()
+    mountPlayer(player)
+    const host = document.createElement('div')
+    const input = document.createElement('input')
+    host.attachShadow({ mode: 'open' }).append(input)
+    document.body.append(host)
+
+    // The document listener sees the event retargeted to the shadow host, and
+    // the browser clears the path once dispatch ends, so handle it in flight.
+    let handled: boolean | undefined
+    const listener = (event: Event) => {
+      handled = service.handleKeydown(event as KeyboardEvent)
+    }
+    document.addEventListener('keydown', listener)
+    input.dispatchEvent(keydown('m', { bubbles: true, composed: true }))
+    document.removeEventListener('keydown', listener)
+    host.remove()
+
+    expect(handled).toBe(false)
+    expect(player.muted).toBe(false)
+  })
+
   it('leaves space and enter to a focused button', () => {
     const player = fakePlayer()
     mountPlayer(player)

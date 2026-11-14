@@ -17,6 +17,21 @@ interface EpisodeHandlers {
 // link or PrimeNG widget keeps its own keyboard behaviour.
 const INTERACTIVE_TAGS = new Set(['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'])
 
+// Overlays, plus widgets that take typed input without being a native field:
+// a PrimeNG select is a `span[role=combobox]` whose letters jump to options.
+const KEY_OWNING_ROLES = [
+  'dialog',
+  'menu',
+  'listbox',
+  'combobox',
+  'textbox',
+  'searchbox',
+  'spinbutton',
+  'slider',
+]
+  .map((role) => `[role="${role}"]`)
+  .join(', ')
+
 function keepsOwnKeys(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) {
     return false
@@ -24,9 +39,7 @@ function keepsOwnKeys(target: EventTarget | null): boolean {
   if (target.isContentEditable || INTERACTIVE_TAGS.has(target.tagName)) {
     return true
   }
-  return (
-    target.closest('[role="dialog"], [role="menu"], [role="listbox"]') !== null
-  )
+  return target.closest(KEY_OWNING_ROLES) !== null
 }
 
 function readEnabled(): boolean {
@@ -82,7 +95,9 @@ export class ShortcutService {
       this.searchService.open()
       return true
     }
-    if (keepsOwnKeys(event.target)) {
+    // A field inside a shadow root (the extension's panel is one) reaches the
+    // document retargeted to its host, so look at where the key really landed.
+    if (keepsOwnKeys(event.composedPath()[0] ?? event.target)) {
       return false
     }
     if (event.ctrlKey || event.metaKey || event.altKey) {
